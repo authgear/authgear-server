@@ -283,10 +283,12 @@
   "AddPhoneScreen.country-code.label": "Country Code",
   "AddPhoneScreen.error.duplicated-phone-number": "Phone number already exist",
 
-  "AddUsernameScreen.title": "Add Username",
-  "AddUsernameScreen.username.label": "Username",
-  "AddUsernameScreen.password.label": "Password",
-  "AddUsernameScreen.error.duplicated-username": "Username already exist",
+  "UsernameScreen.add.title": "Add Username",
+  "UsernameScreen.edit.title": "Edit Username",
+  "UsernameScreen.username.label": "Username",
+  "UsernameScreen.password.label": "Password",
+  "UsernameScreen.error.duplicated-username": "Username already exist",
+  "UsernameScreen.edit.current-value": "Current username: {value}",
 
   "EditPictureScreen.title": "Edit Profile Picture",
   "EditPictureScreen.upload-new-picture.label": "Upload New Picture",

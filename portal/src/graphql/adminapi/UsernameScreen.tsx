@@ -6,7 +6,7 @@ import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQu
 import { useUserQuery } from "./query/userQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import FormTextField from "../../FormTextField";
-import AddIdentityForm from "./AddIdentityForm";
+import IdentityForm from "./IdentityForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import {
@@ -14,12 +14,12 @@ import {
   makeInvariantViolatedErrorParseRule,
 } from "../../error/parse";
 
-import styles from "./AddUsernameScreen.module.css";
+import styles from "./UsernameScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(
     "DuplicatedIdentity",
-    "AddUsernameScreen.error.duplicated-username"
+    "UsernameScreen.error.duplicated-username"
   ),
 ];
 
@@ -41,7 +41,7 @@ const UsernameField: React.VFC<UsernameFieldProps> = function UsernameField(
     <FormTextField
       parentJSONPointer=""
       fieldName="login_id"
-      label={renderToString("AddUsernameScreen.username.label")}
+      label={renderToString("UsernameScreen.username.label")}
       className={styles.widget}
       value={value}
       onChange={onUsernameChange}
@@ -50,8 +50,12 @@ const UsernameField: React.VFC<UsernameFieldProps> = function UsernameField(
   );
 };
 
-const AddUsernameScreen: React.VFC = function AddUsernameScreen() {
-  const { appID, userID } = useParams() as { appID: string; userID: string };
+const UsernameScreen: React.VFC = function UsernameScreen() {
+  const { appID, userID, identityID } = useParams() as {
+    appID: string;
+    userID: string;
+    identityID?: string;
+  };
   const {
     user,
     loading: loadingUser,
@@ -72,9 +76,48 @@ const AddUsernameScreen: React.VFC = function AddUsernameScreen() {
         to: `~/users/${user?.id}/details`,
         label: <FormattedMessage id="UserDetailsScreen.title" />,
       },
-      { to: ".", label: <FormattedMessage id="AddUsernameScreen.title" /> },
+      {
+        to: ".",
+        label: identityID ? (
+          <FormattedMessage id="UsernameScreen.edit.title" />
+        ) : (
+          <FormattedMessage id="UsernameScreen.add.title" />
+        ),
+      },
     ];
-  }, [user?.id]);
+  }, [identityID, user?.id]);
+
+  const originalIdentity = useMemo(() => {
+    if (!identityID) {
+      return null;
+    }
+    const identity = user?.identities?.edges?.find((edge) => {
+      const node = edge?.node;
+      return (
+        node != null && node.id === identityID && node.claims.preferred_username
+      );
+    });
+    if (identity == null) {
+      return null;
+    }
+    return {
+      id: identity.node!.id,
+      value: identity.node!.claims.preferred_username!,
+    };
+  }, [identityID, user?.identities?.edges]);
+
+  const currentValueMessage = useMemo(() => {
+    if (originalIdentity == null) {
+      return null;
+    }
+    return (
+      <FormattedMessage
+        id="UsernameScreen.edit.current-value"
+        values={{ value: originalIdentity.value }}
+      />
+    );
+  }, [originalIdentity]);
+
   const title = (
     <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
   );
@@ -92,7 +135,9 @@ const AddUsernameScreen: React.VFC = function AddUsernameScreen() {
   }
 
   return (
-    <AddIdentityForm
+    <IdentityForm
+      originalIdentityID={originalIdentity?.id ?? null}
+      currentValueMessage={currentValueMessage}
       appConfig={effectiveAppConfig}
       rawUser={user}
       loginIDType="username"
@@ -102,4 +147,4 @@ const AddUsernameScreen: React.VFC = function AddUsernameScreen() {
   );
 };
 
-export default AddUsernameScreen;
+export default UsernameScreen;

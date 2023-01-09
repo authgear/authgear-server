@@ -12,7 +12,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import AddIdentityForm, { LoginIDFieldProps } from "./AddIdentityForm";
+import IdentityForm, { LoginIDFieldProps } from "./IdentityForm";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import {
@@ -123,7 +123,8 @@ const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
 
   return (
     <PhoneContext.Provider value={contextValue}>
-      <AddIdentityForm
+      <IdentityForm
+        originalIdentityID={null}
         appConfig={effectiveAppConfig}
         rawUser={user}
         loginIDType="phone"

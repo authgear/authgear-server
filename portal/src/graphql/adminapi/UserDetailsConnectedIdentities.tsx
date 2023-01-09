@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
-import { useNavigate, useParams } from "react-router-dom";
+import { generatePath, useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
@@ -21,6 +21,7 @@ import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import {
+  LoginIDKeyType,
   NFT,
   NFTContract,
   NFTToken,
@@ -92,12 +93,10 @@ interface OAuthIdentityListItem {
   connectedOn: string;
 }
 
-type LoginIDKey = "email" | "phone" | "username";
-
 interface LoginIDIdentityListItem {
   id: string;
   type: "login_id";
-  loginIDKey: LoginIDKey;
+  loginIDKey: LoginIDKeyType;
   claimName: string;
   claimValue: string;
   verified?: boolean;
@@ -681,12 +680,8 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
 };
 
 interface LoginIDIdentityListCellProps extends BaseIdentityListCellProps {
-  loginIDKey: LoginIDKey;
-  onEditClicked: (
-    identityID: string,
-    identityName: string,
-    loginIDKey: LoginIDKey
-  ) => void;
+  loginIDKey: LoginIDKeyType;
+  onEditClicked: (identityID: string, loginIDKey: LoginIDKeyType) => void;
 }
 
 const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
@@ -708,8 +703,8 @@ const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
   } = props;
 
   const onEditClicked = useCallback(() => {
-    _onEditClicked(identityID, identityName, loginIDKey);
-  }, [_onEditClicked, identityID, identityName, loginIDKey]);
+    _onEditClicked(identityID, loginIDKey);
+  }, [_onEditClicked, identityID, loginIDKey]);
 
   return (
     <ListCellLayout className={styles.cellContainer}>
@@ -1041,8 +1036,19 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
     );
 
     const onEditLoginIDClicked = useCallback(
-      (identityID: string, identityName: string, loginIDKey: LoginIDKey) => {},
-      []
+      (identityID: string, loginIDKey: LoginIDKeyType) => {
+        switch (loginIDKey) {
+          case "username":
+            navigate(
+              generatePath("./edit-username/:identityID", { identityID })
+            );
+            break;
+
+          default:
+            break;
+        }
+      },
+      [navigate]
     );
 
     const onDismissConfirmationDialog = useCallback(() => {
@@ -1147,7 +1153,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             return null;
         }
       },
-      [onRemoveClicked, setVerifiedStatus, renderToString]
+      [renderToString, setVerifiedStatus, onRemoveClicked, onEditLoginIDClicked]
     );
 
     const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
