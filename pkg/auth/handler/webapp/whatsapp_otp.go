@@ -144,7 +144,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var state WhatsappOTPPageQueryState
-		err = h.WhatsappCodeProvider.VerifyCode(phone, true)
+		err = h.WhatsappCodeProvider.VerifyCode(phone, false)
 		if err == nil {
 			state = WhatsappOTPPageQueryStateMatched
 		} else if errors.Is(err, otp.ErrInvalidCode) {
