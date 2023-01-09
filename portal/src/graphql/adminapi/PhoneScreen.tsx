@@ -22,12 +22,12 @@ import {
 import { PortalAPIAppConfig } from "../../types";
 import FormPhoneTextField from "../../FormPhoneTextField";
 
-import styles from "./AddPhoneScreen.module.css";
+import styles from "./PhoneScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(
     "DuplicatedIdentity",
-    "AddPhoneScreen.error.duplicated-phone-number"
+    "PhoneScreen.error.duplicated-phone-number"
   ),
 ];
 
@@ -66,8 +66,12 @@ function LoginIDField(props: LoginIDFieldProps) {
   );
 }
 
-const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
-  const { appID, userID } = useParams() as { appID: string; userID: string };
+const PhoneScreen: React.VFC = function PhoneScreen() {
+  const { appID, userID, identityID } = useParams() as {
+    appID: string;
+    userID: string;
+    identityID?: string;
+  };
   const {
     user,
     loading: loadingUser,
@@ -88,15 +92,51 @@ const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
         to: `~/users/${user?.id}/details`,
         label: <FormattedMessage id="UserDetailsScreen.title" />,
       },
-      { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
+      {
+        to: ".",
+        label: identityID ? (
+          <FormattedMessage id="PhoneScreen.edit.title" />
+        ) : (
+          <FormattedMessage id="PhoneScreen.add.title" />
+        ),
+      },
     ];
-  }, [user?.id]);
+  }, [identityID, user?.id]);
 
   const [resetToken, setResetToken] = useState({});
 
   const onReset = useCallback(() => {
     setResetToken({});
   }, []);
+
+  const originalIdentity = useMemo(() => {
+    if (!identityID) {
+      return null;
+    }
+    const identity = user?.identities?.edges?.find((edge) => {
+      const node = edge?.node;
+      return node != null && node.id === identityID && node.claims.phone_number;
+    });
+    if (identity == null) {
+      return null;
+    }
+    return {
+      id: identity.node!.id,
+      value: identity.node!.claims.phone_number!,
+    };
+  }, [identityID, user?.identities?.edges]);
+
+  const currentValueMessage = useMemo(() => {
+    if (originalIdentity == null) {
+      return null;
+    }
+    return (
+      <FormattedMessage
+        id="PhoneScreen.edit.current-value"
+        values={{ value: originalIdentity.value }}
+      />
+    );
+  }, [originalIdentity]);
 
   const contextValue = useMemo(() => {
     return {
@@ -124,7 +164,8 @@ const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
   return (
     <PhoneContext.Provider value={contextValue}>
       <IdentityForm
-        originalIdentityID={null}
+        originalIdentityID={originalIdentity?.id ?? null}
+        currentValueMessage={currentValueMessage}
         appConfig={effectiveAppConfig}
         rawUser={user}
         loginIDType="phone"
@@ -136,4 +177,4 @@ const AddPhoneScreen: React.VFC = function AddPhoneScreen() {
   );
 };
 
-export default AddPhoneScreen;
+export default PhoneScreen;
