@@ -2,11 +2,13 @@ package webapp
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -77,16 +79,39 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	ctrl.PostAction("", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = ConfirmTerminateOtherSessionsSchema.Validator().ValidateValue(FormToJSON(r.Form))
-			if err != nil {
-				return
+		err = ConfirmTerminateOtherSessionsSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		session, err := ctrl.InteractionSession()
+		if err != nil {
+			return err
+		}
+
+		response := r.Form.Get("x_response")
+		var isConfirmed = response == "confirm"
+
+		if !isConfirmed {
+			// If cancelled, forget all existing steps
+			session.Steps = []webapp.SessionStep{}
+			if err = ctrl.Page.UpdateSession(session); err != nil {
+				return err
 			}
+			u := webapp.MakeRelativeURL("/flows/select_account", url.Values{})
+			result := &webapp.Result{
+				RedirectURI: u.String(),
+				RemoveQueries: setutil.Set[string]{
+					"x_step": struct{}{},
+				},
+			}
+			result.WriteResponse(w, r)
+			return nil
+		}
 
-			response := r.Form.Get("x_response")
-
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputConfirmTerminateOtherSessions{
-				IsConfirm: response == "confirm",
+				IsConfirm: isConfirmed,
 			}
 			return
 		})
