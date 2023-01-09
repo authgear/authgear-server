@@ -3,6 +3,7 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -62,4 +63,23 @@ func AntiSpamSendOOBCodeBucket(oobType OOBType, target string) ratelimit.Bucket 
 		Size:        1,
 		ResetPeriod: duration.PerMinute,
 	}
+}
+
+type OTPCodeBucket struct {
+	Bucket ratelimit.Bucket
+}
+
+func ProvideOTPCodeBucket(cfg *config.OTPConfig) OTPCodeBucket {
+	return OTPCodeBucket{
+		Bucket: ratelimit.Bucket{
+			Size:        1,
+			ResetPeriod: cfg.SMS.ResendCooldownSeconds.Duration(),
+		},
+	}
+}
+
+func AntiSpamOTPCodeBucket(target string) OTPCodeBucket {
+	b := OTPCodeBucket{}
+	b.Bucket.Key = fmt.Sprintf("otp-code:%s", target)
+	return b
 }
