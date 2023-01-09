@@ -73,7 +73,6 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		viewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 		target := n.GetOOBOTPTarget()
-		oobType := n.GetOOBOTPOOBType()
 		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case model.AuthenticatorOOBChannelEmail:
 			viewModel.OOBOTPTarget = mail.MaskAddress(target)
@@ -81,7 +80,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
-		bucket := interaction.AntiSpamSendOOBCodeBucket(oobType, target)
+		bucket := interaction.AntiSpamOTPCodeBucket(target).Bucket
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err
