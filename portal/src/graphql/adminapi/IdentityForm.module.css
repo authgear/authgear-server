@@ -6,7 +6,7 @@
 
 .currentValue {
   grid-column: 1 / span 8;
-  margin-bottom: -20px;
+  margin-bottom: -12px;
   @apply tablet:col-span-full;
 }
 

@@ -278,10 +278,12 @@
   "AddEmailScreen.email.label": "Email",
   "AddEmailScreen.error.duplicated-email": "Email already exist",
 
-  "AddPhoneScreen.title": "Add Phone",
-  "AddPhoneScreen.phone.label": "Phone Number",
-  "AddPhoneScreen.country-code.label": "Country Code",
-  "AddPhoneScreen.error.duplicated-phone-number": "Phone number already exist",
+  "PhoneScreen.add.title": "Add Phone",
+  "PhoneScreen.edit.title": "Edit Phone",
+  "PhoneScreen.phone.label": "Phone Number",
+  "PhoneScreen.country-code.label": "Country Code",
+  "PhoneScreen.error.duplicated-phone-number": "Phone number already exist",
+  "PhoneScreen.edit.current-value": "Current phone: {value}",
 
   "UsernameScreen.add.title": "Add Username",
   "UsernameScreen.edit.title": "Edit Username",

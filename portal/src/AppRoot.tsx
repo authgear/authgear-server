@@ -19,9 +19,7 @@ const UserDetailsScreen = lazy(
 const AddEmailScreen = lazy(
   async () => import("./graphql/adminapi/AddEmailScreen")
 );
-const AddPhoneScreen = lazy(
-  async () => import("./graphql/adminapi/AddPhoneScreen")
-);
+const PhoneScreen = lazy(async () => import("./graphql/adminapi/PhoneScreen"));
 const UsernameScreen = lazy(
   async () => import("./graphql/adminapi/UsernameScreen")
 );
@@ -242,7 +240,15 @@ const AppRoot: React.VFC = function AppRoot() {
                     path="add-phone"
                     element={
                       <Suspense fallback={<ShowLoading />}>
-                        <AddPhoneScreen />
+                        <PhoneScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="edit-phone/:identityID"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <PhoneScreen />
                       </Suspense>
                     }
                   />
