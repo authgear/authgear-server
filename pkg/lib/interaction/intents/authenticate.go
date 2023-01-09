@@ -29,7 +29,6 @@ type IntentAuthenticate struct {
 	SuppressIDPSessionCookie bool                   `json:"suppress_idp_session_cookie"`
 	WebhookState             string                 `json:"webhook_state"`
 	UserIDHint               string                 `json:"user_id_hint,omitempty"`
-	CancelURI                string                 `json:"cancel_uri"`
 }
 
 func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
@@ -358,7 +357,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
 	case *nodes.NodePromptCreatePasskeyEnd:
-		if i.Kind == IntentAuthenticateKindLogin && i.isCancellable() {
+		if i.Kind == IntentAuthenticateKindLogin || i.Kind == IntentAuthenticateKindSignup {
 			return []interaction.Edge{
 				&nodes.EdgeConfirmTerminateOtherSessionsBegin{},
 			}, nil
@@ -366,13 +365,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			return ensureSession()
 		}
 	case *nodes.NodeConfirmTerminateOtherSessionsEnd:
-		if node.IsConfirmed {
-			return ensureSession()
-		} else {
-			return []interaction.Edge{
-				&nodes.EdgeCancelInteraction{},
-			}, nil
-		}
+		return ensureSession()
 	case *nodes.NodeDoEnsureSession:
 		// Intent is finished
 		return nil, nil
@@ -385,13 +378,4 @@ func (i *IntentAuthenticate) GetWebhookState() string {
 	return i.WebhookState
 }
 
-func (i *IntentAuthenticate) GetCancelURI() string {
-	return i.CancelURI
-}
-
 var _ interaction.IntentWithWebhookState = &IntentAuthenticate{}
-var _ interaction.IntentWithCancelURI = &IntentAuthenticate{}
-
-func (i *IntentAuthenticate) isCancellable() bool {
-	return i.GetCancelURI() != ""
-}

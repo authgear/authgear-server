@@ -332,16 +332,7 @@ func (s *Service2) doPost(
 		}
 	}
 
-	isCancelled := false
-	switch graph.CurrentNode().(type) {
-	case *nodes.NodeCancelInteraction:
-		isCancelled = true
-	}
-	if isCancelled {
-		err = nil
-	}
-
-	err = s.afterPost(result, session, graph, err, isCancelled, isFinished, isNewGraph)
+	err = s.afterPost(result, session, graph, err, isFinished, isNewGraph)
 	if err != nil {
 		return nil, err
 	}
@@ -401,11 +392,10 @@ func (s *Service2) afterPost(
 	session *Session,
 	graph *interaction.Graph,
 	interactionErr error,
-	isCancelled bool,
 	isFinished bool,
 	isNewGraph bool,
 ) error {
-	if isFinished && !isCancelled {
+	if isFinished {
 		// The graph finished. Apply its effect permanently.
 		s.Logger.Debugf("interaction: commit graph")
 		interactionErr = s.Graph.Run(session.ID, graph)
@@ -425,7 +415,7 @@ func (s *Service2) afterPost(
 		}
 		result.IsInteractionErr = true
 		result.Cookies = append(result.Cookies, errCookie)
-	} else if isFinished && !isCancelled {
+	} else if isFinished {
 		// Loop from start to end to collect cookies.
 		// This iteration order allows newer node to overwrite cookies.
 		for _, node := range graph.Nodes {
@@ -436,21 +426,18 @@ func (s *Service2) afterPost(
 	}
 
 	// Transition to redirect URI
-	if isFinished || isCancelled {
+	if isFinished {
 		result.RemoveQueries = setutil.Set[string]{
 			"x_step": struct{}{},
 		}
-		result.RedirectURI = s.deriveRedirectURI(session, graph)
-
+		result.RedirectURI = s.deriveFinishRedirectURI(session, graph)
 		switch graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
 			result.NavigationAction = "redirect"
 			// Marked signed up in cookie after authorization.
 			// When user visit auth ui root "/", redirect user to "/login" if
 			// cookie exists
-			if isFinished && !isCancelled {
-				result.Cookies = append(result.Cookies, s.Cookies.ValueCookie(s.SignedUpCookie.Def, "true"))
-			}
+			result.Cookies = append(result.Cookies, s.Cookies.ValueCookie(s.SignedUpCookie.Def, "true"))
 		default:
 			// Use the default navigation action for any other intents.
 			// That is, "advance" will be used.
@@ -483,7 +470,7 @@ func (s *Service2) afterPost(
 	session.Extra = collectExtras(graph.CurrentNode())
 
 	// Persist/discard session
-	if isFinished && !session.KeepAfterFinish && !isCancelled {
+	if isFinished && !session.KeepAfterFinish {
 		err := s.Sessions.Delete(session.ID)
 		if err != nil {
 			return err
@@ -508,14 +495,12 @@ func (s *Service2) afterPost(
 	return nil
 }
 
-func (s *Service2) deriveRedirectURI(session *Session, graph *interaction.Graph) string {
-	switch node := graph.CurrentNode().(type) {
+func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
+	switch graph.CurrentNode().(type) {
 	case *nodes.NodeForgotPasswordEnd:
 		return "/flows/forgot_password/success"
 	case *nodes.NodeResetPasswordEnd:
 		return "/flows/reset_password/success"
-	case *nodes.NodeCancelInteraction:
-		return node.GetRedirectURI()
 	}
 
 	// 1. WebSession's Redirect URL (e.g. authorization endpoint, settings page)

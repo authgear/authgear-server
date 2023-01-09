@@ -19,18 +19,14 @@ func (e *EdgeConfirmTerminateOtherSessionsEnd) Instantiate(ctx *interaction.Cont
 	clientID := ctx.Request.URL.Query().Get("client_id")
 	client, success := ctx.Config.OAuth.GetClient(clientID)
 	if clientID == "" || !success || client.MaxConcurrentSession != 1 {
-		return &NodeConfirmTerminateOtherSessionsEnd{
-			IsConfirmed: true,
-		}, nil
+		return &NodeConfirmTerminateOtherSessionsEnd{}, nil
 	}
 	existingGrants, err := ctx.OfflineGrants.ListClientOfflineGrants(client.ClientID, graph.MustGetUserID())
 	if err != nil {
 		return nil, err
 	}
 	if len(existingGrants) == 0 {
-		return &NodeConfirmTerminateOtherSessionsEnd{
-			IsConfirmed: true,
-		}, nil
+		return &NodeConfirmTerminateOtherSessionsEnd{}, nil
 	}
 
 	var confirmInput InputConfirmTerminateOtherSessionsEnd
@@ -38,13 +34,10 @@ func (e *EdgeConfirmTerminateOtherSessionsEnd) Instantiate(ctx *interaction.Cont
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	return &NodeConfirmTerminateOtherSessionsEnd{
-		IsConfirmed: confirmInput.GetIsConfirmed(),
-	}, nil
+	return &NodeConfirmTerminateOtherSessionsEnd{}, nil
 }
 
 type NodeConfirmTerminateOtherSessionsEnd struct {
-	IsConfirmed bool `json:"is_confirmed"`
 }
 
 func (n *NodeConfirmTerminateOtherSessionsEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
