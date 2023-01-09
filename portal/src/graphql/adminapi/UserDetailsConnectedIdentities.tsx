@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogFooter,
   Icon,
+  IContextualMenuItem,
   IContextualMenuProps,
   List,
   Text,
@@ -493,6 +494,113 @@ const BaseIdentityListCellButtonGroup: React.VFC<
   );
 };
 
+interface BaseIdentityListCellActionButtonProps {
+  identityID?: string;
+  identityType: IdentityType;
+  identityName?: string;
+  claimName?: string;
+  claimValue?: string;
+  verified?: boolean;
+  setVerifiedStatus?: (
+    claimName: string,
+    claimValue: string,
+    verified: boolean
+  ) => Promise<boolean>;
+  onRemoveClicked?: (identityID: string, identityName: string) => void;
+}
+
+const BaseIdentityListCellActionButton: React.VFC<
+  BaseIdentityListCellActionButtonProps
+> = (props) => {
+  const {
+    identityID,
+    identityType,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    setVerifiedStatus,
+    onRemoveClicked: _onRemoveClicked,
+  } = props;
+
+  const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
+  const loading = useIsLoading();
+  const [verifying, setVerifying] = useState(false);
+  const onRemoveClicked = useCallback(() => {
+    if (identityID == null || identityName == null) {
+      return;
+    }
+
+    _onRemoveClicked?.(identityID, identityName);
+  }, [identityID, identityName, _onRemoveClicked]);
+
+  const onVerifyClicked = useCallback(
+    (verified: boolean) => {
+      if (claimName === undefined || claimValue === undefined) {
+        return;
+      }
+      setVerifying(true);
+      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
+        setVerifying(false);
+      });
+    },
+    [setVerifiedStatus, claimName, claimValue]
+  );
+
+  const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
+
+  const menuItems = useMemo<IContextualMenuItem[]>(() => {
+    const items: IContextualMenuItem[] = [];
+    if (shouldShowVerifyButton) {
+      items.push({
+        key: "verify",
+        text: renderToString(
+          verified ? "make-as-unverified" : "make-as-verified"
+        ),
+        onClick: () => onVerifyClicked(!verified),
+        disabled: verifying,
+      });
+    }
+    if (removeButtonTextId[identityType] !== "") {
+      items.push({
+        key: "remove",
+        text: renderToString(removeButtonTextId[identityType]),
+        onClick: () => onRemoveClicked(),
+      });
+    }
+    return items;
+  }, [
+    identityType,
+    onRemoveClicked,
+    onVerifyClicked,
+    renderToString,
+    shouldShowVerifyButton,
+    verified,
+    verifying,
+  ]);
+
+  const menuProps = useMemo<IContextualMenuProps>(() => {
+    return {
+      shouldFocusOnMount: true,
+      items: menuItems,
+    };
+  }, [menuItems]);
+
+  return (
+    <div className={styles.actionButton}>
+      {menuItems.length > 0 ? (
+        <DefaultButton
+          disabled={loading}
+          theme={themes.main}
+          text={<FormattedMessage id="action" />}
+          menuProps={menuProps}
+        />
+      ) : null}
+    </div>
+  );
+};
+
 interface BaseIdentityListCellProps {
   icon: React.ReactNode;
   identityID: string;
@@ -536,7 +644,7 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
           values={{ datetime: connectedOn }}
         />
       </BaseIdentityListCellDescription>
-      <BaseIdentityListCellButtonGroup
+      <BaseIdentityListCellActionButton
         verified={verified}
         identityID={identityID}
         identityName={identityName}
