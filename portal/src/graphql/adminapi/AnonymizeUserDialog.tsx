@@ -49,7 +49,7 @@ const AnonymizeUserDialog: React.VFC<AnonymizeUserDialogProps> = React.memo(
       onDismiss(false);
     }, [loading, isHidden, onDismiss]);
 
-    const onClickRemove = useCallback(() => {
+    const onClickAnonymize = useCallback(() => {
       if (loading || isHidden) {
         return;
       }
@@ -65,7 +65,6 @@ const AnonymizeUserDialog: React.VFC<AnonymizeUserDialogProps> = React.memo(
       scheduleAccountAnonymization(userID)
         .then(() => onDismiss(true))
         .catch(() => onDismiss(false));
-      onDismiss(false);
     }, [loading, isHidden, scheduleAccountAnonymization, userID, onDismiss]);
 
     const dialogContentProps: IDialogContentProps = useMemo(
@@ -98,7 +97,7 @@ const AnonymizeUserDialog: React.VFC<AnonymizeUserDialogProps> = React.memo(
             ) : null}
             <PrimaryButton
               theme={themes.destructive}
-              onClick={onClickRemove}
+              onClick={onClickAnonymize}
               disabled={loading}
               text={
                 <FormattedMessage id="AnonymizeUserDialog.label.remove-immediately" />

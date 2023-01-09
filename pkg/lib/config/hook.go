@@ -38,6 +38,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 			"user.pre_create",
 			"user.profile.pre_update",
 			"user.pre_schedule_deletion",
+			"user.pre_schedule_anonymization",
 			"user.session.jwt.pre_create"
 
 		] },
