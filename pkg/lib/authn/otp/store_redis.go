@@ -19,7 +19,7 @@ type StoreRedis struct {
 	Clock clock.Clock
 }
 
-func (s *StoreRedis) Create(target string, code *Code) error {
+func (s *StoreRedis) set(target string, code *Code) error {
 	ctx := context.Background()
 	data, err := json.Marshal(code)
 	if err != nil {
@@ -30,7 +30,7 @@ func (s *StoreRedis) Create(target string, code *Code) error {
 		codeKey := redisCodeKey(s.AppID, target)
 		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
 
-		_, err := conn.SetNX(ctx, codeKey, data, ttl).Result()
+		_, err := conn.SetEX(ctx, codeKey, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("duplicated code")
 		} else if err != nil {
@@ -39,6 +39,10 @@ func (s *StoreRedis) Create(target string, code *Code) error {
 
 		return nil
 	})
+}
+
+func (s *StoreRedis) Create(target string, code *Code) error {
+	return s.set(target, code)
 }
 
 func (s *StoreRedis) Get(target string) (*Code, error) {
@@ -64,25 +68,7 @@ func (s *StoreRedis) Get(target string) (*Code, error) {
 }
 
 func (s *StoreRedis) Update(target string, code *Code) error {
-	ctx := context.Background()
-	data, err := json.Marshal(code)
-	if err != nil {
-		return err
-	}
-
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		codeKey := redisCodeKey(s.AppID, target)
-		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
-
-		_, err := conn.SetEX(ctx, codeKey, data, ttl).Result()
-		if errors.Is(err, goredis.Nil) {
-			return errors.New("duplicated code")
-		} else if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	return s.set(target, code)
 }
 
 func (s *StoreRedis) Delete(target string) error {
