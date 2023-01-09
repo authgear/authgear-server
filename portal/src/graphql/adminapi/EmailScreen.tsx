@@ -13,12 +13,12 @@ import {
   makeInvariantViolatedErrorParseRule,
 } from "../../error/parse";
 
-import styles from "./AddEmailScreen.module.css";
+import styles from "./EmailScreen.module.css";
 
 const errorRules: ErrorParseRule[] = [
   makeInvariantViolatedErrorParseRule(
     "DuplicatedIdentity",
-    "AddEmailScreen.error.duplicated-email"
+    "EmailScreen.error.duplicated-email"
   ),
 ];
 
@@ -39,7 +39,7 @@ const EmailField: React.VFC<EmailFieldProps> = function EmailField(props) {
       className={styles.widget}
       parentJSONPointer=""
       fieldName="login_id"
-      label={renderToString("AddEmailScreen.email.label")}
+      label={renderToString("EmailScreen.email.label")}
       value={value}
       onChange={onEmailChange}
       errorRules={errorRules}
@@ -47,8 +47,12 @@ const EmailField: React.VFC<EmailFieldProps> = function EmailField(props) {
   );
 };
 
-const AddEmailScreen: React.VFC = function AddEmailScreen() {
-  const { appID, userID } = useParams() as { appID: string; userID: string };
+const EmailScreen: React.VFC = function EmailScreen() {
+  const { appID, userID, identityID } = useParams() as {
+    appID: string;
+    userID: string;
+    identityID?: string;
+  };
   const {
     user,
     loading: loadingUser,
@@ -69,12 +73,48 @@ const AddEmailScreen: React.VFC = function AddEmailScreen() {
         to: `~/users/${user?.id}/details`,
         label: <FormattedMessage id="UserDetailsScreen.title" />,
       },
-      { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
+      {
+        to: ".",
+        label: identityID ? (
+          <FormattedMessage id="EmailScreen.edit.title" />
+        ) : (
+          <FormattedMessage id="EmailScreen.add.title" />
+        ),
+      },
     ];
-  }, [user?.id]);
+  }, [identityID, user?.id]);
   const title = (
     <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
   );
+
+  const originalIdentity = useMemo(() => {
+    if (!identityID) {
+      return null;
+    }
+    const identity = user?.identities?.edges?.find((edge) => {
+      const node = edge?.node;
+      return node != null && node.id === identityID && node.claims.email;
+    });
+    if (identity == null) {
+      return null;
+    }
+    return {
+      id: identity.node!.id,
+      value: identity.node!.claims.email!,
+    };
+  }, [identityID, user?.identities?.edges]);
+
+  const currentValueMessage = useMemo(() => {
+    if (originalIdentity == null) {
+      return null;
+    }
+    return (
+      <FormattedMessage
+        id="EmailScreen.edit.current-value"
+        values={{ value: originalIdentity.value }}
+      />
+    );
+  }, [originalIdentity]);
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
@@ -90,7 +130,8 @@ const AddEmailScreen: React.VFC = function AddEmailScreen() {
 
   return (
     <IdentityForm
-      originalIdentityID={null}
+      originalIdentityID={originalIdentity?.id ?? null}
+      currentValueMessage={currentValueMessage}
       appConfig={effectiveAppConfig}
       rawUser={user}
       loginIDType="email"
@@ -100,4 +141,4 @@ const AddEmailScreen: React.VFC = function AddEmailScreen() {
   );
 };
 
-export default AddEmailScreen;
+export default EmailScreen;
