@@ -264,13 +264,6 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	if client.MaxConcurrentSession == 1 {
-		err := h.revokeClientOfflineGrants(client, codeGrant.AuthenticationInfo.UserID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo)
 	if err != nil {
 		return nil, err
@@ -796,6 +789,13 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		SSOEnabled:         code.SSOEnabled,
 	}
 	if issueRefreshToken {
+		// First revoke existing refresh tokens if MaxConcurrentSession == 1
+		if client.MaxConcurrentSession == 1 {
+			err := h.revokeClientOfflineGrants(client, code.AuthenticationInfo.UserID)
+			if err != nil {
+				return nil, err
+			}
+		}
 		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 		if err != nil {
 			return nil, err
