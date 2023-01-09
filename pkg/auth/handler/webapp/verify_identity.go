@@ -111,7 +111,7 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 			panic("webapp: unknown verification channel")
 		}
 
-		bucket := interaction.AntiSpamSendVerificationCodeBucket(target)
+		bucket := interaction.AntiSpamOTPCodeBucket(target).Bucket
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err
