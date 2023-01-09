@@ -214,6 +214,16 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       );
     });
 
+    const { onChange: onCustomUIURI } = useTextField((value) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "x_custom_ui_uri",
+          ensureNonEmptyString(value)
+        )
+      );
+    });
+
     const applicationTypeLabel = useMemo(() => {
       const messageID = getApplicationTypeMessageID(
         clientConfig.x_application_type
@@ -265,6 +275,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       () => clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
+
+    // fixme(custom-ui): allow setting custom ui bases on features.yaml
+    const showCustomUISettings = true;
 
     const showClientSecret = useMemo(
       () => clientConfig.x_application_type === "third_party_app",
@@ -471,6 +484,24 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
               )}
               value={clientConfig.tos_uri ?? ""}
               onChange={onTOSURIChange}
+            />
+          </Widget>
+        ) : null}
+
+        {showCustomUISettings ? (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.custom-ui.title" />
+            </WidgetTitle>
+            <FormTextField
+              parentJSONPointer={parentJSONPointer}
+              fieldName="x_custom_ui_uri"
+              label={renderToString("EditOAuthClientForm.custom-ui-uri.label")}
+              description={renderToString(
+                "EditOAuthClientForm.custom-ui-uri.description"
+              )}
+              value={clientConfig.x_custom_ui_uri ?? ""}
+              onChange={onCustomUIURI}
             />
           </Widget>
         ) : null}

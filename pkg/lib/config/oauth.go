@@ -64,7 +64,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"refresh_token_idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"issue_jwt_access_token": { "type": "boolean" },
 		"policy_uri": { "type": "string", "format": "uri" },
-		"tos_uri": { "type": "string", "format": "uri"  }
+		"tos_uri": { "type": "string", "format": "uri" },
+		"x_custom_ui_uri": { "type": "string", "format": "uri" }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
@@ -118,6 +119,7 @@ type OAuthClientConfig struct {
 	IssueJWTAccessToken            bool                       `json:"issue_jwt_access_token,omitempty"`
 	PolicyURI                      string                     `json:"policy_uri,omitempty"`
 	TOSURI                         string                     `json:"tos_uri,omitempty"`
+	CustomUIURI                    string                     `json:"x_custom_ui_uri,omitempty"`
 }
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {

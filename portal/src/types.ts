@@ -355,6 +355,7 @@ export interface OAuthClientConfig {
   issue_jwt_access_token?: boolean;
   policy_uri?: string;
   tos_uri?: string;
+  x_custom_ui_uri?: string;
 }
 
 export interface OAuthConfig {
