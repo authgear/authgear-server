@@ -39,6 +39,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(EnterOOBOTPHandler), "*"),
 	wire.Struct(new(SetupWhatsappOTPHandler), "*"),
 	wire.Struct(new(WhatsappOTPHandler), "*"),
+	wire.Struct(new(MagicLinkOTPHandler), "*"),
 	wire.Struct(new(EnterRecoveryCodeHandler), "*"),
 	wire.Struct(new(SetupRecoveryCodeHandler), "*"),
 	wire.Struct(new(VerifyIdentityHandler), "*"),
