@@ -292,6 +292,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		interaction.DependencySet,
 		wire.Bind(new(oauthhandler.GraphService), new(*interaction.Service)),
+		wire.Bind(new(webapp.AntiSpamOTPCodeBucketMaker), new(*interaction.AntiSpamOTPCodeBucketMaker)),
 	),
 
 	wire.NewSet(
