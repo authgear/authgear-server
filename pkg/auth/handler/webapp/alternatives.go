@@ -91,6 +91,24 @@ func handleAlternativeSteps(ctrl *Controller) {
 				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
 			}
 
+		case webapp.SessionStepSetupMagicLinkOTP:
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return err
+			}
+			var node CreateAuthenticatorBeginNode
+			if !graph.FindLastNode(&node) {
+				// expected there is CreateAuthenticatorBeginNode before the steps
+				return webapp.ErrSessionStepMismatch
+			}
+			switch node.GetCreateAuthenticatorStage() {
+			case authn.AuthenticationStagePrimary:
+				panic("Magic link as primary authenticator is not yet supported")
+			case authn.AuthenticationStageSecondary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+			default:
+				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
+			}
 		case webapp.SessionStepSetupWhatsappOTP:
 			graph, err := ctrl.InteractionGet()
 			if err != nil {

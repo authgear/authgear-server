@@ -256,6 +256,14 @@ func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *int
 					Step: webapp.SessionStepSetupWhatsappOTP,
 				})
 			}
+		case *nodes.EdgeCreateAuthenticatorMagicLinkOTPSetup:
+			if currentStepKind != webapp.SessionStepSetupMagicLinkOTP &&
+				currentStepKind != webapp.SessionStepSetupOOBOTPEmail &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPSetupEmail {
+				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+					Step: webapp.SessionStepSetupMagicLinkOTP,
+				})
+			}
 		default:
 			panic(fmt.Errorf("create_authenticator_begin: unexpected edge: %T", edge))
 		}
