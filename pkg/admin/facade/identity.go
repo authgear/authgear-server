@@ -81,3 +81,24 @@ func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, pa
 
 	return graph.GetUserNewIdentities()[0].ToRef(), nil
 }
+
+func (f *IdentityFacade) Update(identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error) {
+	var input interface{} = &updateIdentityInput{identityDef: identityDef}
+
+	_, err := f.Interaction.Perform(
+		interactionintents.NewIntentUpdateIdentity(userID, identityID),
+		input,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	identity, err := f.Identities.Get(identityID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return identity.ToRef(), nil
+}
