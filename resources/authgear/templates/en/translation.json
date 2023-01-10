@@ -178,6 +178,9 @@
   "whatsapp-otp-done-button": "Done",
   "whatsapp-otp-pre-filled-message": "Verify {target} with OTP {otp} \nPress send on WhatsApp then return to the App",
 
+  "magic-link-otp-page-title": "Magic Link",
+  "magic-link-otp-description": "We have sent a magic link to {target}. Please visit the link to continue",
+
   "verify-user-page-title--sms": "SMS verification",
   "verify-user-page-title--email": "Email verification",
   "verify-user-placeholder": "Verification code",
@@ -392,6 +395,7 @@
   "setup-oob-otp-title--email": "Set up email 2-step verification",
 
   "setup-whatsapp-otp-title": "Set up phone 2-step verification",
+  "setup-magic-link-otp-title": "Set up magic link 2-step verification",
 
   "setup-totp-title": "Set up authenticator",
   "setup-totp-code-placeholder": "6-digit code",
