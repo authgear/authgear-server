@@ -303,6 +303,15 @@ func (s *Service2) doPost(
 						graph.InstanceID,
 					))
 				}
+			case *nodes.EdgeCreateAuthenticatorMagicLinkOTPSetup:
+				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
+					panic("webapp: using magic link as primary authenticator is not yet supported")
+				} else {
+					session.Steps = append(session.Steps, NewSessionStep(
+						SessionStepSetupMagicLinkOTP,
+						graph.InstanceID,
+					))
+				}
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
@@ -560,6 +569,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		}
 	case *nodes.NodeCreateAuthenticatorWhatsappOTPSetup:
 		return SessionStepVerifyWhatsappOTPSetup
+	case *nodes.NodeCreateAuthenticatorMagicLinkOTPSetup:
+		return SessionStepVerifyMagicLinkOTPSetup
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:
