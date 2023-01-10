@@ -79,6 +79,15 @@ func (i *addIdentityInput) Input() interface{} {
 	return i.identityDef
 }
 
+type updateIdentityInput struct {
+	adminAPIOp
+	identityDef model.IdentityDef
+}
+
+func (i *updateIdentityInput) Input() interface{} {
+	return i.identityDef
+}
+
 type removeAuthenticatorInput struct {
 	adminAPIOp
 	authenticatorInfo *authenticator.Info
