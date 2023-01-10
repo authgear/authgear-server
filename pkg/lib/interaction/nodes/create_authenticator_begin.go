@@ -379,12 +379,22 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case model.AuthenticatorTypeOOBEmail:
 			// Condition B and C.
 			if oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
-				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					NewAuthenticatorID:   n.NewAuthenticatorID,
-					Stage:                n.Stage,
-					IsDefault:            isDefault,
-					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
-				})
+				if n.AuthenticatorConfig.OOB.Email.SecondaryEmailOTPMode.IsCodeEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+						NewAuthenticatorID:   n.NewAuthenticatorID,
+						Stage:                n.Stage,
+						IsDefault:            isDefault,
+						OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
+					})
+				}
+
+				if n.AuthenticatorConfig.OOB.Email.SecondaryEmailOTPMode.IsSecondaryMagicLinkEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorMagicLinkOTPSetup{
+						NewAuthenticatorID: n.NewAuthenticatorID,
+						Stage:              n.Stage,
+						IsDefault:          isDefault,
+					})
+				}
 			}
 		case model.AuthenticatorTypeOOBSMS:
 			// Condition B and C.

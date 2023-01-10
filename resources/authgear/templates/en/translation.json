@@ -164,6 +164,12 @@
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
+  "magic-link-otp-page-title": "Magic link sent",
+  "magic-link-otp-description": "We have sent a magic link to {target}. Please visit the link to continue",
+  "magic-link-otp-resend-button-hint": "Didn''t receive the magic link? ",
+  "magic-link-otp-resend-button-label": "Resend",
+  "magic-link-otp-resend-button-label--unit": "Resend (%ds)",
+
   "whatsapp-otp-page-title": "Send code to WhatsApp",
   "whatsapp-otp-description": "Use your number ({target}) to send this 6-digit code in WhatsApp",
   "whatsapp-otp-waiting-for-your-message": "Waiting for your message",

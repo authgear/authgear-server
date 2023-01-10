@@ -8,7 +8,7 @@
 </h1>
 
 <div class="text-sm break-words primary-txt text-center">
-  {{ template "magic-link-otp-description" (dict "target" .UserPhone) }}
+  {{ template "magic-link-otp-description" (dict "target" .Target) }}
 </div>
 
 <form id="main-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
@@ -16,16 +16,7 @@
 </form>
 
 {{ template "__use_recovery_code.html" . }}
-
-{{ if not empty .AlternativeSteps }}
-	<div class="alternative-separator flex flex-row items-center">
- 		<span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
-	</div>
-{{ end }}
-
-{{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}
-{{ template "__alternatives.html" $altOptions }}
-
 {{ template "__watermark.html" . }}
+
 </div>
 {{ end }}

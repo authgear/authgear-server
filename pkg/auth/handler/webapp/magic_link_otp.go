@@ -22,11 +22,11 @@ func ConfigureMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type MagicLinkOTPNode interface {
-	GetMagicLinkOTP() string
+	GetMagicLinkOTPTarget() string
 }
 
-type MagicLinkOTPAuthnNode interface {
-	GetAuthenticatorIndex() int
+type MagicLinkOTPViewModel struct {
+	Target string
 }
 
 type MagicLinkOTPHandler struct {
@@ -39,8 +39,13 @@ type MagicLinkOTPHandler struct {
 func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-
+	viewModel := MagicLinkOTPViewModel{}
+	var n MagicLinkOTPNode
+	if graph.FindLastNode(&n) {
+		viewModel.Target = mail.MaskAddress(n.GetMagicLinkOTPTarget())
+	}
 	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, viewModel)
 	return data, nil
 }
 
