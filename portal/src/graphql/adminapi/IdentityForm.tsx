@@ -15,6 +15,7 @@ import { canCreateLoginIDIdentity } from "../../util/loginID";
 import { Text } from "@fluentui/react";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
 import { validatePassword } from "../../error/password";
+import { useUpdateLoginIDIdentityMutation } from "./mutations/updateIdentityMutation";
 
 interface FormState {
   loginID: string;
@@ -32,7 +33,7 @@ interface User {
 }
 
 // eslint-disable-next-line complexity
-function isPasswordRequired(
+function isPasswordRequiredForNewIdentity(
   config: PortalAPIAppConfig | null,
   user: User | null,
   loginIDType: LoginIDKeyType
@@ -128,10 +129,14 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
   }, [rawUser]);
 
   const { createIdentity } = useCreateLoginIDIdentityMutation(user.id);
+  const { updateIdentity } = useUpdateLoginIDIdentityMutation(user.id);
 
   const requirePassword = useMemo(() => {
-    return isPasswordRequired(appConfig, user, loginIDType);
-  }, [appConfig, user, loginIDType]);
+    if (originalIdentityID == null) {
+      return false;
+    }
+    return isPasswordRequiredForNewIdentity(appConfig, user, loginIDType);
+  }, [originalIdentityID, appConfig, user, loginIDType]);
 
   const passwordPolicy = useMemo(() => {
     return appConfig?.authenticator?.password?.policy ?? {};
@@ -150,7 +155,10 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
   const submit = useCallback(
     async (state: FormState) => {
       if (originalIdentityID) {
-        console.error("TODO");
+        await updateIdentity(originalIdentityID, {
+          key: loginIDType,
+          value: state.loginID,
+        });
       } else {
         const password = requirePassword ? state.password : undefined;
         await createIdentity(
@@ -159,7 +167,13 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
         );
       }
     },
-    [originalIdentityID, requirePassword, createIdentity, loginIDType]
+    [
+      originalIdentityID,
+      updateIdentity,
+      loginIDType,
+      requirePassword,
+      createIdentity,
+    ]
   );
 
   const rawForm = useSimpleForm({
