@@ -412,7 +412,13 @@ func (h *TokenHandler) handleAnonymousRequest(
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         false,
 	}
-	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
+	offlineGrant, err := h.issueOfflineGrant(
+		client,
+		authz.UserID,
+		resp,
+		opts,
+		true)
+
 	if err != nil {
 		return nil, err
 	}
@@ -617,7 +623,12 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		IdentityID:         biometricIdentity.ID,
 		SSOEnabled:         false,
 	}
-	offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
+	offlineGrant, err := h.issueOfflineGrant(
+		client,
+		authz.UserID,
+		resp,
+		opts,
+		true)
 	if err != nil {
 		return nil, err
 	}
@@ -720,12 +731,13 @@ func (h *TokenHandler) revokeClientOfflineGrants(
 
 func (h *TokenHandler) issueOfflineGrant(
 	client *config.OAuthClientConfig,
-	code *oauth.CodeGrant,
+	userID string,
 	resp protocol.TokenResponse,
-	opts IssueOfflineGrantOptions) (*oauth.OfflineGrant, error) {
+	opts IssueOfflineGrantOptions,
+	revokeExistingGrants bool) (*oauth.OfflineGrant, error) {
 	// First revoke existing refresh tokens if MaxConcurrentSession == 1
-	if client.MaxConcurrentSession == 1 {
-		err := h.revokeClientOfflineGrants(client, code.AuthenticationInfo.UserID)
+	if revokeExistingGrants && client.MaxConcurrentSession == 1 {
+		err := h.revokeClientOfflineGrants(client, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -808,7 +820,12 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		SSOEnabled:         code.SSOEnabled,
 	}
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code, resp, opts)
+		offlineGrant, err := h.issueOfflineGrant(
+			client,
+			code.AuthenticationInfo.UserID,
+			resp,
+			opts,
+			true)
 		if err != nil {
 			return nil, err
 		}
@@ -831,7 +848,12 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	} else if client.ClientParty() == config.ClientPartyThird {
 		// allow issuing access tokens if scopes don't contain offline_access and the client is third-party
 		// fill the response with nil for not returning the refresh token
-		offlineGrant, err := h.TokenService.IssueOfflineGrant(client, opts, nil)
+		offlineGrant, err := h.issueOfflineGrant(
+			client,
+			code.AuthenticationInfo.UserID,
+			nil,
+			opts,
+			false)
 		if err != nil {
 			return nil, err
 		}
