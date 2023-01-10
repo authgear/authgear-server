@@ -44,17 +44,8 @@ func (p *EndpointsProvider) RevokeEndpointURL() *url.URL     { return p.urlOf("o
 func (p *EndpointsProvider) JWKSEndpointURL() *url.URL       { return p.urlOf("oauth2/jwks") }
 func (p *EndpointsProvider) UserInfoEndpointURL() *url.URL   { return p.urlOf("oauth2/userinfo") }
 func (p *EndpointsProvider) EndSessionEndpointURL() *url.URL { return p.urlOf("oauth2/end_session") }
-func (p *EndpointsProvider) OAuthEntrypointURL(clientID string, redirectURI string) *url.URL {
-	u := p.urlOf("_internals/oauth_entrypoint")
-	q := u.Query()
-	if clientID != "" {
-		q.Set("client_id", clientID)
-	}
-	if redirectURI != "" {
-		q.Set("redirect_uri", redirectURI)
-	}
-	u.RawQuery = q.Encode()
-	return u
+func (p *EndpointsProvider) OAuthEntrypointURL() *url.URL {
+	return p.urlOf("_internals/oauth_entrypoint")
 }
 func (p *EndpointsProvider) LoginEndpointURL() *url.URL       { return p.urlOf("./login") }
 func (p *EndpointsProvider) SignupEndpointURL() *url.URL      { return p.urlOf("./signup") }
