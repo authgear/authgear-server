@@ -61,12 +61,18 @@ type RateLimiter interface {
 type FlashMessage interface {
 	Flash(rw http.ResponseWriter, messageType string)
 }
+
+type AntiSpamOTPCodeBucketMaker interface {
+	MakeBucket(target string) ratelimit.Bucket
+}
+
 type VerifyIdentityHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
-	RateLimiter       RateLimiter
-	FlashMessage      FlashMessage
+	ControllerFactory     ControllerFactory
+	BaseViewModel         *viewmodels.BaseViewModeler
+	Renderer              Renderer
+	RateLimiter           RateLimiter
+	FlashMessage          FlashMessage
+	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
 }
 
 type VerifyIdentityNode interface {
@@ -111,7 +117,7 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 			panic("webapp: unknown verification channel")
 		}
 
-		bucket := interaction.AntiSpamOTPCodeBucket(target).Bucket
+		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err

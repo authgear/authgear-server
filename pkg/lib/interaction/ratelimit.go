@@ -65,21 +65,14 @@ func AntiSpamSendOOBCodeBucket(oobType OOBType, target string) ratelimit.Bucket 
 	}
 }
 
-type OTPCodeBucket struct {
-	Bucket ratelimit.Bucket
+type AntiSpamOTPCodeBucketMaker struct {
+	Config *config.OTPConfig
 }
 
-func ProvideOTPCodeBucket(cfg *config.OTPConfig) OTPCodeBucket {
-	return OTPCodeBucket{
-		Bucket: ratelimit.Bucket{
-			Size:        1,
-			ResetPeriod: cfg.SMS.ResendCooldownSeconds.Duration(),
-		},
-	}
-}
-
-func AntiSpamOTPCodeBucket(target string) OTPCodeBucket {
-	b := OTPCodeBucket{}
-	b.Bucket.Key = fmt.Sprintf("otp-code:%s", target)
-	return b
+func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(target string) ratelimit.Bucket {
+  return ratelimit.Bucket{
+    Key: fmt.Sprintf("otp-code:%s", target),
+    Size: 1,
+    ResetPeriod: m.Config.SMS.ResendCooldownSeconds.Duration(),
+  }
 }
