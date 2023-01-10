@@ -19,13 +19,15 @@ var _ = FeatureConfigSchema.Add("OAuthClientFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"maximum": { "type": "integer" }
+		"maximum": { "type": "integer" },
+		"custom_ui_enabled": { "type": "boolean" }
 	}
 }
 `)
 
 type OAuthClientFeatureConfig struct {
-	Maximum *int `json:"maximum,omitempty"`
+	Maximum         *int `json:"maximum,omitempty"`
+	CustomUIEnabled bool `json:"custom_ui_enabled,omitempty"`
 }
 
 func (c *OAuthClientFeatureConfig) SetDefaults() {

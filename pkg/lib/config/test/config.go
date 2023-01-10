@@ -76,7 +76,13 @@ authenticator:
 		cfg, _ := config.ParseFeatureConfig([]byte(fixture))
 		return cfg
 	case FixtureUnlimitedPlanName:
-		return config.NewEffectiveDefaultFeatureConfig()
+		fixture := `
+oauth:
+  client:
+    custom_ui_enabled: true
+`
+		cfg, _ := config.ParseFeatureConfig([]byte(fixture))
+		return cfg
 	}
 	return nil
 }

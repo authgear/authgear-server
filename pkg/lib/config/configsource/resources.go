@@ -296,6 +296,18 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 		}
 	}
 
+	if !fc.OAuth.Client.CustomUIEnabled {
+		for i, oauthClient := range appConfig.OAuth.Clients {
+			if oauthClient.CustomUIURI != "" {
+				validationCtx.Child(
+					"oauth",
+					"clients",
+					strconv.Itoa(i),
+				).EmitErrorMessage("custom ui is disallowed")
+			}
+		}
+	}
+
 	return validationCtx.Error("features are limited by feature config")
 }
 

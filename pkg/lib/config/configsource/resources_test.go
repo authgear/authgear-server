@@ -269,6 +269,7 @@ oauth:
   clients:
     - name: Test Client
       client_id: test-client
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
       redirect_uris:
       - "https://example.com"
     - name: Test Client2
@@ -351,6 +352,7 @@ oauth:
       client_id: test-client
       redirect_uris:
       - "https://example.com"
+      x_custom_ui_uri: https://custom-auth-webapp.example.com
     - name: Test Client2
       client_id: test-client2
       redirect_uris:
@@ -365,7 +367,8 @@ oauth:
 /authentication/identities: enabling biometric authentication is not supported
 /authenticator/password/policy/minimum_guessable_level: minimum_guessable_level is disallowed
 /authenticator/password/policy/excluded_keywords: excluded_keywords is disallowed
-/authenticator/password/policy: password history is disallowed`)
+/authenticator/password/policy: password history is disallowed
+/oauth/clients/0: custom ui is disallowed`)
 			})
 
 			Convey("should allow saving with the same feature config error", func() {

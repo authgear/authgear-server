@@ -26,6 +26,7 @@ interface EditOAuthClientFormProps {
   className?: string;
   clientConfig: OAuthClientConfig;
   clientSecret?: string;
+  customUIEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
 }
 
@@ -77,6 +78,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       clientConfig,
       clientSecret,
       publicOrigin,
+      customUIEnabled,
       onClientConfigChange,
     } = props;
 
@@ -276,8 +278,10 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
-    // fixme(custom-ui): allow setting custom ui bases on features.yaml
-    const showCustomUISettings = true;
+    const showCustomUISettings = useMemo(
+      () => customUIEnabled,
+      [customUIEnabled]
+    );
 
     const showClientSecret = useMemo(
       () => clientConfig.x_application_type === "third_party_app",
