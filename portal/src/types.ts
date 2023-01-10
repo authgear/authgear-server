@@ -301,6 +301,18 @@ export interface VerificationConfig {
   code_expiry_seconds?: DurationSeconds;
 }
 
+export const OTPSMSResendCooldownList = [60, 120] as const;
+
+export type OTPSMSResendCooldown = typeof OTPSMSResendCooldownList[number];
+
+export interface OTPSMSConfig {
+  resend_cooldown_seconds?: OTPSMSResendCooldown;
+}
+
+export interface OTPConfig {
+  sms?: OTPSMSConfig;
+}
+
 // UIConfig
 export interface PhoneInputConfig {
   allowlist?: string[];
@@ -468,6 +480,7 @@ export interface PortalAPIAppConfig {
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
+  otp?: OTPConfig;
   ui?: UIConfig;
   localization?: LocalizationConfig;
   forgot_password?: ForgotPasswordConfig;

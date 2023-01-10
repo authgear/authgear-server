@@ -41,6 +41,8 @@ import {
   PasswordPolicyFeatureConfig,
   authenticatorPhoneOTPModeList,
   verificationCriteriaList,
+  OTPSMSResendCooldownList,
+  OTPSMSConfig,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -400,6 +402,7 @@ interface ConfigFormState {
   loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
   verificationConfig: VerificationConfig;
+  otpSMSConfig: OTPSMSConfig
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
@@ -759,6 +762,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     verificationConfig: {
       ...config.verification,
     },
+    otpSMSConfig: {
+      ...config.otp?.sms,
+    },
     authenticatorOOBSMSConfig: {
       phone_otp_mode: DEFAULT_PHONE_OTP_MODE,
       ...config.authenticator?.oob_otp?.sms,
@@ -820,6 +826,8 @@ function constructConfig(
     config.identity.login_id ??= {};
     config.identity.login_id.types ??= {};
     config.ui ??= {};
+    config.otp ??= {};
+    config.otp.sms ??= {};
     config.authenticator ??= {};
     config.authenticator.oob_otp ??= {};
 
@@ -865,6 +873,7 @@ function constructConfig(
     config.identity.login_id.types.username =
       currentState.loginIDUsernameConfig;
     config.verification = currentState.verificationConfig;
+    config.otp.sms = currentState.otpSMSConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
     config.forgot_password = currentState.forgotPasswordConfig;
@@ -2042,6 +2051,7 @@ interface VerificationSettingsProps {
   showEmailSettings: boolean;
   showPhoneSettings: boolean;
   verificationConfig: VerificationConfig;
+  otpSMSConfig: OTPSMSConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   setState: FormModel["setState"];
 }
@@ -2052,6 +2062,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
     showEmailSettings,
     showPhoneSettings,
     verificationConfig,
+    otpSMSConfig,
     setState,
     authenticatorOOBSMSConfig,
   } = props;
@@ -2066,6 +2077,31 @@ function VerificationSettings(props: VerificationSettingsProps) {
             parseIntegerAllowLeadingZeros(value);
         })
       );
+    },
+    [setState]
+  );
+
+  const phoneSMSResendCooldown = useMemo(
+    () =>
+      OTPSMSResendCooldownList.map((duration) => ({
+        key: duration,
+        text: renderToString(
+          "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.value.seconds",
+          { seconds: duration }
+        ),
+      })),
+    [renderToString]
+  );
+  const onChangePhoneSMSResendCooldown = useCallback(
+    (_, option) => {
+      const key = option.key;
+      if (key != null) {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.otpSMSConfig.resend_cooldown_seconds = key;
+          })
+        );
+      }
     },
     [setState]
   );
@@ -2199,6 +2235,14 @@ function VerificationSettings(props: VerificationSettingsProps) {
           />
           <Dropdown
             label={renderToString(
+              "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label"
+            )}
+            options={phoneSMSResendCooldown}
+            selectedKey={otpSMSConfig.resend_cooldown_seconds}
+            onChange={onChangePhoneSMSResendCooldown}
+          />
+          <Dropdown
+            label={renderToString(
               "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label"
             )}
             options={phoneOTPModes}
@@ -2232,6 +2276,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDUsernameConfig,
       phoneInputConfig,
       verificationConfig,
+      otpSMSConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
       forgotPasswordConfig,
@@ -2470,6 +2515,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   showEmailSettings={showEmailSettings}
                   showPhoneSettings={showPhoneSettings}
                   verificationConfig={verificationConfig}
+                  otpSMSConfig={otpSMSConfig}
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                   setState={setState}
                 />
