@@ -400,6 +400,8 @@ export type Mutation = {
   unscheduleAccountAnonymization: UnscheduleAccountAnonymizationPayload;
   /** Unschedule account deletion */
   unscheduleAccountDeletion: UnscheduleAccountDeletionPayload;
+  /** Update identity of user */
+  updateIdentity: UpdateIdentityPayload;
   /** Update user */
   updateUser: UpdateUserPayload;
 };
@@ -492,6 +494,11 @@ export type MutationUnscheduleAccountAnonymizationArgs = {
 
 export type MutationUnscheduleAccountDeletionArgs = {
   input: UnscheduleAccountDeletionInput;
+};
+
+
+export type MutationUpdateIdentityArgs = {
+  input: UpdateIdentityInput;
 };
 
 
@@ -709,6 +716,21 @@ export type UnscheduleAccountDeletionInput = {
 
 export type UnscheduleAccountDeletionPayload = {
   __typename?: 'UnscheduleAccountDeletionPayload';
+  user: User;
+};
+
+export type UpdateIdentityInput = {
+  /** New definition of the identity. */
+  definition: IdentityDefinition;
+  /** ID of identity to update */
+  identityID: Scalars['ID'];
+  /** Target user ID. */
+  userID: Scalars['ID'];
+};
+
+export type UpdateIdentityPayload = {
+  __typename?: 'UpdateIdentityPayload';
+  identity: Identity;
   user: User;
 };
 
