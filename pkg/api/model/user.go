@@ -13,6 +13,8 @@ type User struct {
 	DisableReason      *string                `json:"disable_reason,omitempty"`
 	IsDeactivated      bool                   `json:"is_deactivated"`
 	DeleteAt           *time.Time             `json:"delete_at,omitempty"`
+	IsAnonymized       bool                   `json:"is_anonymized"`
+	AnonymizeAt        *time.Time             `json:"anonymize_at,omitempty"`
 	CanReauthenticate  bool                   `json:"can_reauthenticate"`
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
 	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`

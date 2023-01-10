@@ -47,9 +47,11 @@ interface UserListItem {
   id: string;
   rawID: string;
   isAnonymous: boolean;
+  isAnonymized: boolean;
   isDisabled: boolean;
   isDeactivated: boolean;
   deleteAt: string | null;
+  anonymizeAt: string | null;
   createdAt: string | null;
   lastLoginAt: string | null;
   profilePictureURL: string | null;
@@ -64,6 +66,7 @@ interface DisableUserDialogData {
   userID: string;
   userDeleteAt: string | null;
   userIsDisabled: boolean;
+  userAnonymizeAt: string | null;
   endUserAccountIdentitifer: string | null;
 }
 
@@ -90,6 +93,7 @@ function UserInfo(props: UserInfoProps) {
       endUserAccountIdentitifer,
       rawID,
       isAnonymous,
+      isAnonymized,
     },
   } = props;
   return (
@@ -106,6 +110,10 @@ function UserInfo(props: UserInfoProps) {
         {isAnonymous ? (
           <Text className={styles.anonymousUserLabel}>
             <FormattedMessage id="UsersList.anonymous-user" />
+          </Text>
+        ) : isAnonymized ? (
+          <Text className={styles.anonymizedUserLabel}>
+            <FormattedMessage id="UsersList.anonymized-user" />
           </Text>
         ) : (
           formattedName ?? endUserAccountIdentitifer
@@ -209,9 +217,11 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             id: node.id,
             rawID: extractRawID(node.id),
             isAnonymous: node.isAnonymous,
+            isAnonymized: node.isAnonymized,
             isDisabled: node.isDisabled,
             isDeactivated: node.isDeactivated,
             deleteAt: formatDatetime(locale, node.deleteAt),
+            anonymizeAt: formatDatetime(locale, node.anonymizeAt),
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             profilePictureURL: node.standardAttributes.picture ?? null,
@@ -252,6 +262,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         userID: item.id,
         userDeleteAt: item.deleteAt,
         userIsDisabled: item.isDisabled,
+        userAnonymizeAt: item.anonymizeAt,
         endUserAccountIdentitifer: item.endUserAccountIdentitifer,
       });
       setIsDisableUserDialogHidden(false);
@@ -276,6 +287,8 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           const children =
             item.deleteAt != null ? (
               <FormattedMessage id="UsersList.cancel-removal" />
+            ) : item.isAnonymized ? null : item.anonymizeAt != null ? (
+              <FormattedMessage id="UsersList.cancel-anonymization" />
             ) : item.isDisabled ? (
               <FormattedMessage id="UsersList.reenable-user" />
             ) : (
@@ -366,6 +379,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
           onDismiss={dismissDisableUserDialog}
           userID={disableUserDialogData.userID}
           userDeleteAt={disableUserDialogData.userDeleteAt}
+          userAnonymizeAt={disableUserDialogData.userAnonymizeAt}
           userIsDisabled={disableUserDialogData.userIsDisabled}
           endUserAccountIdentifier={
             disableUserDialogData.endUserAccountIdentitifer ?? undefined

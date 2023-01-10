@@ -23,6 +23,10 @@ type UserService interface {
 	Reenable(userID string) error
 	ScheduleDeletionByAdmin(userID string) error
 	UnscheduleDeletionByAdmin(userID string) error
+	Anonymize(userID string) error
+	ScheduleAnonymizationByAdmin(userID string) error
+	UnscheduleAnonymizationByAdmin(userID string) error
+	CheckUserAnonymized(userID string) error
 }
 
 type UserSearchService interface {
@@ -91,8 +95,13 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (str
 	return userID, nil
 }
 
-func (f *UserFacade) ResetPassword(id string, password string) error {
-	_, err := f.Interaction.Perform(
+func (f *UserFacade) ResetPassword(id string, password string) (err error) {
+	err = f.Users.CheckUserAnonymized(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Interaction.Perform(
 		interactionintents.NewIntentResetPassword(),
 		&resetPasswordInput{userID: id, password: password},
 	)
@@ -133,6 +142,45 @@ func (f *UserFacade) UnscheduleDeletion(id string) error {
 
 func (f *UserFacade) Delete(id string) error {
 	err := f.Users.Delete(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) ScheduleAnonymization(id string) (err error) {
+	err = f.Users.CheckUserAnonymized(id)
+	if err != nil {
+		return err
+	}
+
+	err = f.Users.ScheduleAnonymizationByAdmin(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) UnscheduleAnonymization(id string) (err error) {
+	err = f.Users.CheckUserAnonymized(id)
+	if err != nil {
+		return err
+	}
+
+	err = f.Users.UnscheduleAnonymizationByAdmin(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) Anonymize(id string) (err error) {
+	err = f.Users.CheckUserAnonymized(id)
+	if err != nil {
+		return err
+	}
+
+	err = f.Users.Anonymize(id)
 	if err != nil {
 		return err
 	}

@@ -26,6 +26,16 @@ export type Scalars = {
   Web3Claims: GQL_Web3Claims;
 };
 
+export type AnonymizeUserInput = {
+  /** Target user ID. */
+  userID: Scalars['ID'];
+};
+
+export type AnonymizeUserPayload = {
+  __typename?: 'AnonymizeUserPayload';
+  anonymizedUserID: Scalars['ID'];
+};
+
 /** Audit log */
 export type AuditLog = Node & {
   __typename?: 'AuditLog';
@@ -67,6 +77,9 @@ export enum AuditLogActivityType {
   IdentityUsernameRemoved = 'IDENTITY_USERNAME_REMOVED',
   IdentityUsernameUpdated = 'IDENTITY_USERNAME_UPDATED',
   SmsSent = 'SMS_SENT',
+  UserAnonymizationScheduled = 'USER_ANONYMIZATION_SCHEDULED',
+  UserAnonymizationUnscheduled = 'USER_ANONYMIZATION_UNSCHEDULED',
+  UserAnonymized = 'USER_ANONYMIZED',
   UserAnonymousPromoted = 'USER_ANONYMOUS_PROMOTED',
   UserAuthenticated = 'USER_AUTHENTICATED',
   UserCreated = 'USER_CREATED',
@@ -341,6 +354,8 @@ export enum IdentityType {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Anonymize specified user */
+  anonymizeUser: AnonymizeUserPayload;
   /** Create new identity for user */
   createIdentity: CreateIdentityPayload;
   /** Create a session of a given user */
@@ -361,16 +376,25 @@ export type Mutation = {
   revokeAllSessions: RevokeAllSessionsPayload;
   /** Revoke session of user */
   revokeSession: RevokeSessionPayload;
+  /** Schedule account anonymization */
+  scheduleAccountAnonymization: ScheduleAccountAnonymizationPayload;
   /** Schedule account deletion */
   scheduleAccountDeletion: ScheduleAccountDeletionPayload;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
   /** Set verified status of a claim of user */
   setVerifiedStatus: SetVerifiedStatusPayload;
+  /** Unschedule account anonymization */
+  unscheduleAccountAnonymization: UnscheduleAccountAnonymizationPayload;
   /** Unschedule account deletion */
   unscheduleAccountDeletion: UnscheduleAccountDeletionPayload;
   /** Update user */
   updateUser: UpdateUserPayload;
+};
+
+
+export type MutationAnonymizeUserArgs = {
+  input: AnonymizeUserInput;
 };
 
 
@@ -424,6 +448,11 @@ export type MutationRevokeSessionArgs = {
 };
 
 
+export type MutationScheduleAccountAnonymizationArgs = {
+  input: ScheduleAccountAnonymizationInput;
+};
+
+
 export type MutationScheduleAccountDeletionArgs = {
   input: ScheduleAccountDeletionInput;
 };
@@ -436,6 +465,11 @@ export type MutationSetDisabledStatusArgs = {
 
 export type MutationSetVerifiedStatusArgs = {
   input: SetVerifiedStatusInput;
+};
+
+
+export type MutationUnscheduleAccountAnonymizationArgs = {
+  input: UnscheduleAccountAnonymizationInput;
 };
 
 
@@ -544,6 +578,16 @@ export type RevokeSessionPayload = {
   user: User;
 };
 
+export type ScheduleAccountAnonymizationInput = {
+  /** Target user ID. */
+  userID: Scalars['ID'];
+};
+
+export type ScheduleAccountAnonymizationPayload = {
+  __typename?: 'ScheduleAccountAnonymizationPayload';
+  user: User;
+};
+
 export type ScheduleAccountDeletionInput = {
   /** Target user ID. */
   userID: Scalars['ID'];
@@ -631,6 +675,16 @@ export enum SortDirection {
   Desc = 'DESC'
 }
 
+export type UnscheduleAccountAnonymizationInput = {
+  /** Target user ID. */
+  userID: Scalars['ID'];
+};
+
+export type UnscheduleAccountAnonymizationPayload = {
+  __typename?: 'UnscheduleAccountAnonymizationPayload';
+  user: User;
+};
+
 export type UnscheduleAccountDeletionInput = {
   /** Target user ID. */
   userID: Scalars['ID'];
@@ -658,6 +712,8 @@ export type UpdateUserPayload = {
 /** Authgear user */
 export type User = Entity & Node & {
   __typename?: 'User';
+  /** The scheduled anonymization time of the user */
+  anonymizeAt?: Maybe<Scalars['DateTime']>;
   /** The list of authenticators */
   authenticators?: Maybe<AuthenticatorConnection>;
   /** The list of third party app authorizations */
@@ -680,6 +736,8 @@ export type User = Entity & Node & {
   id: Scalars['ID'];
   /** The list of identities */
   identities?: Maybe<IdentityConnection>;
+  /** Indicates if the user is anonymized */
+  isAnonymized: Scalars['Boolean'];
   /** Indicates if the user is anonymous */
   isAnonymous: Scalars['Boolean'];
   /** Indicates if the user is deactivated */

@@ -1,6 +1,8 @@
 package facade
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -64,6 +66,7 @@ type UserQueries interface {
 type UserCommands interface {
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 	Delete(userID string) error
+	Anonymize(userID string) error
 }
 
 type PasswordHistoryStore interface {
@@ -98,21 +101,22 @@ type OAuthSessionManager SessionManager
 //
 //	removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Events                EventService
-	Identities            IdentityService
-	Authenticators        AuthenticatorService
-	Verification          VerificationService
-	MFA                   MFAService
-	UserCommands          UserCommands
-	UserQueries           UserQueries
-	StdAttrsService       StdAttrsService
-	PasswordHistory       PasswordHistoryStore
-	OAuth                 OAuthService
-	IDPSessions           IDPSessionManager
-	OAuthSessions         OAuthSessionManager
-	IdentityConfig        *config.IdentityConfig
-	AccountDeletionConfig *config.AccountDeletionConfig
-	Clock                 clock.Clock
+	Events                     EventService
+	Identities                 IdentityService
+	Authenticators             AuthenticatorService
+	Verification               VerificationService
+	MFA                        MFAService
+	UserCommands               UserCommands
+	UserQueries                UserQueries
+	StdAttrsService            StdAttrsService
+	PasswordHistory            PasswordHistoryStore
+	OAuth                      OAuthService
+	IDPSessions                IDPSessionManager
+	OAuthSessions              OAuthSessionManager
+	IdentityConfig             *config.IdentityConfig
+	AccountDeletionConfig      *config.AccountDeletionConfig
+	AccountAnonymizationConfig *config.AccountAnonymizationConfig
+	Clock                      clock.Clock
 }
 
 func (c *Coordinator) IdentityGet(id string) (*identity.Info, error) {
@@ -657,6 +661,184 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 	err = c.Events.DispatchEvent(e)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool) error {
+	// Delete dependents of user entity.
+
+	// Identities:
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+	for _, i := range identities {
+		if err = c.Identities.Delete(i); err != nil {
+			return err
+		}
+	}
+
+	// Authenticators:
+	authenticators, err := c.Authenticators.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, a := range authenticators {
+		if err = c.Authenticators.Delete(a); err != nil {
+			return err
+		}
+	}
+
+	// MFA recovery codes:
+	if err = c.MFA.InvalidateAllRecoveryCode(userID); err != nil {
+		return err
+	}
+
+	// OAuth authorizations:
+	if err = c.OAuth.ResetAll(userID); err != nil {
+		return err
+	}
+
+	// Verified claims:
+	if err = c.Verification.ResetVerificationStatus(userID); err != nil {
+		return err
+	}
+
+	// Password history:
+	if err = c.PasswordHistory.ResetPasswordHistory(userID); err != nil {
+		return err
+	}
+
+	// Sessions:
+	if err = c.terminateAllSessions(userID); err != nil {
+		return err
+	}
+
+	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return err
+	}
+
+	// Anonymize user record:
+	err = c.UserCommands.Anonymize(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.Events.DispatchEvent(&nonblocking.UserAnonymizedEventPayload{
+		UserModel:                *userModel,
+		IsScheduledAnonymization: IsScheduledAnonymization,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserScheduleAnonymizationByAdmin(userID string) error {
+	return c.userScheduleAnonymization(userID, true)
+}
+
+func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	anonymizeAt := now.Add(c.AccountAnonymizationConfig.GracePeriod.Duration())
+
+	var accountStatus *user.AccountStatus
+	if byAdmin {
+		accountStatus, err = u.AccountStatus().ScheduleAnonymizationByAdmin(anonymizeAt)
+	} else {
+		err = errors.New("not implemented")
+	}
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: userID,
+		},
+	}
+
+	events := []event.Payload{
+		&blocking.UserPreScheduleAnonymizationBlockingEventPayload{
+			UserRef:  userRef,
+			AdminAPI: byAdmin,
+		},
+		&nonblocking.UserAnonymizationScheduledEventPayload{
+			UserRef:  userRef,
+			AdminAPI: byAdmin,
+		},
+	}
+
+	for _, e := range events {
+		err := c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().UnscheduleAnonymizationByAdmin()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserAnonymizationUnscheduledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AdminAPI: true,
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserCheckAnonymized(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	if u.IsAnonymized {
+		return ErrUserIsAnonymized
 	}
 
 	return nil

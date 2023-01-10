@@ -475,6 +475,7 @@ export interface PortalAPIAppConfig {
   web3?: Web3Config;
   user_profile?: UserProfileConfig;
   account_deletion?: AccountDeletionConfig;
+  account_anonymization?: AccountAnonymizationConfig;
   google_tag_manager?: GoogleTagManagerConfig;
 }
 
@@ -710,6 +711,10 @@ export interface AuditLogFeatureConfig {
 
 export interface AccountDeletionConfig {
   scheduled_by_end_user_enabled?: boolean;
+  grace_period_days?: number;
+}
+
+export interface AccountAnonymizationConfig {
   grace_period_days?: number;
 }
 

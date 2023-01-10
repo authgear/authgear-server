@@ -43,11 +43,13 @@ var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccoun
 type AccountStatusType string
 
 const (
-	AccountStatusTypeNormal                       AccountStatusType = "normal"
-	AccountStatusTypeDisabled                     AccountStatusType = "disabled"
-	AccountStatusTypeDeactivated                  AccountStatusType = "deactivated"
-	AccountStatusTypeScheduledDeletionDisabled    AccountStatusType = "scheduled_deletion_disabled"
-	AccountStatusTypeScheduledDeletionDeactivated AccountStatusType = "scheduled_deletion_deactivated"
+	AccountStatusTypeNormal                         AccountStatusType = "normal"
+	AccountStatusTypeDisabled                       AccountStatusType = "disabled"
+	AccountStatusTypeDeactivated                    AccountStatusType = "deactivated"
+	AccountStatusTypeScheduledDeletionDisabled      AccountStatusType = "scheduled_deletion_disabled"
+	AccountStatusTypeScheduledDeletionDeactivated   AccountStatusType = "scheduled_deletion_deactivated"
+	AccountStatusTypeAnonymized                     AccountStatusType = "anonymized"
+	AccountStatusTypeScheduledAnonymizationDisabled AccountStatusType = "scheduled_anonymization_disabled"
 )
 
 // AccountStatus represents disabled, deactivated, or scheduled deletion state.
@@ -57,6 +59,8 @@ type AccountStatus struct {
 	IsDeactivated bool
 	DisableReason *string
 	DeleteAt      *time.Time
+	IsAnonymized  bool
+	AnonymizeAt   *time.Time
 }
 
 func (s AccountStatus) Type() AccountStatusType {
@@ -68,6 +72,12 @@ func (s AccountStatus) Type() AccountStatusType {
 			return AccountStatusTypeScheduledDeletionDeactivated
 		}
 		return AccountStatusTypeScheduledDeletionDisabled
+	}
+	if s.IsAnonymized {
+		return AccountStatusTypeAnonymized
+	}
+	if s.AnonymizeAt != nil {
+		return AccountStatusTypeScheduledAnonymizationDisabled
 	}
 	if s.IsDeactivated {
 		return AccountStatusTypeDeactivated
@@ -84,10 +94,14 @@ func (s AccountStatus) Check() error {
 		return NewErrDisabledUser(s.DisableReason)
 	case AccountStatusTypeDeactivated:
 		return ErrDeactivatedUser
+	case AccountStatusTypeAnonymized:
+		return ErrAnonymizedUser
 	case AccountStatusTypeScheduledDeletionDisabled:
 		return NewErrScheduledDeletionByAdmin(*s.DeleteAt)
 	case AccountStatusTypeScheduledDeletionDeactivated:
 		return NewErrScheduledDeletionByEndUser(*s.DeleteAt)
+	case AccountStatusTypeScheduledAnonymizationDisabled:
+		return NewErrScheduledAnonymizationByAdmin(*s.AnonymizeAt)
 	default:
 		panic(fmt.Errorf("unknown account status type: %v", typ))
 	}
@@ -126,8 +140,9 @@ func (s AccountStatus) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountSt
 
 func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStatus, error) {
 	target := AccountStatus{
-		IsDisabled: true,
-		DeleteAt:   &deleteAt,
+		IsDisabled:   true,
+		IsAnonymized: s.IsAnonymized,
+		DeleteAt:     &deleteAt,
 	}
 	if s.DeleteAt != nil {
 		return nil, s.makeTransitionError(target.Type())
@@ -136,8 +151,43 @@ func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStat
 }
 
 func (s AccountStatus) UnscheduleDeletionByAdmin() (*AccountStatus, error) {
-	var target AccountStatus
+	target := AccountStatus{
+		IsDisabled:   s.IsAnonymized,
+		IsAnonymized: s.IsAnonymized,
+		DeleteAt:     nil,
+	}
 	if s.DeleteAt == nil {
+		return nil, s.makeTransitionError(target.Type())
+	}
+	return &target, nil
+}
+
+func (s AccountStatus) Anonymize() (*AccountStatus, error) {
+	target := AccountStatus{
+		IsDisabled:   true,
+		IsAnonymized: true,
+		AnonymizeAt:  s.AnonymizeAt,
+	}
+	if s.Type() == AccountStatusTypeNormal {
+		return &target, nil
+	}
+	return nil, s.makeTransitionError(target.Type())
+}
+
+func (s AccountStatus) ScheduleAnonymizationByAdmin(anonymizeAt time.Time) (*AccountStatus, error) {
+	target := AccountStatus{
+		IsDisabled:  true,
+		AnonymizeAt: &anonymizeAt,
+	}
+	if s.AnonymizeAt != nil {
+		return nil, s.makeTransitionError(target.Type())
+	}
+	return &target, nil
+}
+
+func (s AccountStatus) UnscheduleAnonymizationByAdmin() (*AccountStatus, error) {
+	var target AccountStatus
+	if s.AnonymizeAt == nil {
 		return nil, s.makeTransitionError(target.Type())
 	}
 	return &target, nil
@@ -163,6 +213,8 @@ type User struct {
 	DisableReason      *string
 	IsDeactivated      bool
 	DeleteAt           *time.Time
+	IsAnonymized       bool
+	AnonymizeAt        *time.Time
 	StandardAttributes map[string]interface{}
 	CustomAttributes   map[string]interface{}
 }
@@ -187,6 +239,8 @@ func (u *User) AccountStatus() AccountStatus {
 		DisableReason: u.DisableReason,
 		IsDeactivated: u.IsDeactivated,
 		DeleteAt:      u.DeleteAt,
+		IsAnonymized:  u.IsAnonymized,
+		AnonymizeAt:   u.AnonymizeAt,
 	}
 }
 
@@ -230,6 +284,8 @@ func newUserModel(
 		DisableReason:      user.DisableReason,
 		IsDeactivated:      user.IsDeactivated,
 		DeleteAt:           user.DeleteAt,
+		IsAnonymized:       user.IsAnonymized,
+		AnonymizeAt:        user.AnonymizeAt,
 		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,

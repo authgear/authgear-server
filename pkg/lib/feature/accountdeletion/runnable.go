@@ -16,7 +16,7 @@ type UserService interface {
 }
 
 type UserServiceFactory interface {
-	NewUserService(ctx context.Context, appID string, appContext *config.AppContext) UserService
+	MakeUserService(ctx context.Context, appID string, appContext *config.AppContext) UserService
 }
 
 type RunnableLogger struct{ *log.Logger }
@@ -42,7 +42,7 @@ func (r *Runnable) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		userService := r.UserServiceFactory.NewUserService(ctx, appUser.AppID, appContext)
+		userService := r.UserServiceFactory.MakeUserService(ctx, appUser.AppID, appContext)
 		err = userService.DeleteFromScheduledDeletion(appUser.UserID)
 		if err != nil {
 			return err

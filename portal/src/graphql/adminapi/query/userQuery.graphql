@@ -59,6 +59,8 @@ fragment UserQueryNode on User {
   disableReason
   isDeactivated
   deleteAt
+  isAnonymized
+  anonymizeAt
   lastLoginAt
   createdAt
   updatedAt

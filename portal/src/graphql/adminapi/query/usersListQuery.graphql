@@ -9,6 +9,8 @@ fragment UsersList on UserConnection {
       disableReason
       isDeactivated
       deleteAt
+      isAnonymized
+      anonymizeAt
       standardAttributes
       formattedName
       endUserAccountID

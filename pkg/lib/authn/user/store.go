@@ -26,6 +26,7 @@ type store interface {
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error
 	Delete(userID string) error
+	Anonymize(userID string) error
 }
 
 type Store struct {
@@ -67,6 +68,8 @@ func (s *Store) Create(u *User) (err error) {
 			"disable_reason",
 			"is_deactivated",
 			"delete_at",
+			"is_anonymized",
+			"anonymize_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -80,6 +83,8 @@ func (s *Store) Create(u *User) (err error) {
 			u.DisableReason,
 			u.IsDeactivated,
 			u.DeleteAt,
+			u.IsAnonymized,
+			u.AnonymizeAt,
 			stdAttrsBytes,
 			customAttrsBytes,
 		)
@@ -104,6 +109,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"disable_reason",
 			"is_deactivated",
 			"delete_at",
+			"is_anonymized",
+			"anonymize_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -126,6 +133,8 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.DisableReason,
 		&isDeactivated,
 		&u.DeleteAt,
+		&u.IsAnonymized,
+		&u.AnonymizeAt,
 		&stdAttrsBytes,
 		&customAttrsBytes,
 	); err != nil {
@@ -253,12 +262,17 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 }
 
 func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
+	now := s.Clock.NowUTC()
+
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("is_disabled", accountStatus.IsDisabled).
 		Set("disable_reason", accountStatus.DisableReason).
 		Set("is_deactivated", accountStatus.IsDeactivated).
 		Set("delete_at", accountStatus.DeleteAt).
+		Set("is_anonymized", accountStatus.IsAnonymized).
+		Set("anonymize_at", accountStatus.AnonymizeAt).
+		Set("updated_at", now).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
@@ -324,6 +338,27 @@ func (s *Store) UpdateCustomAttributes(userID string, customAttrs map[string]int
 func (s *Store) Delete(userID string) error {
 	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_user")).
+		Where("id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Anonymize(userID string) error {
+	now := s.Clock.NowUTC()
+
+	builder := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_user")).
+		Set("is_disabled", true).
+		Set("is_anonymized", true).
+		Set("anonymized_at", now).
+		Set("standard_attributes", nil).
+		Set("custom_attributes", nil).
+		Set("updated_at", now).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

@@ -688,22 +688,24 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
 	coordinator := &facade.Coordinator{
-		Events:                eventService,
-		Identities:            serviceService,
-		Authenticators:        service4,
-		Verification:          verificationService,
-		MFA:                   mfaService,
-		UserCommands:          commands,
-		UserQueries:           queries,
-		StdAttrsService:       stdattrsService,
-		PasswordHistory:       historyStore,
-		OAuth:                 authorizationStore,
-		IDPSessions:           idpsessionManager,
-		OAuthSessions:         sessionManager,
-		IdentityConfig:        identityConfig,
-		AccountDeletionConfig: accountDeletionConfig,
-		Clock:                 clockClock,
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service4,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		UserCommands:               commands,
+		UserQueries:                queries,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		Clock:                      clockClock,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
@@ -873,6 +875,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sessions: manager2,
 	}
 	userProfileFacade := &facade2.UserProfileFacade{
+		User:               userFacade,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Events:             eventService,

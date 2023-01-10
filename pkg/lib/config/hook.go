@@ -38,6 +38,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 			"user.pre_create",
 			"user.profile.pre_update",
 			"user.pre_schedule_deletion",
+			"user.pre_schedule_anonymization",
 			"user.session.jwt.pre_create"
 
 		] },
@@ -72,6 +73,9 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 					"user.deletion_scheduled",
 					"user.deletion_unscheduled",
 					"user.deleted",
+					"user.anonymization_scheduled",
+					"user.anonymization_unscheduled",
+					"user.anonymized",
 					"identity.email.added",
 					"identity.email.removed",
 					"identity.email.updated",

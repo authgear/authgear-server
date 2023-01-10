@@ -30,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -106,6 +107,36 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
+func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
+	factory := p.LoggerFactory
+	pool := p.DatabasePool
+	environmentConfig := p.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
+	clockClock := _wireSystemClockValue
+	store := &accountanonymization.Store{
+		Handle:      handle,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	accountAnonymizationServiceFactory := &AccountAnonymizationServiceFactory{
+		BackgroundProvider: p,
+	}
+	runnableLogger := accountanonymization.NewRunnableLogger(factory)
+	runnable := &accountanonymization.Runnable{
+		Store:              store,
+		AppContextResolver: ctrl,
+		UserServiceFactory: accountAnonymizationServiceFactory,
+		Logger:             runnableLogger,
+	}
+	runner := accountanonymization.NewRunner(factory, runnable)
+	return runner
+}
+
 func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
@@ -122,14 +153,14 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	userServiceFactory := &UserServiceFactory{
+	accountDeletionServiceFactory := &AccountDeletionServiceFactory{
 		BackgroundProvider: p,
 	}
 	runnableLogger := accountdeletion.NewRunnableLogger(factory)
 	runnable := &accountdeletion.Runnable{
 		Store:              store,
 		AppContextResolver: ctrl,
-		UserServiceFactory: userServiceFactory,
+		UserServiceFactory: accountDeletionServiceFactory,
 		Logger:             runnableLogger,
 	}
 	runner := accountdeletion.NewRunner(factory, runnable)
@@ -653,22 +684,24 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
 	coordinator := &facade.Coordinator{
-		Events:                eventService,
-		Identities:            serviceService,
-		Authenticators:        service3,
-		Verification:          verificationService,
-		MFA:                   mfaService,
-		UserCommands:          commands,
-		UserQueries:           queries,
-		StdAttrsService:       stdattrsService,
-		PasswordHistory:       historyStore,
-		OAuth:                 authorizationStore,
-		IDPSessions:           idpsessionManager,
-		OAuthSessions:         sessionManager,
-		IdentityConfig:        identityConfig,
-		AccountDeletionConfig: accountDeletionConfig,
-		Clock:                 clockClock,
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service3,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		UserCommands:               commands,
+		UserQueries:                queries,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		Clock:                      clockClock,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
