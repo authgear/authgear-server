@@ -455,10 +455,13 @@ func (h *AuthorizationHandler) doHandle(
 			UILocales:      uiLocales,
 			ColorScheme:    colorScheme,
 			Cookies:        oauthSessionEntryCookies,
-			ClientID:       r.ClientID(),
+			Client:         client,
 			RedirectURL:    r.RedirectURI(),
+			CustomUIQuery:  r.CustomUIQuery(),
 		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
+			return nil, protocol.NewError("invalid_request", err.Error())
+		} else if apierrors.IsKind(err, webapp.ErrInvalidCustomURI) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err

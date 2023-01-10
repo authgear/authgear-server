@@ -13,7 +13,7 @@ import (
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
-	OAuthEntrypointURL(clientID string, redirectURI string) *url.URL
+	OAuthEntrypointURL() *url.URL
 	LoginEndpointURL() *url.URL
 	SignupEndpointURL() *url.URL
 	LogoutEndpointURL() *url.URL
@@ -67,21 +67,42 @@ type AuthenticateURLOptions struct {
 	UILocales      string
 	ColorScheme    string
 	Cookies        []*http.Cookie
-	ClientID       string
+	Client         *config.OAuthClientConfig
 	// RedirectURL will be used only when the WebSession doesn't have the redirect URI
 	// When the WebSession has a redirect URI, it usually starts from the authorization endpoint
 	// User will be redirected back to the authorization endpoint after authentication
 	// Authorization endpoint will use the redirect URI in the OAuthSession
-	RedirectURL string
+	RedirectURL   string
+	CustomUIQuery string
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
-	endpoint := p.Endpoints.OAuthEntrypointURL(options.ClientID, options.RedirectURL).String()
+	var endpoint *url.URL
+	if options.Client != nil && options.Client.CustomUIURI != "" {
+		var err error
+		endpoint, err = p.customUIURL(options.Client.CustomUIURI, options.CustomUIQuery)
+		if err != nil {
+			return nil, ErrInvalidCustomURI.Errorf("invalid custom ui uri: %w", err)
+		}
+	} else {
+		endpoint = p.Endpoints.OAuthEntrypointURL()
+	}
+
+	// Assign client id and redirect url to the endpoint
+	q := endpoint.Query()
+	if options.Client != nil {
+		q.Set("client_id", options.Client.ClientID)
+	}
+	if options.RedirectURL != "" {
+		q.Set("redirect_uri", options.RedirectURL)
+	}
+	endpoint.RawQuery = q.Encode()
+
 	now := p.Clock.NowUTC()
 	sessionOpts := options.SessionOptions
 	sessionOpts.UpdatedAt = now
 	session := NewSession(sessionOpts)
-	result, err := p.Pages.CreateSession(session, endpoint)
+	result, err := p.Pages.CreateSession(session, endpoint.String())
 	if err != nil {
 		return nil, err
 	}
@@ -95,4 +116,31 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 		result.Cookies = append(result.Cookies, options.Cookies...)
 	}
 	return result, nil
+}
+
+func (p *AuthenticateURLProvider) customUIURL(customUIURI string, customUIQuery string) (*url.URL, error) {
+	customUIURL, err := url.Parse(customUIURI)
+	if err != nil {
+		return nil, err
+	}
+
+	q := customUIURL.Query()
+
+	// Assign query from the SDK to the url
+	queryFromSDK, err := url.ParseQuery(customUIQuery)
+	if err != nil {
+		return nil, err
+	}
+	for key, values := range queryFromSDK {
+		for idx, val := range values {
+			if idx == 0 {
+				q.Set(key, val)
+			} else {
+				q.Add(key, val)
+			}
+		}
+	}
+	customUIURL.RawQuery = q.Encode()
+
+	return customUIURL, nil
 }
