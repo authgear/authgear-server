@@ -179,6 +179,9 @@
   "whatsapp-otp-done-button": "完成",
   "whatsapp-otp-pre-filled-message": "以一次性密碼 {otp} 驗證 {target} \n請在WhatsApp按傳送，然後返回App",
 
+  "magic-link-otp-page-title": "無密碼鏈接",
+  "magic-link-otp-description": "我們已經向 {target} 發送了無密碼鏈接。 請訪問鏈接以繼續",
+
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",
   "verify-user-placeholder": "驗證碼",
@@ -394,6 +397,7 @@
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
   "setup-whatsapp-otp-title": "設置手機兩步驗證",
+  "setup-magic-link-otp-title": "設置無密碼鏈接兩步驗證",
 
   "setup-totp-title": "設置驗證器",
   "setup-totp-code-placeholder": "6位碼",
