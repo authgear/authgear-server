@@ -518,6 +518,9 @@ verification:
   email:
     message:
       subject: Email Verification Instruction
+otp:
+  sms:
+    resend_cooldown_seconds: 60
 web3:
   siwe:
     networks:
