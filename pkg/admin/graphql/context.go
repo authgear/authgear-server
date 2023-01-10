@@ -60,6 +60,7 @@ type IdentityFacade interface {
 	List(userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
 	Remove(identityInfo *identity.Info) error
 	Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error)
+	Update(identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error)
 }
 
 type AuthenticatorFacade interface {
