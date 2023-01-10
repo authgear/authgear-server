@@ -402,7 +402,7 @@ interface ConfigFormState {
   loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
   verificationConfig: VerificationConfig;
-  otpSMSConfig: OTPSMSConfig
+  otpSMSConfig: OTPSMSConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
