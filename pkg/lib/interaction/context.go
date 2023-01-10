@@ -207,6 +207,7 @@ type Context struct {
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	Verification             VerificationService
 	RateLimiter              RateLimiter
+	AntiSpamOTPCodeBucket    *AntiSpamOTPCodeBucketMaker
 
 	Nonces NonceService
 
