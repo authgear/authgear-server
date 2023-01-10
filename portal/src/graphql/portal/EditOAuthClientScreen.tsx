@@ -51,6 +51,7 @@ import {
 } from "../../GTMProvider";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface FormState {
   publicOrigin: string;
@@ -390,6 +391,7 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
 interface EditOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
   clientID: string;
+  customUIEnabled: boolean;
 }
 
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
@@ -397,6 +399,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     const {
       clientID,
       form: { state, setState },
+      customUIEnabled,
     } = props;
     const theme = useTheme();
 
@@ -435,6 +438,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             publicOrigin={state.publicOrigin}
             clientConfig={client}
             clientSecret={clientSecret}
+            customUIEnabled={customUIEnabled}
             onClientConfigChange={onClientConfigChange}
           />
         </div>
@@ -543,6 +547,9 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
     constructSecretUpdateInstruction,
   });
   const { setState, save, isUpdating } = form;
+
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
   const navigate = useNavigate();
   const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
   const { themes } = useSystemConfig();
@@ -596,6 +603,17 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
     [renderToString, showDialogAndSetRemoveClientByID, themes.destructive]
   );
 
+  const customUIEnabled = useMemo(() => {
+    if (featureConfig.loading) {
+      return false;
+    }
+    return featureConfig.effectiveFeatureConfig?.oauth?.client
+      ?.custom_ui_enabled;
+  }, [
+    featureConfig.loading,
+    featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
+  ]);
+
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -610,7 +628,11 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
 
   return (
     <FormContainer form={form} primaryItems={primaryItems}>
-      <EditOAuthClientContent form={form} clientID={clientID} />
+      <EditOAuthClientContent
+        form={form}
+        clientID={clientID}
+        customUIEnabled={customUIEnabled}
+      />
       <Dialog
         hidden={!isRemoveDialogVisible}
         dialogContentProps={dialogContentProps}

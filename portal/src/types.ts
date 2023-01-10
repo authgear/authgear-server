@@ -691,6 +691,7 @@ export interface OAuthFeatureConfig {
 
 export interface OAuthClientFeatureConfig {
   maximum?: number;
+  custom_ui_enabled: boolean;
 }
 
 export interface HookFeatureConfig {
