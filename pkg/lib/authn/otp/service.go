@@ -98,6 +98,16 @@ func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID
 	})
 }
 
+func (s *Service) CanVerifyCode(target string) (bool, error) {
+	_, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (s *Service) VerifyCode(target string, code string) error {
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
