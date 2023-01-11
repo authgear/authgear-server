@@ -31,6 +31,7 @@
 	name="x_verification_code"
 	placeholder="{{ template "verify-user-placeholder" }}"
 	value="{{ $.VerificationCode }}"
+	{{ if not $.VerificationCanVerifyCode }}disabled{{ end }}
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
 >
 <button
@@ -48,7 +49,13 @@
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
-<span class="primary-txt text-sm">{{ template "verify-user-resend-button-hint" }}</span>
+<span class="primary-txt text-sm">
+	{{ if $.VerificationCanVerifyCode }}
+	{{ template "verify-user-resend-button-hint" }}
+	{{ else }}
+	{{ template "verify-user-resend-button-rate-limited-hint" }}
+	{{ end }}
+</span>
 <button id="verify-identity-resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
 	data-resend-button-cooldown-value="{{ $.VerificationCodeSendCooldown }}"
 	data-resend-button-label-value="{{ template "verify-user-resend-button-label" }}"

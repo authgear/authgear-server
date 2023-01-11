@@ -158,6 +158,7 @@
   "oob-otp-placeholder": "One-time password",
   "oob-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
   "oob-otp-resend-button-hint": "Didn''t receive the one-time password? ",
+  "oob-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
   "oob-otp-resend-button-label": "Resend",
   "oob-otp-resend-button-label--unit": "Resend (%ds)",
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
@@ -183,6 +184,7 @@
   "verify-user-placeholder": "Verification code",
   "verify-user-description": "We have sent a {length}-character code to {target}. Please enter the code below to continue",
   "verify-user-resend-button-hint": "Didn''t receive the code? ",
+  "verify-user-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
   "verify-user-resend-button-label": "Resend",
   "verify-user-resend-button-label--unit": "Resend (%ds)",
 
