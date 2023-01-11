@@ -96,25 +96,10 @@ When it is specified, sessions will be considered **in terms of refresh token**.
 
 *Client-wise concurrent sessions* cannot restrict the number of sessions for the cookies-based website.
 
+Enabling *client-wise concurrent sessions* with SSO enabled is not allowed.
+
 Configurations see [Custom Client Metadata](./oidc.md#custom-client-metadata)
-
-#### Use case 1: When the maximum number of concurrent sessions per OAuth client is 1 and SSO is enabled
-
-1. The end-user logs in to multiple apps on Device A
-    - Log in to App A with OAuth Client A, IdP session is generated on Device A
-    - Log in to App B with OAuth Client B by clicking continue on the continue screen
-    - Log in to Token-based website C with OAuth Client C by clicking continue on the continue screen
-1. The end-user logs in on Device B
-    - Log in to App A with OAuth Client A, IdP session is generated on Device B
-1. The active sessions of the end-user at this point:
-    - IdP session on Device A
-    - IdP session on Device B
-    - App A refresh token on Device B (App A refresh token on Device A is terminated due to the concurrent session limit)
-    - App B refresh token on Device A
-    - Website C refresh token on Device A
-1. If the end-user wants to use App A on Device A, they can call authenticate again. The continue screen will be shown, and App A on Device B will be logged out if they choose to continue.
-
-#### Use case 2: When the maximum number of concurrent sessions per OAuth client is 1 and SSO is disabled
+#### Use case: When the maximum number of concurrent sessions per OAuth client is 1 and SSO is disabled
 
 1. The end-user logs in to multiple apps on Device A, they will need to input credentials for every login. No IdP session will be generated.
     - Log in to App A with OAuth Client A
