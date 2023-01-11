@@ -22101,53 +22101,45 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -22373,22 +22365,24 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
 	coordinator := &facade.Coordinator{
-		Events:                eventService,
-		Identities:            serviceService,
-		Authenticators:        service3,
-		Verification:          verificationService,
-		MFA:                   mfaService,
-		UserCommands:          commands,
-		UserQueries:           queries,
-		StdAttrsService:       stdattrsService,
-		PasswordHistory:       historyStore,
-		OAuth:                 authorizationStore,
-		IDPSessions:           idpsessionManager,
-		OAuthSessions:         sessionManager,
-		IdentityConfig:        identityConfig,
-		AccountDeletionConfig: accountDeletionConfig,
-		Clock:                 clockClock,
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service3,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		UserCommands:               commands,
+		UserQueries:                queries,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		Clock:                      clockClock,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -22459,9 +22453,6 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -22487,19 +22478,11 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -22512,7 +22495,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -22521,7 +22504,6 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
@@ -22874,53 +22856,45 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: authenticatorTOTPConfig,
 		Clock:  clockClock,
 	}
-	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	oobProvider := &oob.Provider{
+		Store: oobStore,
+		Clock: clockClock,
+	}
+	otpStoreRedis := &otp.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
-	oobLogger := oob.NewLogger(factory)
-	oobProvider := &oob.Provider{
-		Config:    authenticatorOOBConfig,
-		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
 		Clock:     clockClock,
-		Logger:    oobLogger,
+		CodeStore: otpStoreRedis,
+		Logger:    otpLogger,
 	}
 	service3 := &service2.Service{
-		Store:       store3,
-		Password:    passwordProvider,
-		Passkey:     provider2,
-		TOTP:        totpProvider,
-		OOBOTP:      oobProvider,
-		RateLimiter: limiter,
+		Store:          store3,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimiter:    limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	verificationStoreRedis := &verification.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		RemoteIP:          remoteIP,
-		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
 		Clock:             clockClock,
-		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
-		RateLimiter:       limiter,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
@@ -23146,22 +23120,24 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service: offlineGrantService,
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
 	coordinator := &facade.Coordinator{
-		Events:                eventService,
-		Identities:            serviceService,
-		Authenticators:        service3,
-		Verification:          verificationService,
-		MFA:                   mfaService,
-		UserCommands:          commands,
-		UserQueries:           queries,
-		StdAttrsService:       stdattrsService,
-		PasswordHistory:       historyStore,
-		OAuth:                 authorizationStore,
-		IDPSessions:           idpsessionManager,
-		OAuthSessions:         sessionManager,
-		IdentityConfig:        identityConfig,
-		AccountDeletionConfig: accountDeletionConfig,
-		Clock:                 clockClock,
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service3,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		UserCommands:               commands,
+		UserQueries:                queries,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		Clock:                      clockClock,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -23232,9 +23208,6 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	verificationCodeSender := &verification.CodeSender{
-		OTPMessageSender: messageSender,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -23260,19 +23233,11 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	whatsappStoreRedis := &whatsapp.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		Clock:   clockClock,
-	}
-	whatsappLogger := whatsapp.NewLogger(factory)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
-		CodeStore:       whatsappStoreRedis,
-		Clock:           clockClock,
-		Logger:          whatsappLogger,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -23285,7 +23250,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OOBAuthenticators:         oobProvider,
+		OTPCodeService:            otpService,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -23294,7 +23259,6 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                   passkeyService,
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
-		VerificationCodeSender:    verificationCodeSender,
 		RateLimiter:               limiter,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,

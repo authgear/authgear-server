@@ -106,7 +106,7 @@ type SessionListingService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string) (*otp.Code, error)
+	GenerateCode(target string, otpMode otp.OTPMode) (*otp.Code, error)
 }
 
 type Logger struct{ *log.Logger }

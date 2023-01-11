@@ -31,12 +31,19 @@ func (s *Service) getCode(target string) (*Code, error) {
 	return s.CodeStore.Get(target)
 }
 
-func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
+func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*Code, error) {
 	if codeModel == nil {
 		codeModel = &Code{}
 	}
 	codeModel.Target = target
-	codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
+	switch otpMode {
+	case OTPModeMagicLink:
+		codeModel.Code = secretcode.MagicLinkOTPSecretCode.Generate()
+		break
+	default:
+		codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
+	}
+
 	codeModel.ExpireAt = s.Clock.NowUTC().Add(duration.UserInteraction)
 
 	err := s.CodeStore.Create(target, codeModel)
@@ -53,12 +60,12 @@ func (s *Service) deleteCode(target string) {
 	}
 }
 
-func (s *Service) GenerateCode(target string) (*Code, error) {
-	return s.createCode(target, nil)
+func (s *Service) GenerateCode(target string, otpMode OTPMode) (*Code, error) {
+	return s.createCode(target, otpMode, nil)
 }
 
 func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID string) (*Code, error) {
-	return s.createCode(target, &Code{
+	return s.createCode(target, OTPModeCode, &Code{
 		AppID:        appID,
 		WebSessionID: webSessionID,
 	})

@@ -4,6 +4,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -66,16 +68,34 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
 		// Admin skip verify MagicLink otp and create OOB authenticator directly
-		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	// TODO(newman): Create and send token
+	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
+	if err != nil {
+		return nil, err
+	}
+
+	if aStatus == verification.AuthenticatorStatusVerified {
+		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
+	}
+
+	result, err := (&SendOOBCode{
+		Context:              ctx,
+		Stage:                e.Stage,
+		IsAuthenticating:     false,
+		AuthenticatorInfo:    info,
+		IgnoreRatelimitError: true,
+		OTPMode:              otp.OTPModeMagicLink,
+	}).Do()
+	if err != nil {
+		return nil, err
+	}
 
 	return &NodeCreateAuthenticatorMagicLinkOTPSetup{
 		Stage:         e.Stage,
 		Authenticator: info,
-		MagicLinkOTP:  "fixme",
-		Channel:       "email",
+		Channel:       result.Channel,
 		Target:        input.GetMagicLinkTarget(),
 	}, nil
 }

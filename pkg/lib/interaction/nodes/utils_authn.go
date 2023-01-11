@@ -20,6 +20,7 @@ type SendOOBCode struct {
 	IsAuthenticating     bool
 	AuthenticatorInfo    *authenticator.Info
 	IgnoreRatelimitError bool
+	OTPMode              otp.OTPMode
 }
 
 func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
@@ -74,7 +75,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		}
 	}
 
-	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget())
+	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		return nil, err
 	}
 
-	err = p.Context.OOBCodeSender.SendCode(channel, target, code.Code, messageType)
+	err = p.Context.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode)
 	if err != nil {
 		return nil, err
 	}

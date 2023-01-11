@@ -11,8 +11,10 @@
   "email.verification.subject": "[{AppName}] Email Verification Instruction",
   "email.setup-primary-oob.subject": "Signing up at {AppName}",
   "email.setup-secondary-oob.subject": "Signing up at {AppName}",
+  "email.setup-secondary-magic-link.subject": "Signing up at {AppName}",
   "email.authenticate-primary-oob.subject": "Logging in to {AppName}",
   "email.authenticate-secondary-oob.subject": "Logging in to {AppName}",
+  "email.authenticate-secondary-magic-link.subject": "Logging in to {AppName}",
 
   "error-login-id-required": "Please enter your {variant, select, phone{phone number} email {email address} username {username} other {email address or username}}.",
   "error-password-required": "Please enter your password.",
