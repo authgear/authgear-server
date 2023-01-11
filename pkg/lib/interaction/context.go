@@ -54,7 +54,7 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string) (*otp.Code, error)
+	GenerateCode(target string, otpMode otp.OTPMode) (*otp.Code, error)
 	VerifyCode(target string, code string) error
 }
 
@@ -64,6 +64,7 @@ type OOBCodeSender interface {
 		target string,
 		code string,
 		messageType otp.MessageType,
+		otpMode otp.OTPMode,
 	) error
 }
 
