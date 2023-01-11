@@ -158,7 +158,7 @@ var updateIdentityInput = graphql.NewInputObject(graphql.InputObjectConfig{
 })
 
 var updateIdentityPayload = graphql.NewObject(graphql.ObjectConfig{
-	Name: "CreateIdentityPayload",
+	Name: "UpdateIdentityPayload",
 	Fields: graphql.Fields{
 		"user": &graphql.Field{
 			Type: graphql.NewNonNull(nodeUser),
@@ -173,7 +173,7 @@ var _ = registerMutationField(
 	"updateIdentity",
 	&graphql.Field{
 		Description: "Update an existing identity of user",
-		Type:        graphql.NewNonNull(createIdentityPayload),
+		Type:        graphql.NewNonNull(updateIdentityPayload),
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
 				Type: graphql.NewNonNull(updateIdentityInput),
