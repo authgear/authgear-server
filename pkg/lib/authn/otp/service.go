@@ -71,18 +71,17 @@ func (s *Service) deleteCode(target string) {
 }
 
 func (s *Service) handleFailedAttempt(target string) error {
+	err := s.RateLimiter.TakeToken(TrackFailedAttemptBucket(target))
+	if err != nil {
+		return err
+	}
+
 	pass, _, err := s.RateLimiter.CheckToken(TrackFailedAttemptBucket(target))
 	if err != nil {
 		return err
 	} else if !pass {
 		// Maximum number of failed attempt exceeded
 		s.deleteCode(target)
-		return ErrInvalidCode
-	}
-
-	err = s.RateLimiter.TakeToken(TrackFailedAttemptBucket(target))
-	if err != nil {
-		return err
 	}
 	return ErrInvalidCode
 }
