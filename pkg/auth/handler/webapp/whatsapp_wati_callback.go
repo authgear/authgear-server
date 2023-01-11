@@ -81,6 +81,7 @@ type WhatsappWATICallbackHandler struct {
 }
 
 type OTPCodeService interface {
+	CanVerifyCode(target string) (bool, error)
 	SetUserInputtedCode(target string, userInputtedCode string) (*otp.Code, error)
 }
 

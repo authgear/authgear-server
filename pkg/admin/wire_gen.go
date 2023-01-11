@@ -405,9 +405,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service4 := &service2.Service{
 		Store:          store3,
