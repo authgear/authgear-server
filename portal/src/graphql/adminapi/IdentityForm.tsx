@@ -132,7 +132,7 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
   const { updateIdentity } = useUpdateLoginIDIdentityMutation(user.id);
 
   const requirePassword = useMemo(() => {
-    if (originalIdentityID == null) {
+    if (originalIdentityID != null) {
       return false;
     }
     return isPasswordRequiredForNewIdentity(appConfig, user, loginIDType);
