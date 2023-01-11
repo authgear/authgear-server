@@ -2,7 +2,9 @@ package otp
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -23,8 +25,17 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
 type Service struct {
 	Clock clock.Clock
 
-	CodeStore CodeStore
-	Logger    Logger
+	CodeStore   CodeStore
+	Logger      Logger
+	RateLimiter RateLimiter
+}
+
+func TrackFailedAttemptBucket(target string) ratelimit.Bucket {
+	return ratelimit.Bucket{
+		Key:         fmt.Sprintf("otp-failed-attempt:%s", target),
+		Size:        5,
+		ResetPeriod: duration.UserInteraction,
+	}
 }
 
 func (s *Service) getCode(target string) (*Code, error) {
@@ -44,6 +55,12 @@ func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
 		return nil, err
 	}
 
+	// Reset failed attempt count
+	err = s.RateLimiter.ClearBucket(TrackFailedAttemptBucket(target))
+	if err != nil {
+		return nil, err
+	}
+
 	return codeModel, nil
 }
 
@@ -51,6 +68,23 @@ func (s *Service) deleteCode(target string) {
 	if err := s.CodeStore.Delete(target); err != nil {
 		s.Logger.WithError(err).Error("failed to delete code after validation")
 	}
+}
+
+func (s *Service) handleFailedAttempt(target string) error {
+	pass, _, err := s.RateLimiter.CheckToken(TrackFailedAttemptBucket(target))
+	if err != nil {
+		return err
+	} else if !pass {
+		// Maximum number of failed attempt exceeded
+		s.deleteCode(target)
+		return ErrInvalidCode
+	}
+
+	err = s.RateLimiter.TakeToken(TrackFailedAttemptBucket(target))
+	if err != nil {
+		return err
+	}
+	return ErrInvalidCode
 }
 
 func (s *Service) GenerateCode(target string) (*Code, error) {
@@ -73,7 +107,7 @@ func (s *Service) VerifyCode(target string, code string) error {
 	}
 
 	if !secretcode.OOBOTPSecretCode.Compare(code, codeModel.Code) {
-		return ErrInvalidCode
+		return s.handleFailedAttempt(target)
 	}
 
 	s.deleteCode(target)
@@ -94,7 +128,7 @@ func (s *Service) VerifyWhatsappCode(target string, consume bool) error {
 	}
 
 	if !secretcode.OOBOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return ErrInvalidCode
+		return s.handleFailedAttempt(target)
 	}
 
 	if consume {

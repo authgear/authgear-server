@@ -2,6 +2,7 @@ package otp
 
 import (
 	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -33,7 +34,9 @@ type HardSMSBucketer interface {
 }
 
 type RateLimiter interface {
+	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
 	TakeToken(bucket ratelimit.Bucket) error
+	ClearBucket(bucket ratelimit.Bucket) error
 }
 
 type EventService interface {
