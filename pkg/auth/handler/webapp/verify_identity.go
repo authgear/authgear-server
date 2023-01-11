@@ -50,6 +50,7 @@ type VerifyIdentityViewModel struct {
 	VerificationCodeSendCooldown int
 	VerificationCodeLength       int
 	VerificationCodeChannel      string
+	VerificationCanVerifyCode    bool
 	IdentityDisplayID            string
 	Action                       string
 }
@@ -72,6 +73,7 @@ type VerifyIdentityHandler struct {
 	Renderer              Renderer
 	RateLimiter           RateLimiter
 	FlashMessage          FlashMessage
+	OTPCodeService        OTPCodeService
 	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
 }
 
@@ -129,6 +131,12 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		} else {
 			viewModel.VerificationCodeSendCooldown = int(resetDuration.Seconds())
 		}
+
+		canVerify, err := h.OTPCodeService.CanVerifyCode(target)
+		if err != nil {
+			return nil, err
+		}
+		viewModel.VerificationCanVerifyCode = canVerify
 	}
 
 	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}

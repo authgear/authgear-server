@@ -460,9 +460,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -1261,9 +1262,10 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -2059,9 +2061,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -2804,9 +2807,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3255,9 +3259,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3591,9 +3596,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3997,9 +4003,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -4512,9 +4519,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -5274,9 +5282,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -6028,9 +6037,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -6887,9 +6897,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -7679,9 +7690,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -8470,9 +8482,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -9244,9 +9257,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -10016,9 +10030,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -10778,9 +10793,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -11543,9 +11559,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -12311,9 +12328,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -13081,9 +13099,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -13849,9 +13868,10 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -14613,9 +14633,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -15381,9 +15402,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -16150,9 +16172,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -16918,9 +16941,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -17686,9 +17710,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -18456,9 +18481,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -19224,9 +19250,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -19992,9 +20019,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -20470,6 +20498,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                  responseRenderer,
 		RateLimiter:               limiter,
 		FlashMessage:              flashMessage,
+		OTPCodeService:            otpService,
 		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
 	}
 	return enterOOBOTPHandler
@@ -20763,9 +20792,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -21531,9 +21561,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -22026,10 +22057,24 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	factory := appProvider.LoggerFactory
 	logger := otp.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	featureConfig := config.FeatureConfig
+	rateLimitFeatureConfig := featureConfig.RateLimit
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
+	}
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: storeRedis,
-		Logger:    logger,
+		Clock:       clockClock,
+		CodeStore:   storeRedis,
+		Logger:      logger,
+		RateLimiter: limiter,
 	}
 	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
 	secretConfig := config.SecretConfig
@@ -22335,9 +22380,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -23103,9 +23149,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -23867,9 +23914,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -24341,6 +24389,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:              responseRenderer,
 		RateLimiter:           limiter,
 		FlashMessage:          flashMessage,
+		OTPCodeService:        otpService,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
 	}
 	return verifyIdentityHandler
@@ -24634,9 +24683,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -25398,9 +25448,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -26172,9 +26223,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -26936,9 +26988,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -27701,9 +27754,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -28465,9 +28519,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -29261,9 +29316,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -30036,9 +30092,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -30824,9 +30881,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -31596,9 +31654,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -32361,9 +32420,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -33134,9 +33194,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -33899,9 +33960,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -34664,9 +34726,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -35429,9 +35492,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -36195,9 +36259,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -36979,9 +37044,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -37744,9 +37810,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -38509,9 +38576,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -39274,9 +39342,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -40039,9 +40108,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -40811,9 +40881,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -41577,9 +41648,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -42341,9 +42413,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -43119,9 +43192,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -43883,9 +43957,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -44647,9 +44722,10 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -45428,9 +45504,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -46159,9 +46236,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -46889,9 +46967,10 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -47663,9 +47742,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -48667,9 +48747,10 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -49250,9 +49331,10 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
