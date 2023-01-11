@@ -334,27 +334,6 @@ type CreateIdentityPayload {
 }
 
 """"""
-input UpdateIdentityInput {
-  """New definition of the identity."""
-  definition: IdentityDefinition!
-
-  """ID of identity to update"""
-  identityID: ID!
-
-  """Target user ID."""
-  userID: ID!
-}
-
-""""""
-type UpdateIdentityPayload {
-  """"""
-  identity: Identity!
-
-  """"""
-  user: User!
-}
-
-""""""
 input CreateSessionInput {
   """Target client ID."""
   clientID: String!
@@ -602,7 +581,7 @@ type Mutation {
   """Unschedule account deletion"""
   unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
 
-  """Update identity of user"""
+  """Update an existing identity of user"""
   updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
 
   """Update user"""
@@ -847,6 +826,27 @@ input UnscheduleAccountDeletionInput {
 
 """"""
 type UnscheduleAccountDeletionPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input UpdateIdentityInput {
+  """New definition of the identity."""
+  definition: IdentityDefinition!
+
+  """Target identity ID."""
+  identityID: ID!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type UpdateIdentityPayload {
+  """"""
+  identity: Identity!
+
   """"""
   user: User!
 }
