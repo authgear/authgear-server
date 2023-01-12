@@ -43,6 +43,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["google_tag_manager_container_id"] = FormatGoogleTagManagerContainerID{}
 	jsonschemaformat.DefaultChecker["x_web3_contract_id"] = FormatContractID{}
 	jsonschemaformat.DefaultChecker["x_web3_network_id"] = FormatNetworkID{}
+	jsonschemaformat.DefaultChecker["x_duration_string"] = FormatDurationString{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -461,4 +462,16 @@ func (FormatHookURI) CheckFormat(value interface{}) error {
 	default:
 		return fmt.Errorf("invalid scheme: %v", u.Scheme)
 	}
+}
+
+type FormatDurationString struct{}
+
+func (FormatDurationString) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	_, err := time.ParseDuration(str)
+	return err
 }
