@@ -774,9 +774,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{

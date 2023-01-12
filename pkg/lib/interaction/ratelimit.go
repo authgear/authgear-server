@@ -2,6 +2,7 @@ package interaction
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -51,14 +52,21 @@ func AntiAccountEnumerationBucket(ip string) ratelimit.Bucket {
 }
 
 type AntiSpamOTPCodeBucketMaker struct {
-	Config *config.OTPConfig
+	SMSConfig   *config.SMSConfig
+	EmailConfig *config.EmailConfig
 }
 
 func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket {
-
+	var resetPeriod time.Duration
+	switch channel {
+	case model.AuthenticatorOOBChannelSMS:
+		resetPeriod = m.SMSConfig.Ratelimit.ResendCooldownSeconds.Duration()
+	case model.AuthenticatorOOBChannelEmail:
+		resetPeriod = m.EmailConfig.Ratelimit.ResendCooldownSeconds.Duration()
+	}
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("otp-code:%s", target),
 		Size:        1,
-		ResetPeriod: m.Config.SMS.ResendCooldownSeconds.Duration(),
+		ResetPeriod: resetPeriod,
 	}
 }
