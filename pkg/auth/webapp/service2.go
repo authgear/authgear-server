@@ -252,6 +252,13 @@ func (s *Service2) doPost(
 					}
 					return
 				}
+			case *nodes.EdgeAuthenticationMagicLinkTrigger:
+				inputFn = func() (input interface{}, err error) {
+					input = &inputTriggerMagicLink{
+						AuthenticatorIndex: 0,
+					}
+					return
+				}
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}

@@ -7,13 +7,45 @@
   {{ template "magic-link-otp-page-title" }}
 </h1>
 
+{{ if not (eq .StateQuery "matched") }}
 <div class="text-sm break-words primary-txt text-center">
-  {{ template "magic-link-otp-description" (dict "target" .Target) }}
+  {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
 </div>
 
-<form id="main-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
+<form id="matched-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
+	{{ $.CSRFField }}
+</form>
+
+<button
+	form="matched-form"
+	class="hidden"
+	type="submit"
+	name="x_action"
+	value="matched"
+	data-submit-when-refresh="true"
+></button>
+{{ else }}
+<form id="next-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
 {{ $.CSRFField }}
 </form>
+
+<div class="grid grid-cols-1 auto-rows-auto bg-gray-100 dark:bg-gray-800 py-18 px-4 text-center">
+  <i class="good-txt text-base ti ti-check" aria-hidden="true"></i>
+  <p class="text-sm primary-txt whitespace-pre-wrap">{{ template "magic-link-otp-matched-description" }}</p>
+</div>
+<button
+  form="next-form"
+  class="btn primary-btn"
+  type="submit"
+  name="x_action"
+  value="next"
+  data-authgear-event="authgear.button.redirect_magic_link_result"
+>{{ template "magic-link-otp-next-button-label" }}</button>
+{{ if (and $.CanRequestDeviceToken $.XDeviceToken) }}
+  {{/* The value is provided by the checkbox from the previous state */}}
+  <input type="hidden" name="x_device_token" value="true" form="main-form">
+{{ end }}
+{{ end }}
 
 {{ template "__use_recovery_code.html" . }}
 {{ template "__watermark.html" . }}
