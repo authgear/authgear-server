@@ -49,22 +49,6 @@ func AntiAccountEnumerationBucket(ip string) ratelimit.Bucket {
 	}
 }
 
-func AntiSpamSendVerificationCodeBucket(target string) ratelimit.Bucket {
-	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("verification-send-code:%s", target),
-		Size:        1,
-		ResetPeriod: duration.PerMinute,
-	}
-}
-
-func AntiSpamSendOOBCodeBucket(oobType OOBType, target string) ratelimit.Bucket {
-	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("oob-send-code:%s:%s", oobType, target),
-		Size:        1,
-		ResetPeriod: duration.PerMinute,
-	}
-}
-
 type AntiSpamOTPCodeBucketMaker struct {
 	Config *config.OTPConfig
 }
