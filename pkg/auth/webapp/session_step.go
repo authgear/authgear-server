@@ -29,6 +29,7 @@ const (
 	SessionStepSetupMagicLinkOTP             SessionStepKind = "setup-magic-link-otp"
 	SessionStepVerifyWhatsappOTPAuthn        SessionStepKind = "verify-whatsapp-otp-authn"
 	SessionStepVerifyWhatsappOTPSetup        SessionStepKind = "verify-whatsapp-otp-setup"
+	SessionStepVerifyMagicLinkOTPAuthn       SessionStepKind = "verify-magic-link-otp-authn"
 	SessionStepVerifyMagicLinkOTPSetup       SessionStepKind = "verify-magic-link-otp-setup"
 	SessionStepEnterTOTP                     SessionStepKind = "enter-totp"
 	SessionStepSetupTOTP                     SessionStepKind = "setup-totp"
@@ -84,7 +85,8 @@ func (k SessionStepKind) Path() string {
 		SessionStepVerifyWhatsappOTPAuthn,
 		SessionStepVerifyIdentityViaWhatsapp:
 		return "/flows/whatsapp_otp"
-	case SessionStepVerifyMagicLinkOTPSetup:
+	case SessionStepVerifyMagicLinkOTPSetup,
+		SessionStepVerifyMagicLinkOTPAuthn:
 		return "/flows/magic_link_otp"
 	case SessionStepEnterTOTP:
 		return "/flows/enter_totp"
@@ -129,6 +131,13 @@ func (k SessionStepKind) MatchPath(path string) bool {
 	case SessionStepCreateAuthenticator:
 		switch path {
 		case "/flows/setup_totp", "/flows/setup_oob_otp_email", "/flows/setup_oob_otp_sms", "/flows/create_password", "/flows/setup_whatsapp_otp":
+			return true
+		default:
+			return false
+		}
+	case SessionStepVerifyMagicLinkOTPSetup:
+		switch path {
+		case "/flows/magic_link_otp", "/flows/verify_magic_link":
 			return true
 		default:
 			return false
