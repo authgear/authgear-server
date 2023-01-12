@@ -76,10 +76,12 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 
 	if opts.OTPMode == OTPModeMagicLink {
 		url := s.Endpoints.BaseURL()
-		url = url.JoinPath("/magic_link/confirm")
+		url = url.JoinPath("/flows/verify_magic_link")
 
 		query := url.Query()
 		query.Set("token", data.Code)
+		query.Set("target", data.Email)
+		// TODO(newman): Add redirect_to query
 		url.RawQuery = query.Encode()
 
 		data.URL = url.String()
