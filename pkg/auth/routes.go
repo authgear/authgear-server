@@ -238,6 +238,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureWhatsappOTPRoute(webappPageRoute), p.Handler(newWebAppWhatsappOTPHandler))
 	router.Add(webapphandler.ConfigureSetupMagicLinkOTPRoute(webappPageRoute), p.Handler(newWebAppSetupMagicLinkOTPHandler))
 	router.Add(webapphandler.ConfigureMagicLinkOTPRoute(webappPageRoute), p.Handler(newWebAppMagicLinkOTPHandler))
+	router.Add(webapphandler.ConfigureVerifyMagicLinkOTPRoute(webappPageRoute), p.Handler(newWebAppVerifyMagicLinkOTPHandler))
 	router.Add(webapphandler.ConfigureEnterRecoveryCodeRoute(webappPageRoute), p.Handler(newWebAppEnterRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureSetupRecoveryCodeRoute(webappPageRoute), p.Handler(newWebAppSetupRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureVerifyIdentityRoute(webappPageRoute), p.Handler(newWebAppVerifyIdentityHandler))

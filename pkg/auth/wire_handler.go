@@ -308,6 +308,13 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyMagicLinkOTPHandler)),
+	))
+}
+
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

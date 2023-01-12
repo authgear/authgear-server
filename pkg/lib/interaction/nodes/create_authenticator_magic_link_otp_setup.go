@@ -40,7 +40,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	var userID string
 	var input InputCreateAuthenticatorMagicLinkOTPSetup
 	if e.Stage == authn.AuthenticationStagePrimary {
-		panic("Magic link as primary authenticator is not yet support")
+		panic("Magic link as primary authenticator is not yet supported")
 	} else {
 		if !interaction.Input(rawInput, &input) {
 			return nil, interaction.ErrIncompatibleInput
@@ -77,7 +77,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	}
 
 	if aStatus == verification.AuthenticatorStatusVerified {
-		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
+		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
 	result, err := (&SendOOBCode{
@@ -95,8 +95,9 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	return &NodeCreateAuthenticatorMagicLinkOTPSetup{
 		Stage:         e.Stage,
 		Authenticator: info,
-		Channel:       result.Channel,
+		MagicLinkOTP:  result.Code,
 		Target:        input.GetMagicLinkTarget(),
+		Channel:       result.Channel,
 	}, nil
 }
 
@@ -108,19 +109,26 @@ type NodeCreateAuthenticatorMagicLinkOTPSetup struct {
 	Channel       string                    `json:"channel"`
 }
 
+// GetMagicLinkOTP implements MagicLinkOTPNode.
+func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTP() string {
+	return n.MagicLinkOTP
+}
+
 // GetMagicLinkOTPTarget implements MagicLinkOTPNode.
 func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPTarget() string {
 	return n.Target
 }
 
-// GetPhone implements MagicLinkOTPNode.
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPChannel() string {
-	return n.Channel
-}
-
-// GetCreateAuthenticatorStage implements CreateAuthenticatorPhoneOTPNode
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetCreateAuthenticatorStage() authn.AuthenticationStage {
-	return n.Stage
+// GetMagicLinkOTPOOBType implements MagicLinkOTPNode.
+func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPOOBType() interaction.OOBType {
+	switch n.Stage {
+	case authn.AuthenticationStagePrimary:
+		return interaction.OOBTypeSetupPrimary
+	case authn.AuthenticationStageSecondary:
+		return interaction.OOBTypeSetupSecondary
+	default:
+		panic("interaction: unknown authentication stage: " + n.Stage)
+	}
 }
 
 func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
