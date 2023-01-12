@@ -11,7 +11,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorMagicLinkOTP interface {
-	VerifyMagicLinkOTP()
+	GetMagicLinkOTP() string
 }
 
 type EdgeCreateAuthenticatorMagicLinkOTP struct {
@@ -25,7 +25,11 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTP) Instantiate(ctx *interaction.Conte
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	// TODO(newman): Verify magic link
+	target := e.Authenticator.OOBOTP.ToTarget()
+	err := ctx.OTPCodeService.VerifyCode(target, input.GetMagicLinkOTP())
+	if err != nil {
+		return nil, err
+	}
 
 	return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }
@@ -33,6 +37,8 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTP) Instantiate(ctx *interaction.Conte
 type NodeCreateAuthenticatorMagicLinkOTP struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
+	Target        string                    `json:"target"`
+	Channel       string                    `json:"channel"`
 }
 
 func (n *NodeCreateAuthenticatorMagicLinkOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

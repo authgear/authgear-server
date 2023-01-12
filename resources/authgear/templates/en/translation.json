@@ -190,6 +190,10 @@
   "magic-link-otp-page-title": "Magic Link",
   "magic-link-otp-description": "We have sent a magic link to {target}. Please visit the link to continue",
 
+  "verify-magic-link-page-title": "Magic Link confirmation",
+  "verify-magic-link-description": "Please click the button below to approve login",
+  "verify-magic-link-next-button-label": "Approve",
+
   "verify-user-page-title--sms": "SMS verification",
   "verify-user-page-title--email": "Email verification",
   "verify-user-placeholder": "Verification code",

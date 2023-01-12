@@ -21,6 +21,7 @@ type SendOOBCode struct {
 	AuthenticatorInfo    *authenticator.Info
 	IgnoreRatelimitError bool
 	OTPMode              otp.OTPMode
+	Code                 string
 }
 
 func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
@@ -79,6 +80,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		Channel:    string(channel),
 		Target:     target,
 		CodeLength: len(code.Code),
+		Code:       code.Code,
 	}
 
 	err = p.Context.RateLimiter.TakeToken(p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target))

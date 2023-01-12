@@ -558,6 +558,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		}
 	case *nodes.NodeAuthenticationWhatsappTrigger:
 		return SessionStepVerifyWhatsappOTPAuthn
+	case *nodes.NodeAuthenticationMagicLinkTrigger:
+		return SessionStepVerifyMagicLinkOTPAuthn
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		switch currentNode.Authenticator.Type {
 		case model.AuthenticatorTypeOOBEmail:
