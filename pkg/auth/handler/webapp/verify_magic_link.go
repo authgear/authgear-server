@@ -1,9 +1,14 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -36,6 +41,7 @@ type VerifyMagicLinkOTPViewModel struct {
 	Target     string
 	Code       string
 	RedirectTo string
+	StateQuery MagicLinkOTPPageQueryState
 }
 
 func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel {
@@ -47,14 +53,21 @@ func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel
 		Target:     target,
 		Code:       code,
 		RedirectTo: redirectTo,
+		StateQuery: GetMagicLinkStateFromQuery(r),
 	}
 }
 
 type VerifyMagicLinkOTPHandler struct {
-	ControllerFactory       ControllerFactory
-	BaseViewModel           *viewmodels.BaseViewModeler
-	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
-	Renderer                Renderer
+	MagicLinkOTPCodeService     otp.Service
+	GlobalSessionServiceFactory *GlobalSessionServiceFactory
+	ControllerFactory           ControllerFactory
+	BaseViewModel               *viewmodels.BaseViewModeler
+	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler
+	Renderer                    Renderer
+}
+
+type MagicLinkOTPCodeService interface {
+	SetUserInputtedCode(target string, userInputtedCode string) (*otp.Code, error)
 }
 
 func (h *VerifyMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -83,28 +96,61 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
-			if err != nil {
-				return
-			}
+	ctrl.PostAction("matched", func() error {
+		u := url.URL{}
+		u.Path = r.URL.Path
+		q := r.URL.Query()
+		q.Set(MagicLinkOTPPageQueryStateKey, string(MagicLinkOTPPageQueryStateMatched))
+		u.RawQuery = q.Encode()
+		result := webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+		}
+		result.WriteResponse(w, r)
+		return nil
+	})
 
-			code := r.Form.Get("x_oob_otp_code")
-			target := r.Form.Get("x_oob_otp_target")
-			redirectTo := r.Form.Get("x_oob_otp_redirect_to")
-
-			input = &InputVerifyMagicLinkOTP{
-				Target:     target,
-				Code:       code,
-				RedirectTo: redirectTo,
-			}
-			return
-		})
+	ctrl.PostAction("", func() (err error) {
+		err = VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
-			return err
+			return
 		}
 
+		code := r.Form.Get("x_oob_otp_code")
+		target := r.Form.Get("x_oob_otp_target")
+		// redirectTo := r.Form.Get("x_oob_otp_redirect_to")
+
+		// FIXME(newman): Set consume back to true afte testing
+		codeModel, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, code, false)
+		if err != nil {
+			if errors.Is(err, otp.ErrCodeNotFound) {
+				err = errors.New("magic link not found")
+			}
+			return
+		}
+
+		// Update the web session and trigger the refresh event
+		webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
+			config.AppID(codeModel.AppID),
+		)
+		webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+		if err != nil {
+			return
+		}
+		err = webSessionProvider.UpdateSession(webSession)
+		if err != nil {
+			return
+		}
+
+		u := url.URL{}
+		u.Path = r.URL.Path
+		q := r.URL.Query()
+		q.Set(MagicLinkOTPPageQueryStateKey, string(MagicLinkOTPPageQueryStateMatched))
+		u.RawQuery = q.Encode()
+		result := webapp.Result{
+			RedirectURI:      u.String(),
+			NavigationAction: "replace",
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})
