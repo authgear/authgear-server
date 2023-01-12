@@ -60,7 +60,7 @@ func (e *EdgeAuthenticationMagicLinkTrigger) Instantiate(ctx *interaction.Contex
 	result, err := (&SendOOBCode{
 		Context:              ctx,
 		Stage:                e.Stage,
-		IsAuthenticating:     false,
+		IsAuthenticating:     true,
 		AuthenticatorInfo:    targetInfo,
 		IgnoreRatelimitError: true,
 		OTPMode:              otp.OTPModeMagicLink,
