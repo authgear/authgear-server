@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -28,13 +29,15 @@ type Service struct {
 	CodeStore   CodeStore
 	Logger      Logger
 	RateLimiter RateLimiter
+	OTPConfig   *config.OTPConfig
 }
 
-func TrackFailedAttemptBucket(target string) ratelimit.Bucket {
+func (s *Service) TrackFailedAttemptBucket(target string) ratelimit.Bucket {
+	config := s.OTPConfig.Ratelimit.FailedAttempt
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("otp-failed-attempt:%s", target),
-		Size:        5,
-		ResetPeriod: duration.UserInteraction,
+		Size:        config.Size,
+		ResetPeriod: config.ResetPeriod.Duration(),
 	}
 }
 
@@ -56,7 +59,7 @@ func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
 	}
 
 	// Reset failed attempt count
-	err = s.RateLimiter.ClearBucket(TrackFailedAttemptBucket(target))
+	err = s.RateLimiter.ClearBucket(s.TrackFailedAttemptBucket(target))
 	if err != nil {
 		return nil, err
 	}
@@ -71,12 +74,12 @@ func (s *Service) deleteCode(target string) {
 }
 
 func (s *Service) handleFailedAttempt(target string) error {
-	err := s.RateLimiter.TakeToken(TrackFailedAttemptBucket(target))
+	err := s.RateLimiter.TakeToken(s.TrackFailedAttemptBucket(target))
 	if err != nil {
 		return err
 	}
 
-	pass, _, err := s.RateLimiter.CheckToken(TrackFailedAttemptBucket(target))
+	pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
 	if err != nil {
 		return err
 	} else if !pass {
