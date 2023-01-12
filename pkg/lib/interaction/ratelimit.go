@@ -54,9 +54,9 @@ type AntiSpamOTPCodeBucketMaker struct {
 }
 
 func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(target string) ratelimit.Bucket {
-  return ratelimit.Bucket{
-    Key: fmt.Sprintf("otp-code:%s", target),
-    Size: 1,
-    ResetPeriod: m.Config.SMS.ResendCooldownSeconds.Duration(),
-  }
+	return ratelimit.Bucket{
+		Key:         fmt.Sprintf("otp-code:%s", target),
+		Size:        1,
+		ResetPeriod: m.Config.SMS.ResendCooldownSeconds.Duration(),
+	}
 }
