@@ -255,3 +255,19 @@ func TestFormatHookURI(t *testing.T) {
 		So(f("authgeardeno://host/"), ShouldBeError, "authgeardeno URI does not have host")
 	})
 }
+
+func TestFormatDurationString(t *testing.T) {
+	f := FormatDurationString{}.CheckFormat
+
+	Convey("FormatDurationString", t, func() {
+		So(f(1), ShouldBeNil)
+
+		So(f(""), ShouldBeError, `time: invalid duration ""`)
+		So(f("foobar"), ShouldBeError, `time: invalid duration "foobar"`)
+
+		So(f("0s"), ShouldBeNil)
+		So(f("1.1s"), ShouldBeNil)
+		So(f("2m3s"), ShouldBeNil)
+		So(f("4h5m6s"), ShouldBeNil)
+	})
+}
