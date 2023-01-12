@@ -28,8 +28,8 @@ func (a AuthenticatorFacade) WithSpec(authenticatorInfo *authenticator.Info, spe
 	return a.Coordinator.AuthenticatorWithSpec(authenticatorInfo, spec)
 }
 
-func (a AuthenticatorFacade) Create(authenticatorInfo *authenticator.Info) error {
-	return a.Coordinator.AuthenticatorCreate(authenticatorInfo)
+func (a AuthenticatorFacade) Create(authenticatorInfo *authenticator.Info, markVerified bool) error {
+	return a.Coordinator.AuthenticatorCreate(authenticatorInfo, markVerified)
 }
 
 func (a AuthenticatorFacade) Update(authenticatorInfo *authenticator.Info) error {

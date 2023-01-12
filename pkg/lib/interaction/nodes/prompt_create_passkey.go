@@ -134,7 +134,7 @@ func (n *NodePromptCreatePasskeyEnd) GetEffects() ([]interaction.Effect, error) 
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.Authenticator != nil {
-				err := ctx.Authenticators.Create(n.Authenticator)
+				err := ctx.Authenticators.Create(n.Authenticator, true)
 				if err != nil {
 					return err
 				}
