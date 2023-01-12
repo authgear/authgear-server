@@ -284,16 +284,18 @@ func (c *Coordinator) AuthenticatorWithSpec(authenticatorInfo *authenticator.Inf
 	return c.Authenticators.WithSpec(authenticatorInfo, spec)
 }
 
-func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info) error {
+func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info, markVerified bool) error {
 	err := c.Authenticators.Create(authenticatorInfo)
 	if err != nil {
 		return err
 	}
 
-	// Mark as verified for authenticators.
-	err = c.markVerified(authenticatorInfo.UserID, authenticatorInfo.StandardClaims())
-	if err != nil {
-		return err
+	// Mark as verified for authenticators created by user.
+	if markVerified {
+		err = c.markVerified(authenticatorInfo.UserID, authenticatorInfo.StandardClaims())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

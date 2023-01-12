@@ -16,15 +16,18 @@ type EdgeDoCreateAuthenticator struct {
 }
 
 func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	return &NodeDoCreateAuthenticator{
 		Stage:          e.Stage,
 		Authenticators: e.Authenticators,
+		IsAdminAPI:     isAdminAPI,
 	}, nil
 }
 
 type NodeDoCreateAuthenticator struct {
 	Stage          authn.AuthenticationStage `json:"stage"`
 	Authenticators []*authenticator.Info     `json:"authenticators"`
+	IsAdminAPI     bool                      `json:"is_admin_api"`
 }
 
 func (n *NodeDoCreateAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -35,7 +38,7 @@ func (n *NodeDoCreateAuthenticator) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			for _, a := range n.Authenticators {
-				err := ctx.Authenticators.Create(a)
+				err := ctx.Authenticators.Create(a, !n.IsAdminAPI)
 				if err != nil {
 					return err
 				}

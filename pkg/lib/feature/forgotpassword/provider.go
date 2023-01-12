@@ -32,7 +32,7 @@ type AuthenticatorService interface {
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bool, *authenticator.Info, error)
 	Update(info *authenticator.Info) error
-	Create(info *authenticator.Info) error
+	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Delete(info *authenticator.Info) error
 }
 
@@ -354,7 +354,7 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (err error) 
 			return
 		}
 
-		err = p.Authenticators.Create(newInfo)
+		err = p.Authenticators.Create(newInfo, true)
 		if err != nil {
 			return
 		}
