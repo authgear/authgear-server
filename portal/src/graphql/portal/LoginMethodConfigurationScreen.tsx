@@ -41,8 +41,10 @@ import {
   PasswordPolicyFeatureConfig,
   authenticatorPhoneOTPModeList,
   verificationCriteriaList,
-  OTPSMSResendCooldownList,
-  OTPSMSConfig,
+  SMSRatelimitConfig,
+  smsResendCooldownList,
+  EmailRatelimitConfig,
+  emailResendCooldownList,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -402,7 +404,8 @@ interface ConfigFormState {
   loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
   verificationConfig: VerificationConfig;
-  otpSMSConfig: OTPSMSConfig;
+  smsRatelimitConfig: SMSRatelimitConfig;
+  emailRatelimitConfig: EmailRatelimitConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
@@ -762,8 +765,11 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     verificationConfig: {
       ...config.verification,
     },
-    otpSMSConfig: {
-      ...config.otp?.sms,
+    smsRatelimitConfig: {
+      ...config.messaging?.sms?.ratelimit,
+    },
+    emailRatelimitConfig: {
+      ...config.messaging?.email?.ratelimit,
     },
     authenticatorOOBSMSConfig: {
       phone_otp_mode: DEFAULT_PHONE_OTP_MODE,
@@ -826,8 +832,11 @@ function constructConfig(
     config.identity.login_id ??= {};
     config.identity.login_id.types ??= {};
     config.ui ??= {};
-    config.otp ??= {};
-    config.otp.sms ??= {};
+    config.messaging ??= {};
+    config.messaging.sms ??= {};
+    config.messaging.sms.ratelimit ??= {};
+    config.messaging.email ??= {};
+    config.messaging.email.ratelimit ??= {};
     config.authenticator ??= {};
     config.authenticator.oob_otp ??= {};
 
@@ -873,7 +882,8 @@ function constructConfig(
     config.identity.login_id.types.username =
       currentState.loginIDUsernameConfig;
     config.verification = currentState.verificationConfig;
-    config.otp.sms = currentState.otpSMSConfig;
+    config.messaging.sms.ratelimit = currentState.smsRatelimitConfig;
+    config.messaging.email.ratelimit = currentState.emailRatelimitConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
     config.forgot_password = currentState.forgotPasswordConfig;
@@ -2051,7 +2061,8 @@ interface VerificationSettingsProps {
   showEmailSettings: boolean;
   showPhoneSettings: boolean;
   verificationConfig: VerificationConfig;
-  otpSMSConfig: OTPSMSConfig;
+  smsRatelimitConfig: SMSRatelimitConfig;
+  emailRatelimitConfig: EmailRatelimitConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   setState: FormModel["setState"];
 }
@@ -2062,7 +2073,8 @@ function VerificationSettings(props: VerificationSettingsProps) {
     showEmailSettings,
     showPhoneSettings,
     verificationConfig,
-    otpSMSConfig,
+    smsRatelimitConfig,
+    emailRatelimitConfig,
     setState,
     authenticatorOOBSMSConfig,
   } = props;
@@ -2081,9 +2093,34 @@ function VerificationSettings(props: VerificationSettingsProps) {
     [setState]
   );
 
+  const emailResendCooldown = useMemo(
+    () =>
+      emailResendCooldownList.map((duration) => ({
+        key: duration,
+        text: renderToString(
+          "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.value.seconds",
+          { seconds: duration }
+        ),
+      })),
+    [renderToString]
+  );
+  const onChangeEmailResendCooldown = useCallback(
+    (_, option) => {
+      const key = option.key;
+      if (key != null) {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.emailRatelimitConfig.resend_cooldown_seconds = key;
+          })
+        );
+      }
+    },
+    [setState]
+  );
+
   const phoneSMSResendCooldown = useMemo(
     () =>
-      OTPSMSResendCooldownList.map((duration) => ({
+      smsResendCooldownList.map((duration) => ({
         key: duration,
         text: renderToString(
           "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.value.seconds",
@@ -2098,7 +2135,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
       if (key != null) {
         setState((prev) =>
           produce(prev, (prev) => {
-            prev.otpSMSConfig.resend_cooldown_seconds = key;
+            prev.smsRatelimitConfig.resend_cooldown_seconds = key;
           })
         );
       }
@@ -2212,6 +2249,14 @@ function VerificationSettings(props: VerificationSettingsProps) {
               "VerificationConfigurationScreen.verification.email.allowed.label"
             )}
           />
+          <Dropdown
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label"
+            )}
+            options={emailResendCooldown}
+            selectedKey={emailRatelimitConfig.resend_cooldown_seconds}
+            onChange={onChangeEmailResendCooldown}
+          />
         </>
       ) : null}
       {showPhoneSettings ? (
@@ -2238,7 +2283,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
               "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label"
             )}
             options={phoneSMSResendCooldown}
-            selectedKey={otpSMSConfig.resend_cooldown_seconds}
+            selectedKey={smsRatelimitConfig.resend_cooldown_seconds}
             onChange={onChangePhoneSMSResendCooldown}
           />
           <Dropdown
@@ -2276,7 +2321,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDUsernameConfig,
       phoneInputConfig,
       verificationConfig,
-      otpSMSConfig,
+      smsRatelimitConfig,
+      emailRatelimitConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
       forgotPasswordConfig,
@@ -2515,7 +2561,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   showEmailSettings={showEmailSettings}
                   showPhoneSettings={showPhoneSettings}
                   verificationConfig={verificationConfig}
-                  otpSMSConfig={otpSMSConfig}
+                  smsRatelimitConfig={smsRatelimitConfig}
+                  emailRatelimitConfig={emailRatelimitConfig}
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                   setState={setState}
                 />

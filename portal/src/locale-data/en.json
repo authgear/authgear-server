@@ -436,9 +436,11 @@
   "VerificationConfigurationScreen.verification.claims.phoneNumber": "Phone number verification",
   "VerificationConfigurationScreen.verification.email.required.label": "Email verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.email.allowed.label": "Allow users to verify their email address from the setting page",
+  "VerificationConfigurationScreen.verification.email.resend-cooldown.label": "Cooldown duration before resending OTP via email",
+  "VerificationConfigurationScreen.verification.email.resend-cooldown.value.seconds": "{seconds} seconds",
   "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.phone.allowed.label": "Allow users to verify their phone number from the setting page",
-  "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label": "Cooldown duration before resending OTP",
+  "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label": "Cooldown duration before resending OTP via SMS",
   "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.value.seconds": "{seconds} seconds",
   "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
 

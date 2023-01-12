@@ -301,16 +301,33 @@ export interface VerificationConfig {
   code_expiry_seconds?: DurationSeconds;
 }
 
-export const OTPSMSResendCooldownList = [60, 120] as const;
-
-export type OTPSMSResendCooldown = typeof OTPSMSResendCooldownList[number];
-
-export interface OTPSMSConfig {
-  resend_cooldown_seconds?: OTPSMSResendCooldown;
+export interface MessagingConfig {
+  sms?: SMSConfig;
+  email?: EmailConfig
 }
 
-export interface OTPConfig {
-  sms?: OTPSMSConfig;
+export const smsResendCooldownList = [60, 120] as const;
+
+export type SMSResendCooldown = typeof smsResendCooldownList[number];
+
+export interface SMSRatelimitConfig {
+  resend_cooldown_seconds?: SMSResendCooldown;
+}
+
+export interface SMSConfig {
+  ratelimit?: SMSRatelimitConfig;
+}
+
+export const emailResendCooldownList = [60, 120] as const;
+
+export type EmailResendCooldown = typeof emailResendCooldownList[number];
+
+export interface EmailRatelimitConfig {
+  resend_cooldown_seconds?: EmailResendCooldown;
+}
+
+export interface EmailConfig {
+  ratelimit?: EmailRatelimitConfig;
 }
 
 // UIConfig
@@ -480,7 +497,7 @@ export interface PortalAPIAppConfig {
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
-  otp?: OTPConfig;
+  messaging?: MessagingConfig;
   ui?: UIConfig;
   localization?: LocalizationConfig;
   forgot_password?: ForgotPasswordConfig;
