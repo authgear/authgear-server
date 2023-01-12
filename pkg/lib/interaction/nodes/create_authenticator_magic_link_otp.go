@@ -25,11 +25,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTP) Instantiate(ctx *interaction.Conte
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	target := e.Authenticator.OOBOTP.ToTarget()
-	err := ctx.OTPCodeService.VerifyCode(target, input.GetMagicLinkOTP())
-	if err != nil {
-		return nil, err
-	}
+	// Unlike Whatsapp, magic link is already verified before this edge, so we directly go to next node
 
 	return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }

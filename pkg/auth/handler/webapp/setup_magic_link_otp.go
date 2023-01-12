@@ -91,8 +91,7 @@ func (h *SetupMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			}
 
 			input = &InputSetupMagicLinkOTP{
-				InputType: "email",
-				Target:    target,
+				Target: target,
 			}
 			return
 		})
