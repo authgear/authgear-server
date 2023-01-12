@@ -3,6 +3,7 @@ package interaction
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -53,7 +54,8 @@ type AntiSpamOTPCodeBucketMaker struct {
 	Config *config.OTPConfig
 }
 
-func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(target string) ratelimit.Bucket {
+func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket {
+
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("otp-code:%s", target),
 		Size:        1,

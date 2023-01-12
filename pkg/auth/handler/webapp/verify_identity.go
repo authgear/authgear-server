@@ -63,7 +63,7 @@ type FlashMessage interface {
 }
 
 type AntiSpamOTPCodeBucketMaker interface {
-	MakeBucket(target string) ratelimit.Bucket
+	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
 }
 
 type VerifyIdentityHandler struct {
@@ -108,7 +108,8 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
 		target := n.GetVerificationCodeTarget()
-		switch model.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
+		channel := model.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel)
+		switch channel {
 		case model.AuthenticatorOOBChannelSMS:
 			viewModel.IdentityDisplayID = phone.Mask(rawIdentityDisplayID)
 		case model.AuthenticatorOOBChannelEmail:
@@ -117,7 +118,7 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 			panic("webapp: unknown verification channel")
 		}
 
-		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(target)
+		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err

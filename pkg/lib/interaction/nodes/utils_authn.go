@@ -80,7 +80,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		CodeLength: len(code.Code),
 	}
 
-	err = p.Context.RateLimiter.TakeToken(p.Context.AntiSpamOTPCodeBucket.MakeBucket(target))
+	err = p.Context.RateLimiter.TakeToken(p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target))
 	if p.IgnoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
