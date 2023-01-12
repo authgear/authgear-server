@@ -267,6 +267,12 @@ messaging:
   default_email_message:
     sender: "no-reply@authgear.com"
   default_sms_message: {}
+  sms:
+    ratelimit:
+      resend_cooldown_seconds: 60s
+  email:
+    ratelimit:
+      resend_cooldown_seconds: 60s
 authentication:
   identities:
     - oauth
@@ -518,9 +524,6 @@ verification:
   email:
     message:
       subject: Email Verification Instruction
-otp:
-  sms:
-    resend_cooldown_seconds: 60
 web3:
   siwe:
     networks:

@@ -736,9 +736,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -1534,9 +1537,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -2338,9 +2344,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -4788,9 +4797,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -5590,9 +5602,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -6341,9 +6356,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -7196,9 +7214,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -7985,9 +8006,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -8773,9 +8797,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -9544,9 +9571,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -10313,9 +10343,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -11072,9 +11105,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -11834,9 +11870,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -12599,9 +12638,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -13366,9 +13408,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -14131,9 +14176,12 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -14892,9 +14940,12 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -15657,9 +15708,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -16423,9 +16477,12 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -17188,9 +17245,12 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -17953,9 +18013,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -18720,9 +18783,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -19485,9 +19551,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -20250,9 +20319,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -21018,9 +21090,12 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -21783,9 +21858,12 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -22584,9 +22662,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -23349,9 +23430,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -24110,9 +24194,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -24874,9 +24961,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -25635,9 +25725,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -26406,9 +26499,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -27167,9 +27263,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -27929,9 +28028,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -28690,9 +28792,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -29483,9 +29588,12 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -30255,9 +30363,12 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -31040,9 +31151,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -31809,9 +31923,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -32571,9 +32688,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -33341,9 +33461,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -34103,9 +34226,12 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -34865,9 +34991,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -35627,9 +35756,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -36390,9 +36522,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -37171,9 +37306,12 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -37933,9 +38071,12 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -38695,9 +38836,12 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -39457,9 +39601,12 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -40219,9 +40366,12 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -40988,9 +41138,12 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -41751,9 +41904,12 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -42512,9 +42668,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -43287,9 +43446,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -44048,9 +44210,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -44809,9 +44974,12 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -45587,9 +45755,12 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -46315,9 +46486,12 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -47042,9 +47216,12 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -47813,9 +47990,12 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
-	otpConfig := appConfig.OTP
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		Config: otpConfig,
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
