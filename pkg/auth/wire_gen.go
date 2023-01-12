@@ -14188,6 +14188,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		RateLimiter:               limiter,
+		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
@@ -14890,6 +14891,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:          eventService,
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
+	}
+	otpConfig := appConfig.OTP
+	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
+		Config: otpConfig,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
