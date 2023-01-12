@@ -22,6 +22,14 @@ var _ nodes.InputAuthenticationWhatsappTrigger = &inputTriggerWhatsapp{}
 
 func (i *inputTriggerWhatsapp) GetWhatsappAuthenticatorIndex() int { return i.AuthenticatorIndex }
 
+type inputTriggerMagicLink struct {
+	AuthenticatorIndex int
+}
+
+var _ nodes.InputAuthenticationMagicLinkTrigger = &inputTriggerMagicLink{}
+
+func (i *inputTriggerMagicLink) GetMagicLinkAuthenticatorIndex() int { return i.AuthenticatorIndex }
+
 type inputSelectTOTP struct{}
 
 var _ nodes.InputCreateAuthenticatorTOTPSetup = &inputSelectTOTP{}

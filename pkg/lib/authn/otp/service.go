@@ -60,8 +60,11 @@ func (s *Service) deleteCode(target string) {
 	}
 }
 
-func (s *Service) GenerateCode(target string, otpMode OTPMode) (*Code, error) {
-	return s.createCode(target, otpMode, nil)
+func (s *Service) GenerateCode(target string, otpMode OTPMode, appID string, webSessionID string) (*Code, error) {
+	return s.createCode(target, otpMode, &Code{
+		AppID:        appID,
+		WebSessionID: webSessionID,
+	})
 }
 
 func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID string) (*Code, error) {
@@ -86,6 +89,25 @@ func (s *Service) VerifyCode(target string, code string) error {
 	s.deleteCode(target)
 
 	return nil
+}
+
+func (s *Service) VerifyMagicLinkCode(target string, code string, consume bool) (*Code, error) {
+	codeModel, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return nil, ErrInvalidCode
+	} else if err != nil {
+		return nil, err
+	}
+
+	if !secretcode.MagicLinkOTPSecretCode.Compare(code, codeModel.Code) {
+		return nil, ErrInvalidCode
+	}
+
+	if consume {
+		s.deleteCode(target)
+	}
+
+	return codeModel, nil
 }
 
 func (s *Service) VerifyWhatsappCode(target string, consume bool) error {

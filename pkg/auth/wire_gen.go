@@ -23353,18 +23353,34 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
+	handle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	storeRedis := &otp.StoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	factory := appProvider.LoggerFactory
+	logger := otp.NewLogger(factory)
+	otpService := otp.Service{
+		Clock:     clockClock,
+		CodeStore: storeRedis,
+		Logger:    logger,
+	}
+	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
+		Clock:       clockClock,
+		RedisHandle: handle,
+	}
+	appdbHandle := appProvider.AppDatabase
 	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
 		AppID: appID,
-		Redis: appredisHandle,
+		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
@@ -23382,11 +23398,10 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
-	logger := interaction.NewLogger(factory)
+	interactionLogger := interaction.NewLogger(factory)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
-	clockClock := _wireSystemClockValue
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	featureConfig := config.FeatureConfig
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
@@ -23469,7 +23484,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	store2 := &passkey2.Store{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -23518,16 +23533,16 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	web3Config := appConfig.Web3
-	storeRedis := &siwe2.StoreRedis{
+	siweStoreRedis := &siwe2.StoreRedis{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: appredisHandle,
+		Redis: handle,
 	}
 	rateLimitFeatureConfig := featureConfig.RateLimit
 	limiter := &ratelimit.Limiter{
@@ -23542,7 +23557,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPConfig:  httpConfig,
 		Web3Config:  web3Config,
 		Clock:       clockClock,
-		NonceStore:  storeRedis,
+		NonceStore:  siweStoreRedis,
 		RateLimiter: limiter,
 		Logger:      siweLogger,
 	}
@@ -23623,24 +23638,18 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	otpStoreRedis := &otp.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	otpLogger := otp.NewLogger(factory)
-	otpService := &otp.Service{
+	service3 := &otp.Service{
 		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		CodeStore: storeRedis,
+		Logger:    logger,
 	}
-	service3 := &service2.Service{
+	service4 := &service2.Service{
 		Store:          store3,
 		Password:       passwordProvider,
 		Passkey:        provider2,
 		TOTP:           totpProvider,
 		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
+		OTPCodeService: service3,
 		RateLimiter:    limiter,
 	}
 	verificationConfig := appConfig.Verification
@@ -23684,7 +23693,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawQueries:         rawQueries,
 		Store:              store,
 		Identities:         serviceService,
-		Authenticators:     service3,
+		Authenticators:     service4,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
@@ -23768,11 +23777,11 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
 		Service:  elasticsearchService,
-		Database: handle,
+		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23824,7 +23833,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
+		Redis:  handle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -23840,7 +23849,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       appredisHandle,
+		Redis:       handle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
@@ -23848,7 +23857,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -23860,7 +23869,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           appID,
-		Redis:           appredisHandle,
+		Redis:           handle,
 		Store:           idpsessionStoreRedis,
 		AccessEvents:    eventProvider,
 		TrustProxy:      trustProxy,
@@ -23883,7 +23892,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
-		Authenticators:             service3,
+		Authenticators:             service4,
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               commands,
@@ -23948,7 +23957,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   appredisHandle,
+		Redis:   handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -23974,7 +23983,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23984,7 +23993,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 	}
 	manager2 := &session.Manager{
@@ -23996,7 +24005,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	whatsappProvider := &whatsapp.Provider{
 		WATICredentials: watiCredentials,
 		Events:          eventService,
-		OTPCodeService:  otpService,
+		OTPCodeService:  service3,
 	}
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -24009,7 +24018,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
 		BiometricIdentities:       biometricProvider,
-		OTPCodeService:            otpService,
+		OTPCodeService:            service3,
 		OOBCodeSender:             codeSender,
 		OAuthProviderFactory:      oAuthProviderFactory,
 		MFA:                       mfaService,
@@ -24033,11 +24042,11 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WhatsappCodeProvider:      whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
-		Logger:  logger,
+		Logger:  interactionLogger,
 		Context: interactionContext,
 		Store:   interactionStoreRedis,
 	}
@@ -24081,10 +24090,10 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
+		Database:      appdbHandle,
+		RedisHandle:   handle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -24104,10 +24113,12 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        loginIDConfig,
 	}
 	verifyMagicLinkOTPHandler := &webapp.VerifyMagicLinkOTPHandler{
-		ControllerFactory:       controllerFactory,
-		BaseViewModel:           baseViewModeler,
-		AuthenticationViewModel: authenticationViewModeler,
-		Renderer:                responseRenderer,
+		MagicLinkOTPCodeService:     otpService,
+		GlobalSessionServiceFactory: globalSessionServiceFactory,
+		ControllerFactory:           controllerFactory,
+		BaseViewModel:               baseViewModeler,
+		AuthenticationViewModel:     authenticationViewModeler,
+		Renderer:                    responseRenderer,
 	}
 	return verifyMagicLinkOTPHandler
 }

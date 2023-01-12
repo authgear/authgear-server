@@ -316,10 +316,9 @@ type InputVerifyMagicLinkOTP struct {
 	RedirectTo string
 }
 
-func (i *InputVerifyMagicLinkOTP) VerifyMagicLinkOTP()   {}
-func (i *InputVerifyMagicLinkOTP) GetTarget() string     { return i.Target }
-func (i *InputVerifyMagicLinkOTP) GetCode() string       { return i.Code }
-func (i *InputVerifyMagicLinkOTP) GetRedirectTo() string { return i.GetRedirectTo() }
+func (i *InputVerifyMagicLinkOTP) GetMagicLinkOTP() string { return i.Code }
+func (i *InputVerifyMagicLinkOTP) GetTarget() string       { return i.Target }
+func (i *InputVerifyMagicLinkOTP) GetRedirectTo() string   { return i.RedirectTo }
 
 var _ nodes.InputCreateAuthenticatorMagicLinkOTP = &InputVerifyMagicLinkOTP{}
 

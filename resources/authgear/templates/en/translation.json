@@ -187,10 +187,13 @@
   "whatsapp-otp-pre-filled-message": "Verify {target} with OTP {otp} \nPress send on WhatsApp then return to the App",
 
   "magic-link-otp-page-title": "Magic Link",
-  "magic-link-otp-description": "We have sent a magic link to {target}. Please visit the link to continue",
+  "magic-link-otp-initial-description": "We have sent a magic link to {target}. Please visit the link to continue",
+  "magic-link-otp-matched-description": "Link verified!",
+  "magic-link-otp-next-button-label": "Next",
 
   "verify-magic-link-page-title": "Magic Link confirmation",
-  "verify-magic-link-description": "Please click the button below to approve login",
+  "verify-magic-link-initial-description": "Please click the button below to approve login",
+  "verify-magic-link-matched-description": "You are successfully authenticated. \nYou can close this window.",
   "verify-magic-link-next-button-label": "Approve",
 
   "verify-user-page-title--sms": "SMS verification",

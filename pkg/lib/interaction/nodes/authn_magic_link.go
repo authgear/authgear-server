@@ -25,12 +25,6 @@ func (e *EdgeAuthenticationMagicLink) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	target := e.Authenticator.OOBOTP.ToTarget()
-	err := ctx.OTPCodeService.VerifyCode(target, input.GetMagicLinkOTP())
-	if err != nil {
-		return nil, err
-	}
-
 	return &NodeAuthenticationMagicLink{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }
 
