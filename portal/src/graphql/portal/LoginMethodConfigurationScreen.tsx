@@ -40,6 +40,7 @@ import {
   ForgotPasswordConfig,
   PasswordPolicyFeatureConfig,
   authenticatorPhoneOTPModeList,
+  authenticatorPhoneOTPSMSModeList,
   verificationCriteriaList,
   SMSRatelimitConfig,
   smsResendCooldownList,
@@ -2165,6 +2166,19 @@ function VerificationSettings(props: VerificationSettingsProps) {
     [setState]
   );
 
+  const onChangeDailySMSLimit = useCallback(
+    (_, value) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.smsRatelimitConfig.per_phone ??= {};
+          prev.smsRatelimitConfig.per_phone.size =
+            parseIntegerAllowLeadingZeros(value);
+        })
+      );
+    },
+    [setState]
+  );
+
   const criteriaOptions = useMemo(
     () =>
       verificationCriteriaList.map((criteria) => ({
@@ -2204,6 +2218,10 @@ function VerificationSettings(props: VerificationSettingsProps) {
   const onChangePhoneEnabled = useVerificationOnChangeEnabled(
     setState,
     "phone_number"
+  );
+
+  const showSMSLimitSetting = authenticatorPhoneOTPSMSModeList.includes(
+    authenticatorOOBSMSConfig.phone_otp_mode ?? ""
   );
 
   return (
@@ -2302,6 +2320,16 @@ function VerificationSettings(props: VerificationSettingsProps) {
             selectedKey={authenticatorOOBSMSConfig.phone_otp_mode}
             onChange={onChangePhoneOTPMode}
           />
+          {showSMSLimitSetting ? (
+            <TextField
+              type="text"
+              label={renderToString(
+                "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label"
+              )}
+              value={smsRatelimitConfig.per_phone?.size?.toFixed(0) ?? ""}
+              onChange={onChangeDailySMSLimit}
+            />
+          ) : null}
         </>
       ) : null}
     </Widget>

@@ -292,6 +292,8 @@ export const authenticatorPhoneOTPModeList = [
 export type AuthenticatorPhoneOTPMode =
   typeof authenticatorPhoneOTPModeList[number];
 
+export const authenticatorPhoneOTPSMSModeList = ["sms", "whatsapp_sms"];
+
 // type alias of integer in JSON schema
 export type DurationSeconds = number;
 
@@ -310,8 +312,17 @@ export const smsResendCooldownList = [60, 120] as const;
 
 export type SMSResendCooldown = typeof smsResendCooldownList[number];
 
+// type alias of string in JSON schema
+export type DurationString = string;
+
+export interface SMSPerPhoneConfig {
+  size?: number;
+  reset_period?: DurationString;
+}
+
 export interface SMSRatelimitConfig {
   resend_cooldown_seconds?: SMSResendCooldown;
+  per_phone?: SMSPerPhoneConfig;
 }
 
 export interface SMSConfig {
