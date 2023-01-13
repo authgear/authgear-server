@@ -166,12 +166,6 @@
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
   "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
-  "magic-link-otp-page-title": "已發送無密碼鏈接",
-  "magic-link-otp-description": "我們已將無密碼鏈接發送至 {target}。 請訪問鏈接以繼續",
-  "magic-link-otp-resend-button-hint": "沒有收到無密碼鏈接？",
-  "magic-link-otp-resend-button-label": "重新發送",
-  "magic-link-otp-resend-button-label--unit": "重新發送 (%ds)",
-
   "whatsapp-otp-page-title": "向 WhatsApp 發送驗證碼",
   "whatsapp-otp-description": "使用您的手機號碼 ({target}) 在 WhatsApp 中發送此 6 位數驗證碼",
   "whatsapp-otp-waiting-for-your-message": "等待你的訊息",
@@ -188,8 +182,11 @@
   "whatsapp-otp-pre-filled-message": "以一次性密碼 {otp} 驗證 {target} \n請在WhatsApp按傳送，然後返回App",
 
   "magic-link-otp-page-title": "無密碼鏈接",
-  "magic-link-otp-initial-description": "我們已經向 {target} 發送了一個無密碼鏈接。請訪問該鏈接以繼續",
+  "magic-link-otp-initial-description": "我們已經向 {target} 發送了一個無密碼鏈接。\n請訪問該鏈接以繼續",
   "magic-link-otp-matched-description": "鏈接已驗證！",
+  "magic-link-otp-resend-button-hint": "沒有收到無密碼鏈接？",
+  "magic-link-otp-resend-button-label": "重新發送",
+  "magic-link-otp-resend-button-label--unit": "重新發送 (%ds)",
   "magic-link-otp-next-button-label": "下一步",
 
   "verify-magic-link-page-title": "無密碼鏈接確認",
@@ -401,6 +398,8 @@
   "enter-oob-otp-sms-instead": "以短訊發送一次性密碼至 {target}",
   "setup-phone-otp-instead": "改為使用手機作雙重驗證",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
+  "setup-magic-link-otp-instead": "改為設置無密碼鏈接兩步驗證",
+  "verify-magic-link-otp-instead": "改為通過無密碼鏈接驗證 {target}",
 
   "phone-otp-verify-with-sms-instead": "改為通過短信接收一次性密碼",
   "phone-otp-verify-with-whatsapp-instead": "改為通過 WhatsApp 驗證",
