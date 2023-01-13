@@ -28,9 +28,9 @@ type Workflow struct {
 	Nodes      []Node
 }
 
-func NewWorkflow(intent Intent) *Workflow {
+func NewWorkflow(workflowID string, intent Intent) *Workflow {
 	return &Workflow{
-		WorkflowID: newWorkflowID(),
+		WorkflowID: workflowID,
 		InstanceID: newInstanceID(),
 		Intent:     intent,
 	}

@@ -44,7 +44,7 @@ func TestService(t *testing.T) {
 				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
 			)
 
-			output, err := service.CreateNewWorkflow(intent)
+			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
 				Workflow: &Workflow{

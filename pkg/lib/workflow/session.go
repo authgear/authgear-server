@@ -7,6 +7,17 @@ type Session struct {
 	ClientID string
 }
 
+type SessionOptions struct {
+	ClientID string
+}
+
+func NewSession(opts *SessionOptions) *Session {
+	return &Session{
+		WorkflowID: newWorkflowID(),
+		ClientID:   opts.ClientID,
+	}
+}
+
 func (s *Session) ToOutput() *SessionOutput {
 	return &SessionOutput{
 		WorkflowID: s.WorkflowID,
