@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -58,14 +59,14 @@ func NewSubWorkflow(intent Intent) *Node {
 	}
 }
 
-func (n *Node) GetEffects(ctx *Context) ([]Effect, error) {
+func (n *Node) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	switch n.Type {
 	case NodeTypeSimple:
-		return n.Simple.GetEffects(ctx)
+		return n.Simple.GetEffects(ctx, deps)
 	case NodeTypeSubWorkflow:
 		var allEffects []Effect
 		for _, node := range n.SubWorkflow.Nodes {
-			effs, err := node.GetEffects(ctx)
+			effs, err := node.GetEffects(ctx, deps)
 			if err != nil {
 				return nil, err
 			}
@@ -78,16 +79,16 @@ func (n *Node) GetEffects(ctx *Context) ([]Effect, error) {
 	}
 }
 
-func (n *Node) DeriveEdges(ctx *Context, workflow *Workflow) (*Workflow, []Edge, error) {
+func (n *Node) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) (*Workflow, []Edge, error) {
 	switch n.Type {
 	case NodeTypeSimple:
-		edges, err := n.Simple.DeriveEdges(ctx)
+		edges, err := n.Simple.DeriveEdges(ctx, deps)
 		if err != nil {
 			return nil, nil, err
 		}
 		return workflow, edges, nil
 	case NodeTypeSubWorkflow:
-		return n.SubWorkflow.DeriveEdges(ctx)
+		return n.SubWorkflow.DeriveEdges(ctx, deps)
 	default:
 		panic(errors.New("unreachable"))
 	}
@@ -168,14 +169,14 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 	return nil
 }
 
-func (n *Node) ToOutput(ctx *Context) (*NodeOutput, error) {
+func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, error) {
 	output := &NodeOutput{
 		Type: n.Type,
 	}
 
 	switch n.Type {
 	case NodeTypeSimple:
-		nodeSimpleData, err := n.Simple.OutputData(ctx)
+		nodeSimpleData, err := n.Simple.OutputData(ctx, deps)
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +186,7 @@ func (n *Node) ToOutput(ctx *Context) (*NodeOutput, error) {
 		}
 		return output, nil
 	case NodeTypeSubWorkflow:
-		workflowOutput, err := n.SubWorkflow.ToOutput(ctx)
+		workflowOutput, err := n.SubWorkflow.ToOutput(ctx, deps)
 		if err != nil {
 			return nil, err
 		}
@@ -197,13 +198,13 @@ func (n *Node) ToOutput(ctx *Context) (*NodeOutput, error) {
 }
 
 type NodeSimple interface {
-	GetEffects(ctx *Context) (effs []Effect, err error)
-	DeriveEdges(ctx *Context) ([]Edge, error)
-	OutputData(ctx *Context) (interface{}, error)
+	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
+	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
+	OutputData(ctx context.Context, deps *Dependencies) (interface{}, error)
 }
 
 type Edge interface {
-	Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error)
+	Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error)
 }
 
 type NodeFactory func() NodeSimple

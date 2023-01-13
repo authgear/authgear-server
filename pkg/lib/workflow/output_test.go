@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -55,8 +56,9 @@ func TestOutput(t *testing.T) {
 	}
 
 	Convey("ToOutput", t, func() {
-		ctx := &Context{}
-		output, err := workflow.ToOutput(ctx)
+		ctx := context.TODO()
+		deps := &Dependencies{}
+		output, err := workflow.ToOutput(ctx, deps)
 		So(err, ShouldBeNil)
 		bytes, err := json.MarshalIndent(output, "", "  ")
 		So(err, ShouldBeNil)
