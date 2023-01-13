@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"testing"
 
@@ -23,11 +24,11 @@ func TestService(t *testing.T) {
 		store := NewMockStore(ctrl)
 
 		service := &Service{
-			Context:   ctx,
-			Deps:      deps,
-			Logger:    logger,
-			Store:     store,
-			Savepoint: savepoint,
+			ContextDoNotUseDirectly: ctx,
+			Deps:                    deps,
+			Logger:                  logger,
+			Store:                   store,
+			Savepoint:               savepoint,
 		}
 
 		Convey("CreateNewWorkflow", func() {
@@ -38,10 +39,10 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
+				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
 				savepoint.EXPECT().Begin().Times(1).Return(nil),
 				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
 				savepoint.EXPECT().Rollback().Times(1).Return(nil),
-				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
 			)
 
 			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
@@ -85,14 +86,14 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
+				store.EXPECT().GetSession(workflow.WorkflowID).Return(session, nil),
 				savepoint.EXPECT().Begin().Times(1).Return(nil),
 				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
 				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
 				savepoint.EXPECT().Rollback().Times(1).Return(nil),
-				store.EXPECT().GetSession(workflow.WorkflowID).Return(session, nil),
 			)
 
-			output, err := service.FeedInput(workflow.InstanceID, &inputLoginID{
+			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, &inputLoginID{
 				LoginID: "user@example.com",
 			})
 			So(err, ShouldBeNil)
@@ -176,6 +177,139 @@ func TestService(t *testing.T) {
 				},
 				SessionOutput: &SessionOutput{
 					WorkflowID: "workflow-id",
+				},
+			})
+		})
+	})
+}
+
+type intentServiceContext struct{}
+
+func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+	return nil, nil
+}
+
+func (*intentServiceContext) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+	if len(workflow.Nodes) == 0 {
+		return []Edge{
+			&edgeServiceContext{},
+		}, nil
+	}
+	return nil, ErrEOF
+}
+
+func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+	return nil, nil
+}
+
+type edgeServiceContext struct{}
+
+func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+	return NewNodeSimple(&nodeServiceContext{
+		ClientID: GetClientID(ctx),
+	}), nil
+}
+
+type nodeServiceContext struct {
+	ClientID string
+}
+
+func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+	return nil, nil
+}
+
+func (*nodeServiceContext) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
+	return nil, ErrEOF
+}
+
+func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+	return nil, nil
+}
+
+func TestServiceContext(t *testing.T) {
+	Convey("Service Context", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		ctx := context.TODO()
+		deps := &Dependencies{}
+		logger := ServiceLogger{log.Null}
+		savepoint := NewMockSavepoint(ctrl)
+		store := NewMockStore(ctrl)
+
+		service := &Service{
+			ContextDoNotUseDirectly: ctx,
+			Deps:                    deps,
+			Logger:                  logger,
+			Store:                   store,
+			Savepoint:               savepoint,
+		}
+
+		Convey("Populate context", func() {
+			rng = rand.New(rand.NewSource(0))
+
+			intent := &intentServiceContext{}
+
+			savepoint.EXPECT().Begin().AnyTimes().Return(nil)
+			savepoint.EXPECT().Rollback().AnyTimes().Return(nil)
+			savepoint.EXPECT().Commit().AnyTimes().Return(nil)
+			store.EXPECT().CreateSession(gomock.Any()).Return(nil)
+			store.EXPECT().CreateWorkflow(gomock.Any()).AnyTimes().Return(nil)
+			store.EXPECT().DeleteSession(gomock.Any()).Return(nil)
+			store.EXPECT().DeleteWorkflow(gomock.Any()).Return(nil)
+
+			output, err := service.CreateNewWorkflow(intent, &SessionOptions{
+				ClientID: "client-id",
+			})
+			So(err, ShouldBeNil)
+
+			store.EXPECT().GetSession(output.Workflow.WorkflowID).Return(output.Session, nil)
+			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(1).Return(output.Workflow, nil)
+
+			output, err = service.FeedInput(
+				output.Workflow.WorkflowID,
+				output.Workflow.InstanceID,
+				nil,
+			)
+			So(errors.Is(err, ErrEOF), ShouldBeTrue)
+			So(output, ShouldResemble, &ServiceOutput{
+				Workflow: &Workflow{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					Intent:     intent,
+					Nodes: []Node{
+						{
+							Type: NodeTypeSimple,
+							Simple: &nodeServiceContext{
+								ClientID: "client-id",
+							},
+						},
+					},
+				},
+				WorkflowOutput: &WorkflowOutput{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					Intent: IntentOutput{
+						Kind: "intentServiceContext",
+						Data: nil,
+					},
+					Nodes: []NodeOutput{
+						{
+							Type: NodeTypeSimple,
+							Simple: &NodeSimpleOutput{
+								Kind: "nodeServiceContext",
+								Data: nil,
+							},
+						},
+					},
+				},
+				Session: &Session{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					ClientID:   "client-id",
+				},
+				SessionOutput: &SessionOutput{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					ClientID:   "client-id",
 				},
 			})
 		})
