@@ -311,14 +311,12 @@ var _ nodes.InputVerifyIdentityViaWhatsappCheckCode = &InputVerifyWhatsappOTP{}
 var _ nodes.InputCreateDeviceToken = &InputVerifyWhatsappOTP{}
 
 type InputVerifyMagicLinkOTP struct {
-	Target     string
-	Code       string
-	RedirectTo string
+	Target string
+	Code   string
 }
 
 func (i *InputVerifyMagicLinkOTP) GetMagicLinkOTP() string { return i.Code }
 func (i *InputVerifyMagicLinkOTP) GetTarget() string       { return i.Target }
-func (i *InputVerifyMagicLinkOTP) GetRedirectTo() string   { return i.RedirectTo }
 
 var _ nodes.InputCreateAuthenticatorMagicLinkOTP = &InputVerifyMagicLinkOTP{}
 
