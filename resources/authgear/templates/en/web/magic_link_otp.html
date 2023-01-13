@@ -32,6 +32,18 @@
 	data-submit-when-refresh="true"
 ></button>
 
+<form class="link" method="post" novalidate>
+  {{ $.CSRFField }}
+  <span class="primary-txt text-sm">{{ template "magic-link-otp-resend-button-hint" }}</span>
+  <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
+    data-resend-button-cooldown-value="{{ $.OTPCodeSendCooldown }}"
+    data-resend-button-label-value="{{ template "magic-link-otp-resend-button-label" }}"
+    data-resend-button-label-unit-value="{{ template "magic-link-otp-resend-button-label--unit" }}"
+    data-authgear-event="authgear.button.resend_magic_link_otp"
+    data-controller="resend-button"
+  >{{ template "magic-link-otp-resend-button-label" }}</button>
+</form>
+
 {{ template "__use_recovery_code.html" . }}
 
 {{ $needSeparator := not (empty .AlternativeSteps) }}

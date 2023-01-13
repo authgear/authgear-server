@@ -28,11 +28,13 @@ func ConfigureMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 
 type MagicLinkOTPNode interface {
 	GetMagicLinkOTPTarget() string
+	GetMagicLinkOTPOOBType() interaction.OOBType
 }
 
 type MagicLinkOTPViewModel struct {
-	Target     string
-	StateQuery MagicLinkOTPPageQueryState
+	Target              string
+	OTPCodeSendCooldown int
+	StateQuery          MagicLinkOTPPageQueryState
 }
 
 type MagicLinkOTPHandler struct {
@@ -40,6 +42,8 @@ type MagicLinkOTPHandler struct {
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
+	RateLimiter               RateLimiter
+	FlashMessage              FlashMessage
 }
 
 func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -52,6 +56,19 @@ func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 
 	var n MagicLinkOTPNode
 	if graph.FindLastNode(&n) {
+		oobType := n.GetMagicLinkOTPOOBType()
+		target := n.GetMagicLinkOTPTarget()
+		bucket := interaction.AntiSpamSendOOBCodeBucket(oobType, target)
+		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+		if err != nil {
+			return nil, err
+		}
+		if pass {
+			// allow sending immediately
+			viewModel.OTPCodeSendCooldown = 0
+		} else {
+			viewModel.OTPCodeSendCooldown = int(resetDuration.Seconds())
+		}
 		viewModel.Target = mail.MaskAddress(n.GetMagicLinkOTPTarget())
 	}
 
@@ -104,6 +121,22 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebMagicLinkHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("resend", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputResendCode{}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		if !result.IsInteractionErr {
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendMagicLinkSuccess))
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 

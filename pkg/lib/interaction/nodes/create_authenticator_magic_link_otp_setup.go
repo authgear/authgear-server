@@ -141,6 +141,12 @@ func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetEffects() ([]interaction.E
 
 func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
+		&EdgeOOBResendCode{
+			Stage:            n.Stage,
+			IsAuthenticating: false,
+			Authenticator:    n.Authenticator,
+			OTPMode:          otp.OTPModeMagicLink,
+		},
 		&EdgeCreateAuthenticatorMagicLinkOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}
 	return edges, nil

@@ -93,9 +93,21 @@ func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTP() string {
 	return n.MagicLinkOTP
 }
 
-// GetPhone implements MagicLinkOTPNode.
+// GetMagicLinkOTPTarget implements MagicLinkOTPNode.
 func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTPTarget() string {
 	return n.Target
+}
+
+// GetMagicLinkOTPOOBType implements MagicLinkOTPNode.
+func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTPOOBType() interaction.OOBType {
+	switch n.Stage {
+	case authn.AuthenticationStagePrimary:
+		return interaction.OOBTypeAuthenticatePrimary
+	case authn.AuthenticationStageSecondary:
+		return interaction.OOBTypeAuthenticateSecondary
+	default:
+		panic("interaction: unknown authentication stage: " + n.Stage)
+	}
 }
 
 // GetAuthenticatorIndex implements MagicLinkOTPAuthnNode.
@@ -113,6 +125,12 @@ func (n *NodeAuthenticationMagicLinkTrigger) GetEffects() ([]interaction.Effect,
 
 func (n *NodeAuthenticationMagicLinkTrigger) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
+		&EdgeOOBResendCode{
+			Stage:            n.Stage,
+			IsAuthenticating: true,
+			Authenticator:    n.Authenticator,
+			OTPMode:          otp.OTPModeMagicLink,
+		},
 		&EdgeAuthenticationMagicLink{Stage: n.Stage, Authenticator: n.Authenticator},
 	}
 	return edges, nil
