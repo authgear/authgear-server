@@ -40,24 +40,25 @@ type Savepoint interface {
 }
 
 type Service struct {
-	Context   context.Context
-	Deps      *Dependencies
-	Logger    ServiceLogger
-	Savepoint Savepoint
-	Store     Store
+	ContextDoNotUseDirectly context.Context
+	Deps                    *Dependencies
+	Logger                  ServiceLogger
+	Savepoint               Savepoint
+	Store                   Store
 }
 
 func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
 	session := NewSession(sessionOptions)
-
-	// createNewWorkflow uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.createNewWorkflow(session.WorkflowID, intent)
-	// At this point, no savepoint is active.
+	err = s.Store.CreateSession(session)
 	if err != nil {
 		return
 	}
 
-	err = s.Store.CreateSession(session)
+	ctx := session.Context(s.ContextDoNotUseDirectly)
+
+	// createNewWorkflow uses defer statement to manage savepoint.
+	workflow, workflowOutput, err := s.createNewWorkflow(ctx, session.WorkflowID, intent)
+	// At this point, no savepoint is active.
 	if err != nil {
 		return
 	}
@@ -74,7 +75,7 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	return
 }
 
-func (s *Service) createNewWorkflow(workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 
@@ -101,21 +102,22 @@ func (s *Service) createNewWorkflow(workflowID string, intent Intent) (workflow 
 		return
 	}
 
-	output, err = workflow.ToOutput(s.Context, s.Deps)
+	output, err = workflow.ToOutput(ctx, s.Deps)
 	return
 }
 
-func (s *Service) FeedInput(instanceID string, input interface{}) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(workflowID string, instanceID string, input interface{}) (output *ServiceOutput, err error) {
+	session, err := s.Store.GetSession(workflowID)
+	if err != nil {
+		return
+	}
+	ctx := session.Context(s.ContextDoNotUseDirectly)
+
 	// feedInput uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.feedInput(instanceID, input)
+	workflow, workflowOutput, err := s.feedInput(ctx, instanceID, input)
 	isEOF := errors.Is(err, ErrEOF)
 	// At this point, no savepoint is active.
 	if err != nil && !isEOF {
-		return
-	}
-
-	session, err := s.Store.GetSession(workflow.WorkflowID)
-	if err != nil {
 		return
 	}
 
@@ -124,7 +126,7 @@ func (s *Service) FeedInput(instanceID string, input interface{}) (output *Servi
 	if isEOF {
 		// When the workflow is finished.
 		// We need to apply the all effects.
-		err = s.applyFinishedWorkflow(workflow)
+		err = s.applyFinishedWorkflow(ctx, workflow)
 		if err != nil {
 			return
 		}
@@ -152,7 +154,7 @@ func (s *Service) FeedInput(instanceID string, input interface{}) (output *Servi
 	return
 }
 
-func (s *Service) feedInput(instanceID string, input interface{}) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) feedInput(ctx context.Context, instanceID string, input interface{}) (workflow *Workflow, output *WorkflowOutput, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 
@@ -175,12 +177,12 @@ func (s *Service) feedInput(instanceID string, input interface{}) (workflow *Wor
 	}
 
 	// Apply the run-effects.
-	err = workflow.ApplyRunEffects(s.Context, s.Deps)
+	err = workflow.ApplyRunEffects(ctx, s.Deps)
 	if err != nil {
 		return
 	}
 
-	err = workflow.Accept(s.Context, s.Deps, input)
+	err = workflow.Accept(ctx, s.Deps, input)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
@@ -193,7 +195,7 @@ func (s *Service) feedInput(instanceID string, input interface{}) (workflow *Wor
 		return
 	}
 
-	output, err = workflow.ToOutput(s.Context, s.Deps)
+	output, err = workflow.ToOutput(ctx, s.Deps)
 	if err != nil {
 		return
 	}
@@ -204,7 +206,7 @@ func (s *Service) feedInput(instanceID string, input interface{}) (workflow *Wor
 	return
 }
 
-func (s *Service) applyFinishedWorkflow(workflow *Workflow) (err error) {
+func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow) (err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -233,7 +235,7 @@ func (s *Service) applyFinishedWorkflow(workflow *Workflow) (err error) {
 		}
 	}()
 
-	err = workflow.ApplyAllEffects(s.Context, s.Deps)
+	err = workflow.ApplyAllEffects(ctx, s.Deps)
 	if err != nil {
 		return
 	}
