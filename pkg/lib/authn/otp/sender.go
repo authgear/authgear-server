@@ -35,6 +35,10 @@ type HardSMSBucketer interface {
 	Bucket() ratelimit.Bucket
 }
 
+type AntiSpamSMSBucketMaker interface {
+	MakeBucket(phone string) ratelimit.Bucket
+}
+
 type RateLimiter interface {
 	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
 	TakeToken(bucket ratelimit.Bucket) error
@@ -51,8 +55,9 @@ type MessageSender struct {
 	TaskQueue   task.Queue
 	Events      EventService
 
-	RateLimiter     RateLimiter
-	HardSMSBucketer HardSMSBucketer
+	RateLimiter       RateLimiter
+	HardSMSBucketer   HardSMSBucketer
+	AntiSpamSMSBucket AntiSpamSMSBucketMaker
 }
 
 func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
@@ -181,7 +186,7 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 		return err
 	}
 
-	err = s.RateLimiter.TakeToken(sms.AntiSpamBucket(phone))
+	err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakeBucket(phone))
 	if err != nil {
 		return err
 	}

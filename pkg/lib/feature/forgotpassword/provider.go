@@ -67,6 +67,10 @@ type HardSMSBucketer interface {
 	Bucket() ratelimit.Bucket
 }
 
+type AntiSpamSMSBucketMaker interface {
+	MakeBucket(phone string) ratelimit.Bucket
+}
+
 type Provider struct {
 	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
@@ -84,8 +88,9 @@ type Provider struct {
 	FeatureConfig  *config.FeatureConfig
 	Events         EventService
 
-	RateLimiter     RateLimiter
-	HardSMSBucketer HardSMSBucketer
+	RateLimiter       RateLimiter
+	HardSMSBucketer   HardSMSBucketer
+	AntiSpamSMSBucket AntiSpamSMSBucketMaker
 }
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
@@ -217,7 +222,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return err
 	}
 
-	err = p.RateLimiter.TakeToken(sms.AntiSpamBucket(phone))
+	err = p.RateLimiter.TakeToken(p.AntiSpamSMSBucket.MakeBucket(phone))
 	if err != nil {
 		return err
 	}
