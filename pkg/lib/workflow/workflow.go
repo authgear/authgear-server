@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,7 +39,7 @@ func NewWorkflow(intent Intent) *Workflow {
 // Accept executes the workflow to the deepest using input.
 // In addition to the errors caused by intent, nodes and edges,
 // ErrEOF and ErrNoChange can be returned.
-func (w *Workflow) Accept(ctx *Context, input interface{}) (err error) {
+func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input interface{}) (err error) {
 	var workflowForTheEdges *Workflow
 	var edges []Edge
 
@@ -53,7 +54,7 @@ func (w *Workflow) Accept(ctx *Context, input interface{}) (err error) {
 	}()
 
 	for {
-		workflowForTheEdges, edges, err = w.DeriveEdges(ctx)
+		workflowForTheEdges, edges, err = w.DeriveEdges(ctx, deps)
 		if err != nil {
 			return
 		}
@@ -61,7 +62,7 @@ func (w *Workflow) Accept(ctx *Context, input interface{}) (err error) {
 		// Otherwise we have some edges that we can feed input to.
 		var nextNode *Node
 		for _, edge := range edges {
-			nextNode, err = edge.Instantiate(ctx, workflowForTheEdges, input)
+			nextNode, err = edge.Instantiate(ctx, deps, workflowForTheEdges, input)
 
 			// Continue to check the next edge.
 			if errors.Is(err, ErrIncompatibleInput) {
@@ -111,7 +112,7 @@ func (w *Workflow) Accept(ctx *Context, input interface{}) (err error) {
 		}
 
 		// We need to append the nextNode to the closest workflow.
-		err = workflowForTheEdges.appendNode(ctx, *nextNode)
+		err = workflowForTheEdges.appendNode(ctx, deps, *nextNode)
 		if err != nil {
 			return
 		}
@@ -120,16 +121,16 @@ func (w *Workflow) Accept(ctx *Context, input interface{}) (err error) {
 	}
 }
 
-func (w *Workflow) appendNode(ctx *Context, node Node) error {
+func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node) error {
 	w.Nodes = append(w.Nodes, node)
 
-	effs, err := node.GetEffects(ctx)
+	effs, err := node.GetEffects(ctx, deps)
 	if err != nil {
 		return err
 	}
 	for _, eff := range effs {
 		if runEff, ok := eff.(RunEffect); ok {
-			err = applyRunEffect(ctx, runEff)
+			err = applyRunEffect(ctx, deps, runEff)
 			if err != nil {
 				return err
 			}
@@ -139,15 +140,15 @@ func (w *Workflow) appendNode(ctx *Context, node Node) error {
 	return nil
 }
 
-func (w *Workflow) ApplyRunEffects(ctx *Context) error {
+func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies) error {
 	for _, node := range w.Nodes {
-		effs, err := node.GetEffects(ctx)
+		effs, err := node.GetEffects(ctx, deps)
 		if err != nil {
 			return err
 		}
 		for _, eff := range effs {
 			if runEff, ok := eff.(RunEffect); ok {
-				err = applyRunEffect(ctx, runEff)
+				err = applyRunEffect(ctx, deps, runEff)
 				if err != nil {
 					return err
 				}
@@ -156,7 +157,7 @@ func (w *Workflow) ApplyRunEffects(ctx *Context) error {
 	}
 
 	// Intent cannot have run-effects.
-	effs, err := w.Intent.GetEffects(ctx, w)
+	effs, err := w.Intent.GetEffects(ctx, deps, w)
 	if err != nil {
 		return err
 	}
@@ -169,20 +170,20 @@ func (w *Workflow) ApplyRunEffects(ctx *Context) error {
 	return nil
 }
 
-func (w *Workflow) ApplyAllEffects(ctx *Context) error {
-	err := w.ApplyRunEffects(ctx)
+func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) error {
+	err := w.ApplyRunEffects(ctx, deps)
 	if err != nil {
 		return err
 	}
 
 	for _, node := range w.Nodes {
-		effs, err := node.GetEffects(ctx)
+		effs, err := node.GetEffects(ctx, deps)
 		if err != nil {
 			return err
 		}
 		for _, eff := range effs {
 			if onCommitEff, ok := eff.(OnCommitEffect); ok {
-				err = applyOnCommitEffect(ctx, onCommitEff)
+				err = applyOnCommitEffect(ctx, deps, onCommitEff)
 				if err != nil {
 					return err
 				}
@@ -190,13 +191,13 @@ func (w *Workflow) ApplyAllEffects(ctx *Context) error {
 		}
 	}
 
-	effs, err := w.Intent.GetEffects(ctx, w)
+	effs, err := w.Intent.GetEffects(ctx, deps, w)
 	if err != nil {
 		return err
 	}
 	for _, eff := range effs {
 		if onCommitEff, ok := eff.(OnCommitEffect); ok {
-			err = applyOnCommitEffect(ctx, onCommitEff)
+			err = applyOnCommitEffect(ctx, deps, onCommitEff)
 			if err != nil {
 				return err
 			}
@@ -206,11 +207,11 @@ func (w *Workflow) ApplyAllEffects(ctx *Context) error {
 	return nil
 }
 
-func (w *Workflow) DeriveEdges(ctx *Context) (*Workflow, []Edge, error) {
+func (w *Workflow) DeriveEdges(ctx context.Context, deps *Dependencies) (*Workflow, []Edge, error) {
 	if len(w.Nodes) > 0 {
 		// We ask the last node to derive edges first.
 		lastNode := w.Nodes[len(w.Nodes)-1]
-		workflow, edges, err := lastNode.DeriveEdges(ctx, w)
+		workflow, edges, err := lastNode.DeriveEdges(ctx, deps, w)
 		if err == nil {
 			if len(edges) == 0 {
 				panic(fmt.Errorf("node %T derives no edges without error", lastNode))
@@ -227,7 +228,7 @@ func (w *Workflow) DeriveEdges(ctx *Context) (*Workflow, []Edge, error) {
 	}
 
 	// Otherwise we ask the intent to derive edges.
-	edges, err := w.Intent.DeriveEdges(ctx, w)
+	edges, err := w.Intent.DeriveEdges(ctx, deps, w)
 	if err == nil {
 		if len(edges) == 0 {
 			panic(fmt.Errorf("intent %T derives no edges without error", w.Intent))
@@ -299,13 +300,13 @@ func (w *Workflow) UnmarshalJSON(d []byte) (err error) {
 	return nil
 }
 
-func (w *Workflow) ToOutput(ctx *Context) (*WorkflowOutput, error) {
+func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies) (*WorkflowOutput, error) {
 	output := &WorkflowOutput{
 		WorkflowID: w.WorkflowID,
 		InstanceID: w.InstanceID,
 	}
 
-	intentOutputData, err := w.Intent.OutputData(ctx, w)
+	intentOutputData, err := w.Intent.OutputData(ctx, deps, w)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +316,7 @@ func (w *Workflow) ToOutput(ctx *Context) (*WorkflowOutput, error) {
 	}
 
 	for _, node := range w.Nodes {
-		nodeOutput, err := node.ToOutput(ctx)
+		nodeOutput, err := node.ToOutput(ctx, deps)
 		if err != nil {
 			return nil, err
 		}

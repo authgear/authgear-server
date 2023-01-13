@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -39,7 +40,8 @@ type Savepoint interface {
 }
 
 type Service struct {
-	Context   *Context
+	Context   context.Context
+	Deps      *Dependencies
 	Logger    ServiceLogger
 	Savepoint Savepoint
 	Store     Store
@@ -102,7 +104,7 @@ func (s *Service) createNewWorkflow(intent Intent) (workflow *Workflow, output *
 		return
 	}
 
-	output, err = workflow.ToOutput(s.Context)
+	output, err = workflow.ToOutput(s.Context, s.Deps)
 	return
 }
 
@@ -176,12 +178,12 @@ func (s *Service) feedInput(instanceID string, input interface{}) (workflow *Wor
 	}
 
 	// Apply the run-effects.
-	err = workflow.ApplyRunEffects(s.Context)
+	err = workflow.ApplyRunEffects(s.Context, s.Deps)
 	if err != nil {
 		return
 	}
 
-	err = workflow.Accept(s.Context, input)
+	err = workflow.Accept(s.Context, s.Deps, input)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
@@ -194,7 +196,7 @@ func (s *Service) feedInput(instanceID string, input interface{}) (workflow *Wor
 		return
 	}
 
-	output, err = workflow.ToOutput(s.Context)
+	output, err = workflow.ToOutput(s.Context, s.Deps)
 	if err != nil {
 		return
 	}
@@ -234,7 +236,7 @@ func (s *Service) applyFinishedWorkflow(workflow *Workflow) (err error) {
 		}
 	}()
 
-	err = workflow.ApplyAllEffects(s.Context)
+	err = workflow.ApplyAllEffects(s.Context, s.Deps)
 	if err != nil {
 		return
 	}

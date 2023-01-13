@@ -1,25 +1,29 @@
 package workflow
 
+import (
+	"context"
+)
+
 type Effect interface {
-	doNotCallThisDirectly(ctx *Context) error
+	doNotCallThisDirectly(ctx context.Context, deps *Dependencies) error
 }
 
-type RunEffect func(ctx *Context) error
+type RunEffect func(ctx context.Context, deps *Dependencies) error
 
-func (e RunEffect) doNotCallThisDirectly(ctx *Context) error {
-	return e(ctx)
+func (e RunEffect) doNotCallThisDirectly(ctx context.Context, deps *Dependencies) error {
+	return e(ctx, deps)
 }
 
-type OnCommitEffect func(ctx *Context) error
+type OnCommitEffect func(ctx context.Context, deps *Dependencies) error
 
-func (e OnCommitEffect) doNotCallThisDirectly(ctx *Context) error {
-	return e(ctx)
+func (e OnCommitEffect) doNotCallThisDirectly(ctx context.Context, deps *Dependencies) error {
+	return e(ctx, deps)
 }
 
-func applyRunEffect(ctx *Context, eff RunEffect) error {
-	return eff.doNotCallThisDirectly(ctx)
+func applyRunEffect(ctx context.Context, deps *Dependencies, eff RunEffect) error {
+	return eff.doNotCallThisDirectly(ctx, deps)
 }
 
-func applyOnCommitEffect(ctx *Context, eff OnCommitEffect) error {
-	return eff.doNotCallThisDirectly(ctx)
+func applyOnCommitEffect(ctx context.Context, deps *Dependencies, eff OnCommitEffect) error {
+	return eff.doNotCallThisDirectly(ctx, deps)
 }
