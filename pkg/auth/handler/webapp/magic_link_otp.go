@@ -1,12 +1,15 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -45,12 +48,34 @@ func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 	viewModel := MagicLinkOTPViewModel{
 		StateQuery: GetMagicLinkStateFromQuery(r),
 	}
+	var alternatives *viewmodels.AlternativeStepsViewModel
+
 	var n MagicLinkOTPNode
 	if graph.FindLastNode(&n) {
 		viewModel.Target = mail.MaskAddress(n.GetMagicLinkOTPTarget())
 	}
+
+	currentNode := graph.CurrentNode()
+	switch currentNode.(type) {
+	case *nodes.NodeAuthenticationMagicLinkTrigger:
+		var err error
+		alternatives, err = h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepVerifyMagicLinkOTPAuthn)
+		if err != nil {
+			return nil, err
+		}
+	case *nodes.NodeCreateAuthenticatorMagicLinkOTPSetup:
+		var err error
+		alternatives, err = h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupMagicLinkOTP)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		panic(fmt.Errorf("enter_oob_otp: unexpected node: %T", currentNode))
+	}
+
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, viewModel)
+	viewmodels.Embed(data, alternatives)
 	return data, nil
 }
 
@@ -97,11 +122,11 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	})
 
 	ctrl.PostAction("next", func() error {
-		// deviceToken := r.Form.Get("x_device_token") == "true"
+		deviceToken := r.Form.Get("x_device_token") == "true"
 
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputVerifyMagicLinkOTP{
-				// DeviceToken: deviceToken,
+				DeviceToken: deviceToken,
 			}
 			return
 		})
