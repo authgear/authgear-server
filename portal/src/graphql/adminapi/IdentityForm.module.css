@@ -4,6 +4,12 @@
   font-size: 15px;
 }
 
+.currentValue {
+  grid-column: 1 / span 8;
+  margin-bottom: -12px;
+  @apply tablet:col-span-full;
+}
+
 .widget {
   grid-column: 1 / span 8;
   @apply tablet:col-span-full;

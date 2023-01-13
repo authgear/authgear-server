@@ -1,0 +1,34 @@
+mutation updateIdentityMutation(
+  $userID: ID!
+  $identityID: ID!
+  $definition: IdentityDefinition!
+) {
+  updateIdentity(
+    input: { userID: $userID, identityID: $identityID, definition: $definition }
+  ) {
+    user {
+      id
+      authenticators {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      identities {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+    identity {
+      id
+      type
+      claims
+      createdAt
+      updatedAt
+    }
+  }
+}

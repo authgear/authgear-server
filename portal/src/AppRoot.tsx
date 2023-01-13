@@ -16,14 +16,10 @@ const AddUserScreen = lazy(
 const UserDetailsScreen = lazy(
   async () => import("./graphql/adminapi/UserDetailsScreen")
 );
-const AddEmailScreen = lazy(
-  async () => import("./graphql/adminapi/AddEmailScreen")
-);
-const AddPhoneScreen = lazy(
-  async () => import("./graphql/adminapi/AddPhoneScreen")
-);
-const AddUsernameScreen = lazy(
-  async () => import("./graphql/adminapi/AddUsernameScreen")
+const EmailScreen = lazy(async () => import("./graphql/adminapi/EmailScreen"));
+const PhoneScreen = lazy(async () => import("./graphql/adminapi/PhoneScreen"));
+const UsernameScreen = lazy(
+  async () => import("./graphql/adminapi/UsernameScreen")
 );
 const ResetPasswordScreen = lazy(
   async () => import("./graphql/adminapi/ResetPasswordScreen")
@@ -234,7 +230,15 @@ const AppRoot: React.VFC = function AppRoot() {
                     path="add-email"
                     element={
                       <Suspense fallback={<ShowLoading />}>
-                        <AddEmailScreen />
+                        <EmailScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="edit-email/:identityID"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <EmailScreen />
                       </Suspense>
                     }
                   />
@@ -242,7 +246,15 @@ const AppRoot: React.VFC = function AppRoot() {
                     path="add-phone"
                     element={
                       <Suspense fallback={<ShowLoading />}>
-                        <AddPhoneScreen />
+                        <PhoneScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="edit-phone/:identityID"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <PhoneScreen />
                       </Suspense>
                     }
                   />
@@ -250,7 +262,15 @@ const AppRoot: React.VFC = function AppRoot() {
                     path="add-username"
                     element={
                       <Suspense fallback={<ShowLoading />}>
-                        <AddUsernameScreen />
+                        <UsernameScreen />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="edit-username/:identityID"
+                    element={
+                      <Suspense fallback={<ShowLoading />}>
+                        <UsernameScreen />
                       </Suspense>
                     }
                   />

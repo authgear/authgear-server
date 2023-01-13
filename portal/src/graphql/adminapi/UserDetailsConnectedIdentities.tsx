@@ -1,11 +1,12 @@
 import React, { useMemo, useCallback, useContext, useState } from "react";
 import cn from "classnames";
-import { useNavigate, useParams } from "react-router-dom";
+import { generatePath, useNavigate, useParams } from "react-router-dom";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   Dialog,
   DialogFooter,
   Icon,
+  IContextualMenuItem,
   IContextualMenuProps,
   List,
   Text,
@@ -20,6 +21,7 @@ import { useDeleteIdentityMutation } from "./mutations/deleteIdentityMutation";
 import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutation";
 import { formatDatetime } from "../../util/formatDatetime";
 import {
+  LoginIDKeyType,
   NFT,
   NFTContract,
   NFTToken,
@@ -94,7 +96,7 @@ interface OAuthIdentityListItem {
 interface LoginIDIdentityListItem {
   id: string;
   type: "login_id";
-  loginIDKey: "email" | "phone" | "username";
+  loginIDKey: LoginIDKeyType;
   claimName: string;
   claimValue: string;
   verified?: boolean;
@@ -493,6 +495,133 @@ const BaseIdentityListCellButtonGroup: React.VFC<
   );
 };
 
+interface BaseIdentityListCellActionButtonProps {
+  identityID?: string;
+  identityType: IdentityType;
+  identityName?: string;
+  claimName?: string;
+  claimValue?: string;
+  verified?: boolean;
+  setVerifiedStatus?: (
+    claimName: string,
+    claimValue: string,
+    verified: boolean
+  ) => Promise<boolean>;
+  onRemoveClicked?: (identityID: string, identityName: string) => void;
+  onEditClicked?: (identityID: string, identityName: string) => void;
+}
+
+const BaseIdentityListCellActionButton: React.VFC<
+  BaseIdentityListCellActionButtonProps
+> = (props) => {
+  const {
+    identityID,
+    identityType,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    setVerifiedStatus,
+    onRemoveClicked: _onRemoveClicked,
+    onEditClicked: _onEditClicked,
+  } = props;
+
+  const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
+  const loading = useIsLoading();
+  const [verifying, setVerifying] = useState(false);
+  const onRemoveClicked = useCallback(() => {
+    if (identityID == null || identityName == null) {
+      return;
+    }
+
+    _onRemoveClicked?.(identityID, identityName);
+  }, [identityID, identityName, _onRemoveClicked]);
+
+  const onEditClicked = useCallback(() => {
+    if (identityID == null || identityName == null) {
+      return;
+    }
+
+    _onEditClicked?.(identityID, identityName);
+  }, [identityID, identityName, _onEditClicked]);
+
+  const onVerifyClicked = useCallback(
+    (verified: boolean) => {
+      if (claimName === undefined || claimValue === undefined) {
+        return;
+      }
+      setVerifying(true);
+      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
+        setVerifying(false);
+      });
+    },
+    [setVerifiedStatus, claimName, claimValue]
+  );
+
+  const shouldShowEditButton = identityType === "login_id";
+  const shouldShowVerifyButton = verified != null && setVerifiedStatus != null;
+
+  const menuItems = useMemo<IContextualMenuItem[]>(() => {
+    const items: IContextualMenuItem[] = [];
+    if (shouldShowVerifyButton) {
+      items.push({
+        key: "verify",
+        text: renderToString(
+          verified ? "make-as-unverified" : "make-as-verified"
+        ),
+        onClick: () => onVerifyClicked(!verified),
+        disabled: verifying,
+      });
+    }
+    if (shouldShowEditButton) {
+      items.push({
+        key: "edit",
+        text: renderToString("edit"),
+        onClick: () => onEditClicked(),
+      });
+    }
+    if (removeButtonTextId[identityType] !== "") {
+      items.push({
+        key: "remove",
+        text: renderToString(removeButtonTextId[identityType]),
+        onClick: () => onRemoveClicked(),
+      });
+    }
+    return items;
+  }, [
+    identityType,
+    onEditClicked,
+    onRemoveClicked,
+    onVerifyClicked,
+    renderToString,
+    shouldShowEditButton,
+    shouldShowVerifyButton,
+    verified,
+    verifying,
+  ]);
+
+  const menuProps = useMemo<IContextualMenuProps>(() => {
+    return {
+      shouldFocusOnMount: true,
+      items: menuItems,
+    };
+  }, [menuItems]);
+
+  return (
+    <div className={styles.actionButton}>
+      {menuItems.length > 0 ? (
+        <DefaultButton
+          disabled={loading}
+          theme={themes.main}
+          text={<FormattedMessage id="action" />}
+          menuProps={menuProps}
+        />
+      ) : null}
+    </div>
+  );
+};
+
 interface BaseIdentityListCellProps {
   icon: React.ReactNode;
   identityID: string;
@@ -536,7 +665,7 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
           values={{ datetime: connectedOn }}
         />
       </BaseIdentityListCellDescription>
-      <BaseIdentityListCellButtonGroup
+      <BaseIdentityListCellActionButton
         verified={verified}
         identityID={identityID}
         identityName={identityName}
@@ -545,6 +674,59 @@ const BaseIdentityListCell: React.VFC<BaseIdentityListCellProps> = (props) => {
         claimValue={claimValue}
         setVerifiedStatus={setVerifiedStatus}
         onRemoveClicked={onRemoveClicked}
+      />
+    </ListCellLayout>
+  );
+};
+
+interface LoginIDIdentityListCellProps extends BaseIdentityListCellProps {
+  loginIDKey: LoginIDKeyType;
+  onEditClicked: (identityID: string, loginIDKey: LoginIDKeyType) => void;
+}
+
+const LoginIDIdentityListCell: React.VFC<LoginIDIdentityListCellProps> = (
+  props
+) => {
+  const {
+    icon,
+    identityID,
+    identityType,
+    loginIDKey,
+    identityName,
+    claimName,
+    claimValue,
+    verified,
+    connectedOn,
+    setVerifiedStatus,
+    onRemoveClicked,
+    onEditClicked: _onEditClicked,
+  } = props;
+
+  const onEditClicked = useCallback(() => {
+    _onEditClicked(identityID, loginIDKey);
+  }, [_onEditClicked, identityID, loginIDKey]);
+
+  return (
+    <ListCellLayout className={styles.cellContainer}>
+      <BaseIdentityListCellTitle as="Text" icon={icon}>
+        {identityName}
+      </BaseIdentityListCellTitle>
+      <BaseIdentityListCellDescription verified={verified}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.added-on"
+          values={{ datetime: connectedOn }}
+        />
+      </BaseIdentityListCellDescription>
+      <BaseIdentityListCellActionButton
+        verified={verified}
+        identityID={identityID}
+        identityName={identityName}
+        identityType={identityType}
+        claimName={claimName}
+        claimValue={claimValue}
+        setVerifiedStatus={setVerifiedStatus}
+        onRemoveClicked={onRemoveClicked}
+        onEditClicked={onEditClicked}
       />
     </ListCellLayout>
   );
@@ -853,6 +1035,30 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       [setConfirmationDialogData]
     );
 
+    const onEditLoginIDClicked = useCallback(
+      (identityID: string, loginIDKey: LoginIDKeyType) => {
+        switch (loginIDKey) {
+          case "username":
+            navigate(
+              generatePath("./edit-username/:identityID", { identityID })
+            );
+            break;
+          case "phone":
+            navigate(generatePath("./edit-phone/:identityID", { identityID }));
+            break;
+          case "email":
+            navigate(generatePath("./edit-email/:identityID", { identityID }));
+            break;
+          default:
+            console.error(
+              new Error(`Unexpected loginIDKey ${loginIDKey as string}`)
+            );
+            break;
+        }
+      },
+      [navigate]
+    );
+
     const onDismissConfirmationDialog = useCallback(() => {
       if (!deletingIdentity) {
         setIsConfirmationDialogVisible(false);
@@ -881,8 +1087,9 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         switch (item.type) {
           case "login_id":
             return (
-              <BaseIdentityListCell
+              <LoginIDIdentityListCell
                 icon={loginIdIconMap[item.loginIDKey]}
+                loginIDKey={item.loginIDKey}
                 identityID={identityID}
                 identityType={identityType}
                 identityName={identityName}
@@ -892,6 +1099,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 connectedOn={connectedOn}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
+                onEditClicked={onEditLoginIDClicked}
               />
             );
           case "oauth":
@@ -953,7 +1161,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             return null;
         }
       },
-      [onRemoveClicked, setVerifiedStatus, renderToString]
+      [renderToString, setVerifiedStatus, onRemoveClicked, onEditLoginIDClicked]
     );
 
     const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {

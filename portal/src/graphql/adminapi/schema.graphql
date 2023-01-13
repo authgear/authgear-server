@@ -581,6 +581,9 @@ type Mutation {
   """Unschedule account deletion"""
   unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
 
+  """Update an existing identity of user"""
+  updateIdentity(input: UpdateIdentityInput!): UpdateIdentityPayload!
+
   """Update user"""
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
@@ -823,6 +826,27 @@ input UnscheduleAccountDeletionInput {
 
 """"""
 type UnscheduleAccountDeletionPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input UpdateIdentityInput {
+  """New definition of the identity."""
+  definition: IdentityDefinition!
+
+  """Target identity ID."""
+  identityID: ID!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type UpdateIdentityPayload {
+  """"""
+  identity: Identity!
+
   """"""
   user: User!
 }
