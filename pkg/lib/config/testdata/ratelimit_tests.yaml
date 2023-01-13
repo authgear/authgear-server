@@ -1,4 +1,40 @@
 part: SMSConfig
+name: zero-per-phone-size
+error: |-
+  invalid value:
+  /ratelimit/per_phone/size: minimum
+    map[actual:0 minimum:1]
+value:
+  ratelimit:
+    per_phone:
+      size: 0
+
+---
+part: SMSConfig
+name: too-large-per-phone-size
+error: |-
+  invalid value:
+  /ratelimit/per_phone/size: maximum
+    map[actual:101 maximum:100]
+value:
+  ratelimit:
+    per_phone:
+      size: 101
+
+---
+part: SMSConfig
+name: invalid-reset-period
+error: |-
+  invalid value:
+  /ratelimit/per_phone/reset_period: format
+    map[error:time: invalid duration "foobar" format:x_duration_string]
+value:
+  ratelimit:
+    per_phone:
+      reset_period: foobar
+
+---
+part: SMSConfig
 name: invalid-resend-cooldown-seconds
 error: |-
   invalid value:
