@@ -165,12 +165,6 @@
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
   "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
-  "magic-link-otp-page-title": "Magic link sent",
-  "magic-link-otp-description": "We have sent a magic link to {target}. Please visit the link to continue",
-  "magic-link-otp-resend-button-hint": "Didn''t receive the magic link? ",
-  "magic-link-otp-resend-button-label": "Resend",
-  "magic-link-otp-resend-button-label--unit": "Resend (%ds)",
-
   "whatsapp-otp-page-title": "Send code to WhatsApp",
   "whatsapp-otp-description": "Use your number ({target}) to send this 6-digit code in WhatsApp",
   "whatsapp-otp-waiting-for-your-message": "Waiting for your message",
@@ -187,8 +181,11 @@
   "whatsapp-otp-pre-filled-message": "Verify {target} with OTP {otp} \nPress send on WhatsApp then return to the App",
 
   "magic-link-otp-page-title": "Magic Link",
-  "magic-link-otp-initial-description": "We have sent a magic link to {target}. Please visit the link to continue",
+  "magic-link-otp-initial-description": "We have sent a magic link to {target}. \nPlease visit the link to continue",
   "magic-link-otp-matched-description": "Link verified!",
+  "magic-link-otp-resend-button-hint": "Didn''t receive the magic link? ",
+  "magic-link-otp-resend-button-label": "Resend",
+  "magic-link-otp-resend-button-label--unit": "Resend (%ds)",
   "magic-link-otp-next-button-label": "Next",
 
   "verify-magic-link-page-title": "Magic Link confirmation",
@@ -399,6 +396,8 @@
   "enter-oob-otp-sms-instead": "Send one-time password to {target} instead via SMS",
   "setup-phone-otp-instead": "Set up phone 2-step verification instead",
   "verify-phone-otp-instead": "Verify {target} via phone instead",
+  "setup-magic-link-otp-instead": "Set up magic link 2-step verification instead",
+  "verify-magic-link-otp-instead": "Verify {target} via magic link instead",
 
   "phone-otp-verify-with-sms-instead": "Verify with SMS instead",
   "phone-otp-verify-with-whatsapp-instead": "Verify via WhatsApp instead",
