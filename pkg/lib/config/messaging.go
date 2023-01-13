@@ -51,6 +51,7 @@ var _ = Schema.Add("SMSRatelimitConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"per_phone": { "$ref": "#/$defs/SMSPerPhoneConfig" },
 		"resend_cooldown_seconds": {
 			"$ref": "#/$defs/DurationSeconds",
 			"enum": [60, 120]
@@ -60,12 +61,38 @@ var _ = Schema.Add("SMSRatelimitConfig", `
 `)
 
 type SMSRatelimitConfig struct {
-	ResendCooldownSeconds DurationSeconds `json:"resend_cooldown_seconds,omitempty"`
+	PerPhone              SMSPerPhoneConfig `json:"per_phone,omitempty"`
+	ResendCooldownSeconds DurationSeconds   `json:"resend_cooldown_seconds,omitempty"`
 }
 
 func (c *SMSRatelimitConfig) SetDefaults() {
 	if c.ResendCooldownSeconds == 0 {
 		c.ResendCooldownSeconds = DurationSeconds(60)
+	}
+}
+
+var _ = Schema.Add("SMSPerPhoneConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"size": { "type": "integer", "minimum": 1, "maximum": 100 },
+		"reset_period": { "$ref": "#/$defs/DurationString" }
+	}
+}
+`)
+
+type SMSPerPhoneConfig struct {
+	Size        int            `json:"size,omitempty"`
+	ResetPeriod DurationString `json:"reset_period,omitempty"`
+}
+
+func (c *SMSPerPhoneConfig) SetDefaults() {
+	if c.Size == 0 {
+		c.Size = 30
+	}
+	if c.ResetPeriod == "" {
+		c.ResetPeriod = "24h"
 	}
 }
 
