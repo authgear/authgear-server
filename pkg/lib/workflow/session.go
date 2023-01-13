@@ -1,5 +1,9 @@
 package workflow
 
+import (
+	"context"
+)
+
 type Session struct {
 	WorkflowID string
 
@@ -23,6 +27,10 @@ func (s *Session) ToOutput() *SessionOutput {
 		WorkflowID: s.WorkflowID,
 		ClientID:   s.ClientID,
 	}
+}
+
+func (s *Session) Context(ctx context.Context) context.Context {
+	return context.WithValue(ctx, contextKeyClientID, s.ClientID)
 }
 
 type SessionOutput struct {
