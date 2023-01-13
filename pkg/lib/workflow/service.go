@@ -47,17 +47,14 @@ type Service struct {
 	Store     Store
 }
 
-func (s *Service) CreateNewWorkflow(intent Intent) (output *ServiceOutput, err error) {
+func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
+	session := NewSession(sessionOptions)
+
 	// createNewWorkflow uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.createNewWorkflow(intent)
+	workflow, workflowOutput, err := s.createNewWorkflow(session.WorkflowID, intent)
 	// At this point, no savepoint is active.
 	if err != nil {
 		return
-	}
-
-	session := &Session{
-		WorkflowID: workflow.WorkflowID,
-		// TODO: Allow storing more information in Session.
 	}
 
 	err = s.Store.CreateSession(session)
@@ -77,7 +74,7 @@ func (s *Service) CreateNewWorkflow(intent Intent) (output *ServiceOutput, err e
 	return
 }
 
-func (s *Service) createNewWorkflow(intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) createNewWorkflow(workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 
@@ -97,7 +94,7 @@ func (s *Service) createNewWorkflow(intent Intent) (workflow *Workflow, output *
 	// A new workflow does not have any nodes.
 	// A workflow is allowed to have on-commit-effects only.
 	// So we do not have to apply effects on a new workflow.
-	workflow = NewWorkflow(intent)
+	workflow = NewWorkflow(workflowID, intent)
 
 	err = s.Store.CreateWorkflow(workflow)
 	if err != nil {
