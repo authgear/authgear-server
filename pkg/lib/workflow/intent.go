@@ -1,14 +1,15 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 )
 
 type Intent interface {
-	GetEffects(ctx *Context, workflow *Workflow) (effs []Effect, err error)
-	DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error)
-	OutputData(ctx *Context, workflow *Workflow) (interface{}, error)
+	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
+	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
 }
 
 type IntentOutput struct {

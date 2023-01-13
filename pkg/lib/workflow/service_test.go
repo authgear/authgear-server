@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"math/rand"
 	"testing"
 
@@ -15,13 +16,15 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		context := &Context{}
+		ctx := context.TODO()
+		deps := &Dependencies{}
 		logger := ServiceLogger{log.Null}
 		savepoint := NewMockSavepoint(ctrl)
 		store := NewMockStore(ctrl)
 
 		service := &Service{
-			Context:   context,
+			Context:   ctx,
+			Deps:      deps,
 			Logger:    logger,
 			Store:     store,
 			Savepoint: savepoint,

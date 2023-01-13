@@ -60,15 +60,15 @@ var ErrEOF = errors.New("eof")
 
 type Edge interface {
     // The edge tries casting input to a specific interface.
-    Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error)
+    Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error)
 }
 
 type Intent interface {
-	DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error)
+	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
 }
 
 type NodeSimple interface {
-	DeriveEdges(ctx *Context) ([]Edge, error)
+	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
 }
 ```
 
@@ -91,13 +91,13 @@ There are 2 kinds of effects, namely run-effect and on-commit effects.
 
 ```golang
 type Intent interface {
-	DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error)
-	GetEffects(ctx *Context, workflow *Workflow) (effs []Effect, err error)
+	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
+	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 }
 
 type NodeSimple interface {
-	DeriveEdges(ctx *Context) ([]Edge, error)
-	GetEffects(ctx *Context) (effs []Effect, err error)
+	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
+	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
 }
 ```
 
