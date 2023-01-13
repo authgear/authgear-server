@@ -40,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -361,6 +362,12 @@ var CommonDependencySet = wire.NewSet(
 		usage.DependencySet,
 		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
+	),
+
+	wire.NewSet(
+		sms.DependencySet,
+		wire.Bind(new(forgotpassword.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
+		wire.Bind(new(otp.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
 	),
 
 	wire.NewSet(

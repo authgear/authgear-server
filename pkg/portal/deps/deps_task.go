@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/task"
 	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
@@ -26,7 +25,6 @@ var TaskDependencySet = wire.NewSet(
 
 	tasks.DependencySet,
 	mail.DependencySet,
-	sms.DependencySet,
 	wire.Bind(new(tasks.MailSender), new(*mail.Sender)),
 
 	task.DependencySet,
