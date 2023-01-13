@@ -303,7 +303,7 @@ export interface VerificationConfig {
 
 export interface MessagingConfig {
   sms?: SMSConfig;
-  email?: EmailConfig
+  email?: EmailConfig;
 }
 
 export const smsResendCooldownList = [60, 120] as const;

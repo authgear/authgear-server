@@ -269,10 +269,10 @@ messaging:
   default_sms_message: {}
   sms:
     ratelimit:
-      resend_cooldown_seconds: 60s
+      resend_cooldown_seconds: 60
   email:
     ratelimit:
-      resend_cooldown_seconds: 60s
+      resend_cooldown_seconds: 60
 authentication:
   identities:
     - oauth
