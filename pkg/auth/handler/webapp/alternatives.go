@@ -188,6 +188,17 @@ func handleAlternativeSteps(ctrl *Controller) {
 					AuthenticatorIndex: index,
 				}, nil
 			}
+		case webapp.SessionStepVerifyMagicLinkOTPAuthn:
+			choiceStep = webapp.SessionStepAuthenticate
+			index, err := strconv.Atoi(ctrl.request.Form.Get("x_authenticator_index"))
+			if err != nil {
+				index = 0
+			}
+			inputFn = func() (interface{}, error) {
+				return &InputTriggerMagicLink{
+					AuthenticatorIndex: index,
+				}, nil
+			}
 		case webapp.SessionStepVerifyIdentityViaOOBOTP:
 			choiceStep = webapp.SessionStepVerifyIdentityBegin
 			inputFn = func() (interface{}, error) {

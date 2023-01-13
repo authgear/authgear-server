@@ -81,6 +81,14 @@ var _ nodes.InputAuthenticationWhatsappTrigger = &InputTriggerWhatsApp{}
 
 func (i *InputTriggerWhatsApp) GetWhatsappAuthenticatorIndex() int { return i.AuthenticatorIndex }
 
+type InputTriggerMagicLink struct {
+	AuthenticatorIndex int
+}
+
+var _ nodes.InputAuthenticationMagicLinkTrigger = &InputTriggerMagicLink{}
+
+func (i *InputTriggerMagicLink) GetMagicLinkAuthenticatorIndex() int { return i.AuthenticatorIndex }
+
 type InputSelectTOTP struct{}
 
 var _ nodes.InputCreateAuthenticatorTOTPSetup = &InputSelectTOTP{}
