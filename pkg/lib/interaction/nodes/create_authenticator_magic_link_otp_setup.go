@@ -14,7 +14,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorMagicLinkOTPSetup interface {
-	GetMagicLinkTarget() string
+	GetMagicLinkOTPTarget() string
 }
 
 type EdgeCreateAuthenticatorMagicLinkOTPSetup struct {
@@ -53,10 +53,10 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		Kind:      stageToAuthenticatorKind(e.Stage),
 		Type:      e.AuthenticatorType(),
 		OOBOTP: &authenticator.OOBOTPSpec{
-			Email: input.GetMagicLinkTarget(),
+			Email: input.GetMagicLinkOTPTarget(),
 		},
 		MagicLinkOTP: &authenticator.MagicLinkOTPSpec{
-			Email: input.GetMagicLinkTarget(),
+			Email: input.GetMagicLinkOTPTarget(),
 		},
 	}
 
@@ -96,7 +96,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		Stage:         e.Stage,
 		Authenticator: info,
 		MagicLinkOTP:  result.Code,
-		Target:        input.GetMagicLinkTarget(),
+		Target:        input.GetMagicLinkOTPTarget(),
 		Channel:       result.Channel,
 	}, nil
 }
