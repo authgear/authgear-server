@@ -16,6 +16,13 @@
 	{{ $.CSRFField }}
 </form>
 
+{{ if $.CanRequestDeviceToken }}
+<div class="flex flex-row items-center self-start">
+<input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
+<label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+</div>
+{{ end }}
+
 <button
 	form="matched-form"
 	class="hidden"
@@ -41,10 +48,6 @@
   value="next"
   data-authgear-event="authgear.button.redirect_magic_link_result"
 >{{ template "magic-link-otp-next-button-label" }}</button>
-{{ if (and $.CanRequestDeviceToken $.XDeviceToken) }}
-  {{/* The value is provided by the checkbox from the previous state */}}
-  <input type="hidden" name="x_device_token" value="true" form="main-form">
-{{ end }}
 {{ end }}
 
 {{ template "__use_recovery_code.html" . }}

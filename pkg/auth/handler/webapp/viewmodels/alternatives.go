@@ -28,6 +28,10 @@ type OOBOTPTriggerNode interface {
 	GetOOBOTPTarget() string
 }
 
+type MagicLinkTriggerNode interface {
+	GetMagicLinkOTPTarget() string
+}
+
 type WhatsappOTPTriggerNode interface {
 	GetPhone() string
 }
@@ -93,6 +97,31 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 					Step: webapp.SessionStepEnterTOTP,
 				})
 			}
+		case *nodes.EdgeAuthenticationMagicLinkTrigger:
+			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail &&
+				currentStepKind != webapp.SessionStepVerifyMagicLinkOTPAuthn {
+				currentTarget := ""
+				var node MagicLinkTriggerNode
+				if graph.FindLastNode(&node) {
+					currentTarget = node.GetMagicLinkOTPTarget()
+				}
+
+				for i := range edge.Authenticators {
+					target := edge.GetTarget(i)
+					if currentTarget == target {
+						continue
+					}
+					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+						Step: webapp.SessionStepVerifyMagicLinkOTPAuthn,
+						Input: map[string]string{
+							"x_authenticator_index": strconv.Itoa(i),
+						},
+						Data: map[string]string{
+							"target": target,
+						},
+					})
+				}
+			}
 		case *nodes.EdgeAuthenticationWhatsappTrigger:
 			if !phoneOTPStepAdded &&
 				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS &&
@@ -134,7 +163,8 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 			}
 
 			if oobAuthenticatorType == model.AuthenticatorTypeOOBEmail &&
-				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail {
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail &&
+				currentStepKind != webapp.SessionStepVerifyMagicLinkOTPAuthn {
 				show = true
 			}
 
@@ -220,7 +250,9 @@ func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *int
 			switch oobType {
 			case model.AuthenticatorTypeOOBEmail:
 				if currentStepKind != webapp.SessionStepSetupOOBOTPEmail &&
-					currentStepKind != webapp.SessionStepEnterOOBOTPSetupEmail {
+					currentStepKind != webapp.SessionStepEnterOOBOTPSetupEmail &&
+					currentStepKind != webapp.SessionStepSetupMagicLinkOTP &&
+					currentStepKind != webapp.SessionStepVerifyMagicLinkOTPSetup {
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 						Step: webapp.SessionStepSetupOOBOTPEmail,
 					})
