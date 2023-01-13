@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"math/rand"
@@ -10,7 +11,8 @@ import (
 )
 
 func TestAccept(t *testing.T) {
-	ctx := &Context{}
+	ctx := context.TODO()
+	deps := &Dependencies{}
 
 	Convey("Ignore incompatible input", t, func() {
 		rng = rand.New(rand.NewSource(0))
@@ -19,7 +21,7 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, nil)
+		err := w.Accept(ctx, deps, nil)
 		So(errors.Is(err, ErrNoChange), ShouldBeTrue)
 	})
 
@@ -30,7 +32,7 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, &inputLoginID{
+		err := w.Accept(ctx, deps, &inputLoginID{
 			LoginID: "user@example.com",
 		})
 
@@ -148,7 +150,7 @@ func TestAccept(t *testing.T) {
 }
 		`
 
-		err := w.Accept(ctx, &inputLoginID{
+		err := w.Accept(ctx, deps, &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
@@ -157,7 +159,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, jsonStr)
 
-		err = w.Accept(ctx, &inputOTP{
+		err = w.Accept(ctx, deps, &inputOTP{
 			OTP: "nonsense",
 		})
 		So(errors.Is(err, ErrInvalidOTP), ShouldBeTrue)
@@ -173,12 +175,12 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, &inputLoginID{
+		err := w.Accept(ctx, deps, &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputResendOTP{})
+		err = w.Accept(ctx, deps, &inputResendOTP{})
 		So(err, ShouldBeNil)
 
 		bytes, err := json.Marshal(w)
@@ -243,20 +245,20 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, &inputLoginID{
+		err := w.Accept(ctx, deps, &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputOTP{
+		err = w.Accept(ctx, deps, &inputOTP{
 			OTP: "123456",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputCreatePasswordFlow{})
+		err = w.Accept(ctx, deps, &inputCreatePasswordFlow{})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputNewPassword{
+		err = w.Accept(ctx, deps, &inputNewPassword{
 			NewPassword: "password",
 		})
 		So(err, ShouldBeNil)
@@ -351,25 +353,25 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, &inputLoginID{
+		err := w.Accept(ctx, deps, &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputOTP{
+		err = w.Accept(ctx, deps, &inputOTP{
 			OTP: "123456",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputCreatePasswordFlow{})
+		err = w.Accept(ctx, deps, &inputCreatePasswordFlow{})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputNewPassword{
+		err = w.Accept(ctx, deps, &inputNewPassword{
 			NewPassword: "password",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, &inputFinishSignup{})
+		err = w.Accept(ctx, deps, &inputFinishSignup{})
 		So(errors.Is(err, ErrEOF), ShouldBeTrue)
 
 		bytes, err := json.Marshal(w)

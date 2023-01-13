@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"errors"
 )
 
@@ -10,11 +11,11 @@ type intentAuthenticate struct {
 	PretendLoginIDExists bool
 }
 
-func (*intentAuthenticate) GetEffects(ctx *Context, workflow *Workflow) ([]Effect, error) {
+func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentAuthenticate) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error) {
+func (i *intentAuthenticate) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
 	if len(workflow.Nodes) == 0 {
 		return []Edge{
 			&edgeTakeLoginID{
@@ -26,7 +27,7 @@ func (i *intentAuthenticate) DeriveEdges(ctx *Context, workflow *Workflow) ([]Ed
 	return nil, ErrEOF
 }
 
-func (i *intentAuthenticate) OutputData(ctx *Context, workflow *Workflow) (interface{}, error) {
+func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
@@ -34,7 +35,7 @@ type edgeTakeLoginID struct {
 	PretendLoginIDExists bool
 }
 
-func (e *edgeTakeLoginID) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var inputLoginID InputLoginID
 	ok := Input(input, &inputLoginID)
 	if !ok {
@@ -70,15 +71,15 @@ type intentLogin struct {
 	LoginID string
 }
 
-func (*intentLogin) GetEffects(ctx *Context, workflow *Workflow) ([]Effect, error) {
+func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentLogin) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error) {
+func (i *intentLogin) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
 	return nil, ErrEOF
 }
 
-func (i *intentLogin) OutputData(ctx *Context, workflow *Workflow) (interface{}, error) {
+func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
@@ -86,11 +87,11 @@ type intentSignup struct {
 	LoginID string
 }
 
-func (*intentSignup) GetEffects(ctx *Context, workflow *Workflow) ([]Effect, error) {
+func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentSignup) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error) {
+func (i *intentSignup) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
 	if len(workflow.Nodes) > 0 {
 		lastNode := workflow.Nodes[len(workflow.Nodes)-1]
 		if lastNode.Type == NodeTypeSubWorkflow {
@@ -111,7 +112,7 @@ func (i *intentSignup) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, er
 	}, nil
 }
 
-func (i *intentSignup) OutputData(ctx *Context, workflow *Workflow) (interface{}, error) {
+func (i *intentSignup) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
@@ -119,7 +120,7 @@ type edgeAddLoginIDFlow struct {
 	LoginID string
 }
 
-func (e *edgeAddLoginIDFlow) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var inputAddLoginIDFlow InputAddLoginIDFlow
 	ok := Input(input, &inputAddLoginIDFlow)
 	if !ok {
@@ -139,11 +140,11 @@ type intentAddLoginID struct {
 	LoginID string
 }
 
-func (*intentAddLoginID) GetEffects(ctx *Context, workflow *Workflow) ([]Effect, error) {
+func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentAddLoginID) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error) {
+func (i *intentAddLoginID) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
 	if len(workflow.Nodes) == 0 {
 		return []Edge{
 			&edgeVerifyLoginID{
@@ -155,7 +156,7 @@ func (i *intentAddLoginID) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge
 	return nil, ErrEOF
 }
 
-func (*intentAddLoginID) OutputData(ctx *Context, workflow *Workflow) (interface{}, error) {
+func (*intentAddLoginID) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
@@ -163,7 +164,7 @@ type edgeVerifyLoginID struct {
 	LoginID string
 }
 
-func (e *edgeVerifyLoginID) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	return NewNodeSimple(&nodeVerifyLoginID{
 		LoginID: e.LoginID,
 		OTP:     "123456",
@@ -175,11 +176,11 @@ type nodeVerifyLoginID struct {
 	OTP     string
 }
 
-func (*nodeVerifyLoginID) GetEffects(ctx *Context) ([]Effect, error) {
+func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	return nil, nil
 }
 
-func (n *nodeVerifyLoginID) DeriveEdges(ctx *Context) ([]Edge, error) {
+func (n *nodeVerifyLoginID) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
 	return []Edge{
 		&edgeVerifyOTP{
 			LoginID: n.LoginID,
@@ -191,7 +192,7 @@ func (n *nodeVerifyLoginID) DeriveEdges(ctx *Context) ([]Edge, error) {
 	}, nil
 }
 
-func (*nodeVerifyLoginID) OutputData(ctx *Context) (interface{}, error) {
+func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
 }
 
@@ -200,7 +201,7 @@ type edgeVerifyOTP struct {
 	OTP     string
 }
 
-func (e *edgeVerifyOTP) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var otpInput InputOTP
 	ok := Input(input, &otpInput)
 	if !ok {
@@ -232,17 +233,17 @@ type nodeLoginIDVerified struct {
 	LoginID string
 }
 
-func (*nodeLoginIDVerified) GetEffects(ctx *Context) ([]Effect, error) {
+func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	// In actual case, we create the identity here.
 	return nil, nil
 }
 
-func (*nodeLoginIDVerified) DeriveEdges(ctx *Context) ([]Edge, error) {
+func (*nodeLoginIDVerified) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
 	// This workflow ends here.
 	return nil, ErrEOF
 }
 
-func (*nodeLoginIDVerified) OutputData(ctx *Context) (interface{}, error) {
+func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
 }
 
@@ -250,7 +251,7 @@ type edgeResendOTP struct {
 	LoginID string
 }
 
-func (e *edgeResendOTP) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var resendInput InputResendOTP
 	ok := Input(input, &resendInput)
 	if !ok {
@@ -273,7 +274,7 @@ func (*inputResendOTP) ResendOTP() {}
 
 type edgeCreatePasswordFlow struct{}
 
-func (*edgeCreatePasswordFlow) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var passwordInput InputCreatePasswordFlow
 	ok := Input(input, &passwordInput)
 	if !ok {
@@ -306,11 +307,11 @@ func (i *inputNewPassword) GetNewPassword() string {
 
 type intentCreatePassword struct{}
 
-func (*intentCreatePassword) GetEffects(ctx *Context, workflow *Workflow) ([]Effect, error) {
+func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentCreatePassword) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error) {
+func (*intentCreatePassword) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
 	if len(workflow.Nodes) == 0 {
 		return []Edge{
 			&edgeCheckPasswordAgainstPolicy{},
@@ -320,13 +321,13 @@ func (*intentCreatePassword) DeriveEdges(ctx *Context, workflow *Workflow) ([]Ed
 	return nil, ErrEOF
 }
 
-func (*intentCreatePassword) OutputData(ctx *Context, workflow *Workflow) (interface{}, error) {
+func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
 type edgeCheckPasswordAgainstPolicy struct{}
 
-func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 
 	var inputNewPassword InputNewPassword
 	ok := Input(input, &inputNewPassword)
@@ -344,22 +345,22 @@ type nodeCreatePassword struct {
 	HashedNewPassword string
 }
 
-func (*nodeCreatePassword) GetEffects(ctx *Context) ([]Effect, error) {
+func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	// In actual case, we create the password authenticator here.
 	return nil, nil
 }
 
-func (*nodeCreatePassword) DeriveEdges(ctx *Context) ([]Edge, error) {
+func (*nodeCreatePassword) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
 	return nil, ErrEOF
 }
 
-func (*nodeCreatePassword) OutputData(ctx *Context) (interface{}, error) {
+func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
 }
 
 type edgeFinishSignup struct{}
 
-func (*edgeFinishSignup) Instantiate(ctx *Context, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var inputFinishSignup InputFinishSignup
 	ok := Input(input, &inputFinishSignup)
 	if !ok {
@@ -379,17 +380,17 @@ func (*inputFinishSignup) FinishSignup() {}
 
 type intentFinishSignup struct{}
 
-func (*intentFinishSignup) GetEffects(ctx *Context, workflow *Workflow) ([]Effect, error) {
+func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentFinishSignup) DeriveEdges(ctx *Context, workflow *Workflow) ([]Edge, error) {
+func (*intentFinishSignup) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
 	// In actual case, we have a lot to do in this workflow.
 	// We have to check if the user has required identity, authenticator, 2FA set up.
 	// And create session.
 	return nil, ErrEOF
 }
 
-func (*intentFinishSignup) OutputData(ctx *Context, workflow *Workflow) (interface{}, error) {
+func (*intentFinishSignup) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
 }
