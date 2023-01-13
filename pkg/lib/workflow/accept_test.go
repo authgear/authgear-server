@@ -17,7 +17,7 @@ func TestAccept(t *testing.T) {
 	Convey("Ignore incompatible input", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
-		w := NewWorkflow(&intentAuthenticate{
+		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
 			PretendLoginIDExists: false,
 		})
 
@@ -28,7 +28,7 @@ func TestAccept(t *testing.T) {
 	Convey("Bare intent can derive edges that reacts to input", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
-		w := NewWorkflow(&intentAuthenticate{
+		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
 			PretendLoginIDExists: false,
 		})
 
@@ -95,7 +95,7 @@ func TestAccept(t *testing.T) {
 	Convey("Input that cause error will not change the workflow", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
-		w := NewWorkflow(&intentAuthenticate{
+		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
 			PretendLoginIDExists: false,
 		})
 
@@ -171,7 +171,7 @@ func TestAccept(t *testing.T) {
 	Convey("Support ErrUpdateNode", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
-		w := NewWorkflow(&intentAuthenticate{
+		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
 			PretendLoginIDExists: false,
 		})
 
@@ -241,7 +241,7 @@ func TestAccept(t *testing.T) {
 	Convey("Sub-workflow can end, and the main workflow can start another sub-workflow", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
-		w := NewWorkflow(&intentAuthenticate{
+		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
 			PretendLoginIDExists: false,
 		})
 
@@ -349,7 +349,7 @@ func TestAccept(t *testing.T) {
 	Convey("A workflow can be ended at wish", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
-		w := NewWorkflow(&intentAuthenticate{
+		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
 			PretendLoginIDExists: false,
 		})
 
