@@ -29,12 +29,12 @@ func (e *EdgeAuthenticationMagicLinkTrigger) getAuthenticator(idx int) (*authent
 	return e.Authenticators[idx], nil
 }
 
-func (e *EdgeAuthenticationMagicLinkTrigger) GetPhone(idx int) string {
+func (e *EdgeAuthenticationMagicLinkTrigger) GetTarget(idx int) string {
 	info, err := e.getAuthenticator(idx)
 	if err != nil {
 		return ""
 	}
-	return info.OOBOTP.Phone
+	return info.OOBOTP.ToTarget()
 }
 
 func (e *EdgeAuthenticationMagicLinkTrigger) AuthenticatorType() model.AuthenticatorType {
