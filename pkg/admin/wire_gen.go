@@ -54,6 +54,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -740,13 +741,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation:     translationService,
-		Endpoints:       baseURLProvider,
-		TaskQueue:       queue,
-		Events:          eventService,
-		RateLimiter:     limiter,
-		HardSMSBucketer: hardSMSBucketer,
+		Translation:       translationService,
+		Endpoints:         baseURLProvider,
+		TaskQueue:         queue,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -775,23 +782,22 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	resetPasswordURLProvider := &ResetPasswordURLProvider{}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:        remoteIP,
-		Translation:     translationService,
-		Config:          forgotPasswordConfig,
-		Store:           forgotpasswordStore,
-		Clock:           clockClock,
-		URLs:            resetPasswordURLProvider,
-		TaskQueue:       queue,
-		Logger:          providerLogger,
-		Identities:      identityFacade,
-		Authenticators:  authenticatorFacade,
-		FeatureConfig:   featureConfig,
-		Events:          eventService,
-		RateLimiter:     limiter,
-		HardSMSBucketer: hardSMSBucketer,
+		RemoteIP:          remoteIP,
+		Translation:       translationService,
+		Config:            forgotPasswordConfig,
+		Store:             forgotpasswordStore,
+		Clock:             clockClock,
+		URLs:              resetPasswordURLProvider,
+		TaskQueue:         queue,
+		Logger:            providerLogger,
+		Identities:        identityFacade,
+		Authenticators:    authenticatorFacade,
+		FeatureConfig:     featureConfig,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
 	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
 		SMSConfig:   smsConfig,
