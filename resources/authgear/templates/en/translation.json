@@ -91,6 +91,7 @@
   "error-page-not-found-action": "Return to Home",
 
   "success-resend-code": "Resent code successfully!",
+  "success-resend-magic-link": "Resent magic link successfully!",
 
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
 

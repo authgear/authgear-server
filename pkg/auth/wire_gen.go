@@ -21874,24 +21874,34 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -22152,14 +22162,14 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -22168,7 +22178,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -22282,7 +22292,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -22301,7 +22311,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -22322,16 +22332,6 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -22360,7 +22360,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -22491,6 +22491,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -22629,24 +22630,34 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -22907,14 +22918,14 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -22923,7 +22934,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service3,
 		Verification:       verificationService,
@@ -23037,7 +23048,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -23056,7 +23067,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -23077,16 +23088,6 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: appredisHandle,
@@ -23115,7 +23116,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -23246,6 +23247,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,
@@ -23348,6 +23350,8 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
+		RateLimiter:               limiter,
+		FlashMessage:              flashMessage,
 	}
 	return magicLinkOTPHandler
 }
@@ -23403,24 +23407,34 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	featureConfig := config.FeatureConfig
+	redisLogger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	store := &redis.Store{
+		Context:     contextContext,
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
-	secretConfig := config.SecretConfig
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
-		Store: store,
+		Store: userStore,
 	}
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -23675,14 +23689,14 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		ClaimStore:        storePQ,
 		Transformer:       pictureTransformer,
 	}
 	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
-		UserStore:   store,
+		UserStore:   userStore,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	web3Service := &web3.Service{
@@ -23691,7 +23705,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
-		Store:              store,
+		Store:              userStore,
 		Identities:         serviceService,
 		Authenticators:     service4,
 		Verification:       verificationService,
@@ -23805,7 +23819,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -23824,7 +23838,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
-		UserStore:         store,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -23845,16 +23859,6 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef2,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       handle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: handle,
@@ -23883,7 +23887,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions: idpsessionProvider,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store:   redisStore,
+		Store:   store,
 		Config:  oAuthConfig,
 		Service: offlineGrantService,
 	}
@@ -24014,6 +24018,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
+		OfflineGrants:             store,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,

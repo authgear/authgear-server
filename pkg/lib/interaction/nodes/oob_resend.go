@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -14,6 +15,7 @@ type EdgeOOBResendCode struct {
 	Stage            authn.AuthenticationStage
 	IsAuthenticating bool
 	Authenticator    *authenticator.Info
+	OTPMode          otp.OTPMode
 }
 
 func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -28,6 +30,7 @@ func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interac
 		IsAuthenticating:     e.IsAuthenticating,
 		AuthenticatorInfo:    e.Authenticator,
 		IgnoreRatelimitError: false,
+		OTPMode:              e.OTPMode,
 	}).Do()
 	if err != nil {
 		return nil, err

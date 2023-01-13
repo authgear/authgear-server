@@ -91,6 +91,7 @@
   "error-page-not-found-action": "返回主頁",
 
   "success-resend-code": "成功重發驗證碼！",
+  "success-resend-magic-link": "成功重發無密碼鏈接！",
 
   "public-signup-disabled-notice": "請聯絡管理員以註冊新帳號。",
 
