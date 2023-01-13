@@ -94,13 +94,13 @@ func (s *Service) VerifyCode(target string, code string) error {
 func (s *Service) VerifyMagicLinkCode(target string, code string, consume bool) (*Code, error) {
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidCode
+		return nil, ErrInvalidMagicLink
 	} else if err != nil {
 		return nil, err
 	}
 
 	if !secretcode.MagicLinkOTPSecretCode.Compare(code, codeModel.Code) {
-		return nil, ErrInvalidCode
+		return nil, ErrInvalidMagicLink
 	}
 
 	if consume {

@@ -24,8 +24,7 @@ var VerifyMagicLinkOTPSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_oob_otp_target": { "type": "string" },
-			"x_oob_otp_code": { "type": "string" },
-			"x_oob_otp_redirect_to": { "type": "string" }
+			"x_oob_otp_code": { "type": "string" }
 		},
 		"required": ["x_oob_otp_target", "x_oob_otp_code"]
 	}
@@ -40,19 +39,16 @@ func ConfigureVerifyMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 type VerifyMagicLinkOTPViewModel struct {
 	Target     string
 	Code       string
-	RedirectTo string
 	StateQuery MagicLinkOTPPageQueryState
 }
 
 func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel {
 	target := r.URL.Query().Get("target")
 	code := r.URL.Query().Get("token")
-	redirectTo := r.URL.Query().Get("redirect_to")
 
 	return VerifyMagicLinkOTPViewModel{
 		Target:     target,
 		Code:       code,
-		RedirectTo: redirectTo,
 		StateQuery: GetMagicLinkStateFromQuery(r),
 	}
 }
@@ -118,7 +114,6 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		code := r.Form.Get("x_oob_otp_code")
 		target := r.Form.Get("x_oob_otp_target")
-		// redirectTo := r.Form.Get("x_oob_otp_redirect_to")
 
 		// FIXME(newman): Set consume back to true afte testing
 		codeModel, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, code, false)
