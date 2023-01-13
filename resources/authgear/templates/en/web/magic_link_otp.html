@@ -8,7 +8,7 @@
 </h1>
 
 {{ if not (eq .StateQuery "matched") }}
-<div class="text-sm break-words primary-txt text-center">
+<div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
   {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
 </div>
 
@@ -31,6 +31,18 @@
 	value="matched"
 	data-submit-when-refresh="true"
 ></button>
+
+{{ template "__use_recovery_code.html" . }}
+
+{{ $needSeparator := not (empty .AlternativeSteps) }}
+{{ if $needSeparator }}
+<div class="alternative-separator flex flex-row items-center">
+  <span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+</div>
+{{ end }}
+
+{{ $altOptions := (set (deepCopy .) "separatorDisabled" true) }}
+{{ template "__alternatives.html" $altOptions }}
 {{ else }}
 <form id="next-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
 {{ $.CSRFField }}
@@ -50,7 +62,6 @@
 >{{ template "magic-link-otp-next-button-label" }}</button>
 {{ end }}
 
-{{ template "__use_recovery_code.html" . }}
 {{ template "__watermark.html" . }}
 
 </div>
