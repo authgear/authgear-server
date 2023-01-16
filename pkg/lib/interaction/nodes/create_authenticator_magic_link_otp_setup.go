@@ -77,7 +77,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	}
 
 	if aStatus == verification.AuthenticatorStatusVerified {
-		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
 	}
 
 	result, err := (&SendOOBCode{
