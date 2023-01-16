@@ -8,6 +8,7 @@
   * [OIDC](./oidc.md)
   * [Templates](./templates.md)
   * [UI](./ui.md)
+    * [Back to App](./back-to-app.md)
   * [Hooks](./hook.md)
   * [Configuration](./config.md)
   * Features
