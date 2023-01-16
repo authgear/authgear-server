@@ -172,6 +172,44 @@ func (mr *MockLoginHintHandlerMockRecorder) HandleLoginHint(options interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleLoginHint", reflect.TypeOf((*MockLoginHintHandler)(nil).HandleLoginHint), options)
 }
 
+// MockAppSessionTokenService is a mock of AppSessionTokenService interface.
+type MockAppSessionTokenService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAppSessionTokenServiceMockRecorder
+}
+
+// MockAppSessionTokenServiceMockRecorder is the mock recorder for MockAppSessionTokenService.
+type MockAppSessionTokenServiceMockRecorder struct {
+	mock *MockAppSessionTokenService
+}
+
+// NewMockAppSessionTokenService creates a new mock instance.
+func NewMockAppSessionTokenService(ctrl *gomock.Controller) *MockAppSessionTokenService {
+	mock := &MockAppSessionTokenService{ctrl: ctrl}
+	mock.recorder = &MockAppSessionTokenServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAppSessionTokenService) EXPECT() *MockAppSessionTokenServiceMockRecorder {
+	return m.recorder
+}
+
+// Handle mocks base method.
+func (m *MockAppSessionTokenService) Handle(input oauth.AppSessionTokenInput) (httputil.Result, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Handle", input)
+	ret0, _ := ret[0].(httputil.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Handle indicates an expected call of Handle.
+func (mr *MockAppSessionTokenServiceMockRecorder) Handle(input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Handle", reflect.TypeOf((*MockAppSessionTokenService)(nil).Handle), input)
+}
+
 // MockAuthenticationInfoService is a mock of AuthenticationInfoService interface.
 type MockAuthenticationInfoService struct {
 	ctrl     *gomock.Controller

@@ -50,6 +50,10 @@ type LoginHintHandler interface {
 	HandleLoginHint(options webapp.HandleLoginHintOptions) (httputil.Result, error)
 }
 
+type AppSessionTokenService interface {
+	Handle(input oauth.AppSessionTokenInput) (httputil.Result, error)
+}
+
 type AuthenticationInfoService interface {
 	Get(entryID string) (*authenticationinfo.Entry, error)
 	Delete(entryID string) error
@@ -106,7 +110,8 @@ type AuthorizationHandler struct {
 	WebAppURLs                WebAppAuthenticateURLProvider
 	ValidateScopes            ScopesValidator
 	CodeGenerator             TokenGenerator
-	LoginHint                 LoginHintHandler
+	LoginHintLegacy           LoginHintHandler
+	AppSessionTokenService    AppSessionTokenService
 	IDTokens                  IDTokenVerifier
 	AuthenticationInfoService AuthenticationInfoService
 	Clock                     clock.Clock
@@ -432,19 +437,35 @@ func (h *AuthorizationHandler) doHandle(
 
 	// Handle login_hint
 	// We must return here.
-	if loginHint, ok := r.LoginHint(); ok {
-		result, err := h.LoginHint.HandleLoginHint(webapp.HandleLoginHintOptions{
-			SessionOptions:      sessionOptions,
-			LoginHint:           loginHint,
-			UILocales:           uiLocales,
-			ColorScheme:         colorScheme,
-			OriginalRedirectURI: redirectURI.String(),
-			OAuthSessionCookies: oauthSessionEntryCookies,
-		})
+	if loginHintString, ok := r.LoginHint(); ok {
+		loginHint, err := oauth.ParseLoginHint(loginHintString)
 		if err != nil {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		}
-		return result, nil
+
+		switch loginHint.Type {
+		case oauth.LoginHintTypeAppSessionToken:
+			result, err := h.AppSessionTokenService.Handle(oauth.AppSessionTokenInput{
+				AppSessionToken: loginHint.AppSessionToken,
+				RedirectURI:     redirectURI.String(),
+			})
+			if err != nil {
+				return nil, protocol.NewError("invalid_request", err.Error())
+			}
+			return result, nil
+		case oauth.LoginHintTypeAnonymous:
+			result, err := h.LoginHintLegacy.HandleLoginHint(webapp.HandleLoginHintOptions{
+				SessionOptions:      sessionOptions,
+				LoginHint:           loginHintString,
+				UILocales:           uiLocales,
+				ColorScheme:         colorScheme,
+				OAuthSessionCookies: oauthSessionEntryCookies,
+			})
+			if err != nil {
+				return nil, protocol.NewError("invalid_request", err.Error())
+			}
+			return result, nil
+		}
 	}
 
 	// Handle prompt!=none
