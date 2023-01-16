@@ -15,6 +15,7 @@ const (
 
 type Bucket struct {
 	Kind        Kind
+	Name        string
 	Key         string
 	Size        int
 	ResetPeriod time.Duration
@@ -27,7 +28,7 @@ func (b Bucket) BucketError() error {
 	}
 	switch kind {
 	case KindRequest:
-		return ErrTooManyRequests
+		return ErrTooManyRequestsFrom(b)
 	case KindUsage:
 		return ErrUsageLimitExceeded
 	default:
