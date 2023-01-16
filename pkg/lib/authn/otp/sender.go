@@ -23,6 +23,7 @@ type SendOptions struct {
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
+	MagicLinkVerificationEndpointURL() *url.URL
 }
 
 type TranslationService interface {
@@ -75,9 +76,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	data.Email = email
 
 	if opts.OTPMode == OTPModeMagicLink {
-		url := s.Endpoints.BaseURL()
-		url = url.JoinPath("/flows/verify_magic_link")
-
+		url := s.Endpoints.MagicLinkVerificationEndpointURL()
 		query := url.Query()
 		query.Set("token", data.Code)
 		query.Set("target", data.Email)
