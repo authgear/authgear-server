@@ -2098,7 +2098,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
       emailResendCooldownList.map((duration) => ({
         key: duration,
         text: renderToString(
-          "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.value.seconds",
+          "VerificationConfigurationScreen.verification.resend-cooldown.value.seconds",
           { seconds: duration }
         ),
       })),
@@ -2123,7 +2123,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
       smsResendCooldownList.map((duration) => ({
         key: duration,
         text: renderToString(
-          "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.value.seconds",
+          "VerificationConfigurationScreen.verification.resend-cooldown.value.seconds",
           { seconds: duration }
         ),
       })),
@@ -2232,6 +2232,10 @@ function VerificationSettings(props: VerificationSettingsProps) {
       ) : null}
       {showEmailSettings ? (
         <>
+          <HorizontalDivider />
+          <WidgetSubtitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.verification.email" />
+          </WidgetSubtitle>
           <Toggle
             inlineLabel={true}
             checked={verificationConfig.claims?.email?.required ?? true}
@@ -2251,7 +2255,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
           />
           <Dropdown
             label={renderToString(
-              "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label"
+              "VerificationConfigurationScreen.verification.resend-cooldown.label"
             )}
             options={emailResendCooldown}
             selectedKey={emailRatelimitConfig.resend_cooldown_seconds}
@@ -2261,6 +2265,10 @@ function VerificationSettings(props: VerificationSettingsProps) {
       ) : null}
       {showPhoneSettings ? (
         <>
+          <HorizontalDivider />
+          <WidgetSubtitle>
+            <FormattedMessage id="LoginMethodConfigurationScreen.verification.phone" />
+          </WidgetSubtitle>
           <Toggle
             inlineLabel={true}
             checked={verificationConfig.claims?.phone_number?.required ?? true}
@@ -2280,7 +2288,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
           />
           <Dropdown
             label={renderToString(
-              "VerificationConfigurationScreen.verification.phone-sms.resend-cooldown.label"
+              "VerificationConfigurationScreen.verification.resend-cooldown.label"
             )}
             options={phoneSMSResendCooldown}
             selectedKey={smsRatelimitConfig.resend_cooldown_seconds}
