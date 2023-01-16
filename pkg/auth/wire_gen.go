@@ -849,22 +849,25 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clock,
 	}
+	loginHintHandler := &webapp2.LoginHintHandler{
+		Config:                  oAuthConfig,
+		Anonymous:               anonymousProvider,
+		AnonymousPromotionCodes: anonymousStoreRedis,
+		Clock:                   clock,
+		Pages:                   webappService2,
+	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
 		Clock:       clock,
 		IDPSessions: provider,
 	}
-	loginHintHandler := &webapp2.LoginHintHandler{
-		Config:                  oAuthConfig,
-		Anonymous:               anonymousProvider,
-		AnonymousPromotionCodes: anonymousStoreRedis,
-		OfflineGrants:           store,
-		AppSessionTokens:        store,
-		AppSessions:             store,
-		Clock:                   clock,
-		Cookies:                 cookieManager,
-		Pages:                   webappService2,
-		OfflineGrantService:     oauthOfflineGrantService,
+	appSessionTokenService := &oauth2.AppSessionTokenService{
+		AppSessions:         store,
+		AppSessionTokens:    store,
+		OfflineGrants:       store,
+		OfflineGrantService: oauthOfflineGrantService,
+		Cookies:             cookieManager,
+		Clock:               clock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -892,7 +895,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
-		LoginHint:                 loginHintHandler,
+		LoginHintLegacy:           loginHintHandler,
+		AppSessionTokenService:    appSessionTokenService,
 		IDTokens:                  idTokenIssuer,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Clock:                     clock,
@@ -1653,22 +1657,25 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
+	loginHintHandler := &webapp2.LoginHintHandler{
+		Config:                  oAuthConfig,
+		Anonymous:               anonymousProvider,
+		AnonymousPromotionCodes: anonymousStoreRedis,
+		Clock:                   clockClock,
+		Pages:                   webappService2,
+	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
 		Clock:       clockClock,
 		IDPSessions: provider,
 	}
-	loginHintHandler := &webapp2.LoginHintHandler{
-		Config:                  oAuthConfig,
-		Anonymous:               anonymousProvider,
-		AnonymousPromotionCodes: anonymousStoreRedis,
-		OfflineGrants:           store,
-		AppSessionTokens:        store,
-		AppSessions:             store,
-		Clock:                   clockClock,
-		Cookies:                 cookieManager,
-		Pages:                   webappService2,
-		OfflineGrantService:     oauthOfflineGrantService,
+	appSessionTokenService := &oauth2.AppSessionTokenService{
+		AppSessions:         store,
+		AppSessionTokens:    store,
+		OfflineGrants:       store,
+		OfflineGrantService: oauthOfflineGrantService,
+		Cookies:             cookieManager,
+		Clock:               clockClock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -1696,7 +1703,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
-		LoginHint:                 loginHintHandler,
+		LoginHintLegacy:           loginHintHandler,
+		AppSessionTokenService:    appSessionTokenService,
 		IDTokens:                  idTokenIssuer,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Clock:                     clockClock,

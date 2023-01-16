@@ -6,15 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -48,21 +45,12 @@ type LoginHintPageService interface {
 	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interface{}, error)) (*Result, error)
 }
 
-type OfflineGrantService interface {
-	IsValid(session *oauth.OfflineGrant) (valid bool, expiry time.Time, err error)
-}
-
 type LoginHintHandler struct {
 	Config                  *config.OAuthConfig
 	Anonymous               AnonymousIdentityProvider
 	AnonymousPromotionCodes AnonymousPromotionCodeStore
-	OfflineGrants           oauth.OfflineGrantStore
-	AppSessionTokens        oauth.AppSessionTokenStore
-	AppSessions             oauth.AppSessionStore
 	Clock                   clock.Clock
-	Cookies                 CookieManager
 	Pages                   LoginHintPageService
-	OfflineGrantService     OfflineGrantService
 }
 
 type HandleLoginHintOptions struct {
@@ -70,7 +58,6 @@ type HandleLoginHintOptions struct {
 	LoginHint           string
 	UILocales           string
 	ColorScheme         string
-	OriginalRedirectURI string
 	OAuthSessionCookies []*http.Cookie
 }
 
@@ -146,63 +133,9 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 		default:
 			return nil, errors.New("unknown anonymous request action")
 		}
-	case "app_session_token":
-		token, err := r.resolveAppSessionToken(query.Get("app_session_token"))
-		if err != nil {
-			return nil, err
-		}
-
-		cookie := r.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token)
-		return &Result{
-			Cookies:     []*http.Cookie{cookie},
-			RedirectURI: options.OriginalRedirectURI,
-		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported login hint type: %s", query.Get("type"))
 	}
-}
-
-func (r *LoginHintHandler) resolveAppSessionToken(token string) (string, error) {
-	// Redeem app session token
-	sToken, err := r.AppSessionTokens.GetAppSessionToken(oauth.HashToken(token))
-	if err != nil {
-		return "", err
-	}
-
-	offlineGrant, err := r.OfflineGrants.GetOfflineGrant(sToken.OfflineGrantID)
-	if err != nil {
-		return "", err
-	}
-
-	isValid, expiry, err := r.OfflineGrantService.IsValid(offlineGrant)
-	if err != nil {
-		return "", err
-	}
-
-	if !isValid {
-		return "", oauth.ErrGrantNotFound
-	}
-
-	err = r.AppSessionTokens.DeleteAppSessionToken(sToken)
-	if err != nil {
-		return "", err
-	}
-
-	// Create app session
-	token = oauth.GenerateToken()
-	appSession := &oauth.AppSession{
-		AppID:          offlineGrant.AppID,
-		OfflineGrantID: offlineGrant.ID,
-		CreatedAt:      r.Clock.NowUTC(),
-		ExpireAt:       expiry,
-		TokenHash:      oauth.HashToken(token),
-	}
-	err = r.AppSessions.CreateAppSession(appSession)
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
 }
 
 func (r *LoginHintHandler) resolvePromotionCode(code string) (userID string, identityID string, err error) {
