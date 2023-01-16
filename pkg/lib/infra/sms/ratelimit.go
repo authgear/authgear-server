@@ -18,6 +18,7 @@ type AntiSpamSMSBucketMaker struct {
 func (m *AntiSpamSMSBucketMaker) MakeBucket(phone string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("sms-message:%s", phone),
+		Name:        "AntiSpamSMSBucket",
 		Size:        m.Config.Ratelimit.PerPhone.Size,
 		ResetPeriod: m.Config.Ratelimit.PerPhone.ResetPeriod.Duration(),
 	}

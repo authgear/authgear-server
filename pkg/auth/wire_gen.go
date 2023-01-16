@@ -21014,6 +21014,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:              flashMessage,
 		OTPCodeService:            otpService,
 		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
+		AntiSpamSMSBucket:         antiSpamSMSBucketMaker,
 	}
 	return enterOOBOTPHandler
 }
@@ -27404,6 +27405,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		OTPCodeService:        otpService,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		AntiSpamSMSBucket:     antiSpamSMSBucketMaker,
 	}
 	return verifyIdentityHandler
 }
