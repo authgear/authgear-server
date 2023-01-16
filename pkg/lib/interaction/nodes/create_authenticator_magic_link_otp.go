@@ -1,8 +1,12 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -11,7 +15,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorMagicLinkOTP interface {
-	GetMagicLinkOTP() string
+	GetTarget() string
 }
 
 type EdgeCreateAuthenticatorMagicLinkOTP struct {
@@ -25,7 +29,12 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTP) Instantiate(ctx *interaction.Conte
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	// Unlike Whatsapp, magic link is already verified before this edge, so we directly go to next node
+	_, err := ctx.OTPCodeService.VerifyMagicLinkCode(input.GetTarget(), true)
+	if errors.Is(err, otp.ErrInvalidCode) {
+		return nil, verification.ErrInvalidVerificationCode
+	} else if err != nil {
+		return nil, err
+	}
 
 	return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }

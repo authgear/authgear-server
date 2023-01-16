@@ -109,11 +109,6 @@ type NodeCreateAuthenticatorMagicLinkOTPSetup struct {
 	Channel       string                    `json:"channel"`
 }
 
-// GetMagicLinkOTP implements MagicLinkOTPNode.
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTP() string {
-	return n.MagicLinkOTP
-}
-
 // GetMagicLinkOTPTarget implements MagicLinkOTPNode.
 func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPTarget() string {
 	return n.Target

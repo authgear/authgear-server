@@ -1,8 +1,12 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -11,7 +15,7 @@ func init() {
 }
 
 type InputAuthenticationMagicLink interface {
-	GetMagicLinkOTP() string
+	GetTarget() string
 }
 
 type EdgeAuthenticationMagicLink struct {
@@ -23,6 +27,13 @@ func (e *EdgeAuthenticationMagicLink) Instantiate(ctx *interaction.Context, grap
 	var input InputAuthenticationMagicLink
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
+	}
+
+	_, err := ctx.OTPCodeService.VerifyMagicLinkCode(input.GetTarget(), true)
+	if errors.Is(err, otp.ErrInvalidCode) {
+		return nil, verification.ErrInvalidVerificationCode
+	} else if err != nil {
+		return nil, err
 	}
 
 	return &NodeAuthenticationMagicLink{Stage: e.Stage, Authenticator: e.Authenticator}, nil
