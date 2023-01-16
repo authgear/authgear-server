@@ -1,10 +1,11 @@
 package secretcode
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
-	"encoding/hex"
 	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 var MagicLinkOTPSecretCode = MagicLinkOTPSecretCodeType{}
@@ -12,9 +13,8 @@ var MagicLinkOTPSecretCode = MagicLinkOTPSecretCodeType{}
 type MagicLinkOTPSecretCodeType struct{}
 
 func (MagicLinkOTPSecretCodeType) Generate() string {
-	code := make([]byte, 32)
-	rand.Read(code)
-	return hex.EncodeToString(code)
+	code := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
+	return code
 }
 
 func (MagicLinkOTPSecretCodeType) Compare(a, b string) bool {
