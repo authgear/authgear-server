@@ -137,7 +137,7 @@ func (s *Service) VerifyCode(target string, code string) error {
 	return nil
 }
 
-func (s *Service) VerifyMagicLinkCode(target string, code string, consume bool) (*Code, error) {
+func (s *Service) VerifyMagicLinkCode(target string, consume bool) (*Code, error) {
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidMagicLink
@@ -145,7 +145,11 @@ func (s *Service) VerifyMagicLinkCode(target string, code string, consume bool) 
 		return nil, err
 	}
 
-	if !secretcode.MagicLinkOTPSecretCode.Compare(code, codeModel.Code) {
+	if codeModel.UserInputtedCode == "" {
+		return nil, ErrInputRequired
+	}
+
+	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
 		return nil, ErrInvalidMagicLink
 	}
 
