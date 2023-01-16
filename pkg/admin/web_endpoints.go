@@ -18,6 +18,10 @@ func (p *BaseURLProvider) BaseURL() *url.URL {
 	return u
 }
 
+func (*BaseURLProvider) MagicLinkVerificationEndpointURL() *url.URL {
+	panic("not implemented")
+}
+
 type OAuthURLProvider struct{}
 
 func (*OAuthURLProvider) AuthorizeEndpointURL() *url.URL {
