@@ -88,11 +88,6 @@ type NodeAuthenticationMagicLinkTrigger struct {
 	Target             string                    `json:"target"`
 }
 
-// GetMagicLinkOTP implements MagicLinkOTPNode.
-func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTP() string {
-	return n.MagicLinkOTP
-}
-
 // GetMagicLinkOTPTarget implements MagicLinkOTPNode.
 func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTPTarget() string {
 	return n.Target
