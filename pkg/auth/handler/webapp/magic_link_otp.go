@@ -157,8 +157,30 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	ctrl.PostAction("next", func() error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
 
+		getTargetFromGraph := func() (string, error) {
+			graph, err := ctrl.InteractionGet()
+			if err != nil {
+				return "", err
+			}
+			var target string
+			var n MagicLinkOTPNode
+			if graph.FindLastNode(&n) {
+				target = n.GetMagicLinkOTPTarget()
+			} else {
+				panic(fmt.Errorf("webapp: unexpected node for magic link: %T", n))
+			}
+
+			return target, nil
+		}
+
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			target, err := getTargetFromGraph()
+			if err != nil {
+				return
+			}
+
 			input = &InputVerifyMagicLinkOTP{
+				Target:      target,
 				DeviceToken: deviceToken,
 			}
 			return

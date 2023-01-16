@@ -62,10 +62,6 @@ type VerifyMagicLinkOTPHandler struct {
 	Renderer                    Renderer
 }
 
-type MagicLinkOTPCodeService interface {
-	SetUserInputtedCode(target string, userInputtedCode string) (*otp.Code, error)
-}
-
 func (h *VerifyMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -115,8 +111,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		code := r.Form.Get("x_oob_otp_code")
 		target := r.Form.Get("x_oob_otp_target")
 
-		// FIXME(newman): Set consume back to true afte testing
-		codeModel, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, code, false)
+		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedCode(target, code)
 		if err != nil {
 			if errors.Is(err, otp.ErrCodeNotFound) {
 				err = errors.New("magic link not found")
