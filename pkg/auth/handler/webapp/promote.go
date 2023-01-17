@@ -6,6 +6,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -36,6 +38,22 @@ func ConfigurePromoteRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/flows/promote_user")
 }
 
+type PromoteInputOAuth struct {
+	*webapp.AnonymousTokenInput
+	*InputUseOAuth
+}
+
+var _ nodes.InputUseIdentityAnonymous = &PromoteInputOAuth{}
+var _ nodes.InputUseIdentityOAuthProvider = &PromoteInputOAuth{}
+
+type PromoteInputLoginID struct {
+	*webapp.AnonymousTokenInput
+	*InputNewLoginID
+}
+
+var _ nodes.InputUseIdentityAnonymous = &PromoteInputLoginID{}
+var _ nodes.InputUseIdentityLoginID = &PromoteInputLoginID{}
+
 type PromoteViewModel struct {
 	LoginIDKey string
 }
@@ -47,12 +65,17 @@ func NewPromoteViewModel(r *http.Request) PromoteViewModel {
 	}
 }
 
+type AnonymousUserPromotionService interface {
+	ConvertLoginHintToInput(loginHintString string) (*webapp.AnonymousTokenInput, error)
+}
+
 type PromoteHandler struct {
-	ControllerFactory       ControllerFactory
-	BaseViewModel           *viewmodels.BaseViewModeler
-	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
+	ControllerFactory             ControllerFactory
+	BaseViewModel                 *viewmodels.BaseViewModeler
+	AuthenticationViewModel       *viewmodels.AuthenticationViewModeler
+	FormPrefiller                 *FormPrefiller
+	Renderer                      Renderer
+	AnonymousUserPromotionService AnonymousUserPromotionService
 }
 
 func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -75,13 +98,31 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h.FormPrefiller.Prefill(r.Form)
 
+	opts := webapp.SessionOptions{
+		RedirectURI: ctrl.RedirectURI(),
+	}
+
+	loginHint := ""
+	userIDHint := ""
+	webhookState := ""
+	suppressIDPSessionCookie := false
 	prompt := []string{}
 	if s := webapp.GetSession(r.Context()); s != nil {
+		loginHint = s.LoginHint
+		webhookState = s.WebhookState
 		prompt = s.Prompt
+		userIDHint = s.UserIDHint
+		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
+	}
+	intent := &intents.IntentAuthenticate{
+		Kind:                     intents.IntentAuthenticateKindPromote,
+		WebhookState:             webhookState,
+		UserIDHint:               userIDHint,
+		SuppressIDPSessionCookie: suppressIDPSessionCookie,
 	}
 
 	ctrl.Get(func() error {
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
 			return err
 		}
@@ -96,12 +137,20 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("oauth", func() error {
+		tokenInput, err := h.AnonymousUserPromotionService.ConvertLoginHintToInput(loginHint)
+		if err != nil {
+			return err
+		}
+
 		providerAlias := r.Form.Get("x_provider_alias")
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			input = &InputUseOAuth{
-				ProviderAlias:    providerAlias,
-				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-				Prompt:           prompt,
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &PromoteInputOAuth{
+				tokenInput,
+				&InputUseOAuth{
+					ProviderAlias:    providerAlias,
+					ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+					Prompt:           prompt,
+				},
 			}
 			return
 		})
@@ -114,7 +163,12 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("login_id", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		tokenInput, err := h.AnonymousUserPromotionService.ConvertLoginHintToInput(loginHint)
+		if err != nil {
+			return err
+		}
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			err = PromoteWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
@@ -124,11 +178,15 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			loginIDKey := r.Form.Get("q_login_id_key")
 			loginIDType := r.Form.Get("q_login_id_type")
 
-			input = &InputNewLoginID{
-				LoginIDType:  loginIDType,
-				LoginIDKey:   loginIDKey,
-				LoginIDValue: loginIDValue,
+			input = &PromoteInputLoginID{
+				tokenInput,
+				&InputNewLoginID{
+					LoginIDType:  loginIDType,
+					LoginIDKey:   loginIDKey,
+					LoginIDValue: loginIDValue,
+				},
 			}
+
 			return
 		})
 		if err != nil {

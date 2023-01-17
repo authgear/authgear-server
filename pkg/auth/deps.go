@@ -63,6 +63,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(oauthhandler.CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(oauth.AppSessionTokenServiceCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TutorialCookie), new(*httputil.TutorialCookie)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
@@ -84,15 +85,13 @@ var DependencySet = wire.NewSet(
 
 	webapp.DependencySet,
 	wire.Bind(new(oauthhandler.WebAppAuthenticateURLProvider), new(*webapp.AuthenticateURLProvider)),
-	wire.Bind(new(oauthhandler.LoginHintHandler), new(*webapp.LoginHintHandler)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
+	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-	wire.Bind(new(webapp.AnonymousPromotionCodeStore), new(*identityanonymous.StoreRedis)),
-	wire.Bind(new(webapp.OfflineGrantService), new(*oauth.OfflineGrantService)),
 
 	middleware.DependencySet,
 	wire.Bind(new(webapp.SettingsSubRoutesMiddlewareIdentityService), new(*facade.IdentityFacade)),
