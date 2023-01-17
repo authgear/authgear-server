@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
@@ -26,10 +25,11 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
 type Service struct {
 	Clock clock.Clock
 
-	CodeStore   CodeStore
-	Logger      Logger
-	RateLimiter RateLimiter
-	OTPConfig   *config.OTPConfig
+	CodeStore    CodeStore
+	Logger       Logger
+	RateLimiter  RateLimiter
+	OTPConfig    *config.OTPConfig
+	Verification *config.VerificationConfig
 }
 
 func (s *Service) TrackFailedAttemptBucket(target string) ratelimit.Bucket {
@@ -51,7 +51,7 @@ func (s *Service) createCode(target string, codeModel *Code) (*Code, error) {
 	}
 	codeModel.Target = target
 	codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
-	codeModel.ExpireAt = s.Clock.NowUTC().Add(duration.UserInteraction)
+	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeExpiry.Duration())
 
 	err := s.CodeStore.Create(target, codeModel)
 	if err != nil {

@@ -460,12 +460,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -476,7 +478,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -1261,12 +1262,14 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -1277,7 +1280,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -2059,12 +2061,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -2075,7 +2079,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -2814,12 +2817,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -2830,7 +2835,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -3268,12 +3272,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3284,7 +3290,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -3607,12 +3612,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3623,7 +3630,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -4016,12 +4022,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -4032,7 +4040,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -4534,12 +4541,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -4550,7 +4559,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -5306,12 +5314,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -5322,7 +5332,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -6064,12 +6073,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -6080,7 +6091,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -6927,12 +6937,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -6943,7 +6955,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -7729,12 +7740,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -7745,7 +7758,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -8530,12 +8542,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -8546,7 +8560,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -9319,12 +9332,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -9335,7 +9350,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -10101,12 +10115,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -10117,7 +10133,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -10873,12 +10888,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -10889,7 +10906,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -11648,12 +11664,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -11664,7 +11682,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -12426,12 +12443,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -12442,7 +12461,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -13206,12 +13224,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -13222,7 +13242,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -13984,12 +14003,14 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -14000,7 +14021,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -14758,12 +14778,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -14774,7 +14796,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -15536,12 +15557,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -15552,7 +15575,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -16315,12 +16337,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -16331,7 +16355,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -17093,12 +17116,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -17109,7 +17134,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -17871,12 +17895,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -17887,7 +17913,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -18651,12 +18676,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -18667,7 +18694,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -19429,12 +19455,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -19445,7 +19473,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -20207,12 +20234,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -20223,7 +20252,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -20989,12 +21017,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -21005,7 +21035,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -21767,12 +21796,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -21783,7 +21814,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -22286,12 +22316,14 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:  rateLimitFeatureConfig,
 	}
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   storeRedis,
-		Logger:      logger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    storeRedis,
+		Logger:       logger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
 	secretConfig := config.SecretConfig
@@ -22597,12 +22629,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -22613,7 +22647,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -23375,12 +23408,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -23391,7 +23426,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -24149,12 +24183,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -24165,7 +24201,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -24927,12 +24962,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -24943,7 +24980,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -25701,12 +25737,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -25717,7 +25755,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -26485,12 +26522,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -26501,7 +26540,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -27259,12 +27297,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -27275,7 +27315,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -28034,12 +28073,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -28050,7 +28091,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -28808,12 +28848,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -28824,7 +28866,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -29614,12 +29655,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -29630,7 +29673,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -30399,12 +30441,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -30415,7 +30459,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -31197,12 +31240,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -31213,7 +31258,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -31979,12 +32023,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -31995,7 +32041,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -32754,12 +32799,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -32770,7 +32817,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -33537,12 +33583,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -33553,7 +33601,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -34312,12 +34359,14 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -34328,7 +34377,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -35087,12 +35135,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -35103,7 +35153,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -35862,12 +35911,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -35878,7 +35929,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -36638,12 +36688,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -36654,7 +36706,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -37432,12 +37483,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -37448,7 +37501,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -38207,12 +38259,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -38223,7 +38277,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -38982,12 +39035,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -38998,7 +39053,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -39757,12 +39811,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -39773,7 +39829,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -40532,12 +40587,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -40548,7 +40605,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -41314,12 +41370,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -41330,7 +41388,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -42090,12 +42147,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -42106,7 +42165,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -42864,12 +42922,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -42880,7 +42940,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -43652,12 +43711,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -43668,7 +43729,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -44426,12 +44486,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -44442,7 +44504,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -45200,12 +45261,14 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -45216,7 +45279,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -45991,12 +46053,14 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -46007,7 +46071,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -46732,12 +46795,14 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -46748,7 +46813,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -47472,12 +47536,14 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -47488,7 +47554,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -48256,12 +48321,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -48272,7 +48339,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -49270,12 +49336,14 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -49286,7 +49354,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -49856,12 +49923,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -49872,7 +49941,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
