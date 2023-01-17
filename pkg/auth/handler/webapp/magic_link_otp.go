@@ -1,12 +1,14 @@
 package webapp
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -38,6 +40,7 @@ type MagicLinkOTPViewModel struct {
 }
 
 type MagicLinkOTPHandler struct {
+	MagicLinkOTPCodeService   otp.Service
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
@@ -140,14 +143,46 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
+	getTargetFromGraph := func() (string, error) {
+		graph, err := ctrl.InteractionGet()
+		if err != nil {
+			return "", err
+		}
+		var target string
+		var n MagicLinkOTPNode
+		if graph.FindLastNode(&n) {
+			target = n.GetMagicLinkOTPTarget()
+		} else {
+			panic(fmt.Errorf("webapp: unexpected node for magic link: %T", n))
+		}
+
+		return target, nil
+	}
+
 	ctrl.PostAction("matched", func() error {
-		u := url.URL{}
-		u.Path = r.URL.Path
-		q := r.URL.Query()
-		q.Set(MagicLinkOTPPageQueryStateKey, string(MagicLinkOTPPageQueryStateMatched))
-		u.RawQuery = q.Encode()
+		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
+
+		target, err := getTargetFromGraph()
+		if err != nil {
+			return err
+		}
+
+		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, false)
+		if err == nil {
+			state = MagicLinkOTPPageQueryStateMatched
+		} else if errors.Is(err, otp.ErrInvalidCode) {
+			state = MagicLinkOTPPageQueryStateInvalidCode
+		} else {
+			return err
+		}
+
+		url := url.URL{Path: r.URL.Path}
+		query := r.URL.Query()
+		query.Set(MagicLinkOTPPageQueryStateKey, string(state))
+		url.RawQuery = query.Encode()
+
 		result := webapp.Result{
-			RedirectURI:      u.String(),
+			RedirectURI:      url.String(),
 			NavigationAction: "replace",
 		}
 		result.WriteResponse(w, r)
@@ -156,22 +191,6 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	ctrl.PostAction("next", func() error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
-
-		getTargetFromGraph := func() (string, error) {
-			graph, err := ctrl.InteractionGet()
-			if err != nil {
-				return "", err
-			}
-			var target string
-			var n MagicLinkOTPNode
-			if graph.FindLastNode(&n) {
-				target = n.GetMagicLinkOTPTarget()
-			} else {
-				panic(fmt.Errorf("webapp: unexpected node for magic link: %T", n))
-			}
-
-			return target, nil
-		}
 
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			target, err := getTargetFromGraph()
