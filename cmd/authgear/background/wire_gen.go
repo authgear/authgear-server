@@ -433,12 +433,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:       clockClock,
-		CodeStore:   otpStoreRedis,
-		Logger:      otpLogger,
-		RateLimiter: limiter,
-		OTPConfig:   otpConfig,
+		Clock:        clockClock,
+		CodeStore:    otpStoreRedis,
+		Logger:       otpLogger,
+		RateLimiter:  limiter,
+		OTPConfig:    otpConfig,
+		Verification: verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -449,7 +451,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		OTPCodeService: otpService,
 		RateLimiter:    limiter,
 	}
-	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
