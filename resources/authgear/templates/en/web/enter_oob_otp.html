@@ -30,6 +30,7 @@
 	autocapitalize="none"
 	name="x_oob_otp_code"
 	placeholder="{{ template "oob-otp-placeholder" }}"
+	{{ if not $.OOBOTPCanVerifyCode }}disabled{{ end }}
 >
 
 {{ if $.CanRequestDeviceToken }}
@@ -42,7 +43,13 @@
 
 <form class="link" method="post" novalidate>
 {{ $.CSRFField }}
-<span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
+<span class="primary-txt text-sm">
+	{{ if $.OOBOTPCanVerifyCode }}
+	{{ template "oob-otp-resend-button-hint" }}
+	{{ else }}
+	{{ template "oob-otp-resend-button-rate-limited-hint" }}
+	{{ end }}
+</span>
 <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
 	data-resend-button-cooldown-value="{{ $.OOBOTPCodeSendCooldown }}"
 	data-resend-button-label-value="{{ template "oob-otp-resend-button-label" }}"
@@ -60,6 +67,7 @@
 	type="submit"
 	name="x_action"
 	value="submit"
+	{{ if not $.VerificationCanVerifyCode }}disabled{{ end }}
 	data-authgear-event="authgear.button.enter_oob_otp"
 >{{ template "next-button-label" }}</button>
 

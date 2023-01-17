@@ -45,6 +45,7 @@ type EnterOOBOTPViewModel struct {
 	OOBOTPCodeSendCooldown int
 	OOBOTPCodeLength       int
 	OOBOTPChannel          string
+	OOBOTPCanVerifyCode    bool
 }
 
 type EnterOOBOTPHandler struct {
@@ -54,6 +55,7 @@ type EnterOOBOTPHandler struct {
 	Renderer                  Renderer
 	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
+	OTPCodeService            OTPCodeService
 	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
 }
 
@@ -93,6 +95,12 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		} else {
 			viewModel.OOBOTPCodeSendCooldown = int(resetDuration.Seconds())
 		}
+
+		canVerify, err := h.OTPCodeService.CanVerifyCode(target)
+		if err != nil {
+			return nil, err
+		}
+		viewModel.OOBOTPCanVerifyCode = canVerify
 	}
 
 	currentNode := graph.CurrentNode()

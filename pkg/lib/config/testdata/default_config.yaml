@@ -524,6 +524,11 @@ verification:
   email:
     message:
       subject: Email Verification Instruction
+otp:
+  ratelimit:
+    failed_attempt:
+      size: 5
+      reset_period: 20m
 web3:
   siwe:
     networks:

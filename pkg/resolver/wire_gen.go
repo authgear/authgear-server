@@ -416,10 +416,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Clock: clock,
 	}
 	otpLogger := otp.NewLogger(factory)
+	otpConfig := appConfig.OTP
 	otpService := &otp.Service{
-		Clock:     clock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
+		OTPConfig:   otpConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -895,10 +898,13 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
+	otpConfig := appConfig.OTP
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
+		OTPConfig:   otpConfig,
 	}
 	service3 := &service2.Service{
 		Store:          serviceStore,

@@ -25,6 +25,7 @@ var configDeps = wire.NewSet(
 		"ForgotPassword",
 		"WelcomeMessage",
 		"Verification",
+		"OTP",
 		"AccountDeletion",
 		"AccountAnonymization",
 		"Web3",

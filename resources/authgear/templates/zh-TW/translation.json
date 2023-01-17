@@ -158,6 +158,7 @@
   "oob-otp-placeholder": "一次性密碼",
   "oob-otp-description": "我們已發送一段 {length}位的一次性密碼到 {target}. 請輸入該一次性密碼後繼續下一步",
   "oob-otp-resend-button-hint": "未收到一次性密碼? ",
+  "oob-otp-resend-button-rate-limited-hint": "您已超過輸入一次性密碼的最大嘗試次數。 請獲取一個新的一次性密碼。",
   "oob-otp-resend-button-label": "重發",
   "oob-otp-resend-button-label--unit": "重發 (%ds)",
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
@@ -183,6 +184,7 @@
   "verify-user-placeholder": "驗證碼",
   "verify-user-description": "我們已發送一段 {length}位的驗證碼到 {target}. 請輸入該驗證碼後繼續下一步",
   "verify-user-resend-button-hint": "未收到驗證碼？",
+  "verify-user-resend-button-rate-limited-hint": "您已超過輸入驗證碼的最大嘗試次數。 請獲取一個新的驗證碼。",
   "verify-user-resend-button-label": "重發",
   "verify-user-resend-button-label--unit": "重發 (%ds)",
 

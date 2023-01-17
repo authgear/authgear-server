@@ -432,10 +432,13 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
+	otpConfig := appConfig.OTP
 	otpService := &otp.Service{
-		Clock:     clockClock,
-		CodeStore: otpStoreRedis,
-		Logger:    otpLogger,
+		Clock:       clockClock,
+		CodeStore:   otpStoreRedis,
+		Logger:      otpLogger,
+		RateLimiter: limiter,
+		OTPConfig:   otpConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,

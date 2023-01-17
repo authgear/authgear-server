@@ -41,6 +41,7 @@ var _ = Schema.Add("AppConfig", `
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
 		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
 		"verification": { "$ref": "#/$defs/VerificationConfig" },
+		"otp": { "$ref": "#/$defs/OTPConfig" },
 		"web3": { "$ref": "#/$defs/Web3Config" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" }
 	},
@@ -70,6 +71,7 @@ type AppConfig struct {
 	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
 	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
 	Verification   *VerificationConfig   `json:"verification,omitempty"`
+	OTP            *OTPConfig            `json:"otp,omitempty"`
 
 	Web3 *Web3Config `json:"web3,omitempty"`
 

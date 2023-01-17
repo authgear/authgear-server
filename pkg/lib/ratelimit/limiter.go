@@ -104,3 +104,10 @@ func (l *Limiter) CheckToken(bucket Bucket) (pass bool, resetDuration time.Durat
 
 	return
 }
+
+func (l *Limiter) ClearBucket(bucket Bucket) error {
+	return l.Storage.WithConn(func(conn StorageConn) error {
+		now := l.Clock.NowUTC()
+		return conn.Reset(bucket, now)
+	})
+}
