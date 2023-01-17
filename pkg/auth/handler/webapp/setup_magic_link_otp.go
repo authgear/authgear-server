@@ -37,16 +37,22 @@ type SetupMagicLinkOTPNode interface {
 }
 
 type SetupMagicLinkOTPHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
+	Renderer                  Renderer
 }
 
 func (h *SetupMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupMagicLinkOTP)
+	if err != nil {
+		return nil, err
+	}
 
 	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, alternatives)
 	return data, nil
 }
 
