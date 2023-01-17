@@ -186,6 +186,7 @@ var CommonDependencySet = wire.NewSet(
 
 		identityanonymous.DependencySet,
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(interaction.AnonymousUserPromotionCodeStore), new(*identityanonymous.StoreRedis)),
 
 		identitypasskey.DependencySet,
 

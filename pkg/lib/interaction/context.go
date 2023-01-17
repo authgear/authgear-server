@@ -79,6 +79,11 @@ type AnonymousIdentityProvider interface {
 	ParseRequest(requestJWT string, identity *identity.Anonymous) (*anonymous.Request, error)
 }
 
+type AnonymousUserPromotionCodeStore interface {
+	GetPromotionCode(codeHash string) (*anonymous.PromotionCode, error)
+	DeletePromotionCode(code *anonymous.PromotionCode) error
+}
+
 type BiometricIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
 	GetByKeyID(keyID string) (*identity.Biometric, error)
@@ -192,22 +197,23 @@ type Context struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
 
-	OfflineGrants            OfflineGrantStore
-	Identities               IdentityService
-	Authenticators           AuthenticatorService
-	AnonymousIdentities      AnonymousIdentityProvider
-	BiometricIdentities      BiometricIdentityProvider
-	OTPCodeService           OTPCodeService
-	OOBCodeSender            OOBCodeSender
-	OAuthProviderFactory     OAuthProviderFactory
-	MFA                      MFAService
-	ForgotPassword           ForgotPasswordService
-	ResetPassword            ResetPasswordService
-	Passkey                  PasskeyService
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
-	Verification             VerificationService
-	RateLimiter              RateLimiter
-	AntiSpamOTPCodeBucket    *AntiSpamOTPCodeBucketMaker
+	OfflineGrants                   OfflineGrantStore
+	Identities                      IdentityService
+	Authenticators                  AuthenticatorService
+	AnonymousIdentities             AnonymousIdentityProvider
+	AnonymousUserPromotionCodeStore AnonymousUserPromotionCodeStore
+	BiometricIdentities             BiometricIdentityProvider
+	OTPCodeService                  OTPCodeService
+	OOBCodeSender                   OOBCodeSender
+	OAuthProviderFactory            OAuthProviderFactory
+	MFA                             MFAService
+	ForgotPassword                  ForgotPasswordService
+	ResetPassword                   ResetPasswordService
+	Passkey                         PasskeyService
+	LoginIDNormalizerFactory        LoginIDNormalizerFactory
+	Verification                    VerificationService
+	RateLimiter                     RateLimiter
+	AntiSpamOTPCodeBucket           *AntiSpamOTPCodeBucketMaker
 
 	Nonces NonceService
 
