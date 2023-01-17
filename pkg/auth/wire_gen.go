@@ -843,19 +843,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
-	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-	}
-	loginHintHandler := &webapp2.LoginHintHandler{
-		Config:                  oAuthConfig,
-		Anonymous:               anonymousProvider,
-		AnonymousPromotionCodes: anonymousStoreRedis,
-		Clock:                   clock,
-		Pages:                   webappService2,
-	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
 		Clock:       clock,
@@ -895,7 +882,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
-		LoginHintLegacy:           loginHintHandler,
 		AppSessionTokenService:    appSessionTokenService,
 		IDTokens:                  idTokenIssuer,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -1651,19 +1637,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
-	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
-	}
-	loginHintHandler := &webapp2.LoginHintHandler{
-		Config:                  oAuthConfig,
-		Anonymous:               anonymousProvider,
-		AnonymousPromotionCodes: anonymousStoreRedis,
-		Clock:                   clockClock,
-		Pages:                   webappService2,
-	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
 		Clock:       clockClock,
@@ -1703,7 +1676,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
-		LoginHintLegacy:           loginHintHandler,
 		AppSessionTokenService:    appSessionTokenService,
 		IDTokens:                  idTokenIssuer,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -8993,12 +8965,24 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	anonymousUserPromotionService := &webapp2.AnonymousUserPromotionService{
+		Anonymous:               anonymousProvider,
+		AnonymousPromotionCodes: anonymousStoreRedis,
+		Clock:                   clockClock,
+	}
 	promoteHandler := &webapp.PromoteHandler{
-		ControllerFactory:       controllerFactory,
-		BaseViewModel:           baseViewModeler,
-		AuthenticationViewModel: authenticationViewModeler,
-		FormPrefiller:           formPrefiller,
-		Renderer:                responseRenderer,
+		ControllerFactory:             controllerFactory,
+		BaseViewModel:                 baseViewModeler,
+		AuthenticationViewModel:       authenticationViewModeler,
+		FormPrefiller:                 formPrefiller,
+		Renderer:                      responseRenderer,
+		AnonymousUserPromotionService: anonymousUserPromotionService,
 	}
 	return promoteHandler
 }

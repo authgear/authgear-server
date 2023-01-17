@@ -46,10 +46,6 @@ type WebAppAuthenticateURLProvider interface {
 	AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error)
 }
 
-type LoginHintHandler interface {
-	HandleLoginHint(options webapp.HandleLoginHintOptions) (httputil.Result, error)
-}
-
 type AppSessionTokenService interface {
 	Handle(input oauth.AppSessionTokenInput) (httputil.Result, error)
 }
@@ -110,7 +106,6 @@ type AuthorizationHandler struct {
 	WebAppURLs                WebAppAuthenticateURLProvider
 	ValidateScopes            ScopesValidator
 	CodeGenerator             TokenGenerator
-	LoginHintLegacy           LoginHintHandler
 	AppSessionTokenService    AppSessionTokenService
 	IDTokens                  IDTokenVerifier
 	AuthenticationInfoService AuthenticationInfoService
@@ -377,6 +372,27 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	loginHintString, loginHintOk := r.LoginHint()
+	// Handle app session token here, and return here.
+	// Anonymous user promotion is handled by the normal flow below.
+	if loginHintOk {
+		loginHint, err := oauth.ParseLoginHint(loginHintString)
+		if err != nil {
+			return nil, protocol.NewError("invalid_request", err.Error())
+		}
+
+		if loginHint.Type == oauth.LoginHintTypeAppSessionToken {
+			result, err := h.AppSessionTokenService.Handle(oauth.AppSessionTokenInput{
+				AppSessionToken: loginHint.AppSessionToken,
+				RedirectURI:     redirectURI.String(),
+			})
+			if err != nil {
+				return nil, protocol.NewError("invalid_request", err.Error())
+			}
+			return result, nil
+		}
+	}
+
 	idToken, sidSession, err := h.handleIDTokenHint(client, r)
 	if err != nil {
 		return nil, err
@@ -395,6 +411,7 @@ func (h *AuthorizationHandler) doHandle(
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:       r.OAuthProviderAlias(),
 		FromAuthzEndpoint:        true,
+		LoginHint:                loginHintString,
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 	colorScheme := r.ColorScheme()
@@ -433,39 +450,6 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	oauthSessionEntryCookies := []*http.Cookie{
 		h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
-	}
-
-	// Handle login_hint
-	// We must return here.
-	if loginHintString, ok := r.LoginHint(); ok {
-		loginHint, err := oauth.ParseLoginHint(loginHintString)
-		if err != nil {
-			return nil, protocol.NewError("invalid_request", err.Error())
-		}
-
-		switch loginHint.Type {
-		case oauth.LoginHintTypeAppSessionToken:
-			result, err := h.AppSessionTokenService.Handle(oauth.AppSessionTokenInput{
-				AppSessionToken: loginHint.AppSessionToken,
-				RedirectURI:     redirectURI.String(),
-			})
-			if err != nil {
-				return nil, protocol.NewError("invalid_request", err.Error())
-			}
-			return result, nil
-		case oauth.LoginHintTypeAnonymous:
-			result, err := h.LoginHintLegacy.HandleLoginHint(webapp.HandleLoginHintOptions{
-				SessionOptions:      sessionOptions,
-				LoginHint:           loginHintString,
-				UILocales:           uiLocales,
-				ColorScheme:         colorScheme,
-				OAuthSessionCookies: oauthSessionEntryCookies,
-			})
-			if err != nil {
-				return nil, protocol.NewError("invalid_request", err.Error())
-			}
-			return result, nil
-		}
 	}
 
 	// Handle prompt!=none
