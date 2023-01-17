@@ -18,3 +18,27 @@ error: |-
 value:
   ratelimit:
     resend_cooldown_seconds: 64
+
+---
+part: OTPConfig
+name: zero-failed-attempt-size
+error: |-
+  invalid value:
+  /ratelimit/failed_attempt/size: minimum
+    map[actual:0 minimum:1]
+value:
+  ratelimit:
+    failed_attempt:
+      size: 0
+
+---
+part: OTPConfig
+name: invalid-failed-attempt-reset-period
+error: |-
+  invalid value:
+  /ratelimit/failed_attempt/reset_period: format
+    map[error:time: invalid duration "foobar" format:x_duration_string]
+value:
+  ratelimit:
+    failed_attempt:
+      reset_period: foobar
