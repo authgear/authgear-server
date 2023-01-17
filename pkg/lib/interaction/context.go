@@ -92,6 +92,7 @@ type BiometricIdentityProvider interface {
 
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
+	Get(token string) (*challenge.Challenge, error)
 }
 
 type MFAService interface {

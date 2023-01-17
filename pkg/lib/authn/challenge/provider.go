@@ -53,6 +53,34 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 	return c, nil
 }
 
+func (p *Provider) Get(token string) (*Challenge, error) {
+	ctx := context.Background()
+	key := challengeKey(p.AppID, token)
+
+	c := &Challenge{}
+
+	err := p.Redis.WithConn(func(conn *goredis.Conn) error {
+		data, err := conn.Get(ctx, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
+			return ErrInvalidChallenge
+		} else if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(data, c)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func (p *Provider) Consume(token string) (*Purpose, error) {
 	ctx := context.Background()
 	key := challengeKey(p.AppID, token)
