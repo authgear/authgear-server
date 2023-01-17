@@ -75,7 +75,6 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 			panic("interaction: cannot use promotion code for authentication")
 		}
 
-		// FIXME: consume the promotion in on-commit effect.
 		codeObj, err := ctx.AnonymousUserPromotionCodeStore.GetPromotionCode(anonymous.HashPromotionCode(promotionCode))
 		if err != nil {
 			return nil, err
@@ -102,6 +101,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		}
 
 		return &NodeUseIdentityAnonymous{
+			PromotionCode:    promotionCode,
 			IsAuthentication: e.IsAuthentication,
 			IdentitySpec:     spec,
 		}, nil
@@ -113,12 +113,8 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		return nil, interaction.ErrInvalidCredentials
 	}
 
-	// FIXME: Consume the challenge in on-commit effect
 	// FIXME: Check the purpose but do not consume here.
-	// purpose, err := ctx.Challenges.Consume(request.Challenge)
-	// if err != nil || *purpose != challenge.PurposeAnonymousRequest {
-	// 	return nil, interaction.ErrInvalidCredentials
-	// }
+	// return nil, interaction.ErrInvalidCredentials
 
 	anonIdentity, err := ctx.AnonymousIdentities.GetByKeyID(request.KeyID)
 	if errors.Is(err, identity.ErrIdentityNotFound) {
@@ -177,6 +173,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	return &NodeUseIdentityAnonymous{
+		JWT:              jwt,
 		IsAuthentication: e.IsAuthentication,
 		IdentitySpec:     spec,
 	}, nil
@@ -185,6 +182,8 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 type NodeUseIdentityAnonymous struct {
 	IsAuthentication bool           `json:"is_authentication"`
 	IdentitySpec     *identity.Spec `json:"identity_spec"`
+	PromotionCode    string         `json:"promotion_code,omitempty"`
+	JWT              string         `json:"jwt,omitempty"`
 }
 
 func (n *NodeUseIdentityAnonymous) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -192,7 +191,35 @@ func (n *NodeUseIdentityAnonymous) Prepare(ctx *interaction.Context, graph *inte
 }
 
 func (n *NodeUseIdentityAnonymous) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
+	return []interaction.Effect{
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if n.JWT != "" {
+				request, err := ctx.AnonymousIdentities.ParseRequestUnverified(n.JWT)
+				if err != nil {
+					return err
+				}
+
+				_, err = ctx.Challenges.Consume(request.Challenge)
+				if err != nil {
+					return err
+				}
+			}
+
+			if n.PromotionCode != "" {
+				codeObj, err := ctx.AnonymousUserPromotionCodeStore.GetPromotionCode(anonymous.HashPromotionCode(n.PromotionCode))
+				if err != nil {
+					return err
+				}
+
+				err = ctx.AnonymousUserPromotionCodeStore.DeletePromotionCode(codeObj)
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeUseIdentityAnonymous) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
