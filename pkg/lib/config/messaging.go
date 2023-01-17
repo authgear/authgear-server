@@ -89,7 +89,7 @@ type SMSPerPhoneConfig struct {
 
 func (c *SMSPerPhoneConfig) SetDefaults() {
 	if c.Size == 0 {
-		c.Size = 30
+		c.Size = 10
 	}
 	if c.ResetPeriod == "" {
 		c.ResetPeriod = "24h"
