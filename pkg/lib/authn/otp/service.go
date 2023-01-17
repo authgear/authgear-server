@@ -36,19 +36,21 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 		codeModel = &Code{}
 	}
 	codeModel.Target = target
+	codeModel.ExpireAt = s.Clock.NowUTC().Add(duration.UserInteraction)
+
 	switch otpMode {
 	case OTPModeMagicLink:
 		codeModel.Code = secretcode.MagicLinkOTPSecretCode.Generate()
-		break
+		err := s.CodeStore.Create(codeModel.Code, codeModel)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
-	}
-
-	codeModel.ExpireAt = s.Clock.NowUTC().Add(duration.UserInteraction)
-
-	err := s.CodeStore.Create(target, codeModel)
-	if err != nil {
-		return nil, err
+		err := s.CodeStore.Create(target, codeModel)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return codeModel, nil
@@ -91,24 +93,16 @@ func (s *Service) VerifyCode(target string, code string) error {
 	return nil
 }
 
-func (s *Service) VerifyMagicLinkCode(target string, consume bool) (*Code, error) {
-	codeModel, err := s.getCode(target)
+func (s *Service) VerifyMagicLinkCode(code string, consume bool) (*Code, error) {
+	codeModel, err := s.getCode(code)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidMagicLink
 	} else if err != nil {
 		return nil, err
 	}
 
-	if codeModel.UserInputtedCode == "" {
-		return nil, ErrInputRequired
-	}
-
-	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidMagicLink
-	}
-
 	if consume {
-		s.deleteCode(target)
+		s.deleteCode(code)
 	}
 
 	return codeModel, nil
@@ -145,6 +139,20 @@ func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*
 
 	codeModel.UserInputtedCode = userInputtedCode
 	if err := s.CodeStore.Update(target, codeModel); err != nil {
+		return nil, err
+	}
+
+	return codeModel, nil
+}
+
+func (s *Service) SetUserInputtedMagicLinkCode(userInputtedCode string) (*Code, error) {
+	codeModel, err := s.getCode(userInputtedCode)
+	if err != nil {
+		return nil, err
+	}
+
+	codeModel.UserInputtedCode = userInputtedCode
+	if err := s.CodeStore.Update(codeModel.Code, codeModel); err != nil {
 		return nil, err
 	}
 

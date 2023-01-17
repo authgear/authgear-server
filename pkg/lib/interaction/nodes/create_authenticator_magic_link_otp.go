@@ -15,7 +15,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorMagicLinkOTP interface {
-	GetTarget() string
+	GetCode() string
 }
 
 type EdgeCreateAuthenticatorMagicLinkOTP struct {
@@ -29,7 +29,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTP) Instantiate(ctx *interaction.Conte
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := ctx.OTPCodeService.VerifyMagicLinkCode(input.GetTarget(), true)
+	_, err := ctx.OTPCodeService.VerifyMagicLinkCode(input.GetCode(), true)
 	if errors.Is(err, otp.ErrInvalidCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {
