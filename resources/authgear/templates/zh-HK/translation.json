@@ -184,6 +184,7 @@
 
   "magic-link-otp-page-title": "無密碼鏈接",
   "magic-link-otp-initial-description": "我們已經向 {target} 發送了一個無密碼鏈接。\n請訪問該鏈接以繼續",
+  "magic-link-otp-invalid-code-description": "該無密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "magic-link-otp-matched-description": "鏈接已驗證！",
   "magic-link-otp-resend-button-hint": "沒有收到無密碼鏈接？",
   "magic-link-otp-resend-button-label": "重新發送",
@@ -192,6 +193,7 @@
 
   "verify-magic-link-page-title": "無密碼鏈接確認",
   "verify-magic-link-initial-description": "請點擊下方按鈕批准登錄",
+  "verify-magic-link-invalid-code-description": "該無密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "verify-magic-link-matched-description": "您已成功通過身份驗證。\n您可以關閉此窗口。",
   "verify-magic-link-next-button-label": "批准",
 

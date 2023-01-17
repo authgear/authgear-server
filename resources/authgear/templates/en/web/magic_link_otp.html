@@ -8,29 +8,35 @@
 </h1>
 
 {{ if not (eq .StateQuery "matched") }}
-<div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
-  {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
-</div>
+  {{ if eq .StateQuery "" }}
+    <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
+      {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
+    </div>
 
-<form id="matched-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
-	{{ $.CSRFField }}
-</form>
+    <form id="matched-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
+      {{ $.CSRFField }}
+    </form>
 
-{{ if $.CanRequestDeviceToken }}
-<div class="flex flex-row items-center self-start">
-<input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
-<label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
-</div>
-{{ end }}
+    {{ if $.CanRequestDeviceToken }}
+    <div class="flex flex-row items-center self-start">
+    <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
+    <label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+    </div>
+    {{ end }}
 
-<button
-	form="matched-form"
-	class="hidden"
-	type="submit"
-	name="x_action"
-	value="matched"
-	data-submit-when-refresh="true"
-></button>
+    <button
+      form="matched-form"
+      class="hidden"
+      type="submit"
+      name="x_action"
+      value="matched"
+      data-submit-when-refresh="true"
+    ></button>
+  {{ else if eq .StateQuery "invalid_code" }}
+    <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
+      {{ template "magic-link-otp-invalid-code-description" }}
+    </div>
+  {{ end }}
 
 <form class="link" method="post" novalidate>
   {{ $.CSRFField }}
