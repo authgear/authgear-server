@@ -32,6 +32,7 @@ type SessionOptions struct {
 	SuppressIDPSessionCookie   bool
 	OAuthProviderAlias         string
 	FromAuthzEndpoint          bool
+	LoginHint                  string
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -47,6 +48,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         s.OAuthProviderAlias,
 		FromAuthzEndpoint:          s.FromAuthzEndpoint,
+		LoginHint:                  s.LoginHint,
 	}
 }
 
@@ -96,6 +98,9 @@ type Session struct {
 
 	// FromAuthzEndpoint indicates whether the web session is created from the authorization endpoint
 	FromAuthzEndpoint bool `json:"from_authz_endpoint,omitempty"`
+
+	// LoginHint is the OIDC login_hint parameter.
+	LoginHint string `json:"login_hint,omitempty"`
 }
 
 func newSessionID() string {
@@ -121,6 +126,7 @@ func NewSession(options SessionOptions) *Session {
 		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         options.OAuthProviderAlias,
 		FromAuthzEndpoint:          options.FromAuthzEndpoint,
+		LoginHint:                  options.LoginHint,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v

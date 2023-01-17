@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	//"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -103,10 +103,12 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		return nil, interaction.ErrInvalidCredentials
 	}
 
-	purpose, err := ctx.Challenges.Consume(request.Challenge)
-	if err != nil || *purpose != challenge.PurposeAnonymousRequest {
-		return nil, interaction.ErrInvalidCredentials
-	}
+	// FIXME: Consume the challenge in on-commit effect
+	// FIXME: Check the purpose but do not consume here.
+	// purpose, err := ctx.Challenges.Consume(request.Challenge)
+	// if err != nil || *purpose != challenge.PurposeAnonymousRequest {
+	// 	return nil, interaction.ErrInvalidCredentials
+	// }
 
 	anonIdentity, err := ctx.AnonymousIdentities.GetByKeyID(request.KeyID)
 	if errors.Is(err, identity.ErrIdentityNotFound) {

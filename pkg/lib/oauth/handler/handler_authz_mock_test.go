@@ -134,44 +134,6 @@ func (mr *MockWebAppAuthenticateURLProviderMockRecorder) AuthenticateURL(options
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthenticateURL", reflect.TypeOf((*MockWebAppAuthenticateURLProvider)(nil).AuthenticateURL), options)
 }
 
-// MockLoginHintHandler is a mock of LoginHintHandler interface.
-type MockLoginHintHandler struct {
-	ctrl     *gomock.Controller
-	recorder *MockLoginHintHandlerMockRecorder
-}
-
-// MockLoginHintHandlerMockRecorder is the mock recorder for MockLoginHintHandler.
-type MockLoginHintHandlerMockRecorder struct {
-	mock *MockLoginHintHandler
-}
-
-// NewMockLoginHintHandler creates a new mock instance.
-func NewMockLoginHintHandler(ctrl *gomock.Controller) *MockLoginHintHandler {
-	mock := &MockLoginHintHandler{ctrl: ctrl}
-	mock.recorder = &MockLoginHintHandlerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockLoginHintHandler) EXPECT() *MockLoginHintHandlerMockRecorder {
-	return m.recorder
-}
-
-// HandleLoginHint mocks base method.
-func (m *MockLoginHintHandler) HandleLoginHint(options webapp.HandleLoginHintOptions) (httputil.Result, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "HandleLoginHint", options)
-	ret0, _ := ret[0].(httputil.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// HandleLoginHint indicates an expected call of HandleLoginHint.
-func (mr *MockLoginHintHandlerMockRecorder) HandleLoginHint(options interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleLoginHint", reflect.TypeOf((*MockLoginHintHandler)(nil).HandleLoginHint), options)
-}
-
 // MockAppSessionTokenService is a mock of AppSessionTokenService interface.
 type MockAppSessionTokenService struct {
 	ctrl     *gomock.Controller

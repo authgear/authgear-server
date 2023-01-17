@@ -185,6 +185,12 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
+		// When promote anonymous user, the end-user should not see this page.
+		if webSession != nil && webSession.LoginHint != "" {
+			h.continueLoginFlow(w, r, "/flows/promote_user")
+			return nil
+		}
+
 		opts := webapp.SessionOptions{
 			RedirectURI: ctrl.RedirectURI(),
 		}
