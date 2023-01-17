@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	//"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -19,7 +20,7 @@ func init() {
 type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
 	SignUpAnonymousUserWithoutKey() bool
-	GetPromoteUserAndIdentityID() (string, string)
+	GetPromotionCode() string
 }
 
 type EdgeUseIdentityAnonymous struct {
@@ -67,12 +68,21 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		}, nil
 	}
 
-	promoteUserID, promoteIdentityID := input.GetPromoteUserAndIdentityID()
-	if promoteUserID != "" && promoteIdentityID != "" {
+	promotionCode := input.GetPromotionCode()
+	if promotionCode != "" {
 		// promote user with promotion code flow
 		if e.IsAuthentication {
 			panic("interaction: cannot use promotion code for authentication")
 		}
+
+		// FIXME: consume the promotion in on-commit effect.
+		codeObj, err := ctx.AnonymousUserPromotionCodeStore.GetPromotionCode(anonymous.HashPromotionCode(promotionCode))
+		if err != nil {
+			return nil, err
+		}
+
+		promoteUserID := codeObj.UserID
+		promoteIdentityID := codeObj.IdentityID
 
 		anonIdentity, err := ctx.AnonymousIdentities.Get(promoteUserID, promoteIdentityID)
 		if err != nil {

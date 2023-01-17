@@ -324,7 +324,7 @@ func (i *anonymousTokenInput) SignUpAnonymousUserWithoutKey() bool {
 	return false
 }
 
-func (i *anonymousTokenInput) GetPromoteUserAndIdentityID() (string, string) { return "", "" }
+func (i *anonymousTokenInput) GetPromotionCode() string { return "" }
 
 var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
