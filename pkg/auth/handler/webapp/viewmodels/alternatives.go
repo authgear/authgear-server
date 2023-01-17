@@ -98,8 +98,7 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 				})
 			}
 		case *nodes.EdgeAuthenticationMagicLinkTrigger:
-			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail &&
-				currentStepKind != webapp.SessionStepVerifyMagicLinkOTPAuthn {
+			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail {
 				currentTarget := ""
 				var node MagicLinkTriggerNode
 				if graph.FindLastNode(&node) {
@@ -117,7 +116,7 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 							"x_authenticator_index": strconv.Itoa(i),
 						},
 						Data: map[string]string{
-							"target": target,
+							"target": mail.MaskAddress(target),
 						},
 					})
 				}
