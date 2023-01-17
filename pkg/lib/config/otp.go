@@ -37,10 +37,7 @@ var _ = Schema.Add("OTPFailedAttemptConfig", `
 			"type": "integer",
 			"minimum": 1
 		},
-		"reset_period": {
-			"$ref": "#/$defs/DurationString",
-			"format": "x_duration_string"
-		}
+		"reset_period": { "$ref": "#/$defs/DurationString" }
 	}
 }
 `)

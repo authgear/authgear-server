@@ -18,7 +18,7 @@ func (d DurationDays) Duration() time.Duration {
 	return time.Duration(d) * (24 * time.Hour)
 }
 
-var _ = Schema.Add("DurationString", `{ "type": "string" }`)
+var _ = Schema.Add("DurationString", `{ "type": "string", "format": "x_duration_string" }`)
 
 type DurationString string
 
