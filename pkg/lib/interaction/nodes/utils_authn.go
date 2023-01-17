@@ -24,23 +24,18 @@ type SendOOBCode struct {
 
 func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	var messageType otp.MessageType
-	var oobType interaction.OOBType
 	switch p.Stage {
 	case authn.AuthenticationStagePrimary:
 		if p.IsAuthenticating {
 			messageType = otp.MessageTypeAuthenticatePrimaryOOB
-			oobType = interaction.OOBTypeAuthenticatePrimary
 		} else {
 			messageType = otp.MessageTypeSetupPrimaryOOB
-			oobType = interaction.OOBTypeSetupPrimary
 		}
 	case authn.AuthenticationStageSecondary:
 		if p.IsAuthenticating {
 			messageType = otp.MessageTypeAuthenticateSecondaryOOB
-			oobType = interaction.OOBTypeAuthenticateSecondary
 		} else {
 			messageType = otp.MessageTypeSetupSecondaryOOB
-			oobType = interaction.OOBTypeSetupSecondary
 		}
 	default:
 		panic("interaction: unknown authentication stage: " + p.Stage)
@@ -85,7 +80,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		CodeLength: len(code.Code),
 	}
 
-	err = p.Context.RateLimiter.TakeToken(interaction.AntiSpamSendOOBCodeBucket(oobType, target))
+	err = p.Context.RateLimiter.TakeToken(p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target))
 	if p.IgnoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil

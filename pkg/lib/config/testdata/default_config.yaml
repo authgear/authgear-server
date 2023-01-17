@@ -267,6 +267,12 @@ messaging:
   default_email_message:
     sender: "no-reply@authgear.com"
   default_sms_message: {}
+  sms:
+    ratelimit:
+      resend_cooldown_seconds: 60
+  email:
+    ratelimit:
+      resend_cooldown_seconds: 60
 authentication:
   identities:
     - oauth

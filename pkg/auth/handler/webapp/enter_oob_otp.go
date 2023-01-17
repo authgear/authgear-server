@@ -54,6 +54,7 @@ type EnterOOBOTPHandler struct {
 	Renderer                  Renderer
 	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
+	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
 }
 
 type EnterOOBOTPNode interface {
@@ -73,15 +74,15 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		viewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 		target := n.GetOOBOTPTarget()
-		oobType := n.GetOOBOTPOOBType()
-		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		channel := model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel)
+		switch channel {
 		case model.AuthenticatorOOBChannelEmail:
 			viewModel.OOBOTPTarget = mail.MaskAddress(target)
 		case model.AuthenticatorOOBChannelSMS:
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
-		bucket := interaction.AntiSpamSendOOBCodeBucket(oobType, target)
+		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err

@@ -1,0 +1,20 @@
+part: SMSConfig
+name: invalid-resend-cooldown-seconds
+error: |-
+  invalid value:
+  /ratelimit/resend_cooldown_seconds: enum
+    map[actual:64 expected:[60 120]]
+value:
+  ratelimit:
+    resend_cooldown_seconds: 64
+
+---
+part: EmailConfig
+name: invalid-resend-cooldown-seconds
+error: |-
+  invalid value:
+  /ratelimit/resend_cooldown_seconds: enum
+    map[actual:64 expected:[60 120]]
+value:
+  ratelimit:
+    resend_cooldown_seconds: 64

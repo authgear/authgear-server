@@ -301,6 +301,35 @@ export interface VerificationConfig {
   code_expiry_seconds?: DurationSeconds;
 }
 
+export interface MessagingConfig {
+  sms?: SMSConfig;
+  email?: EmailConfig;
+}
+
+export const smsResendCooldownList = [60, 120] as const;
+
+export type SMSResendCooldown = typeof smsResendCooldownList[number];
+
+export interface SMSRatelimitConfig {
+  resend_cooldown_seconds?: SMSResendCooldown;
+}
+
+export interface SMSConfig {
+  ratelimit?: SMSRatelimitConfig;
+}
+
+export const emailResendCooldownList = [60, 120] as const;
+
+export type EmailResendCooldown = typeof emailResendCooldownList[number];
+
+export interface EmailRatelimitConfig {
+  resend_cooldown_seconds?: EmailResendCooldown;
+}
+
+export interface EmailConfig {
+  ratelimit?: EmailRatelimitConfig;
+}
+
 // UIConfig
 export interface PhoneInputConfig {
   allowlist?: string[];
@@ -468,6 +497,7 @@ export interface PortalAPIAppConfig {
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
+  messaging?: MessagingConfig;
   ui?: UIConfig;
   localization?: LocalizationConfig;
   forgot_password?: ForgotPasswordConfig;

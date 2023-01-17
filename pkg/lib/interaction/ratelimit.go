@@ -2,7 +2,10 @@ package interaction
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -48,18 +51,22 @@ func AntiAccountEnumerationBucket(ip string) ratelimit.Bucket {
 	}
 }
 
-func AntiSpamSendVerificationCodeBucket(target string) ratelimit.Bucket {
-	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("verification-send-code:%s", target),
-		Size:        1,
-		ResetPeriod: duration.PerMinute,
-	}
+type AntiSpamOTPCodeBucketMaker struct {
+	SMSConfig   *config.SMSConfig
+	EmailConfig *config.EmailConfig
 }
 
-func AntiSpamSendOOBCodeBucket(oobType OOBType, target string) ratelimit.Bucket {
+func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket {
+	var resetPeriod time.Duration
+	switch channel {
+	case model.AuthenticatorOOBChannelSMS:
+		resetPeriod = m.SMSConfig.Ratelimit.ResendCooldownSeconds.Duration()
+	case model.AuthenticatorOOBChannelEmail:
+		resetPeriod = m.EmailConfig.Ratelimit.ResendCooldownSeconds.Duration()
+	}
 	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("oob-send-code:%s:%s", oobType, target),
+		Key:         fmt.Sprintf("otp-code:%s", target),
 		Size:        1,
-		ResetPeriod: duration.PerMinute,
+		ResetPeriod: resetPeriod,
 	}
 }

@@ -774,6 +774,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:     limiter,
 		HardSMSBucketer: hardSMSBucketer,
 	}
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	emailConfig := messagingConfig.Email
+	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
+		SMSConfig:   smsConfig,
+		EmailConfig: emailConfig,
+	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -824,6 +831,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:  normalizerFactory,
 		Verification:              verificationService,
 		RateLimiter:               limiter,
+		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
 		Nonces:                    nonceService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,

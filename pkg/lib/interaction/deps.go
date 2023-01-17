@@ -1,11 +1,14 @@
 package interaction
 
-import "github.com/google/wire"
+import (
+	"github.com/google/wire"
+)
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(Context), "*"),
 	wire.Struct(new(StoreRedis), "*"),
 	wire.Bind(new(Store), new(*StoreRedis)),
 	NewLogger,
+	wire.Struct(new(AntiSpamOTPCodeBucketMaker), "*"),
 	wire.Struct(new(Service), "*"),
 )
