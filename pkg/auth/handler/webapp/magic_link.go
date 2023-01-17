@@ -7,12 +7,14 @@ const MagicLinkOTPPageQueryStateKey = "state"
 type MagicLinkOTPPageQueryState string
 
 const (
-	MagicLinkOTPPageQueryStateInitial MagicLinkOTPPageQueryState = ""
-	MagicLinkOTPPageQueryStateMatched MagicLinkOTPPageQueryState = "matched"
+	MagicLinkOTPPageQueryStateInitial     MagicLinkOTPPageQueryState = ""
+	MagicLinkOTPPageQueryStateInvalidCode MagicLinkOTPPageQueryState = "invalid_code"
+	MagicLinkOTPPageQueryStateMatched     MagicLinkOTPPageQueryState = "matched"
 )
 
 func (s *MagicLinkOTPPageQueryState) IsValid() bool {
 	return *s == MagicLinkOTPPageQueryStateInitial ||
+		*s == MagicLinkOTPPageQueryStateInvalidCode ||
 		*s == MagicLinkOTPPageQueryStateMatched
 }
 

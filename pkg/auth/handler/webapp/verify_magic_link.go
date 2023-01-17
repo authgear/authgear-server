@@ -102,10 +102,12 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return nil
 	})
 
-	ctrl.PostAction("", func() (err error) {
-		err = VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+	ctrl.PostAction("", func() error {
+		err := VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
+
 		if err != nil {
-			return
+			return err
 		}
 
 		code := r.Form.Get("x_oob_otp_code")
@@ -114,31 +116,42 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedCode(target, code)
 		if err != nil {
 			if errors.Is(err, otp.ErrCodeNotFound) {
-				err = errors.New("magic link not found")
+				state = MagicLinkOTPPageQueryStateInvalidCode
+			} else {
+				return err
 			}
-			return
 		}
 
-		// Update the web session and trigger the refresh event
-		webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
-			config.AppID(codeModel.AppID),
-		)
-		webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, false)
 		if err != nil {
-			return
-		}
-		err = webSessionProvider.UpdateSession(webSession)
-		if err != nil {
-			return
+			state = MagicLinkOTPPageQueryStateInvalidCode
+		} else if state == MagicLinkOTPPageQueryStateInitial {
+			state = MagicLinkOTPPageQueryStateMatched
 		}
 
-		u := url.URL{}
-		u.Path = r.URL.Path
-		q := r.URL.Query()
-		q.Set(MagicLinkOTPPageQueryStateKey, string(MagicLinkOTPPageQueryStateMatched))
-		u.RawQuery = q.Encode()
+		if state == MagicLinkOTPPageQueryStateMatched {
+			// Update the web session and trigger the refresh event
+			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
+				config.AppID(codeModel.AppID),
+			)
+			webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+			if err != nil {
+				return err
+			}
+			err = webSessionProvider.UpdateSession(webSession)
+			if err != nil {
+				return err
+			}
+		}
+
+		url := url.URL{}
+		url.Path = r.URL.Path
+		query := r.URL.Query()
+		query.Set(MagicLinkOTPPageQueryStateKey, string(state))
+		url.RawQuery = query.Encode()
+
 		result := webapp.Result{
-			RedirectURI:      u.String(),
+			RedirectURI:      url.String(),
 			NavigationAction: "replace",
 		}
 		result.WriteResponse(w, r)

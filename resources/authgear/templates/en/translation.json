@@ -184,6 +184,7 @@
 
   "magic-link-otp-page-title": "Magic Link",
   "magic-link-otp-initial-description": "We have sent a magic link to {target}. \nPlease visit the link to continue",
+  "magic-link-otp-invalid-code-description": "This magic link is invalid, used or expired. Please request a new one.",
   "magic-link-otp-matched-description": "Link verified!",
   "magic-link-otp-resend-button-hint": "Didn''t receive the magic link? ",
   "magic-link-otp-resend-button-label": "Resend",
@@ -192,6 +193,7 @@
 
   "verify-magic-link-page-title": "Magic Link confirmation",
   "verify-magic-link-initial-description": "Please click the button below to approve login",
+  "verify-magic-link-invalid-code-description": "This magic link is invalid, used or expired. Please request a new one.",
   "verify-magic-link-matched-description": "You are successfully authenticated. \nYou can close this window.",
   "verify-magic-link-next-button-label": "Approve",
 
