@@ -13,7 +13,6 @@
 	{{  if eq .StateQuery "" }}
 		<div class="text-sm break-words primary-txt text-center">{{ template "verify-magic-link-initial-description" }}</div>
 
-		<input form="verify-form" type="hidden" name="x_oob_otp_target" value="{{ .Target }}">
 		<input form="verify-form" type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
 
 		<button

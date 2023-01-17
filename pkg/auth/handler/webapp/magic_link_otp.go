@@ -29,6 +29,7 @@ func ConfigureMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type MagicLinkOTPNode interface {
+	GetMagicLinkOTP() string
 	GetMagicLinkOTPTarget() string
 	GetMagicLinkOTPOOBType() interaction.OOBType
 }
@@ -143,31 +144,31 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
-	getTargetFromGraph := func() (string, error) {
+	getCodeFromGraph := func() (string, error) {
 		graph, err := ctrl.InteractionGet()
 		if err != nil {
 			return "", err
 		}
-		var target string
+		var code string
 		var n MagicLinkOTPNode
 		if graph.FindLastNode(&n) {
-			target = n.GetMagicLinkOTPTarget()
+			code = n.GetMagicLinkOTP()
 		} else {
 			panic(fmt.Errorf("webapp: unexpected node for magic link: %T", n))
 		}
 
-		return target, nil
+		return code, nil
 	}
 
 	ctrl.PostAction("matched", func() error {
 		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
 
-		target, err := getTargetFromGraph()
+		code, err := getCodeFromGraph()
 		if err != nil {
 			return err
 		}
 
-		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, false)
+		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code, false)
 		if err == nil {
 			state = MagicLinkOTPPageQueryStateMatched
 		} else if errors.Is(err, otp.ErrInvalidCode) {
@@ -193,13 +194,13 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		deviceToken := r.Form.Get("x_device_token") == "true"
 
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			target, err := getTargetFromGraph()
+			code, err := getCodeFromGraph()
 			if err != nil {
 				return
 			}
 
 			input = &InputVerifyMagicLinkOTP{
-				Target:      target,
+				Code:        code,
 				DeviceToken: deviceToken,
 			}
 			return

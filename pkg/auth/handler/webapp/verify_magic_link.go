@@ -23,10 +23,9 @@ var VerifyMagicLinkOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_oob_otp_target": { "type": "string" },
 			"x_oob_otp_code": { "type": "string" }
 		},
-		"required": ["x_oob_otp_target", "x_oob_otp_code"]
+		"required": ["x_oob_otp_code"]
 	}
 `)
 
@@ -104,16 +103,15 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 	ctrl.PostAction("", func() error {
 		err := VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
-		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
-
 		if err != nil {
 			return err
 		}
 
 		code := r.Form.Get("x_oob_otp_code")
-		target := r.Form.Get("x_oob_otp_target")
 
-		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedCode(target, code)
+		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
+
+		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
 		if err != nil {
 			if errors.Is(err, otp.ErrCodeNotFound) {
 				state = MagicLinkOTPPageQueryStateInvalidCode
@@ -122,7 +120,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(target, false)
+		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code, false)
 		if err != nil {
 			state = MagicLinkOTPPageQueryStateInvalidCode
 		} else if state == MagicLinkOTPPageQueryStateInitial {
