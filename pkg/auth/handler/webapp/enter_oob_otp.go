@@ -57,7 +57,6 @@ type EnterOOBOTPHandler struct {
 	FlashMessage              FlashMessage
 	OTPCodeService            OTPCodeService
 	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
-	AntiSpamSMSBucket         AntiSpamSMSBucketMaker
 }
 
 type EnterOOBOTPNode interface {
@@ -83,17 +82,6 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPTarget = mail.MaskAddress(target)
 		case model.AuthenticatorOOBChannelSMS:
 			viewModel.OOBOTPTarget = phone.Mask(target)
-		}
-
-		if channel == model.AuthenticatorOOBChannelSMS {
-			bucket := h.AntiSpamSMSBucket.MakeBucket(target)
-			pass, _, err := h.RateLimiter.CheckToken(bucket)
-			if err != nil {
-				return nil, err
-			}
-			if !pass && baseViewModel.Error == nil {
-				baseViewModel.SetError(bucket.BucketError())
-			}
 		}
 
 		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
