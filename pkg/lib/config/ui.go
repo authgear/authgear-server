@@ -12,7 +12,8 @@ var _ = Schema.Add("UIConfig", `
 		"watermark_disabled": { "type": "boolean" },
 		"default_client_uri": { "type": "string", "format": "uri" },
 		"default_redirect_uri": { "type": "string", "format": "uri" },
-		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" }
+		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" },
+		"back_to_app": { "$ref": "#/$defs/BackToAppConfig" }
 	}
 }
 `)
@@ -26,7 +27,8 @@ type UIConfig struct {
 	// redirect_uri to use when client_id is absent.
 	DefaultRedirectURI string `json:"default_redirect_uri,omitempty"`
 	// post_logout_redirect_uri to use when client_id is absent.
-	DefaultPostLogoutRedirectURI string `json:"default_post_logout_redirect_uri,omitempty"`
+	DefaultPostLogoutRedirectURI string           `json:"default_post_logout_redirect_uri,omitempty"`
+	BackToApp                    *BackToAppConfig `json:"back_to_app,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
@@ -52,5 +54,43 @@ type PhoneInputConfig struct {
 func (c *PhoneInputConfig) SetDefaults() {
 	if c.AllowList == nil {
 		c.AllowList = phone.AllAlpha2
+	}
+}
+
+var _ = Schema.Add("BackToAppConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"uri": { "type": "string", "format": "uri" },
+		"display_mode": {
+			"type": "string",
+			"enum": ["all", "mobile"]
+		},
+		"required": ["uri"]
+	}
+}
+`)
+
+type BackToAppConfig struct {
+	URI         string               `json:"uri,omitempty"`
+	DisplayMode BackToAppDisplayMode `json:"display_mode,omitempty"`
+}
+
+type BackToAppDisplayMode string
+
+const (
+	BackToAppDisplayModeAll        BackToAppDisplayMode = "all"
+	BackToAppDisplayModeMobileOnly BackToAppDisplayMode = "mobile"
+)
+
+func (s *BackToAppDisplayMode) IsValid() bool {
+	return *s == BackToAppDisplayModeAll ||
+		*s == BackToAppDisplayModeMobileOnly
+}
+
+func (c *BackToAppConfig) SetDefaults() {
+	if c.DisplayMode == "" {
+		c.DisplayMode = BackToAppDisplayModeAll
 	}
 }

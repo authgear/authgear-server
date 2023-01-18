@@ -64,6 +64,8 @@ type BaseViewModel struct {
 	TutorialMessageType         string
 	// HasThirdPartyApp indicates whether the project has third-party client
 	HasThirdPartyClient bool
+	BackToAppURI        string
+	BackToAppEnabled    bool
 
 	FirstNonPasskeyPrimaryAuthenticatorType string
 }
@@ -256,6 +258,18 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			t := typ
 			model.FirstNonPasskeyPrimaryAuthenticatorType = string(t)
 			break
+		}
+	}
+
+	model.BackToAppURI = m.AuthUI.BackToApp.URI
+	model.BackToAppEnabled = false
+
+	if len(model.BackToAppURI) > 0 {
+		switch m.AuthUI.BackToApp.DisplayMode {
+		case config.BackToAppDisplayModeAll:
+			model.BackToAppEnabled = true
+		case config.BackToAppDisplayModeMobileOnly:
+			model.BackToAppEnabled = model.IsSupportedMobilePlatform
 		}
 	}
 

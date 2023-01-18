@@ -516,6 +516,8 @@
   "tutorial-signup-login": "This is the <b>Signup & Login page</b> of your project. Try sign up and be the first user of your app!",
   "tutorial-settings": "The <b>Account Setting page</b> is ready to go. Your users can manage their security and profile here. Integrate this page to your apps for full auth experience.",
 
+  "back-to-app-button-label": "Back to App",
+
   "territory-AC": "Ascension Island",
   "territory-AD": "Andorra",
   "territory-AE": "United Arab Emirates",

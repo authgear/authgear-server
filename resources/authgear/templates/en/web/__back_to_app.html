@@ -1,0 +1,7 @@
+{{ define "__back_to_app.html" }}
+{{ if $.BackToAppEnabled }}
+  <a class="as-btn not-a btn primary-btn mt-5" href="{{ $.BackToAppURI }}">
+    {{ template "back-to-app-button-label" }}
+  </a>
+{{ end }}
+{{ end }}

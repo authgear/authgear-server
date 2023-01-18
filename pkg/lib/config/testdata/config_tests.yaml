@@ -375,7 +375,7 @@ config:
         redirect_uris:
           - "https://example.com"
         x_max_concurrent_session: 1
-        
+
 
 ---
 name: dupe-authenticator-type
@@ -637,7 +637,33 @@ config:
     default_client_uri: nonsense
     default_redirect_uri: nonsense
     default_post_logout_redirect_uri: nonsense
-
+---
+name: valid-back-to-app
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    back_to_app:
+      uri: "https://magiclink.fly.dev/callback"
+      display_mode: "mobile"
+---
+name: invalid-back-to-app
+error: |-
+  invalid configuration:
+  /ui/back_to_app/display_mode: enum
+    map[actual:nosense expected:[all mobile]]
+  /ui/back_to_app/uri: format
+    map[error:input URL must be absolute format:uri]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    back_to_app:
+      uri: nonsense
+      display_mode: nosense
 ---
 name: invalid-language
 error: |-

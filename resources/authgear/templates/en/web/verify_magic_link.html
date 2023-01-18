@@ -44,6 +44,8 @@
 
 {{ else }}
 <div class="text-sm break-words primary-txt text-center">{{ template "verify-magic-link-matched-description" }}</div>
+
+{{ template "__back_to_app.html" . }}
 {{ end }}
 
 {{ template "__watermark.html" . }}

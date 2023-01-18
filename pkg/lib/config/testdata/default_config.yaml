@@ -15,6 +15,9 @@ hook:
   sync_hook_timeout_seconds: 5
   sync_hook_total_timeout_seconds: 10
 ui:
+  back_to_app:
+    uri: ""
+    display_mode: "all"
   phone_input:
     allowlist:
       - "AD"
