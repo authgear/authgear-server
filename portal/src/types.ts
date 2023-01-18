@@ -315,14 +315,15 @@ export type SMSResendCooldown = typeof smsResendCooldownList[number];
 // type alias of string in JSON schema
 export type DurationString = string;
 
-export interface SMSPerPhoneConfig {
+export interface SMSRateLimitPerPhoneConfig {
+  enabled?: boolean;
   size?: number;
   reset_period?: DurationString;
 }
 
 export interface SMSRatelimitConfig {
   resend_cooldown_seconds?: SMSResendCooldown;
-  per_phone?: SMSPerPhoneConfig;
+  per_phone?: SMSRateLimitPerPhoneConfig;
 }
 
 export interface SMSConfig {
