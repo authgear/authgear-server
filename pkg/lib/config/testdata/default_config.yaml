@@ -269,6 +269,10 @@ messaging:
   default_sms_message: {}
   sms:
     ratelimit:
+      per_phone:
+        enabled: false
+        reset_period: ""
+        size: 0
       resend_cooldown_seconds: 60
   email:
     ratelimit:
