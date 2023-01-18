@@ -411,6 +411,7 @@ interface ConfigFormState {
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
   passkeyChecked: boolean;
+  dailySMSSendLimit: string;
 }
 
 interface FeatureConfigFormState {
@@ -724,6 +725,11 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 
   const passkeyIndex =
     config.authentication?.primary_authenticators?.indexOf("passkey");
+  const smsRateLimitPerPhoneConfig =
+    config.messaging?.sms?.ratelimit?.per_phone;
+  const dailySMSSendLimit = smsRateLimitPerPhoneConfig?.enabled
+    ? smsRateLimitPerPhoneConfig.size?.toString(10) ?? ""
+    : "";
 
   const state = {
     identitiesControl: controlListOf(
@@ -795,6 +801,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       ...config.forgot_password,
     },
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
+    dailySMSSendLimit: dailySMSSendLimit,
   };
   correctInitialFormState(state);
   return state;
@@ -883,7 +890,17 @@ function constructConfig(
     config.identity.login_id.types.username =
       currentState.loginIDUsernameConfig;
     config.verification = currentState.verificationConfig;
-    config.messaging.sms.ratelimit = currentState.smsRatelimitConfig;
+    config.messaging.sms.ratelimit = {
+      ...currentState.smsRatelimitConfig,
+      per_phone:
+        currentState.dailySMSSendLimit === ""
+          ? { enabled: false }
+          : {
+              enabled: true,
+              size: parseInt(currentState.dailySMSSendLimit, 10),
+              reset_period: "24h",
+            },
+    };
     config.messaging.email.ratelimit = currentState.emailRatelimitConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
@@ -2065,6 +2082,7 @@ interface VerificationSettingsProps {
   smsRatelimitConfig: SMSRatelimitConfig;
   emailRatelimitConfig: EmailRatelimitConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
+  dailySMSSendLimit: string;
   setState: FormModel["setState"];
 }
 
@@ -2078,6 +2096,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
     emailRatelimitConfig,
     setState,
     authenticatorOOBSMSConfig,
+    dailySMSSendLimit,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -2170,9 +2189,8 @@ function VerificationSettings(props: VerificationSettingsProps) {
     (_, value) => {
       setState((prev) =>
         produce(prev, (prev) => {
-          prev.smsRatelimitConfig.per_phone ??= {};
-          prev.smsRatelimitConfig.per_phone.size =
-            parseIntegerAllowLeadingZeros(value);
+          prev.dailySMSSendLimit =
+            parseIntegerAllowLeadingZeros(value)?.toString(10) ?? "";
         })
       );
     },
@@ -2326,7 +2344,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
               label={renderToString(
                 "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label"
               )}
-              value={smsRatelimitConfig.per_phone?.size?.toFixed(0) ?? ""}
+              value={dailySMSSendLimit}
               onChange={onChangeDailySMSLimit}
             />
           ) : null}
@@ -2363,6 +2381,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       authenticatorPasswordConfig,
       forgotPasswordConfig,
       passkeyChecked,
+      dailySMSSendLimit,
 
       phoneLoginIDDisabled,
       passwordPolicyFeatureConfig,
@@ -2600,6 +2619,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   smsRatelimitConfig={smsRatelimitConfig}
                   emailRatelimitConfig={emailRatelimitConfig}
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
+                  dailySMSSendLimit={dailySMSSendLimit}
                   setState={setState}
                 />
               </PivotItem>

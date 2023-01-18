@@ -444,7 +444,7 @@
   "VerificationConfigurationScreen.verification.email.allowed.label": "Allow users to verify their email address from the setting page",
   "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.phone.allowed.label": "Allow users to verify their phone number from the setting page",
-  "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily SMS limit per phone number",
+  "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily SMS limit per phone number (leave blank to turn off limit)",
   "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
   "VerificationConfigurationScreen.verification.resend-cooldown.label": "Cooldown duration before resending OTP",
   "VerificationConfigurationScreen.verification.resend-cooldown.value.seconds": "{seconds} seconds",
