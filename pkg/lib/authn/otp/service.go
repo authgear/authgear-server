@@ -2,6 +2,7 @@ package otp
 
 import (
 	"errors"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -16,6 +17,12 @@ type CodeStore interface {
 	Delete(target string) error
 }
 
+type MagicLinkStore interface {
+	Create(token string, target string, expireAt time.Time) error
+	Get(token string) (string, error)
+	Delete(token string) error
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
@@ -23,8 +30,9 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
 type Service struct {
 	Clock clock.Clock
 
-	CodeStore CodeStore
-	Logger    Logger
+	CodeStore      CodeStore
+	MagicLinkStore MagicLinkStore
+	Logger         Logger
 }
 
 func (s *Service) getCode(target string) (*Code, error) {
@@ -41,7 +49,11 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 	switch otpMode {
 	case OTPModeMagicLink:
 		codeModel.Code = secretcode.MagicLinkOTPSecretCode.Generate()
-		err := s.CodeStore.Create(codeModel.Code, codeModel)
+		err := s.MagicLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
+		if err != nil {
+			return nil, err
+		}
+		err = s.CodeStore.Create(target, codeModel)
 		if err != nil {
 			return nil, err
 		}
@@ -94,11 +106,22 @@ func (s *Service) VerifyCode(target string, code string) error {
 }
 
 func (s *Service) VerifyMagicLinkCode(code string, consume bool) (*Code, error) {
-	codeModel, err := s.getCode(code)
+	target, err := s.MagicLinkStore.Get(code)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidMagicLink
 	} else if err != nil {
 		return nil, err
+	}
+
+	codeModel, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return nil, ErrInvalidMagicLink
+	} else if err != nil {
+		return nil, err
+	}
+
+	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
+		return nil, ErrInvalidCode
 	}
 
 	if consume {
@@ -146,13 +169,20 @@ func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*
 }
 
 func (s *Service) SetUserInputtedMagicLinkCode(userInputtedCode string) (*Code, error) {
-	codeModel, err := s.getCode(userInputtedCode)
+	target, err := s.MagicLinkStore.Get(userInputtedCode)
 	if err != nil {
+		return nil, ErrInvalidMagicLink
+	}
+
+	codeModel, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return nil, ErrInvalidMagicLink
+	} else if err != nil {
 		return nil, err
 	}
 
 	codeModel.UserInputtedCode = userInputtedCode
-	if err := s.CodeStore.Update(codeModel.Code, codeModel); err != nil {
+	if err := s.CodeStore.Update(codeModel.Target, codeModel); err != nil {
 		return nil, err
 	}
 
