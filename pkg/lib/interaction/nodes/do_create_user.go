@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -40,12 +39,13 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 	if !bypassRateLimit {
 		// check the rate limit only to ensure that we have token to signup
 		// the token will be token after running the effects successfully
-		pass, _, err := ctx.RateLimiter.CheckToken(interaction.AntiSpamSignupBucket(string(ctx.RemoteIP)))
+		bucket := interaction.AntiSpamSignupBucket(string(ctx.RemoteIP))
+		pass, _, err := ctx.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err
 		}
 		if !pass {
-			return nil, ratelimit.ErrTooManyRequests
+			return nil, bucket.BucketError()
 		}
 	}
 
@@ -93,12 +93,13 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				// Therefore this checking need to be done in `EffectOnCommit`
 				// to ensure all nodes are run.
 				// check the rate limit only before running the effects
-				pass, _, err := ctx.RateLimiter.CheckToken(interaction.AntiSpamSignupAnonymousBucket(ip))
+				bucket := interaction.AntiSpamSignupAnonymousBucket(ip)
+				pass, _, err := ctx.RateLimiter.CheckToken(bucket)
 				if err != nil {
 					return err
 				}
 				if !pass {
-					return ratelimit.ErrTooManyRequests
+					return bucket.BucketError()
 				}
 			}
 

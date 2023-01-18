@@ -119,8 +119,9 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		Target:     target,
 		CodeLength: len(code.Code),
 	}
-	err = ctx.RateLimiter.TakeToken(ctx.AntiSpamOTPCodeBucket.MakeBucket(channel, target))
-	if ignoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
+	bucket := ctx.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
+	err = ctx.RateLimiter.TakeToken(bucket)
+	if ignoreRatelimitError && errors.Is(err, bucket.BucketError()) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
 	} else if err != nil {
