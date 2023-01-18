@@ -119,6 +119,11 @@ func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPTarget() strin
 	return n.Target
 }
 
+// GetMagicLinkOTPChannel implements MagicLinkOTPNode.
+func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPChannel() string {
+	return n.Channel
+}
+
 // GetMagicLinkOTPOOBType implements MagicLinkOTPNode.
 func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPOOBType() interaction.OOBType {
 	switch n.Stage {
