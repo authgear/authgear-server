@@ -76,6 +76,7 @@ func (e *EdgeAuthenticationMagicLinkTrigger) Instantiate(ctx *interaction.Contex
 		AuthenticatorIndex: idx,
 		MagicLinkOTP:       result.Code,
 		Target:             result.Target,
+		Channel:            result.Channel,
 	}, nil
 }
 
@@ -85,6 +86,7 @@ type NodeAuthenticationMagicLinkTrigger struct {
 	Authenticators     []*authenticator.Info     `json:"authenticators"`
 	AuthenticatorIndex int                       `json:"authenticator_index"`
 	MagicLinkOTP       string                    `json:"magic_link_otp"`
+	Channel            string                    `json:"channel"`
 	Target             string                    `json:"target"`
 }
 
@@ -96,6 +98,11 @@ func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTP() string {
 // GetMagicLinkOTPTarget implements MagicLinkOTPNode.
 func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTPTarget() string {
 	return n.Target
+}
+
+// GetMagicLinkOTPChannel implements MagicLinkOTPNode.
+func (n *NodeAuthenticationMagicLinkTrigger) GetMagicLinkOTPChannel() string {
+	return n.Channel
 }
 
 // GetMagicLinkOTPOOBType implements MagicLinkOTPNode.

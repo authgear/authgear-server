@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -31,6 +32,7 @@ func ConfigureMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 type MagicLinkOTPNode interface {
 	GetMagicLinkOTP() string
 	GetMagicLinkOTPTarget() string
+	GetMagicLinkOTPChannel() string
 	GetMagicLinkOTPOOBType() interaction.OOBType
 }
 
@@ -48,6 +50,7 @@ type MagicLinkOTPHandler struct {
 	Renderer                  Renderer
 	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
+	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
 }
 
 func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -60,9 +63,9 @@ func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 
 	var n MagicLinkOTPNode
 	if graph.FindLastNode(&n) {
-		oobType := n.GetMagicLinkOTPOOBType()
+		channel := model.AuthenticatorOOBChannel(n.GetMagicLinkOTPChannel())
 		target := n.GetMagicLinkOTPTarget()
-		bucket := interaction.AntiSpamSendOOBCodeBucket(oobType, target)
+		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err
