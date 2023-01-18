@@ -21,6 +21,43 @@ import (
 	jwt "github.com/lestrrat-go/jwx/jwt"
 )
 
+// MockPromptResolver is a mock of PromptResolver interface.
+type MockPromptResolver struct {
+	ctrl     *gomock.Controller
+	recorder *MockPromptResolverMockRecorder
+}
+
+// MockPromptResolverMockRecorder is the mock recorder for MockPromptResolver.
+type MockPromptResolverMockRecorder struct {
+	mock *MockPromptResolver
+}
+
+// NewMockPromptResolver creates a new mock instance.
+func NewMockPromptResolver(ctrl *gomock.Controller) *MockPromptResolver {
+	mock := &MockPromptResolver{ctrl: ctrl}
+	mock.recorder = &MockPromptResolverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPromptResolver) EXPECT() *MockPromptResolverMockRecorder {
+	return m.recorder
+}
+
+// ResolvePrompt mocks base method.
+func (m *MockPromptResolver) ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.Session) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolvePrompt", r, sidSession)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// ResolvePrompt indicates an expected call of ResolvePrompt.
+func (mr *MockPromptResolverMockRecorder) ResolvePrompt(r, sidSession interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolvePrompt", reflect.TypeOf((*MockPromptResolver)(nil).ResolvePrompt), r, sidSession)
+}
+
 // MockIDTokenHintResolver is a mock of IDTokenHintResolver interface.
 type MockIDTokenHintResolver struct {
 	ctrl     *gomock.Controller

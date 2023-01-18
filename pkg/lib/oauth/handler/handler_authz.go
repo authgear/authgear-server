@@ -31,6 +31,10 @@ import (
 
 const CodeGrantValidDuration = duration.Short
 
+type PromptResolver interface {
+	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.Session) (prompt []string)
+}
+
 type IDTokenHintResolver interface {
 	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
 }
@@ -91,6 +95,7 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
+	PromptResolver            PromptResolver
 	IDTokens                  IDTokenHintResolver
 	Authorizations            AuthorizationService
 	CodeGrants                oauth.CodeGrantStore
@@ -399,7 +404,7 @@ func (h *AuthorizationHandler) doHandle(
 		WebhookState:             r.State(),
 		Page:                     r.Page(),
 		RedirectURI:              h.OAuthURLs.ConsentURL(r).String(),
-		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
+		Prompt:                   h.PromptResolver.ResolvePrompt(r, sidSession),
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:       r.OAuthProviderAlias(),
 		FromAuthzEndpoint:        true,
@@ -679,35 +684,4 @@ func (h *AuthorizationHandler) generateCodeResponse(
 
 	resp.Code(code)
 	return nil
-}
-
-func (h *AuthorizationHandler) handleMaxAgeAndPrompt(
-	r protocol.AuthorizationRequest,
-	sidSession session.Session,
-) (prompt []string) {
-	prompt = r.Prompt()
-	if maxAge, ok := r.MaxAge(); ok {
-		impliesPromptLogin := false
-		// When there is no session, the presence of max_age implies prompt=login.
-		if sidSession == nil {
-			impliesPromptLogin = true
-		} else {
-			// max_age=0 implies prompt=login
-			if maxAge == 0 {
-				impliesPromptLogin = true
-			} else {
-				// max_age=n implies prompt=login if elapsed time is greater than max_age.
-				// In extreme rare case, elapsed time can be negative.
-				elapsedTime := h.Clock.NowUTC().Sub(sidSession.GetAuthenticationInfo().AuthenticatedAt)
-				if elapsedTime < 0 || elapsedTime > maxAge {
-					impliesPromptLogin = true
-				}
-			}
-		}
-		if impliesPromptLogin {
-			prompt = slice.AppendIfUniqueStrings(prompt, "login")
-		}
-	}
-
-	return
 }
