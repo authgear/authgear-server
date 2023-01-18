@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -22,7 +20,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -34,8 +31,8 @@ import (
 
 const CodeGrantValidDuration = duration.Short
 
-type IDTokenVerifier interface {
-	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (jwt.Token, error)
+type IDTokenHintResolver interface {
+	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
 }
 
 type OAuthURLProvider interface {
@@ -59,10 +56,6 @@ type CookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
-}
-
-type SessionProvider interface {
-	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type OAuthSessionService interface {
@@ -98,16 +91,14 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
-	Sessions                  SessionProvider
+	IDTokens                  IDTokenHintResolver
 	Authorizations            AuthorizationService
-	OfflineGrants             oauth.OfflineGrantStore
 	CodeGrants                oauth.CodeGrantStore
 	OAuthURLs                 OAuthURLProvider
 	WebAppURLs                WebAppAuthenticateURLProvider
 	ValidateScopes            ScopesValidator
 	CodeGenerator             TokenGenerator
 	AppSessionTokenService    AppSessionTokenService
-	IDTokens                  IDTokenVerifier
 	AuthenticationInfoService AuthenticationInfoService
 	Clock                     clock.Clock
 	Cookies                   CookieManager
@@ -394,7 +385,7 @@ func (h *AuthorizationHandler) doHandle(
 		}
 	}
 
-	idToken, sidSession, err := h.handleIDTokenHint(client, r)
+	idToken, sidSession, err := h.IDTokens.ResolveIDTokenHint(client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -577,7 +568,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	_, sidSession, err := h.handleIDTokenHint(client, r)
+	_, sidSession, err := h.IDTokens.ResolveIDTokenHint(client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -716,51 +707,6 @@ func (h *AuthorizationHandler) handleMaxAgeAndPrompt(
 		if impliesPromptLogin {
 			prompt = slice.AppendIfUniqueStrings(prompt, "login")
 		}
-	}
-
-	return
-}
-
-func (h *AuthorizationHandler) handleIDTokenHint(
-	client *config.OAuthClientConfig,
-	r protocol.AuthorizationRequest,
-) (idToken jwt.Token, sidSession session.Session, err error) {
-	idTokenHint, ok := r.IDTokenHint()
-	if !ok {
-		return
-	}
-
-	idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
-	if err != nil {
-		return
-	}
-
-	sidInterface, ok := idToken.Get(string(model.ClaimSID))
-	if !ok {
-		return
-	}
-
-	sid, ok := sidInterface.(string)
-	if !ok {
-		return
-	}
-
-	typ, sessionID, ok := oidc.DecodeSID(sid)
-	if !ok {
-		return
-	}
-
-	switch typ {
-	case session.TypeIdentityProvider:
-		if sess, err := h.Sessions.Get(sessionID); err == nil {
-			sidSession = sess
-		}
-	case session.TypeOfflineGrant:
-		if sess, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
-			sidSession = sess
-		}
-	default:
-		panic(fmt.Errorf("oauth: unknown session type: %v", typ))
 	}
 
 	return

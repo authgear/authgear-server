@@ -18,7 +18,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -286,4 +288,60 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 	out["custom_attributes"] = user.CustomAttributes
 	out["x_web3"] = user.Web3
 	return out, nil
+}
+
+type IDTokenHintResolverIssuer interface {
+	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (idToken jwt.Token, err error)
+}
+
+type IDTokenHintResolverSessionProvider interface {
+	Get(id string) (*idpsession.IDPSession, error)
+}
+
+type IDTokenHintResolver struct {
+	Issuer        IDTokenHintResolverIssuer
+	Sessions      IDTokenHintResolverSessionProvider
+	OfflineGrants oauth.OfflineGrantStore
+}
+
+func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error) {
+	idTokenHint, ok := req.IDTokenHint()
+	if !ok {
+		return
+	}
+
+	idToken, err = r.Issuer.VerifyIDTokenHint(client, idTokenHint)
+	if err != nil {
+		return
+	}
+
+	sidInterface, ok := idToken.Get(string(model.ClaimSID))
+	if !ok {
+		return
+	}
+
+	sid, ok := sidInterface.(string)
+	if !ok {
+		return
+	}
+
+	typ, sessionID, ok := DecodeSID(sid)
+	if !ok {
+		return
+	}
+
+	switch typ {
+	case session.TypeIdentityProvider:
+		if sess, err := r.Sessions.Get(sessionID); err == nil {
+			sidSession = sess
+		}
+	case session.TypeOfflineGrant:
+		if sess, err := r.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
+			sidSession = sess
+		}
+	default:
+		panic(fmt.Errorf("oauth: unknown session type: %v", typ))
+	}
+
+	return
 }

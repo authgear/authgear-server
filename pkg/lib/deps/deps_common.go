@@ -124,7 +124,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.IDPSessionManager), new(*idpsession.Manager)),
 		wire.Bind(new(oauth.ResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oauth.ServiceIDPSessionProvider), new(*idpsession.Provider)),
-		wire.Bind(new(oauthhandler.SessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(oidc.IDTokenHintResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
@@ -284,7 +284,7 @@ var CommonDependencySet = wire.NewSet(
 
 		oidc.DependencySet,
 		wire.Value(oauthhandler.ScopesValidator(oidc.ValidateScopes)),
-		wire.Bind(new(oauthhandler.IDTokenVerifier), new(*oidc.IDTokenIssuer)),
+		wire.Bind(new(oauthhandler.IDTokenHintResolver), new(*oidc.IDTokenHintResolver)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(oauth.UserClaimsProvider), new(*oidc.IDTokenIssuer)),
