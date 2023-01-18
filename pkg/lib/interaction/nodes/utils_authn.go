@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -83,8 +82,9 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		Code:       code.Code,
 	}
 
-	err = p.Context.RateLimiter.TakeToken(p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target))
-	if p.IgnoreRatelimitError && errors.Is(err, ratelimit.ErrTooManyRequests) {
+	bucket := p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
+	err = p.Context.RateLimiter.TakeToken(bucket)
+	if p.IgnoreRatelimitError && errors.Is(err, bucket.BucketError()) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
 	} else if err != nil {

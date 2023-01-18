@@ -4,18 +4,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-var errTooManyRequestsMsg = "request rate limited"
-var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
-
-var ErrTooManyRequests = RateLimited.New(errTooManyRequestsMsg)
 var ErrUsageLimitExceeded = apierrors.ServiceUnavailable.WithReason("UsageLimitExceeded").
 	New("usage limit exceeded")
 
 func ErrTooManyRequestsFrom(bucket Bucket) error {
+	RateLimited := apierrors.TooManyRequest.WithReason("RateLimited")
+	errMsg := "request rate limited"
 	if bucket.Name == "" {
-		return ErrTooManyRequests
+		return RateLimited.New(errMsg)
 	} else {
-		return RateLimited.NewWithInfo(errTooManyRequestsMsg, apierrors.Details{
+		return RateLimited.NewWithInfo(errMsg, apierrors.Details{
 			"bucket_name": bucket.Name,
 		})
 	}
