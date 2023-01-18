@@ -18,22 +18,6 @@ type AppSessionToken struct {
 	TokenHash string    `json:"token_hash"`
 }
 
-type AppSessionTokenResult struct {
-	Cookies     []*http.Cookie
-	RedirectURI string
-}
-
-func (r *AppSessionTokenResult) WriteResponse(w http.ResponseWriter, req *http.Request) {
-	for _, cookie := range r.Cookies {
-		httputil.UpdateCookie(w, cookie)
-	}
-	http.Redirect(w, req, r.RedirectURI, http.StatusFound)
-}
-
-func (r *AppSessionTokenResult) IsInternalError() bool {
-	return false
-}
-
 type AppSessionTokenServiceOfflineGrantService interface {
 	IsValid(session *OfflineGrant) (valid bool, expiry time.Time, err error)
 }
@@ -63,9 +47,9 @@ func (s *AppSessionTokenService) Handle(input AppSessionTokenInput) (httputil.Re
 	}
 
 	cookie := s.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token)
-	return &AppSessionTokenResult{
-		Cookies:     []*http.Cookie{cookie},
-		RedirectURI: input.RedirectURI,
+	return &httputil.ResultRedirect{
+		Cookies: []*http.Cookie{cookie},
+		URL:     input.RedirectURI,
 	}, nil
 }
 
