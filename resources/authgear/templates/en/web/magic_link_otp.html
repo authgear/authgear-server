@@ -12,43 +12,43 @@
     <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
       {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
     </div>
-
-    <form id="dryrun-verify-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
-      {{ $.CSRFField }}
-    </form>
-
-    {{ if $.CanRequestDeviceToken }}
-    <div class="flex flex-row items-center self-start">
-    <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
-    <label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
-    </div>
-    {{ end }}
-
-    <button
-      form="dryrun-verify-form"
-      class="hidden"
-      type="submit"
-      name="x_action"
-      value="dryrun_verify"
-      data-submit-when-refresh="true"
-    ></button>
   {{ else if eq .StateQuery "invalid_code" }}
     <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
       {{ template "magic-link-otp-invalid-code-description" }}
     </div>
   {{ end }}
 
-<form class="link" method="post" novalidate>
-  {{ $.CSRFField }}
-  <span class="primary-txt text-sm">{{ template "magic-link-otp-resend-button-hint" }}</span>
-  <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
-    data-resend-button-cooldown-value="{{ $.OTPCodeSendCooldown }}"
-    data-resend-button-label-value="{{ template "magic-link-otp-resend-button-label" }}"
-    data-resend-button-label-unit-value="{{ template "magic-link-otp-resend-button-label--unit" }}"
-    data-authgear-event="authgear.button.resend_magic_link_otp"
-    data-controller="resend-button"
-  >{{ template "magic-link-otp-resend-button-label" }}</button>
-</form>
+  <form id="dryrun-verify-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
+    {{ $.CSRFField }}
+  </form>
+
+  {{ if $.CanRequestDeviceToken }}
+  <div class="flex flex-row items-center self-start">
+  <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
+  <label class="p-1 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+  </div>
+  {{ end }}
+
+  <button
+    form="dryrun-verify-form"
+    class="hidden"
+    type="submit"
+    name="x_action"
+    value="dryrun_verify"
+    data-submit-when-refresh="true"
+  ></button>
+
+  <form class="link" method="post" novalidate>
+    {{ $.CSRFField }}
+    <span class="primary-txt text-sm">{{ template "magic-link-otp-resend-button-hint" }}</span>
+    <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
+      data-resend-button-cooldown-value="{{ $.OTPCodeSendCooldown }}"
+      data-resend-button-label-value="{{ template "magic-link-otp-resend-button-label" }}"
+      data-resend-button-label-unit-value="{{ template "magic-link-otp-resend-button-label--unit" }}"
+      data-authgear-event="authgear.button.resend_magic_link_otp"
+      data-controller="resend-button"
+    >{{ template "magic-link-otp-resend-button-label" }}</button>
+  </form>
 
 {{ template "__use_recovery_code.html" . }}
 
