@@ -124,12 +124,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
-	clock := _wireSystemClockValue
-	promptResolver := &oauth2.PromptResolver{
-		Clock: clock,
-	}
-	secretConfig := config.SecretConfig
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -142,6 +136,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	clock := _wireSystemClockValue
+	promptResolver := &oauth2.PromptResolver{
+		Clock: clock,
+	}
+	secretConfig := config.SecretConfig
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
@@ -500,6 +500,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	uiInfoResolver := &oidc.UIInfoResolver{
+		EndpointsProvider:   endpointsProvider,
+		PromptResolver:      promptResolver,
+		IDTokenHintResolver: idTokenHintResolver,
+		Clock:               clock,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -519,9 +525,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store:               authorizationStore,
 		Clock:               clock,
 		OAuthSessionManager: sessionManager,
-	}
-	urlProvider := &oauth2.URLProvider{
-		Endpoints: endpointsProvider,
 	}
 	serviceLogger := webapp2.NewServiceLogger(factory)
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
@@ -733,7 +736,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	webappURLProvider := &webapp2.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
@@ -746,7 +749,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  webappURLProvider,
+		RedirectURL:                  urlProvider,
 		Clock:                        clock,
 		WechatURLProvider:            wechatURLProvider,
 		StandardAttributesNormalizer: normalizer,
@@ -764,7 +767,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:            forgotPasswordConfig,
 		Store:             forgotpasswordStore,
 		Clock:             clock,
-		URLs:              webappURLProvider,
+		URLs:              urlProvider,
 		TaskQueue:         queue,
 		Logger:            providerLogger,
 		Identities:        identityFacade,
@@ -902,11 +905,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
 		Logger:                    authorizationHandlerLogger,
-		PromptResolver:            promptResolver,
-		IDTokens:                  idTokenHintResolver,
+		UIInfoResolver:            uiInfoResolver,
 		Authorizations:            authorizationService,
 		CodeGrants:                redisStore,
-		OAuthURLs:                 urlProvider,
 		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
@@ -944,12 +945,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
-	clockClock := _wireSystemClockValue
-	promptResolver := &oauth2.PromptResolver{
-		Clock: clockClock,
-	}
-	secretConfig := config.SecretConfig
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -962,6 +957,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	clockClock := _wireSystemClockValue
+	promptResolver := &oauth2.PromptResolver{
+		Clock: clockClock,
+	}
+	secretConfig := config.SecretConfig
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
@@ -1320,6 +1321,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	uiInfoResolver := &oidc.UIInfoResolver{
+		EndpointsProvider:   endpointsProvider,
+		PromptResolver:      promptResolver,
+		IDTokenHintResolver: idTokenHintResolver,
+		Clock:               clockClock,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1339,9 +1346,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Store:               authorizationStore,
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
-	}
-	urlProvider := &oauth2.URLProvider{
-		Endpoints: endpointsProvider,
 	}
 	serviceLogger := webapp2.NewServiceLogger(factory)
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
@@ -1553,7 +1557,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	webappURLProvider := &webapp2.URLProvider{
+	urlProvider := &webapp2.URLProvider{
 		Endpoints: endpointsProvider,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
@@ -1566,7 +1570,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:                    endpointsProvider,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  webappURLProvider,
+		RedirectURL:                  urlProvider,
 		Clock:                        clockClock,
 		WechatURLProvider:            wechatURLProvider,
 		StandardAttributesNormalizer: normalizer,
@@ -1584,7 +1588,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Config:            forgotPasswordConfig,
 		Store:             forgotpasswordStore,
 		Clock:             clockClock,
-		URLs:              webappURLProvider,
+		URLs:              urlProvider,
 		TaskQueue:         queue,
 		Logger:            providerLogger,
 		Identities:        identityFacade,
@@ -1722,11 +1726,9 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
 		Logger:                    authorizationHandlerLogger,
-		PromptResolver:            promptResolver,
-		IDTokens:                  idTokenHintResolver,
+		UIInfoResolver:            uiInfoResolver,
 		Authorizations:            authorizationService,
 		CodeGrants:                redisStore,
-		OAuthURLs:                 urlProvider,
 		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,

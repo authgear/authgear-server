@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
-
-	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -31,16 +28,8 @@ import (
 
 const CodeGrantValidDuration = duration.Short
 
-type PromptResolver interface {
-	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.Session) (prompt []string)
-}
-
-type IDTokenHintResolver interface {
-	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
-}
-
-type OAuthURLProvider interface {
-	ConsentURL(r protocol.AuthorizationRequest) *url.URL
+type UIInfoResolver interface {
+	ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
 }
 
 type WebAppAuthenticateURLProvider interface {
@@ -95,11 +84,9 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
-	PromptResolver            PromptResolver
-	IDTokens                  IDTokenHintResolver
+	UIInfoResolver            UIInfoResolver
 	Authorizations            AuthorizationService
 	CodeGrants                oauth.CodeGrantStore
-	OAuthURLs                 OAuthURLProvider
 	WebAppURLs                WebAppAuthenticateURLProvider
 	ValidateScopes            ScopesValidator
 	CodeGenerator             TokenGenerator
@@ -390,21 +377,18 @@ func (h *AuthorizationHandler) doHandle(
 		}
 	}
 
-	idToken, sidSession, err := h.IDTokens.ResolveIDTokenHint(client, r)
+	uiInfo, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
 	if err != nil {
 		return nil, err
 	}
-
-	var idTokenHintSID string
-	if sidSession != nil {
-		idTokenHintSID = oidc.EncodeSID(sidSession)
-	}
+	idToken := uiInfoByProduct.IDToken
+	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
 	sessionOptions := webapp.SessionOptions{
 		WebhookState:             r.State(),
 		Page:                     r.Page(),
-		RedirectURI:              h.OAuthURLs.ConsentURL(r).String(),
-		Prompt:                   h.PromptResolver.ResolvePrompt(r, sidSession),
+		RedirectURI:              uiInfo.RedirectURI,
+		Prompt:                   uiInfo.Prompt,
 		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:       r.OAuthProviderAlias(),
 		FromAuthzEndpoint:        true,
@@ -412,30 +396,6 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 	colorScheme := r.ColorScheme()
-
-	if idToken != nil {
-		sessionOptions.UserIDHint = idToken.Subject()
-		// Set CanUseIntentReauthenticate to true if
-		// 1. The ID token is not expired.
-		// 2. The sid of the ID token hint points to a valid session (either IDPSession or OfflineGrant).
-		// 3. If the session indicated by sid is an offline grant, it must contain the FullAccessScope.
-		if tv := idToken.Expiration(); !tv.IsZero() && tv.Unix() != 0 {
-			now := h.Clock.NowUTC().Truncate(time.Second)
-			tv = tv.Truncate(time.Second)
-			if now.Before(tv) && sidSession != nil {
-				switch sidSession.SessionType() {
-				case session.TypeIdentityProvider:
-					sessionOptions.CanUseIntentReauthenticate = true
-				case session.TypeOfflineGrant:
-					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
-						if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
-							sessionOptions.CanUseIntentReauthenticate = true
-						}
-					}
-				}
-			}
-		}
-	}
 
 	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
@@ -573,15 +533,11 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	_, sidSession, err := h.IDTokens.ResolveIDTokenHint(client, r)
+	_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
 	if err != nil {
 		return nil, err
 	}
-
-	var idTokenHintSID string
-	if sidSession != nil {
-		idTokenHintSID = oidc.EncodeSID(sidSession)
-	}
+	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
 	var idpSessionID string
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {

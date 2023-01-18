@@ -1,0 +1,117 @@
+package oidc
+
+import (
+	"time"
+
+	"github.com/lestrrat-go/jwx/jwt"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/slice"
+)
+
+// UIInfo is a collection of information that is essential to the UI.
+type UIInfo struct {
+	// RedirectURI is the redirect_uri the UI should redirect to.
+	// The redirect_uri in the URL has lower precedence.
+	// The rationale for this is if the end-user bookmarked the
+	// authorization URL in the browser, redirect to the app is
+	// possible.
+	RedirectURI string
+	// Prompt is the resolved prompt with prompt, max_age, and id_token_hint taken into account.
+	Prompt []string
+	// UserIDHint is for reauthentication.
+	UserIDHint string
+	// CanUseIntentReauthenticate is for reauthentication.
+	CanUseIntentReauthenticate bool
+	// State is the state parameter
+	State string
+	// Page is the x_page parameter
+	Page string
+	// SuppressIDPSessionCookie is the x_suppress_idp_session_cookie and x_sso_enabled parameter.
+	SuppressIDPSessionCookie bool
+	// OAuthProviderAlias is the x_oauth_provider_alias parameter.
+	OAuthProviderAlias string
+}
+
+type UIInfoByProduct struct {
+	IDToken        jwt.Token
+	SIDSession     session.Session
+	IDTokenHintSID string
+}
+
+type UIInfoResolverPromptResolver interface {
+	ResolvePrompt(r protocol.AuthorizationRequest, sidSession session.Session) (prompt []string)
+}
+
+type UIInfoResolverIDTokenHintResolver interface {
+	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
+}
+
+type UIInfoResolver struct {
+	EndpointsProvider   oauth.EndpointsProvider
+	PromptResolver      UIInfoResolverPromptResolver
+	IDTokenHintResolver UIInfoResolverIDTokenHintResolver
+	Clock               clock.Clock
+}
+
+func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
+	client *config.OAuthClientConfig,
+	req protocol.AuthorizationRequest,
+) (*UIInfo, *UIInfoByProduct, error) {
+	redirectURI := r.EndpointsProvider.ConsentEndpointURL().String()
+
+	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(client, req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	prompt := r.PromptResolver.ResolvePrompt(req, sidSession)
+
+	var idTokenHintSID string
+	if sidSession != nil {
+		idTokenHintSID = EncodeSID(sidSession)
+	}
+
+	var userIDHint string
+	var canUseIntentReauthenticate bool
+	if idToken != nil {
+		userIDHint = idToken.Subject()
+		if tv := idToken.Expiration(); !tv.IsZero() && tv.Unix() != 0 {
+			now := r.Clock.NowUTC().Truncate(time.Second)
+			tv = tv.Truncate(time.Second)
+			if now.Before(tv) && sidSession != nil {
+				switch sidSession.SessionType() {
+				case session.TypeIdentityProvider:
+					canUseIntentReauthenticate = true
+				case session.TypeOfflineGrant:
+					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
+						if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
+							canUseIntentReauthenticate = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	info := &UIInfo{
+		RedirectURI:                redirectURI,
+		Prompt:                     prompt,
+		UserIDHint:                 userIDHint,
+		CanUseIntentReauthenticate: canUseIntentReauthenticate,
+		State:                      req.State(),
+		Page:                       req.Page(),
+		SuppressIDPSessionCookie:   req.SuppressIDPSessionCookie(),
+		OAuthProviderAlias:         req.OAuthProviderAlias(),
+	}
+	byProduct := &UIInfoByProduct{
+		IDToken:        idToken,
+		SIDSession:     sidSession,
+		IDTokenHintSID: idTokenHintSID,
+	}
+	return info, byProduct, nil
+}

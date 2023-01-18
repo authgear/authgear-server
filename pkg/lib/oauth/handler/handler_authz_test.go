@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -54,6 +55,7 @@ func TestAuthorizationHandler(t *testing.T) {
 
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 		authzService := NewMockAuthorizationService(ctrl)
+		uiInfoResolver := NewMockUIInfoResolver(ctrl)
 		codeGrantStore := &mockCodeGrantStore{}
 		authenticationInfoService := &mockAuthenticationInfoService{}
 		cookieManager := &mockCookieManager{}
@@ -68,9 +70,9 @@ func TestAuthorizationHandler(t *testing.T) {
 				PublicOrigin: "http://accounts.example.com",
 			},
 
+			UIInfoResolver:            uiInfoResolver,
 			Authorizations:            authzService,
 			CodeGrants:                codeGrantStore,
-			OAuthURLs:                 mockURLsProvider{},
 			WebAppURLs:                mockURLsProvider{},
 			ValidateScopes:            func(*config.OAuthClientConfig, []string) error { return nil },
 			CodeGenerator:             func() string { return "authz-code" },
@@ -206,14 +208,19 @@ func TestAuthorizationHandler(t *testing.T) {
 				))
 			})
 			Convey("request authentication", func() {
-				resp := handle(protocol.AuthorizationRequest{
+				req := protocol.AuthorizationRequest{
 					"client_id":             "client-id",
 					"response_type":         "code",
 					"scope":                 "openid",
 					"code_challenge_method": "S256",
 					"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 					"ui_locales":            "ja",
-				})
+				}
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+					&h.Config.Clients[0],
+					req,
+				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
+				resp := handle(req)
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
@@ -224,6 +231,16 @@ func TestAuthorizationHandler(t *testing.T) {
 					ToContext(context.Background())
 
 				Convey("create new authorization implicitly", func() {
+					req := protocol.AuthorizationRequest{
+						"client_id":             "client-id",
+						"response_type":         "code",
+						"scope":                 "openid",
+						"code_challenge_method": "S256",
+						"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+						"nonce":                 "my-nonce",
+						"state":                 "my-state",
+						"prompt":                "none",
+					}
 					authorization := &oauth.Authorization{
 						ID:        "authz-id",
 						AppID:     string(appID),
@@ -233,22 +250,19 @@ func TestAuthorizationHandler(t *testing.T) {
 						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						Scopes:    []string{"openid"},
 					}
+					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+						&h.Config.Clients[0],
+						req,
+					).Times(1).Return(&oidc.UIInfo{
+						Prompt: []string{"none"},
+					}, &oidc.UIInfoByProduct{}, nil)
 					authzService.EXPECT().CheckAndGrant(
 						"client-id",
 						"user-id",
 						[]string{"openid"},
 					).Times(1).Return(authorization, nil)
 
-					resp := handle(protocol.AuthorizationRequest{
-						"client_id":             "client-id",
-						"response_type":         "code",
-						"scope":                 "openid",
-						"code_challenge_method": "S256",
-						"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-						"nonce":                 "my-nonce",
-						"state":                 "my-state",
-						"prompt":                "none",
-					})
+					resp := handle(req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?code=authz-code&state=my-state",
@@ -287,15 +301,22 @@ func TestAuthorizationHandler(t *testing.T) {
 						"user-id",
 						[]string{"openid", "offline_access"},
 					).Times(1).Return(authorization, nil)
-
-					resp := handle(protocol.AuthorizationRequest{
+					req := protocol.AuthorizationRequest{
 						"client_id":             "client-id",
 						"response_type":         "code",
 						"scope":                 "openid offline_access",
 						"code_challenge_method": "S256",
 						"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 						"prompt":                "none",
-					})
+					}
+					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+						&h.Config.Clients[0],
+						req,
+					).Times(1).Return(&oidc.UIInfo{
+						Prompt: []string{"none"},
+					}, &oidc.UIInfoByProduct{}, nil)
+
+					resp := handle(req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?code=authz-code",
@@ -361,11 +382,16 @@ func TestAuthorizationHandler(t *testing.T) {
 				))
 			})
 			Convey("request authentication", func() {
-				resp := handle(protocol.AuthorizationRequest{
+				req := protocol.AuthorizationRequest{
 					"client_id":     "client-id",
 					"response_type": "none",
 					"scope":         "openid",
-				})
+				}
+				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+					&h.Config.Clients[0],
+					req,
+				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
+				resp := handle(req)
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
@@ -385,19 +411,26 @@ func TestAuthorizationHandler(t *testing.T) {
 						UpdatedAt: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						Scopes:    []string{"openid"},
 					}
-					authzService.EXPECT().CheckAndGrant(
-						"client-id",
-						"user-id",
-						[]string{"openid"},
-					).Times(1).Return(authorization, nil)
-
-					resp := handle(protocol.AuthorizationRequest{
+					req := protocol.AuthorizationRequest{
 						"client_id":     "client-id",
 						"response_type": "none",
 						"scope":         "openid",
 						"state":         "my-state",
 						"prompt":        "none",
-					})
+					}
+					authzService.EXPECT().CheckAndGrant(
+						"client-id",
+						"user-id",
+						[]string{"openid"},
+					).Times(1).Return(authorization, nil)
+					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+						&h.Config.Clients[0],
+						req,
+					).Times(1).Return(&oidc.UIInfo{
+						Prompt: []string{"none"},
+					}, &oidc.UIInfoByProduct{}, nil)
+
+					resp := handle(req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?state=my-state",
