@@ -74,6 +74,7 @@ func TestLimiter(t *testing.T) {
 			Storage: &storageMemory{items: make(map[string]*storageMemoryItem)},
 			Clock:   c,
 		}
+		expectedErr := b.BucketError()
 
 		Convey("TakeToken", func() {
 			var err error
@@ -91,9 +92,9 @@ func TestLimiter(t *testing.T) {
 			c.AdvanceSeconds(1)
 
 			err = limiter.TakeToken(b)
-			So(err, ShouldBeError, ratelimit.ErrTooManyRequests)
+			So(err, ShouldBeError, expectedErr)
 			err = limiter.TakeToken(b)
-			So(err, ShouldBeError, ratelimit.ErrTooManyRequests)
+			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
 			c.AdvanceSeconds(1)
@@ -113,11 +114,11 @@ func TestLimiter(t *testing.T) {
 			c.AdvanceSeconds(1)
 
 			err = limiter.TakeToken(b)
-			So(err, ShouldBeError, ratelimit.ErrTooManyRequests)
+			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
 			err = limiter.TakeToken(b)
-			So(err, ShouldBeError, ratelimit.ErrTooManyRequests)
+			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
 			// Reset
@@ -147,11 +148,11 @@ func TestLimiter(t *testing.T) {
 			c.AdvanceSeconds(1)
 
 			err = limiter.TakeToken(b)
-			So(err, ShouldBeError, ratelimit.ErrTooManyRequests)
+			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
 			err = limiter.TakeToken(b)
-			So(err, ShouldBeError, ratelimit.ErrTooManyRequests)
+			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 		})
 
