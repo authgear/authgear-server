@@ -368,7 +368,6 @@ var CommonDependencySet = wire.NewSet(
 		sms.DependencySet,
 		wire.Bind(new(forgotpassword.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
 		wire.Bind(new(otp.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
-		wire.Bind(new(webapp.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
 	),
 
 	wire.NewSet(

@@ -67,10 +67,6 @@ type AntiSpamOTPCodeBucketMaker interface {
 	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
 }
 
-type AntiSpamSMSBucketMaker interface {
-	MakeBucket(phone string) ratelimit.Bucket
-}
-
 type VerifyIdentityHandler struct {
 	ControllerFactory     ControllerFactory
 	BaseViewModel         *viewmodels.BaseViewModeler
@@ -79,7 +75,6 @@ type VerifyIdentityHandler struct {
 	FlashMessage          FlashMessage
 	OTPCodeService        OTPCodeService
 	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
-	AntiSpamSMSBucket     AntiSpamSMSBucketMaker
 }
 
 type VerifyIdentityNode interface {
