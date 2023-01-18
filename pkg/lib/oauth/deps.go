@@ -10,6 +10,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SessionManager), "*"),
 	wire.Struct(new(URLProvider), "*"),
 	wire.Struct(new(OfflineGrantService), "*"),
+	wire.Struct(new(PromptResolver), "*"),
 
 	wire.Struct(new(AccessTokenEncoding), "*"),
 	wire.Bind(new(AccessTokenDecoder), new(*AccessTokenEncoding)),
