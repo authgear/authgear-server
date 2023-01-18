@@ -160,7 +160,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return code, nil
 	}
 
-	ctrl.PostAction("matched", func() error {
+	ctrl.PostAction("dryrun_verify", func() error {
 		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
 
 		code, err := getCodeFromGraph()
