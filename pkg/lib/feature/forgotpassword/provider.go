@@ -68,6 +68,7 @@ type HardSMSBucketer interface {
 }
 
 type AntiSpamSMSBucketMaker interface {
+	IsEnabled() bool
 	MakeBucket(phone string) ratelimit.Bucket
 }
 
@@ -222,9 +223,11 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return err
 	}
 
-	err = p.RateLimiter.TakeToken(p.AntiSpamSMSBucket.MakeBucket(phone))
-	if err != nil {
-		return err
+	if p.AntiSpamSMSBucket.IsEnabled() {
+		err = p.RateLimiter.TakeToken(p.AntiSpamSMSBucket.MakeBucket(phone))
+		if err != nil {
+			return err
+		}
 	}
 
 	err = p.RateLimiter.TakeToken(p.HardSMSBucketer.Bucket())
