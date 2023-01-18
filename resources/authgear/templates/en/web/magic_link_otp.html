@@ -13,7 +13,7 @@
       {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
     </div>
 
-    <form id="matched-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
+    <form id="dryrun-verify-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
       {{ $.CSRFField }}
     </form>
 
@@ -25,11 +25,11 @@
     {{ end }}
 
     <button
-      form="matched-form"
+      form="dryrun-verify-form"
       class="hidden"
       type="submit"
       name="x_action"
-      value="matched"
+      value="dryrun_verify"
       data-submit-when-refresh="true"
     ></button>
   {{ else if eq .StateQuery "invalid_code" }}
