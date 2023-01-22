@@ -11,4 +11,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(IDTokenHintResolver), "*"),
 	wire.Struct(new(UIInfoResolver), "*"),
 	wire.Bind(new(UIInfoResolverIDTokenHintResolver), new(*IDTokenHintResolver)),
+	wire.Struct(new(UIURLBuilder), "*"),
 )

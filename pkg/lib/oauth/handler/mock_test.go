@@ -2,31 +2,12 @@ package handler_test
 
 import (
 	"net/http"
-	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
-	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
-
-type mockURLsProvider struct{}
-
-func (mockURLsProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
-	u, _ := url.Parse("https://auth/authorize")
-	return u
-}
-
-func (mockURLsProvider) ConsentURL(r protocol.AuthorizationRequest) *url.URL {
-	u, _ := url.Parse("https://auth/consent")
-	return u
-}
-
-func (mockURLsProvider) AuthenticateURL(opts webapp.AuthenticateURLOptions) (httputil.Result, error) {
-	return &httputil.ResultRedirect{URL: "https://auth/authenticate"}, nil
-}
 
 type mockCodeGrantStore struct {
 	grants []oauth.CodeGrant

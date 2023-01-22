@@ -1,6 +1,8 @@
 package oidc
 
 import (
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwt"
@@ -114,4 +116,65 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		IDTokenHintSID: idTokenHintSID,
 	}
 	return info, byProduct, nil
+}
+
+type UIURLBuilderAuthUIEndpointsProvider interface {
+	OAuthEntrypointURL() *url.URL
+}
+
+type UIURLBuilder struct {
+	Endpoints UIURLBuilderAuthUIEndpointsProvider
+}
+
+func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error) {
+	var endpoint *url.URL
+	if client != nil && client.CustomUIURI != "" {
+		var err error
+		endpoint, err = BuildCustomUIEndpoint(client.CustomUIURI, r.CustomUIQuery())
+		if err != nil {
+			return nil, ErrInvalidCustomURI.Errorf("invalid custom ui uri: %w", err)
+		}
+	} else {
+		endpoint = b.Endpoints.OAuthEntrypointURL()
+	}
+
+	q := endpoint.Query()
+	q.Set("client_id", r.ClientID())
+	q.Set("redirect_uri", r.RedirectURI())
+	if r.ColorScheme() != "" {
+		q.Set("x_color_scheme", r.ColorScheme())
+	}
+	if len(r.UILocales()) > 0 {
+		q.Set("ui_locales", strings.Join(r.UILocales(), " "))
+	}
+	endpoint.RawQuery = q.Encode()
+
+	return endpoint, nil
+}
+
+func BuildCustomUIEndpoint(base string, query string) (*url.URL, error) {
+	customUIURL, err := url.Parse(base)
+	if err != nil {
+		return nil, err
+	}
+
+	q := customUIURL.Query()
+
+	// Assign query from the SDK to the url
+	queryFromSDK, err := url.ParseQuery(query)
+	if err != nil {
+		return nil, err
+	}
+	for key, values := range queryFromSDK {
+		for idx, val := range values {
+			if idx == 0 {
+				q.Set(key, val)
+			} else {
+				q.Add(key, val)
+			}
+		}
+	}
+	customUIURL.RawQuery = q.Encode()
+
+	return customUIURL, nil
 }
