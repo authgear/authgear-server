@@ -381,7 +381,6 @@ func (h *AuthorizationHandler) doHandle(
 	idToken := uiInfoByProduct.IDToken
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
-	// FIXME: create web session somehow.
 	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
 		AuthorizationRequest: r,
@@ -404,6 +403,7 @@ func (h *AuthorizationHandler) doHandle(
 		resp := &httputil.ResultRedirect{
 			Cookies: []*http.Cookie{
 				h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
+				h.Cookies.ValueCookie(oauthsession.UICookieDef, oauthSessionEntry.ID),
 			},
 			URL: endpoint.String(),
 		}

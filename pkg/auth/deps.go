@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
@@ -58,6 +59,8 @@ var DependencySet = wire.NewSet(
 	nonce.DependencySet,
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
+	wire.Bind(new(webapp.SessionMiddlewareOAuthSessionService), new(*oauthsession.StoreRedis)),
+	wire.Bind(new(webapp.SessionMiddlewareUIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),

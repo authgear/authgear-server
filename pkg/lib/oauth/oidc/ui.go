@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 	"time"
@@ -54,10 +55,21 @@ type UIInfoResolverIDTokenHintResolver interface {
 }
 
 type UIInfoResolver struct {
+	Config              *config.OAuthConfig
 	EndpointsProvider   oauth.EndpointsProvider
 	PromptResolver      UIInfoResolverPromptResolver
 	IDTokenHintResolver UIInfoResolverIDTokenHintResolver
 	Clock               clock.Clock
+}
+
+func (r *UIInfoResolver) ResolveForUI(req protocol.AuthorizationRequest) (*UIInfo, error) {
+	client, ok := r.Config.GetClient(req.ClientID())
+	if !ok {
+		return nil, fmt.Errorf("client not found: %v", req.ClientID())
+	}
+
+	uiInfo, _, err := r.ResolveForAuthorizationEndpoint(client, req)
+	return uiInfo, err
 }
 
 func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
