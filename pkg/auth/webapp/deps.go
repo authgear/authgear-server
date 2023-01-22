@@ -19,6 +19,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
 	wire.Struct(new(SessionMiddleware), "*"),
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),
+	wire.Bind(new(SessionMiddlewareSessionService), new(*Service2)),
 	wire.Struct(new(UILocalesMiddleware), "*"),
 	wire.Struct(new(ColorSchemeMiddleware), "*"),
 	wire.Struct(new(WeChatRedirectURIMiddleware), "*"),
