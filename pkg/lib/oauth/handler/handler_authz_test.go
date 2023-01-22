@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -56,6 +57,7 @@ func TestAuthorizationHandler(t *testing.T) {
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 		authzService := NewMockAuthorizationService(ctrl)
 		uiInfoResolver := NewMockUIInfoResolver(ctrl)
+		uiURLBuilder := NewMockUIURLBuilder(ctrl)
 		codeGrantStore := &mockCodeGrantStore{}
 		authenticationInfoService := &mockAuthenticationInfoService{}
 		cookieManager := &mockCookieManager{}
@@ -70,10 +72,10 @@ func TestAuthorizationHandler(t *testing.T) {
 				PublicOrigin: "http://accounts.example.com",
 			},
 
+			UIURLBuilder:              uiURLBuilder,
 			UIInfoResolver:            uiInfoResolver,
 			Authorizations:            authzService,
 			CodeGrants:                codeGrantStore,
-			WebAppURLs:                mockURLsProvider{},
 			ValidateScopes:            func(*config.OAuthClientConfig, []string) error { return nil },
 			CodeGenerator:             func() string { return "authz-code" },
 			Clock:                     clock,
@@ -220,6 +222,11 @@ func TestAuthorizationHandler(t *testing.T) {
 					&h.Config.Clients[0],
 					req,
 				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
+				uiURLBuilder.EXPECT().Build(&h.Config.Clients[0], req).Times(1).Return(&url.URL{
+					Scheme: "https",
+					Host:   "auth",
+					Path:   "/authenticate",
+				}, nil)
 				resp := handle(req)
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
@@ -391,6 +398,11 @@ func TestAuthorizationHandler(t *testing.T) {
 					&h.Config.Clients[0],
 					req,
 				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
+				uiURLBuilder.EXPECT().Build(&h.Config.Clients[0], req).Times(1).Return(&url.URL{
+					Scheme: "https",
+					Host:   "auth",
+					Path:   "/authenticate",
+				}, nil)
 				resp := handle(req)
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")

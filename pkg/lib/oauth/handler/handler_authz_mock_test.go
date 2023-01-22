@@ -6,9 +6,9 @@ package handler_test
 
 import (
 	http "net/http"
+	url "net/url"
 	reflect "reflect"
 
-	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
 	authenticationinfo "github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -58,42 +58,42 @@ func (mr *MockUIInfoResolverMockRecorder) ResolveForAuthorizationEndpoint(client
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveForAuthorizationEndpoint", reflect.TypeOf((*MockUIInfoResolver)(nil).ResolveForAuthorizationEndpoint), client, req)
 }
 
-// MockWebAppAuthenticateURLProvider is a mock of WebAppAuthenticateURLProvider interface.
-type MockWebAppAuthenticateURLProvider struct {
+// MockUIURLBuilder is a mock of UIURLBuilder interface.
+type MockUIURLBuilder struct {
 	ctrl     *gomock.Controller
-	recorder *MockWebAppAuthenticateURLProviderMockRecorder
+	recorder *MockUIURLBuilderMockRecorder
 }
 
-// MockWebAppAuthenticateURLProviderMockRecorder is the mock recorder for MockWebAppAuthenticateURLProvider.
-type MockWebAppAuthenticateURLProviderMockRecorder struct {
-	mock *MockWebAppAuthenticateURLProvider
+// MockUIURLBuilderMockRecorder is the mock recorder for MockUIURLBuilder.
+type MockUIURLBuilderMockRecorder struct {
+	mock *MockUIURLBuilder
 }
 
-// NewMockWebAppAuthenticateURLProvider creates a new mock instance.
-func NewMockWebAppAuthenticateURLProvider(ctrl *gomock.Controller) *MockWebAppAuthenticateURLProvider {
-	mock := &MockWebAppAuthenticateURLProvider{ctrl: ctrl}
-	mock.recorder = &MockWebAppAuthenticateURLProviderMockRecorder{mock}
+// NewMockUIURLBuilder creates a new mock instance.
+func NewMockUIURLBuilder(ctrl *gomock.Controller) *MockUIURLBuilder {
+	mock := &MockUIURLBuilder{ctrl: ctrl}
+	mock.recorder = &MockUIURLBuilderMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockWebAppAuthenticateURLProvider) EXPECT() *MockWebAppAuthenticateURLProviderMockRecorder {
+func (m *MockUIURLBuilder) EXPECT() *MockUIURLBuilderMockRecorder {
 	return m.recorder
 }
 
-// AuthenticateURL mocks base method.
-func (m *MockWebAppAuthenticateURLProvider) AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error) {
+// Build mocks base method.
+func (m *MockUIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuthenticateURL", options)
-	ret0, _ := ret[0].(httputil.Result)
+	ret := m.ctrl.Call(m, "Build", client, r)
+	ret0, _ := ret[0].(*url.URL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AuthenticateURL indicates an expected call of AuthenticateURL.
-func (mr *MockWebAppAuthenticateURLProviderMockRecorder) AuthenticateURL(options interface{}) *gomock.Call {
+// Build indicates an expected call of Build.
+func (mr *MockUIURLBuilderMockRecorder) Build(client, r interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthenticateURL", reflect.TypeOf((*MockWebAppAuthenticateURLProvider)(nil).AuthenticateURL), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockUIURLBuilder)(nil).Build), client, r)
 }
 
 // MockAppSessionTokenService is a mock of AppSessionTokenService interface.

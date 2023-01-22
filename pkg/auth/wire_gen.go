@@ -136,6 +136,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	uiurlBuilder := &oidc.UIURLBuilder{
+		Endpoints: endpointsProvider,
+	}
 	clock := _wireSystemClockValue
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clock,
@@ -526,359 +529,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clock,
 		OAuthSessionManager: sessionManager,
 	}
-	serviceLogger := webapp2.NewServiceLogger(factory)
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
-		Cookie:  errorCookieDef,
-		Cookies: cookieManager,
-	}
-	uiConfig := appConfig.UI
-	interactionLogger := interaction.NewLogger(factory)
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	resolverImpl := &event.ResolverImpl{
-		Users: queries,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	webHookImpl := &hook.WebHookImpl{
-		Secret:    webhookKeyMaterials,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
-	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
-	}
-	sink := &hook.Sink{
-		Logger:             hookLogger,
-		Config:             hookConfig,
-		Clock:              clock,
-		WebHook:            webHookImpl,
-		DenoHook:           denoHookImpl,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
-	elasticsearchLogger := elasticsearch.NewLogger(factory)
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := appProvider.TaskQueue
-	elasticsearchService := elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     queries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
-	elasticsearchSink := &elasticsearch.Sink{
-		Logger:   elasticsearchLogger,
-		Service:  elasticsearchService,
-		Database: handle,
-	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:        rawCommands,
-		RawQueries:         rawQueries,
-		Events:             eventService,
-		Verification:       verificationService,
-		UserProfileConfig:  userProfileConfig,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
-	}
-	stdattrsService := &stdattrs.Service{
-		UserProfileConfig: userProfileConfig,
-		ServiceNoEvent:    serviceNoEvent,
-		Identities:        serviceService,
-		UserQueries:       rawQueries,
-		UserStore:         store,
-		Events:            eventService,
-	}
-	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
-	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef2,
-	}
-	accountDeletionConfig := appConfig.AccountDeletion
-	accountAnonymizationConfig := appConfig.AccountAnonymization
-	coordinator := &facade.Coordinator{
-		Events:                     eventService,
-		Identities:                 serviceService,
-		Authenticators:             service3,
-		Verification:               verificationService,
-		MFA:                        mfaService,
-		UserCommands:               commands,
-		UserQueries:                queries,
-		StdAttrsService:            stdattrsService,
-		PasswordHistory:            historyStore,
-		OAuth:                      authorizationStore,
-		IDPSessions:                idpsessionManager,
-		OAuthSessions:              sessionManager,
-		IdentityConfig:             identityConfig,
-		AccountDeletionConfig:      accountDeletionConfig,
-		AccountAnonymizationConfig: accountAnonymizationConfig,
-		Clock:                      clock,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
-	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	messageSender := &otp.MessageSender{
-		Translation:       translationService,
-		Endpoints:         endpointsProvider,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
-	}
-	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
-	}
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
-	}
-	normalizer := &stdattrs2.Normalizer{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
-		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  urlProvider,
-		Clock:                        clock,
-		WechatURLProvider:            wechatURLProvider,
-		StandardAttributesNormalizer: normalizer,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clock,
-		URLs:              urlProvider,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
-	responseWriter := p.ResponseWriter
-	nonceService := &nonce.Service{
-		Cookies:        cookieManager,
-		Request:        request,
-		ResponseWriter: responseWriter,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clock,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
-	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
-	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-	}
-	interactionContext := &interaction.Context{
-		Request:                         request,
-		RemoteIP:                        remoteIP,
-		Database:                        sqlExecutor,
-		Clock:                           clock,
-		Config:                          appConfig,
-		FeatureConfig:                   featureConfig,
-		OfflineGrants:                   redisStore,
-		Identities:                      identityFacade,
-		Authenticators:                  authenticatorFacade,
-		AnonymousIdentities:             anonymousProvider,
-		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
-		BiometricIdentities:             biometricProvider,
-		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
-		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
-		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
-		Verification:                    verificationService,
-		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
-		Nonces:                          nonceService,
-		Challenges:                      challengeProvider,
-		Users:                           userProvider,
-		StdAttrsService:                 stdattrsService,
-		Events:                          eventService,
-		CookieManager:                   cookieManager,
-		AuthenticationInfoService:       authenticationinfoStoreRedis,
-		Sessions:                        idpsessionProvider,
-		SessionManager:                  manager2,
-		SessionCookie:                   cookieDef2,
-		MFADeviceTokenCookie:            cookieDef,
-		WhatsappCodeProvider:            whatsappProvider,
-	}
-	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	interactionService := &interaction.Service{
-		Logger:  interactionLogger,
-		Context: interactionContext,
-		Store:   interactionStoreRedis,
-	}
-	webappService2 := &webapp2.Service2{
-		Logger:               serviceLogger,
-		Request:              request,
-		Sessions:             sessionStoreRedis,
-		SessionCookie:        sessionCookieDef,
-		SignedUpCookie:       signedUpCookieDef,
-		MFADeviceTokenCookie: cookieDef,
-		ErrorCookie:          errorCookie,
-		Cookies:              cookieManager,
-		OAuthConfig:          oAuthConfig,
-		UIConfig:             uiConfig,
-		TrustProxy:           trustProxy,
-		Graph:                interactionService,
-	}
-	authenticateURLProvider := &webapp2.AuthenticateURLProvider{
-		Endpoints: endpointsProvider,
-		Pages:     webappService2,
-		Clock:     clock,
-	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
@@ -886,6 +536,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clock,
 		IDPSessions: idpsessionProvider,
 	}
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
@@ -893,6 +544,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService: oauthOfflineGrantService,
 		Cookies:             cookieManager,
 		Clock:               clock,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -905,10 +561,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
 		Logger:                    authorizationHandlerLogger,
+		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
 		Authorizations:            authorizationService,
 		CodeGrants:                redisStore,
-		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
 		AppSessionTokenService:    appSessionTokenService,
@@ -956,6 +612,9 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
+	}
+	uiurlBuilder := &oidc.UIURLBuilder{
+		Endpoints: endpointsProvider,
 	}
 	clockClock := _wireSystemClockValue
 	promptResolver := &oauth2.PromptResolver{
@@ -1347,359 +1006,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		OAuthSessionManager: sessionManager,
 	}
-	serviceLogger := webapp2.NewServiceLogger(factory)
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
-		Cookie:  errorCookieDef,
-		Cookies: cookieManager,
-	}
-	uiConfig := appConfig.UI
-	interactionLogger := interaction.NewLogger(factory)
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	resolverImpl := &event.ResolverImpl{
-		Users: queries,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	webHookImpl := &hook.WebHookImpl{
-		Secret:    webhookKeyMaterials,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	denoEndpoint := environmentConfig.DenoEndpoint
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
-	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
-	}
-	sink := &hook.Sink{
-		Logger:             hookLogger,
-		Config:             hookConfig,
-		Clock:              clockClock,
-		WebHook:            webHookImpl,
-		DenoHook:           denoHookImpl,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
-	elasticsearchLogger := elasticsearch.NewLogger(factory)
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := appProvider.TaskQueue
-	elasticsearchService := elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     queries,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
-	elasticsearchSink := &elasticsearch.Sink{
-		Logger:   elasticsearchLogger,
-		Service:  elasticsearchService,
-		Database: handle,
-	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:        rawCommands,
-		RawQueries:         rawQueries,
-		Events:             eventService,
-		Verification:       verificationService,
-		UserProfileConfig:  userProfileConfig,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
-	}
-	stdattrsService := &stdattrs.Service{
-		UserProfileConfig: userProfileConfig,
-		ServiceNoEvent:    serviceNoEvent,
-		Identities:        serviceService,
-		UserQueries:       rawQueries,
-		UserStore:         store,
-		Events:            eventService,
-	}
-	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
-	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef2,
-	}
-	accountDeletionConfig := appConfig.AccountDeletion
-	accountAnonymizationConfig := appConfig.AccountAnonymization
-	coordinator := &facade.Coordinator{
-		Events:                     eventService,
-		Identities:                 serviceService,
-		Authenticators:             service3,
-		Verification:               verificationService,
-		MFA:                        mfaService,
-		UserCommands:               commands,
-		UserQueries:                queries,
-		StdAttrsService:            stdattrsService,
-		PasswordHistory:            historyStore,
-		OAuth:                      authorizationStore,
-		IDPSessions:                idpsessionManager,
-		OAuthSessions:              sessionManager,
-		IdentityConfig:             identityConfig,
-		AccountDeletionConfig:      accountDeletionConfig,
-		AccountAnonymizationConfig: accountAnonymizationConfig,
-		Clock:                      clockClock,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
-	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
-	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	messageSender := &otp.MessageSender{
-		Translation:       translationService,
-		Endpoints:         endpointsProvider,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
-	}
-	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
-	}
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
-	}
-	normalizer := &stdattrs2.Normalizer{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
-	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
-		IdentityConfig:               identityConfig,
-		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  urlProvider,
-		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
-		StandardAttributesNormalizer: normalizer,
-	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              urlProvider,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
-	responseWriter := p.ResponseWriter
-	nonceService := &nonce.Service{
-		Cookies:        cookieManager,
-		Request:        request,
-		ResponseWriter: responseWriter,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
-	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
-	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-	}
-	interactionContext := &interaction.Context{
-		Request:                         request,
-		RemoteIP:                        remoteIP,
-		Database:                        sqlExecutor,
-		Clock:                           clockClock,
-		Config:                          appConfig,
-		FeatureConfig:                   featureConfig,
-		OfflineGrants:                   redisStore,
-		Identities:                      identityFacade,
-		Authenticators:                  authenticatorFacade,
-		AnonymousIdentities:             anonymousProvider,
-		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
-		BiometricIdentities:             biometricProvider,
-		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
-		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
-		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
-		Verification:                    verificationService,
-		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
-		Nonces:                          nonceService,
-		Challenges:                      challengeProvider,
-		Users:                           userProvider,
-		StdAttrsService:                 stdattrsService,
-		Events:                          eventService,
-		CookieManager:                   cookieManager,
-		AuthenticationInfoService:       authenticationinfoStoreRedis,
-		Sessions:                        idpsessionProvider,
-		SessionManager:                  manager2,
-		SessionCookie:                   cookieDef2,
-		MFADeviceTokenCookie:            cookieDef,
-		WhatsappCodeProvider:            whatsappProvider,
-	}
-	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	interactionService := &interaction.Service{
-		Logger:  interactionLogger,
-		Context: interactionContext,
-		Store:   interactionStoreRedis,
-	}
-	webappService2 := &webapp2.Service2{
-		Logger:               serviceLogger,
-		Request:              request,
-		Sessions:             sessionStoreRedis,
-		SessionCookie:        sessionCookieDef,
-		SignedUpCookie:       signedUpCookieDef,
-		MFADeviceTokenCookie: cookieDef,
-		ErrorCookie:          errorCookie,
-		Cookies:              cookieManager,
-		OAuthConfig:          oAuthConfig,
-		UIConfig:             uiConfig,
-		TrustProxy:           trustProxy,
-		Graph:                interactionService,
-	}
-	authenticateURLProvider := &webapp2.AuthenticateURLProvider{
-		Endpoints: endpointsProvider,
-		Pages:     webappService2,
-		Clock:     clockClock,
-	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
@@ -1707,6 +1013,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 		IDPSessions: idpsessionProvider,
 	}
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
@@ -1714,6 +1021,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrantService: oauthOfflineGrantService,
 		Cookies:             cookieManager,
 		Clock:               clockClock,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -1726,10 +1038,10 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
 		Logger:                    authorizationHandlerLogger,
+		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
 		Authorizations:            authorizationService,
 		CodeGrants:                redisStore,
-		WebAppURLs:                authenticateURLProvider,
 		ValidateScopes:            scopesValidator,
 		CodeGenerator:             tokenGenerator,
 		AppSessionTokenService:    appSessionTokenService,
@@ -1738,8 +1050,15 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
 	}
+	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}

@@ -5,13 +5,10 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -32,8 +29,8 @@ type UIInfoResolver interface {
 	ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
 }
 
-type WebAppAuthenticateURLProvider interface {
-	AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error)
+type UIURLBuilder interface {
+	Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error)
 }
 
 type AppSessionTokenService interface {
@@ -84,10 +81,10 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
+	UIURLBuilder              UIURLBuilder
 	UIInfoResolver            UIInfoResolver
 	Authorizations            AuthorizationService
 	CodeGrants                oauth.CodeGrantStore
-	WebAppURLs                WebAppAuthenticateURLProvider
 	ValidateScopes            ScopesValidator
 	CodeGenerator             TokenGenerator
 	AppSessionTokenService    AppSessionTokenService
@@ -384,19 +381,7 @@ func (h *AuthorizationHandler) doHandle(
 	idToken := uiInfoByProduct.IDToken
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
-	sessionOptions := webapp.SessionOptions{
-		WebhookState:             r.State(),
-		Page:                     r.Page(),
-		RedirectURI:              uiInfo.RedirectURI,
-		Prompt:                   uiInfo.Prompt,
-		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
-		OAuthProviderAlias:       r.OAuthProviderAlias(),
-		FromAuthzEndpoint:        true,
-		LoginHint:                loginHintString,
-	}
-	uiLocales := strings.Join(r.UILocales(), " ")
-	colorScheme := r.ColorScheme()
-
+	// FIXME: create web session somehow.
 	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
 		AuthorizationRequest: r,
@@ -405,30 +390,23 @@ func (h *AuthorizationHandler) doHandle(
 	if err != nil {
 		return nil, err
 	}
-	oauthSessionEntryCookies := []*http.Cookie{
-		h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
-	}
 
 	// Handle prompt!=none
 	// We must return here.
-	if !slice.ContainsString(sessionOptions.Prompt, "none") {
-		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
-			SessionOptions: sessionOptions,
-			UILocales:      uiLocales,
-			ColorScheme:    colorScheme,
-			Cookies:        oauthSessionEntryCookies,
-			Client:         client,
-			RedirectURL:    r.RedirectURI(),
-			CustomUIQuery:  r.CustomUIQuery(),
-		})
-		if apierrors.IsKind(err, interaction.InvalidCredentials) {
-			return nil, protocol.NewError("invalid_request", err.Error())
-		} else if apierrors.IsKind(err, webapp.ErrInvalidCustomURI) {
+	if !slice.ContainsString(uiInfo.Prompt, "none") {
+		endpoint, err := h.UIURLBuilder.Build(client, r)
+		if apierrors.IsKind(err, oidc.ErrInvalidCustomURI) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err
 		}
 
+		resp := &httputil.ResultRedirect{
+			Cookies: []*http.Cookie{
+				h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
+			},
+			URL: endpoint.String(),
+		}
 		return resp, nil
 	}
 
