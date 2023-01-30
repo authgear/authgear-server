@@ -19,6 +19,9 @@ import {
   PortalAPIFeatureConfig,
   ForgotPasswordConfig,
   AuthenticatorPasswordConfig,
+  AuthenticatorOOBEmailConfig,
+  AuthenticatorEmailOTPMode,
+  authenticatorEmailOTPModeList,
 } from "../../types";
 import { swap } from "../../OrderButtons";
 import { clearEmptyObject } from "../../util/misc";
@@ -52,6 +55,11 @@ interface AuthenticatorTypeFormState<T> {
 const ALL_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
   ...secondaryAuthenticationModes,
 ];
+const ALL_SECONDARY_EMAIL_OTP_MODE_OPTIONS: AuthenticatorEmailOTPMode[] = [
+  ...authenticatorEmailOTPModeList,
+];
+
+const DEFAULT_SECONDARY_EMAIL_OTP_MODE: AuthenticatorEmailOTPMode = "code";
 
 const secondaryAuthenticatorNameIds = {
   totp: "AuthenticatorType.secondary.totp",
@@ -71,6 +79,7 @@ interface ConfigFormState {
 
   forgotPasswordConfig: ForgotPasswordConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
+  authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
 }
 
 interface FeatureConfigFormState {
@@ -139,6 +148,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         ...config.authenticator?.password?.policy,
       },
     },
+    authenticatorOOBEmailConfig: {
+      secondary_email_otp_mode: DEFAULT_SECONDARY_EMAIL_OTP_MODE,
+      ...config.authenticator?.oob_otp?.email,
+    },
     forgotPasswordConfig: {
       ...config.forgot_password,
     },
@@ -162,6 +175,7 @@ function constructConfig(
     config.authentication.device_token ??= {};
     config.authentication.recovery_code ??= {};
     config.authenticator ??= {};
+    config.authenticator.oob_otp ??= {};
 
     config.authentication.secondary_authenticators = filterEnabled(
       currentState.secondary
@@ -177,6 +191,8 @@ function constructConfig(
     config.authentication.recovery_code.list_enabled =
       currentState.recoveryCodeListEnabled;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
+    config.authenticator.oob_otp.email =
+      currentState.authenticatorOOBEmailConfig;
     config.forgot_password = currentState.forgotPasswordConfig;
 
     clearEmptyObject(config);
@@ -238,6 +254,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       featureConfig,
       forgotPasswordConfig,
       authenticatorPasswordConfig,
+      authenticatorOOBEmailConfig,
     } = state;
     const { renderToString } = useContext(Context);
     const {
@@ -272,6 +289,10 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
 
     const showPasswordSettings = useMemo(() => {
       return secondary.some((a) => a.type === "password" && a.isChecked);
+    }, [secondary]);
+
+    const showEmailSettings = useMemo(() => {
+      return secondary.find((a) => a.type === "oob_otp_email" && a.isChecked);
     }, [secondary]);
 
     const secondaryItems: PriorityListItem[] = useMemo(
@@ -366,6 +387,43 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       [setState]
     );
 
+    const onChangeEmailSecondaryAllowUnverified = useCallback(
+      (_, value) => {
+        if (value == null) {
+          return;
+        }
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.authenticatorOOBEmailConfig.secondary_allow_unverified = value;
+          })
+        );
+      },
+      [setState]
+    );
+
+    const renderEmailOTPMode = useCallback(
+      (key: AuthenticatorEmailOTPMode) => {
+        return renderToString("MFAConfigurationScreen.email.otp_mode." + key);
+      },
+      [renderToString]
+    );
+
+    const {
+      options: emailOTPModeOptions,
+      onChange: onChangeSecondaryEmailOTPMode,
+    } = useDropdown(
+      ALL_SECONDARY_EMAIL_OTP_MODE_OPTIONS,
+      (key) => {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.authenticatorOOBEmailConfig.secondary_email_otp_mode = key;
+          })
+        );
+      },
+      authenticatorOOBEmailConfig.secondary_email_otp_mode,
+      renderEmailOTPMode
+    );
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -427,6 +485,36 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               }
               setState={setState}
             />
+          ) : null}
+          {showEmailSettings ? (
+            <Widget className={styles.widget}>
+              <WidgetTitle>
+                <FormattedMessage id="MFAConfigurationScreen.email.title" />
+              </WidgetTitle>
+              <Dropdown
+                label={renderToString(
+                  "MFAConfigurationScreen.email.secondary-verify-by.label"
+                )}
+                options={emailOTPModeOptions}
+                selectedKey={
+                  authenticatorOOBEmailConfig.secondary_email_otp_mode
+                }
+                onChange={onChangeSecondaryEmailOTPMode}
+              />
+              <Toggle
+                checked={
+                  authenticatorOOBEmailConfig.secondary_allow_unverified ??
+                  false
+                }
+                onChange={onChangeEmailSecondaryAllowUnverified}
+                label={renderToString(
+                  "MFAConfigurationScreen.email.secondary-allow-unverified.label"
+                )}
+                description={renderToString(
+                  "MFAConfigurationScreen.email.secondary-allow-unverified.description"
+                )}
+              />
+            </Widget>
           ) : null}
           <Widget className={styles.widget}>
             <WidgetTitle>
