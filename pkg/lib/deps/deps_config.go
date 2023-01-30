@@ -16,6 +16,7 @@ var configDeps = wire.NewSet(
 		"UI",
 		"Localization",
 		"Messaging",
+		"CustomSMSProviderConfigs",
 		"Authentication",
 		"Session",
 		"OAuth",
