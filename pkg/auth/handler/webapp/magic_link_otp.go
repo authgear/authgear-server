@@ -164,6 +164,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	ctrl.PostAction("dryrun_verify", func() error {
+		// nolint: ineffassign
 		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
 
 		code, err := getCodeFromGraph()
