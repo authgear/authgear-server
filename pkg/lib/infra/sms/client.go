@@ -30,6 +30,7 @@ type Client struct {
 	MessagingConfig *config.MessagingConfig
 	TwilioClient    *TwilioClient
 	NexmoClient     *NexmoClient
+	CustomClient    *CustomClient
 }
 
 func (c *Client) Send(opts SendOptions) error {
@@ -54,19 +55,24 @@ func (c *Client) Send(opts SendOptions) error {
 			return ErrNoAvailableClient
 		}
 		client = c.TwilioClient
-	default:
-		if c.NexmoClient == nil && c.TwilioClient == nil {
+	case config.SMSProviderCustom:
+		if c.CustomClient == nil {
 			return ErrNoAvailableClient
 		}
-		if c.NexmoClient != nil && c.TwilioClient != nil {
+	default:
+		var availableClients []RawClient = []RawClient{}
+		for _, c := range []RawClient{c.NexmoClient, c.TwilioClient, c.CustomClient} {
+			if c != nil {
+				availableClients = append(availableClients, c)
+			}
+		}
+		if len(availableClients) == 0 {
+			return ErrNoAvailableClient
+		}
+		if len(availableClients) > 1 {
 			return ErrAmbiguousClient
 		}
-		if c.NexmoClient != nil {
-			client = c.NexmoClient
-		}
-		if c.TwilioClient != nil {
-			client = c.TwilioClient
-		}
+		client = availableClients[0]
 	}
 
 	return client.Send(opts.Sender, opts.To, opts.Body)
