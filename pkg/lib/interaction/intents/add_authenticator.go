@@ -47,6 +47,7 @@ func (i *IntentAddAuthenticator) DeriveEdgesForNode(graph *interaction.Graph, no
 			&nodes.EdgeDoCreateAuthenticator{
 				Stage:          node.Stage,
 				Authenticators: node.Authenticators,
+				DeferVerify:    node.DeferVerify,
 			},
 		}, nil
 

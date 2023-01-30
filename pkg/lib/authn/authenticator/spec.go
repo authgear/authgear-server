@@ -5,10 +5,11 @@ import (
 )
 
 type Spec struct {
-	UserID    string                  `json:"user_id,omitempty"`
-	Type      model.AuthenticatorType `json:"type,omitempty"`
-	IsDefault bool                    `json:"is_default,omitempty"`
-	Kind      Kind                    `json:"kind,omitempty"`
+	UserID           string                  `json:"user_id,omitempty"`
+	Type             model.AuthenticatorType `json:"type,omitempty"`
+	IsDefault        bool                    `json:"is_default,omitempty"`
+	RequiredToVerify bool                    `json:"required_to_verify,omitempty"`
+	Kind             Kind                    `json:"kind,omitempty"`
 
 	Password     *PasswordSpec     `json:"password,omitempty"`
 	Passkey      *PasskeySpec      `json:"passkey,omitempty"`
