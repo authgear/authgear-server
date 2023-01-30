@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -247,13 +248,13 @@ func (h *AnonymousUserHandler) runSignupAnonymousUserGraph(
 		return graph, nil
 	})
 
-	if apierrors.IsKind(err, interaction.InvariantViolated) &&
+	if apierrors.IsKind(err, api.InvariantViolated) &&
 		apierrors.AsAPIError(err).HasCause("AnonymousUserDisallowed") {
 		// unauthorized_client
 		return nil, apierrors.NewInvalid("anonymous user disallowed")
-	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
+	} else if errors.Is(err, api.ErrInvalidCredentials) {
 		// invalid_grant
-		return nil, apierrors.NewInvalid(interaction.InvalidCredentials.Reason)
+		return nil, apierrors.NewInvalid(api.InvalidCredentials.Reason)
 	} else if err != nil {
 		return nil, err
 	}

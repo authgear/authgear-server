@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -266,7 +267,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	// If identity requires authentication, the identity cannot be authenticated.
 	if len(edges) == 0 {
 		if len(required) > 0 {
-			return nil, interaction.NewInvariantViolated(
+			return nil, api.NewInvariantViolated(
 				"MissingAuthenticator",
 				"missing authenticator for the identity",
 				nil,

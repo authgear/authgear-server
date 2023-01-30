@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -63,7 +64,7 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 			}
 		}
 		if typ == "" {
-			return nil, interaction.NewInvariantViolated(
+			return nil, api.NewInvariantViolated(
 				"InvalidLoginIDKey",
 				"invalid login ID key",
 				nil,

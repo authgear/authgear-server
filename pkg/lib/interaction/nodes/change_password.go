@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -113,7 +114,7 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 			},
 		})
 		if err != nil {
-			err = interaction.ErrInvalidCredentials
+			err = api.ErrInvalidCredentials
 			return
 		}
 	}
