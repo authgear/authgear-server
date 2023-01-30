@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sfreiberg/gotwilio"
+	"github.com/twilio/twilio-go"
+	api "github.com/twilio/twilio-go/rest/api/v2010"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -12,7 +13,8 @@ import (
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
 
 type TwilioClient struct {
-	TwilioClient *gotwilio.Twilio
+	TwilioClient        *twilio.RestClient
+	MessagingServiceSID string
 }
 
 func NewTwilioClient(c *config.TwilioCredentials) *TwilioClient {
@@ -21,7 +23,11 @@ func NewTwilioClient(c *config.TwilioCredentials) *TwilioClient {
 	}
 
 	return &TwilioClient{
-		TwilioClient: gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken),
+		TwilioClient: twilio.NewRestClientWithParams(twilio.ClientParams{
+			Username: c.AccountSID,
+			Password: c.AuthToken,
+		}),
+		MessagingServiceSID: c.MessagingServiceSID,
 	}
 }
 
@@ -29,14 +35,19 @@ func (t *TwilioClient) Send(from string, to string, body string) error {
 	if t.TwilioClient == nil {
 		return ErrMissingTwilioConfiguration
 	}
-	_, exception, err := t.TwilioClient.SendSMS(from, to, body, "", "")
-	if err != nil {
-		return fmt.Errorf("twilio: %w", err)
+
+	params := &api.CreateMessageParams{}
+	params.SetBody(body)
+	params.SetTo(to)
+	if t.MessagingServiceSID != "" {
+		params.SetMessagingServiceSid(t.MessagingServiceSID)
+	} else {
+		params.SetFrom(from)
 	}
 
-	if exception != nil {
-		err = fmt.Errorf("twilio: %s", exception.Message)
-		return err
+	_, err := t.TwilioClient.Api.CreateMessage(params)
+	if err != nil {
+		return fmt.Errorf("twilio: %w", err)
 	}
 
 	return nil
