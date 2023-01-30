@@ -13,13 +13,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type StoreRedis struct {
+type CodeStoreRedis struct {
 	Redis *appredis.Handle
 	AppID config.AppID
 	Clock clock.Clock
 }
 
-func (s *StoreRedis) set(target string, code *Code) error {
+func (s *CodeStoreRedis) set(target string, code *Code) error {
 	ctx := context.Background()
 	data, err := json.Marshal(code)
 	if err != nil {
@@ -41,11 +41,11 @@ func (s *StoreRedis) set(target string, code *Code) error {
 	})
 }
 
-func (s *StoreRedis) Create(target string, code *Code) error {
+func (s *CodeStoreRedis) Create(target string, code *Code) error {
 	return s.set(target, code)
 }
 
-func (s *StoreRedis) Get(target string) (*Code, error) {
+func (s *CodeStoreRedis) Get(target string) (*Code, error) {
 	ctx := context.Background()
 	key := redisCodeKey(s.AppID, target)
 	var codeModel *Code
@@ -67,11 +67,11 @@ func (s *StoreRedis) Get(target string) (*Code, error) {
 	return codeModel, err
 }
 
-func (s *StoreRedis) Update(target string, code *Code) error {
+func (s *CodeStoreRedis) Update(target string, code *Code) error {
 	return s.set(target, code)
 }
 
-func (s *StoreRedis) Delete(target string) error {
+func (s *CodeStoreRedis) Delete(target string) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		key := redisCodeKey(s.AppID, target)

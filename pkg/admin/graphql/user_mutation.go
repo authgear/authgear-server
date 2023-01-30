@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -162,7 +163,7 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			code, err := gqlCtx.OTPCode.GenerateCode(target)
+			code, err := gqlCtx.OTPCode.GenerateCode(target, otp.OTPModeCode, "", "")
 			if err != nil {
 				return nil, err
 			}

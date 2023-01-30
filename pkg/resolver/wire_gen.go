@@ -410,7 +410,12 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Store: oobStore,
 		Clock: clock,
 	}
-	otpStoreRedis := &otp.StoreRedis{
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clock,
@@ -419,12 +424,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	otpConfig := appConfig.OTP
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:        clock,
-		CodeStore:    otpStoreRedis,
-		Logger:       otpLogger,
-		RateLimiter:  limiter,
-		OTPConfig:    otpConfig,
-		Verification: verificationConfig,
+		Clock:          clock,
+		CodeStore:      codeStoreRedis,
+		MagicLinkStore: magicLinkStoreRedis,
+		Logger:         otpLogger,
+		RateLimiter:    limiter,
+		OTPConfig:      otpConfig,
+		Verification:   verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -893,7 +899,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	otpStoreRedis := &otp.StoreRedis{
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -901,12 +912,13 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	otpLogger := otp.NewLogger(factory)
 	otpConfig := appConfig.OTP
 	otpService := &otp.Service{
-		Clock:        clockClock,
-		CodeStore:    otpStoreRedis,
-		Logger:       otpLogger,
-		RateLimiter:  limiter,
-		OTPConfig:    otpConfig,
-		Verification: verificationConfig,
+		Clock:          clockClock,
+		CodeStore:      codeStoreRedis,
+		MagicLinkStore: magicLinkStoreRedis,
+		Logger:         otpLogger,
+		RateLimiter:    limiter,
+		OTPConfig:      otpConfig,
+		Verification:   verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          serviceStore,

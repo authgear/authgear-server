@@ -231,11 +231,18 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	}
 
 	if len(emailoobs) > 0 {
-		edges = append(edges, &EdgeAuthenticationOOBTrigger{
-			Stage:                n.Stage,
-			Authenticators:       emailoobs,
-			OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
-		})
+		if n.Stage == authn.AuthenticationStageSecondary && n.AuthenticatorConfig.OOB.Email.SecondaryEmailOTPMode.IsSecondaryMagicLinkEnabled() {
+			edges = append(edges, &EdgeAuthenticationMagicLinkTrigger{
+				Stage:          n.Stage,
+				Authenticators: emailoobs,
+			})
+		} else {
+			edges = append(edges, &EdgeAuthenticationOOBTrigger{
+				Stage:                n.Stage,
+				Authenticators:       emailoobs,
+				OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
+			})
+		}
 	}
 
 	if len(smsoobs) > 0 {

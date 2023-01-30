@@ -18,10 +18,12 @@ type SendOptions struct {
 	OTP         string
 	URL         string
 	MessageType MessageType
+	OTPMode     OTPMode
 }
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
+	MagicLinkVerificationEndpointURL() *url.URL
 }
 
 type TranslationService interface {
@@ -73,6 +75,15 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	}
 	data.Email = email
 
+	if opts.OTPMode == OTPModeMagicLink {
+		url := s.Endpoints.MagicLinkVerificationEndpointURL()
+		query := url.Query()
+		query.Set("token", data.Code)
+		url.RawQuery = query.Encode()
+
+		data.URL = url.String()
+	}
+
 	var spec *translation.MessageSpec
 	var emailType nonblocking.MessageType
 	switch opts.MessageType {
@@ -83,13 +94,21 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		spec = messageSetupPrimaryOOB
 		emailType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
-		spec = messageSetupSecondaryOOB
+		if opts.OTPMode == OTPModeMagicLink {
+			spec = messageSetupSecondaryMagicLink
+		} else {
+			spec = messageSetupSecondaryOOB
+		}
 		emailType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
 		spec = messageAuthenticatePrimaryOOB
 		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
-		spec = messageAuthenticateSecondaryOOB
+		if opts.OTPMode == OTPModeMagicLink {
+			spec = messageAuthenticateSecondaryMagicLink
+		} else {
+			spec = messageAuthenticateSecondaryOOB
+		}
 		emailType = nonblocking.MessageTypeAuthenticateSecondaryOOB
 	default:
 		panic("otp: unknown message type: " + opts.MessageType)

@@ -99,7 +99,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 	loginIDType := n.Identity.LoginID.LoginIDType
 	channel, target := n.Identity.LoginID.ToChannelTarget()
 
-	code, err := ctx.OTPCodeService.GenerateCode(target)
+	code, err := ctx.OTPCodeService.GenerateCode(target, otp.OTPModeCode, string(ctx.Config.ID), ctx.WebSessionID)
 	if errors.Is(err, otp.ErrCodeNotFound) {
 		return nil, verification.ErrCodeNotFound
 	} else if err != nil {
@@ -127,7 +127,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		return nil, err
 	}
 
-	err = ctx.OOBCodeSender.SendCode(channel, target, code.Code, otp.MessageTypeVerification)
+	err = ctx.OOBCodeSender.SendCode(channel, target, code.Code, otp.MessageTypeVerification, otp.OTPModeCode)
 	if err != nil {
 		return nil, err
 	}

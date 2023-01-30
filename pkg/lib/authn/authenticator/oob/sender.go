@@ -19,11 +19,13 @@ func (s *CodeSender) SendCode(
 	target string,
 	code string,
 	messageType otp.MessageType,
+	otpMode otp.OTPMode,
 ) (err error) {
 	opts := otp.SendOptions{
 		OTP:         code,
 		URL:         "", // TODO(interaction): Include login link in email.
 		MessageType: messageType,
+		OTPMode:     otpMode,
 	}
 	switch channel {
 	case model.AuthenticatorOOBChannelEmail:

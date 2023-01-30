@@ -1,0 +1,7 @@
+Log in to {{ template "app.name" }}
+
+Please visit the following link to complete the login process.
+
+{{ .URL }}
+
+If you didn't trigger a login, please ignore this email.
