@@ -406,6 +406,8 @@ authenticator:
       phone_otp_mode: "whatsapp_sms"
     email:
       maximum: 99
+      secondary_email_otp_mode: "code"
+      secondary_allow_unverified: false
       message:
         subject: Email Verification Instruction
 user_profile:
