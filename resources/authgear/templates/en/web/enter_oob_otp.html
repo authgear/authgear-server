@@ -67,7 +67,7 @@
 	type="submit"
 	name="x_action"
 	value="submit"
-	{{ if not $.VerificationCanVerifyCode }}disabled{{ end }}
+	{{ if not $.OOBOTPCanVerifyCode }}disabled{{ end }}
 	data-authgear-event="authgear.button.enter_oob_otp"
 >{{ template "next-button-label" }}</button>
 
