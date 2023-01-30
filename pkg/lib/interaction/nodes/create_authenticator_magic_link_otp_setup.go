@@ -60,6 +60,12 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		},
 	}
 
+	spec.RequiredToVerify = true
+	if e.Stage == authn.AuthenticationStageSecondary &&
+		ctx.Config.Authenticator.OOB.Email.SecondaryAllowUnverified {
+		spec.RequiredToVerify = false
+	}
+
 	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
@@ -69,6 +75,10 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
 		// Admin skip verify MagicLink otp and create OOB authenticator directly
 		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
+	}
+
+	if !spec.RequiredToVerify {
+		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info, DeferVerify: true}, nil
 	}
 
 	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)

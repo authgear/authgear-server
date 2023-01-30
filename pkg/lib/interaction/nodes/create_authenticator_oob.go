@@ -45,6 +45,7 @@ func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph
 type NodeCreateAuthenticatorOOB struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
+	DeferVerify   bool                      `json:"defer_verify"`
 }
 
 func (n *NodeCreateAuthenticatorOOB) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -60,6 +61,7 @@ func (n *NodeCreateAuthenticatorOOB) DeriveEdges(graph *interaction.Graph) ([]in
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,
 			Authenticators: []*authenticator.Info{n.Authenticator},
+			DeferVerify:    n.DeferVerify,
 		},
 	}, nil
 }

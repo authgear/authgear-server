@@ -13,6 +13,7 @@ func init() {
 type EdgeDoCreateAuthenticator struct {
 	Stage          authn.AuthenticationStage
 	Authenticators []*authenticator.Info
+	DeferVerify    bool
 }
 
 func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -21,6 +22,7 @@ func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *interaction.Context, graph 
 		Stage:          e.Stage,
 		Authenticators: e.Authenticators,
 		IsAdminAPI:     isAdminAPI,
+		DeferVerify:    e.DeferVerify,
 	}, nil
 }
 
@@ -28,6 +30,7 @@ type NodeDoCreateAuthenticator struct {
 	Stage          authn.AuthenticationStage `json:"stage"`
 	Authenticators []*authenticator.Info     `json:"authenticators"`
 	IsAdminAPI     bool                      `json:"is_admin_api"`
+	DeferVerify    bool                      `json:"defer_verify"`
 }
 
 func (n *NodeDoCreateAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -38,7 +41,7 @@ func (n *NodeDoCreateAuthenticator) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			for _, a := range n.Authenticators {
-				err := ctx.Authenticators.Create(a, !n.IsAdminAPI)
+				err := ctx.Authenticators.Create(a, !n.DeferVerify && !n.IsAdminAPI)
 				if err != nil {
 					return err
 				}

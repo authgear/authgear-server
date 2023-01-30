@@ -44,6 +44,7 @@ type NodeCreateAuthenticatorMagicLinkOTP struct {
 	Authenticator *authenticator.Info       `json:"authenticator"`
 	Target        string                    `json:"target"`
 	Channel       string                    `json:"channel"`
+	DeferVerify   bool                      `json:"defer_verify"`
 }
 
 func (n *NodeCreateAuthenticatorMagicLinkOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -59,6 +60,7 @@ func (n *NodeCreateAuthenticatorMagicLinkOTP) DeriveEdges(graph *interaction.Gra
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,
 			Authenticators: []*authenticator.Info{n.Authenticator},
+			DeferVerify:    n.DeferVerify,
 		},
 	}, nil
 }

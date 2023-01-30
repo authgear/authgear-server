@@ -172,6 +172,13 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		spec.OOBOTP.Email = target
 	}
 
+	spec.RequiredToVerify = true
+	if channel == model.AuthenticatorOOBChannelEmail &&
+		e.Stage == authn.AuthenticationStageSecondary &&
+		ctx.Config.Authenticator.OOB.Email.SecondaryAllowUnverified {
+		spec.RequiredToVerify = false
+	}
+
 	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
@@ -181,6 +188,10 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
 		// Skip verification of OOB target
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
+	}
+
+	if !spec.RequiredToVerify {
+		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info, DeferVerify: true}, nil
 	}
 
 	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
