@@ -42,65 +42,72 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 		// Create the session now.
 		cookie, err := m.Cookies.GetCookie(r, oauthsession.UICookieDef)
 		if err == nil {
-			entry, err := m.OAuthSessions.Get(cookie.Value)
-			if err != nil {
-				panic(err)
-			}
-			req := entry.T.AuthorizationRequest
-
-			uiInfo, err := m.UIInfoResolver.ResolveForUI(req)
-			if err != nil {
-				panic(err)
-			}
-
-			sessionOptions := SessionOptions{
-				RedirectURI:                uiInfo.RedirectURI,
-				Prompt:                     uiInfo.Prompt,
-				UserIDHint:                 uiInfo.UserIDHint,
-				CanUseIntentReauthenticate: uiInfo.CanUseIntentReauthenticate,
-				WebhookState:               uiInfo.State,
-				Page:                       uiInfo.Page,
-				SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
-				OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
-				FromAuthzEndpoint:          true,
-			}
-			session := NewSession(sessionOptions)
-
-			// We do not need to redirect here so redirectURI is unimportant.
-			unimportant := ""
-			result, err := m.Sessions.CreateSession(session, unimportant)
-			if err != nil {
-				panic(err)
-			}
+			result, session := m.createSession(cookie)
 
 			for _, c := range result.Cookies {
 				httputil.UpdateCookie(w, c)
 			}
+
 			// CLear the cookie so that we do not create the session again.
 			httputil.UpdateCookie(w, m.Cookies.ClearCookie(oauthsession.UICookieDef))
 
 			r = r.WithContext(WithSession(r.Context(), session))
-		}
-
-		// Or read from cookie
-		session, err := m.loadSession(r)
-		if err != nil {
-			if errors.Is(err, ErrSessionNotFound) {
-				// fallthrough
-			} else if errors.Is(err, ErrInvalidSession) {
-				// Clear the session before continuing
-				cookie := m.Cookies.ClearCookie(m.CookieDef.Def)
-				httputil.UpdateCookie(w, cookie)
-			} else {
-				panic(err)
+		} else {
+			// Or read from cookie
+			session, err := m.loadSession(r)
+			if err != nil {
+				if errors.Is(err, ErrSessionNotFound) {
+					// fallthrough
+				} else if errors.Is(err, ErrInvalidSession) {
+					// Clear the session before continuing
+					cookie := m.Cookies.ClearCookie(m.CookieDef.Def)
+					httputil.UpdateCookie(w, cookie)
+				} else {
+					panic(err)
+				}
 			}
-		}
-		if session != nil {
-			r = r.WithContext(WithSession(r.Context(), session))
+			if session != nil {
+				r = r.WithContext(WithSession(r.Context(), session))
+			}
 		}
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Session) {
+	entry, err := m.OAuthSessions.Get(cookie.Value)
+	if err != nil {
+		panic(err)
+	}
+	req := entry.T.AuthorizationRequest
+
+	uiInfo, err := m.UIInfoResolver.ResolveForUI(req)
+	if err != nil {
+		panic(err)
+	}
+
+	sessionOptions := SessionOptions{
+		RedirectURI:                uiInfo.RedirectURI,
+		Prompt:                     uiInfo.Prompt,
+		UserIDHint:                 uiInfo.UserIDHint,
+		CanUseIntentReauthenticate: uiInfo.CanUseIntentReauthenticate,
+		WebhookState:               uiInfo.State,
+		Page:                       uiInfo.Page,
+		SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
+		OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
+		FromAuthzEndpoint:          true,
+	}
+	session := NewSession(sessionOptions)
+
+	// We do not need to redirect here so redirectURI is unimportant.
+	unimportant := ""
+	result, err := m.Sessions.CreateSession(session, unimportant)
+	if err != nil {
+		panic(err)
+	}
+
+	return result, session
 }
 
 func (m *SessionMiddleware) loadSession(r *http.Request) (*Session, error) {
