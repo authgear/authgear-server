@@ -214,6 +214,7 @@ func (a *AlternativeStepsViewModeler) AuthenticationAlternatives(graph *interact
 	return m, nil
 }
 
+// nolint: gocyclo
 func (a *AlternativeStepsViewModeler) CreateAuthenticatorAlternatives(graph *interaction.Graph, currentStepKind webapp.SessionStepKind) (*AlternativeStepsViewModel, error) {
 	m := &AlternativeStepsViewModel{}
 
