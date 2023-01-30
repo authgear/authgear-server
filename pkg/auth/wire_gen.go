@@ -52260,7 +52260,12 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	otpStoreRedis := &otp.StoreRedis{
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -52269,12 +52274,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	otpConfig := appConfig.OTP
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
-		Clock:        clockClock,
-		CodeStore:    otpStoreRedis,
-		Logger:       otpLogger,
-		RateLimiter:  limiter,
-		OTPConfig:    otpConfig,
-		Verification: verificationConfig,
+		Clock:          clockClock,
+		CodeStore:      codeStoreRedis,
+		MagicLinkStore: magicLinkStoreRedis,
+		Logger:         otpLogger,
+		RateLimiter:    limiter,
+		OTPConfig:      otpConfig,
+		Verification:   verificationConfig,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -52551,13 +52557,19 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
 	}
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	messageSender := &otp.MessageSender{
-		Translation:     translationService,
-		Endpoints:       endpointsProvider,
-		TaskQueue:       queue,
-		Events:          eventService,
-		RateLimiter:     limiter,
-		HardSMSBucketer: hardSMSBucketer,
+		Translation:       translationService,
+		Endpoints:         endpointsProvider,
+		TaskQueue:         queue,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -52589,23 +52601,22 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:        remoteIP,
-		Translation:     translationService,
-		Config:          forgotPasswordConfig,
-		Store:           forgotpasswordStore,
-		Clock:           clockClock,
-		URLs:            urlProvider,
-		TaskQueue:       queue,
-		Logger:          providerLogger,
-		Identities:      identityFacade,
-		Authenticators:  authenticatorFacade,
-		FeatureConfig:   featureConfig,
-		Events:          eventService,
-		RateLimiter:     limiter,
-		HardSMSBucketer: hardSMSBucketer,
+		RemoteIP:          remoteIP,
+		Translation:       translationService,
+		Config:            forgotPasswordConfig,
+		Store:             forgotpasswordStore,
+		Clock:             clockClock,
+		URLs:              urlProvider,
+		TaskQueue:         queue,
+		Logger:            providerLogger,
+		Identities:        identityFacade,
+		Authenticators:    authenticatorFacade,
+		FeatureConfig:     featureConfig,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
 	emailConfig := messagingConfig.Email
 	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
 		SMSConfig:   smsConfig,
