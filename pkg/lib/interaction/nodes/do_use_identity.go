@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -17,7 +18,7 @@ type EdgeDoUseIdentity struct {
 func (e *EdgeDoUseIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	if e.UserIDHint != "" {
 		if e.UserIDHint != e.Identity.UserID {
-			return nil, interaction.ErrMismatchedUser
+			return nil, api.ErrMismatchedUser
 		}
 	}
 

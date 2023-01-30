@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -73,14 +74,14 @@ func (e *EdgeForgotPasswordSelectLoginID) GetIdentityCandidates() []identity.Can
 
 func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	if e.IdentityInfo == nil {
-		return nil, forgotpasswordFillDetails(interaction.ErrUserNotFound)
+		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
 	}
 
 	loginID := e.IdentityInfo.LoginID.LoginID
 
 	err := ctx.ForgotPassword.SendCode(loginID)
 	if errors.Is(err, forgotpassword.ErrUserNotFound) {
-		return nil, forgotpasswordFillDetails(interaction.ErrUserNotFound)
+		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
 	}
 	if err != nil {
 		return nil, err

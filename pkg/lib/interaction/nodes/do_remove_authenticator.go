@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -45,7 +46,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 			switch n.Authenticator.Kind {
 			case authenticator.KindPrimary:
 				if n.Authenticator.Type == model.AuthenticatorTypePasskey {
-					return interaction.NewInvariantViolated(
+					return api.NewInvariantViolated(
 						"RemovePasskeyAuthenticator",
 						"cannot delete passkey authenticator, should delete passkey identity instead",
 						nil,
@@ -61,7 +62,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 				for _, i := range is {
 					primaryAuths := authenticator.ApplyFilters(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
 					if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
-						return interaction.NewInvariantViolated(
+						return api.NewInvariantViolated(
 							"RemoveLastPrimaryAuthenticator",
 							"cannot remove last primary authenticator for identity",
 							map[string]interface{}{"identity_id": i.ID},
@@ -83,7 +84,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 					len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID
 
 				if cannotRemove {
-					return interaction.NewInvariantViolated(
+					return api.NewInvariantViolated(
 						"RemoveLastSecondaryAuthenticator",
 						"cannot remove last secondary authenticator",
 						nil,

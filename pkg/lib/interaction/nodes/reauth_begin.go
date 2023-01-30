@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -24,7 +25,7 @@ func (e *EdgeReauthenticationBegin) Instantiate(ctx *interaction.Context, graph 
 		// If we return it as pain error,
 		// /select_account is visited again, the error is generated again,
 		// resulting in infinite redirection.
-		if errors.Is(err, interaction.ErrNoAuthenticator) {
+		if errors.Is(err, api.ErrNoAuthenticator) {
 			panic(err)
 		}
 		return nil, err
@@ -113,7 +114,7 @@ func (e *EdgeReauthenticationBegin) getAuthenticators(ctx *interaction.Context, 
 		return
 	}
 
-	err = interaction.ErrNoAuthenticator
+	err = api.ErrNoAuthenticator
 	return
 }
 

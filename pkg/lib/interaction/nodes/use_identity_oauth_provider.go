@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -55,7 +56,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		}
 	}
 	if oauthConfig == nil {
-		return nil, interaction.ErrOAuthProviderNotFound
+		return nil, api.ErrOAuthProviderNotFound
 	}
 
 	nonceSource := ctx.Nonces.GenerateAndSet()
@@ -64,7 +65,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {
-		return nil, interaction.ErrOAuthProviderNotFound
+		return nil, api.ErrOAuthProviderNotFound
 	}
 
 	nonce := crypto.SHA256String(nonceSource)

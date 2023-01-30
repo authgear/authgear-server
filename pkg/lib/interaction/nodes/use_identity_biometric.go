@@ -3,6 +3,7 @@ package nodes
 import (
 	"encoding/json"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
@@ -40,7 +41,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	if !enabled {
-		return nil, interaction.NewInvariantViolated(
+		return nil, api.NewInvariantViolated(
 			"BiometricDisallowed",
 			"biometric is not allowed",
 			nil,
@@ -51,12 +52,12 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 
 	request, err := ctx.BiometricIdentities.ParseRequestUnverified(jwt)
 	if err != nil {
-		return nil, interaction.ErrInvalidCredentials
+		return nil, api.ErrInvalidCredentials
 	}
 
 	purpose, err := ctx.Challenges.Consume(request.Challenge)
 	if err != nil || *purpose != challenge.PurposeBiometricRequest {
-		return nil, interaction.ErrInvalidCredentials
+		return nil, api.ErrInvalidCredentials
 	}
 
 	var iden *identity.Biometric
@@ -64,15 +65,15 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	case identitybiometric.RequestActionSetup:
 		displayName := deviceinfo.DeviceModel(request.DeviceInfo)
 		if displayName == "" {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, api.ErrInvalidCredentials
 		}
 		if request.Key == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, api.ErrInvalidCredentials
 		}
 	case identitybiometric.RequestActionAuthenticate:
 		iden, err = ctx.BiometricIdentities.GetByKeyID(request.KeyID)
 		if err != nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, api.ErrInvalidCredentials
 		}
 		request, err = ctx.BiometricIdentities.ParseRequest(jwt, iden)
 		if err != nil {
@@ -95,7 +96,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 			}
 			_ = dispatchEvent()
 
-			return nil, interaction.ErrInvalidCredentials
+			return nil, api.ErrInvalidCredentials
 		}
 	}
 

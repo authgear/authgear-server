@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -23,7 +24,7 @@ func (e *EdgeDoUpdateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	modifyDisabled := e.IdentityBeforeUpdate.ModifyDisabled(ctx.Config.Identity)
 	if !isAdminAPI && modifyDisabled {
-		return nil, interaction.ErrIdentityModifyDisabled
+		return nil, api.ErrIdentityModifyDisabled
 	}
 	return &NodeDoUpdateIdentity{
 		IdentityBeforeUpdate: e.IdentityBeforeUpdate,
@@ -49,7 +50,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 					s1 := n.IdentityBeforeUpdate.ToSpec()
 					s2 := n.IdentityAfterUpdate.ToSpec()
-					return identityFillDetails(interaction.ErrDuplicatedIdentity, &s2, &s1)
+					return identityFillDetails(api.ErrDuplicatedIdentity, &s2, &s1)
 				}
 				return err
 			}

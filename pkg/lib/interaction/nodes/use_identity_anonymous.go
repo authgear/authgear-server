@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
@@ -42,7 +43,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	if !enabled {
-		return nil, interaction.NewInvariantViolated(
+		return nil, api.NewInvariantViolated(
 			"AnonymousUserDisallowed",
 			"anonymous users are not allowed",
 			nil,
@@ -110,12 +111,12 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	jwt := input.GetAnonymousRequestToken()
 	request, err := ctx.AnonymousIdentities.ParseRequestUnverified(jwt)
 	if err != nil {
-		return nil, interaction.ErrInvalidCredentials
+		return nil, api.ErrInvalidCredentials
 	}
 
 	chal, err := ctx.Challenges.Get(request.Challenge)
 	if err != nil || chal.Purpose != challenge.PurposeAnonymousRequest {
-		return nil, interaction.ErrInvalidCredentials
+		return nil, api.ErrInvalidCredentials
 	}
 
 	anonIdentity, err := ctx.AnonymousIdentities.GetByKeyID(request.KeyID)
@@ -152,11 +153,11 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 				return nil
 			}
 			_ = dispatchEvent()
-			return nil, interaction.ErrInvalidCredentials
+			return nil, api.ErrInvalidCredentials
 		}
 	} else if request.Key == nil {
 		// No associated identity => a new key must be provided.
-		return nil, interaction.ErrInvalidCredentials
+		return nil, api.ErrInvalidCredentials
 	}
 
 	key, err := json.Marshal(request.Key)

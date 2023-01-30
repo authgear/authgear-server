@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -89,12 +90,12 @@ func (n *NodeAuthenticationEnd) IsFailure() (err error) {
 		authn.AuthenticationTypeOOBOTPEmail,
 		authn.AuthenticationTypeOOBOTPSMS:
 		if n.VerifiedAuthenticator == nil {
-			err = n.FillDetails(interaction.ErrInvalidCredentials)
+			err = n.FillDetails(api.ErrInvalidCredentials)
 			return
 		}
 	case authn.AuthenticationTypeRecoveryCode:
 		if n.RecoveryCode == nil {
-			err = n.FillDetails(interaction.ErrInvalidCredentials)
+			err = n.FillDetails(api.ErrInvalidCredentials)
 			return
 		}
 	case authn.AuthenticationTypeDeviceToken:
