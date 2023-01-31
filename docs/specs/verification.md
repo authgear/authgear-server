@@ -84,6 +84,25 @@ The verification status flag of a user would be available in:
 - [OIDC ID token](./oidc.md#httpsauthgearcomuseris_verified); and
 - [resolved session headers](./api-resolver.md#x-authgear-user-verified).
 
+## Uniqueness
+
+A verifiable claim can be configured as unique. Attempts to create/update
+identities/authenticators that would leads to duplicated unique claims
+would fail.
+
+Configuring a verifiable claim to be unique while there exists duplication
+produces undefined behavior.
+
+
+```yaml
+verification:
+  claims:
+    phone_number:  # Default value if not specified.
+      unique: false
+    email:  # Users may not create/update identity/authenticator with same email.
+      unique: true
+```
+
 ## Future enhancement
 
 - Manual verification
