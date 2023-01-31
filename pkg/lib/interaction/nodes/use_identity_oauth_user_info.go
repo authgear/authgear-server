@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -55,7 +56,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {
-		return nil, interaction.ErrOAuthProviderNotFound
+		return nil, api.ErrOAuthProviderNotFound
 	}
 
 	// Handle provider error

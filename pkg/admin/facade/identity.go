@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -68,7 +69,7 @@ func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, pa
 		switch graph.CurrentNode().(type) {
 		case *nodes.NodeCreateAuthenticatorBegin:
 			// TODO(interaction): better interpretation of input required error?
-			return nil, interaction.NewInvariantViolated(
+			return nil, api.NewInvariantViolated(
 				"PasswordRequired",
 				"password is required",
 				nil,

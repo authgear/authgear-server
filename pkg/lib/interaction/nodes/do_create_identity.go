@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -25,7 +26,7 @@ func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	modifyDisabled := e.Identity.ModifyDisabled(ctx.Config.Identity)
 	if e.IsAddition && !isAdminAPI && modifyDisabled {
-		return nil, interaction.ErrIdentityModifyDisabled
+		return nil, api.ErrIdentityModifyDisabled
 	}
 
 	skipCreateIdentityEvent := false
@@ -75,7 +76,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if n.Identity.Type == model.IdentityTypeBiometric && user.IsAnonymous {
-				return interaction.NewInvariantViolated(
+				return api.NewInvariantViolated(
 					"AnonymousUserAddIdentity",
 					"anonymous user cannot add identity",
 					nil,
@@ -86,7 +87,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 					s1 := n.Identity.ToSpec()
 					s2 := existing.ToSpec()
-					return identityFillDetails(interaction.ErrDuplicatedIdentity, &s1, &s2)
+					return identityFillDetails(api.ErrDuplicatedIdentity, &s1, &s2)
 				}
 				return err
 			}

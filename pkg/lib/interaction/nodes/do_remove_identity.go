@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -20,7 +21,7 @@ func (e *EdgeDoRemoveIdentity) Instantiate(ctx *interaction.Context, graph *inte
 	modifyDisabled := e.Identity.ModifyDisabled(ctx.Config.Identity)
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	if !isAdminAPI && modifyDisabled {
-		return nil, interaction.ErrIdentityModifyDisabled
+		return nil, api.ErrIdentityModifyDisabled
 	}
 	return &NodeDoRemoveIdentity{
 		Identity:   e.Identity,
