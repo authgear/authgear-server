@@ -157,7 +157,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		if graph.FindLastNode(&n) {
 			code = n.GetMagicLinkOTP()
 		} else {
-			panic(fmt.Errorf("webapp: unexpected node for magic link: %T", n))
+			panic(fmt.Errorf("webapp: unexpected node for login link: %T", n))
 		}
 
 		return code, nil

@@ -94,7 +94,7 @@
   "error-page-not-found-action": "返回主頁",
 
   "success-resend-code": "成功重發驗證碼！",
-  "success-resend-magic-link": "成功重發無密碼鏈接！",
+  "success-resend-magic-link": "成功重發登錄鏈接",
 
   "public-signup-disabled-notice": "請聯絡管理員以註冊新帳號。",
 
@@ -185,20 +185,20 @@
   "whatsapp-otp-done-button": "完成",
   "whatsapp-otp-pre-filled-message": "以一次性密碼 {otp} 驗證 {target} \n請在WhatsApp按傳送，然後返回App",
 
-  "magic-link-otp-page-title": "無密碼鏈接",
-  "magic-link-otp-initial-description": "我們已經向 {target} 發送了一個無密碼鏈接。\n請訪問該鏈接以繼續",
-  "magic-link-otp-invalid-code-description": "該無密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
+  "magic-link-otp-page-title": "登錄鏈接",
+  "magic-link-otp-initial-description": "我們已經向 {target} 發送了一個登錄鏈接。\n請訪問該鏈接以繼續",
+  "magic-link-otp-invalid-code-description": "該登錄鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "magic-link-otp-matched-description": "鏈接已驗證！",
-  "magic-link-otp-resend-button-hint": "沒有收到無密碼鏈接？",
+  "magic-link-otp-resend-button-hint": "沒有收到登錄鏈接？",
   "magic-link-otp-resend-button-label": "重新發送",
   "magic-link-otp-resend-button-label--unit": "重新發送 (%ds)",
   "magic-link-otp-next-button-label": "下一步",
 
-  "verify-magic-link-page-title": "無密碼鏈接確認",
-  "verify-magic-link-initial-description": "請點擊下方按鈕批准登錄",
-  "verify-magic-link-invalid-code-description": "該無密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
-  "verify-magic-link-matched-description": "您已成功通過身份驗證。\n您可以關閉此窗口。",
-  "verify-magic-link-next-button-label": "批准",
+  "verify-magic-link-page-title": "登錄鏈接確認",
+  "verify-magic-link-initial-description": "請點擊下方按鈕確認登錄 {AppOrClientName}",
+  "verify-magic-link-invalid-code-description": "該登錄鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
+  "verify-magic-link-matched-description": "您已成功登錄 {AppOrClientName}。\n您可以關閉此窗口。",
+  "verify-magic-link-next-button-label": "登錄",
 
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",
@@ -404,8 +404,8 @@
   "enter-oob-otp-sms-instead": "以短訊發送一次性密碼至 {target}",
   "setup-phone-otp-instead": "改為使用手機作雙重驗證",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
-  "setup-magic-link-otp-instead": "改為設置無密碼鏈接兩步驗證",
-   "verify-magic-link-otp-instead": "改為通過無密碼鏈接驗證 {target}",
+  "setup-magic-link-otp-instead": "改為設置登錄鏈接兩步驗證",
+   "verify-magic-link-otp-instead": "改為通過登錄鏈接驗證 {target}",
 
   "phone-otp-verify-with-sms-instead": "改為通過短信接收一次性密碼",
   "phone-otp-verify-with-whatsapp-instead": "改為通過 WhatsApp 驗證",
@@ -417,7 +417,8 @@
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
   "setup-whatsapp-otp-title": "設置手機兩步驗證",
-  "setup-magic-link-otp-title": "設置無密碼鏈接兩步驗證",
+  "setup-magic-link-otp-title": "設置登錄鏈接兩步驗證",
+  "setup-magic-link-otp-email-input-placeholder": "用於接收登錄鏈接的電子郵件地址",
 
   "setup-totp-title": "設置驗證器",
   "setup-totp-code-placeholder": "6位碼",
