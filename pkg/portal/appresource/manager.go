@@ -194,6 +194,12 @@ func (m *Manager) cleanupOrphanedResources(manager *resource.Manager, cfg *confi
 			return nil, err
 		}
 	}
+	if cfg.AppConfig.CustomSMSProviderConfigs != nil {
+		err := addToPaths(cfg.AppConfig.CustomSMSProviderConfigs.URL)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	var filesToDelete []*resource.ResourceFile
 	for _, fs := range manager.Filesystems() {
