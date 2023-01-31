@@ -6,7 +6,6 @@ import (
 
 var DependencySet = wire.NewSet(
 	wire.Struct(new(URLProvider), "*"),
-	wire.Struct(new(AuthenticateURLProvider), "*"),
 	wire.Struct(new(AnonymousUserPromotionService), "*"),
 
 	NewCSRFCookieDef,
@@ -20,6 +19,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
 	wire.Struct(new(SessionMiddleware), "*"),
 	wire.Bind(new(SessionMiddlewareStore), new(*SessionStoreRedis)),
+	wire.Bind(new(SessionMiddlewareSessionService), new(*Service2)),
 	wire.Struct(new(UILocalesMiddleware), "*"),
 	wire.Struct(new(ColorSchemeMiddleware), "*"),
 	wire.Struct(new(WeChatRedirectURIMiddleware), "*"),
@@ -37,7 +37,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SessionStoreRedis), "*"),
 	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
 	wire.Struct(new(Service2), "*"),
-	wire.Bind(new(AuthenticateURLPageService), new(*Service2)),
 
 	wire.Struct(new(WechatURLProvider), "*"),
 )

@@ -3,26 +3,17 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
-	"time"
-
-	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -34,16 +25,12 @@ import (
 
 const CodeGrantValidDuration = duration.Short
 
-type IDTokenVerifier interface {
-	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (jwt.Token, error)
+type UIInfoResolver interface {
+	ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
 }
 
-type OAuthURLProvider interface {
-	ConsentURL(r protocol.AuthorizationRequest) *url.URL
-}
-
-type WebAppAuthenticateURLProvider interface {
-	AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error)
+type UIURLBuilder interface {
+	Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error)
 }
 
 type AppSessionTokenService interface {
@@ -59,10 +46,6 @@ type CookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
-}
-
-type SessionProvider interface {
-	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type OAuthSessionService interface {
@@ -98,16 +81,13 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
-	Sessions                  SessionProvider
+	UIURLBuilder              UIURLBuilder
+	UIInfoResolver            UIInfoResolver
 	Authorizations            AuthorizationService
-	OfflineGrants             oauth.OfflineGrantStore
 	CodeGrants                oauth.CodeGrantStore
-	OAuthURLs                 OAuthURLProvider
-	WebAppURLs                WebAppAuthenticateURLProvider
 	ValidateScopes            ScopesValidator
 	CodeGenerator             TokenGenerator
 	AppSessionTokenService    AppSessionTokenService
-	IDTokens                  IDTokenVerifier
 	AuthenticationInfoService AuthenticationInfoService
 	Clock                     clock.Clock
 	Cookies                   CookieManager
@@ -394,52 +374,12 @@ func (h *AuthorizationHandler) doHandle(
 		}
 	}
 
-	idToken, sidSession, err := h.handleIDTokenHint(client, r)
+	uiInfo, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
 	if err != nil {
 		return nil, err
 	}
-
-	var idTokenHintSID string
-	if sidSession != nil {
-		idTokenHintSID = oidc.EncodeSID(sidSession)
-	}
-
-	sessionOptions := webapp.SessionOptions{
-		WebhookState:             r.State(),
-		Page:                     r.Page(),
-		RedirectURI:              h.OAuthURLs.ConsentURL(r).String(),
-		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
-		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
-		OAuthProviderAlias:       r.OAuthProviderAlias(),
-		FromAuthzEndpoint:        true,
-		LoginHint:                loginHintString,
-	}
-	uiLocales := strings.Join(r.UILocales(), " ")
-	colorScheme := r.ColorScheme()
-
-	if idToken != nil {
-		sessionOptions.UserIDHint = idToken.Subject()
-		// Set CanUseIntentReauthenticate to true if
-		// 1. The ID token is not expired.
-		// 2. The sid of the ID token hint points to a valid session (either IDPSession or OfflineGrant).
-		// 3. If the session indicated by sid is an offline grant, it must contain the FullAccessScope.
-		if tv := idToken.Expiration(); !tv.IsZero() && tv.Unix() != 0 {
-			now := h.Clock.NowUTC().Truncate(time.Second)
-			tv = tv.Truncate(time.Second)
-			if now.Before(tv) && sidSession != nil {
-				switch sidSession.SessionType() {
-				case session.TypeIdentityProvider:
-					sessionOptions.CanUseIntentReauthenticate = true
-				case session.TypeOfflineGrant:
-					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
-						if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
-							sessionOptions.CanUseIntentReauthenticate = true
-						}
-					}
-				}
-			}
-		}
-	}
+	idToken := uiInfoByProduct.IDToken
+	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
 	// create oauth session and redirect to the web app
 	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
@@ -449,30 +389,24 @@ func (h *AuthorizationHandler) doHandle(
 	if err != nil {
 		return nil, err
 	}
-	oauthSessionEntryCookies := []*http.Cookie{
-		h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
-	}
 
 	// Handle prompt!=none
 	// We must return here.
-	if !slice.ContainsString(sessionOptions.Prompt, "none") {
-		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
-			SessionOptions: sessionOptions,
-			UILocales:      uiLocales,
-			ColorScheme:    colorScheme,
-			Cookies:        oauthSessionEntryCookies,
-			Client:         client,
-			RedirectURL:    r.RedirectURI(),
-			CustomUIQuery:  r.CustomUIQuery(),
-		})
-		if apierrors.IsKind(err, interaction.InvalidCredentials) {
-			return nil, protocol.NewError("invalid_request", err.Error())
-		} else if apierrors.IsKind(err, webapp.ErrInvalidCustomURI) {
+	if !slice.ContainsString(uiInfo.Prompt, "none") {
+		endpoint, err := h.UIURLBuilder.Build(client, r)
+		if apierrors.IsKind(err, oidc.ErrInvalidCustomURI) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
 			return nil, err
 		}
 
+		resp := &httputil.ResultRedirect{
+			Cookies: []*http.Cookie{
+				h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
+				h.Cookies.ValueCookie(oauthsession.UICookieDef, oauthSessionEntry.ID),
+			},
+			URL: endpoint.String(),
+		}
 		return resp, nil
 	}
 
@@ -577,15 +511,11 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		return nil, err
 	}
 
-	_, sidSession, err := h.handleIDTokenHint(client, r)
+	_, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
 	if err != nil {
 		return nil, err
 	}
-
-	var idTokenHintSID string
-	if sidSession != nil {
-		idTokenHintSID = oidc.EncodeSID(sidSession)
-	}
+	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
 
 	var idpSessionID string
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
@@ -688,80 +618,4 @@ func (h *AuthorizationHandler) generateCodeResponse(
 
 	resp.Code(code)
 	return nil
-}
-
-func (h *AuthorizationHandler) handleMaxAgeAndPrompt(
-	r protocol.AuthorizationRequest,
-	sidSession session.Session,
-) (prompt []string) {
-	prompt = r.Prompt()
-	if maxAge, ok := r.MaxAge(); ok {
-		impliesPromptLogin := false
-		// When there is no session, the presence of max_age implies prompt=login.
-		if sidSession == nil {
-			impliesPromptLogin = true
-		} else {
-			// max_age=0 implies prompt=login
-			if maxAge == 0 {
-				impliesPromptLogin = true
-			} else {
-				// max_age=n implies prompt=login if elapsed time is greater than max_age.
-				// In extreme rare case, elapsed time can be negative.
-				elapsedTime := h.Clock.NowUTC().Sub(sidSession.GetAuthenticationInfo().AuthenticatedAt)
-				if elapsedTime < 0 || elapsedTime > maxAge {
-					impliesPromptLogin = true
-				}
-			}
-		}
-		if impliesPromptLogin {
-			prompt = slice.AppendIfUniqueStrings(prompt, "login")
-		}
-	}
-
-	return
-}
-
-func (h *AuthorizationHandler) handleIDTokenHint(
-	client *config.OAuthClientConfig,
-	r protocol.AuthorizationRequest,
-) (idToken jwt.Token, sidSession session.Session, err error) {
-	idTokenHint, ok := r.IDTokenHint()
-	if !ok {
-		return
-	}
-
-	idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
-	if err != nil {
-		return
-	}
-
-	sidInterface, ok := idToken.Get(string(model.ClaimSID))
-	if !ok {
-		return
-	}
-
-	sid, ok := sidInterface.(string)
-	if !ok {
-		return
-	}
-
-	typ, sessionID, ok := oidc.DecodeSID(sid)
-	if !ok {
-		return
-	}
-
-	switch typ {
-	case session.TypeIdentityProvider:
-		if sess, err := h.Sessions.Get(sessionID); err == nil {
-			sidSession = sess
-		}
-	case session.TypeOfflineGrant:
-		if sess, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
-			sidSession = sess
-		}
-	default:
-		panic(fmt.Errorf("oauth: unknown session type: %v", typ))
-	}
-
-	return
 }

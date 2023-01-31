@@ -9,129 +9,91 @@ import (
 	url "net/url"
 	reflect "reflect"
 
-	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
 	authenticationinfo "github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
 	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthsession "github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
+	oidc "github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	protocol "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
-	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"
-	jwt "github.com/lestrrat-go/jwx/jwt"
 )
 
-// MockIDTokenVerifier is a mock of IDTokenVerifier interface.
-type MockIDTokenVerifier struct {
+// MockUIInfoResolver is a mock of UIInfoResolver interface.
+type MockUIInfoResolver struct {
 	ctrl     *gomock.Controller
-	recorder *MockIDTokenVerifierMockRecorder
+	recorder *MockUIInfoResolverMockRecorder
 }
 
-// MockIDTokenVerifierMockRecorder is the mock recorder for MockIDTokenVerifier.
-type MockIDTokenVerifierMockRecorder struct {
-	mock *MockIDTokenVerifier
+// MockUIInfoResolverMockRecorder is the mock recorder for MockUIInfoResolver.
+type MockUIInfoResolverMockRecorder struct {
+	mock *MockUIInfoResolver
 }
 
-// NewMockIDTokenVerifier creates a new mock instance.
-func NewMockIDTokenVerifier(ctrl *gomock.Controller) *MockIDTokenVerifier {
-	mock := &MockIDTokenVerifier{ctrl: ctrl}
-	mock.recorder = &MockIDTokenVerifierMockRecorder{mock}
+// NewMockUIInfoResolver creates a new mock instance.
+func NewMockUIInfoResolver(ctrl *gomock.Controller) *MockUIInfoResolver {
+	mock := &MockUIInfoResolver{ctrl: ctrl}
+	mock.recorder = &MockUIInfoResolverMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockIDTokenVerifier) EXPECT() *MockIDTokenVerifierMockRecorder {
+func (m *MockUIInfoResolver) EXPECT() *MockUIInfoResolverMockRecorder {
 	return m.recorder
 }
 
-// VerifyIDTokenHint mocks base method.
-func (m *MockIDTokenVerifier) VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (jwt.Token, error) {
+// ResolveForAuthorizationEndpoint mocks base method.
+func (m *MockUIInfoResolver) ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyIDTokenHint", client, idTokenHint)
-	ret0, _ := ret[0].(jwt.Token)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "ResolveForAuthorizationEndpoint", client, req)
+	ret0, _ := ret[0].(*oidc.UIInfo)
+	ret1, _ := ret[1].(*oidc.UIInfoByProduct)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
-// VerifyIDTokenHint indicates an expected call of VerifyIDTokenHint.
-func (mr *MockIDTokenVerifierMockRecorder) VerifyIDTokenHint(client, idTokenHint interface{}) *gomock.Call {
+// ResolveForAuthorizationEndpoint indicates an expected call of ResolveForAuthorizationEndpoint.
+func (mr *MockUIInfoResolverMockRecorder) ResolveForAuthorizationEndpoint(client, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDTokenHint", reflect.TypeOf((*MockIDTokenVerifier)(nil).VerifyIDTokenHint), client, idTokenHint)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveForAuthorizationEndpoint", reflect.TypeOf((*MockUIInfoResolver)(nil).ResolveForAuthorizationEndpoint), client, req)
 }
 
-// MockOAuthURLProvider is a mock of OAuthURLProvider interface.
-type MockOAuthURLProvider struct {
+// MockUIURLBuilder is a mock of UIURLBuilder interface.
+type MockUIURLBuilder struct {
 	ctrl     *gomock.Controller
-	recorder *MockOAuthURLProviderMockRecorder
+	recorder *MockUIURLBuilderMockRecorder
 }
 
-// MockOAuthURLProviderMockRecorder is the mock recorder for MockOAuthURLProvider.
-type MockOAuthURLProviderMockRecorder struct {
-	mock *MockOAuthURLProvider
+// MockUIURLBuilderMockRecorder is the mock recorder for MockUIURLBuilder.
+type MockUIURLBuilderMockRecorder struct {
+	mock *MockUIURLBuilder
 }
 
-// NewMockOAuthURLProvider creates a new mock instance.
-func NewMockOAuthURLProvider(ctrl *gomock.Controller) *MockOAuthURLProvider {
-	mock := &MockOAuthURLProvider{ctrl: ctrl}
-	mock.recorder = &MockOAuthURLProviderMockRecorder{mock}
+// NewMockUIURLBuilder creates a new mock instance.
+func NewMockUIURLBuilder(ctrl *gomock.Controller) *MockUIURLBuilder {
+	mock := &MockUIURLBuilder{ctrl: ctrl}
+	mock.recorder = &MockUIURLBuilderMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockOAuthURLProvider) EXPECT() *MockOAuthURLProviderMockRecorder {
+func (m *MockUIURLBuilder) EXPECT() *MockUIURLBuilderMockRecorder {
 	return m.recorder
 }
 
-// ConsentURL mocks base method.
-func (m *MockOAuthURLProvider) ConsentURL(r protocol.AuthorizationRequest) *url.URL {
+// Build mocks base method.
+func (m *MockUIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConsentURL", r)
+	ret := m.ctrl.Call(m, "Build", client, r)
 	ret0, _ := ret[0].(*url.URL)
-	return ret0
-}
-
-// ConsentURL indicates an expected call of ConsentURL.
-func (mr *MockOAuthURLProviderMockRecorder) ConsentURL(r interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsentURL", reflect.TypeOf((*MockOAuthURLProvider)(nil).ConsentURL), r)
-}
-
-// MockWebAppAuthenticateURLProvider is a mock of WebAppAuthenticateURLProvider interface.
-type MockWebAppAuthenticateURLProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockWebAppAuthenticateURLProviderMockRecorder
-}
-
-// MockWebAppAuthenticateURLProviderMockRecorder is the mock recorder for MockWebAppAuthenticateURLProvider.
-type MockWebAppAuthenticateURLProviderMockRecorder struct {
-	mock *MockWebAppAuthenticateURLProvider
-}
-
-// NewMockWebAppAuthenticateURLProvider creates a new mock instance.
-func NewMockWebAppAuthenticateURLProvider(ctrl *gomock.Controller) *MockWebAppAuthenticateURLProvider {
-	mock := &MockWebAppAuthenticateURLProvider{ctrl: ctrl}
-	mock.recorder = &MockWebAppAuthenticateURLProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockWebAppAuthenticateURLProvider) EXPECT() *MockWebAppAuthenticateURLProviderMockRecorder {
-	return m.recorder
-}
-
-// AuthenticateURL mocks base method.
-func (m *MockWebAppAuthenticateURLProvider) AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuthenticateURL", options)
-	ret0, _ := ret[0].(httputil.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// AuthenticateURL indicates an expected call of AuthenticateURL.
-func (mr *MockWebAppAuthenticateURLProviderMockRecorder) AuthenticateURL(options interface{}) *gomock.Call {
+// Build indicates an expected call of Build.
+func (mr *MockUIURLBuilderMockRecorder) Build(client, r interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthenticateURL", reflect.TypeOf((*MockWebAppAuthenticateURLProvider)(nil).AuthenticateURL), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockUIURLBuilder)(nil).Build), client, r)
 }
 
 // MockAppSessionTokenService is a mock of AppSessionTokenService interface.
@@ -288,44 +250,6 @@ func (m *MockCookieManager) ValueCookie(def *httputil.CookieDef, value string) *
 func (mr *MockCookieManagerMockRecorder) ValueCookie(def, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValueCookie", reflect.TypeOf((*MockCookieManager)(nil).ValueCookie), def, value)
-}
-
-// MockSessionProvider is a mock of SessionProvider interface.
-type MockSessionProvider struct {
-	ctrl     *gomock.Controller
-	recorder *MockSessionProviderMockRecorder
-}
-
-// MockSessionProviderMockRecorder is the mock recorder for MockSessionProvider.
-type MockSessionProviderMockRecorder struct {
-	mock *MockSessionProvider
-}
-
-// NewMockSessionProvider creates a new mock instance.
-func NewMockSessionProvider(ctrl *gomock.Controller) *MockSessionProvider {
-	mock := &MockSessionProvider{ctrl: ctrl}
-	mock.recorder = &MockSessionProviderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSessionProvider) EXPECT() *MockSessionProviderMockRecorder {
-	return m.recorder
-}
-
-// Get mocks base method.
-func (m *MockSessionProvider) Get(id string) (*idpsession.IDPSession, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
-	ret0, _ := ret[0].(*idpsession.IDPSession)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockSessionProviderMockRecorder) Get(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSessionProvider)(nil).Get), id)
 }
 
 // MockOAuthSessionService is a mock of OAuthSessionService interface.

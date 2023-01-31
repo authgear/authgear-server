@@ -8,13 +8,17 @@ type Result interface {
 }
 
 type ResultRedirect struct {
-	URL string
+	Cookies []*http.Cookie
+	URL     string
 }
 
-func (re ResultRedirect) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+func (re *ResultRedirect) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+	for _, cookie := range re.Cookies {
+		UpdateCookie(rw, cookie)
+	}
 	http.Redirect(rw, r, re.URL, http.StatusFound)
 }
 
-func (re ResultRedirect) IsInternalError() bool {
+func (re *ResultRedirect) IsInternalError() bool {
 	return false
 }
