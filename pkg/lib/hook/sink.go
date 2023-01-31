@@ -2,6 +2,7 @@ package hook
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -28,6 +29,7 @@ type CustomAttributesServiceNoEvent interface {
 
 type WebHook interface {
 	SupportURL(u *url.URL) bool
+	CallSync(u *url.URL, body interface{}) (*http.Response, error)
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }

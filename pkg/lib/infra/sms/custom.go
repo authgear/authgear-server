@@ -14,9 +14,10 @@ var ErrMissingCustomSMSProviderConfiguration = errors.New("sms: custom provider 
 type CustomClient struct {
 	Config   *config.CustomSMSProviderConfigs
 	DenoHook hook.DenoHook
+	WebHook  hook.WebHook
 }
 
-func NewCustomClient(c *config.CustomSMSProviderConfigs, d hook.DenoHook) *CustomClient {
+func NewCustomClient(c *config.CustomSMSProviderConfigs, d hook.DenoHook, w hook.WebHook) *CustomClient {
 	if c == nil {
 		return nil
 	}
@@ -24,6 +25,7 @@ func NewCustomClient(c *config.CustomSMSProviderConfigs, d hook.DenoHook) *Custo
 	return &CustomClient{
 		Config:   c,
 		DenoHook: d,
+		WebHook:  w,
 	}
 }
 
@@ -43,6 +45,9 @@ func (c *CustomClient) Send(from string, to string, body string) error {
 	switch {
 	case c.DenoHook.SupportURL(u):
 		_, err := c.DenoHook.RunSync(u, &SendSMSPayload{To: to, Body: body})
+		return err
+	case c.WebHook.SupportURL(u):
+		_, err := c.WebHook.CallSync(u, &SendSMSPayload{To: to, Body: body})
 		return err
 	default:
 		return fmt.Errorf("unsupported hook URL: %v", u)

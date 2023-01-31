@@ -5,6 +5,7 @@
 package hook
 
 import (
+	http "net/http"
 	url "net/url"
 	reflect "reflect"
 
@@ -108,6 +109,21 @@ func NewMockWebHook(ctrl *gomock.Controller) *MockWebHook {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockWebHook) EXPECT() *MockWebHookMockRecorder {
 	return m.recorder
+}
+
+// CallSync mocks base method.
+func (m *MockWebHook) CallSync(u *url.URL, body interface{}) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CallSync", u, body)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CallSync indicates an expected call of CallSync.
+func (mr *MockWebHookMockRecorder) CallSync(u, body interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallSync", reflect.TypeOf((*MockWebHook)(nil).CallSync), u, body)
 }
 
 // DeliverBlockingEvent mocks base method.
