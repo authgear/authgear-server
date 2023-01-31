@@ -61,7 +61,9 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	}
 
 	spec.RequiredToVerify = true
-	if e.Stage == authn.AuthenticationStageSecondary &&
+	_, isNewUser := graph.GetNewUserID()
+	if isNewUser &&
+		e.Stage == authn.AuthenticationStageSecondary &&
 		ctx.Config.Authenticator.OOB.Email.SecondaryAllowUnverified {
 		spec.RequiredToVerify = false
 	}
