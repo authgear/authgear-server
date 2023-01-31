@@ -39,7 +39,7 @@ func (h *WebHookImpl) CallSync(u *url.URL, body interface{}, timeout *time.Durat
 		client = httputil.NewExternalClient(*timeout)
 	}
 
-	resp, err := h.performRequest(client, request, true)
+	resp, err := h.performRequest(client, request)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (h *WebHookImpl) prepareEventRequest(u *url.URL, event *event.Event) (*http
 	return h.prepareRequest(u, event)
 }
 
-func (h *WebHookImpl) performRequest(client *http.Client, request *http.Request, withResponse bool) (resp *http.Response, err error) {
+func (h *WebHookImpl) performRequest(client *http.Client, request *http.Request) (resp *http.Response, err error) {
 	resp, err = client.Do(request)
 	if os.IsTimeout(err) {
 		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
@@ -118,17 +118,17 @@ func (h *WebHookImpl) performRequest(client *http.Client, request *http.Request,
 		return
 	}
 
-	if !withResponse {
-		return
-	}
-
 	return resp, nil
 }
 
 func (h *WebHookImpl) performEventRequest(client *http.Client, request *http.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
-	resp, err := h.performRequest(client, request, withResponse)
+	resp, err := h.performRequest(client, request)
 
 	defer resp.Body.Close()
+
+	if !withResponse {
+		return
+	}
 
 	hookResp, err = event.ParseHookResponse(resp.Body)
 	if err != nil {
