@@ -7,11 +7,14 @@
 {{ $.CSRFField }}
 </form>
 
-<h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "verify-magic-link-page-title" }}</h1>
-
 {{ if not (eq .StateQuery "matched") }}
+	<h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "verify-magic-link-page-title" }}</h1>
+
 	{{  if eq .StateQuery "" }}
-		<div class="text-sm break-words primary-txt text-center">{{ template "verify-magic-link-initial-description" }}</div>
+		<div class="text-sm break-words primary-txt text-center">
+			{{ $appName := ($.Translations.RenderText "app.name" nil) }}
+			{{ template "verify-magic-link-initial-description" (dict "AppOrClientName" $appName) }}
+		</div>
 
 		<input form="verify-form" type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
 
@@ -43,9 +46,9 @@
 	{{ end }}
 
 {{ else }}
-<div class="text-sm break-words primary-txt text-center">{{ template "verify-magic-link-matched-description" }}</div>
+	{{ $appName := ($.Translations.RenderText "app.name" nil) }}
+	<div class="mb-3 text-sm break-words primary-txt text-center whitespace-pre-wrap">{{ template "verify-magic-link-matched-description" (dict "AppOrClientName" $appName) }}</div>
 {{ end }}
-
 {{ template "__watermark.html" . }}
 </div>
 {{ end }}

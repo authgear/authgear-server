@@ -8,15 +8,15 @@
 <mj-body background-color="#ffffff">
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Log in to {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px" line-height="32px">Use this link to sign in {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        Please visit the following link to complete the login process.
+        Please follow the link below to sign in to {{ template "app.name" }}.
       </mj-text>
     </mj-column>
   </mj-section>
   <mj-section padding="0 20px">
     <mj-column>
-      <mj-button href="{{ .URL }}" width="300px" padding="24px 0">Sign In</mj-button>
+      <mj-button href="{{ .URL }}" width="300px" padding="24px 0">Sign into {{ template "app.name" }}</mj-button>
     </mj-column>
   </mj-section>
   <mj-section>
