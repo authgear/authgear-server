@@ -62,7 +62,35 @@ func (n *NodeAuthenticationEnd) Prepare(ctx *interaction.Context, graph *interac
 }
 
 func (n *NodeAuthenticationEnd) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			var claimName model.ClaimName
+			var claimValue string
+			switch n.AuthenticationType {
+			case authn.AuthenticationTypeOOBOTPEmail:
+				claimName = model.ClaimEmail
+				claimValue = n.VerifiedAuthenticator.OOBOTP.ToTarget()
+			case authn.AuthenticationTypeOOBOTPSMS:
+				claimName = model.ClaimPhoneNumber
+				claimValue = n.VerifiedAuthenticator.OOBOTP.ToTarget()
+			default:
+				return nil
+			}
+
+			verifiedClaim := ctx.Verification.NewVerifiedClaim(
+				n.VerifiedAuthenticator.UserID,
+				string(claimName),
+				claimValue,
+			)
+
+			err := ctx.Verification.MarkClaimVerified(verifiedClaim)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}),
+	}, nil
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
