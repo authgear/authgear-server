@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
@@ -26,13 +28,18 @@ func (h *WebHookImpl) SupportURL(u *url.URL) bool {
 	return u.Scheme == "http" || u.Scheme == "https"
 }
 
-func (h *WebHookImpl) CallSync(u *url.URL, body interface{}) (*http.Response, error) {
+func (h *WebHookImpl) CallSync(u *url.URL, body interface{}, timeout *time.Duration) (*http.Response, error) {
 	request, err := h.prepareRequest(u, body)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := h.performRequest(h.SyncHTTP.Client, request, true)
+	var client *http.Client = h.SyncHTTP.Client
+	if timeout != nil {
+		client = httputil.NewExternalClient(*timeout)
+	}
+
+	resp, err := h.performRequest(client, request, true)
 	if err != nil {
 		return nil, err
 	}

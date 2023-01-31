@@ -8,6 +8,7 @@ import (
 	http "net/http"
 	url "net/url"
 	reflect "reflect"
+	time "time"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -112,18 +113,18 @@ func (m *MockWebHook) EXPECT() *MockWebHookMockRecorder {
 }
 
 // CallSync mocks base method.
-func (m *MockWebHook) CallSync(u *url.URL, body interface{}) (*http.Response, error) {
+func (m *MockWebHook) CallSync(u *url.URL, body interface{}, timeout *time.Duration) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CallSync", u, body)
+	ret := m.ctrl.Call(m, "CallSync", u, body, timeout)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CallSync indicates an expected call of CallSync.
-func (mr *MockWebHookMockRecorder) CallSync(u, body interface{}) *gomock.Call {
+func (mr *MockWebHookMockRecorder) CallSync(u, body, timeout interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallSync", reflect.TypeOf((*MockWebHook)(nil).CallSync), u, body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallSync", reflect.TypeOf((*MockWebHook)(nil).CallSync), u, body, timeout)
 }
 
 // DeliverBlockingEvent mocks base method.
@@ -222,18 +223,18 @@ func (mr *MockDenoHookMockRecorder) DeliverNonBlockingEvent(u, e interface{}) *g
 }
 
 // RunSync mocks base method.
-func (m *MockDenoHook) RunSync(u *url.URL, input interface{}) (interface{}, error) {
+func (m *MockDenoHook) RunSync(u *url.URL, input interface{}, timeout *time.Duration) (interface{}, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunSync", u, input)
+	ret := m.ctrl.Call(m, "RunSync", u, input, timeout)
 	ret0, _ := ret[0].(interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RunSync indicates an expected call of RunSync.
-func (mr *MockDenoHookMockRecorder) RunSync(u, input interface{}) *gomock.Call {
+func (mr *MockDenoHookMockRecorder) RunSync(u, input, timeout interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSync", reflect.TypeOf((*MockDenoHook)(nil).RunSync), u, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSync", reflect.TypeOf((*MockDenoHook)(nil).RunSync), u, input, timeout)
 }
 
 // SupportURL mocks base method.

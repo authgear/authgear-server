@@ -1511,11 +1511,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -2279,11 +2281,13 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: resourceManager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   resourceManager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -3504,11 +3508,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: resourceManager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   resourceManager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -4032,11 +4038,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -4818,11 +4826,13 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -5589,11 +5599,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -6467,11 +6479,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -7282,11 +7296,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -8096,11 +8112,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -8898,11 +8916,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -9693,11 +9713,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -10478,11 +10500,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -11266,11 +11290,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -12057,11 +12083,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -12850,11 +12878,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -13641,11 +13671,13 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -14428,11 +14460,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -15219,11 +15253,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -16011,11 +16047,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -16802,11 +16840,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -17593,11 +17633,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -18386,11 +18428,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -19177,11 +19221,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -19968,11 +20014,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -20763,11 +20811,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -21554,11 +21604,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -22406,11 +22458,13 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -23206,11 +23260,13 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -24014,11 +24070,13 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -24808,11 +24866,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -25599,11 +25659,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -26386,11 +26448,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -27177,11 +27241,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -27964,11 +28030,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -28761,11 +28829,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -29548,11 +29618,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -30337,11 +30409,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -31124,11 +31198,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -31943,11 +32019,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -32741,11 +32819,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -33552,11 +33632,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -34347,11 +34429,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -35135,11 +35219,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -35931,11 +36017,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -36719,11 +36807,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -37507,11 +37597,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -38295,11 +38387,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -39084,11 +39178,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -39891,11 +39987,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -40679,11 +40777,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -41467,11 +41567,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -42255,11 +42357,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -43043,11 +43147,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -43838,11 +43944,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -44627,11 +44735,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -45414,11 +45524,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -46216,11 +46328,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -47003,11 +47117,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -47790,11 +47906,13 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -48595,11 +48713,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -49349,11 +49469,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -50102,11 +50224,13 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -50899,11 +51023,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -53705,11 +53831,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -54199,11 +54327,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
@@ -55041,11 +55171,13 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,

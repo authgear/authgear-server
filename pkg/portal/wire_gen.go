@@ -204,12 +204,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	hookLogger := hook.NewLogger(logFactory)
-	denoClient := ProvideDenoClient(denoEndpoint, hookLogger)
+	denoClientImpl := ProvideDenoClient(denoEndpoint, hookLogger)
 	managerFactory := &factory.ManagerFactory{
 		Context:          context,
 		AppBaseResources: appBaseResources,
 		Tutorials:        tutorialService,
-		DenoClient:       denoClient,
+		DenoClient:       denoClientImpl,
 		Clock:            clock,
 	}
 	store := &plan.Store{
@@ -312,7 +312,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
 		NFTService:              nftService,
-		DenoService:             denoClient,
+		DenoService:             denoClientImpl,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

@@ -16,7 +16,7 @@ type ManagerFactory struct {
 	Context          context.Context
 	AppBaseResources deps.AppBaseResources
 	Tutorials        *tutorial.Service
-	DenoClient       *hook.DenoClient
+	DenoClient       *hook.DenoClientImpl
 	Clock            clock.Clock
 }
 

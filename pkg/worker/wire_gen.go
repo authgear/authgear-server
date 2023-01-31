@@ -61,12 +61,14 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	hookLogger := hook.NewLogger(factory)
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	manager := appContext.Resources
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         context,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           context,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)

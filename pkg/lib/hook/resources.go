@@ -91,7 +91,7 @@ func (DenoFileDescriptor) ViewResources(resources []resource.ResourceFile, rawVi
 }
 
 func (DenoFileDescriptor) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
-	denoClient := ctx.Value(ContextKeyDenoClient).(*DenoClient)
+	denoClient := ctx.Value(ContextKeyDenoClient).(*DenoClientImpl)
 	err := denoClient.Check(ctx, string(data))
 	if err != nil {
 		return nil, err

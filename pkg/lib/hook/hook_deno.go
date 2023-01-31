@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -13,10 +14,11 @@ import (
 )
 
 type DenoHookImpl struct {
-	Context         context.Context
-	SyncDenoClient  SyncDenoClient
-	AsyncDenoClient AsyncDenoClient
-	ResourceManager ResourceManager
+	Context           context.Context
+	SyncDenoClient    SyncDenoClient
+	AsyncDenoClient   AsyncDenoClient
+	DenoClientFactory DenoClientFactory
+	ResourceManager   ResourceManager
 }
 
 var _ DenoHook = &DenoHookImpl{}
@@ -25,13 +27,18 @@ func (h *DenoHookImpl) SupportURL(u *url.URL) bool {
 	return u.Scheme == "authgeardeno"
 }
 
-func (h *DenoHookImpl) RunSync(u *url.URL, input interface{}) (interface{}, error) {
+func (h *DenoHookImpl) RunSync(u *url.URL, input interface{}, timeout *time.Duration) (interface{}, error) {
 	script, err := h.loadScript(u)
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := h.SyncDenoClient.Run(h.Context, string(script), input)
+	var client DenoClient = h.SyncDenoClient
+	if timeout != nil {
+		client = h.DenoClientFactory(*timeout)
+	}
+
+	out, err := client.Run(h.Context, string(script), input)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +47,7 @@ func (h *DenoHookImpl) RunSync(u *url.URL, input interface{}) (interface{}, erro
 }
 
 func (h *DenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
-	out, err := h.RunSync(u, e)
+	out, err := h.RunSync(u, e, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -15,12 +15,16 @@ import (
 
 //go:generate mockgen -source=deno_client.go -destination=deno_client_mock_test.go -package hook
 
-type SyncDenoClient interface {
+type DenoClient interface {
 	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
 }
 
+type SyncDenoClient interface {
+	DenoClient
+}
+
 func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig, logger Logger) SyncDenoClient {
-	return &DenoClient{
+	return &DenoClientImpl{
 		Endpoint:   string(endpoint),
 		HTTPClient: httputil.NewExternalClient(c.SyncTimeout.Duration()),
 		Logger:     logger,
@@ -28,24 +32,36 @@ func NewSyncDenoClient(endpoint config.DenoEndpoint, c *config.HookConfig, logge
 }
 
 type AsyncDenoClient interface {
-	Run(ctx context.Context, script string, input interface{}) (out interface{}, err error)
+	DenoClient
 }
 
 func NewAsyncDenoClient(endpoint config.DenoEndpoint, logger Logger) AsyncDenoClient {
-	return &DenoClient{
+	return &DenoClientImpl{
 		Endpoint:   string(endpoint),
 		HTTPClient: httputil.NewExternalClient(60 * time.Second),
 		Logger:     logger,
 	}
 }
 
-type DenoClient struct {
+type DenoClientFactory func(timeout time.Duration) DenoClient
+
+func NewDenoClientFactory(endpoint config.DenoEndpoint, logger Logger) DenoClientFactory {
+	return DenoClientFactory(func(timeout time.Duration) DenoClient {
+		return &DenoClientImpl{
+			Endpoint:   string(endpoint),
+			HTTPClient: httputil.NewExternalClient(timeout),
+			Logger:     logger,
+		}
+	})
+}
+
+type DenoClientImpl struct {
 	Endpoint   string
 	HTTPClient *http.Client
 	Logger     Logger
 }
 
-func (c *DenoClient) Run(ctx context.Context, snippet string, input interface{}) (interface{}, error) {
+func (c *DenoClientImpl) Run(ctx context.Context, snippet string, input interface{}) (interface{}, error) {
 	u, err := url.JoinPath(c.Endpoint, "/run")
 	if err != nil {
 		return nil, err
@@ -101,7 +117,7 @@ func (c *DenoClient) Run(ctx context.Context, snippet string, input interface{})
 	return runResponse.Output, nil
 }
 
-func (c *DenoClient) Check(ctx context.Context, snippet string) error {
+func (c *DenoClientImpl) Check(ctx context.Context, snippet string) error {
 	u, err := url.JoinPath(c.Endpoint, "/check")
 	if err != nil {
 		return err

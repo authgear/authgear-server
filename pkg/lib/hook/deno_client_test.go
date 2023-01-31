@@ -17,7 +17,7 @@ func TestDenoClient(t *testing.T) {
 		gock.InterceptClient(httpClient)
 		defer gock.Off()
 
-		denoClient := &DenoClient{
+		denoClient := &DenoClientImpl{
 			Endpoint:   endpoint,
 			HTTPClient: httpClient,
 			Logger:     Logger{logrus.New().WithFields(logrus.Fields{})},

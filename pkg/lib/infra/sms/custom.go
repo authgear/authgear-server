@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -42,12 +43,17 @@ func (c *CustomClient) Send(from string, to string, body string) error {
 	if err != nil {
 		return err
 	}
+	var timeout *time.Duration = nil
+	if c.Config.Timeout != nil {
+		d := c.Config.Timeout.Duration()
+		timeout = &d
+	}
 	switch {
 	case c.DenoHook.SupportURL(u):
-		_, err := c.DenoHook.RunSync(u, &SendSMSPayload{To: to, Body: body})
+		_, err := c.DenoHook.RunSync(u, &SendSMSPayload{To: to, Body: body}, timeout)
 		return err
 	case c.WebHook.SupportURL(u):
-		_, err := c.WebHook.CallSync(u, &SendSMSPayload{To: to, Body: body})
+		_, err := c.WebHook.CallSync(u, &SendSMSPayload{To: to, Body: body}, timeout)
 		return err
 	default:
 		return fmt.Errorf("unsupported hook URL: %v", u)

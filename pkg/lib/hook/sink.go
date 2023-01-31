@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -29,14 +30,14 @@ type CustomAttributesServiceNoEvent interface {
 
 type WebHook interface {
 	SupportURL(u *url.URL) bool
-	CallSync(u *url.URL, body interface{}) (*http.Response, error)
+	CallSync(u *url.URL, body interface{}, timeout *time.Duration) (*http.Response, error)
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }
 
 type DenoHook interface {
 	SupportURL(u *url.URL) bool
-	RunSync(u *url.URL, input interface{}) (interface{}, error)
+	RunSync(u *url.URL, input interface{}, timeout *time.Duration) (interface{}, error)
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }

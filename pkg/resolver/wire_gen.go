@@ -516,11 +516,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	denoHookImpl := &hook.DenoHookImpl{
-		Context:         contextContext,
-		SyncDenoClient:  syncDenoClient,
-		AsyncDenoClient: asyncDenoClient,
-		ResourceManager: manager,
+		Context:           contextContext,
+		SyncDenoClient:    syncDenoClient,
+		AsyncDenoClient:   asyncDenoClient,
+		DenoClientFactory: denoClientFactory,
+		ResourceManager:   manager,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
