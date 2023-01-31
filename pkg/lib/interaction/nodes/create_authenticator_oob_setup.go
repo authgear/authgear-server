@@ -173,7 +173,9 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	}
 
 	spec.RequiredToVerify = true
-	if channel == model.AuthenticatorOOBChannelEmail &&
+	_, isNewUser := graph.GetNewUserID()
+	if isNewUser &&
+		channel == model.AuthenticatorOOBChannelEmail &&
 		e.Stage == authn.AuthenticationStageSecondary &&
 		ctx.Config.Authenticator.OOB.Email.SecondaryAllowUnverified {
 		spec.RequiredToVerify = false
