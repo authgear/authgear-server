@@ -34,6 +34,7 @@ type WebHook interface {
 
 type DenoHook interface {
 	SupportURL(u *url.URL) bool
+	RunSync(u *url.URL, input interface{}) (interface{}, error)
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }

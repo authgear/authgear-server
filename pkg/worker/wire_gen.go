@@ -9,6 +9,7 @@ package worker
 import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -36,7 +37,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
-	config := appProvider.Config
+	appContext := appProvider.AppContext
+	config := appContext.Config
 	secretConfig := config.SecretConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
@@ -52,12 +54,28 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
+	customSMSProviderConfigs := appConfig.CustomSMSProviderConfigs
+	context := p.Context
+	denoEndpoint := environmentConfig.DenoEndpoint
+	hookConfig := appConfig.Hook
+	hookLogger := hook.NewLogger(factory)
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	manager := appContext.Resources
+	denoHookImpl := &hook.DenoHookImpl{
+		Context:         context,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+		ResourceManager: manager,
+	}
+	customClient := sms.NewCustomClient(customSMSProviderConfigs, denoHookImpl)
 	client := &sms.Client{
 		Logger:          smsLogger,
 		DevMode:         devMode,
 		MessagingConfig: messagingConfig,
 		TwilioClient:    twilioClient,
 		NexmoClient:     nexmoClient,
+		CustomClient:    customClient,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
@@ -70,7 +88,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 
 func newReindexUserTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
-	config := appProvider.Config
+	appContext := appProvider.AppContext
+	config := appContext.Config
 	secretConfig := config.SecretConfig
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)

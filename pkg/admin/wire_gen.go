@@ -129,7 +129,8 @@ func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAut
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	logger := authz.NewLogger(factory)
-	configConfig := appProvider.Config
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	secretConfig := configConfig.SecretConfig
@@ -153,7 +154,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	logger := graphql.NewLogger(factory)
-	configConfig := appProvider.Config
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	oAuthConfig := appConfig.OAuth
 	featureConfig := configConfig.FeatureConfig
@@ -187,7 +189,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	manager := appProvider.Resources
+	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -1018,7 +1020,8 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	configConfig := appProvider.Config
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
 	secretConfig := configConfig.SecretConfig

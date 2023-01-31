@@ -25,13 +25,22 @@ func (h *DenoHookImpl) SupportURL(u *url.URL) bool {
 	return u.Scheme == "authgeardeno"
 }
 
-func (h *DenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+func (h *DenoHookImpl) RunSync(u *url.URL, input interface{}) (interface{}, error) {
 	script, err := h.loadScript(u)
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := h.SyncDenoClient.Run(h.Context, string(script), e)
+	out, err := h.SyncDenoClient.Run(h.Context, string(script), input)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (h *DenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+	out, err := h.RunSync(u, e)
 	if err != nil {
 		return nil, err
 	}

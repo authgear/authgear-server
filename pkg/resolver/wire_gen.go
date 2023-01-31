@@ -105,7 +105,8 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httproute.Middleware {
 	appProvider := p.AppProvider
-	config := appProvider.Config
+	appContext := appProvider.AppContext
+	config := appContext.Config
 	appConfig := config.AppConfig
 	sessionConfig := appConfig.Session
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
@@ -204,7 +205,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	manager := appProvider.Resources
+	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -642,7 +643,8 @@ var (
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	config := appProvider.Config
+	appContext := appProvider.AppContext
+	config := appContext.Config
 	appConfig := config.AppConfig
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
@@ -664,7 +666,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	manager := appProvider.Resources
+	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,

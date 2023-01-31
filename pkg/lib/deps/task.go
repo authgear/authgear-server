@@ -15,19 +15,18 @@ func (f TaskFunc) Run(ctx context.Context, param task.Param) error {
 	return f(ctx, param)
 }
 
-func ProvideCaptureTaskContext(config *config.Config) task.CaptureTaskContext {
+func ProvideCaptureTaskContext(config *config.Config, appCtx *config.AppContext) task.CaptureTaskContext {
 	return func() *task.Context {
 		return &task.Context{
-			Config: config,
+			Config:     config,
+			AppContext: appCtx,
 		}
 	}
 }
 
 func ProvideRestoreTaskContext(p *RootProvider) task.RestoreTaskContext {
 	return func(ctx context.Context, taskCtx *task.Context) context.Context {
-		rp := p.NewAppProvider(ctx, &config.AppContext{
-			Config: taskCtx.Config,
-		})
+		rp := p.NewAppProvider(ctx, taskCtx.AppContext)
 		ctx = withProvider(ctx, rp)
 		return ctx
 	}

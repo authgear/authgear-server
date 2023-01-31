@@ -205,6 +205,21 @@ func (mr *MockDenoHookMockRecorder) DeliverNonBlockingEvent(u, e interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockDenoHook)(nil).DeliverNonBlockingEvent), u, e)
 }
 
+// RunSync mocks base method.
+func (m *MockDenoHook) RunSync(u *url.URL, input interface{}) (interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunSync", u, input)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RunSync indicates an expected call of RunSync.
+func (mr *MockDenoHookMockRecorder) RunSync(u, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSync", reflect.TypeOf((*MockDenoHook)(nil).RunSync), u, input)
+}
+
 // SupportURL mocks base method.
 func (m *MockDenoHook) SupportURL(u *url.URL) bool {
 	m.ctrl.T.Helper()

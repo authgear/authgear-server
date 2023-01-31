@@ -143,14 +143,13 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	provider := &AppProvider{
 		RootProvider:       p,
 		Context:            ctx,
-		Config:             cfg,
 		LoggerFactory:      loggerFactory,
 		AppDatabase:        appDatabase,
 		AuditReadDatabase:  auditReadDatabase,
 		AuditWriteDatabase: auditWriteDatabase,
 		Redis:              redis,
 		AnalyticRedis:      analyticRedis,
-		Resources:          appCtx.Resources,
+		AppContext:         appCtx,
 	}
 	provider.TaskQueue = p.TaskQueueFactory(provider)
 	return provider
@@ -198,7 +197,6 @@ type AppProvider struct {
 	*RootProvider
 
 	Context            context.Context
-	Config             *config.Config
 	LoggerFactory      *log.Factory
 	AppDatabase        *appdb.Handle
 	AuditReadDatabase  *auditdb.ReadHandle
@@ -206,7 +204,7 @@ type AppProvider struct {
 	Redis              *appredis.Handle
 	AnalyticRedis      *analyticredis.Handle
 	TaskQueue          task.Queue
-	Resources          *resource.Manager
+	AppContext         *config.AppContext
 }
 
 func (p *AppProvider) NewRequestProvider(w http.ResponseWriter, r *http.Request) *RequestProvider {
