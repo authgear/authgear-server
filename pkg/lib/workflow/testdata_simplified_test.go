@@ -41,7 +41,7 @@ type edgeTakeLoginID struct {
 
 func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var inputLoginID InputLoginID
-	ok := Input(input, &inputLoginID)
+	ok := AsInput(input, &inputLoginID)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -134,7 +134,7 @@ type edgeAddLoginIDFlow struct {
 
 func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var inputAddLoginIDFlow InputAddLoginIDFlow
-	ok := Input(input, &inputAddLoginIDFlow)
+	ok := AsInput(input, &inputAddLoginIDFlow)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -223,7 +223,7 @@ type edgeVerifyOTP struct {
 
 func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var otpInput InputOTP
-	ok := Input(input, &otpInput)
+	ok := AsInput(input, &otpInput)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -277,7 +277,7 @@ type edgeResendOTP struct {
 
 func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var resendInput InputResendOTP
-	ok := Input(input, &resendInput)
+	ok := AsInput(input, &resendInput)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -300,7 +300,7 @@ type edgeCreatePasswordFlow struct{}
 
 func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var passwordInput InputCreatePasswordFlow
-	ok := Input(input, &passwordInput)
+	ok := AsInput(input, &passwordInput)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -358,7 +358,7 @@ type edgeCheckPasswordAgainstPolicy struct{}
 func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 
 	var inputNewPassword InputNewPassword
-	ok := Input(input, &inputNewPassword)
+	ok := AsInput(input, &inputNewPassword)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -394,7 +394,7 @@ type edgeFinishSignup struct{}
 
 func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
 	var inputFinishSignup InputFinishSignup
-	ok := Input(input, &inputFinishSignup)
+	ok := AsInput(input, &inputFinishSignup)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}

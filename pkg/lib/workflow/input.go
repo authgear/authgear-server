@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func Input(i interface{}, input interface{}) bool {
+func AsInput(i interface{}, input interface{}) bool {
 	if i == nil {
 		return false
 	}
