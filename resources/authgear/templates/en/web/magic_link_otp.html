@@ -9,13 +9,9 @@
 
 {{ if not (eq .StateQuery "matched") }}
   {{ if eq .StateQuery "" }}
-    <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
-      {{ template "magic-link-otp-initial-description" (dict "target" .Target) }}
-    </div>
+    <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">{{ template "magic-link-otp-initial-description" (dict "target" .Target) }}</div>
   {{ else if eq .StateQuery "invalid_code" }}
-    <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">
-      {{ template "magic-link-otp-invalid-code-description" }}
-    </div>
+    <div class="text-sm break-words primary-txt text-center whitespace-pre-wrap">{{ template "magic-link-otp-invalid-code-description" }}</div>
   {{ end }}
 
   <form id="dryrun-verify-form" class="hidden" method="post" action="{{ $.FormActionPath }}" novalidate>
