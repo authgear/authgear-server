@@ -60,6 +60,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -386,5 +387,9 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		featureweb3.DependencySet,
 		wire.Bind(new(user.Web3Service), new(*featureweb3.Service)),
+	),
+
+	wire.NewSet(
+		workflow.DependencySet,
 	),
 )

@@ -75,6 +75,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -51238,7 +51239,42 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
-	workflowNewHandler := &api.WorkflowNewHandler{}
+	appProvider := p.AppProvider
+	handle := appProvider.AppDatabase
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	request := p.Request
+	contextContext := deps.ProvideRequestContext(request)
+	dependencies := &workflow.Dependencies{}
+	serviceLogger := workflow.NewServiceLogger(factory)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	savePointImpl := &workflow.SavePointImpl{
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	storeImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	workflowService := &workflow.Service{
+		ContextDoNotUseDirectly: contextContext,
+		Deps:                    dependencies,
+		Logger:                  serviceLogger,
+		Savepoint:               savePointImpl,
+		Store:                   storeImpl,
+	}
+	workflowNewHandler := &api.WorkflowNewHandler{
+		Database:  handle,
+		JSON:      jsonResponseWriter,
+		Workflows: workflowService,
+	}
 	return workflowNewHandler
 }
 
