@@ -30,7 +30,7 @@ var SetupMagicLinkOTPEmailSchema = validation.NewSimpleSchema(`
 func ConfigureSetupMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/flows/setup_magic_link_otp")
+		WithPathPattern("/flows/setup_login_link_otp")
 }
 
 type SetupMagicLinkOTPNode interface {

@@ -26,7 +26,7 @@ var TemplateWebMagicLinkHTML = template.RegisterHTML(
 func ConfigureMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/flows/magic_link_otp")
+		WithPathPattern("/flows/login_link_otp")
 }
 
 type MagicLinkOTPNode interface {
