@@ -1,6 +1,6 @@
 ---
 name: Pitch
-about: Pitch
+about: A potential feature proposal. A complete Pitch must include the "Problem" and the "Solution".
 title: ''
 labels: pitch
 assignees: ''
