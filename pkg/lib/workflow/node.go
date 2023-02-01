@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -154,7 +155,12 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 
 	switch nodeJSON.Type {
 	case NodeTypeSimple:
-		nodeSimple := InstantiateNode(nodeJSON.Simple.Kind)
+		var nodeSimple NodeSimple
+		nodeSimple, err = InstantiateNode(nodeJSON.Simple.Kind)
+		if err != nil {
+			return
+		}
+
 		err = json.Unmarshal(nodeJSON.Simple.Data, nodeSimple)
 		if err != nil {
 			return
@@ -226,10 +232,10 @@ func RegisterNode(node NodeSimple) {
 	nodeRegistry[nodeKind] = factory
 }
 
-func InstantiateNode(kind string) NodeSimple {
+func InstantiateNode(kind string) (NodeSimple, error) {
 	factory, ok := nodeRegistry[kind]
 	if !ok {
-		panic("interaction: unknown node kind: " + kind)
+		return nil, fmt.Errorf("workflow: unknown node kind: %v", kind)
 	}
-	return factory()
+	return factory(), nil
 }

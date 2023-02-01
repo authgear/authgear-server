@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -26,12 +27,12 @@ func RegisterInput(input Input) {
 	inputRegistry[inputKind] = factory
 }
 
-func InstantiateInput(kind string) Input {
+func InstantiateInput(kind string) (Input, error) {
 	factory, ok := inputRegistry[kind]
 	if !ok {
-		panic("interaction: unknown input kind: " + kind)
+		return nil, fmt.Errorf("workflow: unknown input kind: %v", kind)
 	}
-	return factory()
+	return factory(), nil
 }
 
 func AsInput(i Input, iface interface{}) bool {

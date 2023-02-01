@@ -287,7 +287,11 @@ func (w *Workflow) UnmarshalJSON(d []byte) (err error) {
 		return
 	}
 
-	intent := InstantiateIntent(workflowJSON.Intent.Kind)
+	intent, err := InstantiateIntent(workflowJSON.Intent.Kind)
+	if err != nil {
+		return
+	}
+
 	err = json.Unmarshal(workflowJSON.Intent.Data, intent)
 	if err != nil {
 		return
