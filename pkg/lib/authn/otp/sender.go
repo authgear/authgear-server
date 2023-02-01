@@ -97,7 +97,11 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		spec = messageVerification
 		emailType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
-		spec = messageSetupPrimaryOOB
+		if opts.OTPMode == OTPModeMagicLink {
+			spec = messageSetupPrimaryMagicLink
+		} else {
+			spec = messageSetupPrimaryOOB
+		}
 		emailType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
 		if opts.OTPMode == OTPModeMagicLink {
@@ -107,7 +111,11 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		}
 		emailType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
-		spec = messageAuthenticatePrimaryOOB
+		if opts.OTPMode == OTPModeMagicLink {
+			spec = messageAuthenticatePrimaryMagicLink
+		} else {
+			spec = messageAuthenticatePrimaryOOB
+		}
 		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
 		if opts.OTPMode == OTPModeMagicLink {

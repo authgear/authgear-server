@@ -10,9 +10,11 @@
   "email.forgot-password.subject": "[{AppName}] 重設密碼指示",
   "email.verification.subject": "[{AppName}] 電郵地址驗證指示",
   "email.setup-primary-oob.subject": "登記 {AppName} ",
-  "email.setup-secondary-magic-link.subject": "登記 {AppName} ",
+  "email.setup-primary-magic-link.subject": "驗證於 {AppName} 的電子郵件",
   "email.setup-secondary-oob.subject": "登記 {AppName} ",
+  "email.setup-secondary-magic-link.subject": "驗證於 {AppName} 的電子郵件",
   "email.authenticate-primary-oob.subject": "登入 {AppName}",
+  "email.authenticate-primary-magic-link.subject": "登入 {AppName}",
   "email.authenticate-secondary-oob.subject": "登入 {AppName}",
   "email.authenticate-secondary-magic-link.subject": "登入 {AppName}",
 

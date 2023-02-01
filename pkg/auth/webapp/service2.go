@@ -312,7 +312,9 @@ func (s *Service2) doPost(
 				}
 			case *nodes.EdgeCreateAuthenticatorMagicLinkOTPSetup:
 				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
-					panic("webapp: using magic link as primary authenticator is not yet supported")
+					inputFn = func() (interface{}, error) {
+						return &inputSelectMagicLinkOTP{}, nil
+					}
 				} else {
 					session.Steps = append(session.Steps, NewSessionStep(
 						SessionStepSetupMagicLinkOTP,

@@ -10,9 +10,8 @@ type Spec struct {
 	IsDefault bool                    `json:"is_default,omitempty"`
 	Kind      Kind                    `json:"kind,omitempty"`
 
-	Password     *PasswordSpec     `json:"password,omitempty"`
-	Passkey      *PasskeySpec      `json:"passkey,omitempty"`
-	TOTP         *TOTPSpec         `json:"totp,omitempty"`
-	OOBOTP       *OOBOTPSpec       `json:"oobotp,omitempty"`
-	MagicLinkOTP *MagicLinkOTPSpec `json:"magiclinkotp,omitempty"`
+	Password *PasswordSpec `json:"password,omitempty"`
+	Passkey  *PasskeySpec  `json:"passkey,omitempty"`
+	TOTP     *TOTPSpec     `json:"totp,omitempty"`
+	OOBOTP   *OOBOTPSpec   `json:"oobotp,omitempty"`
 }

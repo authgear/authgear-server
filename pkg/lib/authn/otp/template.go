@@ -47,9 +47,15 @@ var (
 	TemplateMessageAuthenticatePrimaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_oob_email.txt")
 	TemplateMessageAuthenticatePrimaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_primary_oob_email.html")
 
+	TemplateMessageAuthenticatePrimaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_magic_link.txt")
+	TemplateMessageAuthenticatePrimaryMagicLinkEmailHTML = template.RegisterHTML("messages/authenticate_primary_magic_link.html")
+
 	TemplateMessageAuthenticateSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_secondary_oob_sms.txt")
 	TemplateMessageAuthenticateSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_oob_email.txt")
 	TemplateMessageAuthenticateSecondaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_secondary_oob_email.html")
+
+	TemplateMessageSetupPrimaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/setup_primary_magic_link.txt")
+	TemplateMessageSetupPrimaryMagicLinkEmailHTML = template.RegisterHTML("messages/setup_primary_magic_link.html")
 
 	TemplateMessageSetupSecondaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/setup_secondary_magic_link.txt")
 	TemplateMessageSetupSecondaryMagicLinkEmailHTML = template.RegisterHTML("messages/setup_secondary_magic_link.html")
@@ -71,6 +77,11 @@ var (
 		HTMLEmailTemplate: TemplateMessageSetupPrimaryOOBEmailHTML,
 		SMSTemplate:       TemplateMessageSetupPrimaryOOBSMSTXT,
 	}
+	messageSetupPrimaryMagicLink = &translation.MessageSpec{
+		Name:              "setup-primary-magic-link",
+		TXTEmailTemplate:  TemplateMessageSetupPrimaryMagicLinkEmailTXT,
+		HTMLEmailTemplate: TemplateMessageSetupPrimaryMagicLinkEmailHTML,
+	}
 	messageSetupSecondaryOOB = &translation.MessageSpec{
 		Name:              "setup-secondary-oob",
 		TXTEmailTemplate:  TemplateMessageSetupSecondaryOOBEmailTXT,
@@ -87,6 +98,11 @@ var (
 		TXTEmailTemplate:  TemplateMessageAuthenticatePrimaryOOBEmailTXT,
 		HTMLEmailTemplate: TemplateMessageAuthenticatePrimaryOOBEmailHTML,
 		SMSTemplate:       TemplateMessageAuthenticatePrimaryOOBSMSTXT,
+	}
+	messageAuthenticatePrimaryMagicLink = &translation.MessageSpec{
+		Name:              "authenticate-primary-magic-link",
+		TXTEmailTemplate:  TemplateMessageAuthenticatePrimaryMagicLinkEmailTXT,
+		HTMLEmailTemplate: TemplateMessageAuthenticatePrimaryMagicLinkEmailHTML,
 	}
 	messageAuthenticateSecondaryOOB = &translation.MessageSpec{
 		Name:              "authenticate-secondary-oob",

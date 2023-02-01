@@ -172,43 +172,41 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"secondary_email_otp_mode": { "$ref": "#/$defs/AuthenticatorSecondaryEmailOTPMode" },
-		"secondary_allow_unverified": { "type": "boolean" }
+		"email_otp_mode": { "$ref": "#/$defs/AuthenticatorEmailOTPMode" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum                  *int                               `json:"maximum,omitempty"`
-	SecondaryEmailOTPMode    AuthenticatorSecondaryEmailOTPMode `json:"secondary_email_otp_mode,omitempty"`
-	SecondaryAllowUnverified bool                               `json:"secondary_allow_unverified,omitempty"`
+	Maximum      *int                      `json:"maximum,omitempty"`
+	EmailOTPMode AuthenticatorEmailOTPMode `json:"email_otp_mode,omitempty"`
 }
 
-var _ = Schema.Add("AuthenticatorSecondaryEmailOTPMode", `
+var _ = Schema.Add("AuthenticatorEmailOTPMode", `
 {
 	"type": "string",
 	"enum": ["code", "magic_link"]
 }
 `)
 
-type AuthenticatorSecondaryEmailOTPMode string
+type AuthenticatorEmailOTPMode string
 
 const (
-	AuthenticatorSecondaryEmailOTPModeCodeOnly      AuthenticatorSecondaryEmailOTPMode = "code"
-	AuthenticatorSecondaryEmailOTPModeMagicLinkOnly AuthenticatorSecondaryEmailOTPMode = "magic_link"
+	AuthenticatorEmailOTPModeCodeOnly      AuthenticatorEmailOTPMode = "code"
+	AuthenticatorEmailOTPModeMagicLinkOnly AuthenticatorEmailOTPMode = "magic_link"
 )
 
-func (m *AuthenticatorSecondaryEmailOTPMode) IsCodeEnabled() bool {
-	return *m == AuthenticatorSecondaryEmailOTPModeCodeOnly
+func (m *AuthenticatorEmailOTPMode) IsCodeEnabled() bool {
+	return *m == AuthenticatorEmailOTPModeCodeOnly
 }
 
-func (m *AuthenticatorSecondaryEmailOTPMode) IsSecondaryMagicLinkEnabled() bool {
-	return *m == AuthenticatorSecondaryEmailOTPModeMagicLinkOnly
+func (m *AuthenticatorEmailOTPMode) IsMagicLinkEnabled() bool {
+	return *m == AuthenticatorEmailOTPModeMagicLinkOnly
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
-	if c.SecondaryEmailOTPMode == "" {
-		c.SecondaryEmailOTPMode = AuthenticatorSecondaryEmailOTPModeCodeOnly
+	if c.EmailOTPMode == "" {
+		c.EmailOTPMode = AuthenticatorEmailOTPModeCodeOnly
 	}
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)

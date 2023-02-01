@@ -4,9 +4,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
@@ -37,28 +39,70 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) AuthenticatorType() model.Aut
 }
 
 func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var userID string
-	var input InputCreateAuthenticatorMagicLinkOTPSetup
+	var target string
 	if e.Stage == authn.AuthenticationStagePrimary {
-		panic("Magic link as primary authenticator is not yet supported")
+		var input InputCreateAuthenticatorMagicLinkOTPSetupSelect
+		matchedInput := interaction.Input(rawInput, &input)
+		if !matchedInput && !interaction.IsAdminAPI(rawInput) {
+			return nil, interaction.ErrIncompatibleInput
+		}
+		identityInfo := graph.MustGetUserLastIdentity()
+		target = identityInfo.LoginID.LoginID
 	} else {
+		var input InputCreateAuthenticatorMagicLinkOTPSetup
 		if !interaction.Input(rawInput, &input) {
 			return nil, interaction.ErrIncompatibleInput
 		}
-		userID = graph.MustGetUserID()
+		target = input.GetMagicLinkOTPTarget()
 	}
-	spec := &authenticator.Spec{
-		UserID:    userID,
-		IsDefault: e.IsDefault,
-		Kind:      stageToAuthenticatorKind(e.Stage),
-		Type:      e.AuthenticatorType(),
-		OOBOTP: &authenticator.OOBOTPSpec{
-			Email: input.GetMagicLinkOTPTarget(),
-		},
-		MagicLinkOTP: &authenticator.MagicLinkOTPSpec{
-			Email: input.GetMagicLinkOTPTarget(),
-		},
+
+	// Validate target against channel
+	validationCtx := &validation.Context{}
+	err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
+	if err != nil {
+		validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 	}
+
+	err = validationCtx.Error("invalid target")
+	if err != nil {
+		return nil, err
+	}
+
+	var spec *authenticator.Spec
+	var identityInfo *identity.Info
+	if e.Stage == authn.AuthenticationStagePrimary {
+		// Primary OOB authenticators must be bound to login ID identity
+		identityInfo = graph.MustGetUserLastIdentity()
+		if identityInfo.Type != model.IdentityTypeLoginID {
+			panic("interaction: OOB authenticator identity must be login ID")
+		}
+
+		spec = &authenticator.Spec{
+			UserID:    identityInfo.UserID,
+			IsDefault: e.IsDefault,
+			Kind:      stageToAuthenticatorKind(e.Stage),
+			Type:      model.AuthenticatorTypeOOBEmail,
+			OOBOTP:    &authenticator.OOBOTPSpec{},
+		}
+	} else {
+		userID := graph.MustGetUserID()
+		spec = &authenticator.Spec{
+			UserID:    userID,
+			IsDefault: e.IsDefault,
+			Kind:      stageToAuthenticatorKind(e.Stage),
+			Type:      model.AuthenticatorTypeOOBEmail,
+			OOBOTP:    &authenticator.OOBOTPSpec{},
+		}
+
+		// Normalize the target.
+		var err error
+		target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	spec.OOBOTP.Email = target
 
 	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
 	if err != nil {
@@ -96,7 +140,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		Stage:         e.Stage,
 		Authenticator: info,
 		MagicLinkOTP:  result.Code,
-		Target:        input.GetMagicLinkOTPTarget(),
+		Target:        target,
 		Channel:       result.Channel,
 	}, nil
 }
