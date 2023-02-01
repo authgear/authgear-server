@@ -255,21 +255,18 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	return
 }
 
-// ResetPassword consumes code and reset password to newPassword.
+// CheckResetPasswordCode check whether the code is valid.
 // If the code is invalid, ErrInvalidCode is returned.
 // If the code is found but expired, ErrExpiredCode is returned.
 // if the code is found but used, ErrUsedCode is returned.
-// Otherwise, the password is reset to newPassword.
-// newPassword is checked against the password policy so
-// password policy error may also be returned.
-func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (err error) {
+func (p *Provider) checkResetPasswordCode(codeStr string) (code *Code, err error) {
 	err = p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
 	if err != nil {
 		return
 	}
 
 	codeHash := HashCode(codeStr)
-	code, err := p.Store.Get(codeHash)
+	code, err = p.Store.Get(codeHash)
 	if err != nil {
 		return
 	}
@@ -284,17 +281,35 @@ func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (err 
 		return
 	}
 
+	return
+}
+
+func (p *Provider) CheckResetPasswordCode(codeStr string) error {
+	_, err := p.checkResetPasswordCode(codeStr)
+	return err
+}
+
+// ResetPassword consumes code and reset password to newPassword.
+// If the code is valid, the password is reset to newPassword.
+// newPassword is checked against the password policy so
+// password policy error may also be returned.
+func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) error {
+	code, err := p.checkResetPasswordCode(codeStr)
+	if err != nil {
+		return err
+	}
+
 	err = p.ResetPassword(code.UserID, newPassword)
 	if err != nil {
-		return
+		return err
 	}
 
-	err = p.Store.MarkConsumed(codeHash)
+	err = p.Store.MarkConsumed(code.CodeHash)
 	if err != nil {
-		return
+		return err
 	}
 
-	return
+	return nil
 }
 
 // ResetPassword ensures the user identified by userID has a password.

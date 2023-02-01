@@ -29911,6 +29911,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		PasswordPolicy:    passwordChecker,
+		ResetPassword:     forgotpasswordProvider,
 	}
 	return resetPasswordHandler
 }
