@@ -9,9 +9,12 @@ Examples of workflows are authentication, adding a new identity, verifying an em
 
 The core of a workflow is its intent.
 The intent controls how the workflow proceeds.
+To instantiate an intent, one must know the kind of the intent.
 
 ```golang
-type Intent interface {}
+type Intent interface {
+    Kind() string
+}
 
 type Workflow struct {
     Intent Intent
@@ -64,11 +67,12 @@ type Edge interface {
 }
 
 type Intent interface {
-	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
+    Kind() string
+    DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
 }
 
 type NodeSimple interface {
-	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
+    DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
 }
 ```
 
@@ -91,8 +95,9 @@ There are 2 kinds of effects, namely run-effect and on-commit effects.
 
 ```golang
 type Intent interface {
-	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
-	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
+    Kind() string
+    DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
+    GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 }
 
 type NodeSimple interface {

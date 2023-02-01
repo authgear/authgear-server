@@ -11,6 +11,10 @@ type intentAuthenticate struct {
 	PretendLoginIDExists bool
 }
 
+func (*intentAuthenticate) Kind() string {
+	return "intentAuthenticate"
+}
+
 func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -71,6 +75,10 @@ type intentLogin struct {
 	LoginID string
 }
 
+func (*intentLogin) Kind() string {
+	return "intentLogin"
+}
+
 func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -85,6 +93,10 @@ func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workfl
 
 type intentSignup struct {
 	LoginID string
+}
+
+func (*intentSignup) Kind() string {
+	return "intentSignup"
 }
 
 func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -138,6 +150,10 @@ type InputAddLoginIDFlow interface {
 
 type intentAddLoginID struct {
 	LoginID string
+}
+
+func (*intentAddLoginID) Kind() string {
+	return "intentAddLoginID"
 }
 
 func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -307,6 +323,10 @@ func (i *inputNewPassword) GetNewPassword() string {
 
 type intentCreatePassword struct{}
 
+func (*intentCreatePassword) Kind() string {
+	return "intentCreatePassword"
+}
+
 func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -379,6 +399,10 @@ type inputFinishSignup struct{}
 func (*inputFinishSignup) FinishSignup() {}
 
 type intentFinishSignup struct{}
+
+func (*intentFinishSignup) Kind() string {
+	return "intentFinishSignup"
+}
 
 func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil

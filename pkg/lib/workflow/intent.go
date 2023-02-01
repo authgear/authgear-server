@@ -7,6 +7,7 @@ import (
 )
 
 type Intent interface {
+	Kind() string
 	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
@@ -29,7 +30,7 @@ var intentRegistry = map[string]IntentFactory{}
 func RegisterIntent(intent Intent) {
 	intentType := reflect.TypeOf(intent).Elem()
 
-	intentKind := intentType.Name()
+	intentKind := intent.Kind()
 	factory := IntentFactory(func() Intent {
 		return reflect.New(intentType).Interface().(Intent)
 	})
@@ -38,11 +39,6 @@ func RegisterIntent(intent Intent) {
 		panic("interaction: duplicated intent kind: " + intentKind)
 	}
 	intentRegistry[intentKind] = factory
-}
-
-func IntentKind(intent Intent) string {
-	intentType := reflect.TypeOf(intent).Elem()
-	return intentType.Name()
 }
 
 func InstantiateIntent(kind string) Intent {

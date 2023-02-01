@@ -185,6 +185,10 @@ func TestService(t *testing.T) {
 
 type intentServiceContext struct{}
 
+func (*intentServiceContext) Kind() string {
+	return "intentServiceContext"
+}
+
 func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }

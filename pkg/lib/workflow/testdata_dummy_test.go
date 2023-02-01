@@ -15,6 +15,10 @@ type testMarshalIntent0 struct {
 	Intent0 string
 }
 
+func (*testMarshalIntent0) Kind() string {
+	return "testMarshalIntent0"
+}
+
 func (*testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -31,6 +35,10 @@ func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies,
 
 type testMarshalIntent1 struct {
 	Intent1 string
+}
+
+func (*testMarshalIntent1) Kind() string {
+	return "testMarshalIntent1"
 }
 
 func (*testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {

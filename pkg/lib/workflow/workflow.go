@@ -264,7 +264,7 @@ func (w *Workflow) MarshalJSON() ([]byte, error) {
 	}
 
 	intentJSON := intentJSON{
-		Kind: IntentKind(w.Intent),
+		Kind: w.Intent.Kind(),
 		Data: intentBytes,
 	}
 
@@ -311,7 +311,7 @@ func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies) (*WorkflowO
 		return nil, err
 	}
 	output.Intent = IntentOutput{
-		Kind: IntentKind(w.Intent),
+		Kind: w.Intent.Kind(),
 		Data: intentOutputData,
 	}
 
