@@ -34,7 +34,7 @@ func NewIdentityUnverifiedEventPayload(
 }
 
 func (e *IdentityUnverifiedEventPayload) NonBlockingEventType() event.Type {
-	return event.Type(fmt.Sprintf(IdentityVerifiedFormat, e.ClaimName))
+	return event.Type(fmt.Sprintf(IdentityUnverifiedFormat, e.ClaimName))
 }
 
 func (e *IdentityUnverifiedEventPayload) UserID() string {
