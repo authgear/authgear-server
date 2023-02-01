@@ -872,7 +872,7 @@
   "AuthenticatorType.secondary.password": "Additional Password",
 
   "AuthenticatorEmailOTPMode.code": "One-time password",
-  "AuthenticatorEmailOTPMode.magic_link": "Login link",
+  "AuthenticatorEmailOTPMode.login_link": "Login link",
 
   "AuthenticatorPhoneOTPMode.whatsapp_sms": "WhatsApp or SMS",
   "AuthenticatorPhoneOTPMode.sms": "SMS only",

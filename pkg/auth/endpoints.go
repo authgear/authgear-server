@@ -63,5 +63,5 @@ func (p *EndpointsProvider) WeChatCallbackEndpointURL() *url.URL {
 }
 
 func (p *EndpointsProvider) MagicLinkVerificationEndpointURL() *url.URL {
-	return p.urlOf("flows/verify_magic_link")
+	return p.urlOf("flows/verify_login_link")
 }
