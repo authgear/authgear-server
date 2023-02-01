@@ -38,6 +38,8 @@
       - [WebAuthn Authenticator](#webauthn-authenticator)
       - [TOTP Authenticator](#totp-authenticator)
       - [OOB-OTP Authenticator](#oob-otp-authenticator)
+        - [Login Link](#login-link)
+    + [Skip verification](#skip-verification)
     + [Device Token](#device-token)
     + [Recovery Code](#recovery-code)
   * [Deleting a user](#deleting-a-user)
@@ -288,7 +290,7 @@ For example, signing in with OAuth does not require secondary authentication bec
 no primary authenticator is used.
 
 When an identity is removed, all matching authenticators are also removed. For
-example, removing a login ID identity would also remove the OOB-OTP 
+example, removing a login ID identity would also remove the OOB-OTP
 authenticators using same login ID as target.
 
 ### Primary Authenticator
@@ -354,7 +356,7 @@ Primary OOB-OTP authenticator requires secondary authentication.
 A primary OOB-OTP authenticator is associated with a login ID identity.
 When the associated identity is deleted, the authenticator is deleted as well.
 
-The OTP is a numeric code. The number of digits can be customized in the 
+The OTP is a numeric code. The number of digits can be customized in the
 configuration.
 
 ```yaml
@@ -374,6 +376,24 @@ Users may have multiple OOB-OTP authenticators. In this case, user may select
 which OOB-OTP authenticator to use when performing authentication. However, a
 limit on the maximum amount of secondary OOB-OTP authenticators may be set in
 the configuration.
+
+##### Login Link
+
+Login link is a sub-category under OOB-OTP authenticator. User receives a link instead of OTP code, which authenticates user on visit.
+
+```yaml
+authentication:
+  oob_otp:
+    email:
+      email_otp_mode: "login_link" # default "code"
+
+verification:
+  code_expiry_seconds: 3600
+```
+
+The login link message is rendered by a [customizable template](./templates.md#oob_magic_link).
+
+Unlike other OTP modes, login link can be opened on another device. Login will proceed on original device upon approval success.
 
 ### Device Token
 
@@ -408,7 +428,7 @@ the admin can delete a user on the portal.
 
 ## Anonymizing a user
 
-Anonymizing a user is similar to deleting a user. 
+Anonymizing a user is similar to deleting a user.
 Except for the user record, all data including identities,
 authenticators, sessions, etc will be deleted from the database.
 All the standard and custom attributes of the user will be cleared.
