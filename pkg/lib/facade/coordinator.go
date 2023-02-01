@@ -48,8 +48,10 @@ type AuthenticatorService interface {
 }
 
 type VerificationService interface {
+	GetClaims(userID string) ([]*verification.Claim, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
+	DeleteClaim(claim *verification.Claim) error
 	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
 	ResetVerificationStatus(userID string) error
 }
@@ -839,6 +841,88 @@ func (c *Coordinator) UserCheckAnonymized(userID string) error {
 
 	if u.IsAnonymized {
 		return ErrUserIsAnonymized
+	}
+
+	return nil
+}
+
+func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error {
+	is, err := c.IdentityListByClaim(claim.Name, claim.Value)
+	if err != nil {
+		return err
+	}
+
+	var userIdentity *identity.Info
+	for _, i := range is {
+		if i.UserID == claim.UserID {
+			userIdentity = i
+			break
+		}
+	}
+	if userIdentity == nil {
+		return identity.ErrIdentityNotFound
+	}
+
+	if err := c.Verification.MarkClaimVerified(claim); err != nil {
+		return err
+	}
+
+	user := model.UserRef{
+		Meta: model.Meta{
+			ID: claim.UserID,
+		},
+	}
+	e := nonblocking.NewIdentityVerifiedEventPayload(
+		user,
+		userIdentity.ToModel(),
+		claim.Name,
+		true,
+	)
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) error {
+	is, err := c.IdentityListByClaim(claim.Name, claim.Value)
+	if err != nil {
+		return err
+	}
+
+	var userIdentity *identity.Info
+	for _, i := range is {
+		if i.UserID == claim.UserID {
+			userIdentity = i
+			break
+		}
+	}
+	if userIdentity == nil {
+		return identity.ErrIdentityNotFound
+	}
+
+	if err := c.Verification.DeleteClaim(claim); err != nil {
+		return err
+	}
+
+	user := model.UserRef{
+		Meta: model.Meta{
+			ID: claim.UserID,
+		},
+	}
+	e := nonblocking.NewIdentityUnverifiedEventPayload(
+		user,
+		userIdentity.ToModel(),
+		claim.Name,
+		true,
+	)
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
 	}
 
 	return nil

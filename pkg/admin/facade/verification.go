@@ -9,7 +9,7 @@ type VerificationService interface {
 	GetClaims(userID string) ([]*verification.Claim, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
-	DeleteClaim(claimID string) error
+	DeleteClaim(claim *verification.Claim) error
 }
 
 type VerificationFacade struct {
@@ -64,7 +64,7 @@ func (f *VerificationFacade) SetVerified(userID string, claimName string, claimV
 			return nil
 		}
 
-		err = f.Verification.DeleteClaim(claim.ID)
+		err = f.Verification.DeleteClaim(claim)
 		if err != nil {
 			return err
 		}

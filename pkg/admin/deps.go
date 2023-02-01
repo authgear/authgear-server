@@ -22,7 +22,6 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -56,7 +55,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
-	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
+	wire.Bind(new(facade.VerificationService), new(*libfacade.AdminVerificationFacade)),
 	wire.Bind(new(facade.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 	wire.Bind(new(facade.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
