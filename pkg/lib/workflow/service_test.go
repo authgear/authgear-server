@@ -218,6 +218,10 @@ type nodeServiceContext struct {
 	ClientID string
 }
 
+func (*nodeServiceContext) Kind() string {
+	return "nodeServiceContext"
+}
+
 func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	return nil, nil
 }

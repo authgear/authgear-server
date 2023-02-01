@@ -192,6 +192,10 @@ type nodeVerifyLoginID struct {
 	OTP     string
 }
 
+func (*nodeVerifyLoginID) Kind() string {
+	return "nodeVerifyLoginID"
+}
+
 func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	return nil, nil
 }
@@ -247,6 +251,10 @@ func (i *inputOTP) GetOTP() string {
 
 type nodeLoginIDVerified struct {
 	LoginID string
+}
+
+func (*nodeLoginIDVerified) Kind() string {
+	return "nodeLoginIDVerified"
 }
 
 func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
@@ -363,6 +371,10 @@ func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *De
 
 type nodeCreatePassword struct {
 	HashedNewPassword string
+}
+
+func (*nodeCreatePassword) Kind() string {
+	return "nodeCreatePassword"
 }
 
 func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {

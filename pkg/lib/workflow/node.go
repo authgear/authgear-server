@@ -128,7 +128,7 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 		}
 
 		nodeSimpleJSON := nodeSimpleJSON{
-			Kind: NodeKind(n.Simple),
+			Kind: n.Simple.Kind(),
 			Data: nodeSimpleBytes,
 		}
 		nodeJSON.Simple = &nodeSimpleJSON
@@ -181,7 +181,7 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, e
 			return nil, err
 		}
 		output.Simple = &NodeSimpleOutput{
-			Kind: NodeKind(n.Simple),
+			Kind: n.Simple.Kind(),
 			Data: nodeSimpleData,
 		}
 		return output, nil
@@ -198,6 +198,7 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, e
 }
 
 type NodeSimple interface {
+	Kind() string
 	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
 	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies) (interface{}, error)
@@ -214,7 +215,7 @@ var nodeRegistry = map[string]NodeFactory{}
 func RegisterNode(node NodeSimple) {
 	nodeType := reflect.TypeOf(node).Elem()
 
-	nodeKind := nodeType.Name()
+	nodeKind := node.Kind()
 	factory := NodeFactory(func() NodeSimple {
 		return reflect.New(nodeType).Interface().(NodeSimple)
 	})
@@ -223,11 +224,6 @@ func RegisterNode(node NodeSimple) {
 		panic("interaction: duplicated node kind: " + nodeKind)
 	}
 	nodeRegistry[nodeKind] = factory
-}
-
-func NodeKind(node NodeSimple) string {
-	nodeType := reflect.TypeOf(node).Elem()
-	return nodeType.Name()
 }
 
 func InstantiateNode(kind string) NodeSimple {

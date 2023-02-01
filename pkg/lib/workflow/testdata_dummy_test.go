@@ -59,6 +59,10 @@ type testMarshalNode0 struct {
 	Node0 string
 }
 
+func (*testMarshalNode0) Kind() string {
+	return "testMarshalNode0"
+}
+
 func (*testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	return nil, nil
 }
@@ -75,6 +79,10 @@ func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies) (
 
 type testMarshalNode1 struct {
 	Node1 string
+}
+
+func (*testMarshalNode1) Kind() string {
+	return "testMarshalNode1"
 }
 
 func (*testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
