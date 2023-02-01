@@ -205,7 +205,7 @@ type NodeSimple interface {
 }
 
 type Edge interface {
-	Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error)
+	Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
 }
 
 type NodeFactory func() NodeSimple

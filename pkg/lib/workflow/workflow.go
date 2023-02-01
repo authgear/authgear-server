@@ -39,7 +39,7 @@ func NewWorkflow(workflowID string, intent Intent) *Workflow {
 // Accept executes the workflow to the deepest using input.
 // In addition to the errors caused by intent, nodes and edges,
 // ErrEOF and ErrNoChange can be returned.
-func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input interface{}) (err error) {
+func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) (err error) {
 	var workflowForTheEdges *Workflow
 	var edges []Edge
 

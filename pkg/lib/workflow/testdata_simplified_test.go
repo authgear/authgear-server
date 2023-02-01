@@ -39,7 +39,7 @@ type edgeTakeLoginID struct {
 	PretendLoginIDExists bool
 }
 
-func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
 	ok := AsInput(input, &inputLoginID)
 	if !ok {
@@ -63,6 +63,10 @@ type InputLoginID interface {
 
 type inputLoginID struct {
 	LoginID string
+}
+
+func (*inputLoginID) Kind() string {
+	return "inputLoginID"
 }
 
 func (i *inputLoginID) GetLoginID() string {
@@ -132,7 +136,7 @@ type edgeAddLoginIDFlow struct {
 	LoginID string
 }
 
-func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputAddLoginIDFlow InputAddLoginIDFlow
 	ok := AsInput(input, &inputAddLoginIDFlow)
 	if !ok {
@@ -180,7 +184,7 @@ type edgeVerifyLoginID struct {
 	LoginID string
 }
 
-func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	return NewNodeSimple(&nodeVerifyLoginID{
 		LoginID: e.LoginID,
 		OTP:     "123456",
@@ -221,7 +225,7 @@ type edgeVerifyOTP struct {
 	OTP     string
 }
 
-func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var otpInput InputOTP
 	ok := AsInput(input, &otpInput)
 	if !ok {
@@ -243,6 +247,10 @@ type InputOTP interface {
 
 type inputOTP struct {
 	OTP string
+}
+
+func (*inputOTP) Kind() string {
+	return "inputOTP"
 }
 
 func (i *inputOTP) GetOTP() string {
@@ -275,7 +283,7 @@ type edgeResendOTP struct {
 	LoginID string
 }
 
-func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var resendInput InputResendOTP
 	ok := AsInput(input, &resendInput)
 	if !ok {
@@ -294,11 +302,15 @@ type InputResendOTP interface {
 
 type inputResendOTP struct{}
 
+func (*inputResendOTP) Kind() string {
+	return "inputResendOTP"
+}
+
 func (*inputResendOTP) ResendOTP() {}
 
 type edgeCreatePasswordFlow struct{}
 
-func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var passwordInput InputCreatePasswordFlow
 	ok := AsInput(input, &passwordInput)
 	if !ok {
@@ -315,6 +327,10 @@ type InputCreatePasswordFlow interface {
 
 type inputCreatePasswordFlow struct{}
 
+func (*inputCreatePasswordFlow) Kind() string {
+	return "inputCreatePasswordFlow"
+}
+
 func (i *inputCreatePasswordFlow) CreatePassword() {}
 
 type InputNewPassword interface {
@@ -323,6 +339,10 @@ type InputNewPassword interface {
 
 type inputNewPassword struct {
 	NewPassword string
+}
+
+func (*inputNewPassword) Kind() string {
+	return "inputNewPassword"
 }
 
 func (i *inputNewPassword) GetNewPassword() string {
@@ -355,7 +375,7 @@ func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies,
 
 type edgeCheckPasswordAgainstPolicy struct{}
 
-func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 
 	var inputNewPassword InputNewPassword
 	ok := AsInput(input, &inputNewPassword)
@@ -392,7 +412,7 @@ func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies) (
 
 type edgeFinishSignup struct{}
 
-func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputFinishSignup InputFinishSignup
 	ok := AsInput(input, &inputFinishSignup)
 	if !ok {
@@ -407,6 +427,10 @@ type InputFinishSignup interface {
 }
 
 type inputFinishSignup struct{}
+
+func (*inputFinishSignup) Kind() string {
+	return "inputFinishSignup"
+}
 
 func (*inputFinishSignup) FinishSignup() {}
 

@@ -106,7 +106,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 	return
 }
 
-func (s *Service) FeedInput(workflowID string, instanceID string, input interface{}) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (output *ServiceOutput, err error) {
 	session, err := s.Store.GetSession(workflowID)
 	if err != nil {
 		return
@@ -154,7 +154,7 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input interfac
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, instanceID string, input interface{}) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) feedInput(ctx context.Context, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 

@@ -208,7 +208,7 @@ func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies,
 
 type edgeServiceContext struct{}
 
-func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	return NewNodeSimple(&nodeServiceContext{
 		ClientID: GetClientID(ctx),
 	}), nil
