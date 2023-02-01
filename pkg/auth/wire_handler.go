@@ -566,3 +566,24 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerwebapp.MissingWeb3WalletHandler)),
 	))
 }
+
+func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.WorkflowNewHandler)),
+	))
+}
+
+func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.WorkflowGetHandler)),
+	))
+}
+
+func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.WorkflowInputHandler)),
+	))
+}

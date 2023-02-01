@@ -51237,6 +51237,21 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	return missingWeb3WalletHandler
 }
 
+func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
+	workflowNewHandler := &api.WorkflowNewHandler{}
+	return workflowNewHandler
+}
+
+func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
+	workflowGetHandler := &api.WorkflowGetHandler{}
+	return workflowGetHandler
+}
+
+func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
+	workflowInputHandler := &api.WorkflowInputHandler{}
+	return workflowInputHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {

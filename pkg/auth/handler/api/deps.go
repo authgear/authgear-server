@@ -11,4 +11,8 @@ var DependencySet = wire.NewSet(
 	NewAnonymousUserPromotionCodeAPILogger,
 	wire.Struct(new(PresignImagesUploadHandler), "*"),
 	NewPresignImagesUploadHandlerLogger,
+
+	wire.Struct(new(WorkflowNewHandler), "*"),
+	wire.Struct(new(WorkflowGetHandler), "*"),
+	wire.Struct(new(WorkflowInputHandler), "*"),
 )
