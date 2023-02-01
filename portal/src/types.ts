@@ -189,6 +189,7 @@ export interface AuthenticatorOOBConfig {
 
 export interface AuthenticatorOOBEmailConfig {
   maximum?: number;
+  email_otp_mode?: AuthenticatorEmailOTPMode;
 }
 
 export interface AuthenticatorOOBSMSConfig {
@@ -283,6 +284,10 @@ export interface VerificationClaimsConfig {
 
 export const verificationCriteriaList = ["any", "all"] as const;
 export type VerificationCriteria = typeof verificationCriteriaList[number];
+
+export const authenticatorEmailOTPModeList = ["code", "magic_link"] as const;
+export type AuthenticatorEmailOTPMode =
+  typeof authenticatorEmailOTPModeList[number];
 
 export const authenticatorPhoneOTPModeList = [
   "sms",
