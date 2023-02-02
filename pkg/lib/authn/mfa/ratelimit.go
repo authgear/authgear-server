@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-func AutiBruteForceRecoveryCodeBucket(userID string) ratelimit.Bucket {
+func AntiBruteForceRecoveryCodeBucket(userID string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("auth-recovery-code:%s", userID),
 		Size:        10,
