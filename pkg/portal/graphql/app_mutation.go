@@ -81,6 +81,15 @@ var oauthClientSecretsCleanupDataInput = graphql.NewInputObject(graphql.InputObj
 	},
 })
 
+var adminAPIAuthKeyDeleteDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminAPIAuthKeyDeleteDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"keyID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
 var smtpSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SmtpSecretUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -120,6 +129,18 @@ var oauthClientSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.I
 	},
 })
 
+var adminAPIAuthKeyUpdateInstructionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "AdminAPIAuthKeyUpdateInstructionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"deleteData": &graphql.InputObjectFieldConfig{
+			Type: adminAPIAuthKeyDeleteDataInput,
+		},
+	},
+})
+
 var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -131,6 +152,9 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"oauthClientSecrets": &graphql.InputObjectFieldConfig{
 			Type: oauthClientSecretsUpdateInstructionsInput,
+		},
+		"adminAPIAuthKey": &graphql.InputObjectFieldConfig{
+			Type: adminAPIAuthKeyUpdateInstructionInput,
 		},
 	},
 })

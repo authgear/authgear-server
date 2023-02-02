@@ -34,6 +34,15 @@ export type AcceptCollaboratorInvitationPayload = {
   app: App;
 };
 
+export type AdminApiAuthKeyDeleteDataInput = {
+  keyID: Scalars['String'];
+};
+
+export type AdminApiAuthKeyUpdateInstructionInput = {
+  action: Scalars['String'];
+  deleteData?: InputMaybe<AdminApiAuthKeyDeleteDataInput>;
+};
+
 /** Admin API secret */
 export type AdminApiSecret = {
   __typename?: 'AdminAPISecret';
@@ -614,6 +623,7 @@ export type SecretConfig = {
 };
 
 export type SecretConfigUpdateInstructionsInput = {
+  adminAPIAuthKey?: InputMaybe<AdminApiAuthKeyUpdateInstructionInput>;
   oauthClientSecrets?: InputMaybe<OAuthClientSecretsUpdateInstructionsInput>;
   oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;

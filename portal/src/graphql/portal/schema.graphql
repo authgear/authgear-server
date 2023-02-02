@@ -10,6 +10,21 @@ type AcceptCollaboratorInvitationPayload {
   app: App!
 }
 
+""""""
+input AdminAPIAuthKeyDeleteDataInput {
+  """"""
+  keyID: String!
+}
+
+""""""
+input AdminAPIAuthKeyUpdateInstructionInput {
+  """"""
+  action: String!
+
+  """"""
+  deleteData: AdminAPIAuthKeyDeleteDataInput
+}
+
 """Admin API secret"""
 type AdminAPISecret {
   """"""
@@ -687,6 +702,9 @@ type SecretConfig {
 
 """"""
 input SecretConfigUpdateInstructionsInput {
+  """"""
+  adminAPIAuthKey: AdminAPIAuthKeyUpdateInstructionInput
+
   """"""
   oauthClientSecrets: OAuthClientSecretsUpdateInstructionsInput
 
