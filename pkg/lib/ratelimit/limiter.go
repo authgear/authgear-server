@@ -105,6 +105,20 @@ func (l *Limiter) CheckToken(bucket Bucket) (pass bool, resetDuration time.Durat
 	return
 }
 
+// RequireToken requires the bucket to have at least one token
+func (l *Limiter) RequireToken(bucket Bucket) error {
+	pass, _, err := l.CheckToken(bucket)
+	if err != nil {
+		return err
+	}
+
+	if !pass {
+		return bucket.BucketError()
+	}
+
+	return nil
+}
+
 func (l *Limiter) ClearBucket(bucket Bucket) error {
 	return l.Storage.WithConn(func(conn StorageConn) error {
 		now := l.Clock.NowUTC()
