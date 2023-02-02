@@ -119,19 +119,19 @@ func (m *MockAppSessionTokenService) EXPECT() *MockAppSessionTokenServiceMockRec
 	return m.recorder
 }
 
-// Handle mocks base method.
-func (m *MockAppSessionTokenService) Handle(input oauth.AppSessionTokenInput) (httputil.Result, error) {
+// Exchange mocks base method.
+func (m *MockAppSessionTokenService) Exchange(appSessionToken string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Handle", input)
-	ret0, _ := ret[0].(httputil.Result)
+	ret := m.ctrl.Call(m, "Exchange", appSessionToken)
+	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Handle indicates an expected call of Handle.
-func (mr *MockAppSessionTokenServiceMockRecorder) Handle(input interface{}) *gomock.Call {
+// Exchange indicates an expected call of Exchange.
+func (mr *MockAppSessionTokenServiceMockRecorder) Exchange(appSessionToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Handle", reflect.TypeOf((*MockAppSessionTokenService)(nil).Handle), input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exchange", reflect.TypeOf((*MockAppSessionTokenService)(nil).Exchange), appSessionToken)
 }
 
 // MockAuthenticationInfoService is a mock of AuthenticationInfoService interface.

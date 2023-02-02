@@ -538,13 +538,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clock,
 		IDPSessions: idpsessionProvider,
 	}
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
 		OfflineGrants:       redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
-		Cookies:             cookieManager,
 		Clock:               clock,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -552,6 +550,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,
@@ -1016,13 +1015,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 		IDPSessions: idpsessionProvider,
 	}
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
 		OfflineGrants:       redisStore,
 		OfflineGrantService: oauthOfflineGrantService,
-		Cookies:             cookieManager,
 		Clock:               clockClock,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
@@ -1030,6 +1027,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
 		Redis:   appredisHandle,

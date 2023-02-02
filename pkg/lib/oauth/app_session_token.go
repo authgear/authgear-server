@@ -1,12 +1,9 @@
 package oauth
 
 import (
-	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type AppSessionToken struct {
@@ -22,38 +19,15 @@ type AppSessionTokenServiceOfflineGrantService interface {
 	IsValid(session *OfflineGrant) (valid bool, expiry time.Time, err error)
 }
 
-type AppSessionTokenServiceCookieManager interface {
-	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
-}
-
-type AppSessionTokenInput struct {
-	AppSessionToken string
-	RedirectURI     string
-}
-
 type AppSessionTokenService struct {
 	AppSessions         AppSessionStore
 	AppSessionTokens    AppSessionTokenStore
 	OfflineGrants       OfflineGrantStore
 	OfflineGrantService AppSessionTokenServiceOfflineGrantService
-	Cookies             AppSessionTokenServiceCookieManager
 	Clock               clock.Clock
 }
 
-func (s *AppSessionTokenService) Handle(input AppSessionTokenInput) (httputil.Result, error) {
-	token, err := s.exchange(input.AppSessionToken)
-	if err != nil {
-		return nil, err
-	}
-
-	cookie := s.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token)
-	return &httputil.ResultRedirect{
-		Cookies: []*http.Cookie{cookie},
-		URL:     input.RedirectURI,
-	}, nil
-}
-
-func (s *AppSessionTokenService) exchange(appSessionToken string) (string, error) {
+func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error) {
 	sToken, err := s.AppSessionTokens.GetAppSessionToken(HashToken(appSessionToken))
 	if err != nil {
 		return "", err

@@ -34,7 +34,7 @@ type UIURLBuilder interface {
 }
 
 type AppSessionTokenService interface {
-	Handle(input oauth.AppSessionTokenInput) (httputil.Result, error)
+	Exchange(appSessionToken string) (string, error)
 }
 
 type AuthenticationInfoService interface {
@@ -363,14 +363,20 @@ func (h *AuthorizationHandler) doHandle(
 		}
 
 		if loginHint.Type == oauth.LoginHintTypeAppSessionToken {
-			result, err := h.AppSessionTokenService.Handle(oauth.AppSessionTokenInput{
-				AppSessionToken: loginHint.AppSessionToken,
-				RedirectURI:     redirectURI.String(),
-			})
+			token, err := h.AppSessionTokenService.Exchange(loginHint.AppSessionToken)
 			if err != nil {
 				return nil, protocol.NewError("invalid_request", err.Error())
 			}
-			return result, nil
+
+			cookies := []*http.Cookie{
+				h.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token),
+			}
+
+			resp := &httputil.ResultRedirect{
+				Cookies: cookies,
+				URL:     redirectURI.String(),
+			}
+			return resp, nil
 		}
 	}
 
