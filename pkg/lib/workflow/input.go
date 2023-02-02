@@ -1,12 +1,19 @@
 package workflow
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
 
 type Input interface {
 	Kind() string
+	Instantiate(data json.RawMessage) error
+}
+
+type InputJSON struct {
+	Kind string          `json:"kind"`
+	Data json.RawMessage `json:"data"`
 }
 
 type InputFactory func() Input
@@ -27,12 +34,19 @@ func RegisterInput(input Input) {
 	inputRegistry[inputKind] = factory
 }
 
-func InstantiateInput(kind string) (Input, error) {
-	factory, ok := inputRegistry[kind]
+func InstantiateInput(j InputJSON) (Input, error) {
+	factory, ok := inputRegistry[j.Kind]
 	if !ok {
-		return nil, fmt.Errorf("workflow: unknown input kind: %v", kind)
+		return nil, fmt.Errorf("workflow: unknown input kind: %v", j.Kind)
 	}
-	return factory(), nil
+	input := factory()
+
+	err := input.Instantiate(j.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return input, nil
 }
 
 func AsInput(i Input, iface interface{}) bool {

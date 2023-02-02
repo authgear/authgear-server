@@ -74,6 +74,10 @@ func (*inputLoginID) Kind() string {
 	return "inputLoginID"
 }
 
+func (i *inputLoginID) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputLoginID) GetLoginID() string {
 	return i.LoginID
 }
@@ -270,6 +274,10 @@ func (*inputOTP) Kind() string {
 	return "inputOTP"
 }
 
+func (i *inputOTP) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputOTP) GetOTP() string {
 	return i.OTP
 }
@@ -323,6 +331,10 @@ func (*inputResendOTP) Kind() string {
 	return "inputResendOTP"
 }
 
+func (i *inputResendOTP) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (*inputResendOTP) ResendOTP() {}
 
 type edgeCreatePasswordFlow struct{}
@@ -348,6 +360,10 @@ func (*inputCreatePasswordFlow) Kind() string {
 	return "inputCreatePasswordFlow"
 }
 
+func (i *inputCreatePasswordFlow) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputCreatePasswordFlow) CreatePassword() {}
 
 type InputNewPassword interface {
@@ -360,6 +376,10 @@ type inputNewPassword struct {
 
 func (*inputNewPassword) Kind() string {
 	return "inputNewPassword"
+}
+
+func (i *inputNewPassword) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (i *inputNewPassword) GetNewPassword() string {
@@ -451,6 +471,10 @@ type inputFinishSignup struct{}
 
 func (*inputFinishSignup) Kind() string {
 	return "inputFinishSignup"
+}
+
+func (i *inputFinishSignup) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*inputFinishSignup) FinishSignup() {}
