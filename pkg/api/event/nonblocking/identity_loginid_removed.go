@@ -24,16 +24,16 @@ func NewIdentityLoginIDRemovedEventPayload(
 	identity model.Identity,
 	loginIDType string,
 	adminAPI bool,
-) *IdentityLoginIDRemovedEventPayload {
-	if checkIdentityEventSupportLoginIDType(loginIDType) {
-		return &IdentityLoginIDRemovedEventPayload{
-			UserRef:     userRef,
-			Identity:    identity,
-			LoginIDType: loginIDType,
-			AdminAPI:    adminAPI,
-		}
+) (*IdentityLoginIDRemovedEventPayload, bool) {
+	if !checkIdentityEventSupportLoginIDType(loginIDType) {
+		return nil, false
 	}
-	return nil
+	return &IdentityLoginIDRemovedEventPayload{
+		UserRef:     userRef,
+		Identity:    identity,
+		LoginIDType: loginIDType,
+		AdminAPI:    adminAPI,
+	}, true
 }
 
 func (e *IdentityLoginIDRemovedEventPayload) NonBlockingEventType() event.Type {

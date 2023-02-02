@@ -60,7 +60,7 @@ func (n *NodeDoVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			var e event.Payload
 			if n.NewVerifiedClaim != nil {
-				e = nonblocking.NewIdentityVerifiedEventPayload(
+				if payload, ok := nonblocking.NewIdentityVerifiedEventPayload(
 					model.UserRef{
 						Meta: model.Meta{
 							ID: n.Identity.UserID,
@@ -69,7 +69,9 @@ func (n *NodeDoVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
 					n.Identity.ToModel(),
 					string(n.NewVerifiedClaim.Name),
 					n.IsAdminAPI,
-				)
+				); ok {
+					e = payload
+				}
 			}
 
 			if e != nil {

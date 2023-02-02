@@ -26,17 +26,17 @@ func NewIdentityLoginIDUpdatedEventPayload(
 	oldIdentity model.Identity,
 	loginIDType string,
 	adminAPI bool,
-) *IdentityLoginIDUpdatedEventPayload {
-	if checkIdentityEventSupportLoginIDType(loginIDType) {
-		return &IdentityLoginIDUpdatedEventPayload{
-			UserRef:     userRef,
-			NewIdentity: newIdentity,
-			OldIdentity: oldIdentity,
-			LoginIDType: loginIDType,
-			AdminAPI:    adminAPI,
-		}
+) (*IdentityLoginIDUpdatedEventPayload, bool) {
+	if !checkIdentityEventSupportLoginIDType(loginIDType) {
+		return nil, false
 	}
-	return nil
+	return &IdentityLoginIDUpdatedEventPayload{
+		UserRef:     userRef,
+		NewIdentity: newIdentity,
+		OldIdentity: oldIdentity,
+		LoginIDType: loginIDType,
+		AdminAPI:    adminAPI,
+	}, true
 }
 
 func (e *IdentityLoginIDUpdatedEventPayload) NonBlockingEventType() event.Type {

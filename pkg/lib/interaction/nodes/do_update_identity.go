@@ -71,13 +71,15 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 			switch n.IdentityAfterUpdate.Type {
 			case model.IdentityTypeLoginID:
 				loginIDType := n.IdentityAfterUpdate.LoginID.LoginIDType
-				e = nonblocking.NewIdentityLoginIDUpdatedEventPayload(
+				if payload, ok := nonblocking.NewIdentityLoginIDUpdatedEventPayload(
 					userRef,
 					n.IdentityAfterUpdate.ToModel(),
 					n.IdentityBeforeUpdate.ToModel(),
 					string(loginIDType),
 					n.IsAdminAPI,
-				)
+				); ok {
+					e = payload
+				}
 			}
 
 			if e != nil {

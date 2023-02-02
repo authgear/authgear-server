@@ -872,14 +872,12 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 			ID: claim.UserID,
 		},
 	}
-	e := nonblocking.NewIdentityVerifiedEventPayload(
+	if e, ok := nonblocking.NewIdentityVerifiedEventPayload(
 		user,
 		userIdentity.ToModel(),
 		claim.Name,
 		true,
-	)
-
-	if e != nil {
+	); ok {
 		err = c.Events.DispatchEvent(e)
 		if err != nil {
 			return err
@@ -915,14 +913,12 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 			ID: claim.UserID,
 		},
 	}
-	e := nonblocking.NewIdentityUnverifiedEventPayload(
+	if e, ok := nonblocking.NewIdentityUnverifiedEventPayload(
 		user,
 		userIdentity.ToModel(),
 		claim.Name,
 		true,
-	)
-
-	if e != nil {
+	); ok {
 		err = c.Events.DispatchEvent(e)
 		if err != nil {
 			return err

@@ -112,7 +112,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			switch n.Identity.Type {
 			case model.IdentityTypeLoginID:
 				loginIDType := n.Identity.LoginID.LoginIDType
-				e = nonblocking.NewIdentityLoginIDAddedEventPayload(
+				if payload, ok := nonblocking.NewIdentityLoginIDAddedEventPayload(
 					model.UserRef{
 						Meta: model.Meta{
 							ID: n.Identity.UserID,
@@ -121,7 +121,9 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 					n.Identity.ToModel(),
 					string(loginIDType),
 					n.IsAdminAPI,
-				)
+				); ok {
+					e = payload
+				}
 			case model.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthConnectedEventPayload{
 					UserRef: model.UserRef{

@@ -24,17 +24,17 @@ func NewIdentityVerifiedEventPayload(
 	identity model.Identity,
 	claimName string,
 	adminAPI bool,
-) *IdentityVerifiedEventPayload {
+) (*IdentityVerifiedEventPayload, bool) {
 	loginIDType, ok := model.GetClaimLoginIDKeyType(model.ClaimName(claimName))
 	if !ok {
-		return nil
+		return nil, false
 	}
 	return &IdentityVerifiedEventPayload{
 		UserRef:     userRef,
 		Identity:    identity,
 		LoginIDType: string(loginIDType),
 		AdminAPI:    adminAPI,
-	}
+	}, true
 }
 
 func (e *IdentityVerifiedEventPayload) NonBlockingEventType() event.Type {

@@ -30,16 +30,16 @@ func NewIdentityLoginIDAddedEventPayload(
 	identity model.Identity,
 	loginIDType string,
 	adminAPI bool,
-) *IdentityLoginIDAddedEventPayload {
-	if checkIdentityEventSupportLoginIDType(loginIDType) {
-		return &IdentityLoginIDAddedEventPayload{
-			UserRef:     userRef,
-			Identity:    identity,
-			LoginIDType: loginIDType,
-			AdminAPI:    adminAPI,
-		}
+) (*IdentityLoginIDAddedEventPayload, bool) {
+	if !checkIdentityEventSupportLoginIDType(loginIDType) {
+		return nil, false
 	}
-	return nil
+	return &IdentityLoginIDAddedEventPayload{
+		UserRef:     userRef,
+		Identity:    identity,
+		LoginIDType: loginIDType,
+		AdminAPI:    adminAPI,
+	}, true
 }
 
 func (e *IdentityLoginIDAddedEventPayload) NonBlockingEventType() event.Type {
