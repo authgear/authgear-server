@@ -879,9 +879,11 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 		true,
 	)
 
-	err = c.Events.DispatchEvent(e)
-	if err != nil {
-		return err
+	if e != nil {
+		err = c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -920,9 +922,11 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 		true,
 	)
 
-	err = c.Events.DispatchEvent(e)
-	if err != nil {
-		return err
+	if e != nil {
+		err = c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

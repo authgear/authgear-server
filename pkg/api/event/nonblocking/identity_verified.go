@@ -12,11 +12,11 @@ const (
 )
 
 type IdentityVerifiedEventPayload struct {
-	UserRef   model.UserRef  `json:"-" resolve:"user"`
-	UserModel model.User     `json:"user"`
-	Identity  model.Identity `json:"identity"`
-	ClaimName string         `json:"-"`
-	AdminAPI  bool           `json:"-"`
+	UserRef     model.UserRef  `json:"-" resolve:"user"`
+	UserModel   model.User     `json:"user"`
+	Identity    model.Identity `json:"identity"`
+	LoginIDType string         `json:"-"`
+	AdminAPI    bool           `json:"-"`
 }
 
 func NewIdentityVerifiedEventPayload(
@@ -25,16 +25,20 @@ func NewIdentityVerifiedEventPayload(
 	claimName string,
 	adminAPI bool,
 ) *IdentityVerifiedEventPayload {
+	loginIDType, ok := model.GetClaimLoginIDKeyType(model.ClaimName(claimName))
+	if !ok {
+		return nil
+	}
 	return &IdentityVerifiedEventPayload{
-		UserRef:   userRef,
-		Identity:  identity,
-		ClaimName: claimName,
-		AdminAPI:  adminAPI,
+		UserRef:     userRef,
+		Identity:    identity,
+		LoginIDType: string(loginIDType),
+		AdminAPI:    adminAPI,
 	}
 }
 
 func (e *IdentityVerifiedEventPayload) NonBlockingEventType() event.Type {
-	return event.Type(fmt.Sprintf(IdentityVerifiedFormat, e.ClaimName))
+	return event.Type(fmt.Sprintf(IdentityVerifiedFormat, e.LoginIDType))
 }
 
 func (e *IdentityVerifiedEventPayload) UserID() string {
