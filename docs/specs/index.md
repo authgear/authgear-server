@@ -17,6 +17,7 @@
   * APIs
     * [Session Resolver](./api-resolver.md)
     * [Admin](./api-admin.md)
+  * [SMS Gateway](./sms_gateway.md)
   * [Glossary](#glossary)
 
 ## Glossary
