@@ -101,10 +101,17 @@ func handleAlternativeSteps(ctrl *Controller) {
 				// expected there is CreateAuthenticatorBeginNode before the steps
 				return webapp.ErrSessionStepMismatch
 			}
-			if node.GetCreateAuthenticatorStage() != authn.AuthenticationStagePrimary && node.GetCreateAuthenticatorStage() != authn.AuthenticationStageSecondary {
+			switch node.GetCreateAuthenticatorStage() {
+			case authn.AuthenticationStagePrimary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = func() (interface{}, error) {
+					return &InputSelectMagicLink{}, nil
+				}
+			case authn.AuthenticationStageSecondary:
+				choiceStep = webapp.SessionStepCreateAuthenticator
+			default:
 				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
 			}
-			choiceStep = webapp.SessionStepCreateAuthenticator
 		case webapp.SessionStepSetupWhatsappOTP:
 			graph, err := ctrl.InteractionGet()
 			if err != nil {
