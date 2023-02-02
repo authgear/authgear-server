@@ -197,6 +197,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// anonymous user
 		p.Middleware(newSettingsSubRoutesMiddleware),
 	)
+	webappSettingsActionChain := httproute.Chain(
+		webappPageChain,
+	)
 
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
@@ -215,6 +218,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
 	webappSettingsSubRoutesRoute := httproute.Route{Middleware: webappSettingsSubRoutesChain}
+	webappSettingsActionRoute := httproute.Route{Middleware: webappSettingsActionChain}
+
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 	webappWhatsappCallbackRoute := httproute.Route{Middleware: webappWhatsappCallbackChain}
@@ -277,6 +282,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangePasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsDeleteAccountHandler))
+
+	router.Add(webapphandler.ConfigureSettingsActionVerifyEmailRoute(webappSettingsActionRoute), p.Handler(newWebAppSettingsActionVerifyEmailHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 

@@ -448,6 +448,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppSettingsActionVerifyEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsActionVerifyEmailHandler)),
+	))
+}
+
 func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
