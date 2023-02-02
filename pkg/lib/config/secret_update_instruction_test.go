@@ -34,6 +34,10 @@ func TestSecretConfigUpdateInstruction(t *testing.T) {
 		_ = jwkKey.Set(jwkutil.KeyCreatedAt, float64(createdAt.Unix()))
 		return jwkKey
 	}
+	var GenerateRSAKeyFunc = func(createdAt time.Time, rng *mathrand.Rand) jwk.Key {
+		// Use octet key instead for smaller testcase file size
+		return GenerateOctetKeyFunc(createdAt, rng)
+	}
 	Convey("SecretConfigUpdateInstruction", t, func() {
 		f, err := os.Open("testdata/secret_update_instruction.yaml")
 		if err != nil {
@@ -73,6 +77,7 @@ func TestSecretConfigUpdateInstruction(t *testing.T) {
 				updateInstructionContext := &config.SecretConfigUpdateInstructionContext{
 					Clock:                            clock.NewMockClockAt("2006-01-02T15:04:05Z"),
 					GenerateClientSecretOctetKeyFunc: GenerateOctetKeyFunc,
+					GenerateAdminAPIAuthKeyFunc:      GenerateRSAKeyFunc,
 				}
 				actualNewSecretConfig, err := updateInstruction.ApplyTo(updateInstructionContext, currentSecretConfig)
 				if testCase.Error != nil {
