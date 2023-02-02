@@ -215,13 +215,8 @@ func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 	case model.IdentityTypeLoginID:
 		loginIDType := i.LoginID.LoginIDType
 		loginIDValue := i.LoginID.LoginID
-		switch loginIDType {
-		case model.LoginIDKeyTypeEmail:
-			claims[model.ClaimEmail] = loginIDValue
-		case model.LoginIDKeyTypePhone:
-			claims[model.ClaimPhoneNumber] = loginIDValue
-		case model.LoginIDKeyTypeUsername:
-			claims[model.ClaimPreferredUsername] = loginIDValue
+		if claimName, ok := model.GetLoginIDKeyTypeClaim(loginIDType); ok {
+			claims[claimName] = loginIDValue
 		}
 	case model.IdentityTypeOAuth:
 		if email, ok := i.OAuth.Claims[StandardClaimEmail].(string); ok {

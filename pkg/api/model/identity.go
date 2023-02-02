@@ -18,6 +18,30 @@ var LoginIDKeyTypes = []LoginIDKeyType{
 	LoginIDKeyTypeUsername,
 }
 
+func GetLoginIDKeyTypeClaim(loginIDKeyType LoginIDKeyType) (ClaimName, bool) {
+	switch loginIDKeyType {
+	case LoginIDKeyTypeEmail:
+		return ClaimEmail, true
+	case LoginIDKeyTypePhone:
+		return ClaimPhoneNumber, true
+	case LoginIDKeyTypeUsername:
+		return ClaimPreferredUsername, true
+	}
+	return "", false
+}
+
+func GetClaimLoginIDKeyType(claimName ClaimName) (LoginIDKeyType, bool) {
+	switch claimName {
+	case ClaimEmail:
+		return LoginIDKeyTypeEmail, true
+	case ClaimPhoneNumber:
+		return LoginIDKeyTypePhone, true
+	case ClaimPreferredUsername:
+		return LoginIDKeyTypeUsername, true
+	}
+	return "", false
+}
+
 type IdentityType string
 
 const (
