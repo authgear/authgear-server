@@ -40239,6 +40239,9 @@ func newWebAppSettingsActionVerifyEmailHandler(p *deps.RequestProvider) http.Han
 	}
 	settingsActionVerifyEmailHandler := &webapp.SettingsActionVerifyEmailHandler{
 		ControllerFactory: controllerFactory,
+		Identities:        serviceService,
+		Verification:      verificationService,
+		ErrorCookie:       errorCookie,
 	}
 	return settingsActionVerifyEmailHandler
 }
