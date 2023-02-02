@@ -241,6 +241,17 @@ func (w *Workflow) DeriveEdges(ctx context.Context, deps *Dependencies) (*Workfl
 	return nil, nil, err
 }
 
+func (w *Workflow) IsEOF(ctx context.Context, deps *Dependencies) (bool, error) {
+	_, _, err := w.DeriveEdges(ctx, deps)
+	if err != nil {
+		if errors.Is(err, ErrEOF) {
+			return true, nil
+		}
+		return false, err
+	}
+	return false, nil
+}
+
 func (w *Workflow) Clone() *Workflow {
 	nodes := make([]Node, len(w.Nodes))
 	for i, node := range w.Nodes {

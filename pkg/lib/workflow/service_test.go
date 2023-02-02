@@ -49,6 +49,9 @@ func TestService(t *testing.T) {
 			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeContinue,
+				},
 				Workflow: &Workflow{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
@@ -99,6 +102,9 @@ func TestService(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeContinue,
+				},
 				Workflow: &Workflow{
 					WorkflowID: "workflow-id",
 					InstanceID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -286,6 +292,9 @@ func TestServiceContext(t *testing.T) {
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeFinish,
+				},
 				Workflow: &Workflow{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",

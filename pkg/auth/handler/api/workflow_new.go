@@ -81,9 +81,7 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := WorkflowResponse{
-		Action: WorkflowAction{
-			Type: WorkflowActionTypeContinue,
-		},
+		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
 	h.JSON.WriteResponse(w, &api.Response{Result: result})

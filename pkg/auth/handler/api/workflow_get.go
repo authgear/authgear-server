@@ -44,10 +44,7 @@ func (h *WorkflowGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := WorkflowResponse{
-		// TODO(workflow): determine the correct action.
-		Action: WorkflowAction{
-			Type: WorkflowActionTypeContinue,
-		},
+		Action:   output.Action,
 		Workflow: output.WorkflowOutput,
 	}
 	h.JSON.WriteResponse(w, &api.Response{Result: result})

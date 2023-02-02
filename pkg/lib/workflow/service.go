@@ -10,11 +10,25 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package workflow
 
+type WorkflowAction struct {
+	Type        WorkflowActionType `json:"type"`
+	RedirectURI string             `json:"redirect_uri,omitempty"`
+}
+
+type WorkflowActionType string
+
+const (
+	WorkflowActionTypeContinue WorkflowActionType = "continue"
+	WorkflowActionTypeFinish   WorkflowActionType = "finish"
+	WorkflowActionTypeRedirect WorkflowActionType = "redirect"
+)
+
 type ServiceOutput struct {
 	Session        *Session
 	SessionOutput  *SessionOutput
 	Workflow       *Workflow
 	WorkflowOutput *WorkflowOutput
+	Action         *WorkflowAction
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -57,7 +71,7 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// createNewWorkflow uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.createNewWorkflow(ctx, session.WorkflowID, intent)
+	workflow, workflowOutput, action, err := s.createNewWorkflow(ctx, session.WorkflowID, intent)
 	// At this point, no savepoint is active.
 	if err != nil {
 		return
@@ -70,12 +84,13 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 		SessionOutput:  sessionOutput,
 		Workflow:       workflow,
 		WorkflowOutput: workflowOutput,
+		Action:         action,
 	}
 
 	return
 }
 
-func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -106,6 +121,15 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 	}
 
 	output, err = workflow.ToOutput(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	action, err = s.determineAction(ctx, workflow)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -150,6 +174,11 @@ func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
 		return
 	}
 
+	action, err := s.determineAction(ctx, w)
+	if err != nil {
+		return
+	}
+
 	sessionOutput := session.ToOutput()
 
 	output = &ServiceOutput{
@@ -157,6 +186,7 @@ func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
 		SessionOutput:  sessionOutput,
 		Workflow:       w,
 		WorkflowOutput: workflowOutput,
+		Action:         action,
 	}
 	return
 }
@@ -169,7 +199,7 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// feedInput uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.feedInput(ctx, instanceID, input)
+	workflow, workflowOutput, action, err := s.feedInput(ctx, instanceID, input)
 	isEOF := errors.Is(err, ErrEOF)
 	// At this point, no savepoint is active.
 	if err != nil && !isEOF {
@@ -205,11 +235,12 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (
 		SessionOutput:  sessionOutput,
 		Workflow:       workflow,
 		WorkflowOutput: workflowOutput,
+		Action:         action,
 	}
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) feedInput(ctx context.Context, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -258,6 +289,11 @@ func (s *Service) feedInput(ctx context.Context, instanceID string, input Input)
 		return
 	}
 
+	action, err = s.determineAction(ctx, workflow)
+	if err != nil {
+		return
+	}
+
 	if isEOF {
 		err = ErrEOF
 	}
@@ -299,4 +335,22 @@ func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow)
 	}
 
 	return
+}
+
+func (s *Service) determineAction(ctx context.Context, workflow *Workflow) (*WorkflowAction, error) {
+	isEOF, err := workflow.IsEOF(ctx, s.Deps)
+	if err != nil {
+		return nil, err
+	}
+	if isEOF {
+		return &WorkflowAction{
+			Type: WorkflowActionTypeFinish,
+			// TODO(workflow): determine redirect URI.
+			RedirectURI: "",
+		}, nil
+	}
+	// TODO(workflow): handle oauth redirect.
+	return &WorkflowAction{
+		Type: WorkflowActionTypeContinue,
+	}, nil
 }
