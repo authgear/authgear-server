@@ -78,6 +78,9 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
+	if err != nil {
+		return
+	}
 
 	// We always rollback.
 	defer func() {
@@ -157,6 +160,9 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (
 func (s *Service) feedInput(ctx context.Context, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
+	if err != nil {
+		return
+	}
 
 	// We always rollback.
 	defer func() {
