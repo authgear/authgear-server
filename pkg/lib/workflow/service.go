@@ -109,6 +109,58 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 	return
 }
 
+func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
+	w, err := s.Store.GetWorkflowByInstanceID(instanceID)
+	if err != nil {
+		return
+	}
+
+	session, err := s.Store.GetSession(w.WorkflowID)
+	if err != nil {
+		return
+	}
+
+	ctx := session.Context(s.ContextDoNotUseDirectly)
+
+	err = s.Savepoint.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		rollbackErr := s.Savepoint.Rollback()
+		if rollbackErr != nil {
+			if err == nil {
+				err = rollbackErr
+			} else {
+				err = errorutil.WithSecondaryError(err, rollbackErr)
+			}
+			return
+		}
+	}()
+
+	// Apply the run-effects.
+	err = w.ApplyRunEffects(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	workflowOutput, err := w.ToOutput(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	sessionOutput := session.ToOutput()
+
+	output = &ServiceOutput{
+		Session:        session,
+		SessionOutput:  sessionOutput,
+		Workflow:       w,
+		WorkflowOutput: workflowOutput,
+	}
+	return
+}
+
 func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (output *ServiceOutput, err error) {
 	session, err := s.Store.GetSession(workflowID)
 	if err != nil {

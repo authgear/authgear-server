@@ -51279,7 +51279,42 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
-	workflowGetHandler := &api.WorkflowGetHandler{}
+	appProvider := p.AppProvider
+	handle := appProvider.AppDatabase
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	request := p.Request
+	contextContext := deps.ProvideRequestContext(request)
+	dependencies := &workflow.Dependencies{}
+	serviceLogger := workflow.NewServiceLogger(factory)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	savePointImpl := &workflow.SavePointImpl{
+		SQLExecutor: sqlExecutor,
+	}
+	appredisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	storeImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	workflowService := &workflow.Service{
+		ContextDoNotUseDirectly: contextContext,
+		Deps:                    dependencies,
+		Logger:                  serviceLogger,
+		Savepoint:               savePointImpl,
+		Store:                   storeImpl,
+	}
+	workflowGetHandler := &api.WorkflowGetHandler{
+		Database:  handle,
+		JSON:      jsonResponseWriter,
+		Workflows: workflowService,
+	}
 	return workflowGetHandler
 }
 
