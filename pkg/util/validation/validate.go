@@ -39,6 +39,10 @@ func (v *SchemaValidator) ParseWithMessage(r io.Reader, msg string, value interf
 	return nil
 }
 
+func (v *SchemaValidator) ParseJSONRawMessage(msg json.RawMessage, value interface{}) error {
+	return v.ParseWithMessage(bytes.NewReader(msg), defaultErrorMessage, value)
+}
+
 func (v *SchemaValidator) ValidateValue(value interface{}) error {
 	return v.ValidateValueWithMessage(value, defaultErrorMessage)
 }
