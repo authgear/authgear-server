@@ -10,7 +10,7 @@ import (
 type workflowJSON struct {
 	WorkflowID string     `json:"workflow_id,omitempty"`
 	InstanceID string     `json:"instance_id,omitempty"`
-	Intent     intentJSON `json:"intent"`
+	Intent     IntentJSON `json:"intent"`
 	Nodes      []Node     `json:"nodes,omitempty"`
 }
 
@@ -263,7 +263,7 @@ func (w *Workflow) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	intentJSON := intentJSON{
+	intentJSON := IntentJSON{
 		Kind: w.Intent.Kind(),
 		Data: intentBytes,
 	}
@@ -287,12 +287,7 @@ func (w *Workflow) UnmarshalJSON(d []byte) (err error) {
 		return
 	}
 
-	intent, err := InstantiateIntent(workflowJSON.Intent.Kind)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(workflowJSON.Intent.Data, intent)
+	intent, err := InstantiateIntent(workflowJSON.Intent)
 	if err != nil {
 		return
 	}

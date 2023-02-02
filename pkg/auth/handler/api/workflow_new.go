@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -37,12 +36,7 @@ var WorkflowNewRequestSchema = validation.NewSimpleSchema(`
 `)
 
 type WorkflowNewRequest struct {
-	Intent WorkflowNewRequestIntent
-}
-
-type WorkflowNewRequestIntent struct {
-	Kind string          `json:"kind"`
-	Data json.RawMessage `json:"data"`
+	Intent workflow.IntentJSON `json:"intent"`
 }
 
 type WorkflowNewWorkflowService interface {
@@ -66,12 +60,7 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var output *workflow.ServiceOutput
 	err = h.Database.WithTx(func() error {
-		intent, err := workflow.InstantiateIntent(request.Intent.Kind)
-		if err != nil {
-			return err
-		}
-
-		err = json.Unmarshal(request.Intent.Data, intent)
+		intent, err := workflow.InstantiateIntent(request.Intent)
 		if err != nil {
 			return err
 		}

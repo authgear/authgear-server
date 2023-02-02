@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 )
 
@@ -13,6 +14,10 @@ type intentAuthenticate struct {
 
 func (*intentAuthenticate) Kind() string {
 	return "intentAuthenticate"
+}
+
+func (i *intentAuthenticate) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -83,6 +88,10 @@ func (*intentLogin) Kind() string {
 	return "intentLogin"
 }
 
+func (i *intentLogin) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -101,6 +110,10 @@ type intentSignup struct {
 
 func (*intentSignup) Kind() string {
 	return "intentSignup"
+}
+
+func (i *intentSignup) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -158,6 +171,10 @@ type intentAddLoginID struct {
 
 func (*intentAddLoginID) Kind() string {
 	return "intentAddLoginID"
+}
+
+func (i *intentAddLoginID) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -355,6 +372,10 @@ func (*intentCreatePassword) Kind() string {
 	return "intentCreatePassword"
 }
 
+func (i *intentCreatePassword) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -438,6 +459,10 @@ type intentFinishSignup struct{}
 
 func (*intentFinishSignup) Kind() string {
 	return "intentFinishSignup"
+}
+
+func (i *intentFinishSignup) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {

@@ -9,6 +9,7 @@ import (
 
 type Intent interface {
 	Kind() string
+	Instantiate(data json.RawMessage) error
 	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
@@ -19,7 +20,7 @@ type IntentOutput struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
-type intentJSON struct {
+type IntentJSON struct {
 	Kind string          `json:"kind"`
 	Data json.RawMessage `json:"data"`
 }
@@ -42,10 +43,17 @@ func RegisterIntent(intent Intent) {
 	intentRegistry[intentKind] = factory
 }
 
-func InstantiateIntent(kind string) (Intent, error) {
-	factory, ok := intentRegistry[kind]
+func InstantiateIntent(j IntentJSON) (Intent, error) {
+	factory, ok := intentRegistry[j.Kind]
 	if !ok {
-		return nil, fmt.Errorf("workflow: unknown intent kind: %v", kind)
+		return nil, fmt.Errorf("workflow: unknown intent kind: %v", j.Kind)
 	}
-	return factory(), nil
+	intent := factory()
+
+	err := intent.Instantiate(j.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return intent, nil
 }

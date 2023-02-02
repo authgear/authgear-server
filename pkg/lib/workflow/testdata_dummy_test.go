@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 )
 
 func init() {
@@ -17,6 +18,10 @@ type testMarshalIntent0 struct {
 
 func (*testMarshalIntent0) Kind() string {
 	return "testMarshalIntent0"
+}
+
+func (i *testMarshalIntent0) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -39,6 +44,10 @@ type testMarshalIntent1 struct {
 
 func (*testMarshalIntent1) Kind() string {
 	return "testMarshalIntent1"
+}
+
+func (i *testMarshalIntent1) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {

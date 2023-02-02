@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"testing"
@@ -187,6 +188,10 @@ type intentServiceContext struct{}
 
 func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
+}
+
+func (i *intentServiceContext) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
