@@ -66,13 +66,13 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
-	eventPayload := &blocking.UserSessionJWTPreCreateBlockingEventPayload{
+	eventPayload := &blocking.OIDCJWTPreCreateBlockingEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: userID,
 			},
 		},
-		JWT: blocking.UserSessionJWT{
+		JWT: blocking.OIDCJWT{
 			Payload: forMutation,
 		},
 	}
