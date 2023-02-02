@@ -30,7 +30,6 @@ var _ = Schema.Add("AppConfig", `
 		"ui": { "$ref": "#/$defs/UIConfig" },
 		"localization": { "$ref": "#/$defs/LocalizationConfig" },
 		"messaging": { "$ref": "#/$defs/MessagingConfig" },
-		"custom_sms_provider": { "$ref": "#/$defs/CustomSMSProviderConfigs" },
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
@@ -56,10 +55,9 @@ type AppConfig struct {
 	HTTP *HTTPConfig `json:"http"`
 	Hook *HookConfig `json:"hook,omitempty"`
 
-	UI                       *UIConfig                 `json:"ui,omitempty"`
-	Localization             *LocalizationConfig       `json:"localization,omitempty"`
-	Messaging                *MessagingConfig          `json:"messaging,omitempty"`
-	CustomSMSProviderConfigs *CustomSMSProviderConfigs `json:"custom_sms_provider,omitempty"`
+	UI           *UIConfig           `json:"ui,omitempty"`
+	Localization *LocalizationConfig `json:"localization,omitempty"`
+	Messaging    *MessagingConfig    `json:"messaging,omitempty"`
 
 	Authentication       *AuthenticationConfig       `json:"authentication,omitempty"`
 	Session              *SessionConfig              `json:"session,omitempty"`

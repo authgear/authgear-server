@@ -12,23 +12,6 @@ var _ = Schema.Add("MessagingConfig", `
 }
 `)
 
-var _ = Schema.Add("CustomSMSProviderConfigs", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"url": { "type": "string" },
-		"timeout": { "type": "integer" }
-	},
-	"required": ["url"]
-}
-`)
-
-type CustomSMSProviderConfigs struct {
-	URL     string           `json:"url,omitempty"`
-	Timeout *DurationSeconds `json:"timeout,omitempty"`
-}
-
 type MessagingConfig struct {
 	SMSProvider SMSProvider  `json:"sms_provider,omitempty"`
 	SMS         *SMSConfig   `json:"sms,omitempty"`
