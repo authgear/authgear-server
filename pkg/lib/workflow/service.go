@@ -71,7 +71,7 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// createNewWorkflow uses defer statement to manage savepoint.
-	workflow, workflowOutput, action, err := s.createNewWorkflow(ctx, session.WorkflowID, intent)
+	workflow, workflowOutput, action, err := s.createNewWorkflow(ctx, session, intent)
 	// At this point, no savepoint is active.
 	if err != nil {
 		return
@@ -90,7 +90,7 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	return
 }
 
-func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
+func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -113,7 +113,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 	// A new workflow does not have any nodes.
 	// A workflow is allowed to have on-commit-effects only.
 	// So we do not have to apply effects on a new workflow.
-	workflow = NewWorkflow(workflowID, intent)
+	workflow = NewWorkflow(session.WorkflowID, intent)
 
 	err = s.Store.CreateWorkflow(workflow)
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 		return
 	}
 
-	action, err = s.determineAction(ctx, workflow)
+	action, err = s.determineAction(ctx, session, workflow)
 	if err != nil {
 		return
 	}
@@ -174,7 +174,7 @@ func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
 		return
 	}
 
-	action, err := s.determineAction(ctx, w)
+	action, err := s.determineAction(ctx, session, w)
 	if err != nil {
 		return
 	}
@@ -199,7 +199,7 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// feedInput uses defer statement to manage savepoint.
-	workflow, workflowOutput, action, err := s.feedInput(ctx, instanceID, input)
+	workflow, workflowOutput, action, err := s.feedInput(ctx, session, instanceID, input)
 	isEOF := errors.Is(err, ErrEOF)
 	// At this point, no savepoint is active.
 	if err != nil && !isEOF {
@@ -240,7 +240,7 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
+func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *Service) feedInput(ctx context.Context, instanceID string, input Input)
 		return
 	}
 
-	action, err = s.determineAction(ctx, workflow)
+	action, err = s.determineAction(ctx, session, workflow)
 	if err != nil {
 		return
 	}
@@ -337,16 +337,15 @@ func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow)
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, workflow *Workflow) (*WorkflowAction, error) {
+func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, error) {
 	isEOF, err := workflow.IsEOF(ctx, s.Deps)
 	if err != nil {
 		return nil, err
 	}
 	if isEOF {
 		return &WorkflowAction{
-			Type: WorkflowActionTypeFinish,
-			// TODO(workflow): determine redirect URI.
-			RedirectURI: "",
+			Type:        WorkflowActionTypeFinish,
+			RedirectURI: session.RedirectURI,
 		}, nil
 	}
 	// TODO(workflow): handle oauth redirect.
