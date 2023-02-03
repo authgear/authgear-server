@@ -13,12 +13,12 @@ import (
 var ErrMissingCustomSMSProviderConfiguration = errors.New("sms: custom provider configuration is missing")
 
 type CustomClient struct {
-	Config   *config.CustomSMSProviderConfigs
+	Config   *config.CustomSMSProviderConfig
 	DenoHook hook.DenoHook
 	WebHook  hook.WebHook
 }
 
-func NewCustomClient(c *config.CustomSMSProviderConfigs, d hook.DenoHook, w hook.WebHook) *CustomClient {
+func NewCustomClient(c *config.CustomSMSProviderConfig, d hook.DenoHook, w hook.WebHook) *CustomClient {
 	if c == nil {
 		return nil
 	}

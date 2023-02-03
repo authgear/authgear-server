@@ -79,7 +79,7 @@ var secretDeps = wire.NewSet(
 	ProvideSMTPServerCredentials,
 	ProvideTwilioCredentials,
 	ProvideNexmoCredentials,
-	ProvideCustomSMSProviderConfigs,
+	ProvideCustomSMSProviderConfig,
 	ProvideOAuthKeyMaterials,
 	ProvideCSRFKeyMaterials,
 	ProvideWebhookKeyMaterials,
@@ -138,8 +138,8 @@ func ProvideNexmoCredentials(c *config.SecretConfig) *config.NexmoCredentials {
 	return s
 }
 
-func ProvideCustomSMSProviderConfigs(c *config.SecretConfig) *config.CustomSMSProviderConfigs {
-	return c.GetCustomSMSProviderConfigs()
+func ProvideCustomSMSProviderConfig(c *config.SecretConfig) *config.CustomSMSProviderConfig {
+	return c.GetCustomSMSProviderConfig()
 }
 
 func ProvideOAuthKeyMaterials(c *config.SecretConfig) *config.OAuthKeyMaterials {

@@ -54,7 +54,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
-	customSMSProviderConfigs := deps.ProvideCustomSMSProviderConfigs(secretConfig)
+	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
 	context := p.Context
 	denoEndpoint := environmentConfig.DenoEndpoint
 	hookConfig := appConfig.Hook
@@ -78,7 +78,7 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	customClient := sms.NewCustomClient(customSMSProviderConfigs, denoHookImpl, webHookImpl)
+	customClient := sms.NewCustomClient(customSMSProviderConfig, denoHookImpl, webHookImpl)
 	client := &sms.Client{
 		Logger:          smsLogger,
 		DevMode:         devMode,

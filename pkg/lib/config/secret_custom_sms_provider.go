@@ -1,6 +1,6 @@
 package config
 
-var _ = SecretConfigSchema.Add("CustomSMSProviderConfigs", `
+var _ = SecretConfigSchema.Add("CustomSMSProviderConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -12,12 +12,12 @@ var _ = SecretConfigSchema.Add("CustomSMSProviderConfigs", `
 }
 `)
 
-type CustomSMSProviderConfigs struct {
+type CustomSMSProviderConfig struct {
 	URL     string           `json:"url,omitempty"`
 	Timeout *DurationSeconds `json:"timeout,omitempty"`
 }
 
-func (c *CustomSMSProviderConfigs) SensitiveStrings() []string {
+func (c *CustomSMSProviderConfig) SensitiveStrings() []string {
 	return []string{
 		c.URL,
 	}

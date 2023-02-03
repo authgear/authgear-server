@@ -194,7 +194,7 @@ func (m *Manager) cleanupOrphanedResources(manager *resource.Manager, cfg *confi
 			return nil, err
 		}
 	}
-	customSMSProviderCfg := cfg.SecretConfig.GetCustomSMSProviderConfigs()
+	customSMSProviderCfg := cfg.SecretConfig.GetCustomSMSProviderConfig()
 	if customSMSProviderCfg != nil {
 		err := addToPaths(customSMSProviderCfg.URL)
 		if err != nil {

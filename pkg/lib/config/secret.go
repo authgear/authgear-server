@@ -224,8 +224,8 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	return ctx.Error("invalid secrets")
 }
 
-func (c *SecretConfig) GetCustomSMSProviderConfigs() *CustomSMSProviderConfigs {
-	s, _ := c.LookupData(CustomSMSProviderConfigsKey).(*CustomSMSProviderConfigs)
+func (c *SecretConfig) GetCustomSMSProviderConfig() *CustomSMSProviderConfig {
+	s, _ := c.LookupData(CustomSMSProviderConfigKey).(*CustomSMSProviderConfig)
 	return s
 }
 
@@ -245,13 +245,13 @@ const (
 	// nolint: gosec
 	TwilioCredentialsKey SecretKey = "sms.twilio"
 	// nolint: gosec
-	NexmoCredentialsKey         SecretKey = "sms.nexmo"
-	CustomSMSProviderConfigsKey SecretKey = "sms.custom"
-	OAuthKeyMaterialsKey        SecretKey = "oauth"
-	CSRFKeyMaterialsKey         SecretKey = "csrf"
-	WebhookKeyMaterialsKey      SecretKey = "webhook"
-	ImagesKeyMaterialsKey       SecretKey = "images"
-	WATICredentialsKey          SecretKey = "whatsapp.wati"
+	NexmoCredentialsKey        SecretKey = "sms.nexmo"
+	CustomSMSProviderConfigKey SecretKey = "sms.custom"
+	OAuthKeyMaterialsKey       SecretKey = "oauth"
+	CSRFKeyMaterialsKey        SecretKey = "csrf"
+	WebhookKeyMaterialsKey     SecretKey = "webhook"
+	ImagesKeyMaterialsKey      SecretKey = "images"
+	WATICredentialsKey         SecretKey = "whatsapp.wati"
 	// nolint: gosec
 	OAuthClientCredentialsKey SecretKey = "oauth.client_secrets"
 )
@@ -292,7 +292,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	ImagesKeyMaterialsKey:          {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
 	WATICredentialsKey:             {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
 	OAuthClientCredentialsKey:      {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
-	CustomSMSProviderConfigsKey:    {"CustomSMSProviderConfigs", func() SecretItemData { return &CustomSMSProviderConfigs{} }},
+	CustomSMSProviderConfigKey:     {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
