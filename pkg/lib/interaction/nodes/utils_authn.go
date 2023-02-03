@@ -1,14 +1,14 @@
 package nodes
 
 import (
-	"errors"
-
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -84,7 +84,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 
 	bucket := p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
 	err = p.Context.RateLimiter.TakeToken(bucket)
-	if p.IgnoreRatelimitError && errors.Is(err, bucket.BucketError()) {
+	if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
 	} else if err != nil {
