@@ -43,18 +43,6 @@ func NewAsyncDenoClient(endpoint config.DenoEndpoint, logger Logger) AsyncDenoCl
 	}
 }
 
-type DenoClientFactory func(timeout time.Duration) DenoClient
-
-func NewDenoClientFactory(endpoint config.DenoEndpoint, logger Logger) DenoClientFactory {
-	return DenoClientFactory(func(timeout time.Duration) DenoClient {
-		return &DenoClientImpl{
-			Endpoint:   string(endpoint),
-			HTTPClient: httputil.NewExternalClient(timeout),
-			Logger:     logger,
-		}
-	})
-}
-
 type DenoClientImpl struct {
 	Endpoint   string
 	HTTPClient *http.Client

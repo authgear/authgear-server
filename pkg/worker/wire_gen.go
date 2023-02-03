@@ -56,30 +56,29 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
 	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
 	context := p.Context
-	denoEndpoint := environmentConfig.DenoEndpoint
-	hookConfig := appConfig.Hook
-	hookLogger := hook.NewLogger(factory)
-	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
-	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
-	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
 	manager := appContext.Resources
-	denoHookImpl := &hook.DenoHookImpl{
-		Context:           context,
-		SyncDenoClient:    syncDenoClient,
-		AsyncDenoClient:   asyncDenoClient,
-		DenoClientFactory: denoClientFactory,
-		ResourceManager:   manager,
+	denoHook := hook.DenoHook{
+		Context:         context,
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	hookLogger := hook.NewLogger(factory)
+	hookDenoClient := sms.NewHookDenoClient(denoEndpoint, hookLogger, customSMSProviderConfig)
+	smsDenoHook := sms.SMSDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
 	}
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	webHookImpl := &hook.WebHookImpl{
 		Secret: webhookKeyMaterials,
 	}
+	hookConfig := appConfig.Hook
 	hookHTTPClient := sms.NewHookHTTPClient(hookConfig, customSMSProviderConfig)
 	smsWebHook := sms.SMSWebHook{
-		WebHook:  webHookImpl,
-		SyncHTTP: hookHTTPClient,
+		WebHook: webHookImpl,
+		Client:  hookHTTPClient,
 	}
-	customClient := sms.NewCustomClient(customSMSProviderConfig, denoHookImpl, smsWebHook)
+	customClient := sms.NewCustomClient(customSMSProviderConfig, smsDenoHook, smsWebHook)
 	client := &sms.Client{
 		Logger:          smsLogger,
 		DevMode:         devMode,

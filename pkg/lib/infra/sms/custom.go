@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -13,20 +12,20 @@ import (
 var ErrMissingCustomSMSProviderConfiguration = errors.New("sms: custom provider configuration is missing")
 
 type CustomClient struct {
-	Config     *config.CustomSMSProviderConfig
-	DenoHook   hook.DenoHook
-	SMSWebHook SMSWebHook
+	Config      *config.CustomSMSProviderConfig
+	SMSDenoHook SMSDenoHook
+	SMSWebHook  SMSWebHook
 }
 
-func NewCustomClient(c *config.CustomSMSProviderConfig, d hook.DenoHook, w SMSWebHook) *CustomClient {
+func NewCustomClient(c *config.CustomSMSProviderConfig, d SMSDenoHook, w SMSWebHook) *CustomClient {
 	if c == nil {
 		return nil
 	}
 
 	return &CustomClient{
-		Config:     c,
-		DenoHook:   d,
-		SMSWebHook: w,
+		Config:      c,
+		SMSDenoHook: d,
+		SMSWebHook:  w,
 	}
 }
 
@@ -43,16 +42,10 @@ func (c *CustomClient) Send(from string, to string, body string) error {
 	if err != nil {
 		return err
 	}
-	var timeout *time.Duration = nil
-	if c.Config.Timeout != nil {
-		d := c.Config.Timeout.Duration()
-		timeout = &d
-	}
 	payload := SendSMSPayload{To: to, Body: body}
 	switch {
-	case c.DenoHook.SupportURL(u):
-		_, err := c.DenoHook.RunSync(u, &SendSMSPayload{To: to, Body: body}, timeout)
-		return err
+	case c.SMSDenoHook.SupportURL(u):
+		return c.SMSDenoHook.Call(u, payload)
 	case c.SMSWebHook.SupportURL(u):
 		return c.SMSWebHook.Call(u, payload)
 	default:
@@ -62,7 +55,7 @@ func (c *CustomClient) Send(from string, to string, body string) error {
 
 type SMSWebHook struct {
 	hook.WebHook
-	SyncHTTP HookHTTPClient
+	Client HookHTTPClient
 }
 
 func (w *SMSWebHook) Call(u *url.URL, payload SendSMSPayload) error {
@@ -70,5 +63,15 @@ func (w *SMSWebHook) Call(u *url.URL, payload SendSMSPayload) error {
 	if err != nil {
 		return err
 	}
-	return w.PerformNoResponse(w.SyncHTTP.Client, req)
+	return w.PerformNoResponse(w.Client.Client, req)
+}
+
+type SMSDenoHook struct {
+	hook.DenoHook
+	Client HookDenoClient
+}
+
+func (d *SMSDenoHook) Call(u *url.URL, payload SendSMSPayload) error {
+	_, err := d.Run(d.Client, u, payload)
+	return err
 }

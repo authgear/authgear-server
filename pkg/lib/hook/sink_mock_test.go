@@ -7,7 +7,6 @@ package hook
 import (
 	url "net/url"
 	reflect "reflect"
-	time "time"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -154,31 +153,31 @@ func (mr *MockEventWebHookMockRecorder) SupportURL(u interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportURL", reflect.TypeOf((*MockEventWebHook)(nil).SupportURL), u)
 }
 
-// MockDenoHook is a mock of DenoHook interface.
-type MockDenoHook struct {
+// MockEventDenoHook is a mock of EventDenoHook interface.
+type MockEventDenoHook struct {
 	ctrl     *gomock.Controller
-	recorder *MockDenoHookMockRecorder
+	recorder *MockEventDenoHookMockRecorder
 }
 
-// MockDenoHookMockRecorder is the mock recorder for MockDenoHook.
-type MockDenoHookMockRecorder struct {
-	mock *MockDenoHook
+// MockEventDenoHookMockRecorder is the mock recorder for MockEventDenoHook.
+type MockEventDenoHookMockRecorder struct {
+	mock *MockEventDenoHook
 }
 
-// NewMockDenoHook creates a new mock instance.
-func NewMockDenoHook(ctrl *gomock.Controller) *MockDenoHook {
-	mock := &MockDenoHook{ctrl: ctrl}
-	mock.recorder = &MockDenoHookMockRecorder{mock}
+// NewMockEventDenoHook creates a new mock instance.
+func NewMockEventDenoHook(ctrl *gomock.Controller) *MockEventDenoHook {
+	mock := &MockEventDenoHook{ctrl: ctrl}
+	mock.recorder = &MockEventDenoHookMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockDenoHook) EXPECT() *MockDenoHookMockRecorder {
+func (m *MockEventDenoHook) EXPECT() *MockEventDenoHookMockRecorder {
 	return m.recorder
 }
 
 // DeliverBlockingEvent mocks base method.
-func (m *MockDenoHook) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+func (m *MockEventDenoHook) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeliverBlockingEvent", u, e)
 	ret0, _ := ret[0].(*event.HookResponse)
@@ -187,13 +186,13 @@ func (m *MockDenoHook) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.
 }
 
 // DeliverBlockingEvent indicates an expected call of DeliverBlockingEvent.
-func (mr *MockDenoHookMockRecorder) DeliverBlockingEvent(u, e interface{}) *gomock.Call {
+func (mr *MockEventDenoHookMockRecorder) DeliverBlockingEvent(u, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBlockingEvent", reflect.TypeOf((*MockDenoHook)(nil).DeliverBlockingEvent), u, e)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBlockingEvent", reflect.TypeOf((*MockEventDenoHook)(nil).DeliverBlockingEvent), u, e)
 }
 
 // DeliverNonBlockingEvent mocks base method.
-func (m *MockDenoHook) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
+func (m *MockEventDenoHook) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeliverNonBlockingEvent", u, e)
 	ret0, _ := ret[0].(error)
@@ -201,28 +200,13 @@ func (m *MockDenoHook) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }
 
 // DeliverNonBlockingEvent indicates an expected call of DeliverNonBlockingEvent.
-func (mr *MockDenoHookMockRecorder) DeliverNonBlockingEvent(u, e interface{}) *gomock.Call {
+func (mr *MockEventDenoHookMockRecorder) DeliverNonBlockingEvent(u, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockDenoHook)(nil).DeliverNonBlockingEvent), u, e)
-}
-
-// RunSync mocks base method.
-func (m *MockDenoHook) RunSync(u *url.URL, input interface{}, timeout *time.Duration) (interface{}, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunSync", u, input, timeout)
-	ret0, _ := ret[0].(interface{})
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RunSync indicates an expected call of RunSync.
-func (mr *MockDenoHookMockRecorder) RunSync(u, input, timeout interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunSync", reflect.TypeOf((*MockDenoHook)(nil).RunSync), u, input, timeout)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockEventDenoHook)(nil).DeliverNonBlockingEvent), u, e)
 }
 
 // SupportURL mocks base method.
-func (m *MockDenoHook) SupportURL(u *url.URL) bool {
+func (m *MockEventDenoHook) SupportURL(u *url.URL) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SupportURL", u)
 	ret0, _ := ret[0].(bool)
@@ -230,7 +214,7 @@ func (m *MockDenoHook) SupportURL(u *url.URL) bool {
 }
 
 // SupportURL indicates an expected call of SupportURL.
-func (mr *MockDenoHookMockRecorder) SupportURL(u interface{}) *gomock.Call {
+func (mr *MockEventDenoHookMockRecorder) SupportURL(u interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportURL", reflect.TypeOf((*MockDenoHook)(nil).SupportURL), u)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportURL", reflect.TypeOf((*MockEventDenoHook)(nil).SupportURL), u)
 }

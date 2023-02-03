@@ -519,23 +519,24 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SyncHTTP:    syncHTTPClient,
 		AsyncHTTP:   asyncHTTPClient,
 	}
+	denoHook := hook.DenoHook{
+		Context:         ctx,
+		ResourceManager: manager,
+	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
 	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
-	denoClientFactory := hook.NewDenoClientFactory(denoEndpoint, hookLogger)
-	denoHookImpl := &hook.DenoHookImpl{
-		Context:           ctx,
-		SyncDenoClient:    syncDenoClient,
-		AsyncDenoClient:   asyncDenoClient,
-		DenoClientFactory: denoClientFactory,
-		ResourceManager:   manager,
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
 	}
 	sink := &hook.Sink{
 		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clockClock,
 		EventWebHook:       eventWebHookImpl,
-		DenoHook:           denoHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 	}

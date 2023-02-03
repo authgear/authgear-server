@@ -44,7 +44,7 @@ func TestSink(t *testing.T) {
 			Config:             cfg,
 			Clock:              clock,
 			EventWebHook:       webhook,
-			DenoHook:           denohook,
+			EventDenoHook:      denohook,
 			StandardAttributes: stdAttrsService,
 			CustomAttributes:   customAttrsService,
 		}
