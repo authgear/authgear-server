@@ -9,7 +9,7 @@
       - [user.profile.pre_update](#userprofilepre_update)
       - [user.pre_schedule_deletion](#userpre_schedule_deletion)
       - [user.pre_schedule_anonymization](#userpre_schedule_anonymization)
-      - [user.session.jwt.pre_create](#usersessionjwtpre_create)
+      - [oidc.jwt.pre_create](#oidcjwtpre_create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
       - [user.profile.updated](#userprofileupdated)
@@ -163,7 +163,7 @@ Occurs right before the account anonymization is scheduled.
 }
 ```
 
-#### user.session.jwt.pre_create
+#### oidc.jwt.pre_create
 
 Occurs right before the access token is issued.
 Use this event to add custom fields to the JWT access token.

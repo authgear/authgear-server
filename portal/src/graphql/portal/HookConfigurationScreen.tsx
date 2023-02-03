@@ -73,10 +73,10 @@ const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
   "user.profile.pre_update": "EventUserProfilePreUpdate",
   "user.pre_schedule_deletion": "EventUserPreScheduleDeletion",
   "user.pre_schedule_anonymization": "EventUserPreScheduleAnonymization",
-  "user.session.jwt.pre_create": "EventUserSessionJWTPreCreate",
+  "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
 };
 
-const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v0.4.0/mod.ts";
+const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v1.0.0/mod.ts";
 
 export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
@@ -99,7 +99,7 @@ export default async function(e: HookEvent): Promise<void> {
 
 function makeDefaultDenoHookBlockingScript(event: string): string {
   const typeName = BLOCKING_EVENT_NAME_TO_TYPE_NAME[event] ?? "HookEvent";
-  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@v0.4.0/mod.ts";
+  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@v1.0.0/mod.ts";
 
 export default async function(e: ${typeName}): Promise<HookResponse> {
   // Write your hook with the help of the type definition.
@@ -317,7 +317,7 @@ const BLOCK_EVENT_TYPES: string[] = [
   "user.profile.pre_update",
   "user.pre_schedule_deletion",
   "user.pre_schedule_anonymization",
-  "user.session.jwt.pre_create",
+  "oidc.jwt.pre_create",
 ];
 
 interface BlockingHandlerItemEditProps {
