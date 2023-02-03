@@ -56,6 +56,12 @@ func (i *inputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
 
 var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &inputSelectOOB{}
 
+type inputSelectMagicLinkOTP struct{}
+
+func (i *inputSelectMagicLinkOTP) SetupPrimaryAuthenticatorMagicLinkOTP() {}
+
+var _ nodes.InputCreateAuthenticatorMagicLinkOTPSetupSelect = &inputSelectMagicLinkOTP{}
+
 type inputSelectVerifyIdentityViaOOBOTP struct{}
 
 func (i *inputSelectVerifyIdentityViaOOBOTP) SelectVerifyIdentityViaOOBOTP() {}

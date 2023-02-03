@@ -252,12 +252,22 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 			// check if identity login id type match oob type
 			if n.Identity.LoginID != nil {
 				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
-					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-						NewAuthenticatorID:   n.NewAuthenticatorID,
-						Stage:                n.Stage,
-						IsDefault:            isDefault,
-						OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
-					})
+					if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsMagicLinkEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorMagicLinkOTPSetup{
+							NewAuthenticatorID: n.NewAuthenticatorID,
+							Stage:              n.Stage,
+							IsDefault:          isDefault,
+						})
+					}
+
+					if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsCodeEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+							NewAuthenticatorID:   n.NewAuthenticatorID,
+							Stage:                n.Stage,
+							IsDefault:            isDefault,
+							OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
+						})
+					}
 				}
 			}
 
@@ -380,7 +390,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case model.AuthenticatorTypeOOBEmail:
 			// Condition B and C.
 			if oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
-				if n.AuthenticatorConfig.OOB.Email.SecondaryEmailOTPMode.IsCodeEnabled() {
+				if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsCodeEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 						NewAuthenticatorID:   n.NewAuthenticatorID,
 						Stage:                n.Stage,
@@ -389,7 +399,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					})
 				}
 
-				if n.AuthenticatorConfig.OOB.Email.SecondaryEmailOTPMode.IsSecondaryMagicLinkEnabled() {
+				if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsMagicLinkEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorMagicLinkOTPSetup{
 						NewAuthenticatorID: n.NewAuthenticatorID,
 						Stage:              n.Stage,

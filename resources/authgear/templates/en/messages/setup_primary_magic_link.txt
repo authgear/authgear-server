@@ -1,0 +1,7 @@
+Setup Two-Step Verification on {{ template "app.name" }}
+
+Please visit the link below to setup two-step verification.
+
+{{ .URL }}
+
+If you didn't trigger this setup, please ignore this email.

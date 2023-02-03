@@ -103,7 +103,10 @@ func handleAlternativeSteps(ctrl *Controller) {
 			}
 			switch node.GetCreateAuthenticatorStage() {
 			case authn.AuthenticationStagePrimary:
-				panic("Magic link as primary authenticator is not yet supported")
+				choiceStep = webapp.SessionStepCreateAuthenticator
+				inputFn = func() (interface{}, error) {
+					return &InputSelectMagicLink{}, nil
+				}
 			case authn.AuthenticationStageSecondary:
 				choiceStep = webapp.SessionStepCreateAuthenticator
 			default:

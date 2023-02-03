@@ -10,9 +10,11 @@
   "email.forgot-password.subject": "[{AppName}] Reset password instruction",
   "email.verification.subject": "[{AppName}] Email Verification Instruction",
   "email.setup-primary-oob.subject": "Signing up at {AppName}",
+  "email.setup-primary-magic-link.subject": "Verify your email for {AppName}",
   "email.setup-secondary-oob.subject": "Signing up at {AppName}",
   "email.setup-secondary-magic-link.subject": "Signing up at {AppName}",
   "email.authenticate-primary-oob.subject": "Logging in to {AppName}",
+  "email.authenticate-primary-magic-link.subject": "Logging in to {AppName}",
   "email.authenticate-secondary-oob.subject": "Logging in to {AppName}",
   "email.authenticate-secondary-magic-link.subject": "Logging in to {AppName}",
 

@@ -107,6 +107,12 @@ func (i *InputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
 
 var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &InputSelectOOB{}
 
+type InputSelectMagicLink struct{}
+
+func (i *InputSelectMagicLink) SetupPrimaryAuthenticatorMagicLinkOTP() {}
+
+var _ nodes.InputCreateAuthenticatorMagicLinkOTPSetupSelect = &InputSelectMagicLink{}
+
 type InputSetupPassword struct {
 	Stage    string
 	Password string

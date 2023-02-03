@@ -46,6 +46,9 @@ import {
   smsResendCooldownList,
   EmailRatelimitConfig,
   emailResendCooldownList,
+  authenticatorEmailOTPModeList,
+  AuthenticatorEmailOTPMode,
+  AuthenticatorOOBEmailConfig,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -112,6 +115,7 @@ const PIVOT_STYLES = {
   },
 };
 
+const DEFAULT_EMAIL_OTP_MODE: AuthenticatorEmailOTPMode = "code";
 const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
 
 const ERROR_RULES = [
@@ -407,6 +411,7 @@ interface ConfigFormState {
   verificationConfig: VerificationConfig;
   smsRatelimitConfig: SMSRatelimitConfig;
   emailRatelimitConfig: EmailRatelimitConfig;
+  authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
@@ -778,6 +783,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     emailRatelimitConfig: {
       ...config.messaging?.email?.ratelimit,
     },
+    authenticatorOOBEmailConfig: {
+      email_otp_mode: DEFAULT_EMAIL_OTP_MODE,
+      ...config.authenticator?.oob_otp?.email,
+    },
     authenticatorOOBSMSConfig: {
       phone_otp_mode: DEFAULT_PHONE_OTP_MODE,
       ...config.authenticator?.oob_otp?.sms,
@@ -902,6 +911,8 @@ function constructConfig(
             },
     };
     config.messaging.email.ratelimit = currentState.emailRatelimitConfig;
+    config.authenticator.oob_otp.email =
+      currentState.authenticatorOOBEmailConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
     config.forgot_password = currentState.forgotPasswordConfig;
@@ -2081,6 +2092,7 @@ interface VerificationSettingsProps {
   verificationConfig: VerificationConfig;
   smsRatelimitConfig: SMSRatelimitConfig;
   emailRatelimitConfig: EmailRatelimitConfig;
+  authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   dailySMSSendLimit: string;
   setState: FormModel["setState"];
@@ -2095,6 +2107,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
     smsRatelimitConfig,
     emailRatelimitConfig,
     setState,
+    authenticatorOOBEmailConfig,
     authenticatorOOBSMSConfig,
     dailySMSSendLimit,
   } = props;
@@ -2156,6 +2169,28 @@ function VerificationSettings(props: VerificationSettingsProps) {
         setState((prev) =>
           produce(prev, (prev) => {
             prev.smsRatelimitConfig.resend_cooldown_seconds = key;
+          })
+        );
+      }
+    },
+    [setState]
+  );
+
+  const emailOTPModes = useMemo(
+    () =>
+      authenticatorEmailOTPModeList.map((mode) => ({
+        key: mode,
+        text: renderToString("AuthenticatorEmailOTPMode." + mode),
+      })),
+    [renderToString]
+  );
+  const onChangeSecondaryEmailOTPMode = useCallback(
+    (_, option) => {
+      const key = option.key as AuthenticatorEmailOTPMode | undefined;
+      if (key != null) {
+        setState((prev) =>
+          produce(prev, (prev) => {
+            prev.authenticatorOOBEmailConfig.email_otp_mode = key;
           })
         );
       }
@@ -2297,6 +2332,14 @@ function VerificationSettings(props: VerificationSettingsProps) {
             selectedKey={emailRatelimitConfig.resend_cooldown_seconds}
             onChange={onChangeEmailResendCooldown}
           />
+          <Dropdown
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.email.verify-by.label"
+            )}
+            options={emailOTPModes}
+            selectedKey={authenticatorOOBEmailConfig.email_otp_mode}
+            onChange={onChangeSecondaryEmailOTPMode}
+          />
         </>
       ) : null}
       {showPhoneSettings ? (
@@ -2377,6 +2420,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationConfig,
       smsRatelimitConfig,
       emailRatelimitConfig,
+      authenticatorOOBEmailConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
       forgotPasswordConfig,
@@ -2618,6 +2662,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   verificationConfig={verificationConfig}
                   smsRatelimitConfig={smsRatelimitConfig}
                   emailRatelimitConfig={emailRatelimitConfig}
+                  authenticatorOOBEmailConfig={authenticatorOOBEmailConfig}
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                   dailySMSSendLimit={dailySMSSendLimit}
                   setState={setState}

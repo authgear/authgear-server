@@ -442,6 +442,7 @@
   "VerificationConfigurationScreen.verification.claims.phoneNumber": "Phone number verification",
   "VerificationConfigurationScreen.verification.email.required.label": "Email verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.email.allowed.label": "Allow users to verify their email address from the setting page",
+  "VerificationConfigurationScreen.verification.email.verify-by.label": "Verify email by",
   "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.phone.allowed.label": "Allow users to verify their phone number from the setting page",
   "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily SMS limit per phone number (leave blank to turn off limit)",
@@ -869,6 +870,9 @@
   "AuthenticatorType.secondary.oob-otp-email": "OTP Code via Email",
   "AuthenticatorType.secondary.oob-otp-phone": "OTP Code via Phone",
   "AuthenticatorType.secondary.password": "Additional Password",
+
+  "AuthenticatorEmailOTPMode.code": "One-time password",
+  "AuthenticatorEmailOTPMode.magic_link": "Login link",
 
   "AuthenticatorPhoneOTPMode.whatsapp_sms": "WhatsApp or SMS",
   "AuthenticatorPhoneOTPMode.sms": "SMS only",
