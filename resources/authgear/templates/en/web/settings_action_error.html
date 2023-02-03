@@ -1,0 +1,32 @@
+{{ $handled_error := false }}
+{{ if .Error }}
+  {{ if eq .Error.reason "Unauthorized" }}
+    {{ $handled_error = true }}
+  {{ else if eq .Error.reason "UnverifiedIdentityNotFound" }}
+    {{ $handled_error = true }}
+  {{ end }}
+{{ end }}
+
+{{ $options := (set (deepCopy .) "skipErrorInMessageBar" $handled_error) }}
+{{ template "__page_frame.html" $options }}
+
+{{ define "page-content" }}
+<div class="primary-txt pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+
+<h1 class="primary-txt m-0 text-center text-xl font-bold">{{ template "error-settings-action-title" }}</h1>
+{{ if .Error }}
+{{ if eq .Error.reason "Unauthorized" }}
+  <p class="text-sm break-words primary-txt m-0 text-center">
+    {{ template "error-settings-action-unauthorized" }}
+  </p>
+{{ else if eq .Error.reason "UnverifiedIdentityNotFound" }}
+  <p class="text-sm break-words primary-txt m-0 text-center">
+    {{ template "error-settings-action-unverified-identity-not-found" (dict "claimName" .Error.info.claim_name) }}
+  </p>
+{{ end }}
+{{ end }}
+<p class="text-sm break-words primary-txt m-0 text-center">{{ template "error-settings-action-description" }}</p>
+
+{{ template "__watermark.html" . }}
+</div>
+{{ end }}

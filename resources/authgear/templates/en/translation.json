@@ -93,6 +93,11 @@
   "error-page-not-found": "The page cannot be found",
   "error-page-not-found-action": "Return to Home",
 
+  "error-settings-action-title": "Failed to perform the action",
+  "error-settings-action-description": "You may close this page.",
+  "error-settings-action-unauthorized": "Please login first.",
+  "error-settings-action-unverified-identity-not-found": "User doesn''t have unverified {claimName, select, email{email} phone{phone number} other {identity}} or the project has not enabled verification feature.",
+
   "success-resend-code": "Resent code successfully!",
   "success-resend-magic-link": "Login link successfully resent",
 

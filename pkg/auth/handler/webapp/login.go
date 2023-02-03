@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -54,6 +55,7 @@ type TutorialCookie interface {
 
 type ErrorCookie interface {
 	GetError(r *http.Request) (*webapp.ErrorState, bool)
+	SetError(r *http.Request, value *apierrors.APIError) (*http.Cookie, error)
 }
 
 type LoginViewModel struct {

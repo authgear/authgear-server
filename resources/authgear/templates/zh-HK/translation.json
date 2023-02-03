@@ -93,6 +93,11 @@
   "error-page-not-found": "找不到頁面",
   "error-page-not-found-action": "返回主頁",
 
+  "error-settings-action-title": "執行操作失敗",
+  "error-settings-action-description": "您可以關閉此頁面。",
+  "error-settings-action-unauthorized": "請先登入。",
+  "error-settings-action-unverified-identity-not-found": "用戶沒有未驗證{claimName, select, email{電郵地址} phone{電話號碼} other {身份資料}}，或應用程式沒有開啟驗證功能。",
+
   "success-resend-code": "成功重發驗證碼！",
   "success-resend-magic-link": "成功重發登錄鏈接",
 

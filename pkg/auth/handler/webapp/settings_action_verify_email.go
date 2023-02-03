@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -63,24 +62,17 @@ func (h *SettingsActionVerifyEmailHandler) ServeHTTP(w http.ResponseWriter, r *h
 			}
 		}
 
-		return nil, errors.New("no identity to verify")
-	}
-
-	_, hasErr := h.ErrorCookie.GetError(r)
-	if hasErr {
-		http.Redirect(w, r, "/errors/error", http.StatusFound)
-		return
+		return nil, NewErrUnverifiedIdentityNotFound(string(model.ClaimEmail))
 	}
 
 	ctrl.Get(func() error {
 		userID := session.GetUserID(r.Context())
 		if userID == nil {
-			// fixme: handle error
-			return errors.New("login required")
+			return RedirectToSettingsActionErrorPage(w, r, h.ErrorCookie, ErrAuthenticationRequired)
 		}
 		identity, err := getIdentityToVerify(*userID)
 		if err != nil {
-			return err
+			return RedirectToSettingsActionErrorPage(w, r, h.ErrorCookie, err)
 		}
 		opts := webapp.SessionOptions{}
 		intent := intents.NewIntentVerifyIdentity(*userID, model.IdentityTypeLoginID, identity.ID)
@@ -90,6 +82,9 @@ func (h *SettingsActionVerifyEmailHandler) ServeHTTP(w http.ResponseWriter, r *h
 		})
 		if err != nil {
 			return err
+		}
+		if result.IsInteractionErr {
+			result.RedirectURI = "/errors/settings_action"
 		}
 		result.WriteResponse(w, r)
 		return nil

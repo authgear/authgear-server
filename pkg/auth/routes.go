@@ -283,6 +283,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsDeleteAccountHandler))
 
+	router.Add(webapphandler.ConfigureSettingsActionErrorRoute(webappSettingsActionRoute), p.Handler(newWebAppSettingsActionErrorHandler))
 	router.Add(webapphandler.ConfigureSettingsActionVerifyEmailRoute(webappSettingsActionRoute), p.Handler(newWebAppSettingsActionVerifyEmailHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
