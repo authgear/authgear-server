@@ -191,8 +191,13 @@ func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
 	return
 }
 
-func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (output *ServiceOutput, err error) {
-	session, err := s.Store.GetSession(workflowID)
+func (s *Service) FeedInput(instanceID string, input Input) (output *ServiceOutput, err error) {
+	workflow, err := s.Store.GetWorkflowByInstanceID(instanceID)
+	if err != nil {
+		return
+	}
+
+	session, err := s.Store.GetSession(workflow.WorkflowID)
 	if err != nil {
 		return
 	}

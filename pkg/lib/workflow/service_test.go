@@ -90,6 +90,7 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
+				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
 				store.EXPECT().GetSession(workflow.WorkflowID).Return(session, nil),
 				savepoint.EXPECT().Begin().Times(1).Return(nil),
 				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
@@ -97,7 +98,7 @@ func TestService(t *testing.T) {
 				savepoint.EXPECT().Rollback().Times(1).Return(nil),
 			)
 
-			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, &inputLoginID{
+			output, err := service.FeedInput(workflow.InstanceID, &inputLoginID{
 				LoginID: "user@example.com",
 			})
 			So(err, ShouldBeNil)
@@ -283,10 +284,9 @@ func TestServiceContext(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			store.EXPECT().GetSession(output.Workflow.WorkflowID).Return(output.Session, nil)
-			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(1).Return(output.Workflow, nil)
+			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(2).Return(output.Workflow, nil)
 
 			output, err = service.FeedInput(
-				output.Workflow.WorkflowID,
 				output.Workflow.InstanceID,
 				nil,
 			)

@@ -36,6 +36,11 @@ func (i *IntentLogin) Instantiate(data json.RawMessage) error {
 }
 
 func (*IntentLogin) DeriveEdges(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Edge, error) {
+	if len(w.Nodes) == 0 {
+		return []workflow.Edge{
+			&EdgeTakeLoginID{},
+		}, nil
+	}
 	return nil, workflow.ErrEOF
 }
 

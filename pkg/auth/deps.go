@@ -127,6 +127,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.PresignProvider), new(*presign.Provider)),
 	wire.Bind(new(handlerapi.WorkflowNewWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
+	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
