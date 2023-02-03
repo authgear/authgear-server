@@ -6,20 +6,23 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
+type WebHook interface {
+	SupportURL(u *url.URL) bool
+	PrepareRequest(u *url.URL, body interface{}) (*http.Request, error)
+	PerformWithResponse(client *http.Client, request *http.Request) (resp *http.Response, err error)
+	PerformNoResponse(client *http.Client, request *http.Request) error
+}
+
 type WebHookImpl struct {
-	Secret    *config.WebhookKeyMaterials
-	SyncHTTP  SyncHTTPClient
-	AsyncHTTP AsyncHTTPClient
+	Secret *config.WebhookKeyMaterials
 }
 
 var _ WebHook = &WebHookImpl{}
@@ -28,66 +31,18 @@ func (h *WebHookImpl) SupportURL(u *url.URL) bool {
 	return u.Scheme == "http" || u.Scheme == "https"
 }
 
-func (h *WebHookImpl) CallSync(u *url.URL, body interface{}, timeout *time.Duration) (*http.Response, error) {
-	request, err := h.prepareRequest(u, body)
+func (h *WebHookImpl) PrepareRequest(u *url.URL, body interface{}) (*http.Request, error) {
+	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-
-	var client *http.Client = h.SyncHTTP.Client
-	if timeout != nil {
-		client = httputil.NewExternalClient(*timeout)
-	}
-
-	resp, err := h.performRequest(client, request)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func (h *WebHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
-	request, err := h.prepareEventRequest(u, e)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := h.performEventRequest(h.SyncHTTP.Client, request, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-func (h *WebHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
-	request, err := h.prepareEventRequest(u, e)
-	if err != nil {
-		return err
-	}
-
-	_, err = h.performEventRequest(h.AsyncHTTP.Client, request, false)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *WebHookImpl) prepareRequest(u *url.URL, rawBody interface{}) (*http.Request, error) {
-	body, err := json.Marshal(rawBody)
-	if err != nil {
-		return nil, err
-	}
-
 	key, err := jwkutil.ExtractOctetKey(h.Secret.Set, "")
 	if err != nil {
 		return nil, err
 	}
-	signature := crypto.HMACSHA256String(key, body)
+	signature := crypto.HMACSHA256String(key, jsonBody)
 
-	request, err := http.NewRequest("POST", u.String(), bytes.NewReader(body))
+	request, err := http.NewRequest("POST", u.String(), bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -98,11 +53,77 @@ func (h *WebHookImpl) prepareRequest(u *url.URL, rawBody interface{}) (*http.Req
 	return request, nil
 }
 
-func (h *WebHookImpl) prepareEventRequest(u *url.URL, event *event.Event) (*http.Request, error) {
-	return h.prepareRequest(u, event)
+// The caller should close the response body if the response is not nil.
+func (h *WebHookImpl) PerformWithResponse(
+	client *http.Client,
+	request *http.Request) (resp *http.Response, err error) {
+
+	return performRequest(client, request)
 }
 
-func (h *WebHookImpl) performRequest(client *http.Client, request *http.Request) (resp *http.Response, err error) {
+func (h *WebHookImpl) PerformNoResponse(
+	client *http.Client,
+	request *http.Request) error {
+
+	resp, err := performRequest(client, request)
+
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
+	return err
+}
+
+type EventWebHookImpl struct {
+	WebHookImpl
+	SyncHTTP  SyncHTTPClient
+	AsyncHTTP AsyncHTTPClient
+}
+
+var _ EventWebHook = &EventWebHookImpl{}
+
+func (h *EventWebHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+	request, err := h.PrepareRequest(u, e)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := h.PerformWithResponse(h.SyncHTTP.Client, request)
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var hookResp *event.HookResponse
+	hookResp, err = event.ParseHookResponse(resp.Body)
+	if err != nil {
+		apiError := apierrors.AsAPIError(err)
+		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)
+		return nil, err
+	}
+
+	return hookResp, nil
+}
+
+func (h *EventWebHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
+	request, err := h.PrepareRequest(u, e)
+	if err != nil {
+		return err
+	}
+
+	return h.PerformNoResponse(h.AsyncHTTP.Client, request)
+}
+
+func performRequest(
+	client *http.Client,
+	request *http.Request) (resp *http.Response, err error) {
 	resp, err = client.Do(request)
 	if os.IsTimeout(err) {
 		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
@@ -115,26 +136,6 @@ func (h *WebHookImpl) performRequest(client *http.Client, request *http.Request)
 		err = WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
 			"status_code": resp.StatusCode,
 		})
-		return
-	}
-
-	return resp, nil
-}
-
-func (h *WebHookImpl) performEventRequest(client *http.Client, request *http.Request, withResponse bool) (hookResp *event.HookResponse, err error) {
-	resp, err := h.performRequest(client, request)
-
-	defer resp.Body.Close()
-
-	if !withResponse {
-		return
-	}
-
-	hookResp, err = event.ParseHookResponse(resp.Body)
-	if err != nil {
-		apiError := apierrors.AsAPIError(err)
-		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)
-		return
 	}
 
 	return

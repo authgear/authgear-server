@@ -2,7 +2,6 @@ package hook
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"time"
 
@@ -28,9 +27,8 @@ type CustomAttributesServiceNoEvent interface {
 	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
 }
 
-type WebHook interface {
+type EventWebHook interface {
 	SupportURL(u *url.URL) bool
-	CallSync(u *url.URL, body interface{}, timeout *time.Duration) (*http.Response, error)
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }
@@ -46,7 +44,7 @@ type Sink struct {
 	Logger             Logger
 	Config             *config.HookConfig
 	Clock              clock.Clock
-	WebHook            WebHook
+	EventWebHook       EventWebHook
 	DenoHook           DenoHook
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
@@ -196,8 +194,8 @@ func (s *Sink) deliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.
 		return nil, err
 	}
 	switch {
-	case s.WebHook.SupportURL(u):
-		return s.WebHook.DeliverBlockingEvent(u, e)
+	case s.EventWebHook.SupportURL(u):
+		return s.EventWebHook.DeliverBlockingEvent(u, e)
 	case s.DenoHook.SupportURL(u):
 		return s.DenoHook.DeliverBlockingEvent(u, e)
 	default:
@@ -211,8 +209,8 @@ func (s *Sink) deliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *
 		return err
 	}
 	switch {
-	case s.WebHook.SupportURL(u):
-		return s.WebHook.DeliverNonBlockingEvent(u, e)
+	case s.EventWebHook.SupportURL(u):
+		return s.EventWebHook.DeliverNonBlockingEvent(u, e)
 	case s.DenoHook.SupportURL(u):
 		return s.DenoHook.DeliverNonBlockingEvent(u, e)
 	default:

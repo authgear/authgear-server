@@ -37,13 +37,13 @@ func TestSink(t *testing.T) {
 
 		stdAttrsService := NewMockStandardAttributesServiceNoEvent(ctrl)
 		customAttrsService := NewMockCustomAttributesServiceNoEvent(ctrl)
-		webhook := NewMockWebHook(ctrl)
+		webhook := NewMockEventWebHook(ctrl)
 		denohook := NewMockDenoHook(ctrl)
 
 		s := Sink{
 			Config:             cfg,
 			Clock:              clock,
-			WebHook:            webhook,
+			EventWebHook:       webhook,
 			DenoHook:           denohook,
 			StandardAttributes: stdAttrsService,
 			CustomAttributes:   customAttrsService,

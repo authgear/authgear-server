@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func TestWebHook(t *testing.T) {
+func TestEventWebHook(t *testing.T) {
 	mustURL := func(s string) *url.URL {
 		u, err := url.Parse(s)
 		if err != nil {
@@ -22,7 +22,7 @@ func TestWebHook(t *testing.T) {
 		return u
 	}
 
-	Convey("WebHook", t, func() {
+	Convey("EventWebHook", t, func() {
 		key, err := jwk.New([]byte("aG9vay1zZWNyZXQ"))
 		So(err, ShouldBeNil)
 		set := jwk.NewSet()
@@ -35,10 +35,10 @@ func TestWebHook(t *testing.T) {
 		gock.InterceptClient(httpClient)
 		defer gock.Off()
 
-		webhook := &WebHookImpl{
-			Secret:    secret,
-			SyncHTTP:  SyncHTTPClient{httpClient},
-			AsyncHTTP: AsyncHTTPClient{httpClient},
+		webhook := &EventWebHookImpl{
+			WebHookImpl: WebHookImpl{Secret: secret},
+			SyncHTTP:    SyncHTTPClient{httpClient},
+			AsyncHTTP:   AsyncHTTPClient{httpClient},
 		}
 
 		Convey("DeliverBlockingEvent", func() {

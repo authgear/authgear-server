@@ -519,12 +519,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	webHookImpl := &hook.WebHookImpl{
-		Secret:    webhookKeyMaterials,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
 	}
 	denoEndpoint := environmentConfig.DenoEndpoint
 	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
@@ -541,7 +544,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:             hookLogger,
 		Config:             hookConfig,
 		Clock:              clockClock,
-		WebHook:            webHookImpl,
+		EventWebHook:       eventWebHookImpl,
 		DenoHook:           denoHookImpl,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
