@@ -80,14 +80,14 @@ func (k SessionStepKind) Path() string {
 	case SessionStepSetupWhatsappOTP:
 		return "/flows/setup_whatsapp_otp"
 	case SessionStepSetupMagicLinkOTP:
-		return "/flows/setup_magic_link_otp"
+		return "/flows/setup_login_link_otp"
 	case SessionStepVerifyWhatsappOTPSetup,
 		SessionStepVerifyWhatsappOTPAuthn,
 		SessionStepVerifyIdentityViaWhatsapp:
 		return "/flows/whatsapp_otp"
 	case SessionStepVerifyMagicLinkOTPSetup,
 		SessionStepVerifyMagicLinkOTPAuthn:
-		return "/flows/magic_link_otp"
+		return "/flows/login_link_otp"
 	case SessionStepEnterTOTP:
 		return "/flows/enter_totp"
 	case SessionStepSetupTOTP:
@@ -137,7 +137,7 @@ func (k SessionStepKind) MatchPath(path string) bool {
 		}
 	case SessionStepVerifyMagicLinkOTPSetup:
 		switch path {
-		case "/flows/magic_link_otp", "/flows/verify_magic_link":
+		case "/flows/login_link_otp", "/flows/verify_login_link":
 			return true
 		default:
 			return false

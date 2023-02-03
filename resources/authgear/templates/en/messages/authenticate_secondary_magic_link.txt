@@ -1,6 +1,6 @@
 Log in to {{ template "app.name" }}
 
-Please visit the following link to complete the login process.
+Please follow the link below to sign in to {{ template "app.name" }}.
 
 {{ .URL }}
 

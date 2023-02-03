@@ -285,7 +285,7 @@ export interface VerificationClaimsConfig {
 export const verificationCriteriaList = ["any", "all"] as const;
 export type VerificationCriteria = typeof verificationCriteriaList[number];
 
-export const authenticatorEmailOTPModeList = ["code", "magic_link"] as const;
+export const authenticatorEmailOTPModeList = ["code", "login_link"] as const;
 export type AuthenticatorEmailOTPMode =
   typeof authenticatorEmailOTPModeList[number];
 

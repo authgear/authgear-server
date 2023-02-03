@@ -32,7 +32,7 @@ var VerifyMagicLinkOTPSchema = validation.NewSimpleSchema(`
 func ConfigureVerifyMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/flows/verify_magic_link")
+		WithPathPattern("/flows/verify_login_link")
 }
 
 type VerifyMagicLinkOTPViewModel struct {

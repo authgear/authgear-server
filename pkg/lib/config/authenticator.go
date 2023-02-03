@@ -185,7 +185,7 @@ type AuthenticatorOOBEmailConfig struct {
 var _ = Schema.Add("AuthenticatorEmailOTPMode", `
 {
 	"type": "string",
-	"enum": ["code", "magic_link"]
+	"enum": ["code", "login_link"]
 }
 `)
 
@@ -193,7 +193,7 @@ type AuthenticatorEmailOTPMode string
 
 const (
 	AuthenticatorEmailOTPModeCodeOnly      AuthenticatorEmailOTPMode = "code"
-	AuthenticatorEmailOTPModeMagicLinkOnly AuthenticatorEmailOTPMode = "magic_link"
+	AuthenticatorEmailOTPModeMagicLinkOnly AuthenticatorEmailOTPMode = "login_link"
 )
 
 func (m *AuthenticatorEmailOTPMode) IsCodeEnabled() bool {
