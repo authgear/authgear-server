@@ -83,8 +83,15 @@ func (r AuthorizationRequest) SSOEnabled() bool {
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
 func (r AuthorizationRequest) CustomUIQuery() string      { return r["x_custom_ui_query"] }
+func (r AuthorizationRequest) SettingsAction() string     { return r["x_settings_action"] }
 
 type AuthorizationResponse map[string]string
 
 func (r AuthorizationResponse) Code(v string)  { r["code"] = v }
 func (r AuthorizationResponse) State(v string) { r["state"] = v }
+
+type SettingsAction string
+
+const (
+	SettingsActionVerifyEmail SettingsAction = "verify_email"
+)

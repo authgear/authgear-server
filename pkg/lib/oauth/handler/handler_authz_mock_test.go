@@ -96,6 +96,21 @@ func (mr *MockUIURLBuilderMockRecorder) Build(client, r interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockUIURLBuilder)(nil).Build), client, r)
 }
 
+// BuildActionURL mocks base method.
+func (m *MockUIURLBuilder) BuildActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, action string) (*url.URL, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BuildActionURL", client, r, action)
+	ret0, _ := ret[0].(*url.URL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BuildActionURL indicates an expected call of BuildActionURL.
+func (mr *MockUIURLBuilderMockRecorder) BuildActionURL(client, r, action interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildActionURL", reflect.TypeOf((*MockUIURLBuilder)(nil).BuildActionURL), client, r, action)
+}
+
 // MockAppSessionTokenService is a mock of AppSessionTokenService interface.
 type MockAppSessionTokenService struct {
 	ctrl     *gomock.Controller

@@ -140,6 +140,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 type UIURLBuilderAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
+	SettingsActionVerifyEmailURL() *url.URL
 }
 
 type UIURLBuilder struct {
@@ -156,6 +157,29 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 		}
 	} else {
 		endpoint = b.Endpoints.OAuthEntrypointURL()
+	}
+
+	q := endpoint.Query()
+	q.Set("client_id", r.ClientID())
+	q.Set("redirect_uri", r.RedirectURI())
+	if r.ColorScheme() != "" {
+		q.Set("x_color_scheme", r.ColorScheme())
+	}
+	if len(r.UILocales()) > 0 {
+		q.Set("ui_locales", strings.Join(r.UILocales(), " "))
+	}
+	endpoint.RawQuery = q.Encode()
+
+	return endpoint, nil
+}
+
+func (b *UIURLBuilder) BuildActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, action string) (*url.URL, error) {
+	var endpoint *url.URL
+	switch action {
+	case string(protocol.SettingsActionVerifyEmail):
+		endpoint = b.Endpoints.SettingsActionVerifyEmailURL()
+	default:
+		return nil, ErrInvalidSettingsAction.Errorf("invalid settings action: %s", action)
 	}
 
 	q := endpoint.Query()

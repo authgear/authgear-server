@@ -31,6 +31,7 @@ type UIInfoResolver interface {
 
 type UIURLBuilder interface {
 	Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error)
+	BuildActionURL(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, action string) (*url.URL, error)
 }
 
 type AppSessionTokenService interface {
@@ -353,6 +354,26 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	// create oauth session and redirect to the web app
+	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
+		AuthorizationRequest: r,
+	})
+	err = h.OAuthSessionService.Save(oauthSessionEntry)
+	if err != nil {
+		return nil, err
+	}
+
+	var settingsActionURL *url.URL
+	settingsAction := r.SettingsAction()
+	if settingsAction != "" {
+		settingsActionURL, err = h.UIURLBuilder.BuildActionURL(client, r, settingsAction)
+		if apierrors.IsKind(err, oidc.ErrInvalidSettingsAction) {
+			return nil, protocol.NewError("invalid_request", err.Error())
+		} else if err != nil {
+			return nil, err
+		}
+	}
+
 	loginHintString, loginHintOk := r.LoginHint()
 	// Handle app session token here, and return here.
 	// Anonymous user promotion is handled by the normal flow below.
@@ -372,12 +393,36 @@ func (h *AuthorizationHandler) doHandle(
 				h.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token),
 			}
 
+			var redirectTo *url.URL
+			if settingsActionURL != nil {
+				// redirect to settings action with app session token
+				redirectTo = settingsActionURL
+				// store oauthsession to UICookieDef for performing settings action
+				cookies = append(cookies, h.Cookies.ValueCookie(oauthsession.UICookieDef, oauthSessionEntry.ID))
+			} else {
+				// without settings action, redirect to the redirect uri immediately
+				// e.g. open settings page without specific action
+				redirectTo = redirectURI
+			}
+
 			resp := &httputil.ResultRedirect{
 				Cookies: cookies,
-				URL:     redirectURI.String(),
+				URL:     redirectTo.String(),
 			}
 			return resp, nil
 		}
+	}
+
+	// Handle settings action but no app session token
+	// e.g. perform settings action with cookies
+	if settingsActionURL != nil {
+		resp := &httputil.ResultRedirect{
+			Cookies: []*http.Cookie{
+				h.Cookies.ValueCookie(oauthsession.UICookieDef, oauthSessionEntry.ID),
+			},
+			URL: settingsActionURL.String(),
+		}
+		return resp, nil
 	}
 
 	uiInfo, uiInfoByProduct, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
@@ -386,15 +431,6 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	idToken := uiInfoByProduct.IDToken
 	idTokenHintSID := uiInfoByProduct.IDTokenHintSID
-
-	// create oauth session and redirect to the web app
-	oauthSessionEntry := oauthsession.NewEntry(oauthsession.T{
-		AuthorizationRequest: r,
-	})
-	err = h.OAuthSessionService.Save(oauthSessionEntry)
-	if err != nil {
-		return nil, err
-	}
 
 	// Handle prompt!=none
 	// We must return here.
