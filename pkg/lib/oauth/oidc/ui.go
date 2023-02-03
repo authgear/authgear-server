@@ -18,6 +18,8 @@ import (
 
 // UIInfo is a collection of information that is essential to the UI.
 type UIInfo struct {
+	// ClientID is client_id
+	ClientID string
 	// RedirectURI is the redirect_uri the UI should redirect to.
 	// The redirect_uri in the URL has lower precedence.
 	// The rationale for this is if the end-user bookmarked the
@@ -113,6 +115,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 	}
 
 	info := &UIInfo{
+		ClientID:                   req.ClientID(),
 		RedirectURI:                redirectURI,
 		Prompt:                     prompt,
 		UserIDHint:                 userIDHint,
