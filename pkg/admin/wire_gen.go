@@ -900,8 +900,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service4,
 		Interaction:    serviceInteractionService,
 	}
-	verificationFacade := &facade2.VerificationFacade{
+	adminVerificationFacade := &facade.AdminVerificationFacade{
 		Verification: verificationService,
+		Coordinator:  coordinator,
+	}
+	verificationFacade := &facade2.VerificationFacade{
+		Verification: adminVerificationFacade,
 	}
 	sessionFacade := &facade2.SessionFacade{
 		Sessions: manager2,

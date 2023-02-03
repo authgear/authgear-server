@@ -168,14 +168,8 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 	}
 
 	var claimName model.ClaimName
-	switch model.LoginIDKeyType(loginIDModel.LoginIDType) {
-	case model.LoginIDKeyTypeEmail:
-		claimName = model.ClaimEmail
-	case model.LoginIDKeyTypePhone:
-		claimName = model.ClaimPhoneNumber
-	case model.LoginIDKeyTypeUsername:
-		claimName = model.ClaimPreferredUsername
-	default:
+	claimName, ok := model.GetLoginIDKeyTypeClaim(loginIDModel.LoginIDType)
+	if !ok {
 		panic("interaction: unexpected login ID key")
 	}
 

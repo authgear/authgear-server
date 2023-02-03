@@ -188,8 +188,8 @@ func (s *Service) MarkClaimVerified(claim *Claim) error {
 	return s.ClaimStore.Create(claim)
 }
 
-func (s *Service) DeleteClaim(claimID string) error {
-	return s.ClaimStore.Delete(claimID)
+func (s *Service) DeleteClaim(claim *Claim) error {
+	return s.ClaimStore.Delete(claim.ID)
 }
 
 func (s *Service) ResetVerificationStatus(userID string) error {
