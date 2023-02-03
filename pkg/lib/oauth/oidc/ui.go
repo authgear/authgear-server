@@ -80,7 +80,15 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 	client *config.OAuthClientConfig,
 	req protocol.AuthorizationRequest,
 ) (*UIInfo, *UIInfoByProduct, error) {
-	redirectURI := r.EndpointsProvider.ConsentEndpointURL().String()
+	redirectURI := ""
+	if req.SettingsAction() != "" {
+		// After performing the settings action, redirect back to the app
+		redirectURI = req.RedirectURI()
+	} else {
+		// without settings action, this is normal authentication
+		// redirect to consent screen
+		redirectURI = r.EndpointsProvider.ConsentEndpointURL().String()
+	}
 
 	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(client, req)
 	if err != nil {
