@@ -74,10 +74,10 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	webHookImpl := &hook.WebHookImpl{
 		Secret: webhookKeyMaterials,
 	}
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	hookHTTPClient := sms.NewHookHTTPClient(hookConfig, customSMSProviderConfig)
 	smsWebHook := sms.SMSWebHook{
 		WebHook:  webHookImpl,
-		SyncHTTP: syncHTTPClient,
+		SyncHTTP: hookHTTPClient,
 	}
 	customClient := sms.NewCustomClient(customSMSProviderConfig, denoHookImpl, smsWebHook)
 	client := &sms.Client{

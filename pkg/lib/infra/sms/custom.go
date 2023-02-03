@@ -62,7 +62,7 @@ func (c *CustomClient) Send(from string, to string, body string) error {
 
 type SMSWebHook struct {
 	hook.WebHook
-	SyncHTTP hook.SyncHTTPClient
+	SyncHTTP HookHTTPClient
 }
 
 func (w *SMSWebHook) Call(u *url.URL, payload SendSMSPayload) error {
