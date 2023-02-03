@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -427,8 +428,8 @@ func (i *AdminAPIAuthKeyUpdateInstruction) delete(currentConfig *SecretConfig) (
 	}
 
 	newAdminAPIAuthKey := &AdminAPIAuthKey{Set: jwk.NewSet()}
-	for t := 1; t <= authKey.Len(); t++ {
-		if key, ok := authKey.Get(t); ok && key.KeyID() != i.DeleteData.KeyID {
+	for it := authKey.Iterate(context.Background()); it.Next(context.Background()); {
+		if key, ok := it.Pair().Value.(jwk.Key); ok && key.KeyID() != i.DeleteData.KeyID {
 			newAdminAPIAuthKey.Add(key)
 		}
 	}
