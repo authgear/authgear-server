@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 )
 
@@ -37,7 +36,7 @@ func RegisterInput(input Input) {
 func InstantiateInput(j InputJSON) (Input, error) {
 	factory, ok := inputRegistry[j.Kind]
 	if !ok {
-		return nil, fmt.Errorf("workflow: unknown input kind: %v", j.Kind)
+		return nil, ErrUnknownInput
 	}
 	input := factory()
 

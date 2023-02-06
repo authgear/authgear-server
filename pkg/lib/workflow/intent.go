@@ -3,7 +3,6 @@ package workflow
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"reflect"
 )
 
@@ -46,7 +45,7 @@ func RegisterIntent(intent Intent) {
 func InstantiateIntent(j IntentJSON) (Intent, error) {
 	factory, ok := intentRegistry[j.Kind]
 	if !ok {
-		return nil, fmt.Errorf("workflow: unknown intent kind: %v", j.Kind)
+		return nil, ErrUnknownIntent
 	}
 	intent := factory()
 
