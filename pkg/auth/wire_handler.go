@@ -126,6 +126,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	))
 }
 
+func newAPIMagicLinkVerificationHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.MagicLinkVerificationAPIHandler)),
+	))
+}
+
 func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

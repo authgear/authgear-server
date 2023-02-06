@@ -5982,6 +5982,67 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	return anonymousUserPromotionCodeAPIHandler
 }
 
+func newAPIMagicLinkVerificationHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	magicLinkVerificationAPIHandlerLogger := api.NewMagicLinkVerificationAPILogger(factory)
+	clockClock := _wireSystemClockValue
+	handle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	logger := otp.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	featureConfig := config.FeatureConfig
+	rateLimitFeatureConfig := featureConfig.RateLimit
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
+	}
+	otpConfig := appConfig.OTP
+	verificationConfig := appConfig.Verification
+	otpService := otp.Service{
+		Clock:          clockClock,
+		CodeStore:      codeStoreRedis,
+		MagicLinkStore: magicLinkStoreRedis,
+		Logger:         logger,
+		RateLimiter:    limiter,
+		OTPConfig:      otpConfig,
+		Verification:   verificationConfig,
+	}
+	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
+		Clock:       clockClock,
+		RedisHandle: handle,
+	}
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	magicLinkVerificationAPIHandler := &api.MagicLinkVerificationAPIHandler{
+		Logger:                      magicLinkVerificationAPIHandlerLogger,
+		MagicLinkOTPCodeService:     otpService,
+		GlobalSessionServiceFactory: globalSessionServiceFactory,
+		JSON:                        jsonResponseWriter,
+	}
+	return magicLinkVerificationAPIHandler
+}
+
 func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
