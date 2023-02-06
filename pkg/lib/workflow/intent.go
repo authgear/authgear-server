@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"reflect"
 )
 
@@ -13,6 +14,10 @@ type Intent interface {
 	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
+}
+
+type IntentCookieGetter interface {
+	GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error)
 }
 
 type IntentOutput struct {

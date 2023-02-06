@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 )
 
@@ -209,6 +210,10 @@ type NodeSimple interface {
 	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
 	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies) (interface{}, error)
+}
+
+type NodeSimpleCookieGetter interface {
+	GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error)
 }
 
 type Edge interface {

@@ -72,6 +72,10 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	for _, c := range output.Cookies {
+		httputil.UpdateCookie(w, c)
+	}
+
 	result := WorkflowResponse{
 		Action:   output.Action,
 		Workflow: output.WorkflowOutput,

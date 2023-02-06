@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 )
 
 type workflowJSON struct {
@@ -236,6 +237,38 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 	}
 
 	return nil
+}
+
+func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies) (cookies []*http.Cookie, err error) {
+	err = w.Traverse(WorkflowTraverser{
+		NodeSimple: func(nodeSimple NodeSimple) error {
+			if n, ok := nodeSimple.(NodeSimpleCookieGetter); ok {
+				c, err := n.GetCookies(ctx, deps)
+				if err != nil {
+					return err
+				}
+				cookies = append(cookies, c...)
+			}
+
+			return nil
+		},
+		Intent: func(intent Intent, w *Workflow) error {
+			if i, ok := intent.(IntentCookieGetter); ok {
+				c, err := i.GetCookies(ctx, deps, w)
+				if err != nil {
+					return err
+				}
+				cookies = append(cookies, c...)
+			}
+
+			return nil
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (w *Workflow) Traverse(t WorkflowTraverser) error {

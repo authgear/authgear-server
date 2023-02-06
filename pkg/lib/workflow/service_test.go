@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
+	"net/http"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -193,6 +194,8 @@ func TestService(t *testing.T) {
 
 type intentServiceContext struct{}
 
+var _ IntentCookieGetter = &intentServiceContext{}
+
 func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
 }
@@ -218,6 +221,15 @@ func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies,
 	return nil, nil
 }
 
+func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error) {
+	return []*http.Cookie{
+		{
+			Name:  "intentServiceContext",
+			Value: "intentServiceContext",
+		},
+	}, nil
+}
+
 type edgeServiceContext struct{}
 
 func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
@@ -229,6 +241,8 @@ func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, 
 type nodeServiceContext struct {
 	ClientID string
 }
+
+var _ NodeSimpleCookieGetter = &nodeServiceContext{}
 
 func (*nodeServiceContext) Kind() string {
 	return "nodeServiceContext"
@@ -244,6 +258,15 @@ func (*nodeServiceContext) DeriveEdges(ctx context.Context, deps *Dependencies) 
 
 func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
+}
+
+func (*nodeServiceContext) GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error) {
+	return []*http.Cookie{
+		{
+			Name:  "nodeServiceContext",
+			Value: "nodeServiceContext",
+		},
+	}, nil
 }
 
 func TestServiceContext(t *testing.T) {
@@ -332,6 +355,16 @@ func TestServiceContext(t *testing.T) {
 				SessionOutput: &SessionOutput{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID:   "client-id",
+				},
+				Cookies: []*http.Cookie{
+					{
+						Name:  "nodeServiceContext",
+						Value: "nodeServiceContext",
+					},
+					{
+						Name:  "intentServiceContext",
+						Value: "intentServiceContext",
+					},
 				},
 			})
 		})

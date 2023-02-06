@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -29,6 +30,7 @@ type ServiceOutput struct {
 	Workflow       *Workflow
 	WorkflowOutput *WorkflowOutput
 	Action         *WorkflowAction
+	Cookies        []*http.Cookie
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -213,10 +215,9 @@ func (s *Service) FeedInput(instanceID string, input Input) (output *ServiceOutp
 
 	sessionOutput := session.ToOutput()
 
+	var cookies []*http.Cookie
 	if isEOF {
-		// When the workflow is finished.
-		// We need to apply the all effects.
-		err = s.applyFinishedWorkflow(ctx, workflow)
+		cookies, err = s.finishWorkflow(ctx, workflow)
 		if err != nil {
 			return
 		}
@@ -241,6 +242,7 @@ func (s *Service) FeedInput(instanceID string, input Input) (output *ServiceOutp
 		Workflow:       workflow,
 		WorkflowOutput: workflowOutput,
 		Action:         action,
+		Cookies:        cookies,
 	}
 	return
 }
@@ -305,7 +307,11 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 	return
 }
 
-func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow) (err error) {
+func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cookies []*http.Cookie, err error) {
+	// When the workflow is finished, we have the following things to do:
+	// 1. Apply all effects.
+	// 2. Collect cookies.
+
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -335,6 +341,11 @@ func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow)
 	}()
 
 	err = workflow.ApplyAllEffects(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	cookies, err = workflow.CollectCookies(ctx, s.Deps)
 	if err != nil {
 		return
 	}
