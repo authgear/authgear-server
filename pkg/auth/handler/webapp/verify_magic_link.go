@@ -54,7 +54,7 @@ func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel
 
 type VerifyMagicLinkOTPHandler struct {
 	MagicLinkOTPCodeService     otp.Service
-	GlobalSessionServiceFactory *GlobalSessionServiceFactory
+	GlobalSessionServiceFactory *webapp.GlobalSessionServiceFactory
 	ControllerFactory           ControllerFactory
 	BaseViewModel               *viewmodels.BaseViewModeler
 	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler

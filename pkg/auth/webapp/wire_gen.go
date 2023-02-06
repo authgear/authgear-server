@@ -7,7 +7,6 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -16,15 +15,15 @@ import (
 // Injectors from wire.go:
 
 func newGlobalSessionService(appID config.AppID, clock2 clock.Clock, redisHandle *appredis.Handle) *GlobalSessionService {
-	sessionStoreRedis := &webapp.SessionStoreRedis{
+	sessionStoreRedis := &SessionStoreRedis{
 		AppID: appID,
 		Redis: redisHandle,
 	}
 	publisher := NewPublisher(appID, redisHandle)
 	globalSessionService := &GlobalSessionService{
-		SessionStore: sessionStoreRedis,
-		Publisher:    publisher,
-		Clock:        clock2,
+		WebSessionStore: sessionStoreRedis,
+		Publisher:       publisher,
+		Clock:           clock2,
 	}
 	return globalSessionService
 }

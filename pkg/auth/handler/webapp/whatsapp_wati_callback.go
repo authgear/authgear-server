@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -77,7 +78,7 @@ type WhatsappWATICallbackHandler struct {
 	OTPCodeService              OTPCodeService
 	Logger                      WhatsappWATICallbackHandlerLogger
 	WATICredentials             *config.WATICredentials
-	GlobalSessionServiceFactory *GlobalSessionServiceFactory
+	GlobalSessionServiceFactory *webapp.GlobalSessionServiceFactory
 }
 
 type OTPCodeService interface {

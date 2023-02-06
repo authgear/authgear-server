@@ -5,7 +5,6 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
@@ -32,7 +31,7 @@ func (p *Publisher) Get() *goredis.Client {
 	return p.RedisHandle.Client()
 }
 
-func (p *Publisher) Publish(s *webapp.Session, msg *WebsocketMessage) error {
+func (p *Publisher) Publish(s *Session, msg *WebsocketMessage) error {
 	channelName := WebsocketChannelName(string(p.AppID), s.ID)
 
 	b, err := json.Marshal(msg)

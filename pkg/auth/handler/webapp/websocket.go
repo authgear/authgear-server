@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -24,7 +23,7 @@ type WebsocketHandler struct {
 	AppID         config.AppID
 	LoggerFactory *log.Factory
 	RedisHandle   *appredis.Handle
-	Publisher     *Publisher
+	Publisher     *webapp.Publisher
 }
 
 func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +43,7 @@ func (h *WebsocketHandler) Accept(r *http.Request) (channelName string, err erro
 		return
 	}
 
-	channelName = WebsocketChannelName(string(h.AppID), s.ID)
+	channelName = webapp.WebsocketChannelName(string(h.AppID), s.ID)
 	return
 }
 
@@ -69,8 +68,8 @@ func (h *WebsocketHandler) OnRedisSubscribe(r *http.Request) error {
 	}
 
 	if ts < s.UpdatedAt.Unix() {
-		msg := &WebsocketMessage{
-			Kind: WebsocketMessageKindRefresh,
+		msg := &webapp.WebsocketMessage{
+			Kind: webapp.WebsocketMessageKindRefresh,
 		}
 
 		err := h.Publisher.Publish(s, msg)
@@ -80,19 +79,4 @@ func (h *WebsocketHandler) OnRedisSubscribe(r *http.Request) error {
 	}
 
 	return nil
-}
-
-func WebsocketChannelName(appID string, id string) string {
-	return fmt.Sprintf("app:%s:webapp-session-ws:%s", appID, id)
-}
-
-type WebsocketMessageKind string
-
-const (
-	// WebsocketMessageKindRefresh means when the client receives this message, they should refresh the page.
-	WebsocketMessageKindRefresh = "refresh"
-)
-
-type WebsocketMessage struct {
-	Kind WebsocketMessageKind `json:"kind"`
 }

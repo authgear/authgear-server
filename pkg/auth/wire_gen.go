@@ -6838,7 +6838,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -7652,7 +7652,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -8465,7 +8465,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -9266,7 +9266,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -10060,7 +10060,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -10844,7 +10844,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -11631,7 +11631,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -12421,7 +12421,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -13213,7 +13213,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -14003,7 +14003,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -14789,7 +14789,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -15579,7 +15579,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -16370,7 +16370,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -17160,7 +17160,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -17950,7 +17950,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -18742,7 +18742,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -19532,7 +19532,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -20322,7 +20322,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -21116,7 +21116,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -21906,7 +21906,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -21983,7 +21983,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
+	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
 		Clock:       clockClock,
 		RedisHandle: handle,
 	}
@@ -22756,7 +22756,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -23555,7 +23555,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, handle)
+	publisher := webapp2.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      appdbHandle,
 		RedisHandle:   handle,
@@ -23632,7 +23632,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPConfig:      otpConfig,
 		Verification:   verificationConfig,
 	}
-	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
+	globalSessionServiceFactory := &webapp2.GlobalSessionServiceFactory{
 		Clock:       clockClock,
 		RedisHandle: handle,
 	}
@@ -24362,7 +24362,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, handle)
+	publisher := webapp2.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      appdbHandle,
 		RedisHandle:   handle,
@@ -25155,7 +25155,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -25945,7 +25945,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -26731,7 +26731,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -27521,7 +27521,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -28307,7 +28307,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -29103,7 +29103,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -29889,7 +29889,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -30677,7 +30677,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -31463,7 +31463,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -32281,7 +32281,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -33078,7 +33078,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -33888,7 +33888,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -34682,7 +34682,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -35469,7 +35469,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -36264,7 +36264,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -37051,7 +37051,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -37838,7 +37838,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -38625,7 +38625,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -39413,7 +39413,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -40219,7 +40219,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -41006,7 +41006,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -41793,7 +41793,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -42580,7 +42580,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -43367,7 +43367,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -44161,7 +44161,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -44949,7 +44949,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -45735,7 +45735,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -46535,7 +46535,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -47321,7 +47321,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -48107,7 +48107,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -48140,7 +48140,7 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Redis
-	publisher := webapp.NewPublisher(appID, handle)
+	publisher := webapp2.NewPublisher(appID, handle)
 	websocketHandler := &webapp.WebsocketHandler{
 		AppID:         appID,
 		LoggerFactory: factory,
@@ -50415,7 +50415,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,
@@ -51211,7 +51211,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
 		Database:      handle,
 		RedisHandle:   appredisHandle,

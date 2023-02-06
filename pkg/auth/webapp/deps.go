@@ -39,4 +39,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Service2), "*"),
 
 	wire.Struct(new(WechatURLProvider), "*"),
+
+	NewPublisher,
+	wire.Struct(new(GlobalSessionServiceFactory), "*"),
 )

@@ -40,7 +40,7 @@ type ControllerDeps struct {
 	Page          PageService
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
-	Publisher     *Publisher
+	Publisher     *webapp.Publisher
 	Clock         clock.Clock
 	UIConfig      *config.UIConfig
 	ErrorCookie   *webapp.ErrorCookie
@@ -121,8 +121,8 @@ func (c *Controller) UpdateSession(s *webapp.Session) error {
 		return err
 	}
 
-	msg := &WebsocketMessage{
-		Kind: WebsocketMessageKindRefresh,
+	msg := &webapp.WebsocketMessage{
+		Kind: webapp.WebsocketMessageKindRefresh,
 	}
 
 	err = c.Publisher.Publish(s, msg)

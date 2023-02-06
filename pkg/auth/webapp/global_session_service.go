@@ -1,15 +1,14 @@
 package webapp
 
 import (
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type SessionStore interface {
-	Get(id string) (session *webapp.Session, err error)
-	Update(session *webapp.Session) (err error)
+type WebSessionStore interface {
+	Get(id string) (session *Session, err error)
+	Update(session *Session) (err error)
 }
 
 type GlobalSessionServiceFactory struct {
@@ -22,19 +21,19 @@ func (f *GlobalSessionServiceFactory) NewGlobalSessionService(appID config.AppID
 }
 
 type GlobalSessionService struct {
-	SessionStore SessionStore
-	Publisher    *Publisher
-	Clock        clock.Clock
+	WebSessionStore WebSessionStore
+	Publisher       *Publisher
+	Clock           clock.Clock
 }
 
-func (s *GlobalSessionService) GetSession(sessionID string) (session *webapp.Session, err error) {
-	return s.SessionStore.Get(sessionID)
+func (s *GlobalSessionService) GetSession(sessionID string) (session *Session, err error) {
+	return s.WebSessionStore.Get(sessionID)
 }
 
-func (s *GlobalSessionService) UpdateSession(session *webapp.Session) error {
+func (s *GlobalSessionService) UpdateSession(session *Session) error {
 	now := s.Clock.NowUTC()
 	session.UpdatedAt = now
-	err := s.SessionStore.Update(session)
+	err := s.WebSessionStore.Update(session)
 	if err != nil {
 		return err
 	}
