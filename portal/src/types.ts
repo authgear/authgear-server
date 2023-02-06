@@ -601,10 +601,20 @@ export interface OAuthClientSecretsUpdateInstruction {
   cleanupData?: OAuthClientSecretsUpdateInstructionCleanupData | null;
 }
 
+export interface AdminAPIAuthKeyDeleteDataInput {
+  keyID: string;
+}
+
+export interface AdminApiAuthKeyUpdateInstruction {
+  action: string;
+  deleteData?: AdminAPIAuthKeyDeleteDataInput | null;
+}
+
 export interface PortalAPISecretConfigUpdateInstruction {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
   smtpSecret?: SMTPSecretUpdateInstruction | null;
   oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
+  adminAPIAuthKey?: AdminApiAuthKeyUpdateInstruction | null;
 }
 
 export interface PortalAPIApp {
