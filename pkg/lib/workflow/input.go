@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
@@ -28,7 +29,7 @@ func RegisterInput(input Input) {
 	})
 
 	if _, hasKind := inputRegistry[inputKind]; hasKind {
-		panic("interaction: duplicated input kind: " + inputKind)
+		panic(fmt.Errorf("workflow: duplicated input kind: %v", inputKind))
 	}
 	inputRegistry[inputKind] = factory
 }

@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
@@ -37,7 +38,7 @@ func RegisterIntent(intent Intent) {
 	})
 
 	if _, hasKind := intentRegistry[intentKind]; hasKind {
-		panic("interaction: duplicated intent kind: " + intentKind)
+		panic(fmt.Errorf("workflow: duplicated intent kind: %v", intentKind))
 	}
 	intentRegistry[intentKind] = factory
 }

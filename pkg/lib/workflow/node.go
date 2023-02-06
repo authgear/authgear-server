@@ -227,7 +227,7 @@ func RegisterNode(node NodeSimple) {
 	})
 
 	if _, hasKind := nodeRegistry[nodeKind]; hasKind {
-		panic("interaction: duplicated node kind: " + nodeKind)
+		panic(fmt.Errorf("workflow: duplicated node kind: %v", nodeKind))
 	}
 	nodeRegistry[nodeKind] = factory
 }
