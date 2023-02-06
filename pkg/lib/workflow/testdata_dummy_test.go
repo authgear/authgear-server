@@ -3,6 +3,8 @@ package workflow
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 )
 
 func init() {
@@ -10,6 +12,15 @@ func init() {
 	RegisterIntent(&testMarshalIntent1{})
 	RegisterNode(&testMarshalNode0{})
 	RegisterNode(&testMarshalNode1{})
+}
+
+func WithEffectWriter(ctx context.Context, w io.Writer) context.Context {
+	return context.WithValue(ctx, "writer", w)
+}
+
+func GetEffectWriter(ctx context.Context) (io.Writer, bool) {
+	w, ok := ctx.Value("writer").(io.Writer)
+	return w, ok
 }
 
 type testMarshalIntent0 struct {
@@ -24,8 +35,15 @@ func (i *testMarshalIntent0) Instantiate(data json.RawMessage) error {
 	return json.Unmarshal(data, i)
 }
 
-func (*testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
-	return nil, nil
+func (i *testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+	return []Effect{
+		OnCommitEffect(func(ctx context.Context, deps *Dependencies) error {
+			if w, ok := GetEffectWriter(ctx); ok {
+				fmt.Fprintf(w, "on-commit-effect: %v\n", i.Intent0)
+			}
+			return nil
+		}),
+	}, nil
 }
 
 func (*testMarshalIntent0) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
@@ -50,8 +68,15 @@ func (i *testMarshalIntent1) Instantiate(data json.RawMessage) error {
 	return json.Unmarshal(data, i)
 }
 
-func (*testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
-	return nil, nil
+func (i *testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+	return []Effect{
+		OnCommitEffect(func(ctx context.Context, deps *Dependencies) error {
+			if w, ok := GetEffectWriter(ctx); ok {
+				fmt.Fprintf(w, "on-commit-effect: %v\n", i.Intent1)
+			}
+			return nil
+		}),
+	}, nil
 }
 
 func (*testMarshalIntent1) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
@@ -72,8 +97,21 @@ func (*testMarshalNode0) Kind() string {
 	return "testMarshalNode0"
 }
 
-func (*testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
-	return nil, nil
+func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+	return []Effect{
+		RunEffect(func(ctx context.Context, deps *Dependencies) error {
+			if w, ok := GetEffectWriter(ctx); ok {
+				fmt.Fprintf(w, "run-effect: %v\n", n.Node0)
+			}
+			return nil
+		}),
+		OnCommitEffect(func(ctx context.Context, deps *Dependencies) error {
+			if w, ok := GetEffectWriter(ctx); ok {
+				fmt.Fprintf(w, "on-commit-effect: %v\n", n.Node0)
+			}
+			return nil
+		}),
+	}, nil
 }
 
 func (*testMarshalNode0) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
@@ -94,8 +132,21 @@ func (*testMarshalNode1) Kind() string {
 	return "testMarshalNode1"
 }
 
-func (*testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
-	return nil, nil
+func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+	return []Effect{
+		RunEffect(func(ctx context.Context, deps *Dependencies) error {
+			if w, ok := GetEffectWriter(ctx); ok {
+				fmt.Fprintf(w, "run-effect: %v\n", n.Node1)
+			}
+			return nil
+		}),
+		OnCommitEffect(func(ctx context.Context, deps *Dependencies) error {
+			if w, ok := GetEffectWriter(ctx); ok {
+				fmt.Fprintf(w, "on-commit-effect: %v\n", n.Node1)
+			}
+			return nil
+		}),
+	}, nil
 }
 
 func (*testMarshalNode1) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {

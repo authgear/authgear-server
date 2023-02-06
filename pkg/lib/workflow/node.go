@@ -81,26 +81,6 @@ func (n *Node) Traverse(t WorkflowTraverser) error {
 	}
 }
 
-func (n *Node) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
-	switch n.Type {
-	case NodeTypeSimple:
-		return n.Simple.GetEffects(ctx, deps)
-	case NodeTypeSubWorkflow:
-		var allEffects []Effect
-		for _, node := range n.SubWorkflow.Nodes {
-			effs, err := node.GetEffects(ctx, deps)
-			if err != nil {
-				return nil, err
-			}
-			allEffects = append(allEffects, effs...)
-		}
-
-		return allEffects, nil
-	default:
-		panic(errors.New("unreachable"))
-	}
-}
-
 func (n *Node) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) (*Workflow, []Edge, error) {
 	switch n.Type {
 	case NodeTypeSimple:

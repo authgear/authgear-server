@@ -129,47 +129,65 @@ func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) 
 func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node) error {
 	w.Nodes = append(w.Nodes, node)
 
-	effs, err := node.GetEffects(ctx, deps)
-	if err != nil {
-		return err
-	}
-	for _, eff := range effs {
-		if runEff, ok := eff.(RunEffect); ok {
-			err = applyRunEffect(ctx, deps, runEff)
+	err := node.Traverse(WorkflowTraverser{
+		NodeSimple: func(nodeSimple NodeSimple) error {
+			effs, err := nodeSimple.GetEffects(ctx, deps)
 			if err != nil {
 				return err
 			}
-		}
+			for _, eff := range effs {
+				if runEff, ok := eff.(RunEffect); ok {
+					err = applyRunEffect(ctx, deps, runEff)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		},
+		// Intent cannot have run-effect.
+		// We do not bother traversing intents here.
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies) error {
-	for _, node := range w.Nodes {
-		effs, err := node.GetEffects(ctx, deps)
-		if err != nil {
-			return err
-		}
-		for _, eff := range effs {
-			if runEff, ok := eff.(RunEffect); ok {
-				err = applyRunEffect(ctx, deps, runEff)
-				if err != nil {
-					return err
+	err := w.Traverse(WorkflowTraverser{
+		NodeSimple: func(nodeSimple NodeSimple) error {
+			effs, err := nodeSimple.GetEffects(ctx, deps)
+			if err != nil {
+				return err
+			}
+			for _, eff := range effs {
+				if runEff, ok := eff.(RunEffect); ok {
+					err = applyRunEffect(ctx, deps, runEff)
+					if err != nil {
+						return err
+					}
 				}
 			}
-		}
-	}
-
-	// Intent cannot have run-effects.
-	effs, err := w.Intent.GetEffects(ctx, deps, w)
+			return nil
+		},
+		Intent: func(intent Intent, w *Workflow) error {
+			effs, err := intent.GetEffects(ctx, deps, w)
+			if err != nil {
+				return err
+			}
+			for _, eff := range effs {
+				if _, ok := eff.(RunEffect); ok {
+					// Intent cannot have run-effects.
+					panic(fmt.Errorf("%T has RunEffect, which is disallowed", w.Intent))
+				}
+			}
+			return nil
+		},
+	})
 	if err != nil {
 		return err
-	}
-	for _, eff := range effs {
-		if _, ok := eff.(RunEffect); ok {
-			panic(fmt.Errorf("%T has RunEffect, which is disallowed", w.Intent))
-		}
 	}
 
 	return nil
@@ -181,32 +199,40 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 		return err
 	}
 
-	for _, node := range w.Nodes {
-		effs, err := node.GetEffects(ctx, deps)
-		if err != nil {
-			return err
-		}
-		for _, eff := range effs {
-			if onCommitEff, ok := eff.(OnCommitEffect); ok {
-				err = applyOnCommitEffect(ctx, deps, onCommitEff)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	effs, err := w.Intent.GetEffects(ctx, deps, w)
-	if err != nil {
-		return err
-	}
-	for _, eff := range effs {
-		if onCommitEff, ok := eff.(OnCommitEffect); ok {
-			err = applyOnCommitEffect(ctx, deps, onCommitEff)
+	err = w.Traverse(WorkflowTraverser{
+		NodeSimple: func(nodeSimple NodeSimple) error {
+			effs, err := nodeSimple.GetEffects(ctx, deps)
 			if err != nil {
 				return err
 			}
-		}
+			for _, eff := range effs {
+				if onCommitEff, ok := eff.(OnCommitEffect); ok {
+					err = applyOnCommitEffect(ctx, deps, onCommitEff)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		},
+		Intent: func(intent Intent, w *Workflow) error {
+			effs, err := intent.GetEffects(ctx, deps, w)
+			if err != nil {
+				return err
+			}
+			for _, eff := range effs {
+				if onCommitEff, ok := eff.(OnCommitEffect); ok {
+					err = applyOnCommitEffect(ctx, deps, onCommitEff)
+					if err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		},
+	})
+	if err != nil {
+		return err
 	}
 
 	return nil
