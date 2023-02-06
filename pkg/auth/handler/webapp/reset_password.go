@@ -3,8 +3,10 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -35,11 +37,16 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/flows/reset_password")
 }
 
+type ResetPasswordService interface {
+	CheckResetPasswordCode(codeStr string) error
+}
+
 type ResetPasswordHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	PasswordPolicy    PasswordPolicy
+	ResetPassword     ResetPasswordService
 }
 
 func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -51,8 +58,18 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) 
 		baseViewModel.RawError,
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
+
+	err := h.ResetPassword.CheckResetPasswordCode(r.Form.Get("code"))
+	if apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
+		baseViewModel.SetError(err)
+	} else if err != nil {
+		// Ignore other errors (e.g. rate limit),
+		// and let it (potentially) fail when submitting.
+	}
+
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
+
 	return data, nil
 }
 

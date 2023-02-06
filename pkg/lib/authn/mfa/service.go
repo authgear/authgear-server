@@ -109,7 +109,7 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode, error) {
-	err := s.RateLimiter.TakeToken(AutiBruteForceRecoveryCodeBucket(userID))
+	err := s.RateLimiter.TakeToken(AntiBruteForceRecoveryCodeBucket(userID))
 	if err != nil {
 		return nil, err
 	}

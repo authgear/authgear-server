@@ -51,6 +51,7 @@ type TranslationService interface {
 
 type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
+	RequireToken(bucket ratelimit.Bucket) error
 }
 
 type ProviderLogger struct{ *log.Logger }
@@ -255,21 +256,13 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	return
 }
 
-// ResetPassword consumes code and reset password to newPassword.
+// CheckResetPasswordCode check whether the code is valid.
 // If the code is invalid, ErrInvalidCode is returned.
 // If the code is found but expired, ErrExpiredCode is returned.
 // if the code is found but used, ErrUsedCode is returned.
-// Otherwise, the password is reset to newPassword.
-// newPassword is checked against the password policy so
-// password policy error may also be returned.
-func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (err error) {
-	err = p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
-	if err != nil {
-		return
-	}
-
+func (p *Provider) checkResetPasswordCode(codeStr string) (code *Code, err error) {
 	codeHash := HashCode(codeStr)
-	code, err := p.Store.Get(codeHash)
+	code, err = p.Store.Get(codeHash)
 	if err != nil {
 		return
 	}
@@ -284,17 +277,55 @@ func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (err 
 		return
 	}
 
+	return
+}
+
+func (p *Provider) CheckResetPasswordCode(codeStr string) error {
+	err := p.RateLimiter.RequireToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
+	if err != nil {
+		return err
+	}
+
+	_, err = p.checkResetPasswordCode(codeStr)
+	if err != nil {
+		// SECURITY: potential TOCTOU problem, considered not significant for this flow,
+		// since rate limit on level of HTTP requests should applies.
+		terr := p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
+		if terr != nil {
+			p.Logger.WithError(err).Error("failed to take reset password token")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ResetPassword consumes code and reset password to newPassword.
+// If the code is valid, the password is reset to newPassword.
+// newPassword is checked against the password policy so
+// password policy error may also be returned.
+func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) error {
+	err := p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
+	if err != nil {
+		return err
+	}
+
+	code, err := p.checkResetPasswordCode(codeStr)
+	if err != nil {
+		return err
+	}
+
 	err = p.ResetPassword(code.UserID, newPassword)
 	if err != nil {
-		return
+		return err
 	}
 
-	err = p.Store.MarkConsumed(codeHash)
+	err = p.Store.MarkConsumed(code.CodeHash)
 	if err != nil {
-		return
+		return err
 	}
 
-	return
+	return nil
 }
 
 // ResetPassword ensures the user identified by userID has a password.
