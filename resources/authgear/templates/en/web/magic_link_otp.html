@@ -34,6 +34,34 @@
     data-submit-when-refresh="true"
   ></button>
 
+  <form
+    id="auto-verify-form"
+    class="hidden"
+    method="post"
+    action="{{ $.FormActionPath }}"
+    data-controller="magic-link-auto-verify"
+    data-action="authgear:onVerifyLoginLink@window->magic-link-auto-verify#onVerify"
+    novalidate
+  >
+    {{ $.CSRFField }}
+  </form>
+
+  <input
+    form="auto-verify-form"
+    class="hidden"
+    type="hidden"
+    name="x_oob_otp_code"
+    data-magic-link-auto-verify-target="input"
+  >
+
+  <button
+    form="auto-verify-form"
+    type="submit"
+    name="x_action"
+    value="auto_verify"
+    data-magic-link-auto-verify-target="submit"
+  ></button>
+
   <form class="link" method="post" novalidate>
     {{ $.CSRFField }}
     <span class="primary-txt text-sm">{{ template "magic-link-otp-resend-button-hint" }}</span>
@@ -74,6 +102,7 @@
   value="next"
   data-authgear-event="authgear.button.redirect_magic_link_result"
 >{{ template "magic-link-otp-next-button-label" }}</button>
+
 {{ end }}
 
 {{ template "__watermark.html" . }}

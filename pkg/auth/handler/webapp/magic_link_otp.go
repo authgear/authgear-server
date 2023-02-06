@@ -194,6 +194,33 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
+	ctrl.PostAction("auto_verify", func() error {
+		deviceToken := r.Form.Get("x_device_token") == "true"
+		code := r.Form.Get("x_oob_otp_code")
+
+		_, err := h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
+		if err != nil {
+			return err
+		}
+
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputVerifyMagicLinkOTP{
+				Code:        code,
+				DeviceToken: deviceToken,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.RemoveQueries = setutil.Set[string]{
+			MagicLinkOTPPageQueryStateKey: struct{}{},
+		}
+		result.WriteResponse(w, r)
+		return nil
+	})
+
 	ctrl.PostAction("next", func() error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
 
