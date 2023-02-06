@@ -28,6 +28,11 @@ type Workflow struct {
 	Nodes      []Node
 }
 
+type WorkflowTraverser struct {
+	Intent     func(intent Intent, w *Workflow) error
+	NodeSimple func(nodeSimple NodeSimple) error
+}
+
 func NewWorkflow(workflowID string, intent Intent) *Workflow {
 	return &Workflow{
 		WorkflowID: workflowID,
@@ -204,6 +209,22 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 		}
 	}
 
+	return nil
+}
+
+func (w *Workflow) Traverse(t WorkflowTraverser) error {
+	for _, node := range w.Nodes {
+		err := node.Traverse(t)
+		if err != nil {
+			return err
+		}
+	}
+	if t.Intent != nil {
+		err := t.Intent(w.Intent, w)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

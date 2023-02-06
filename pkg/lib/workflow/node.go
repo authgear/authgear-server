@@ -60,6 +60,27 @@ func NewSubWorkflow(intent Intent) *Node {
 	}
 }
 
+func (n *Node) Traverse(t WorkflowTraverser) error {
+	switch n.Type {
+	case NodeTypeSimple:
+		if t.NodeSimple != nil {
+			err := t.NodeSimple(n.Simple)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	case NodeTypeSubWorkflow:
+		err := n.SubWorkflow.Traverse(t)
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		panic(errors.New("unreachable"))
+	}
+}
+
 func (n *Node) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
 	switch n.Type {
 	case NodeTypeSimple:
