@@ -288,6 +288,12 @@ func (p *Provider) CheckResetPasswordCode(codeStr string) error {
 
 	_, err = p.checkResetPasswordCode(codeStr)
 	if err != nil {
+		// SECURITY: potential TOCTOU problem, considered not significant for this flow,
+		// since rate limit on level of HTTP requests should applies.
+		terr := p.RateLimiter.TakeToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
+		if terr != nil {
+			p.Logger.WithError(err).Error("failed to take reset password token")
+		}
 		return err
 	}
 
