@@ -38,6 +38,8 @@ type UIInfo struct {
 	SuppressIDPSessionCookie bool
 	// OAuthProviderAlias is the x_oauth_provider_alias parameter.
 	OAuthProviderAlias string
+	// LoginHint is the OIDC login_hint parameter.
+	LoginHint string
 }
 
 type UIInfoByProduct struct {
@@ -112,6 +114,8 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		}
 	}
 
+	loginIDHint, _ := req.LoginHint()
+
 	info := &UIInfo{
 		RedirectURI:                redirectURI,
 		Prompt:                     prompt,
@@ -121,6 +125,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		Page:                       req.Page(),
 		SuppressIDPSessionCookie:   req.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:         req.OAuthProviderAlias(),
+		LoginHint:                  loginIDHint,
 	}
 	byProduct := &UIInfoByProduct{
 		IDToken:        idToken,

@@ -96,6 +96,7 @@ func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Sessio
 		Page:                       uiInfo.Page,
 		SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
+		LoginHint:                  uiInfo.LoginHint,
 		FromAuthzEndpoint:          true,
 	}
 	session := NewSession(sessionOptions)
