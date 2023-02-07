@@ -9,23 +9,25 @@ Examples of workflows are authentication, adding a new identity, verifying an em
 
 The core of a workflow is its intent.
 The intent controls how the workflow proceeds.
-To instantiate an intent, one must know the kind of the intent.
+The kind of an intent and its JSON schema is part of the public API.
 
 ```golang
 type Intent interface {
-    Kind() string
+	Kind() string
+	JSONSchema() *validation.SimpleSchema
 }
 
 type Workflow struct {
-    Intent Intent
+	Intent Intent
 }
 ```
 
-## Nodes
+## Node
 
 Each workflow has a series of nodes.
 Each node is either a simple node, or a sub-workflow node.
 A workflow proceeds by appending a new node at the end of its node list.
+The kind of a node and its output data is part of the public API.
 
 ```golang
 type NodeType string
@@ -35,58 +37,63 @@ const (
 	NodeTypeSubWorkflow NodeType = "SUB_WORKFLOW"
 )
 
-type NodeSimple interface{}
+type NodeSimple interface{
+	Kind() string
+}
 
 type Node struct {
-    Type        NodeType
-    // When Type is NodeTypeSimple, Simple is non-nil.
-    Simple      NodeSimple
-    // When Type is NodeTypeSubWorkflow, SubWorkflow is non-nil.
-    SubWorkflow *Workflow
+	Type        NodeType
+	// When Type is NodeTypeSimple, Simple is non-nil.
+	Simple      NodeSimple
+	// When Type is NodeTypeSubWorkflow, SubWorkflow is non-nil.
+	SubWorkflow *Workflow
 }
 
 type Workflow struct {
-    Intent Intent
-    Nodes  []Node
+	Intent Intent
+	Nodes  []Node
 }
 ```
 
-## Edges
+## Input
 
-Both intent and node can derive edges.
-Edges react to input.
-Edges can instantiate a new node, or update the node.
-Input is any Go value satisfying a particular interface required by a specific edge.
+Both intent and node can react to inputs.
+Reaction to inputs can result in transition to a new node, or update the node.
+The kind of an input and its JSON schema is part of the public API.
 
 ```golang
 var ErrEOF = errors.New("eof")
 
-type Edge interface {
-    // The edge tries casting input to a specific interface.
-    Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error)
+type Input interface {
+	Kind() string
+	JSONSchema() *validation.SimpleSchema
 }
 
 type Intent interface {
-    Kind() string
-    DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
+	Kind() string
+	JSONSchema() *validation.SimpleSchema
+	CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error)
+	ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
 }
 
 type NodeSimple interface {
-    DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
+	Kind() string
+	CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error)
+	ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
 }
 ```
 
-If the workflow has at least one node, the last node derives edges first.
+If the workflow has at least one node, the last node react to inputs first.
 
-If the node derives non-empty edges, the edges are used.
-If the node returns ErrEOF, the intent is asked to derive edges.
+If the node can react to some inputs, the inputs are used.
+If the node returns ErrEOF, the intent is asked to react to inputs.
 If the node returns other error, the error is returned.
-If the node derives empty edges without error, it is a programming error.
+If the node can react to no input without error, it is a programming error.
 
-If the intent derives non-empty edges, the edges are used.
+If the intent can react to some inputs, the inputs are used.
 If the intent returns ErrEOF, the workflow is finished.
-If the intent returns other error, the error is returned.
-If the intent derives empty edges without error, it is a programming error.
+If the intent return other error, the error is returned.
+If the intent can react to no input without error, it is a programming error.
 
 ## Effects
 
@@ -94,15 +101,21 @@ Both intent and node can have effects attached to them.
 There are 2 kinds of effects, namely run-effect and on-commit effects.
 
 ```golang
+type Effect interface {}
+
 type Intent interface {
-    Kind() string
-    DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
-    GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
+	Kind() string
+	JSONSchema() *validation.SimpleSchema
+	CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error)
+	ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
+	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 }
 
 type NodeSimple interface {
-	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
-	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
+	Kind() string
+	CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error)
+	ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
+	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 }
 ```
 
@@ -132,13 +145,11 @@ This breaks Rule 4.
 
 ## Accepting input
 When input is fed to the workflow,
-edges are derived by the workflow.
-Each edge has a chance to react to the input.
-If the edge does not react to the input, it must return ErrIncompatibleInput.
+follow the rules outlined in [Input](#input) to find which node or intent to handle the input.
 
-As a special case, the edge can return ErrSameNode to perform an immediate side effect without adding a new node.
+As a special case, the node can return ErrSameNode to perform an immediate side effect without adding a new node.
 
-As a special case, the edge can return ErrUpdateNode to update the node instead of adding a new node.
+As a special case, the node can return ErrUpdateNode to update the node instead of adding a new node.
 
 ## HTTP API
 
