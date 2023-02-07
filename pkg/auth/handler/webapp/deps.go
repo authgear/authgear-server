@@ -78,6 +78,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(PasskeyRequestOptionsHandler), "*"),
 	wire.Struct(new(ConnectWeb3AccountHandler), "*"),
 	wire.Struct(new(MissingWeb3WalletHandler), "*"),
+	wire.Struct(new(ClientIDRedirectHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
 )

@@ -76,6 +76,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
+	clientIDRedirectChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
+	)
+
 	newOAuthAPIChain := func(idpSessionOnly bool) httproute.Middleware {
 		return httproute.Chain(
 			rootChain,
@@ -201,6 +207,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
+	clientIDRedirectRoute := httproute.Route{Middleware: clientIDRedirectChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
@@ -219,6 +226,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 	webappWhatsappCallbackRoute := httproute.Route{Middleware: webappWhatsappCallbackChain}
 	webappAPIRoute := httproute.Route{Middleware: webappAPIChain}
+
+	router.Add(webapphandler.ConfigureClientIDRedirectRoute(clientIDRedirectRoute), p.Handler(newClientIDRedirectHandler))
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))

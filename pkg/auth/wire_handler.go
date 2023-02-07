@@ -77,6 +77,13 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newClientIDRedirectHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ClientIDRedirectHandler)),
+	))
+}
+
 func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

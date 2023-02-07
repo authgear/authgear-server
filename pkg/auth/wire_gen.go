@@ -2732,6 +2732,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	return jwksHandler
 }
 
+func newClientIDRedirectHandler(p *deps.RequestProvider) http.Handler {
+	clientIDRedirectHandler := &webapp.ClientIDRedirectHandler{}
+	return clientIDRedirectHandler
+}
+
 func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
