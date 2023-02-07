@@ -16,6 +16,7 @@
     + [login_hint](#login_hint)
     + [acr_values](#acr_values)
     + [code_challenge_method](#code_challenge_method)
+    + [x_settings_action](#x_settings_action)
   * [Token Request](#token-request)
     + [grant_type](#grant_type)
     + [id_token_hint](#id_token_hint-1)
@@ -52,6 +53,7 @@
     + [Details of Silent Authentication](#details-of-silent-authentication)
   * [First-party Clients](#first-party-clients)
     + [App Session Token](#app-session-token)
+    + [Settings Action](#settings-action)
   * [How to construct authentication request to achieve different scenarios](#how-to-construct-authentication-request-to-achieve-different-scenarios)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
@@ -207,6 +209,12 @@ Currently not supported.
 ### code_challenge_method
 
 Only `S256` is supported. `plain` is not supported.
+
+### x_settings_action
+
+When it is specified, the user will be redirected to the corresponding auth ui pages of the settings action. After completing the action, the user will be redirected back to the app through redirect URI.
+
+Supported values: `verify_email`.
 
 ## Token Request
 
@@ -538,6 +546,35 @@ When the app session token is consumed:
 - The session cookie would contain a token referencing the refresh token,
   instead of IdP sessions. Therefore, the lifetime of session cookie is bound
   to refresh token instead of IdP session.
+
+### Settings Action
+
+For first-party clients, user may want to perform specific account settings action (e.g. verify email) in the app.
+
+Settings action will be started via authorization endpoint. Authentication is needed for performing settings action. Both IdP session or App session are accepted. If the login hint (app session token) is provided in the authorization endpoint, the app session cookie will be set when redirecting to the settings action ui. If the login hint is not provided, user will be redirected to the settings action ui directly and the IdP session will be used.
+
+The following flow charts show how the settings actions work.
+
+[![](https://mermaid.ink/img/pako:eNqNU8tugzAQ_BXL5xBLPaIqUtXc-jiUI1TIwCZYAZvaplUS5d-7tiEKJKkKAuGd9czOLj7SUlVAY7rVvKvJ60cmCV68t_Uh9W8CsuqUkPYzQAasFXJrnkorlEzHJeF-fc42N9OfUexqi6tgrsK7LsWHlLxpCl7uMDzw9UUo1ReXDKs0o0y5yANzb6XFATI6cJ0NhSUqzaimNV5wwnK7JCzHskBL3hg2ZuahdPYNWmz2ObRcNBO9KeX_hF1zbhjKZ6K569cfYo7mniC2dG6vVO0SwzFjtTKW8Q16jYIv5IyurWHyBX34TNYvUeTmZcAYN1OrdiCjaOX7PoVKpXYCEJuWHUVYSdeABWJrGP8NIf3oSC_IY6HZuGeENZi-sfcoXSdQe5bqYitvwt10QVvQaLLCQ3B0bjKK-i12OMbPCjYct2V0ESADXz3I0qPH4B2DtfpJBuC9bwvQxuFW934Qp0yeUAZ9qGQvSxo7YEH7ruIW1oLjOFoab_D_wihUwir9Fg6lP5unXwyFRkw?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNqNU8tugzAQ_BXL5xBLPaIqUtXc-jiUI1TIwCZYAZvaplUS5d-7tiEKJKkKAuGd9czOLj7SUlVAY7rVvKvJ60cmCV68t_Uh9W8CsuqUkPYzQAasFXJrnkorlEzHJeF-fc42N9OfUexqi6tgrsK7LsWHlLxpCl7uMDzw9UUo1ReXDKs0o0y5yANzb6XFATI6cJ0NhSUqzaimNV5wwnK7JCzHskBL3hg2ZuahdPYNWmz2ObRcNBO9KeX_hF1zbhjKZ6K569cfYo7mniC2dG6vVO0SwzFjtTKW8Q16jYIv5IyurWHyBX34TNYvUeTmZcAYN1OrdiCjaOX7PoVKpXYCEJuWHUVYSdeABWJrGP8NIf3oSC_IY6HZuGeENZi-sfcoXSdQe5bqYitvwt10QVvQaLLCQ3B0bjKK-i12OMbPCjYct2V0ESADXz3I0qPH4B2DtfpJBuC9bwvQxuFW934Qp0yeUAZ9qGQvSxo7YEH7ruIW1oLjOFoab_D_wihUwir9Fg6lP5unXwyFRkw)
+
+
+[![](https://mermaid.ink/img/pako:eNp1kctqwzAQRX9FzNom0KUXhUJ2fSziZRSMbE1iQTRKpRGlGP979XAKhVQrMWfm3nksMDmN0MHFq9ss3g6SRHoBmQ1dwsvExtEBQ7zy0Y2sDP0yoQoUvtCTpK00jlXrkUa_waOEnVOR56fdcM8bqt5Q9SScqt5_7VSKpO_G_f61bf_0JPJsbfv8uBwasOitMjqNv2QNCTyjRQld-mo8q9JHU1HAz4g0FbpUxxSc3Ve_gY9oR_Qhc_YRc8oqaU02aVDXf9MEXQYNxJtWjHuj0i4sdGd1DSmK2rDz7_Uc5SrrD_YTkd4?type=png)](https://mermaid-js.github.io/mermaid-live-editor/edit#pako:eNp1kctqwzAQRX9FzNom0KUXhUJ2fSziZRSMbE1iQTRKpRGlGP979XAKhVQrMWfm3nksMDmN0MHFq9ss3g6SRHoBmQ1dwsvExtEBQ7zy0Y2sDP0yoQoUvtCTpK00jlXrkUa_waOEnVOR56fdcM8bqt5Q9SScqt5_7VSKpO_G_f61bf_0JPJsbfv8uBwasOitMjqNv2QNCTyjRQld-mo8q9JHU1HAz4g0FbpUxxSc3Ve_gY9oR_Qhc_YRc8oqaU02aVDXf9MEXQYNxJtWjHuj0i4sdGd1DSmK2rDz7_Uc5SrrD_YTkd4)
+
+
+#### Authentication request of settings actions
+
+```
+GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
+    &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dapp_session_token%26app_session_token%3D<app session token>
+    &x_settings_action=<verify_email|change_password>
+    &redirect_uri=<redirect URI of the client app> HTTP/1.1
+Host: accounts.example.com
+
+---
+HTTP/1.1 302 Found
+Set-Cookie: <session cookie>
+Location: <auth ui of specific settings action>
+```
 
 ## How to construct authentication request to achieve different scenarios
 

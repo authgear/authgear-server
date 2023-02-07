@@ -271,3 +271,68 @@ await authgear.authorize({ ... });
 const enabled = await authgear.isBiometricEnabled();
 assert(enabled === false);
 ```
+
+## Perform settings action
+
+Allow the user performs specific settings action from the app. e.g. (verify email, change password)
+
+```typescript
+interface VerifyEmailOptions {
+  redirectURI: string;
+  uiLocales?: string[];
+  colorScheme?: ColorScheme;
+}
+
+// In mobile sdk
+function verifyEmail(options: VerifyEmailOptions): Promise<Void>;
+
+// In web sdk
+function startVerifyingEmail(options: VerifyEmailOptions): Promise<Void>;
+
+function finishVerifyingEmail(): Promise<Void>;
+
+interface ChangePasswordOptions {
+  redirectURI: string;
+  uiLocales?: string[];
+  colorScheme?: ColorScheme;
+}
+
+// In mobile sdk
+function changePassword(options: ChangePasswordOptions): Promise<Void>;
+
+// In web sdk
+function startChangingPassword(options: ChangePasswordOptions): Promise<Void>;
+
+function finishChangingPassword(): Promise<Void>;
+
+```
+
+Remarks: In web SDK, redirect URI of different settings actions need to be different. The developers need to add the redirect URIs to the OAuth client config. Corresponding `finish` functions should be called in the redirect URIs.
+
+### Intended usage
+
+```typescript
+const userInfo = authgear.fetchUserInfo();
+
+// Call verify email only if the user has unverified email
+if (userInfo.email != null && userInfo.emailVerified != true) {
+  try {
+    await authgear.verifyEmail({
+      redirectURI: "myapp://host/after-verifying-email"
+    });
+  } catch (e) {
+    // The user declined.
+    return;
+  }
+}
+
+try {
+  await authgear.changePassword({
+    redirectURI: "myapp://host/after-changing-password"
+  })
+} catch (e) {
+  // The user declined.
+  return;
+}
+
+```
