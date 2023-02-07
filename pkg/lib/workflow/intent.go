@@ -4,22 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+// Intent can optionally implement CookieGetter.
 type Intent interface {
 	InputReactor
+	EffectGetter
 	Kind() string
 	JSONSchema() *validation.SimpleSchema
-	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
 	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
-}
-
-type IntentCookieGetter interface {
-	GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error)
 }
 
 type IntentOutput struct {

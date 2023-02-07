@@ -109,7 +109,7 @@ func (*testMarshalNode0) Kind() string {
 	return "testMarshalNode0"
 }
 
-func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
 	return []Effect{
 		RunEffect(func(ctx context.Context, deps *Dependencies) error {
 			if w, ok := GetEffectWriter(ctx); ok {
@@ -134,7 +134,7 @@ func (testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, workflo
 	panic("unreachable")
 }
 
-func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
 	return map[string]interface{}{
 		"node0": i.Node0,
 	}, nil
@@ -148,7 +148,7 @@ func (*testMarshalNode1) Kind() string {
 	return "testMarshalNode1"
 }
 
-func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
 	return []Effect{
 		RunEffect(func(ctx context.Context, deps *Dependencies) error {
 			if w, ok := GetEffectWriter(ctx); ok {
@@ -173,7 +173,7 @@ func (testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, workflo
 	panic("unreachable")
 }
 
-func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
 	return map[string]interface{}{
 		"node1": i.Node1,
 	}, nil

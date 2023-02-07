@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"reflect"
 )
 
@@ -61,11 +60,11 @@ func NewSubWorkflow(intent Intent) *Node {
 	}
 }
 
-func (n *Node) Traverse(t WorkflowTraverser) error {
+func (n *Node) Traverse(t WorkflowTraverser, w *Workflow) error {
 	switch n.Type {
 	case NodeTypeSimple:
 		if t.NodeSimple != nil {
-			err := t.NodeSimple(n.Simple)
+			err := t.NodeSimple(n.Simple, w)
 			if err != nil {
 				return err
 			}
@@ -180,14 +179,14 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 	return nil
 }
 
-func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, error) {
+func (n *Node) ToOutput(ctx context.Context, deps *Dependencies, w *Workflow) (*NodeOutput, error) {
 	output := &NodeOutput{
 		Type: n.Type,
 	}
 
 	switch n.Type {
 	case NodeTypeSimple:
-		nodeSimpleData, err := n.Simple.OutputData(ctx, deps)
+		nodeSimpleData, err := n.Simple.OutputData(ctx, deps, w)
 		if err != nil {
 			return nil, err
 		}
@@ -208,16 +207,12 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, e
 	}
 }
 
+// NodeSimple can optionally implement CookieGetter.
 type NodeSimple interface {
 	InputReactor
+	EffectGetter
 	Kind() string
-	// TODO: Add back workflow to signature.
-	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
-	OutputData(ctx context.Context, deps *Dependencies) (interface{}, error)
-}
-
-type NodeSimpleCookieGetter interface {
-	GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
 }
 
 type NodeFactory func() NodeSimple

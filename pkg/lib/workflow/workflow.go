@@ -31,7 +31,7 @@ type Workflow struct {
 
 type WorkflowTraverser struct {
 	Intent     func(intent Intent, w *Workflow) error
-	NodeSimple func(nodeSimple NodeSimple) error
+	NodeSimple func(nodeSimple NodeSimple, w *Workflow) error
 }
 
 func NewWorkflow(workflowID string, intent Intent) *Workflow {
@@ -123,8 +123,8 @@ func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node
 	w.Nodes = append(w.Nodes, node)
 
 	err := node.Traverse(WorkflowTraverser{
-		NodeSimple: func(nodeSimple NodeSimple) error {
-			effs, err := nodeSimple.GetEffects(ctx, deps)
+		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
+			effs, err := nodeSimple.GetEffects(ctx, deps, w)
 			if err != nil {
 				return err
 			}
@@ -140,7 +140,7 @@ func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node
 		},
 		// Intent cannot have run-effect.
 		// We do not bother traversing intents here.
-	})
+	}, w)
 	if err != nil {
 		return err
 	}
@@ -150,8 +150,8 @@ func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node
 
 func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies) error {
 	err := w.Traverse(WorkflowTraverser{
-		NodeSimple: func(nodeSimple NodeSimple) error {
-			effs, err := nodeSimple.GetEffects(ctx, deps)
+		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
+			effs, err := nodeSimple.GetEffects(ctx, deps, w)
 			if err != nil {
 				return err
 			}
@@ -193,8 +193,8 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 	}
 
 	err = w.Traverse(WorkflowTraverser{
-		NodeSimple: func(nodeSimple NodeSimple) error {
-			effs, err := nodeSimple.GetEffects(ctx, deps)
+		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
+			effs, err := nodeSimple.GetEffects(ctx, deps, w)
 			if err != nil {
 				return err
 			}
@@ -233,9 +233,9 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 
 func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies) (cookies []*http.Cookie, err error) {
 	err = w.Traverse(WorkflowTraverser{
-		NodeSimple: func(nodeSimple NodeSimple) error {
-			if n, ok := nodeSimple.(NodeSimpleCookieGetter); ok {
-				c, err := n.GetCookies(ctx, deps)
+		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
+			if n, ok := nodeSimple.(CookieGetter); ok {
+				c, err := n.GetCookies(ctx, deps, w)
 				if err != nil {
 					return err
 				}
@@ -245,7 +245,7 @@ func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies) (cook
 			return nil
 		},
 		Intent: func(intent Intent, w *Workflow) error {
-			if i, ok := intent.(IntentCookieGetter); ok {
+			if i, ok := intent.(CookieGetter); ok {
 				c, err := i.GetCookies(ctx, deps, w)
 				if err != nil {
 					return err
@@ -265,7 +265,7 @@ func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies) (cook
 
 func (w *Workflow) Traverse(t WorkflowTraverser) error {
 	for _, node := range w.Nodes {
-		err := node.Traverse(t)
+		err := node.Traverse(t, w)
 		if err != nil {
 			return err
 		}
@@ -393,7 +393,7 @@ func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies) (*WorkflowO
 	}
 
 	for _, node := range w.Nodes {
-		nodeOutput, err := node.ToOutput(ctx, deps)
+		nodeOutput, err := node.ToOutput(ctx, deps, w)
 		if err != nil {
 			return nil, err
 		}

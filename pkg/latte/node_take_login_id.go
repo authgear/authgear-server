@@ -18,7 +18,7 @@ func (n *NodeTakeLoginID) Kind() string {
 	return "latte.TakeLoginID"
 }
 
-func (n *NodeTakeLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies) (effs []workflow.Effect, err error) {
+func (n *NodeTakeLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
@@ -30,7 +30,7 @@ func (*NodeTakeLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeTakeLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies) (interface{}, error) {
+func (n *NodeTakeLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return map[string]interface{}{
 		"login_id": n.LoginID,
 	}, nil

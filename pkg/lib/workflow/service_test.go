@@ -200,7 +200,7 @@ func TestService(t *testing.T) {
 
 type intentServiceContext struct{}
 
-var _ IntentCookieGetter = &intentServiceContext{}
+var _ CookieGetter = &intentServiceContext{}
 
 func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
@@ -270,13 +270,13 @@ type nodeServiceContext struct {
 	ClientID string
 }
 
-var _ NodeSimpleCookieGetter = &nodeServiceContext{}
+var _ CookieGetter = &nodeServiceContext{}
 
 func (*nodeServiceContext) Kind() string {
 	return "nodeServiceContext"
 }
 
-func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
@@ -288,11 +288,11 @@ func (*nodeServiceContext) ReactTo(ctx context.Context, deps *Dependencies, work
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
-func (*nodeServiceContext) GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error) {
+func (*nodeServiceContext) GetCookies(ctx context.Context, deps *Dependencies, w *Workflow) ([]*http.Cookie, error) {
 	return []*http.Cookie{
 		{
 			Name:  "nodeServiceContext",

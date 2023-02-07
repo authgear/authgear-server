@@ -239,7 +239,7 @@ func (*nodeVerifyLoginID) Kind() string {
 	return "nodeVerifyLoginID"
 }
 
-func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
@@ -273,7 +273,7 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, wor
 	}
 }
 
-func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
@@ -305,7 +305,7 @@ func (*nodeLoginIDVerified) Kind() string {
 	return "nodeLoginIDVerified"
 }
 
-func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
 	// In actual case, we create the identity here.
 	return nil, nil
 }
@@ -319,7 +319,7 @@ func (*nodeLoginIDVerified) ReactTo(ctx context.Context, deps *Dependencies, wor
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
@@ -424,7 +424,7 @@ func (*nodeCreatePassword) Kind() string {
 	return "nodeCreatePassword"
 }
 
-func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
 	// In actual case, we create the password authenticator here.
 	return nil, nil
 }
@@ -437,7 +437,7 @@ func (*nodeCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, work
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
+func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
 	return nil, nil
 }
 
