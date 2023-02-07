@@ -17,6 +17,7 @@
   * APIs
     * [Session Resolver](./api-resolver.md)
     * [Admin](./api-admin.md)
+    * [Universal Link](./universal-link.md)
   * [Glossary](#glossary)
 
 ## Glossary
