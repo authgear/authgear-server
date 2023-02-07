@@ -4,6 +4,7 @@ import (
 	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	siwehandler "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
+	universallinkhandler "github.com/authgear/authgear-server/pkg/auth/handler/universallink"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -71,6 +72,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 
 	oauthStaticChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
+	)
+
+	universallinkChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
@@ -207,6 +214,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
+	universallinkRoute := httproute.Route{Middleware: universallinkChain}
 	clientIDRedirectRoute := httproute.Route{Middleware: clientIDRedirectChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
@@ -325,6 +333,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAppStaticAssetsRoute(appStaticRoute), p.Handler(newWebAppAppStaticAssetsHandler))
 
 	router.Add(webapphandler.ConfigureGeneratedStaticAssetsRoute(generatedStaticRoute), p.RootHandler(newWebAppGeneratedStaticAssetsHandler))
+
+	router.Add(universallinkhandler.ConfigureIOSAssociatedDomainsRoute(universallinkRoute), p.Handler(newIOSAssociatedDomainsHandler))
+	router.Add(universallinkhandler.ConfigureAndroidAssociatedDomainsRoute(universallinkRoute), p.Handler(newAndroidAssociatedDomainsHandler))
 
 	router.Add(apihandler.ConfigureWorkflowNewRoute(apiRoute), p.Handler(newAPIWorkflowNewHandler))
 	router.Add(apihandler.ConfigureWorkflowGetRoute(apiRoute), p.Handler(newAPIWorkflowGetHandler))

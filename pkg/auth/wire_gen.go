@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	siwe3 "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
+	universallink2 "github.com/authgear/authgear-server/pkg/auth/handler/universallink"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -73,6 +74,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/universallink"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -2730,6 +2732,34 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		JWKS:   idTokenIssuer,
 	}
 	return jwksHandler
+}
+
+func newIOSAssociatedDomainsHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	associatedDomainsService := &universallink.AssociatedDomainsService{
+		OAuthConfig: oAuthConfig,
+	}
+	iosAssociatedDomainsHandler := &universallink2.IOSAssociatedDomainsHandler{
+		Provider: associatedDomainsService,
+	}
+	return iosAssociatedDomainsHandler
+}
+
+func newAndroidAssociatedDomainsHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	associatedDomainsService := &universallink.AssociatedDomainsService{
+		OAuthConfig: oAuthConfig,
+	}
+	androidAssociatedDomainsHandler := &universallink2.AndroidAssociatedDomainsHandler{
+		Provider: associatedDomainsService,
+	}
+	return androidAssociatedDomainsHandler
 }
 
 func newClientIDRedirectHandler(p *deps.RequestProvider) http.Handler {

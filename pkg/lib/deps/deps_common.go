@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	universallinkhandler "github.com/authgear/authgear-server/pkg/auth/handler/universallink"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -58,6 +59,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/universallink"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -292,6 +294,13 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.UIURLBuilder), new(*oidc.UIURLBuilder)),
 
 		oidchandler.DependencySet,
+	),
+
+	wire.NewSet(
+		universallink.DependencySet,
+		wire.Bind(new(universallinkhandler.IOSAssociatedDomainsProvider), new(*universallink.AssociatedDomainsService)),
+		wire.Bind(new(universallinkhandler.AndroidAssociatedDomainsProvider), new(*universallink.AssociatedDomainsService)),
+		universallinkhandler.DependencySet,
 	),
 
 	wire.NewSet(
