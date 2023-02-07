@@ -66,7 +66,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"issue_jwt_access_token": { "type": "boolean" },
 		"policy_uri": { "type": "string", "format": "uri" },
 		"tos_uri": { "type": "string", "format": "uri" },
-		"x_custom_ui_uri": { "type": "string", "format": "uri" }
+		"x_custom_ui_uri": { "type": "string", "format": "uri" },
+		"universal_link": { "$ref": "#/$defs/UniversalLinkConfig" }
 	},
 	"required": ["name", "client_id", "redirect_uris"],
 	"allOf": [
@@ -122,6 +123,7 @@ type OAuthClientConfig struct {
 	PolicyURI                      string                     `json:"policy_uri,omitempty"`
 	TOSURI                         string                     `json:"tos_uri,omitempty"`
 	CustomUIURI                    string                     `json:"x_custom_ui_uri,omitempty"`
+	UniversalLink                  UniversalLinkConfig        `json:"universal_link,omitempty"`
 }
 
 func (c *OAuthClientConfig) DefaultRedirectURI() string {
@@ -161,4 +163,82 @@ func (c *OAuthClientConfig) SetDefaults() {
 	if c.RefreshTokenIdleTimeout == 0 {
 		c.RefreshTokenIdleTimeout = DefaultRefreshTokenIdleTimeout
 	}
+}
+
+var _ = Schema.Add("UniversalLinkConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"ios": { "$ref": "#/$defs/UniversalLinkIOSConfig" },
+		"android": { "$ref": "#/$defs/UniversalLinkAndroidConfig" }
+	}
+}
+`)
+
+type UniversalLinkConfig struct {
+	IOS     UniversalLinkIOSConfig     `json:"ios,omitempty"`
+	Android UniversalLinkAndroidConfig `json:"android,omitempty"`
+}
+
+var _ = Schema.Add("UniversalLinkIOSConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"enabled": { "type": "boolean" },
+		"bundle_id": { "type": "string" }
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"enabled": {
+						"enum": [true]
+					}
+				}
+			},
+			"then": {
+				"required": ["bundle_id"]
+			}
+		}
+	]
+}
+`)
+
+type UniversalLinkIOSConfig struct {
+	Enabled  bool   `json:"enabled,omitempty"`
+	BundleID string `json:"bundle_id,omitempty"`
+}
+
+var _ = Schema.Add("UniversalLinkAndroidConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"enabled": { "type": "boolean" },
+		"bundle_id": { "type": "string" },
+		"sha_signature": { "type": "string" }
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"enabled": {
+						"enum": [true]
+					}
+				}
+			},
+			"then": {
+				"required": ["bundle_id", "sha_signature"]
+			}
+		}
+	]
+}
+`)
+
+type UniversalLinkAndroidConfig struct {
+	Enabled      bool   `json:"enabled,omitempty"`
+	BundleID     string `json:"bundle_id,omitempty"`
+	ShaSignature string `json:"sha_signature,omitempty"`
 }
