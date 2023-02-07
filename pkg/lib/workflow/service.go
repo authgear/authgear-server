@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -10,11 +11,26 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package workflow
 
+type WorkflowAction struct {
+	Type        WorkflowActionType `json:"type"`
+	RedirectURI string             `json:"redirect_uri,omitempty"`
+}
+
+type WorkflowActionType string
+
+const (
+	WorkflowActionTypeContinue WorkflowActionType = "continue"
+	WorkflowActionTypeFinish   WorkflowActionType = "finish"
+	WorkflowActionTypeRedirect WorkflowActionType = "redirect"
+)
+
 type ServiceOutput struct {
 	Session        *Session
 	SessionOutput  *SessionOutput
 	Workflow       *Workflow
 	WorkflowOutput *WorkflowOutput
+	Action         *WorkflowAction
+	Cookies        []*http.Cookie
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -57,7 +73,7 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// createNewWorkflow uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.createNewWorkflow(ctx, session.WorkflowID, intent)
+	workflow, workflowOutput, action, err := s.createNewWorkflow(ctx, session, intent)
 	// At this point, no savepoint is active.
 	if err != nil {
 		return
@@ -70,14 +86,18 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 		SessionOutput:  sessionOutput,
 		Workflow:       workflow,
 		WorkflowOutput: workflowOutput,
+		Action:         action,
 	}
 
 	return
 }
 
-func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, intent Intent) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
+	if err != nil {
+		return
+	}
 
 	// We always rollback.
 	defer func() {
@@ -95,7 +115,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 	// A new workflow does not have any nodes.
 	// A workflow is allowed to have on-commit-effects only.
 	// So we do not have to apply effects on a new workflow.
-	workflow = NewWorkflow(workflowID, intent)
+	workflow = NewWorkflow(session.WorkflowID, intent)
 
 	err = s.Store.CreateWorkflow(workflow)
 	if err != nil {
@@ -103,18 +123,90 @@ func (s *Service) createNewWorkflow(ctx context.Context, workflowID string, inte
 	}
 
 	output, err = workflow.ToOutput(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	action, err = s.determineAction(ctx, session, workflow)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
-func (s *Service) FeedInput(workflowID string, instanceID string, input interface{}) (output *ServiceOutput, err error) {
-	session, err := s.Store.GetSession(workflowID)
+func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
+	w, err := s.Store.GetWorkflowByInstanceID(instanceID)
+	if err != nil {
+		return
+	}
+
+	session, err := s.Store.GetSession(w.WorkflowID)
+	if err != nil {
+		return
+	}
+
+	ctx := session.Context(s.ContextDoNotUseDirectly)
+
+	err = s.Savepoint.Begin()
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		rollbackErr := s.Savepoint.Rollback()
+		if rollbackErr != nil {
+			if err == nil {
+				err = rollbackErr
+			} else {
+				err = errorutil.WithSecondaryError(err, rollbackErr)
+			}
+			return
+		}
+	}()
+
+	// Apply the run-effects.
+	err = w.ApplyRunEffects(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	workflowOutput, err := w.ToOutput(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
+	action, err := s.determineAction(ctx, session, w)
+	if err != nil {
+		return
+	}
+
+	sessionOutput := session.ToOutput()
+
+	output = &ServiceOutput{
+		Session:        session,
+		SessionOutput:  sessionOutput,
+		Workflow:       w,
+		WorkflowOutput: workflowOutput,
+		Action:         action,
+	}
+	return
+}
+
+func (s *Service) FeedInput(instanceID string, input Input) (output *ServiceOutput, err error) {
+	workflow, err := s.Store.GetWorkflowByInstanceID(instanceID)
+	if err != nil {
+		return
+	}
+
+	session, err := s.Store.GetSession(workflow.WorkflowID)
 	if err != nil {
 		return
 	}
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// feedInput uses defer statement to manage savepoint.
-	workflow, workflowOutput, err := s.feedInput(ctx, instanceID, input)
+	workflow, workflowOutput, action, err := s.feedInput(ctx, session, instanceID, input)
 	isEOF := errors.Is(err, ErrEOF)
 	// At this point, no savepoint is active.
 	if err != nil && !isEOF {
@@ -123,10 +215,9 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input interfac
 
 	sessionOutput := session.ToOutput()
 
+	var cookies []*http.Cookie
 	if isEOF {
-		// When the workflow is finished.
-		// We need to apply the all effects.
-		err = s.applyFinishedWorkflow(ctx, workflow)
+		cookies, err = s.finishWorkflow(ctx, workflow)
 		if err != nil {
 			return
 		}
@@ -150,13 +241,18 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input interfac
 		SessionOutput:  sessionOutput,
 		Workflow:       workflow,
 		WorkflowOutput: workflowOutput,
+		Action:         action,
+		Cookies:        cookies,
 	}
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, instanceID string, input interface{}) (workflow *Workflow, output *WorkflowOutput, err error) {
+func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
+	if err != nil {
+		return
+	}
 
 	// We always rollback.
 	defer func() {
@@ -200,13 +296,22 @@ func (s *Service) feedInput(ctx context.Context, instanceID string, input interf
 		return
 	}
 
+	action, err = s.determineAction(ctx, session, workflow)
+	if err != nil {
+		return
+	}
+
 	if isEOF {
 		err = ErrEOF
 	}
 	return
 }
 
-func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow) (err error) {
+func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cookies []*http.Cookie, err error) {
+	// When the workflow is finished, we have the following things to do:
+	// 1. Apply all effects.
+	// 2. Collect cookies.
+
 	// The first thing we need to do is to create a database savepoint.
 	err = s.Savepoint.Begin()
 	if err != nil {
@@ -240,5 +345,27 @@ func (s *Service) applyFinishedWorkflow(ctx context.Context, workflow *Workflow)
 		return
 	}
 
+	cookies, err = workflow.CollectCookies(ctx, s.Deps)
+	if err != nil {
+		return
+	}
+
 	return
+}
+
+func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, error) {
+	isEOF, err := workflow.IsEOF(ctx, s.Deps)
+	if err != nil {
+		return nil, err
+	}
+	if isEOF {
+		return &WorkflowAction{
+			Type:        WorkflowActionTypeFinish,
+			RedirectURI: session.RedirectURI,
+		}, nil
+	}
+	// TODO(workflow): handle oauth redirect.
+	return &WorkflowAction{
+		Type: WorkflowActionTypeContinue,
+	}, nil
 }

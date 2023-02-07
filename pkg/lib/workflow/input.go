@@ -1,14 +1,59 @@
 package workflow
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
 )
 
-func Input(i interface{}, input interface{}) bool {
+type Input interface {
+	Kind() string
+	Instantiate(data json.RawMessage) error
+}
+
+type InputJSON struct {
+	Kind string          `json:"kind"`
+	Data json.RawMessage `json:"data"`
+}
+
+type InputFactory func() Input
+
+var inputRegistry = map[string]InputFactory{}
+
+func RegisterInput(input Input) {
+	inputType := reflect.TypeOf(input).Elem()
+
+	inputKind := input.Kind()
+	factory := InputFactory(func() Input {
+		return reflect.New(inputType).Interface().(Input)
+	})
+
+	if _, hasKind := inputRegistry[inputKind]; hasKind {
+		panic(fmt.Errorf("workflow: duplicated input kind: %v", inputKind))
+	}
+	inputRegistry[inputKind] = factory
+}
+
+func InstantiateInput(j InputJSON) (Input, error) {
+	factory, ok := inputRegistry[j.Kind]
+	if !ok {
+		return nil, ErrUnknownInput
+	}
+	input := factory()
+
+	err := input.Instantiate(j.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return input, nil
+}
+
+func AsInput(i Input, iface interface{}) bool {
 	if i == nil {
 		return false
 	}
-	val := reflect.ValueOf(input)
+	val := reflect.ValueOf(iface)
 	typ := val.Type()
 	targetType := typ.Elem()
 	for {
@@ -16,7 +61,7 @@ func Input(i interface{}, input interface{}) bool {
 			val.Elem().Set(reflect.ValueOf(i))
 			return true
 		}
-		if x, ok := i.(interface{ Input() interface{} }); ok {
+		if x, ok := i.(interface{ Input() Input }); ok {
 			i = x.Input()
 		} else {
 			break

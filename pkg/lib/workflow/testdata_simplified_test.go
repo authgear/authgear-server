@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 )
 
@@ -9,6 +10,14 @@ var ErrInvalidOTP = errors.New("invalid OTP")
 
 type intentAuthenticate struct {
 	PretendLoginIDExists bool
+}
+
+func (*intentAuthenticate) Kind() string {
+	return "intentAuthenticate"
+}
+
+func (i *intentAuthenticate) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -35,9 +44,9 @@ type edgeTakeLoginID struct {
 	PretendLoginIDExists bool
 }
 
-func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
-	ok := Input(input, &inputLoginID)
+	ok := AsInput(input, &inputLoginID)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -61,6 +70,14 @@ type inputLoginID struct {
 	LoginID string
 }
 
+func (*inputLoginID) Kind() string {
+	return "inputLoginID"
+}
+
+func (i *inputLoginID) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputLoginID) GetLoginID() string {
 	return i.LoginID
 }
@@ -69,6 +86,14 @@ func (i *inputLoginID) AddLoginID() {}
 
 type intentLogin struct {
 	LoginID string
+}
+
+func (*intentLogin) Kind() string {
+	return "intentLogin"
+}
+
+func (i *intentLogin) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -85,6 +110,14 @@ func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workfl
 
 type intentSignup struct {
 	LoginID string
+}
+
+func (*intentSignup) Kind() string {
+	return "intentSignup"
+}
+
+func (i *intentSignup) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -120,9 +153,9 @@ type edgeAddLoginIDFlow struct {
 	LoginID string
 }
 
-func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputAddLoginIDFlow InputAddLoginIDFlow
-	ok := Input(input, &inputAddLoginIDFlow)
+	ok := AsInput(input, &inputAddLoginIDFlow)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -138,6 +171,14 @@ type InputAddLoginIDFlow interface {
 
 type intentAddLoginID struct {
 	LoginID string
+}
+
+func (*intentAddLoginID) Kind() string {
+	return "intentAddLoginID"
+}
+
+func (i *intentAddLoginID) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
 }
 
 func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
@@ -164,7 +205,7 @@ type edgeVerifyLoginID struct {
 	LoginID string
 }
 
-func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	return NewNodeSimple(&nodeVerifyLoginID{
 		LoginID: e.LoginID,
 		OTP:     "123456",
@@ -174,6 +215,10 @@ func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies,
 type nodeVerifyLoginID struct {
 	LoginID string
 	OTP     string
+}
+
+func (*nodeVerifyLoginID) Kind() string {
+	return "nodeVerifyLoginID"
 }
 
 func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
@@ -201,9 +246,9 @@ type edgeVerifyOTP struct {
 	OTP     string
 }
 
-func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var otpInput InputOTP
-	ok := Input(input, &otpInput)
+	ok := AsInput(input, &otpInput)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -225,12 +270,24 @@ type inputOTP struct {
 	OTP string
 }
 
+func (*inputOTP) Kind() string {
+	return "inputOTP"
+}
+
+func (i *inputOTP) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputOTP) GetOTP() string {
 	return i.OTP
 }
 
 type nodeLoginIDVerified struct {
 	LoginID string
+}
+
+func (*nodeLoginIDVerified) Kind() string {
+	return "nodeLoginIDVerified"
 }
 
 func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
@@ -251,9 +308,9 @@ type edgeResendOTP struct {
 	LoginID string
 }
 
-func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var resendInput InputResendOTP
-	ok := Input(input, &resendInput)
+	ok := AsInput(input, &resendInput)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -270,13 +327,21 @@ type InputResendOTP interface {
 
 type inputResendOTP struct{}
 
+func (*inputResendOTP) Kind() string {
+	return "inputResendOTP"
+}
+
+func (i *inputResendOTP) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (*inputResendOTP) ResendOTP() {}
 
 type edgeCreatePasswordFlow struct{}
 
-func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var passwordInput InputCreatePasswordFlow
-	ok := Input(input, &passwordInput)
+	ok := AsInput(input, &passwordInput)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -291,6 +356,14 @@ type InputCreatePasswordFlow interface {
 
 type inputCreatePasswordFlow struct{}
 
+func (*inputCreatePasswordFlow) Kind() string {
+	return "inputCreatePasswordFlow"
+}
+
+func (i *inputCreatePasswordFlow) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputCreatePasswordFlow) CreatePassword() {}
 
 type InputNewPassword interface {
@@ -301,11 +374,27 @@ type inputNewPassword struct {
 	NewPassword string
 }
 
+func (*inputNewPassword) Kind() string {
+	return "inputNewPassword"
+}
+
+func (i *inputNewPassword) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (i *inputNewPassword) GetNewPassword() string {
 	return i.NewPassword
 }
 
 type intentCreatePassword struct{}
+
+func (*intentCreatePassword) Kind() string {
+	return "intentCreatePassword"
+}
+
+func (i *intentCreatePassword) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
 
 func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
@@ -327,10 +416,10 @@ func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies,
 
 type edgeCheckPasswordAgainstPolicy struct{}
 
-func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 
 	var inputNewPassword InputNewPassword
-	ok := Input(input, &inputNewPassword)
+	ok := AsInput(input, &inputNewPassword)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -343,6 +432,10 @@ func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *De
 
 type nodeCreatePassword struct {
 	HashedNewPassword string
+}
+
+func (*nodeCreatePassword) Kind() string {
+	return "nodeCreatePassword"
 }
 
 func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
@@ -360,9 +453,9 @@ func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies) (
 
 type edgeFinishSignup struct{}
 
-func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputFinishSignup InputFinishSignup
-	ok := Input(input, &inputFinishSignup)
+	ok := AsInput(input, &inputFinishSignup)
 	if !ok {
 		return nil, ErrIncompatibleInput
 	}
@@ -376,9 +469,25 @@ type InputFinishSignup interface {
 
 type inputFinishSignup struct{}
 
+func (*inputFinishSignup) Kind() string {
+	return "inputFinishSignup"
+}
+
+func (i *inputFinishSignup) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (*inputFinishSignup) FinishSignup() {}
 
 type intentFinishSignup struct{}
+
+func (*intentFinishSignup) Kind() string {
+	return "intentFinishSignup"
+}
+
+func (i *intentFinishSignup) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
 
 func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil

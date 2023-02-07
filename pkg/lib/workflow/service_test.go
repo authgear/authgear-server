@@ -2,8 +2,10 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math/rand"
+	"net/http"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -48,6 +50,9 @@ func TestService(t *testing.T) {
 			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeContinue,
+				},
 				Workflow: &Workflow{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
@@ -86,6 +91,7 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
+				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
 				store.EXPECT().GetSession(workflow.WorkflowID).Return(session, nil),
 				savepoint.EXPECT().Begin().Times(1).Return(nil),
 				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
@@ -93,11 +99,14 @@ func TestService(t *testing.T) {
 				savepoint.EXPECT().Rollback().Times(1).Return(nil),
 			)
 
-			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, &inputLoginID{
+			output, err := service.FeedInput(workflow.InstanceID, &inputLoginID{
 				LoginID: "user@example.com",
 			})
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeContinue,
+				},
 				Workflow: &Workflow{
 					WorkflowID: "workflow-id",
 					InstanceID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -185,6 +194,16 @@ func TestService(t *testing.T) {
 
 type intentServiceContext struct{}
 
+var _ IntentCookieGetter = &intentServiceContext{}
+
+func (*intentServiceContext) Kind() string {
+	return "intentServiceContext"
+}
+
+func (i *intentServiceContext) Instantiate(data json.RawMessage) error {
+	return json.Unmarshal(data, i)
+}
+
 func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
@@ -202,9 +221,18 @@ func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies,
 	return nil, nil
 }
 
+func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error) {
+	return []*http.Cookie{
+		{
+			Name:  "intentServiceContext",
+			Value: "intentServiceContext",
+		},
+	}, nil
+}
+
 type edgeServiceContext struct{}
 
-func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error) {
+func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	return NewNodeSimple(&nodeServiceContext{
 		ClientID: GetClientID(ctx),
 	}), nil
@@ -212,6 +240,12 @@ func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, 
 
 type nodeServiceContext struct {
 	ClientID string
+}
+
+var _ NodeSimpleCookieGetter = &nodeServiceContext{}
+
+func (*nodeServiceContext) Kind() string {
+	return "nodeServiceContext"
 }
 
 func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
@@ -224,6 +258,15 @@ func (*nodeServiceContext) DeriveEdges(ctx context.Context, deps *Dependencies) 
 
 func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
+}
+
+func (*nodeServiceContext) GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error) {
+	return []*http.Cookie{
+		{
+			Name:  "nodeServiceContext",
+			Value: "nodeServiceContext",
+		},
+	}, nil
 }
 
 func TestServiceContext(t *testing.T) {
@@ -264,15 +307,17 @@ func TestServiceContext(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			store.EXPECT().GetSession(output.Workflow.WorkflowID).Return(output.Session, nil)
-			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(1).Return(output.Workflow, nil)
+			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(2).Return(output.Workflow, nil)
 
 			output, err = service.FeedInput(
-				output.Workflow.WorkflowID,
 				output.Workflow.InstanceID,
 				nil,
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeFinish,
+				},
 				Workflow: &Workflow{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
@@ -310,6 +355,16 @@ func TestServiceContext(t *testing.T) {
 				SessionOutput: &SessionOutput{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID:   "client-id",
+				},
+				Cookies: []*http.Cookie{
+					{
+						Name:  "nodeServiceContext",
+						Value: "nodeServiceContext",
+					},
+					{
+						Name:  "intentServiceContext",
+						Value: "intentServiceContext",
+					},
 				},
 			})
 		})

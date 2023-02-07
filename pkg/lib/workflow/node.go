@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"reflect"
 )
 
@@ -59,21 +61,22 @@ func NewSubWorkflow(intent Intent) *Node {
 	}
 }
 
-func (n *Node) GetEffects(ctx context.Context, deps *Dependencies) ([]Effect, error) {
+func (n *Node) Traverse(t WorkflowTraverser) error {
 	switch n.Type {
 	case NodeTypeSimple:
-		return n.Simple.GetEffects(ctx, deps)
-	case NodeTypeSubWorkflow:
-		var allEffects []Effect
-		for _, node := range n.SubWorkflow.Nodes {
-			effs, err := node.GetEffects(ctx, deps)
+		if t.NodeSimple != nil {
+			err := t.NodeSimple(n.Simple)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			allEffects = append(allEffects, effs...)
 		}
-
-		return allEffects, nil
+		return nil
+	case NodeTypeSubWorkflow:
+		err := n.SubWorkflow.Traverse(t)
+		if err != nil {
+			return err
+		}
+		return nil
 	default:
 		panic(errors.New("unreachable"))
 	}
@@ -128,7 +131,7 @@ func (n *Node) MarshalJSON() ([]byte, error) {
 		}
 
 		nodeSimpleJSON := nodeSimpleJSON{
-			Kind: NodeKind(n.Simple),
+			Kind: n.Simple.Kind(),
 			Data: nodeSimpleBytes,
 		}
 		nodeJSON.Simple = &nodeSimpleJSON
@@ -154,7 +157,12 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 
 	switch nodeJSON.Type {
 	case NodeTypeSimple:
-		nodeSimple := InstantiateNode(nodeJSON.Simple.Kind)
+		var nodeSimple NodeSimple
+		nodeSimple, err = InstantiateNode(nodeJSON.Simple.Kind)
+		if err != nil {
+			return
+		}
+
 		err = json.Unmarshal(nodeJSON.Simple.Data, nodeSimple)
 		if err != nil {
 			return
@@ -181,7 +189,7 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, e
 			return nil, err
 		}
 		output.Simple = &NodeSimpleOutput{
-			Kind: NodeKind(n.Simple),
+			Kind: n.Simple.Kind(),
 			Data: nodeSimpleData,
 		}
 		return output, nil
@@ -198,13 +206,18 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, e
 }
 
 type NodeSimple interface {
+	Kind() string
 	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
 	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies) (interface{}, error)
 }
 
+type NodeSimpleCookieGetter interface {
+	GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error)
+}
+
 type Edge interface {
-	Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input interface{}) (*Node, error)
+	Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
 }
 
 type NodeFactory func() NodeSimple
@@ -214,26 +227,21 @@ var nodeRegistry = map[string]NodeFactory{}
 func RegisterNode(node NodeSimple) {
 	nodeType := reflect.TypeOf(node).Elem()
 
-	nodeKind := nodeType.Name()
+	nodeKind := node.Kind()
 	factory := NodeFactory(func() NodeSimple {
 		return reflect.New(nodeType).Interface().(NodeSimple)
 	})
 
 	if _, hasKind := nodeRegistry[nodeKind]; hasKind {
-		panic("interaction: duplicated node kind: " + nodeKind)
+		panic(fmt.Errorf("workflow: duplicated node kind: %v", nodeKind))
 	}
 	nodeRegistry[nodeKind] = factory
 }
 
-func NodeKind(node NodeSimple) string {
-	nodeType := reflect.TypeOf(node).Elem()
-	return nodeType.Name()
-}
-
-func InstantiateNode(kind string) NodeSimple {
+func InstantiateNode(kind string) (NodeSimple, error) {
 	factory, ok := nodeRegistry[kind]
 	if !ok {
-		panic("interaction: unknown node kind: " + kind)
+		return nil, fmt.Errorf("workflow: unknown node kind: %v", kind)
 	}
-	return factory()
+	return factory(), nil
 }

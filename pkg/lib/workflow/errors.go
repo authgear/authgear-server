@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"errors"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 // ErrIncompatibleInput means the input is incompatible with the edge.
@@ -26,3 +28,9 @@ var ErrNoChange = errors.New("no change")
 // ErrEOF means end of workflow.
 // This error originates from DeriveEdges and will be propagated to public API.
 var ErrEOF = errors.New("eof")
+
+var ErrWorkflowNotFound = apierrors.NotFound.WithReason("WorkflowNotFound").New("workflow not found")
+
+var ErrUnknownIntent = apierrors.BadRequest.WithReason("WorkflowUnknownIntent").New("unknown intent")
+
+var ErrUnknownInput = apierrors.BadRequest.WithReason("WorkflowUnknownInput").New("unknown input")

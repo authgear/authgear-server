@@ -18,6 +18,7 @@ import (
 	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdinit"
 	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdinternal"
 	_ "github.com/authgear/authgear-server/cmd/authgear/cmd/cmdstart"
+	_ "github.com/authgear/authgear-server/pkg/latte"
 	"github.com/authgear/authgear-server/pkg/util/debug"
 )
 

@@ -13,8 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-var ErrWorkflowNotFound = errors.New("workflow not found")
-
 const Lifetime = duration.UserInteraction
 
 type StoreImpl struct {

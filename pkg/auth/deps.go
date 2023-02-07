@@ -44,6 +44,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -68,6 +69,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(oauthhandler.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(oauth.AppSessionTokenServiceCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TutorialCookie), new(*httputil.TutorialCookie)),
+	wire.Bind(new(handlerapi.WorkflowNewCookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerapi.WorkflowNewOAuthSessionService), new(*oauthsession.StoreRedis)),
+	wire.Bind(new(handlerapi.WorkflowNewUIInfoResolver), new(*oidc.UIInfoResolver)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
@@ -121,6 +125,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.PromotionCodeIssuer), new(*oauthhandler.AnonymousUserHandler)),
 	wire.Bind(new(handlerapi.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerapi.PresignProvider), new(*presign.Provider)),
+	wire.Bind(new(handlerapi.WorkflowNewWorkflowService), new(*workflow.Service)),
+	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
+	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
