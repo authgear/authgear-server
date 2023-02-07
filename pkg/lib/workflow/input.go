@@ -1,14 +1,22 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+type InputReactor interface {
+	CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error)
+	ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
+}
 
 type Input interface {
 	Kind() string
-	Instantiate(data json.RawMessage) error
+	JSONSchema() *validation.SimpleSchema
 }
 
 type InputJSON struct {
@@ -41,7 +49,7 @@ func InstantiateInput(j InputJSON) (Input, error) {
 	}
 	input := factory()
 
-	err := input.Instantiate(j.Data)
+	err := input.JSONSchema().Validator().ParseJSONRawMessage(j.Data, input)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"math/rand"
 	"net/http"
@@ -12,7 +11,14 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+func init() {
+	RegisterIntent(&intentServiceContext{})
+	RegisterInput(&inputServiceContext{})
+	RegisterNode(&nodeServiceContext{})
+}
 
 func TestService(t *testing.T) {
 	Convey("Service", t, func() {
@@ -200,21 +206,35 @@ func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
 }
 
-func (i *intentServiceContext) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*intentServiceContext) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentServiceContext) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	if len(workflow.Nodes) == 0 {
-		return []Edge{
-			&edgeServiceContext{},
+		return []Input{
+			&inputServiceContext{},
 		}, nil
 	}
 	return nil, ErrEOF
+}
+
+func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	var inputServiceContext InputServiceContext
+
+	switch {
+	case AsInput(input, &inputServiceContext):
+		return NewNodeSimple(&nodeServiceContext{
+			ClientID: GetClientID(ctx),
+		}), nil
+	default:
+		return nil, ErrIncompatibleInput
+	}
+
 }
 
 func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
@@ -230,12 +250,20 @@ func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies,
 	}, nil
 }
 
-type edgeServiceContext struct{}
+type inputServiceContext struct{}
 
-func (*edgeServiceContext) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	return NewNodeSimple(&nodeServiceContext{
-		ClientID: GetClientID(ctx),
-	}), nil
+func (*inputServiceContext) Kind() string {
+	return "inputServiceContext"
+}
+
+func (*inputServiceContext) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
+}
+
+func (*inputServiceContext) Marker() {}
+
+type InputServiceContext interface {
+	Marker()
 }
 
 type nodeServiceContext struct {
@@ -252,8 +280,12 @@ func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies) (
 	return nil, nil
 }
 
-func (*nodeServiceContext) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
+func (*nodeServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	return nil, ErrEOF
+}
+
+func (*nodeServiceContext) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
 }
 
 func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
@@ -311,7 +343,7 @@ func TestServiceContext(t *testing.T) {
 
 			output, err = service.FeedInput(
 				output.Workflow.InstanceID,
-				nil,
+				&inputServiceContext{},
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{

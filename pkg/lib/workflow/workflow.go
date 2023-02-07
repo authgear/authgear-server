@@ -43,11 +43,11 @@ func NewWorkflow(workflowID string, intent Intent) *Workflow {
 }
 
 // Accept executes the workflow to the deepest using input.
-// In addition to the errors caused by intent, nodes and edges,
+// In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
 func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) (err error) {
-	var workflowForTheEdges *Workflow
-	var edges []Edge
+	var workflowInQuestion *Workflow
+	var inputReactor InputReactor
 
 	var changed bool
 	defer func() {
@@ -60,70 +60,62 @@ func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) 
 	}()
 
 	for {
-		workflowForTheEdges, edges, err = w.DeriveEdges(ctx, deps)
+		workflowInQuestion, inputReactor, err = w.FindInputReactor(ctx, deps)
 		if err != nil {
 			return
 		}
 
-		// Otherwise we have some edges that we can feed input to.
+		// Otherwise we found an InputReactor that we can feed input to.
 		var nextNode *Node
-		for _, edge := range edges {
-			nextNode, err = edge.Instantiate(ctx, deps, workflowForTheEdges, input)
+		nextNode, err = inputReactor.ReactTo(ctx, deps, workflowInQuestion, input)
 
-			// Continue to check the next edge.
-			if errors.Is(err, ErrIncompatibleInput) {
-				err = nil
-				continue
-			}
-
-			if errors.Is(err, ErrSameNode) {
-				err = nil
-				// We still consider the workflow has something changes.
-				changed = true
-				// We have to stop and return here because this edge will react to this input indefinitely.
-				return
-			}
-
-			if errors.Is(err, ErrUpdateNode) {
-				err = nil
-				// We still consider the workflow has something changes.
-				changed = true
-
-				nodeToReplace := nextNode
-
-				// precondition: ErrUpdateNode must be returned by edges that were derived by a node.
-				if len(workflowForTheEdges.Nodes) == 0 {
-					panic(fmt.Errorf("edge %T returned ErrUpdateNode, but the edge was not derived by a node", edge))
-				}
-
-				// Update the node inplace.
-				workflowForTheEdges.Nodes[len(workflowForTheEdges.Nodes)-1] = *nodeToReplace
-
-				// We have to stop and return here because this edge will react to this input indefinitely.
-				return
-			}
-
-			if err != nil {
-				return
-			}
-
-			// So we have a non-nil nextNode here.
-			// We can break the loop.
-			break
+		// Handle err == ErrIncompatibleInput
+		if errors.Is(err, ErrIncompatibleInput) {
+			err = nil
+			// Since this is a forever loop, changed may have been set to true already.
+			return
 		}
 
-		// No edges are followed, input is required.
-		if nextNode == nil {
+		// Handle err == ErrSameNode
+		if errors.Is(err, ErrSameNode) {
+			err = nil
+			// We still consider the workflow has something changes.
+			changed = true
+			// We have to stop and return here because this input reactor will react to this input indefinitely.
+			return
+		}
+
+		// Handle err == ErrSameNode
+		if errors.Is(err, ErrUpdateNode) {
+			err = nil
+			// We still consider the workflow has something changes.
+			changed = true
+
+			nodeToReplace := nextNode
+
+			// precondition: ErrUpdateNode requires at least one node.
+			if len(workflowInQuestion.Nodes) == 0 {
+				panic(fmt.Errorf("input reactor %T returned ErrUpdateNode, but there are no nodes", inputReactor))
+			}
+
+			// Update the node inplace.
+			workflowInQuestion.Nodes[len(workflowInQuestion.Nodes)-1] = *nodeToReplace
+
+			// We have to stop and return here because this edge will react to this input indefinitely.
+			return
+		}
+
+		// Handle other error.
+		if err != nil {
 			return
 		}
 
 		// We need to append the nextNode to the closest workflow.
-		err = workflowForTheEdges.appendNode(ctx, deps, *nextNode)
+		err = workflowInQuestion.appendNode(ctx, deps, *nextNode)
 		if err != nil {
 			return
 		}
 		changed = true
-		nextNode = nil
 	}
 }
 
@@ -287,33 +279,28 @@ func (w *Workflow) Traverse(t WorkflowTraverser) error {
 	return nil
 }
 
-func (w *Workflow) DeriveEdges(ctx context.Context, deps *Dependencies) (*Workflow, []Edge, error) {
+func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies) (*Workflow, InputReactor, error) {
 	if len(w.Nodes) > 0 {
-		// We ask the last node to derive edges first.
+		// We check the last node if it can react to input first.
 		lastNode := w.Nodes[len(w.Nodes)-1]
-		workflow, edges, err := lastNode.DeriveEdges(ctx, deps, w)
+		workflow, inputReactor, err := lastNode.FindInputReactor(ctx, deps, w)
 		if err == nil {
-			if len(edges) == 0 {
-				panic(fmt.Errorf("node %T derives no edges without error", lastNode))
-			}
-			return workflow, edges, nil
+			return workflow, inputReactor, nil
 		}
-
-		// err != nil here.
-		if !errors.Is(err, ErrEOF) {
+		// Return non ErrEOF error.
+		if err != nil && !errors.Is(err, ErrEOF) {
 			return nil, nil, err
 		}
-
-		// err is ErrEOF, fallthrough.
+		// err is ErrEOF, fallthrough
 	}
 
-	// Otherwise we ask the intent to derive edges.
-	edges, err := w.Intent.DeriveEdges(ctx, deps, w)
+	// Otherwise we check if the intent can react to input.
+	inputs, err := w.Intent.CanReactTo(ctx, deps, w)
 	if err == nil {
-		if len(edges) == 0 {
-			panic(fmt.Errorf("intent %T derives no edges without error", w.Intent))
+		if len(inputs) == 0 {
+			panic(fmt.Errorf("intent %T react to no input without error", w.Intent))
 		}
-		return w, edges, nil
+		return w, w.Intent, nil
 	}
 
 	// err != nil here.
@@ -322,7 +309,7 @@ func (w *Workflow) DeriveEdges(ctx context.Context, deps *Dependencies) (*Workfl
 }
 
 func (w *Workflow) IsEOF(ctx context.Context, deps *Dependencies) (bool, error) {
-	_, _, err := w.DeriveEdges(ctx, deps)
+	_, _, err := w.FindInputReactor(ctx, deps)
 	if err != nil {
 		if errors.Is(err, ErrEOF) {
 			return true, nil

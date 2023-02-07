@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type Intent interface {
+	InputReactor
 	Kind() string
-	Instantiate(data json.RawMessage) error
+	JSONSchema() *validation.SimpleSchema
 	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
-	DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error)
 	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
 }
 
@@ -55,7 +57,7 @@ func InstantiateIntent(j IntentJSON) (Intent, error) {
 	}
 	intent := factory()
 
-	err := intent.Instantiate(j.Data)
+	err := intent.JSONSchema().Validator().ParseJSONRawMessage(j.Data, intent)
 	if err != nil {
 		return nil, err
 	}

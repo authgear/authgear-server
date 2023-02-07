@@ -6,19 +6,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-// ErrIncompatibleInput means the input is incompatible with the edge.
-// The input should be feeded to another edge instead.
-// This error can only be returned by Instantiate.
+// ErrIncompatibleInput means the input reactor cannot react to the input.
+// This error can only be returned by ReactTo.
 var ErrIncompatibleInput = errors.New("incompatible input")
 
-// ErrSameNode means the edge consumed the input, but no node is produced.
-// This typically the edge has performed some immediate side effects.
-// This error can only be returned by Instantiate.
+// ErrSameNode means the input is reacted to, but no node is produced.
+// This typically means the node has performed some immediate side effects.
+// This error can only be returned by ReactTo.
 var ErrSameNode = errors.New("same node")
 
-// ErrUpdateNode means the edge consumed the input, but instead of producing a new node to be appended,
+// ErrUpdateNode means the input is reacted to, but instead of producing a new node to be appended,
 // the returned node should replace the node.
-// This error can only be returned by Instantiate.
+// This error can only be returned by ReactTo.
 var ErrUpdateNode = errors.New("update node")
 
 // ErrNoChange means the input does not cause the workflow to change.
@@ -26,7 +25,7 @@ var ErrUpdateNode = errors.New("update node")
 var ErrNoChange = errors.New("no change")
 
 // ErrEOF means end of workflow.
-// This error originates from DeriveEdges and will be propagated to public API.
+// This error originates from CanReactTo and will be propagated to public API.
 var ErrEOF = errors.New("eof")
 
 var ErrWorkflowNotFound = apierrors.NotFound.WithReason("WorkflowNotFound").New("workflow not found")

@@ -4,9 +4,31 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var ErrInvalidOTP = errors.New("invalid OTP")
+
+func init() {
+	RegisterIntent(&intentAuthenticate{})
+	RegisterIntent(&intentLogin{})
+	RegisterIntent(&intentSignup{})
+	RegisterIntent(&intentAddLoginID{})
+	RegisterIntent(&intentCreatePassword{})
+	RegisterIntent(&intentFinishSignup{})
+
+	RegisterInput(&inputLoginID{})
+	RegisterInput(&inputOTP{})
+	RegisterInput(&inputResendOTP{})
+	RegisterInput(&inputCreatePasswordFlow{})
+	RegisterInput(&inputNewPassword{})
+	RegisterInput(&inputFinishSignup{})
+
+	RegisterNode(&nodeCreatePassword{})
+	RegisterNode(&nodeVerifyLoginID{})
+	RegisterNode(&nodeLoginIDVerified{})
+}
 
 type intentAuthenticate struct {
 	PretendLoginIDExists bool
@@ -16,50 +38,45 @@ func (*intentAuthenticate) Kind() string {
 	return "intentAuthenticate"
 }
 
-func (i *intentAuthenticate) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (i *intentAuthenticate) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentAuthenticate) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	if len(workflow.Nodes) == 0 {
-		return []Edge{
-			&edgeTakeLoginID{
-				PretendLoginIDExists: i.PretendLoginIDExists,
-			},
+		return []Input{
+			&inputLoginID{},
 		}, nil
 	}
 
 	return nil, ErrEOF
 }
 
-func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
-	return nil, nil
-}
-
-type edgeTakeLoginID struct {
-	PretendLoginIDExists bool
-}
-
-func (e *edgeTakeLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
-	ok := AsInput(input, &inputLoginID)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
 
-	if e.PretendLoginIDExists {
-		return NewSubWorkflow(&intentLogin{
+	switch {
+	case AsInput(input, &inputLoginID):
+		if i.PretendLoginIDExists {
+			return NewSubWorkflow(&intentLogin{
+				LoginID: inputLoginID.GetLoginID(),
+			}), nil
+		}
+
+		return NewSubWorkflow(&intentSignup{
 			LoginID: inputLoginID.GetLoginID(),
 		}), nil
+	default:
+		return nil, ErrIncompatibleInput
 	}
+}
 
-	return NewSubWorkflow(&intentSignup{
-		LoginID: inputLoginID.GetLoginID(),
-	}), nil
+func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+	return nil, nil
 }
 
 type InputLoginID interface {
@@ -74,15 +91,13 @@ func (*inputLoginID) Kind() string {
 	return "inputLoginID"
 }
 
-func (i *inputLoginID) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*inputLoginID) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (i *inputLoginID) GetLoginID() string {
 	return i.LoginID
 }
-
-func (i *inputLoginID) AddLoginID() {}
 
 type intentLogin struct {
 	LoginID string
@@ -92,16 +107,20 @@ func (*intentLogin) Kind() string {
 	return "intentLogin"
 }
 
-func (i *intentLogin) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*intentLogin) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentLogin) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (*intentLogin) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	return nil, ErrEOF
+}
+
+func (*intentLogin) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
 }
 
 func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
@@ -116,15 +135,15 @@ func (*intentSignup) Kind() string {
 	return "intentSignup"
 }
 
-func (i *intentSignup) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*intentSignup) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentSignup) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	if len(workflow.Nodes) > 0 {
 		lastNode := workflow.Nodes[len(workflow.Nodes)-1]
 		if lastNode.Type == NodeTypeSubWorkflow {
@@ -136,37 +155,35 @@ func (i *intentSignup) DeriveEdges(ctx context.Context, deps *Dependencies, work
 		}
 	}
 
-	return []Edge{
-		&edgeAddLoginIDFlow{
-			LoginID: i.LoginID,
-		},
-		&edgeCreatePasswordFlow{},
-		&edgeFinishSignup{},
+	return []Input{
+		&inputLoginID{},
+		&inputCreatePasswordFlow{},
+		&inputFinishSignup{},
 	}, nil
+}
+
+func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	var inputLoginID InputLoginID
+	var passwordInput InputCreatePasswordFlow
+	var inputFinishSignup InputFinishSignup
+
+	switch {
+	case AsInput(input, &inputLoginID):
+		return NewSubWorkflow(&intentAddLoginID{
+			LoginID: i.LoginID,
+		}), nil
+	case AsInput(input, &passwordInput):
+		// In actual case, we check if the new password is valid against the password policy.
+		return NewSubWorkflow(&intentCreatePassword{}), nil
+	case AsInput(input, &inputFinishSignup):
+		return NewSubWorkflow(&intentFinishSignup{}), nil
+	default:
+		return nil, ErrIncompatibleInput
+	}
 }
 
 func (i *intentSignup) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
-}
-
-type edgeAddLoginIDFlow struct {
-	LoginID string
-}
-
-func (e *edgeAddLoginIDFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	var inputAddLoginIDFlow InputAddLoginIDFlow
-	ok := AsInput(input, &inputAddLoginIDFlow)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
-
-	return NewSubWorkflow(&intentAddLoginID{
-		LoginID: e.LoginID,
-	}), nil
-}
-
-type InputAddLoginIDFlow interface {
-	AddLoginID()
 }
 
 type intentAddLoginID struct {
@@ -177,39 +194,40 @@ func (*intentAddLoginID) Kind() string {
 	return "intentAddLoginID"
 }
 
-func (i *intentAddLoginID) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*intentAddLoginID) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentAddLoginID) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	if len(workflow.Nodes) == 0 {
-		return []Edge{
-			&edgeVerifyLoginID{
-				LoginID: i.LoginID,
-			},
+		return []Input{
+			&inputLoginID{},
 		}, nil
 	}
 
 	return nil, ErrEOF
 }
 
+func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	var inputLoginID InputLoginID
+
+	switch {
+	case AsInput(input, &inputLoginID):
+		return NewNodeSimple(&nodeVerifyLoginID{
+			LoginID: i.LoginID,
+			OTP:     "123456",
+		}), nil
+	default:
+		return nil, ErrIncompatibleInput
+	}
+}
+
 func (*intentAddLoginID) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
 	return nil, nil
-}
-
-type edgeVerifyLoginID struct {
-	LoginID string
-}
-
-func (e *edgeVerifyLoginID) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	return NewNodeSimple(&nodeVerifyLoginID{
-		LoginID: e.LoginID,
-		OTP:     "123456",
-	}), nil
 }
 
 type nodeVerifyLoginID struct {
@@ -225,41 +243,38 @@ func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies) ([
 	return nil, nil
 }
 
-func (n *nodeVerifyLoginID) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
-	return []Edge{
-		&edgeVerifyOTP{
-			LoginID: n.LoginID,
-			OTP:     n.OTP,
-		},
-		&edgeResendOTP{
-			LoginID: n.LoginID,
-		},
+func (n *nodeVerifyLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+	return []Input{
+		&inputOTP{},
+		&inputResendOTP{},
 	}, nil
+}
+
+func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	var otpInput InputOTP
+	var resendInput InputResendOTP
+
+	switch {
+	case AsInput(input, &otpInput):
+		if n.OTP != otpInput.GetOTP() {
+			return nil, ErrInvalidOTP
+		}
+
+		return NewNodeSimple(&nodeLoginIDVerified{
+			LoginID: n.LoginID,
+		}), nil
+	case AsInput(input, &resendInput):
+		return NewNodeSimple(&nodeVerifyLoginID{
+			LoginID: n.LoginID,
+			OTP:     "654321",
+		}), ErrUpdateNode
+	default:
+		return nil, ErrIncompatibleInput
+	}
 }
 
 func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
-}
-
-type edgeVerifyOTP struct {
-	LoginID string
-	OTP     string
-}
-
-func (e *edgeVerifyOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	var otpInput InputOTP
-	ok := AsInput(input, &otpInput)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
-
-	if e.OTP != otpInput.GetOTP() {
-		return nil, ErrInvalidOTP
-	}
-
-	return NewNodeSimple(&nodeLoginIDVerified{
-		LoginID: e.LoginID,
-	}), nil
 }
 
 type InputOTP interface {
@@ -274,8 +289,8 @@ func (*inputOTP) Kind() string {
 	return "inputOTP"
 }
 
-func (i *inputOTP) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (i *inputOTP) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (i *inputOTP) GetOTP() string {
@@ -295,30 +310,17 @@ func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies) 
 	return nil, nil
 }
 
-func (*nodeLoginIDVerified) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
+func (*nodeLoginIDVerified) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	// This workflow ends here.
 	return nil, ErrEOF
 }
 
+func (*nodeLoginIDVerified) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
+}
+
 func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
-}
-
-type edgeResendOTP struct {
-	LoginID string
-}
-
-func (e *edgeResendOTP) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	var resendInput InputResendOTP
-	ok := AsInput(input, &resendInput)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
-
-	return NewNodeSimple(&nodeVerifyLoginID{
-		LoginID: e.LoginID,
-		OTP:     "654321",
-	}), ErrUpdateNode
 }
 
 type InputResendOTP interface {
@@ -331,24 +333,11 @@ func (*inputResendOTP) Kind() string {
 	return "inputResendOTP"
 }
 
-func (i *inputResendOTP) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (i *inputResendOTP) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*inputResendOTP) ResendOTP() {}
-
-type edgeCreatePasswordFlow struct{}
-
-func (*edgeCreatePasswordFlow) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	var passwordInput InputCreatePasswordFlow
-	ok := AsInput(input, &passwordInput)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
-
-	// In actual case, we check if the new password is valid against the password policy.
-	return NewSubWorkflow(&intentCreatePassword{}), nil
-}
 
 type InputCreatePasswordFlow interface {
 	CreatePassword()
@@ -360,8 +349,8 @@ func (*inputCreatePasswordFlow) Kind() string {
 	return "inputCreatePasswordFlow"
 }
 
-func (i *inputCreatePasswordFlow) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (i *inputCreatePasswordFlow) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (i *inputCreatePasswordFlow) CreatePassword() {}
@@ -378,8 +367,8 @@ func (*inputNewPassword) Kind() string {
 	return "inputNewPassword"
 }
 
-func (i *inputNewPassword) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*inputNewPassword) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (i *inputNewPassword) GetNewPassword() string {
@@ -392,42 +381,39 @@ func (*intentCreatePassword) Kind() string {
 	return "intentCreatePassword"
 }
 
-func (i *intentCreatePassword) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*intentCreatePassword) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentCreatePassword) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	if len(workflow.Nodes) == 0 {
-		return []Edge{
-			&edgeCheckPasswordAgainstPolicy{},
+		return []Input{
+			&inputNewPassword{},
 		}, nil
 	}
 
 	return nil, ErrEOF
 }
 
-func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
-	return nil, nil
-}
-
-type edgeCheckPasswordAgainstPolicy struct{}
-
-func (*edgeCheckPasswordAgainstPolicy) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-
+func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
 	var inputNewPassword InputNewPassword
-	ok := AsInput(input, &inputNewPassword)
-	if !ok {
+	switch {
+	case AsInput(input, &inputNewPassword):
+		// Assume the new password fulfil the policy.
+		return NewNodeSimple(&nodeCreatePassword{
+			HashedNewPassword: inputNewPassword.GetNewPassword(),
+		}), nil
+	default:
 		return nil, ErrIncompatibleInput
 	}
+}
 
-	// Assume the new password fulfil the policy.
-	return NewNodeSimple(&nodeCreatePassword{
-		HashedNewPassword: inputNewPassword.GetNewPassword(),
-	}), nil
+func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+	return nil, nil
 }
 
 type nodeCreatePassword struct {
@@ -443,24 +429,16 @@ func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies) (
 	return nil, nil
 }
 
-func (*nodeCreatePassword) DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error) {
+func (*nodeCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	return nil, ErrEOF
+}
+
+func (*nodeCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
 }
 
 func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies) (interface{}, error) {
 	return nil, nil
-}
-
-type edgeFinishSignup struct{}
-
-func (*edgeFinishSignup) Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
-	var inputFinishSignup InputFinishSignup
-	ok := AsInput(input, &inputFinishSignup)
-	if !ok {
-		return nil, ErrIncompatibleInput
-	}
-
-	return NewSubWorkflow(&intentFinishSignup{}), nil
 }
 
 type InputFinishSignup interface {
@@ -471,6 +449,10 @@ type inputFinishSignup struct{}
 
 func (*inputFinishSignup) Kind() string {
 	return "inputFinishSignup"
+}
+
+func (i *inputFinishSignup) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (i *inputFinishSignup) Instantiate(data json.RawMessage) error {
@@ -485,19 +467,23 @@ func (*intentFinishSignup) Kind() string {
 	return "intentFinishSignup"
 }
 
-func (i *intentFinishSignup) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+func (*intentFinishSignup) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
 }
 
 func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentFinishSignup) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Edge, error) {
+func (*intentFinishSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
 	// In actual case, we have a lot to do in this workflow.
 	// We have to check if the user has required identity, authenticator, 2FA set up.
 	// And create session.
 	return nil, ErrEOF
+}
+
+func (*intentFinishSignup) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
 }
 
 func (*intentFinishSignup) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
