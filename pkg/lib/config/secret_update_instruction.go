@@ -390,22 +390,25 @@ func (i *AdminAPIAuthKeyUpdateInstruction) generate(ctx *SecretConfigUpdateInstr
 
 	// Add new key to the AdminAPIAuthKey
 	newAdminAPIAuthKey.Add(newAuthKey)
-	var jsonData []byte
-	jsonData, err := json.Marshal(newAdminAPIAuthKey)
-	if err != nil {
-		return nil, err
-	}
-	newSecretItem := SecretItem{
-		Key:     AdminAPIAuthKeyKey,
-		RawData: json.RawMessage(jsonData),
-	}
-
-	if found {
-		out.Secrets[idx] = newSecretItem
+	if newAdminAPIAuthKey.Len() > 2 {
+		return nil, fmt.Errorf("config: must have at most two Admin API auth keys")
 	} else {
-		out.Secrets = append(out.Secrets, newSecretItem)
-	}
+		var jsonData []byte
+		jsonData, err := json.Marshal(newAdminAPIAuthKey)
+		if err != nil {
+			return nil, err
+		}
+		newSecretItem := SecretItem{
+			Key:     AdminAPIAuthKeyKey,
+			RawData: json.RawMessage(jsonData),
+		}
 
+		if found {
+			out.Secrets[idx] = newSecretItem
+		} else {
+			out.Secrets = append(out.Secrets, newSecretItem)
+		}
+	}
 	return out, nil
 }
 
