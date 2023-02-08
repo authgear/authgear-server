@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	RegisterIntent(&intentServiceContext{})
+	RegisterPrivateIntent(&intentServiceContext{})
 	RegisterInput(&inputServiceContext{})
 	RegisterNode(&nodeServiceContext{})
 }

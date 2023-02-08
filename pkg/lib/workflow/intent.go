@@ -30,9 +30,10 @@ type IntentJSON struct {
 
 type IntentFactory func() Intent
 
-var intentRegistry = map[string]IntentFactory{}
+var publicIntentRegistry = map[string]IntentFactory{}
+var privateIntentRegistry = map[string]IntentFactory{}
 
-func RegisterIntent(intent Intent) {
+func RegisterPublicIntent(intent Intent) {
 	intentType := reflect.TypeOf(intent).Elem()
 
 	intentKind := intent.Kind()
@@ -40,14 +41,49 @@ func RegisterIntent(intent Intent) {
 		return reflect.New(intentType).Interface().(Intent)
 	})
 
-	if _, hasKind := intentRegistry[intentKind]; hasKind {
+	if _, hasKind := publicIntentRegistry[intentKind]; hasKind {
 		panic(fmt.Errorf("workflow: duplicated intent kind: %v", intentKind))
 	}
-	intentRegistry[intentKind] = factory
+	if _, hasKind := privateIntentRegistry[intentKind]; hasKind {
+		panic(fmt.Errorf("workflow: duplicated intent kind: %v", intentKind))
+	}
+
+	publicIntentRegistry[intentKind] = factory
+	privateIntentRegistry[intentKind] = factory
 }
 
-func InstantiateIntent(j IntentJSON) (Intent, error) {
-	factory, ok := intentRegistry[j.Kind]
+func RegisterPrivateIntent(intent Intent) {
+	intentType := reflect.TypeOf(intent).Elem()
+
+	intentKind := intent.Kind()
+	factory := IntentFactory(func() Intent {
+		return reflect.New(intentType).Interface().(Intent)
+	})
+
+	if _, hasKind := privateIntentRegistry[intentKind]; hasKind {
+		panic(fmt.Errorf("workflow: duplicated intent kind: %v", intentKind))
+	}
+
+	privateIntentRegistry[intentKind] = factory
+}
+
+func InstantiateIntentFromPublicRegistry(j IntentJSON) (Intent, error) {
+	factory, ok := publicIntentRegistry[j.Kind]
+	if !ok {
+		return nil, ErrUnknownIntent
+	}
+	intent := factory()
+
+	err := intent.JSONSchema().Validator().ParseJSONRawMessage(j.Data, intent)
+	if err != nil {
+		return nil, err
+	}
+
+	return intent, nil
+}
+
+func InstantiateIntentFromPrivateRegistry(j IntentJSON) (Intent, error) {
+	factory, ok := privateIntentRegistry[j.Kind]
 	if !ok {
 		return nil, ErrUnknownIntent
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	workflow.RegisterIntent(&IntentLogin{})
+	workflow.RegisterPrivateIntent(&IntentLogin{})
 }
 
 var IntentLoginSchema = validation.NewSimpleSchema(`

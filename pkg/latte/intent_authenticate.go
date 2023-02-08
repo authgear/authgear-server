@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	workflow.RegisterIntent(&IntentAuthenticate{})
+	workflow.RegisterPublicIntent(&IntentAuthenticate{})
 }
 
 var IntentAuthenticateSchema = validation.NewSimpleSchema(`

@@ -10,6 +10,7 @@ Examples of workflows are authentication, adding a new identity, verifying an em
 The core of a workflow is its intent.
 The intent controls how the workflow proceeds.
 The kind of an intent and its JSON schema is part of the public API.
+Some intent cannot be instantiated by the public API.
 
 ```golang
 type Intent interface {

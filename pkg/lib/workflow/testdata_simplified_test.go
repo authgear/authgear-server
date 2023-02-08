@@ -11,12 +11,12 @@ import (
 var ErrInvalidOTP = errors.New("invalid OTP")
 
 func init() {
-	RegisterIntent(&intentAuthenticate{})
-	RegisterIntent(&intentLogin{})
-	RegisterIntent(&intentSignup{})
-	RegisterIntent(&intentAddLoginID{})
-	RegisterIntent(&intentCreatePassword{})
-	RegisterIntent(&intentFinishSignup{})
+	RegisterPrivateIntent(&intentAuthenticate{})
+	RegisterPrivateIntent(&intentLogin{})
+	RegisterPrivateIntent(&intentSignup{})
+	RegisterPrivateIntent(&intentAddLoginID{})
+	RegisterPrivateIntent(&intentCreatePassword{})
+	RegisterPrivateIntent(&intentFinishSignup{})
 
 	RegisterInput(&inputLoginID{})
 	RegisterInput(&inputOTP{})
