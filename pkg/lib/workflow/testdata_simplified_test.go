@@ -18,13 +18,6 @@ func init() {
 	RegisterPrivateIntent(&intentCreatePassword{})
 	RegisterPrivateIntent(&intentFinishSignup{})
 
-	RegisterInput(&inputLoginID{})
-	RegisterInput(&inputOTP{})
-	RegisterInput(&inputResendOTP{})
-	RegisterInput(&inputCreatePasswordFlow{})
-	RegisterInput(&inputNewPassword{})
-	RegisterInput(&inputFinishSignup{})
-
 	RegisterNode(&nodeCreatePassword{})
 	RegisterNode(&nodeVerifyLoginID{})
 	RegisterNode(&nodeLoginIDVerified{})

@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	workflow.RegisterInput(&InputTakeLoginID{})
+	workflow.RegisterPublicInput(&InputTakeLoginID{})
 }
 
 var InputTakeLoginIDSchema = validation.NewSimpleSchema(`

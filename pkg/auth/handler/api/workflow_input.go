@@ -84,7 +84,7 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *WorkflowInputHandler) handle(w http.ResponseWriter, r *http.Request, instanceID string, request WorkflowInputRequest) (*workflow.ServiceOutput, error) {
-	input, err := workflow.InstantiateInput(request.Input)
+	input, err := workflow.InstantiateInputFromPublicRegistry(request.Input)
 	if err != nil {
 		return nil, err
 	}

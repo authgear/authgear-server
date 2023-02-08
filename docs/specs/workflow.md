@@ -61,6 +61,7 @@ type Workflow struct {
 Both intent and node can react to inputs.
 Reaction to inputs can result in transition to a new node, or update the node.
 The kind of an input and its JSON schema is part of the public API.
+Some input cannot be instantiated by the public API.
 
 ```golang
 var ErrEOF = errors.New("eof")
