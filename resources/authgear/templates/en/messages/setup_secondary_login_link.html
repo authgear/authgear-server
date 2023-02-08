@@ -1,4 +1,4 @@
-<!-- FILE: resources/authgear/templates/en/messages/authenticate_secondary_magic_link.mjml -->
+<!-- FILE: resources/authgear/templates/en/messages/setup_secondary_login_link.mjml -->
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 
@@ -102,12 +102,12 @@
                   <tbody>
                     <tr>
                       <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:32px;text-align:left;color:#000000;">Use this link to sign in {{ template "app.name" }}</div>
+                        <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:24px;font-weight:bold;line-height:32px;text-align:left;color:#000000;">Verify your email and setup 2-step verification on {{ template "app.name" }}</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" style="font-size:0px;padding:10px 25px;padding-top:10px;word-break:break-word;">
-                        <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:24px;text-align:left;color:#000000;">Please follow the link below to sign in to {{ template "app.name" }}.</div>
+                        <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:16px;line-height:24px;text-align:left;color:#000000;">Please follow the link below to setup 2-step verification.</div>
                       </td>
                     </tr>
                   </tbody>
@@ -135,8 +135,7 @@
                           <tbody>
                             <tr>
                               <td align="center" bgcolor="#1F67EF" role="presentation" style="border:none;border-radius:2px;cursor:auto;mso-padding-alt:10px 25px;background:#1F67EF;" valign="middle">
-                                <a href="{{ .URL }}" style="display:inline-block;width:250px;background:#1F67EF;color:#ffffff;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:2px;" target="_blank"> Sign into {{ template "app.name" }}
-                                </a>
+                                <a href="{{ .URL }}" style="display:inline-block;width:250px;background:#1F67EF;color:#ffffff;font-family:Ubuntu, Helvetica, Arial, sans-serif;font-size:13px;font-weight:normal;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:10px 25px;mso-padding-alt:0px;border-radius:2px;" target="_blank"> Verify Email </a>
                               </td>
                             </tr>
                           </tbody>
@@ -164,7 +163,7 @@
                   <tbody>
                     <tr>
                       <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:14px;font-weight:light;line-height:1;text-align:left;color:#555555;">If you didn't trigger a login, please ignore this email.</div>
+                        <div style="font-family:Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;font-size:14px;font-weight:light;line-height:1;text-align:left;color:#555555;">If you didn't trigger this setup, please ignore this email.</div>
                       </td>
                     </tr>
                   </tbody>

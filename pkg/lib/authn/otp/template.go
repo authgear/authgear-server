@@ -47,21 +47,21 @@ var (
 	TemplateMessageAuthenticatePrimaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_oob_email.txt")
 	TemplateMessageAuthenticatePrimaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_primary_oob_email.html")
 
-	TemplateMessageAuthenticatePrimaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_magic_link.txt")
-	TemplateMessageAuthenticatePrimaryMagicLinkEmailHTML = template.RegisterHTML("messages/authenticate_primary_magic_link.html")
+	TemplateMessageAuthenticatePrimaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_primary_login_link.txt")
+	TemplateMessageAuthenticatePrimaryMagicLinkEmailHTML = template.RegisterHTML("messages/authenticate_primary_login_link.html")
 
 	TemplateMessageAuthenticateSecondaryOOBSMSTXT    = template.RegisterPlainText("messages/authenticate_secondary_oob_sms.txt")
 	TemplateMessageAuthenticateSecondaryOOBEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_oob_email.txt")
 	TemplateMessageAuthenticateSecondaryOOBEmailHTML = template.RegisterHTML("messages/authenticate_secondary_oob_email.html")
 
-	TemplateMessageSetupPrimaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/setup_primary_magic_link.txt")
-	TemplateMessageSetupPrimaryMagicLinkEmailHTML = template.RegisterHTML("messages/setup_primary_magic_link.html")
+	TemplateMessageSetupPrimaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/setup_primary_login_link.txt")
+	TemplateMessageSetupPrimaryMagicLinkEmailHTML = template.RegisterHTML("messages/setup_primary_login_link.html")
 
-	TemplateMessageSetupSecondaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/setup_secondary_magic_link.txt")
-	TemplateMessageSetupSecondaryMagicLinkEmailHTML = template.RegisterHTML("messages/setup_secondary_magic_link.html")
+	TemplateMessageSetupSecondaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/setup_secondary_login_link.txt")
+	TemplateMessageSetupSecondaryMagicLinkEmailHTML = template.RegisterHTML("messages/setup_secondary_login_link.html")
 
-	TemplateMessageAuthenticateSecondaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_magic_link.txt")
-	TemplateMessageAuthenticateSecondaryMagicLinkEmailHTML = template.RegisterHTML("messages/authenticate_secondary_magic_link.html")
+	TemplateMessageAuthenticateSecondaryMagicLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_login_link.txt")
+	TemplateMessageAuthenticateSecondaryMagicLinkEmailHTML = template.RegisterHTML("messages/authenticate_secondary_login_link.html")
 )
 
 var (
