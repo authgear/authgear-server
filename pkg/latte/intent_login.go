@@ -2,7 +2,6 @@ package latte
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -31,17 +30,30 @@ func (*IntentLogin) Kind() string {
 	return "latte.IntentLogin"
 }
 
-func (i *IntentLogin) Instantiate(data json.RawMessage) error {
-	return IntentLoginSchema.Validator().ParseJSONRawMessage(data, i)
+func (*IntentLogin) JSONSchema() *validation.SimpleSchema {
+	return IntentLoginSchema
 }
 
-func (*IntentLogin) DeriveEdges(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Edge, error) {
+func (*IntentLogin) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	if len(w.Nodes) == 0 {
-		return []workflow.Edge{
-			&EdgeTakeLoginID{},
+		return []workflow.Input{
+			&InputTakeLoginID{},
 		}, nil
 	}
 	return nil, workflow.ErrEOF
+}
+
+func (*IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+	var loginIDInput inputTakeLoginID
+
+	switch {
+	case workflow.AsInput(input, &loginIDInput):
+		return workflow.NewNodeSimple(&NodeTakeLoginID{
+			LoginID: loginIDInput.GetLoginID(),
+		}), nil
+	default:
+		return nil, workflow.ErrIncompatibleInput
+	}
 }
 
 func (*IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {

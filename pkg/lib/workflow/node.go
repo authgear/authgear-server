@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"reflect"
 )
 
@@ -61,11 +60,11 @@ func NewSubWorkflow(intent Intent) *Node {
 	}
 }
 
-func (n *Node) Traverse(t WorkflowTraverser) error {
+func (n *Node) Traverse(t WorkflowTraverser, w *Workflow) error {
 	switch n.Type {
 	case NodeTypeSimple:
 		if t.NodeSimple != nil {
-			err := t.NodeSimple(n.Simple)
+			err := t.NodeSimple(n.Simple, w)
 			if err != nil {
 				return err
 			}
@@ -82,16 +81,19 @@ func (n *Node) Traverse(t WorkflowTraverser) error {
 	}
 }
 
-func (n *Node) DeriveEdges(ctx context.Context, deps *Dependencies, workflow *Workflow) (*Workflow, []Edge, error) {
+func (n *Node) FindInputReactor(ctx context.Context, deps *Dependencies, w *Workflow) (*Workflow, InputReactor, error) {
 	switch n.Type {
 	case NodeTypeSimple:
-		edges, err := n.Simple.DeriveEdges(ctx, deps)
-		if err != nil {
-			return nil, nil, err
+		inputs, err := n.Simple.CanReactTo(ctx, deps, w)
+		if err == nil {
+			if len(inputs) == 0 {
+				panic(fmt.Errorf("node %T react to no input without error", n.Simple))
+			}
+			return w, n.Simple, nil
 		}
-		return workflow, edges, nil
+		return nil, nil, err
 	case NodeTypeSubWorkflow:
-		return n.SubWorkflow.DeriveEdges(ctx, deps)
+		return n.SubWorkflow.FindInputReactor(ctx, deps)
 	default:
 		panic(errors.New("unreachable"))
 	}
@@ -177,14 +179,14 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 	return nil
 }
 
-func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, error) {
+func (n *Node) ToOutput(ctx context.Context, deps *Dependencies, w *Workflow) (*NodeOutput, error) {
 	output := &NodeOutput{
 		Type: n.Type,
 	}
 
 	switch n.Type {
 	case NodeTypeSimple:
-		nodeSimpleData, err := n.Simple.OutputData(ctx, deps)
+		nodeSimpleData, err := n.Simple.OutputData(ctx, deps, w)
 		if err != nil {
 			return nil, err
 		}
@@ -205,19 +207,12 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies) (*NodeOutput, e
 	}
 }
 
+// NodeSimple can optionally implement CookieGetter.
 type NodeSimple interface {
+	InputReactor
+	EffectGetter
 	Kind() string
-	GetEffects(ctx context.Context, deps *Dependencies) (effs []Effect, err error)
-	DeriveEdges(ctx context.Context, deps *Dependencies) ([]Edge, error)
-	OutputData(ctx context.Context, deps *Dependencies) (interface{}, error)
-}
-
-type NodeSimpleCookieGetter interface {
-	GetCookies(ctx context.Context, deps *Dependencies) ([]*http.Cookie, error)
-}
-
-type Edge interface {
-	Instantiate(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
 }
 
 type NodeFactory func() NodeSimple

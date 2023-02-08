@@ -17,7 +17,7 @@ func TestTraverse(t *testing.T) {
 					}
 					return nil
 				},
-				NodeSimple: func(nodeSimple NodeSimple) error {
+				NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
 					if n, ok := nodeSimple.(*testMarshalNode0); ok {
 						actualHistory = append(actualHistory, n.Node0)
 					}

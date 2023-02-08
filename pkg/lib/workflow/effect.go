@@ -4,6 +4,10 @@ import (
 	"context"
 )
 
+type EffectGetter interface {
+	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
+}
+
 type Effect interface {
 	doNotCallThisDirectly(ctx context.Context, deps *Dependencies) error
 }
