@@ -36,17 +36,14 @@ func ConfigureVerifyMagicLinkOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type VerifyMagicLinkOTPViewModel struct {
-	Target     string
 	Code       string
 	StateQuery MagicLinkOTPPageQueryState
 }
 
 func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel {
-	target := r.URL.Query().Get("target")
-	code := r.URL.Query().Get("token")
+	code := r.URL.Query().Get("code")
 
 	return VerifyMagicLinkOTPViewModel{
-		Target:     target,
 		Code:       code,
 		StateQuery: GetMagicLinkStateFromQuery(r),
 	}

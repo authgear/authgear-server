@@ -84,7 +84,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	if opts.OTPMode == OTPModeMagicLink {
 		url := s.Endpoints.MagicLinkVerificationEndpointURL()
 		query := url.Query()
-		query.Set("token", data.Code)
+		query.Set("code", data.Code)
 		url.RawQuery = query.Encode()
 
 		data.URL = url.String()
