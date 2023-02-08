@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useCallback } from "react";
+import React, { useContext, useMemo, useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   DetailsList,
@@ -6,6 +6,9 @@ import {
   SelectionMode,
   MessageBar,
   MessageBarType,
+  TooltipHost,
+  Dialog,
+  DialogFooter,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
@@ -32,10 +35,16 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import PrimaryButton from "../../PrimaryButton";
 import ActionButton from "../../ActionButton";
+import DefaultButton from "../../DefaultButton";
+import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
+import { useIsLoading, useLoading } from "../../hook/loading";
+import { useProvideError } from "../../hook/error";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
   queryResult: AppAndSecretConfigQueryResult;
+  generateKey: () => Promise<void>;
+  deleteKey: (keyID: string) => Promise<void>;
 }
 
 interface Item {
@@ -78,10 +87,13 @@ query {
 
 const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
-    const { appID, queryResult } = props;
+    const { appID, queryResult, generateKey, deleteKey } = props;
     const { locale, renderToString } = useContext(Context);
     const { effectiveAppConfig } = useAppAndSecretConfigQuery(appID);
     const { themes } = useSystemConfig();
+    const isLoading = useIsLoading();
+    const [deleteKeyID, setDeleteKeyID] = useState<string | null>(null);
+    const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
 
     const publicOrigin = effectiveAppConfig?.http?.public_origin;
     const adminAPIEndpoint =
@@ -143,24 +155,101 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       downloadItem(state.keyID);
     });
 
+    const dialogContentProps = useMemo(() => {
+      return {
+        title: renderToString(
+          "AdminAPIConfigurationScreen.keys.delete-dialog.title"
+        ),
+        subText: renderToString(
+          "AdminAPIConfigurationScreen.keys.delete-dialog.message"
+        ),
+      };
+    }, [renderToString]);
+
+    const showDialogAndSetDeleteKeyID = useCallback(
+      (keyID: string) => {
+        setDeleteKeyID(keyID);
+        setIsDeleteDialogVisible(true);
+      },
+      [setIsDeleteDialogVisible]
+    );
+
+    const dismissDialogAndResetDeleteKeyID = useCallback(() => {
+      setIsDeleteDialogVisible(false);
+      setDeleteKeyID(null);
+    }, [setIsDeleteDialogVisible]);
+
+    const onConfirmDelete = useCallback(() => {
+      if (deleteKeyID == null) {
+        return;
+      }
+      deleteKey(deleteKeyID)
+        .catch((e) => {
+          console.error(e);
+        })
+        .finally(dismissDialogAndResetDeleteKeyID);
+    }, [deleteKey, deleteKeyID, dismissDialogAndResetDeleteKeyID]);
+
     const actionColumnOnRender = useCallback(
-      (item?: Item) => {
+      (item?: Item, index?: number) => {
+        const deleteButtonID = `delete-button-${index}`;
+        const calloutProps = {
+          target: `#${deleteButtonID}`,
+        };
         return (
-          <ActionButton
-            className={styles.actionButton}
-            theme={themes.actionButton}
-            onClick={(e: React.MouseEvent<unknown>) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (item != null) {
-                downloadItem(item.keyID);
-              }
-            }}
-            text={<FormattedMessage id="download" />}
-          />
+          <section>
+            <ActionButton
+              className={styles.actionButton}
+              theme={themes.actionButton}
+              onClick={(e: React.MouseEvent<unknown>) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (item != null) {
+                  downloadItem(item.keyID);
+                }
+              }}
+              text={<FormattedMessage id="download" />}
+            />
+            {items.length > 1 ? (
+              <ActionButton
+                id={deleteButtonID}
+                className={styles.actionButton}
+                theme={themes.destructive}
+                onClick={(e: React.MouseEvent<unknown>) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (item != null) {
+                    showDialogAndSetDeleteKeyID(item.keyID);
+                  }
+                }}
+                text={<FormattedMessage id="delete" />}
+              />
+            ) : (
+              <TooltipHost
+                content={
+                  <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete.tooltip" />
+                }
+                calloutProps={calloutProps}
+              >
+                <ActionButton
+                  id={deleteButtonID}
+                  className={styles.actionButton}
+                  theme={themes.destructive}
+                  disabled={true}
+                  text={<FormattedMessage id="delete" />}
+                />
+              </TooltipHost>
+            )}
+          </section>
         );
       },
-      [downloadItem, themes.actionButton]
+      [
+        downloadItem,
+        items.length,
+        showDialogAndSetDeleteKeyID,
+        themes.actionButton,
+        themes.destructive,
+      ]
     );
 
     const columns: IColumn[] = useMemo(() => {
@@ -187,61 +276,107 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     }, [renderToString, actionColumnOnRender]);
 
     return (
-      <ScreenLayoutScrollView>
-        <ScreenContent>
-          <ScreenTitle className={styles.widget}>
-            <FormattedMessage id="AdminAPIConfigurationScreen.title" />
-          </ScreenTitle>
-          <ScreenDescription className={styles.widget}>
-            <FormattedMessage id="AdminAPIConfigurationScreen.description" />
-          </ScreenDescription>
-          <Widget className={styles.widget}>
-            <WidgetTitle>
-              <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
-            </WidgetTitle>
-            <WidgetDescription>
-              <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
-            </WidgetDescription>
-            <div className={styles.copyButtonGroup}>
-              <TextField
-                type="text"
-                readOnly={true}
-                value={adminAPIEndpoint}
-                className={styles.copyTextField}
+      <>
+        <ScreenLayoutScrollView>
+          <ScreenContent>
+            <ScreenTitle className={styles.widget}>
+              <FormattedMessage id="AdminAPIConfigurationScreen.title" />
+            </ScreenTitle>
+            <ScreenDescription className={styles.widget}>
+              <FormattedMessage id="AdminAPIConfigurationScreen.description" />
+            </ScreenDescription>
+            <Widget className={styles.widget}>
+              <WidgetTitle>
+                <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
+              </WidgetTitle>
+              <WidgetDescription>
+                <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
+              </WidgetDescription>
+              <div className={styles.copyButtonGroup}>
+                <TextField
+                  type="text"
+                  readOnly={true}
+                  value={adminAPIEndpoint}
+                  className={styles.copyTextField}
+                />
+                <PrimaryButton {...copyButtonProps} iconProps={undefined} />
+                <Feedback />
+              </div>
+            </Widget>
+            <Widget className={styles.widget}>
+              <WidgetTitle>
+                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
+              </WidgetTitle>
+              <WidgetDescription>
+                <FormattedMessage
+                  id="AdminAPIConfigurationScreen.graphiql.description"
+                  values={{ graphqlEndpoint }}
+                />
+              </WidgetDescription>
+              <MessageBar
+                messageBarType={MessageBarType.warning}
+                styles={messageBarStyles}
+              >
+                <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+              </MessageBar>
+            </Widget>
+            <Widget className={styles.widget}>
+              <WidgetTitle>
+                <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
+              </WidgetTitle>
+              <DetailsList
+                items={items}
+                columns={columns}
+                selectionMode={SelectionMode.none}
               />
-              <PrimaryButton {...copyButtonProps} iconProps={undefined} />
-              <Feedback />
-            </div>
-          </Widget>
-          <Widget className={styles.widget}>
-            <WidgetTitle>
-              <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
-            </WidgetTitle>
-            <WidgetDescription>
-              <FormattedMessage
-                id="AdminAPIConfigurationScreen.graphiql.description"
-                values={{ graphqlEndpoint }}
-              />
-            </WidgetDescription>
-            <MessageBar
-              messageBarType={MessageBarType.warning}
-              styles={messageBarStyles}
-            >
-              <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
-            </MessageBar>
-          </Widget>
-          <Widget className={styles.widget}>
-            <WidgetTitle>
-              <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
-            </WidgetTitle>
-            <DetailsList
-              items={items}
-              columns={columns}
-              selectionMode={SelectionMode.none}
+              {items.length >= 2 ? (
+                <MessageBar
+                  messageBarType={MessageBarType.warning}
+                  styles={messageBarStyles}
+                >
+                  <FormattedMessage id="AdminAPIConfigurationScreen.keys.generate.warning" />
+                </MessageBar>
+              ) : (
+                <ActionButton
+                  className={styles.actionButton}
+                  theme={themes.actionButton}
+                  iconProps={{
+                    iconName: "CirclePlus",
+                  }}
+                  onClick={generateKey}
+                  disabled={isLoading}
+                  text={
+                    <FormattedMessage
+                      id={"AdminAPIConfigurationScreen.keys.generate.label"}
+                    />
+                  }
+                />
+              )}
+            </Widget>
+          </ScreenContent>
+        </ScreenLayoutScrollView>
+        <Dialog
+          hidden={!isDeleteDialogVisible}
+          dialogContentProps={dialogContentProps}
+          onDismiss={dismissDialogAndResetDeleteKeyID}
+        >
+          <DialogFooter>
+            <PrimaryButton
+              theme={themes.destructive}
+              onClick={onConfirmDelete}
+              disabled={isLoading || !isDeleteDialogVisible}
+              text={
+                <FormattedMessage id="AdminAPIConfigurationScreen.keys.delete-dialog.confirm" />
+              }
             />
-          </Widget>
-        </ScreenContent>
-      </ScreenLayoutScrollView>
+            <DefaultButton
+              onClick={dismissDialogAndResetDeleteKeyID}
+              disabled={isLoading || !isDeleteDialogVisible}
+              text={<FormattedMessage id="cancel" />}
+            />
+          </DialogFooter>
+        </Dialog>
+      </>
     );
   };
 
@@ -249,6 +384,43 @@ const AdminAPIConfigurationScreen: React.VFC =
   function AdminAPIConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const queryResult = useAppAndSecretConfigQuery(appID);
+
+    const { updateAppAndSecretConfig, loading, error } =
+      useUpdateAppAndSecretConfigMutation(appID);
+    useLoading(loading);
+    useProvideError(error);
+
+    const generateKey = useCallback(async () => {
+      const appConfig = queryResult.rawAppConfig;
+      if (appConfig == null) {
+        return;
+      }
+      const generateKeyInstruction = {
+        adminAPIAuthKey: {
+          action: "generate",
+        },
+      };
+      await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
+    }, [queryResult.rawAppConfig, updateAppAndSecretConfig]);
+
+    const deleteKey = useCallback(
+      async (deleteKeyID: string) => {
+        const appConfig = queryResult.rawAppConfig;
+        if (appConfig == null) {
+          return;
+        }
+        const deleteKeyInstruction = {
+          adminAPIAuthKey: {
+            action: "delete",
+            deleteData: {
+              keyID: deleteKeyID,
+            },
+          },
+        };
+        await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
+      },
+      [queryResult.rawAppConfig, updateAppAndSecretConfig]
+    );
 
     if (queryResult.loading) {
       return <ShowLoading />;
@@ -264,6 +436,8 @@ const AdminAPIConfigurationScreen: React.VFC =
       <AdminAPIConfigurationScreenContent
         appID={appID}
         queryResult={queryResult}
+        generateKey={generateKey}
+        deleteKey={deleteKey}
       />
     );
   };

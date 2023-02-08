@@ -11,4 +11,5 @@ import (
 type SecretConfigUpdateInstructionContext struct {
 	Clock                            clock.Clock
 	GenerateClientSecretOctetKeyFunc func(createdAt time.Time, rng *mathrand.Rand) jwk.Key
+	GenerateAdminAPIAuthKeyFunc      func(createdAt time.Time, rng *mathrand.Rand) jwk.Key
 }

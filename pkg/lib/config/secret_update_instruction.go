@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -18,12 +19,14 @@ const (
 	SecretUpdateInstructionActionUnset    SecretUpdateInstructionAction = "unset"
 	SecretUpdateInstructionActionGenerate SecretUpdateInstructionAction = "generate"
 	SecretUpdateInstructionActionCleanup  SecretUpdateInstructionAction = "cleanup"
+	SecretUpdateInstructionActionDelete   SecretUpdateInstructionAction = "delete"
 )
 
 type SecretConfigUpdateInstruction struct {
 	OAuthSSOProviderCredentialsUpdateInstruction *OAuthSSOProviderCredentialsUpdateInstruction `json:"oauthSSOProviderClientSecrets,omitempty"`
 	SMTPServerCredentialsUpdateInstruction       *SMTPServerCredentialsUpdateInstruction       `json:"smtpSecret,omitempty"`
 	OAuthClientSecretsUpdateInstruction          *OAuthClientSecretsUpdateInstruction          `json:"oauthClientSecrets,omitempty"`
+	AdminAPIAuthKeyUpdateInstruction             *AdminAPIAuthKeyUpdateInstruction             `json:"adminAPIAuthKey,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -46,6 +49,13 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructi
 
 	if i.OAuthClientSecretsUpdateInstruction != nil {
 		newConfig, err = i.OAuthClientSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.AdminAPIAuthKeyUpdateInstruction != nil {
+		newConfig, err = i.AdminAPIAuthKeyUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -326,7 +336,127 @@ func (i *OAuthClientSecretsUpdateInstruction) cleanup(currentConfig *SecretConfi
 	return out, nil
 }
 
+type AdminAPIAuthKeyUpdateInstructionDeleteData struct {
+	KeyID string `json:"keyID,omitempty"`
+}
+
+type AdminAPIAuthKeyUpdateInstruction struct {
+	Action SecretUpdateInstructionAction `json:"action,omitempty"`
+
+	DeleteData *AdminAPIAuthKeyUpdateInstructionDeleteData `json:"deleteData,omitempty"`
+}
+
+func (i *AdminAPIAuthKeyUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	switch i.Action {
+	case SecretUpdateInstructionActionGenerate:
+		return i.generate(ctx, currentConfig)
+	case SecretUpdateInstructionActionDelete:
+		return i.delete(currentConfig)
+	default:
+		return nil, fmt.Errorf("config: unexpected action for AdminAPIAuthKeyUpdateInstruction: %s", i.Action)
+	}
+}
+
+func (i *AdminAPIAuthKeyUpdateInstruction) decodeAdminAPIAuthKey(rawData json.RawMessage) (*AdminAPIAuthKey, error) {
+	decoder := json.NewDecoder(bytes.NewReader(rawData))
+	data := &AdminAPIAuthKey{}
+	err := decoder.Decode(data)
+	if err != nil {
+		return nil, fmt.Errorf("config: failed to decode AdminAPIAuthKey in authgear.secrets.yaml: %w", err)
+	}
+	return data, nil
+}
+
+func (i *AdminAPIAuthKeyUpdateInstruction) generate(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	out.Secrets = make([]SecretItem, len(currentConfig.Secrets))
+	copy(out.Secrets, currentConfig.Secrets)
+
+	newAuthKey := ctx.GenerateAdminAPIAuthKeyFunc(ctx.Clock.NowUTC(), corerand.SecureRand)
+
+	newAdminAPIAuthKey := &AdminAPIAuthKey{Set: jwk.NewSet()}
+	idx, item, found := out.Lookup(AdminAPIAuthKeyKey)
+	if found {
+		authKey, err := i.decodeAdminAPIAuthKey(item.RawData)
+		if err != nil {
+			return nil, err
+		}
+		// copy auth key set from the current config to new config
+		newAdminAPIAuthKey.Set, err = authKey.Clone()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Add new key to the AdminAPIAuthKey
+	newAdminAPIAuthKey.Add(newAuthKey)
+	if newAdminAPIAuthKey.Len() > 2 {
+		return nil, fmt.Errorf("config: must have at most two Admin API auth keys")
+	} else {
+		var jsonData []byte
+		jsonData, err := json.Marshal(newAdminAPIAuthKey)
+		if err != nil {
+			return nil, err
+		}
+		newSecretItem := SecretItem{
+			Key:     AdminAPIAuthKeyKey,
+			RawData: json.RawMessage(jsonData),
+		}
+
+		if found {
+			out.Secrets[idx] = newSecretItem
+		} else {
+			out.Secrets = append(out.Secrets, newSecretItem)
+		}
+	}
+	return out, nil
+}
+
+func (i *AdminAPIAuthKeyUpdateInstruction) delete(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	out.Secrets = make([]SecretItem, len(currentConfig.Secrets))
+	copy(out.Secrets, currentConfig.Secrets)
+
+	if i.DeleteData == nil || i.DeleteData.KeyID == "" {
+		return nil, fmt.Errorf("config: missing KeyID for AdminAPIAuthKeyUpdateInstruction")
+	}
+
+	idx, item, found := out.Lookup(AdminAPIAuthKeyKey)
+	if !found {
+		return out, nil
+	}
+	authKey, err := i.decodeAdminAPIAuthKey(item.RawData)
+	if err != nil {
+		return nil, err
+	}
+
+	newAdminAPIAuthKey := &AdminAPIAuthKey{Set: jwk.NewSet()}
+	for it := authKey.Iterate(context.Background()); it.Next(context.Background()); {
+		if key, ok := it.Pair().Value.(jwk.Key); ok && key.KeyID() != i.DeleteData.KeyID {
+			newAdminAPIAuthKey.Add(key)
+		}
+	}
+
+	if newAdminAPIAuthKey.Len() == 0 {
+		return nil, fmt.Errorf("config: must have at least one Admin API auth key")
+	} else {
+		var jsonData []byte
+		jsonData, err := json.Marshal(newAdminAPIAuthKey)
+		if err != nil {
+			return nil, err
+		}
+		newSecretItem := SecretItem{
+			Key:     AdminAPIAuthKeyKey,
+			RawData: json.RawMessage(jsonData),
+		}
+		out.Secrets[idx] = newSecretItem
+	}
+
+	return out, nil
+}
+
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthClientSecretsUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &AdminAPIAuthKeyUpdateInstruction{}

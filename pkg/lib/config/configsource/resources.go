@@ -429,6 +429,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		// The key generated for client secret doesn't have use usage key
 		// Since the key neither use for sig nor enc
 		GenerateClientSecretOctetKeyFunc: secrets.GenerateOctetKey,
+		GenerateAdminAPIAuthKeyFunc:      secrets.GenerateRSAKey,
 	}
 	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, &original)
 	if err != nil {
