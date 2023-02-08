@@ -52198,23 +52198,66 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	clockClock := _wireSystemClockValue
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	logger := event.NewLogger(factory)
-	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+	}
+	manager := appContext.Resources
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	logger := ratelimit.NewLogger(factory)
+	appredisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -52231,7 +52274,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -52280,38 +52322,10 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -52337,18 +52351,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -52590,7 +52592,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
@@ -52604,24 +52605,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -52643,6 +52627,26 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -52768,6 +52772,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: featureConfig,
 		Clock:         clockClock,
 		RemoteIP:      remoteIP,
+		Users:         userProvider,
 		Identities:    identityFacade,
 		OTPCodes:      otpService,
 		OOBCodeSender: codeSender,
@@ -52848,23 +52853,67 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	logger := event.NewLogger(factory)
-	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+	}
+	manager := appContext.Resources
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	logger := ratelimit.NewLogger(factory)
+	appredisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -52881,7 +52930,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -52930,39 +52978,10 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -52988,18 +53007,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -53241,7 +53248,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
@@ -53255,24 +53261,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -53294,6 +53283,26 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -53420,6 +53429,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: featureConfig,
 		Clock:         clockClock,
 		RemoteIP:      remoteIP,
+		Users:         userProvider,
 		Identities:    identityFacade,
 		OTPCodes:      otpService,
 		OOBCodeSender: codeSender,
@@ -53470,23 +53480,67 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	userAgentString := deps.ProvideUserAgentString(request)
-	logger := event.NewLogger(factory)
-	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
+	}
+	manager := appContext.Resources
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	logger := ratelimit.NewLogger(factory)
+	appredisHandle := appProvider.Redis
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitFeatureConfig := featureConfig.RateLimit
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitFeatureConfig,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	userAgentString := deps.ProvideUserAgentString(request)
+	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -53503,7 +53557,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
-	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -53552,39 +53605,10 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -53610,18 +53634,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -53863,7 +53875,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
@@ -53877,24 +53888,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -53916,6 +53910,26 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -54042,6 +54056,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: featureConfig,
 		Clock:         clockClock,
 		RemoteIP:      remoteIP,
+		Users:         userProvider,
 		Identities:    identityFacade,
 		OTPCodes:      otpService,
 		OOBCodeSender: codeSender,

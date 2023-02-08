@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -50,6 +51,10 @@ type EventService interface {
 	DispatchEvent(payload event.Payload) error
 }
 
+type UserService interface {
+	Create(userID string) (*user.User, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -57,6 +62,7 @@ type Dependencies struct {
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
 
+	Users         UserService
 	Identities    IdentityService
 	OTPCodes      OTPCodeService
 	OOBCodeSender OOBCodeSender
