@@ -83,6 +83,39 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
+		// Using GET query with side-effect here because verifying login link via universal link will not be offically supported yet.
+		// reference: https://github.com/authgear/authgear-server/issues/2902
+		autoSubmit := r.URL.Query().Get("auto_submit") == "true"
+		if autoSubmit {
+			viewmodel := NewVerifyMagicLinkOTPViewModel(r)
+			code := viewmodel.Code
+
+			_, err = h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
+			if err != nil {
+				return err
+			}
+
+			codeModel, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code, true)
+			if err != nil {
+				return err
+			}
+
+			// Update the web session and trigger the refresh event
+			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
+				config.AppID(codeModel.AppID),
+			)
+			webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+			if err != nil {
+				return err
+			}
+			err = webSessionProvider.UpdateSession(webSession)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
 		h.Renderer.RenderHTML(w, r, TemplateWebVerifyMagicLinkOTPHTML, data)
 		return nil
 	})
