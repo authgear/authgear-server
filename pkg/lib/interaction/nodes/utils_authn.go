@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -91,7 +92,8 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		return nil, err
 	}
 
-	err = p.Context.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode)
+	clientID := clientid.GetClientID(p.Context.Request.Context())
+	err = p.Context.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode, clientID)
 	if err != nil {
 		return nil, err
 	}

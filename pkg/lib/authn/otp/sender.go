@@ -19,11 +19,12 @@ type SendOptions struct {
 	URL         string
 	MessageType MessageType
 	OTPMode     OTPMode
+	ClientID    string
 }
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
-	MagicLinkVerificationEndpointURL() *url.URL
+	MagicLinkVerificationEndpointURL(clientID *string) *url.URL
 }
 
 type TranslationService interface {
@@ -82,7 +83,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	data.Email = email
 
 	if opts.OTPMode == OTPModeMagicLink {
-		url := s.Endpoints.MagicLinkVerificationEndpointURL()
+		url := s.Endpoints.MagicLinkVerificationEndpointURL(&opts.ClientID)
 		query := url.Query()
 		query.Set("token", data.Code)
 		url.RawQuery = query.Encode()

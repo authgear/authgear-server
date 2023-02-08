@@ -18,7 +18,7 @@ func (p *BaseURLProvider) BaseURL() *url.URL {
 	return u
 }
 
-func (*BaseURLProvider) MagicLinkVerificationEndpointURL() *url.URL {
+func (*BaseURLProvider) MagicLinkVerificationEndpointURL(clientID *string) *url.URL {
 	panic("not implemented")
 }
 

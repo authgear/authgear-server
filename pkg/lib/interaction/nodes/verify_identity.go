@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -129,7 +130,8 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		return nil, err
 	}
 
-	err = ctx.OOBCodeSender.SendCode(channel, target, code.Code, otp.MessageTypeVerification, otp.OTPModeCode)
+	clientID := clientid.GetClientID(ctx.Request.Context())
+	err = ctx.OOBCodeSender.SendCode(channel, target, code.Code, otp.MessageTypeVerification, otp.OTPModeCode, clientID)
 	if err != nil {
 		return nil, err
 	}
