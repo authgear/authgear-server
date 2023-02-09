@@ -74,21 +74,43 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 
 	// createNewWorkflow uses defer statement to manage savepoint.
 	workflow, workflowOutput, action, err := s.createNewWorkflow(ctx, session, intent)
+	isEOF := errors.Is(err, ErrEOF)
 	// At this point, no savepoint is active.
-	if err != nil {
+	if err != nil && !isEOF {
 		return
 	}
 
 	sessionOutput := session.ToOutput()
 
+	var cookies []*http.Cookie
+	if isEOF {
+		cookies, err = s.finishWorkflow(ctx, workflow)
+		if err != nil {
+			return
+		}
+
+		err = s.Store.DeleteSession(session)
+		if err != nil {
+			return
+		}
+
+		err = s.Store.DeleteWorkflow(workflow)
+		if err != nil {
+			return
+		}
+	}
+
+	if isEOF {
+		err = ErrEOF
+	}
 	output = &ServiceOutput{
 		Session:        session,
 		SessionOutput:  sessionOutput,
 		Workflow:       workflow,
 		WorkflowOutput: workflowOutput,
 		Action:         action,
+		Cookies:        cookies,
 	}
-
 	return
 }
 
@@ -112,11 +134,27 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 		}
 	}()
 
+	workflow = NewWorkflow(session.WorkflowID, intent)
+
 	// A new workflow does not have any nodes.
 	// A workflow is allowed to have on-commit-effects only.
 	// So we do not have to apply effects on a new workflow.
-	workflow = NewWorkflow(session.WorkflowID, intent)
 
+	// Feed an nil input to the workflow to let it proceed.
+	var input Input
+	err = workflow.Accept(ctx, s.Deps, input)
+	// As a special case, we do not treat ErrNoChange as error because
+	// Not every workflow can react to nil input.
+	if errors.Is(err, ErrNoChange) {
+		err = nil
+	}
+	isEOF := errors.Is(err, ErrEOF)
+	if err != nil && !isEOF {
+		return
+	}
+
+	// err is nil or err is ErrEOF.
+	// We persist the workflow instance.
 	err = s.Store.CreateWorkflow(workflow)
 	if err != nil {
 		return
@@ -132,6 +170,9 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 		return
 	}
 
+	if isEOF {
+		err = ErrEOF
+	}
 	return
 }
 

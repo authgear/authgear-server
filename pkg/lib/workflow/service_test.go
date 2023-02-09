@@ -16,7 +16,9 @@ import (
 
 func init() {
 	RegisterPrivateIntent(&intentServiceContext{})
+	RegisterPrivateIntent(&intentNilInput{})
 	RegisterNode(&nodeServiceContext{})
+	RegisterNode(&nodeNilInput{})
 }
 
 func TestService(t *testing.T) {
@@ -38,7 +40,7 @@ func TestService(t *testing.T) {
 			Savepoint:               savepoint,
 		}
 
-		Convey("CreateNewWorkflow", func() {
+		Convey("CreateNewWorkflow with intent expecting non-nil input at the beginning", func() {
 			rng = rand.New(rand.NewSource(0))
 
 			intent := &intentAuthenticate{
@@ -69,6 +71,65 @@ func TestService(t *testing.T) {
 					Intent: IntentOutput{
 						Kind: "intentAuthenticate",
 						Data: nil,
+					},
+				},
+				Session: &Session{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+				},
+				SessionOutput: &SessionOutput{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+				},
+			})
+		})
+
+		Convey("CreateNewWorkflow with intent expecting nil input at the beginning", func() {
+			rng = rand.New(rand.NewSource(0))
+
+			intent := &intentNilInput{}
+
+			gomock.InOrder(
+				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
+				savepoint.EXPECT().Begin().Times(1).Return(nil),
+				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
+				savepoint.EXPECT().Rollback().Times(1).Return(nil),
+				savepoint.EXPECT().Begin().Times(1).Return(nil),
+				savepoint.EXPECT().Commit().Times(1).Return(nil),
+				store.EXPECT().DeleteSession(gomock.Any()).Return(nil),
+				store.EXPECT().DeleteWorkflow(gomock.Any()).Return(nil),
+			)
+
+			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
+			So(errors.Is(err, ErrEOF), ShouldBeTrue)
+			So(output, ShouldResemble, &ServiceOutput{
+				Action: &WorkflowAction{
+					Type: WorkflowActionTypeFinish,
+				},
+				Workflow: &Workflow{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					Intent:     intent,
+					Nodes: []Node{
+						{
+							Type:   NodeTypeSimple,
+							Simple: &nodeNilInput{},
+						},
+					},
+				},
+				WorkflowOutput: &WorkflowOutput{
+					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					Intent: IntentOutput{
+						Kind: "intentNilInput",
+						Data: nil,
+					},
+					Nodes: []NodeOutput{
+						{
+							Type: NodeTypeSimple,
+							Simple: &NodeSimpleOutput{
+								Kind: "nodeNilInput",
+								Data: nil,
+							},
+						},
 					},
 				},
 				Session: &Session{
@@ -195,6 +256,59 @@ func TestService(t *testing.T) {
 			})
 		})
 	})
+}
+
+type intentNilInput struct{}
+
+func (*intentNilInput) Kind() string {
+	return "intentNilInput"
+}
+
+func (*intentNilInput) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
+}
+
+func (*intentNilInput) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+	return nil, nil
+}
+
+func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+	if len(workflow.Nodes) == 0 {
+		return nil, nil
+	}
+	return nil, ErrEOF
+}
+
+func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return NewNodeSimple(&nodeNilInput{}), nil
+}
+
+func (*intentNilInput) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+	return nil, nil
+}
+
+type nodeNilInput struct {
+	ClientID string
+}
+
+func (*nodeNilInput) Kind() string {
+	return "nodeNilInput"
+}
+
+func (*nodeNilInput) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+	return nil, nil
+}
+
+func (*nodeNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+	return nil, ErrEOF
+}
+
+func (*nodeNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
+}
+
+func (*nodeNilInput) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+	return nil, nil
 }
 
 type intentServiceContext struct{}
