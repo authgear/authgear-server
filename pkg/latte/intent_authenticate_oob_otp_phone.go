@@ -3,6 +3,7 @@ package latte
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -60,5 +61,20 @@ func (i *IntentAuthenticateOOBOTPPhone) GetEffects(ctx context.Context, deps *wo
 }
 
 func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return map[string]interface{}{}, nil
+	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelSMS, i.Authenticator.OOBOTP.Phone)
+	pass, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
+	if err != nil {
+		return nil, err
+	}
+	var sec int
+	if pass {
+		// allow sending immediately
+		sec = 0
+	} else {
+		sec = int(resetDuration.Seconds())
+	}
+
+	return map[string]interface{}{
+		"cooldown_sec": sec,
+	}, nil
 }
