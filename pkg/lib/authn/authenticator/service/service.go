@@ -69,13 +69,14 @@ type RateLimiter interface {
 }
 
 type Service struct {
-	Store          *Store
-	Password       PasswordAuthenticatorProvider
-	Passkey        PasskeyAuthenticatorProvider
-	TOTP           TOTPAuthenticatorProvider
-	OOBOTP         OOBOTPAuthenticatorProvider
-	OTPCodeService OTPCodeService
-	RateLimiter    RateLimiter
+	Store                            *Store
+	Password                         PasswordAuthenticatorProvider
+	Passkey                          PasskeyAuthenticatorProvider
+	TOTP                             TOTPAuthenticatorProvider
+	OOBOTP                           OOBOTPAuthenticatorProvider
+	OTPCodeService                   OTPCodeService
+	RateLimiter                      RateLimiter
+	AntiBruteForceAuthenticateBucket AntiBruteForceAuthenticateBucketMaker
 }
 
 func (s *Service) Get(id string) (*authenticator.Info, error) {
@@ -420,7 +421,7 @@ func (s *Service) Delete(info *authenticator.Info) error {
 }
 
 func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
-	err = s.RateLimiter.TakeToken(AntiBruteForceAuthenticateBucket(info.UserID, info.Type))
+	err = s.RateLimiter.TakeToken(s.AntiBruteForceAuthenticateBucket.MakeBucket(info.UserID, info.Type))
 	if err != nil {
 		return
 	}

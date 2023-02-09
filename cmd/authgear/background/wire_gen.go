@@ -448,14 +448,18 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		OTPConfig:      otpConfig,
 		Verification:   verificationConfig,
 	}
+	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
+		PasswordConfig: authenticatorPasswordConfig,
+	}
 	service3 := &service2.Service{
-		Store:          store3,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimiter:    limiter,
+		Store:                            store3,
+		Password:                         passwordProvider,
+		Passkey:                          provider2,
+		TOTP:                             totpProvider,
+		OOBOTP:                           oobProvider,
+		OTPCodeService:                   otpService,
+		RateLimiter:                      limiter,
+		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{

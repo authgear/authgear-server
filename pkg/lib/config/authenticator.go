@@ -24,14 +24,16 @@ var _ = Schema.Add("AuthenticatorPasswordConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"policy": { "$ref": "#/$defs/PasswordPolicyConfig" },
-		"force_change": { "type": "boolean" }
+		"force_change": { "type": "boolean" },
+		"ratelimit": { "$ref": "#/$defs/PasswordRatelimitConfig" }
 	}
 }
 `)
 
 type AuthenticatorPasswordConfig struct {
-	Policy      *PasswordPolicyConfig `json:"policy,omitempty"`
-	ForceChange *bool                 `json:"force_change,omitempty"`
+	Policy      *PasswordPolicyConfig    `json:"policy,omitempty"`
+	ForceChange *bool                    `json:"force_change,omitempty"`
+	Ratelimit   *PasswordRatelimitConfig `json:"ratelimit,omitempty"`
 }
 
 func (c *AuthenticatorPasswordConfig) SetDefaults() {
@@ -77,6 +79,48 @@ func (c *PasswordPolicyConfig) IsEnabled() bool {
 func (c *PasswordPolicyConfig) SetDefaults() {
 	if c.MinLength == nil {
 		c.MinLength = newInt(8)
+	}
+}
+
+var _ = Schema.Add("PasswordRatelimitConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"failed_attempt": { "$ref": "#/$defs/PasswordFailedAttemptConfig" }
+	}
+}
+`)
+
+type PasswordRatelimitConfig struct {
+	FailedAttempt *PasswordFailedAttemptConfig `json:"failed_attempt,omitempty"`
+}
+
+var _ = Schema.Add("PasswordFailedAttemptConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"size": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"reset_period": { "$ref": "#/$defs/DurationString" }
+	}
+}
+`)
+
+type PasswordFailedAttemptConfig struct {
+	Size        int            `json:"size,omitempty"`
+	ResetPeriod DurationString `json:"reset_period,omitempty"`
+}
+
+func (c *PasswordFailedAttemptConfig) SetDefaults() {
+	if c.Size == 0 {
+		c.Size = 10
+	}
+	if c.ResetPeriod == "" {
+		c.ResetPeriod = "1m"
 	}
 }
 

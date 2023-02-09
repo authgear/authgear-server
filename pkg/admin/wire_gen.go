@@ -421,14 +421,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPConfig:      otpConfig,
 		Verification:   verificationConfig,
 	}
+	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
+		PasswordConfig: authenticatorPasswordConfig,
+	}
 	service4 := &service2.Service{
-		Store:          store3,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimiter:    limiter,
+		Store:                            store3,
+		Password:                         passwordProvider,
+		Passkey:                          provider2,
+		TOTP:                             totpProvider,
+		OOBOTP:                           oobProvider,
+		OTPCodeService:                   otpService,
+		RateLimiter:                      limiter,
+		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{

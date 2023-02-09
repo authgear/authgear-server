@@ -401,6 +401,10 @@ authenticator:
     force_change: true
     policy:
       min_length: 8
+    ratelimit:
+      failed_attempt:
+        size: 10
+        reset_period: 1m
   totp:
     maximum: 99
   oob_otp:
