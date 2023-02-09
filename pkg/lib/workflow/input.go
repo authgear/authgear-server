@@ -24,11 +24,14 @@ type InputJSON struct {
 	Data json.RawMessage `json:"data"`
 }
 
+// There is no private input factory because
+// input cannot be deserialized from the database (at the moment).
+
 type InputFactory func() Input
 
-var inputRegistry = map[string]InputFactory{}
+var publicInputRegistry = map[string]InputFactory{}
 
-func RegisterInput(input Input) {
+func RegisterPublicInput(input Input) {
 	inputType := reflect.TypeOf(input).Elem()
 
 	inputKind := input.Kind()
@@ -36,14 +39,14 @@ func RegisterInput(input Input) {
 		return reflect.New(inputType).Interface().(Input)
 	})
 
-	if _, hasKind := inputRegistry[inputKind]; hasKind {
+	if _, hasKind := publicInputRegistry[inputKind]; hasKind {
 		panic(fmt.Errorf("workflow: duplicated input kind: %v", inputKind))
 	}
-	inputRegistry[inputKind] = factory
+	publicInputRegistry[inputKind] = factory
 }
 
-func InstantiateInput(j InputJSON) (Input, error) {
-	factory, ok := inputRegistry[j.Kind]
+func InstantiateInputFromPublicRegistry(j InputJSON) (Input, error) {
+	factory, ok := publicInputRegistry[j.Kind]
 	if !ok {
 		return nil, ErrUnknownInput
 	}

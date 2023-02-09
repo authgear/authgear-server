@@ -12,8 +12,8 @@ import (
 var EmptyJSONSchema = validation.NewSimpleSchema(`{}`)
 
 func init() {
-	RegisterIntent(&testMarshalIntent0{})
-	RegisterIntent(&testMarshalIntent1{})
+	RegisterPrivateIntent(&testMarshalIntent0{})
+	RegisterPrivateIntent(&testMarshalIntent1{})
 	RegisterNode(&testMarshalNode0{})
 	RegisterNode(&testMarshalNode1{})
 }

@@ -295,11 +295,8 @@ func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies) (*W
 	}
 
 	// Otherwise we check if the intent can react to input.
-	inputs, err := w.Intent.CanReactTo(ctx, deps, w)
+	_, err := w.Intent.CanReactTo(ctx, deps, w)
 	if err == nil {
-		if len(inputs) == 0 {
-			panic(fmt.Errorf("intent %T react to no input without error", w.Intent))
-		}
 		return w, w.Intent, nil
 	}
 
@@ -365,7 +362,7 @@ func (w *Workflow) UnmarshalJSON(d []byte) (err error) {
 		return
 	}
 
-	intent, err := InstantiateIntent(workflowJSON.Intent)
+	intent, err := InstantiateIntentFromPrivateRegistry(workflowJSON.Intent)
 	if err != nil {
 		return
 	}

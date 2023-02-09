@@ -8,23 +8,17 @@ import (
 )
 
 func init() {
-	workflow.RegisterIntent(&IntentLogin{})
+	workflow.RegisterPrivateIntent(&IntentLogin{})
 }
 
 var IntentLoginSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"some_string": { "type": "string" }
-		},
-		"required": ["some_string"]
+		"additionalProperties": false
 	}
 `)
 
-type IntentLogin struct {
-	SomeString string `json:"some_string"`
-}
+type IntentLogin struct{}
 
 func (*IntentLogin) Kind() string {
 	return "latte.IntentLogin"
@@ -61,7 +55,5 @@ func (*IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies,
 }
 
 func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return map[string]interface{}{
-		"some_string": i.SomeString,
-	}, nil
+	return nil, nil
 }

@@ -1,11 +1,18 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+func init() {
+	RegisterPrivateIntent(&intentNoValidateDuringUnmarshal{})
+}
 
 func TestMarshalJSON(t *testing.T) {
 	workflow := &Workflow{
@@ -131,5 +138,68 @@ func TestMarshalJSON(t *testing.T) {
 		err := json.Unmarshal([]byte(jsonString), &w)
 		So(err, ShouldBeNil)
 		So(&w, ShouldResemble, workflow)
+	})
+}
+
+var intentNoValidateDuringUnmarshalSchema = validation.NewSimpleSchema(`{
+	"type": "object",
+	"additionalProperties": false
+}`)
+
+type intentNoValidateDuringUnmarshal struct {
+	SomethingInternal string `json:"something_internal"`
+}
+
+func (*intentNoValidateDuringUnmarshal) Kind() string {
+	return "intentNoValidateDuringUnmarshal"
+}
+
+func (*intentNoValidateDuringUnmarshal) JSONSchema() *validation.SimpleSchema {
+	return intentNoValidateDuringUnmarshalSchema
+}
+
+func (i *intentNoValidateDuringUnmarshal) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+	return nil, nil
+}
+
+func (*intentNoValidateDuringUnmarshal) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+	return nil, ErrEOF
+}
+
+func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
+}
+
+func (i *intentNoValidateDuringUnmarshal) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+	return nil, nil
+}
+
+func TestPublicPrivateIntentMarshal(t *testing.T) {
+	Convey("Instantiate intent from private registry, add something internal, and then marshal and unmarshal", t, func() {
+		intentJSON := IntentJSON{
+			Kind: "intentNoValidateDuringUnmarshal",
+			Data: json.RawMessage("{}"),
+		}
+		intent, err := InstantiateIntentFromPrivateRegistry(intentJSON)
+		i, _ := intent.(*intentNoValidateDuringUnmarshal)
+		i.SomethingInternal = "secret"
+
+		So(err, ShouldBeNil)
+
+		workflow := &Workflow{
+			Intent: intent,
+		}
+
+		workflowBytes, err := json.Marshal(workflow)
+		So(err, ShouldBeNil)
+
+		var w Workflow
+		err = json.Unmarshal(workflowBytes, &w)
+		So(err, ShouldBeNil)
+		So(&w, ShouldResemble, &Workflow{
+			Intent: &intentNoValidateDuringUnmarshal{
+				SomethingInternal: "secret",
+			},
+		})
 	})
 }

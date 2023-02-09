@@ -33,3 +33,5 @@ var ErrWorkflowNotFound = apierrors.NotFound.WithReason("WorkflowNotFound").New(
 var ErrUnknownIntent = apierrors.BadRequest.WithReason("WorkflowUnknownIntent").New("unknown intent")
 
 var ErrUnknownInput = apierrors.BadRequest.WithReason("WorkflowUnknownInput").New("unknown input")
+
+var ErrInvalidInputKind = apierrors.BadRequest.WithReason("WorkflowInvalidInputKind").New("invalid input kind")

@@ -12,7 +12,7 @@ func InstantiateIntent(msg json.RawMessage, errStr string) {
 	var intentJSON workflow.IntentJSON
 	err := json.Unmarshal(msg, &intentJSON)
 	So(err, ShouldBeNil)
-	_, err = workflow.InstantiateIntent(intentJSON)
+	_, err = workflow.InstantiateIntentFromPrivateRegistry(intentJSON)
 	if errStr == "" {
 		So(err, ShouldBeNil)
 	} else {
