@@ -9,6 +9,7 @@ package worker
 import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -36,7 +37,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
-	config := appProvider.Config
+	appContext := appProvider.AppContext
+	config := appContext.Config
 	secretConfig := config.SecretConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
@@ -52,12 +54,38 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
 	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
+	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
+	context := p.Context
+	manager := appContext.Resources
+	denoHook := hook.DenoHook{
+		Context:         context,
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	hookLogger := hook.NewLogger(factory)
+	smsHookTimeout := sms.NewSMSHookTimeout(customSMSProviderConfig)
+	hookDenoClient := sms.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	smsDenoHook := sms.SMSDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
+	}
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := sms.NewHookHTTPClient(smsHookTimeout)
+	smsWebHook := sms.SMSWebHook{
+		WebHook: webHookImpl,
+		Client:  hookHTTPClient,
+	}
+	customClient := sms.NewCustomClient(customSMSProviderConfig, smsDenoHook, smsWebHook)
 	client := &sms.Client{
 		Logger:          smsLogger,
 		DevMode:         devMode,
 		MessagingConfig: messagingConfig,
 		TwilioClient:    twilioClient,
 		NexmoClient:     nexmoClient,
+		CustomClient:    customClient,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
@@ -70,7 +98,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 
 func newReindexUserTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
-	config := appProvider.Config
+	appContext := appProvider.AppContext
+	config := appContext.Config
 	secretConfig := config.SecretConfig
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)

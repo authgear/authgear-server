@@ -5,8 +5,10 @@ package server
 
 import (
 	"context"
+
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
@@ -25,8 +27,11 @@ func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queu
 	panic(wire.Build(
 		deps.RootDependencySet,
 		wire.FieldsOf(new(*deps.AppProvider),
-			"Config",
+			"AppContext",
 			"AppDatabase",
+		),
+		wire.FieldsOf(new(*config.AppContext),
+			"Config",
 		),
 		queue.DependencySet,
 		wire.Bind(new(queue.Executor), new(*executor.InProcessExecutor)),

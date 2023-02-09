@@ -12,26 +12,55 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-type DenoHookImpl struct {
+type DenoHook struct {
 	Context         context.Context
-	SyncDenoClient  SyncDenoClient
-	AsyncDenoClient AsyncDenoClient
 	ResourceManager ResourceManager
 }
 
-var _ DenoHook = &DenoHookImpl{}
-
-func (h *DenoHookImpl) SupportURL(u *url.URL) bool {
+func (h *DenoHook) SupportURL(u *url.URL) bool {
 	return u.Scheme == "authgeardeno"
 }
 
-func (h *DenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
-	script, err := h.loadScript(u)
+func (h *DenoHook) loadScript(u *url.URL) ([]byte, error) {
+	out, err := h.ResourceManager.Read(DenoFile, resource.AppFile{
+		Path: h.rel(u.Path),
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := h.SyncDenoClient.Run(h.Context, string(script), e)
+	return out.([]byte), nil
+}
+
+func (h *DenoHook) Run(client DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
+	var script []byte
+	script, err = h.loadScript(u)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err = client.Run(h.Context, string(script), input)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// rel is a simplified version of filepath.Rel.
+func (h *DenoHook) rel(p string) string {
+	return strings.TrimPrefix(p, "/")
+}
+
+type EventDenoHookImpl struct {
+	DenoHook
+	SyncDenoClient  SyncDenoClient
+	AsyncDenoClient AsyncDenoClient
+}
+
+var _ EventDenoHook = &EventDenoHookImpl{}
+
+func (h *EventDenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+	out, err := h.Run(h.SyncDenoClient, u, e)
 	if err != nil {
 		return nil, err
 	}
@@ -51,32 +80,7 @@ func (h *DenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.
 	return hookResp, nil
 }
 
-func (h *DenoHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
-	script, err := h.loadScript(u)
-	if err != nil {
-		return err
-	}
-
-	_, err = h.AsyncDenoClient.Run(h.Context, string(script), e)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *DenoHookImpl) loadScript(u *url.URL) ([]byte, error) {
-	out, err := h.ResourceManager.Read(DenoFile, resource.AppFile{
-		Path: h.rel(u.Path),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return out.([]byte), nil
-}
-
-// rel is a simplified version of filepath.Rel.
-func (h *DenoHookImpl) rel(p string) string {
-	return strings.TrimPrefix(p, "/")
+func (h *EventDenoHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
+	_, err := h.Run(h.AsyncDenoClient, u, e)
+	return err
 }

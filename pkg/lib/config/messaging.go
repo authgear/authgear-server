@@ -21,7 +21,7 @@ type MessagingConfig struct {
 var _ = Schema.Add("SMSProvider", `
 {
 	"type": "string",
-	"enum": ["nexmo", "twilio"]
+	"enum": ["nexmo", "twilio", "custom"]
 }
 `)
 
@@ -30,6 +30,7 @@ type SMSProvider string
 const (
 	SMSProviderNexmo  SMSProvider = "nexmo"
 	SMSProviderTwilio SMSProvider = "twilio"
+	SMSProviderCustom SMSProvider = "custom"
 )
 
 var _ = Schema.Add("SMSConfig", `

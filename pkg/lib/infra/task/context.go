@@ -11,5 +11,6 @@ type CaptureTaskContext func() *Context
 type RestoreTaskContext func(context.Context, *Context) context.Context
 
 type Context struct {
-	Config *config.Config
+	Config     *config.Config
+	AppContext *config.AppContext
 }

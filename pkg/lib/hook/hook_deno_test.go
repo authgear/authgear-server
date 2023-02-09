@@ -13,7 +13,7 @@ import (
 )
 
 func TestDenoHook(t *testing.T) {
-	Convey("DenoHook", t, func() {
+	Convey("EventDenoHook", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -21,11 +21,10 @@ func TestDenoHook(t *testing.T) {
 		syncDenoClient := NewMockSyncDenoClient(ctrl)
 		asyncDenoClient := NewMockAsyncDenoClient(ctrl)
 		resourceManager := NewMockResourceManager(ctrl)
-		denohook := &DenoHookImpl{
-			Context:         ctx,
-			SyncDenoClient:  syncDenoClient,
+		denohook := &EventDenoHookImpl{
+			DenoHook:        DenoHook{Context: ctx, ResourceManager: resourceManager},
 			AsyncDenoClient: asyncDenoClient,
-			ResourceManager: resourceManager,
+			SyncDenoClient:  syncDenoClient,
 		}
 
 		Convey("DeliverBlockingEvent", func() {

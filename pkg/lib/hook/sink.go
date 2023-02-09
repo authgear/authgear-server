@@ -26,13 +26,13 @@ type CustomAttributesServiceNoEvent interface {
 	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
 }
 
-type WebHook interface {
+type EventWebHook interface {
 	SupportURL(u *url.URL) bool
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
 }
 
-type DenoHook interface {
+type EventDenoHook interface {
 	SupportURL(u *url.URL) bool
 	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
 	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
@@ -42,8 +42,8 @@ type Sink struct {
 	Logger             Logger
 	Config             *config.HookConfig
 	Clock              clock.Clock
-	WebHook            WebHook
-	DenoHook           DenoHook
+	EventWebHook       EventWebHook
+	EventDenoHook      EventDenoHook
 	StandardAttributes StandardAttributesServiceNoEvent
 	CustomAttributes   CustomAttributesServiceNoEvent
 }
@@ -192,10 +192,10 @@ func (s *Sink) deliverBlockingEvent(cfg config.BlockingHandlersConfig, e *event.
 		return nil, err
 	}
 	switch {
-	case s.WebHook.SupportURL(u):
-		return s.WebHook.DeliverBlockingEvent(u, e)
-	case s.DenoHook.SupportURL(u):
-		return s.DenoHook.DeliverBlockingEvent(u, e)
+	case s.EventWebHook.SupportURL(u):
+		return s.EventWebHook.DeliverBlockingEvent(u, e)
+	case s.EventDenoHook.SupportURL(u):
+		return s.EventDenoHook.DeliverBlockingEvent(u, e)
 	default:
 		return nil, fmt.Errorf("unsupported hook URL: %v", u)
 	}
@@ -207,10 +207,10 @@ func (s *Sink) deliverNonBlockingEvent(cfg config.NonBlockingHandlersConfig, e *
 		return err
 	}
 	switch {
-	case s.WebHook.SupportURL(u):
-		return s.WebHook.DeliverNonBlockingEvent(u, e)
-	case s.DenoHook.SupportURL(u):
-		return s.DenoHook.DeliverNonBlockingEvent(u, e)
+	case s.EventWebHook.SupportURL(u):
+		return s.EventWebHook.DeliverNonBlockingEvent(u, e)
+	case s.EventDenoHook.SupportURL(u):
+		return s.EventDenoHook.DeliverNonBlockingEvent(u, e)
 	default:
 		return fmt.Errorf("unsupported hook URL: %v", u)
 	}

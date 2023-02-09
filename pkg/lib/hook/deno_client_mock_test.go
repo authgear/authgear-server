@@ -11,6 +11,44 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
+// MockDenoClient is a mock of DenoClient interface.
+type MockDenoClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockDenoClientMockRecorder
+}
+
+// MockDenoClientMockRecorder is the mock recorder for MockDenoClient.
+type MockDenoClientMockRecorder struct {
+	mock *MockDenoClient
+}
+
+// NewMockDenoClient creates a new mock instance.
+func NewMockDenoClient(ctrl *gomock.Controller) *MockDenoClient {
+	mock := &MockDenoClient{ctrl: ctrl}
+	mock.recorder = &MockDenoClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockDenoClient) EXPECT() *MockDenoClientMockRecorder {
+	return m.recorder
+}
+
+// Run mocks base method.
+func (m *MockDenoClient) Run(ctx context.Context, script string, input interface{}) (interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Run", ctx, script, input)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Run indicates an expected call of Run.
+func (mr *MockDenoClientMockRecorder) Run(ctx, script, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Run", reflect.TypeOf((*MockDenoClient)(nil).Run), ctx, script, input)
+}
+
 // MockSyncDenoClient is a mock of SyncDenoClient interface.
 type MockSyncDenoClient struct {
 	ctrl     *gomock.Controller
