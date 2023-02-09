@@ -51708,10 +51708,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	contextContext := deps.ProvideRequestContext(request)
+	featureConfig := config.FeatureConfig
+	clockClock := _wireSystemClockValue
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	logger := event.NewLogger(factory)
-	clockClock := _wireSystemClockValue
 	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -51733,7 +51734,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -52245,8 +52245,47 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:       translationService,
+		Endpoints:         endpointsProvider,
+		TaskQueue:         queue,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	workflowVerificationFacade := facade.WorkflowVerificationFacade{
+		Verification: verificationService,
+	}
 	dependencies := &workflow.Dependencies{
-		Identities: identityFacade,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		Clock:         clockClock,
+		RemoteIP:      remoteIP,
+		Identities:    identityFacade,
+		OTPCodes:      otpService,
+		OOBCodeSender: codeSender,
+		Verification:  workflowVerificationFacade,
+		Events:        eventService,
+		RateLimiter:   limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
@@ -52268,13 +52307,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
-	}
-	mainOriginProvider := &MainOriginProvider{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
@@ -52319,16 +52351,17 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	featureConfig := config.FeatureConfig
+	clockClock := _wireSystemClockValue
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	logger := event.NewLogger(factory)
-	clockClock := _wireSystemClockValue
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	appConfig := config.AppConfig
 	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -52350,7 +52383,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -52864,8 +52896,47 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:       translationService,
+		Endpoints:         endpointsProvider,
+		TaskQueue:         queue,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	workflowVerificationFacade := facade.WorkflowVerificationFacade{
+		Verification: verificationService,
+	}
 	dependencies := &workflow.Dependencies{
-		Identities: identityFacade,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		Clock:         clockClock,
+		RemoteIP:      remoteIP,
+		Identities:    identityFacade,
+		OTPCodes:      otpService,
+		OOBCodeSender: codeSender,
+		Verification:  workflowVerificationFacade,
+		Events:        eventService,
+		RateLimiter:   limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
@@ -52901,16 +52972,17 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	featureConfig := config.FeatureConfig
+	clockClock := _wireSystemClockValue
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	logger := event.NewLogger(factory)
-	clockClock := _wireSystemClockValue
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	appConfig := config.AppConfig
 	localizationConfig := appConfig.Localization
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -52932,7 +53004,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -53446,8 +53517,47 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	mainOriginProvider := &MainOriginProvider{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	messagingConfig := appConfig.Messaging
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:       translationService,
+		Endpoints:         endpointsProvider,
+		TaskQueue:         queue,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	workflowVerificationFacade := facade.WorkflowVerificationFacade{
+		Verification: verificationService,
+	}
 	dependencies := &workflow.Dependencies{
-		Identities: identityFacade,
+		Config:        appConfig,
+		FeatureConfig: featureConfig,
+		Clock:         clockClock,
+		RemoteIP:      remoteIP,
+		Identities:    identityFacade,
+		OTPCodes:      otpService,
+		OOBCodeSender: codeSender,
+		Verification:  workflowVerificationFacade,
+		Events:        eventService,
+		RateLimiter:   limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{

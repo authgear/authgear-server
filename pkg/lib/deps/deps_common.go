@@ -97,6 +97,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		event.DependencySet,
 		wire.Bind(new(interaction.EventService), new(*event.Service)),
+		wire.Bind(new(workflow.EventService), new(*event.Service)),
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
 		wire.Bind(new(otp.EventService), new(*event.Service)),
@@ -145,6 +146,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.PasswordHistoryStore), new(*authenticatorpassword.HistoryStore)),
 		authenticatoroob.DependencySet,
 		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
+		wire.Bind(new(workflow.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
 		authenticatorpasskey.DependencySet,
 
@@ -222,6 +224,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.IdentityService), new(facade.IdentityFacade)),
+		wire.Bind(new(workflow.VerificationService), new(facade.WorkflowVerificationFacade)),
 	),
 
 	wire.NewSet(
@@ -313,6 +316,7 @@ var CommonDependencySet = wire.NewSet(
 		otp.DependencySet,
 		wire.Bind(new(authenticatorservice.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(workflow.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(whatsapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
@@ -334,6 +338,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		ratelimit.DependencySet,
 		wire.Bind(new(interaction.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(workflow.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(forgotpassword.RateLimiter), new(*ratelimit.Limiter)),
