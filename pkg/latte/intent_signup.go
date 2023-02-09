@@ -2,7 +2,9 @@ package latte
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -32,27 +34,46 @@ func (*IntentSignup) JSONSchema() *validation.SimpleSchema {
 func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	switch len(w.Nodes) {
 	case 0:
+		// Generate a new user ID.
 		return nil, nil
-	// case 1:
-	// IntentCreateLoginID (Phone + OTP)
-	// case 2:
-	// IntentCreateLoginID (Email, no verification)
-	// case 3:
-	// 4. IntentCreatePrimaryPassword
+	case 1:
+		// Create a phone login ID, and verify.
+		return nil, nil
+	case 2:
+		// Create a email login ID, and skip verify.
+		return nil, nil
+	case 3:
+		// Create a primary password.
+		return nil, nil
 	default:
 		return nil, workflow.ErrEOF
 	}
 }
 
-func (*IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	switch len(w.Nodes) {
 	case 0:
 		return workflow.NewNodeSimple(&NodeDoCreateUser{
 			UserID: uuid.New(),
 		}), nil
-	default:
-		return nil, workflow.ErrIncompatibleInput
+	case 1:
+		return workflow.NewSubWorkflow(&IntentCreateLoginID{
+			// LoginID key and LoginID type are fixed here.
+			UserID:      i.userID(w),
+			LoginIDType: model.LoginIDKeyTypePhone,
+			LoginIDKey:  string(model.LoginIDKeyTypePhone),
+		}), nil
+	case 2:
+		return workflow.NewSubWorkflow(&IntentCreateLoginID{
+			// LoginID key and LoginID type are fixed here.
+			UserID:      i.userID(w),
+			LoginIDType: model.LoginIDKeyTypeEmail,
+			LoginIDKey:  string(model.LoginIDKeyTypeEmail),
+		}), nil
+		// TODO: 3
 	}
+
+	return nil, workflow.ErrIncompatibleInput
 }
 
 func (*IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
@@ -62,4 +83,12 @@ func (*IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies
 
 func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
+}
+
+func (i *IntentSignup) userID(w *workflow.Workflow) string {
+	node, ok := workflow.FindSingleNode[*NodeDoCreateUser](w)
+	if !ok {
+		panic(fmt.Errorf("expected userID"))
+	}
+	return node.UserID
 }

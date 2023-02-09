@@ -19,6 +19,9 @@ type IdentityService interface {
 	Get(id string) (*identity.Info, error)
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
+	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	CheckDuplicated(info *identity.Info) (*identity.Info, error)
+	Create(is *identity.Info) error
 }
 
 type OTPCodeService interface {
@@ -55,6 +58,10 @@ type UserService interface {
 	Create(userID string) (*user.User, error)
 }
 
+type StdAttrsService interface {
+	PopulateStandardAttributes(userID string, iden *identity.Info) error
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -62,11 +69,12 @@ type Dependencies struct {
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
 
-	Users         UserService
-	Identities    IdentityService
-	OTPCodes      OTPCodeService
-	OOBCodeSender OOBCodeSender
-	Verification  VerificationService
+	Users           UserService
+	Identities      IdentityService
+	StdAttrsService StdAttrsService
+	OTPCodes        OTPCodeService
+	OOBCodeSender   OOBCodeSender
+	Verification    VerificationService
 
 	Events      EventService
 	RateLimiter RateLimiter

@@ -358,6 +358,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
+		wire.Bind(new(workflow.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
 

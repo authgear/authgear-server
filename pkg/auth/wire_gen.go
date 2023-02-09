@@ -52768,17 +52768,18 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	dependencies := &workflow.Dependencies{
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		Clock:         clockClock,
-		RemoteIP:      remoteIP,
-		Users:         userProvider,
-		Identities:    identityFacade,
-		OTPCodes:      otpService,
-		OOBCodeSender: codeSender,
-		Verification:  workflowVerificationFacade,
-		Events:        eventService,
-		RateLimiter:   limiter,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		Clock:           clockClock,
+		RemoteIP:        remoteIP,
+		Users:           userProvider,
+		Identities:      identityFacade,
+		StdAttrsService: stdattrsService,
+		OTPCodes:        otpService,
+		OOBCodeSender:   codeSender,
+		Verification:    workflowVerificationFacade,
+		Events:          eventService,
+		RateLimiter:     limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
@@ -53425,17 +53426,18 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	dependencies := &workflow.Dependencies{
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		Clock:         clockClock,
-		RemoteIP:      remoteIP,
-		Users:         userProvider,
-		Identities:    identityFacade,
-		OTPCodes:      otpService,
-		OOBCodeSender: codeSender,
-		Verification:  workflowVerificationFacade,
-		Events:        eventService,
-		RateLimiter:   limiter,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		Clock:           clockClock,
+		RemoteIP:        remoteIP,
+		Users:           userProvider,
+		Identities:      identityFacade,
+		StdAttrsService: stdattrsService,
+		OTPCodes:        otpService,
+		OOBCodeSender:   codeSender,
+		Verification:    workflowVerificationFacade,
+		Events:          eventService,
+		RateLimiter:     limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
@@ -54052,17 +54054,18 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	dependencies := &workflow.Dependencies{
-		Config:        appConfig,
-		FeatureConfig: featureConfig,
-		Clock:         clockClock,
-		RemoteIP:      remoteIP,
-		Users:         userProvider,
-		Identities:    identityFacade,
-		OTPCodes:      otpService,
-		OOBCodeSender: codeSender,
-		Verification:  workflowVerificationFacade,
-		Events:        eventService,
-		RateLimiter:   limiter,
+		Config:          appConfig,
+		FeatureConfig:   featureConfig,
+		Clock:           clockClock,
+		RemoteIP:        remoteIP,
+		Users:           userProvider,
+		Identities:      identityFacade,
+		StdAttrsService: stdattrsService,
+		OTPCodes:        otpService,
+		OOBCodeSender:   codeSender,
+		Verification:    workflowVerificationFacade,
+		Events:          eventService,
+		RateLimiter:     limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
