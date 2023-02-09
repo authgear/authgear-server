@@ -85,17 +85,15 @@ type NodeSimple interface {
 }
 ```
 
-If the workflow has at least one node, the last node react to inputs first.
+### CanReactTo and ReactTo
 
-If the node can react to some inputs, the inputs are used.
-If the node returns ErrEOF, the intent is asked to react to inputs.
-If the node returns other error, the error is returned.
-If the node can react to no input without error, it is a programming error.
+The return value of CanReactTo has the following meanings:
 
-If the intent can react to some inputs, the inputs are used.
-If the intent returns ErrEOF, the workflow is finished.
-If the intent return other error, the error is returned.
-If the intent can react to no input without error, it is a programming error.
+- `(nil, nil)`: The node or the intent can transition to a new node without input. ReactTo of the node or the intent will be called.
+- `([ ... ], nil)`: The node or the intent can react to the returned inputs. ReactTo of the node or the intent will be called.
+- `(nil, ErrEOF)` by a node: The node cannot react to input. The CanReactTo of the intent is called instead.
+- `(nil, ErrEOF)` by an intent: The workflow is finished.
+- `(nil, error)`: Some error occurred.
 
 ## Effects
 

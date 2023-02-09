@@ -84,11 +84,8 @@ func (n *Node) Traverse(t WorkflowTraverser, w *Workflow) error {
 func (n *Node) FindInputReactor(ctx context.Context, deps *Dependencies, w *Workflow) (*Workflow, InputReactor, error) {
 	switch n.Type {
 	case NodeTypeSimple:
-		inputs, err := n.Simple.CanReactTo(ctx, deps, w)
+		_, err := n.Simple.CanReactTo(ctx, deps, w)
 		if err == nil {
-			if len(inputs) == 0 {
-				panic(fmt.Errorf("node %T react to no input without error", n.Simple))
-			}
 			return w, n.Simple, nil
 		}
 		return nil, nil, err
