@@ -95,3 +95,14 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 
 	return result, nil
 }
+
+func authenticatorKindToStage(kind authenticator.Kind) authn.AuthenticationStage {
+	switch kind {
+	case authenticator.KindPrimary:
+		return authn.AuthenticationStagePrimary
+	case authenticator.KindSecondary:
+		return authn.AuthenticationStageSecondary
+	default:
+		panic("workflow: unexpected authenticator kind: " + kind)
+	}
+}

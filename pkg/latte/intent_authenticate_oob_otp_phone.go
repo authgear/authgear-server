@@ -38,8 +38,16 @@ func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workf
 	switch len(w.Nodes) {
 	case 0:
 		authenticator := i.Authenticator
-		// fixme(carmen): send code
-
+		_, err := (&SendOOBCode{
+			Deps:                 deps,
+			Stage:                authenticatorKindToStage(authenticator.Kind),
+			IsAuthenticating:     true,
+			AuthenticatorInfo:    authenticator,
+			IgnoreRatelimitError: true,
+		}).Do()
+		if err != nil {
+			return nil, err
+		}
 		return workflow.NewNodeSimple(&NodeAuthenticateOOBOTPPhone{
 			Authenticator: authenticator,
 		}), nil

@@ -2,7 +2,9 @@ package latte
 
 import (
 	"context"
+	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
@@ -35,11 +37,31 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 	var inputResendCode inputResendCode
 	switch {
 	case workflow.AsInput(input, &inputResendCode):
-		// fixme(carmen): send code
+		info := n.Authenticator
+		_, err := (&SendOOBCode{
+			Deps:                 deps,
+			Stage:                authenticatorKindToStage(info.Kind),
+			IsAuthenticating:     true,
+			AuthenticatorInfo:    info,
+			IgnoreRatelimitError: false,
+		}).Do()
+		if err != nil {
+			return nil, err
+		}
 		return nil, workflow.ErrSameNode
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
 		info := n.Authenticator
-		// fixme(carmen): verify code
+		_, err := deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+			OOBOTP: &authenticator.OOBOTPSpec{
+				Code: inputTakeOOBOTPCode.GetCode(),
+			},
+		})
+		if err != nil {
+			if errors.Is(err, authenticator.ErrInvalidCredentials) {
+				err = api.ErrInvalidCredentials
+			}
+			return nil, err
+		}
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{
 			Authenticator: info,
 		}), nil
