@@ -90,6 +90,9 @@ func (h *WorkflowInputHandler) handle(w http.ResponseWriter, r *http.Request, in
 	}
 
 	output, err := h.Workflows.FeedInput(instanceID, input)
+	if err != nil && errors.Is(err, workflow.ErrNoChange) {
+		err = workflow.ErrInvalidInputKind
+	}
 	if err != nil && !errors.Is(err, workflow.ErrEOF) {
 		return nil, err
 	}
