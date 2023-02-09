@@ -95,6 +95,10 @@ type CookieManager interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
+type AntiSpamOTPCodeBucketMaker interface {
+	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -117,6 +121,7 @@ type Dependencies struct {
 
 	Cookies CookieManager
 
-	Events      EventService
-	RateLimiter RateLimiter
+	Events                EventService
+	RateLimiter           RateLimiter
+	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
 }

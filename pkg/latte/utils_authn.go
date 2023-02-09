@@ -1,11 +1,13 @@
 package latte
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -78,15 +80,14 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		Code:       code.Code,
 	}
 
-	// fixme(workflow): anti spam otp rate limiting
-	// bucket := p.Deps.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-	// err = p.Deps.RateLimiter.TakeToken(bucket)
-	// if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
-	// 	// Ignore the rate limit error and do NOT send the code.
-	// 	return result, nil
-	// } else if err != nil {
-	// 	return nil, err
-	// }
+	bucket := p.Deps.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
+	err = p.Deps.RateLimiter.TakeToken(bucket)
+	if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
+		return nil, err
+	}
 
 	err = p.Deps.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode)
 	if err != nil {
