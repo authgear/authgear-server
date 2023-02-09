@@ -9,18 +9,25 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type SMSHookTimeout struct {
+	Timeout time.Duration
+}
+
+func NewSMSHookTimeout(smsCfg *config.CustomSMSProviderConfig) SMSHookTimeout {
+	if smsCfg != nil && smsCfg.Timeout != nil {
+		return SMSHookTimeout{Timeout: smsCfg.Timeout.Duration()}
+	} else {
+		return SMSHookTimeout{Timeout: 60 * time.Second}
+	}
+}
+
 type HookHTTPClient struct {
 	*http.Client
 }
 
-func NewHookHTTPClient(hookCfg *config.HookConfig, smsCfg *config.CustomSMSProviderConfig) HookHTTPClient {
-	if smsCfg != nil && smsCfg.Timeout != nil {
-		return HookHTTPClient{
-			httputil.NewExternalClient(smsCfg.Timeout.Duration()),
-		}
-	}
+func NewHookHTTPClient(timeout SMSHookTimeout) HookHTTPClient {
 	return HookHTTPClient{
-		httputil.NewExternalClient(hookCfg.SyncTimeout.Duration()),
+		httputil.NewExternalClient(timeout.Timeout),
 	}
 }
 
@@ -28,18 +35,11 @@ type HookDenoClient struct {
 	hook.DenoClient
 }
 
-func NewHookDenoClient(endpoint config.DenoEndpoint, logger hook.Logger, smsCfg *config.CustomSMSProviderConfig) HookDenoClient {
-	var timeout time.Duration
-	if smsCfg != nil && smsCfg.Timeout != nil {
-		timeout = smsCfg.Timeout.Duration()
-	} else {
-		timeout = 60 * time.Second
-	}
-
+func NewHookDenoClient(endpoint config.DenoEndpoint, logger hook.Logger, timeout SMSHookTimeout) HookDenoClient {
 	return HookDenoClient{
 		&hook.DenoClientImpl{
 			Endpoint:   string(endpoint),
-			HTTPClient: httputil.NewExternalClient(timeout),
+			HTTPClient: httputil.NewExternalClient(timeout.Timeout),
 			Logger:     logger,
 		},
 	}

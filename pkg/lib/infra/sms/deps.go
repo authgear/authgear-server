@@ -9,6 +9,7 @@ var DependencySet = wire.NewSet(
 	NewTwilioClient,
 	NewCustomClient,
 	NewLogger,
+	NewSMSHookTimeout,
 	NewHookHTTPClient,
 	NewHookDenoClient,
 	wire.Struct(new(Client), "*"),
