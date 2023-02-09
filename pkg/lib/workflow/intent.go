@@ -89,7 +89,7 @@ func InstantiateIntentFromPrivateRegistry(j IntentJSON) (Intent, error) {
 	}
 	intent := factory()
 
-	err := intent.JSONSchema().Validator().ParseJSONRawMessage(j.Data, intent)
+	err := json.Unmarshal(j.Data, intent)
 	if err != nil {
 		return nil, err
 	}
