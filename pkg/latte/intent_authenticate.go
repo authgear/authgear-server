@@ -59,7 +59,9 @@ func (*IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependenc
 		if exactMatch == nil {
 			return workflow.NewSubWorkflow(&IntentSignup{}), nil
 		}
-		return workflow.NewSubWorkflow(&IntentLogin{}), nil
+		return workflow.NewSubWorkflow(&IntentLogin{
+			Identity: exactMatch,
+		}), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}

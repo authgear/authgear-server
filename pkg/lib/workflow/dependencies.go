@@ -32,6 +32,7 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
 type OTPCodeService interface {
