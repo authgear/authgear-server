@@ -399,3 +399,40 @@ func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies) (*WorkflowO
 
 	return output, nil
 }
+
+func FindSingleNode[T NodeSimple](w *Workflow) (T, bool) {
+	for _, n := range w.Nodes {
+		if n.Type != NodeTypeSimple {
+			continue
+		}
+		if node, ok := n.Simple.(T); ok {
+			return node, true
+		}
+	}
+
+	return *new(T), false
+}
+
+func FindSubWorkflows[T Intent](w *Workflow) []*Workflow {
+	var workflows []*Workflow
+	for _, n := range w.Nodes {
+		if n.Type != NodeTypeSubWorkflow {
+			continue
+		}
+		if _, ok := n.SubWorkflow.Intent.(T); ok {
+			workflows = append(workflows, n.SubWorkflow)
+		}
+	}
+
+	return workflows
+}
+
+func MustFindSubWorkflow[T Intent](w *Workflow) (T, *Workflow) {
+	workflows := FindSubWorkflows[T](w)
+	if len(workflows) == 0 {
+		panic(fmt.Sprintf("workflow: cannot find workflow %T", *new(T)))
+	} else if len(workflows) > 1 {
+		panic(fmt.Sprintf("workflow: multiple workflow %T found", *new(T)))
+	}
+	return workflows[0].Intent.(T), workflows[0]
+}
