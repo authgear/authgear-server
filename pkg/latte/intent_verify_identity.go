@@ -20,7 +20,8 @@ func init() {
 var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`{}`)
 
 type IntentVerifyIdentity struct {
-	IdentityInfo *identity.Info
+	IdentityInfo *identity.Info `json:"identity_info,omitempty"`
+	IsFromSignUp bool           `json:"is_from_signup"`
 }
 
 func (*IntentVerifyIdentity) Kind() string {
@@ -53,7 +54,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 		return nil, api.ErrClaimNotVerifiable
 	}
 
-	if status.Verified {
+	if status.Verified || (i.IsFromSignUp && !status.RequiredToVerifyOnCreation) {
 		// Verified already; skip actual verification.
 		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
 			IdentityID:       i.IdentityInfo.ID,

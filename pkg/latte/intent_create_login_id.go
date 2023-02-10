@@ -3,6 +3,7 @@ package latte
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -41,11 +42,10 @@ func (*IntentCreateLoginID) CanReactTo(ctx context.Context, deps *workflow.Depen
 		}, nil
 	case 1:
 		return nil, nil
-	// case 2: Verify
-	default:
-		// FIXME
+	case 2:
 		return nil, nil
-		//return nil, workflow.ErrEOF
+	default:
+		return nil, workflow.ErrEOF
 	}
 }
 
@@ -88,13 +88,28 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 			}), nil
 		}
 	case 1:
-		node := w.Nodes[0].Simple.(*NodeCreateIdentity)
+		iden := i.identityInfo(w)
 		return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
-			IdentityInfo: node.IdentityInfo,
+			IdentityInfo: iden,
+		}), nil
+	case 2:
+		iden := i.identityInfo(w)
+		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
+			IdentityInfo: iden,
+			IsFromSignUp: true,
 		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
+}
+
+func (i *IntentCreateLoginID) identityInfo(w *workflow.Workflow) *identity.Info {
+	node, ok := workflow.FindSingleNode[*NodeCreateIdentity](w)
+	if !ok {
+		panic(fmt.Errorf("workflow: expected NodeCreateIdentity"))
+	}
+
+	return node.IdentityInfo
 }
 
 func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {

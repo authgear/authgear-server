@@ -70,6 +70,7 @@ func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.D
 
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
 			IdentityInfo: iden,
+			IsFromSignUp: false,
 		}), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput

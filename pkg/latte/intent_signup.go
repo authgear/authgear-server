@@ -37,10 +37,11 @@ func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies
 		// Generate a new user ID.
 		return nil, nil
 	case 1:
-		// Create a phone login ID, and verify.
+		// Create a phone login ID.
 		return nil, nil
 	case 2:
-		// Create a email login ID, and skip verify.
+		// Create a email login ID.
+		// We assume the project is set to skip verify email on sign up.
 		return nil, nil
 	case 3:
 		// Create a primary password.
