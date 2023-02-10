@@ -4,6 +4,7 @@ import "time"
 
 type ClaimStatus struct {
 	Name                       string
+	Value                      string
 	Verified                   bool
 	RequiredToVerifyOnCreation bool
 	EndUserTriggerable         bool

@@ -56,6 +56,7 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 
 		statuses = append(statuses, ClaimStatus{
 			Name:                       string(claimName),
+			Value:                      value,
 			Verified:                   verified,
 			RequiredToVerifyOnCreation: *c.Required,
 			EndUserTriggerable:         *c.Enabled,
