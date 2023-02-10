@@ -95,6 +95,12 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"IDENTITY_EMAIL_UPDATED": &graphql.EnumValueConfig{
 			Value: "identity.email.updated",
 		},
+		"IDENTITY_EMAIL_VERIFIED": &graphql.EnumValueConfig{
+			Value: "identity.email.verified",
+		},
+		"IDENTITY_EMAIL_UNVERIFIED": &graphql.EnumValueConfig{
+			Value: "identity.email.unverified",
+		},
 		"IDENTITY_PHONE_ADDED": &graphql.EnumValueConfig{
 			Value: "identity.phone.added",
 		},
@@ -103,6 +109,12 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"IDENTITY_PHONE_UPDATED": &graphql.EnumValueConfig{
 			Value: "identity.phone.updated",
+		},
+		"IDENTITY_PHONE_VERIFIED": &graphql.EnumValueConfig{
+			Value: "identity.phone.verified",
+		},
+		"IDENTITY_PHONE_UNVERIFIED": &graphql.EnumValueConfig{
+			Value: "identity.phone.unverified",
 		},
 		"IDENTITY_USERNAME_ADDED": &graphql.EnumValueConfig{
 			Value: "identity.username.added",
