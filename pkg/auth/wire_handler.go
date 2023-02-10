@@ -567,6 +567,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.FeatureDisabledHandler)),
+	))
+}
+
 func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

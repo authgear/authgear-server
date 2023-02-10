@@ -25,6 +25,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(WeChatRedirectURIMiddleware), "*"),
 	wire.Struct(new(ClientIDMiddleware), "*"),
 	wire.Struct(new(VisitorIDMiddleware), "*"),
+	wire.Struct(new(RequireAuthenticationEnabledMiddleware), "*"),
+	wire.Struct(new(RequireSettingsEnabledMiddleware), "*"),
 	wire.Struct(new(SettingsSubRoutesMiddleware), "*"),
 	wire.Struct(new(SuccessPageMiddleware), "*"),
 	wire.Struct(new(TutorialMiddleware), "*"),
