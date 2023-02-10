@@ -97,6 +97,7 @@
   "success-resend-magic-link": "Login link successfully resent",
 
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
+  "feature-disabled-notice": "Feature has been disabled.",
 
   "google-play-store-label": "Google Play Store",
   "apple-app-store-label": "Apple App Store",

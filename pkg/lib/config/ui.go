@@ -12,7 +12,8 @@ var _ = Schema.Add("UIConfig", `
 		"watermark_disabled": { "type": "boolean" },
 		"default_client_uri": { "type": "string", "format": "uri" },
 		"default_redirect_uri": { "type": "string", "format": "uri" },
-		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" }
+		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" },
+		"authentication_disabled": { "type": "boolean" }
 	}
 }
 `)
@@ -27,6 +28,8 @@ type UIConfig struct {
 	DefaultRedirectURI string `json:"default_redirect_uri,omitempty"`
 	// post_logout_redirect_uri to use when client_id is absent.
 	DefaultPostLogoutRedirectURI string `json:"default_post_logout_redirect_uri,omitempty"`
+	// NOTE: Internal use only, use authentication_disabled to disable auth-ui when custom ui is used
+	AuthenticationDisabled bool `json:"authentication_disabled,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
