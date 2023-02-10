@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -71,7 +72,13 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 			LoginIDType: model.LoginIDKeyTypeEmail,
 			LoginIDKey:  string(model.LoginIDKeyTypeEmail),
 		}), nil
-		// TODO: 3
+	case 3:
+		// The type, kind is fixed here.
+		return workflow.NewSubWorkflow(&IntentCreatePassword{
+			UserID:                 i.userID(w),
+			AuthenticatorKind:      authenticator.KindPrimary,
+			AuthenticatorIsDefault: false,
+		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput

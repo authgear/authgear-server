@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -22,6 +23,11 @@ type IdentityService interface {
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	Create(is *identity.Info) error
+}
+
+type AuthenticatorService interface {
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 }
 
 type OTPCodeService interface {
@@ -71,6 +77,7 @@ type Dependencies struct {
 
 	Users           UserService
 	Identities      IdentityService
+	Authenticators  AuthenticatorService
 	StdAttrsService StdAttrsService
 	OTPCodes        OTPCodeService
 	OOBCodeSender   OOBCodeSender

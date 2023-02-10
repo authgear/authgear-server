@@ -52740,6 +52740,9 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -52774,6 +52777,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:        remoteIP,
 		Users:           userProvider,
 		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
 		StdAttrsService: stdattrsService,
 		OTPCodes:        otpService,
 		OOBCodeSender:   codeSender,
@@ -53398,6 +53402,9 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -53432,6 +53439,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:        remoteIP,
 		Users:           userProvider,
 		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
 		StdAttrsService: stdattrsService,
 		OTPCodes:        otpService,
 		OOBCodeSender:   codeSender,
@@ -54026,6 +54034,9 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -54060,6 +54071,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:        remoteIP,
 		Users:           userProvider,
 		Identities:      identityFacade,
+		Authenticators:  authenticatorFacade,
 		StdAttrsService: stdattrsService,
 		OTPCodes:        otpService,
 		OOBCodeSender:   codeSender,
