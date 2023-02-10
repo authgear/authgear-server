@@ -1,6 +1,6 @@
 Setup Two-Step Verification on {{ template "app.name" }}
 
-Please visit the link below to setup two-step verification.
+Please visit the link below to complete your sign up process.
 
 {{ .URL }}
 
