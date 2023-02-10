@@ -4,11 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -72,69 +68,9 @@ func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.D
 			return nil, api.ErrUserNotFound
 		}
 
-		statuses, err := deps.Verification.GetIdentityVerificationStatus(iden)
-		if err != nil {
-			return nil, err
-		}
-		var status *verification.ClaimStatus
-		for _, s := range statuses {
-			s := s
-			if s.Name == claimName {
-				status = &s
-				break
-			}
-		}
-		if status == nil || !status.IsVerifiable() {
-			return nil, api.ErrClaimNotVerifiable
-		}
-
-		if status.Verified {
-			// Verified already; skip actual verification.
-			return workflow.NewNodeSimple(&NodeVerifiedIdentity{
-				IdentityID:       iden.ID,
-				NewVerifiedClaim: nil,
-			}), nil
-		}
-
-		// TODO: refactor OTP mode to identity config?
-		phoneOTPMode := deps.Config.Authenticator.OOB.SMS.PhoneOTPMode
-
-		var node interface {
-			workflow.NodeSimple
-			sendCode(deps *workflow.Dependencies, w *workflow.Workflow) error
-		}
-		switch model.ClaimName(claimName) {
-		case model.ClaimEmail:
-			node = &NodeVerifyEmail{
-				UserID:     i.UserID,
-				IdentityID: iden.ID,
-				Email:      claimValue,
-			}
-
-		case model.ClaimPhoneNumber:
-			if trigger.VerificationMethod() == VerificationMethodPhoneSMS && phoneOTPMode.IsSMSEnabled() {
-				node = &NodeVerifyPhoneSMS{
-					UserID:      i.UserID,
-					IdentityID:  iden.ID,
-					PhoneNumber: claimValue,
-				}
-			}
-			// FIXME: whatsapp
-		}
-
-		if node == nil {
-			return nil, api.ErrClaimNotVerifiable
-		}
-
-		err = node.sendCode(deps, w)
-		if apierrors.IsKind(err, ratelimit.RateLimited) {
-			// Ignore rate limit error; continue the workflow
-		} else if err != nil {
-			return nil, err
-		}
-
-		return workflow.NewNodeSimple(node), nil
-
+		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
+			IdentityInfo: iden,
+		}), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}
@@ -149,5 +85,10 @@ func (i *IntentFindVerifyIdentity) OutputData(ctx context.Context, deps *workflo
 }
 
 func (i *IntentFindVerifyIdentity) VerifiedIdentity(w *workflow.Workflow) (*NodeVerifiedIdentity, bool) {
-	return workflow.FindSingleNode[*NodeVerifiedIdentity](w)
+	ws := workflow.FindSubWorkflows[*IntentVerifyIdentity](w)
+	if len(ws) == 1 {
+		w := ws[0]
+		return w.Intent.(*IntentVerifyIdentity).VerifiedIdentity(w)
+	}
+	return nil, false
 }
