@@ -564,6 +564,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.MissingWeb3WalletHandler)),
+		// wire.Bind(new(http.Handler), new(*handlerwebapp.FeatureDisabledHandler)),
+	))
+}
+
+func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.FeatureDisabledHandler)),
 	))
 }
 
