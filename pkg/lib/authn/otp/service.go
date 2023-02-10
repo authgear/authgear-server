@@ -169,7 +169,12 @@ func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Cod
 		return nil, err
 	}
 
-	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
+	userInputtedCode := codeModel.UserInputtedCode
+	if userInputtedCode == "" {
+		userInputtedCode = code
+	}
+
+	if !secretcode.MagicLinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
 		return nil, ErrInvalidCode
 	}
 
