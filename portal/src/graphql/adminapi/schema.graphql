@@ -581,6 +581,9 @@ type Mutation {
   """Schedule account deletion"""
   scheduleAccountDeletion(input: ScheduleAccountDeletionInput!): ScheduleAccountDeletionPayload!
 
+  """Send a reset password message to user"""
+  sendResetPasswordMessage(input: SendResetPasswordMessageInput!): Boolean
+
   """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
 
@@ -703,6 +706,12 @@ input ScheduleAccountDeletionInput {
 type ScheduleAccountDeletionPayload {
   """"""
   user: User!
+}
+
+""""""
+input SendResetPasswordMessageInput {
+  """Target login ID."""
+  loginID: ID!
 }
 
 """"""

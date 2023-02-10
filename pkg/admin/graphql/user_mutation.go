@@ -128,6 +128,43 @@ var _ = registerMutationField(
 	},
 )
 
+var sendResetPasswordMessageInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SendResetPasswordMessageInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"loginID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target login ID.",
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"sendResetPasswordMessage",
+	&graphql.Field{
+		Description: "Send a reset password message to user",
+		Type:        graphql.Boolean,
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(sendResetPasswordMessageInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			loginID := input["loginID"].(string)
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.ForgotPassword.SendCode(loginID)
+			if err != nil {
+				return nil, err
+			}
+
+			return nil, nil
+		},
+	},
+)
+
 var generateOOBOTPCodeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "GenerateOOBOTPCodeInput",
 	Fields: graphql.InputObjectConfigFieldMap{

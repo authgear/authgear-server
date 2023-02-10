@@ -396,6 +396,8 @@ export type Mutation = {
   scheduleAccountAnonymization: ScheduleAccountAnonymizationPayload;
   /** Schedule account deletion */
   scheduleAccountDeletion: ScheduleAccountDeletionPayload;
+  /** Send a reset password message to user */
+  sendResetPasswordMessage?: Maybe<Scalars['Boolean']>;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
   /** Set verified status of a claim of user */
@@ -478,6 +480,11 @@ export type MutationScheduleAccountAnonymizationArgs = {
 
 export type MutationScheduleAccountDeletionArgs = {
   input: ScheduleAccountDeletionInput;
+};
+
+
+export type MutationSendResetPasswordMessageArgs = {
+  input: SendResetPasswordMessageInput;
 };
 
 
@@ -624,6 +631,11 @@ export type ScheduleAccountDeletionInput = {
 export type ScheduleAccountDeletionPayload = {
   __typename?: 'ScheduleAccountDeletionPayload';
   user: User;
+};
+
+export type SendResetPasswordMessageInput = {
+  /** Target login ID. */
+  loginID: Scalars['ID'];
 };
 
 export type Session = Entity & Node & {

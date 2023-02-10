@@ -110,6 +110,10 @@ type OTPCodeService interface {
 	GenerateCode(target string, otpMode otp.OTPMode, appID string, webSessionID string) (*otp.Code, error)
 }
 
+type ForgotPasswordService interface {
+	SendCode(loginID string) error
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -136,6 +140,7 @@ type Context struct {
 	OAuthFacade         OAuthFacade
 	SessionListing      SessionListingService
 	OTPCode             OTPCodeService
+	ForgotPassword      ForgotPasswordService
 }
 
 func (c *Context) Logger() *log.Logger {

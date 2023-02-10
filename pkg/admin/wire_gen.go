@@ -1003,6 +1003,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthFacade:           oAuthFacade,
 		SessionListing:        sessionListingService,
 		OTPCode:               otpService,
+		ForgotPassword:        forgotpasswordProvider,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
