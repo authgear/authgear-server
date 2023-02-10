@@ -1,0 +1,76 @@
+# @no-cookie-jar
+
+{{+
+exports.headers = {
+'Content-Type': 'application/json',
+'Cookie': `session=${SESSION_COOKIE}`
+};
+}}
+
+{{+response
+$global.instance_id = response.parsedBody.result?.workflow?.instance_id ?? $global.instance_id;
+}}
+
+
+###
+# @name start
+POST {{HOST}}/api/workflow/v1
+...headers
+
+{
+    "intent": {
+        "kind": "latte.IntentVerifyUser",
+        "data": {}
+    }
+}
+
+
+###
+# @name get
+GET {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+...headers
+
+
+###
+# @name trigger
+POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+...headers
+
+{
+    "input": {
+        "kind": "latte.InputTriggerVerification",
+        "data": {
+            "method": "", // "email", "sms"
+            "claim_name": "", // "email", "phone_number"
+            "claim_value": ""
+        }
+    }
+}
+
+###
+# @name resend_code
+POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+...headers
+
+{
+    "input": {
+        "kind": "latte.InputOTPVerificationResend",
+        "data": {
+        }
+    }
+}
+
+
+###
+# @name enter_otp
+POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+...headers
+
+{
+    "input": {
+        "kind": "latte.InputOTPVerification",
+        "data": {
+            "code": ""
+        }
+    }
+}

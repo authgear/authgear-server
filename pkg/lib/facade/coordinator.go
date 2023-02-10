@@ -49,6 +49,7 @@ type AuthenticatorService interface {
 
 type VerificationService interface {
 	GetClaims(userID string) ([]*verification.Claim, error)
+	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 	DeleteClaim(claim *verification.Claim) error
