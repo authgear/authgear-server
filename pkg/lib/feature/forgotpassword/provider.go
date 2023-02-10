@@ -22,9 +22,10 @@ import (
 )
 
 type TemplateData struct {
-	Email string
-	Code  string
-	Link  string
+	Email       string
+	Code        string
+	Link        string
+	HasPassword bool
 }
 
 type AuthenticatorService interface {
@@ -127,7 +128,7 @@ func (p *Provider) SendCode(loginID string) error {
 		}
 
 		p.Logger.Debugf("sending email")
-		if err := p.sendEmail(email, codeStr); err != nil {
+		if err := p.sendEmail(email, codeStr, info.UserID); err != nil {
 			return err
 		}
 	}
@@ -164,13 +165,23 @@ func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 	return
 }
 
-func (p *Provider) sendEmail(email string, code string) error {
+func (p *Provider) sendEmail(email string, code string, userID string) error {
+	// List out all primary password the user has.
+	ais, err := p.Authenticators.List(
+		userID,
+		authenticator.KeepType(model.AuthenticatorTypePassword),
+		authenticator.KeepKind(authenticator.KindPrimary),
+	)
+	if err != nil {
+		return err
+	}
 	u := p.URLs.ResetPasswordURL(code)
 
 	data := TemplateData{
-		Email: email,
-		Code:  code,
-		Link:  u.String(),
+		Email:       email,
+		Code:        code,
+		Link:        u.String(),
+		HasPassword: len(ais) > 0,
 	}
 
 	msg, err := p.Translation.EmailMessageData(messageForgotPassword, data)
