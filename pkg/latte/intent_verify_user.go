@@ -46,7 +46,7 @@ func (*IntentVerifyUser) ReactTo(ctx context.Context, deps *workflow.Dependencie
 		return nil, apierrors.NewUnauthorized("authentication required")
 	}
 
-	return workflow.NewSubWorkflow(&IntentVerifyIdentity{
+	return workflow.NewSubWorkflow(&IntentFindVerifyIdentity{
 		UserID: *userID,
 	}), nil
 }
@@ -54,7 +54,7 @@ func (*IntentVerifyUser) ReactTo(ctx context.Context, deps *workflow.Dependencie
 func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			verifyIdentity, workflow := workflow.MustFindSubWorkflow[*IntentVerifyIdentity](w)
+			verifyIdentity, workflow := workflow.MustFindSubWorkflow[*IntentFindVerifyIdentity](w)
 			verified, ok := verifyIdentity.VerifiedIdentity(workflow)
 			if !ok || verified.NewVerifiedClaim == nil {
 				// No actual verification is done; skipping event

@@ -14,10 +14,10 @@ import (
 )
 
 func init() {
-	workflow.RegisterPrivateIntent(&IntentVerifyIdentity{})
+	workflow.RegisterPrivateIntent(&IntentFindVerifyIdentity{})
 }
 
-var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`
+var IntentFindVerifyIdentitySchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"additionalProperties": false,
@@ -28,19 +28,19 @@ var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`
 	}
 `)
 
-type IntentVerifyIdentity struct {
+type IntentFindVerifyIdentity struct {
 	UserID string `json:"user_id"`
 }
 
-func (*IntentVerifyIdentity) Kind() string {
-	return "latte.IntentVerifyIdentity"
+func (*IntentFindVerifyIdentity) Kind() string {
+	return "latte.IntentFindVerifyIdentity"
 }
 
-func (*IntentVerifyIdentity) JSONSchema() *validation.SimpleSchema {
-	return IntentVerifyIdentitySchema
+func (*IntentFindVerifyIdentity) JSONSchema() *validation.SimpleSchema {
+	return IntentFindVerifyIdentitySchema
 }
 
-func (*IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*IntentFindVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	if len(w.Nodes) == 0 {
 		return []workflow.Input{
 			&InputTriggerVerification{},
@@ -49,7 +49,7 @@ func (*IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	var trigger inputTriggerVerification
 
 	switch {
@@ -140,14 +140,14 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	}
 }
 
-func (*IntentVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentFindVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentFindVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *IntentVerifyIdentity) VerifiedIdentity(w *workflow.Workflow) (*NodeVerifiedIdentity, bool) {
+func (i *IntentFindVerifyIdentity) VerifiedIdentity(w *workflow.Workflow) (*NodeVerifiedIdentity, bool) {
 	return workflow.FindSingleNode[*NodeVerifiedIdentity](w)
 }
