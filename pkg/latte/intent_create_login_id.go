@@ -85,7 +85,7 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 				return nil, identityFillDetails(api.ErrDuplicatedIdentity, &spec, &otherSpec)
 			}
 
-			return workflow.NewNodeSimple(&NodeCreateIdentity{
+			return workflow.NewNodeSimple(&NodeDoCreateIdentity{
 				IdentityInfo: info,
 			}), nil
 		}
@@ -111,7 +111,7 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 }
 
 func (i *IntentCreateLoginID) identityInfo(w *workflow.Workflow) *identity.Info {
-	node, ok := workflow.FindSingleNode[*NodeCreateIdentity](w)
+	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
 	if !ok {
 		panic(fmt.Errorf("workflow: expected NodeCreateIdentity"))
 	}
