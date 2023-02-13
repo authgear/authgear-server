@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -76,26 +77,23 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
 	wire.NewSet(
-		wire.Struct(new(MainOriginProvider), "*"),
-		wire.Bind(new(OriginProvider), new(*MainOriginProvider)),
-		wire.Struct(new(EndpointsProvider), "*"),
+		endpoints.DependencySet,
 
-		wire.Bind(new(oauth.EndpointsProvider), new(*EndpointsProvider)),
-		wire.Bind(new(oauth.BaseURLProvider), new(*EndpointsProvider)),
-		wire.Bind(new(webapp.EndpointsProvider), new(*EndpointsProvider)),
-		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*EndpointsProvider)),
-		wire.Bind(new(oidc.EndpointsProvider), new(*EndpointsProvider)),
-		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*EndpointsProvider)),
-		wire.Bind(new(oidc.BaseURLProvider), new(*EndpointsProvider)),
-		wire.Bind(new(sso.EndpointsProvider), new(*EndpointsProvider)),
-		wire.Bind(new(otp.EndpointsProvider), new(*EndpointsProvider)),
+		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(forgotpassword.URLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.WechatURLProvider), new(*endpoints.Endpoints)),
 	),
 
 	webapp.DependencySet,
-	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
-	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
-	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
-	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
