@@ -10,6 +10,7 @@ type Session struct {
 	ClientID                 string `json:"client_id,omitempty"`
 	RedirectURI              string `json:"redirect_uri,omitempty"`
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
+	State                    string `json:"state,omitempty"`
 }
 
 type SessionOutput struct {
@@ -22,6 +23,7 @@ type SessionOptions struct {
 	ClientID                 string
 	RedirectURI              string
 	SuppressIDPSessionCookie bool
+	State                    string
 }
 
 func NewSession(opts *SessionOptions) *Session {
@@ -30,6 +32,7 @@ func NewSession(opts *SessionOptions) *Session {
 		ClientID:                 opts.ClientID,
 		RedirectURI:              opts.RedirectURI,
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
+		State:                    opts.State,
 	}
 }
 
@@ -44,5 +47,6 @@ func (s *Session) ToOutput() *SessionOutput {
 func (s *Session) Context(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, contextKeyClientID, s.ClientID)
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
+	ctx = context.WithValue(ctx, contextKeyState, s.State)
 	return ctx
 }

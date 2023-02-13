@@ -138,6 +138,7 @@ func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.
 		ClientID:                 uiInfo.ClientID,
 		RedirectURI:              uiInfo.RedirectURI,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
+		State:                    uiInfo.State,
 	}
 
 	return sessionOptions, nil
