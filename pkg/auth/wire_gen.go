@@ -38,6 +38,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
@@ -131,15 +132,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
-	}
 	uiurlBuilder := &oidc.UIURLBuilder{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	clock := _wireSystemClockValue
 	promptResolver := &oauth2.PromptResolver{
@@ -460,7 +458,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clock,
 	}
@@ -511,7 +509,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
-		EndpointsProvider:   endpointsProvider,
+		EndpointsProvider:   endpointsEndpoints,
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clock,
@@ -614,15 +612,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
-	}
 	uiurlBuilder := &oidc.UIURLBuilder{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	clockClock := _wireSystemClockValue
 	promptResolver := &oauth2.PromptResolver{
@@ -943,7 +938,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -994,7 +989,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
-		EndpointsProvider:   endpointsProvider,
+		EndpointsProvider:   endpointsEndpoints,
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
@@ -1681,12 +1676,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -1698,7 +1690,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -1710,16 +1702,16 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -1837,7 +1829,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -1845,7 +1837,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
@@ -2398,18 +2390,15 @@ func newOAuthMetadataHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
-	}
 	metadataProvider := &oauth2.MetadataProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	oidcMetadataProvider := &oidc.MetadataProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	v := ProvideOAuthMetadataProviders(metadataProvider, oidcMetadataProvider)
 	metadataHandler := &oauth.MetadataHandler{
@@ -2432,12 +2421,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
@@ -2758,7 +2744,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -2784,12 +2770,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
@@ -3109,7 +3092,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -3138,15 +3121,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
-	}
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	appredisHandle := appProvider.Redis
 	appID := appConfig.ID
@@ -3622,7 +3602,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:           oAuthConfig,
-		Endpoints:        endpointsProvider,
+		Endpoints:        endpointsEndpoints,
 		URLs:             urlProvider,
 		SessionManager:   manager2,
 		SessionCookieDef: cookieDef,
@@ -4240,12 +4220,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -4257,7 +4234,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -4269,16 +4246,16 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -4396,7 +4373,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -4404,7 +4381,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
@@ -5079,12 +5056,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -5096,7 +5070,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -5108,16 +5082,16 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -5241,7 +5215,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -5249,7 +5223,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
@@ -5860,12 +5834,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -5877,7 +5848,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -5889,16 +5860,16 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -6022,7 +5993,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -6030,7 +6001,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
@@ -6747,12 +6718,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -6764,7 +6732,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -6776,16 +6744,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -7572,12 +7540,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -7589,7 +7554,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -7601,16 +7566,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -8396,12 +8361,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -8413,7 +8375,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -8425,16 +8387,16 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -9208,12 +9170,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -9225,7 +9184,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -9237,16 +9196,16 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -10013,12 +9972,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -10030,7 +9986,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -10042,16 +9998,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -10808,12 +10764,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -10825,7 +10778,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -10837,16 +10790,16 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -11606,12 +11559,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -11623,7 +11573,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -11635,16 +11585,16 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -12407,12 +12357,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -12424,7 +12371,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -12436,16 +12383,16 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -13210,12 +13157,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -13227,7 +13171,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -13239,16 +13183,16 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -14011,12 +13955,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -14028,7 +13969,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -14040,16 +13981,16 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -14808,12 +14749,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -14825,7 +14763,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -14837,16 +14775,16 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -15609,12 +15547,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -15626,7 +15561,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -15638,16 +15573,16 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -16411,12 +16346,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -16428,7 +16360,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -16440,16 +16372,16 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -17212,12 +17144,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -17229,7 +17158,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -17241,16 +17170,16 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -18013,12 +17942,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -18030,7 +17956,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -18042,16 +17968,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -18232,7 +18158,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
 		Clock:                     clockClock,
-		Endpoints:                 endpointsProvider,
+		Endpoints:                 endpointsEndpoints,
 	}
 	return setupTOTPHandler
 }
@@ -18816,12 +18742,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -18833,7 +18756,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -18845,16 +18768,16 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -19617,12 +19540,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -19634,7 +19554,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -19646,16 +19566,16 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -20418,12 +20338,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -20435,7 +20352,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -20447,16 +20364,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -21223,12 +21140,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -21240,7 +21154,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -21252,16 +21166,16 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -22024,12 +21938,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -22041,7 +21952,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -22053,16 +21964,16 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -22886,12 +22797,9 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -22903,7 +22811,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -22915,16 +22823,16 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -23696,12 +23604,9 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -23713,7 +23618,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -23725,16 +23630,16 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -24514,12 +24419,9 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -24531,7 +24433,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -24543,16 +24445,16 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -25318,12 +25220,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -25335,7 +25234,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -25347,16 +25246,16 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -26119,12 +26018,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -26136,7 +26032,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -26148,16 +26044,16 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -26916,12 +26812,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -26933,7 +26826,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -26945,16 +26838,16 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -27717,12 +27610,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -27734,7 +27624,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -27746,16 +27636,16 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -28514,12 +28404,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -28531,7 +28418,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -28543,16 +28430,16 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -29321,12 +29208,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -29338,7 +29222,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -29350,16 +29234,16 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -30118,12 +30002,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -30135,7 +30016,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -30147,16 +30028,16 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -30917,12 +30798,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -30934,7 +30812,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -30946,16 +30824,16 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -31714,12 +31592,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -31731,7 +31606,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -31743,16 +31618,16 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -32543,12 +32418,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -32560,7 +32432,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -32572,16 +32444,16 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -33351,12 +33223,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -33368,7 +33237,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -33380,16 +33249,16 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -34172,12 +34041,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -34189,7 +34055,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -34201,16 +34067,16 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -34977,12 +34843,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -34994,7 +34857,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -35006,16 +34869,16 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -35775,12 +35638,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -35792,7 +35652,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -35804,16 +35664,16 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -36581,12 +36441,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -36598,7 +36455,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -36610,16 +36467,16 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -37379,12 +37236,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -37396,7 +37250,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -37408,16 +37262,16 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -38177,12 +38031,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -38194,7 +38045,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -38206,16 +38057,16 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -38975,12 +38826,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -38992,7 +38840,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -39004,16 +38852,16 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -39774,12 +39622,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -39791,7 +39636,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -39803,16 +39648,16 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -40591,12 +40436,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -40608,7 +40450,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -40620,16 +40462,16 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -41389,12 +41231,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -41406,7 +41245,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -41418,16 +41257,16 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -42187,12 +42026,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -42204,7 +42040,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -42216,16 +42052,16 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -42985,12 +42821,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -43002,7 +42835,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -43014,16 +42847,16 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -43783,12 +43616,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -43800,7 +43630,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -43812,16 +43642,16 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -44588,12 +44418,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -44605,7 +44432,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -44617,16 +44444,16 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -45387,12 +45214,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -45404,7 +45228,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -45416,16 +45240,16 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -46184,12 +46008,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -46201,7 +46022,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -46213,16 +46034,16 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -46996,12 +46817,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -47013,7 +46831,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -47025,16 +46843,16 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -47793,12 +47611,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -47810,7 +47625,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -47822,16 +47637,16 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -48590,12 +48405,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -48607,7 +48419,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -48619,16 +48431,16 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -49405,12 +49217,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -49422,7 +49231,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -49434,16 +49243,16 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -50169,12 +49978,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -50186,7 +49992,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -50198,16 +50004,16 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -50932,12 +50738,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -50949,7 +50752,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -50961,16 +50764,16 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -51739,12 +51542,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -51756,7 +51556,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -51768,16 +51568,16 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -52517,12 +52317,9 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -52534,7 +52331,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -52586,7 +52383,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -52597,7 +52394,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
-		EndpointsProvider:   endpointsProvider,
+		EndpointsProvider:   endpointsEndpoints,
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
@@ -53172,12 +52969,9 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -53189,7 +52983,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -53797,12 +53591,9 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -53814,7 +53605,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -54157,12 +53948,9 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -54472,7 +54260,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -54573,7 +54361,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
@@ -55202,12 +54990,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -55219,7 +55004,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -55231,16 +55016,16 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
+		Endpoints: endpointsEndpoints,
 	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  urlProvider,
@@ -55379,7 +55164,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -55390,7 +55175,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
-		EndpointsProvider:   endpointsProvider,
+		EndpointsProvider:   endpointsEndpoints,
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
