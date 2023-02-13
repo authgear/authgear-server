@@ -84,20 +84,6 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return nil
 	})
 
-	ctrl.PostAction("matched", func() error {
-		u := url.URL{}
-		u.Path = r.URL.Path
-		q := r.URL.Query()
-		q.Set(MagicLinkOTPPageQueryStateKey, string(MagicLinkOTPPageQueryStateMatched))
-		u.RawQuery = q.Encode()
-		result := webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-		}
-		result.WriteResponse(w, r)
-		return nil
-	})
-
 	ctrl.PostAction("", func() error {
 		err := VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
