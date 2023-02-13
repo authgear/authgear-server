@@ -51968,12 +51968,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	mainOriginProvider := &MainOriginProvider{
+	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
-	}
-	endpointsProvider := &EndpointsProvider{
-		OriginProvider: mainOriginProvider,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -51985,7 +51982,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         endpointsProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -51996,22 +51993,16 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	urlProvider := &webapp2.URLProvider{
-		Endpoints: endpointsProvider,
-	}
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsProvider,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    endpointsProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  urlProvider,
+		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -52027,7 +52018,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Config:            forgotPasswordConfig,
 		Store:             forgotpasswordStore,
 		Clock:             clockClock,
-		URLs:              urlProvider,
+		URLs:              endpointsEndpoints,
 		TaskQueue:         queue,
 		Logger:            providerLogger,
 		Identities:        identityFacade,
