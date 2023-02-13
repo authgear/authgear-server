@@ -7,8 +7,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+type WechatEndpoints interface {
+	WeChatAuthorizeEndpointURL() *url.URL
+	WeChatCallbackEndpointURL() *url.URL
+}
+
 type WechatURLProvider struct {
-	Endpoints EndpointsProvider
+	Endpoints WechatEndpoints
 }
 
 func (p *WechatURLProvider) AuthorizeEndpointURL(c config.OAuthSSOProviderConfig) *url.URL {

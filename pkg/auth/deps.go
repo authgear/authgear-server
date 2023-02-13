@@ -81,19 +81,19 @@ var DependencySet = wire.NewSet(
 
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(webapp.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(forgotpassword.URLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(webapp.WechatEndpoints), new(*endpoints.Endpoints)),
 	),
 
 	webapp.DependencySet,
-	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
-	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
-	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
 

@@ -4,7 +4,9 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type Endpoints struct {
@@ -56,4 +58,28 @@ func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
 
 func (e *Endpoints) MagicLinkVerificationEndpointURL() *url.URL {
 	return e.urlOf("flows/verify_login_link")
+}
+
+func (e *Endpoints) LogoutURL(redirectURI *url.URL) *url.URL {
+	return urlutil.WithQueryParamsAdded(
+		e.LogoutEndpointURL(),
+		map[string]string{"redirect_uri": redirectURI.String()},
+	)
+}
+
+func (e *Endpoints) SettingsURL() *url.URL {
+	return e.SettingsEndpointURL()
+}
+
+func (e *Endpoints) ResetPasswordURL(code string) *url.URL {
+	return urlutil.WithQueryParamsAdded(
+		e.ResetPasswordEndpointURL(),
+		map[string]string{"code": code},
+	)
+}
+
+func (e *Endpoints) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
+	u := e.SSOCallbackEndpointURL()
+	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
+	return u
 }
