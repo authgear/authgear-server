@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
@@ -86,19 +87,17 @@ var DependencySet = wire.NewSet(
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),
 
-	wire.Struct(new(BaseURLProvider), "*"),
-	wire.Struct(new(SSOCallbackURLProvider), "*"),
-	wire.Struct(new(ResetPasswordURLProvider), "*"),
-	wire.Struct(new(WechatURLProvider), "*"),
-	wire.Struct(new(OAuthURLProvider), "*"),
-	wire.Bind(new(sso.EndpointsProvider), new(*BaseURLProvider)),
-	wire.Bind(new(sso.RedirectURLProvider), new(*SSOCallbackURLProvider)),
-	wire.Bind(new(otp.EndpointsProvider), new(*BaseURLProvider)),
-	wire.Bind(new(forgotpassword.URLProvider), new(*ResetPasswordURLProvider)),
-	wire.Bind(new(sso.WechatURLProvider), new(*WechatURLProvider)),
-	wire.Bind(new(oauth.EndpointsProvider), new(*OAuthURLProvider)),
-	wire.Bind(new(oauth.BaseURLProvider), new(*BaseURLProvider)),
-	wire.Bind(new(oidc.BaseURLProvider), new(*BaseURLProvider)),
+	wire.NewSet(
+		endpoints.DependencySet,
+		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(forgotpassword.URLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.WechatURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
+	),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.JSONResponseWriter), new(*httputil.JSONResponseWriter)),

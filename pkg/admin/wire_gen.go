@@ -38,6 +38,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
@@ -747,8 +748,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	baseURLProvider := &BaseURLProvider{
-		HTTP: httpConfig,
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
 	}
 	hardSMSBucketer := &usage.HardSMSBucketer{
 		FeatureConfig: featureConfig,
@@ -760,7 +762,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	messageSender := &otp.MessageSender{
 		Translation:       translationService,
-		Endpoints:         baseURLProvider,
+		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
 		Events:            eventService,
 		RateLimiter:       limiter,
@@ -771,18 +773,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	ssoCallbackURLProvider := &SSOCallbackURLProvider{}
-	wechatURLProvider := &WechatURLProvider{}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                    baseURLProvider,
+		Endpoints:                    endpointsEndpoints,
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
-		RedirectURL:                  ssoCallbackURLProvider,
+		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -791,7 +791,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Redis:   appredisHandle,
 	}
-	resetPasswordURLProvider := &ResetPasswordURLProvider{}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
@@ -799,7 +798,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:            forgotPasswordConfig,
 		Store:             forgotpasswordStore,
 		Clock:             clockClock,
-		URLs:              resetPasswordURLProvider,
+		URLs:              endpointsEndpoints,
 		TaskQueue:         queue,
 		Logger:            providerLogger,
 		Identities:        identityFacade,
@@ -940,7 +939,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: baseURLProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clockClock,
 	}
@@ -948,7 +947,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    baseURLProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
