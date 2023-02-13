@@ -6,6 +6,7 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -26,7 +27,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handler.VerificationService), new(*verification.Service)),
 	wire.Bind(new(handler.UserProvider), new(*user.Queries)),
 
-	wire.Struct(new(EndpointsProvider), "*"),
-	wire.Bind(new(oauth.BaseURLProvider), new(*EndpointsProvider)),
-	wire.Bind(new(oidc.BaseURLProvider), new(*EndpointsProvider)),
+	wire.NewSet(
+		endpoints.DependencySet,
+		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
+	),
 )

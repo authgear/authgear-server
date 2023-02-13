@@ -25,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -181,8 +182,11 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Clock:       clock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	endpointsProvider := &EndpointsProvider{
-		HTTP: httpConfig,
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
 	}
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -270,7 +274,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Resolver: templateResolver,
 	}
 	localizationConfig := appConfig.Localization
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -457,7 +460,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Clock:             clock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -494,7 +496,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
+		BaseURL: endpointsEndpoints,
 		Users:   queries,
 		Clock:   clock,
 	}
@@ -595,7 +597,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clock,
 		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsProvider,
+		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
