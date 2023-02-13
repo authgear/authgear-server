@@ -44,6 +44,8 @@ func (*IntentCreateLoginID) CanReactTo(ctx context.Context, deps *workflow.Depen
 		return nil, nil
 	case 2:
 		return nil, nil
+	case 3:
+		return nil, nil
 	default:
 		return nil, workflow.ErrEOF
 	}
@@ -97,6 +99,11 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
 			IdentityInfo: iden,
 			IsFromSignUp: true,
+		}), nil
+	case 3:
+		iden := i.identityInfo(w)
+		return workflow.NewSubWorkflow(&IntentCreateOOBOTPAuthenticatorForLoginID{
+			IdentityInfo: iden,
 		}), nil
 	}
 
