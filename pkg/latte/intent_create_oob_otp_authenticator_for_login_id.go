@@ -22,6 +22,8 @@ type IntentCreateOOBOTPAuthenticatorForLoginID struct {
 	AuthenticatorIsDefault bool           `json:"authenticator_is_default"`
 }
 
+var _ NewAuthenticatorGetter = &IntentCreateOOBOTPAuthenticatorForLoginID{}
+
 func (*IntentCreateOOBOTPAuthenticatorForLoginID) Kind() string {
 	return "latte.IntentCreateOOBOTPAuthenticatorForLoginID"
 }
@@ -97,4 +99,12 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetEffects(ctx context.Context
 
 func (*IntentCreateOOBOTPAuthenticatorForLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
+}
+
+func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool) {
+	node, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](w)
+	if !ok {
+		return nil, false
+	}
+	return node.AuthenticatorInfo, true
 }

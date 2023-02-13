@@ -65,8 +65,10 @@ type EventService interface {
 }
 
 type UserService interface {
+	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
 	UpdateLoginTime(userID string, t time.Time) error
+	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info, isAdminAPI bool, webhookState string) error
 }
 
 type IDPSessionService interface {

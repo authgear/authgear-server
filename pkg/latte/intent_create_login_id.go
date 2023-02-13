@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -25,6 +26,9 @@ type IntentCreateLoginID struct {
 	LoginIDType model.LoginIDKeyType `json:"login_id_type"`
 	LoginIDKey  string               `json:"login_id_key"`
 }
+
+var _ NewIdentityGetter = &IntentCreateLoginID{}
+var _ NewAuthenticatorGetter = &IntentCreateLoginID{}
 
 func (*IntentCreateLoginID) Kind() string {
 	return "latte.IntentCreateLoginID"
@@ -125,6 +129,23 @@ func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Depen
 
 func (*IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
+}
+
+func (*IntentCreateLoginID) GetNewIdentity(w *workflow.Workflow) (*identity.Info, bool) {
+	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
+	if !ok {
+		return nil, false
+	}
+	return node.IdentityInfo, true
+}
+
+func (*IntentCreateLoginID) GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool) {
+	ws := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
+	if len(ws) != 1 {
+		return nil, false
+	}
+	subworkflow := ws[0]
+	return subworkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticator(subworkflow)
 }
 
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {

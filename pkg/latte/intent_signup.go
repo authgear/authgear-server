@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -98,9 +99,48 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
-	// TODO(workflow): Fire user.created.
-	return nil, nil
+func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+	return []workflow.Effect{
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			var identities []*identity.Info
+			identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](w)
+			for _, subWorkflow := range identityWorkflows {
+				if iden, ok := subWorkflow.Intent.(NewIdentityGetter).GetNewIdentity(subWorkflow); ok {
+					identities = append(identities, iden)
+				}
+			}
+
+			var authenticators []*authenticator.Info
+			authenticatorWorkflows := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
+			for _, subWorkflow := range authenticatorWorkflows {
+				if a, ok := subWorkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticator(subWorkflow); ok {
+					authenticators = append(authenticators, a)
+				}
+			}
+
+			userID := i.userID(w)
+			isAdminAPI := false
+			state := workflow.GetState(ctx)
+
+			u, err := deps.Users.GetRaw(userID)
+			if err != nil {
+				return err
+			}
+
+			err = deps.Users.AfterCreate(
+				u,
+				identities,
+				authenticators,
+				isAdminAPI,
+				state,
+			)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}),
+	}, nil
 }
 
 func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
@@ -113,4 +153,14 @@ func (i *IntentSignup) userID(w *workflow.Workflow) string {
 		panic(fmt.Errorf("expected userID"))
 	}
 	return node.UserID
+}
+
+type NewIdentityGetter interface {
+	workflow.Intent
+	GetNewIdentity(w *workflow.Workflow) (*identity.Info, bool)
+}
+
+type NewAuthenticatorGetter interface {
+	workflow.Intent
+	GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool)
 }
