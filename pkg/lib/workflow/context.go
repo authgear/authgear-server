@@ -11,3 +11,19 @@ var contextKeyClientID = contextKeyTypeClientID{}
 func GetClientID(ctx context.Context) string {
 	return ctx.Value(contextKeyClientID).(string)
 }
+
+type contextKeyTypeSuppressIDPSessionCookie struct{}
+
+var contextKeySuppressIDPSessionCookie = contextKeyTypeSuppressIDPSessionCookie{}
+
+func GetSuppressIDPSessionCookie(ctx context.Context) bool {
+	return ctx.Value(contextKeySuppressIDPSessionCookie).(bool)
+}
+
+type contextKeyTypeState struct{}
+
+var contextKeyState = contextKeyTypeState{}
+
+func GetState(ctx context.Context) string {
+	return ctx.Value(contextKeyState).(string)
+}

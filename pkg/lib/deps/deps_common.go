@@ -77,6 +77,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		authenticationinfo.DependencySet,
 		wire.Bind(new(interaction.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+		wire.Bind(new(workflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	),
 
@@ -128,6 +129,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.ServiceIDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(oidc.IDTokenHintResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(workflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
@@ -139,6 +141,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
+		wire.Bind(new(workflow.SessionService), new(*session.Manager)),
 	),
 
 	wire.NewSet(
@@ -221,6 +224,7 @@ var CommonDependencySet = wire.NewSet(
 
 		wire.Bind(new(interaction.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(interaction.AuthenticatorService), new(facade.AuthenticatorFacade)),
+		wire.Bind(new(workflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.IdentityService), new(facade.IdentityFacade)),
@@ -231,6 +235,7 @@ var CommonDependencySet = wire.NewSet(
 		user.DependencySet,
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
+		wire.Bind(new(workflow.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
@@ -357,6 +362,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
+		wire.Bind(new(workflow.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
 
