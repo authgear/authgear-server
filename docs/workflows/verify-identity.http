@@ -8,13 +8,14 @@ exports.headers = {
 }}
 
 {{+response
-$global.instance_id = response.parsedBody.result?.workflow?.instance_id ?? $global.instance_id;
+$global.workflow_id = response.parsedBody?.result?.workflow?.workflow_id ?? $global.workflow_id;
+$global.instance_id = response.parsedBody?.result?.workflow?.instance_id ?? $global.instance_id;
 }}
 
 
 ###
 # @name start
-POST {{HOST}}/api/workflow/v1
+POST {{HOST}}/api/v1/workflows
 ...headers
 
 {
@@ -27,13 +28,13 @@ POST {{HOST}}/api/workflow/v1
 
 ###
 # @name get
-GET {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+GET {{HOST}}/api/v1/workflows/{{$global.workflow_id}}/instances/{{$global.instance_id}}
 ...headers
 
 
 ###
 # @name trigger
-POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+POST {{HOST}}/api/v1/workflows/{{$global.workflow_id}}/instances/{{$global.instance_id}}
 ...headers
 
 {
@@ -49,7 +50,7 @@ POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
 
 ###
 # @name resend_code
-POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+POST {{HOST}}/api/v1/workflows/{{$global.workflow_id}}/instances/{{$global.instance_id}}
 ...headers
 
 {
@@ -63,7 +64,7 @@ POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
 
 ###
 # @name enter_otp
-POST {{HOST}}/api/workflow/v1/{{$global.instance_id}}
+POST {{HOST}}/api/v1/workflows/{{$global.workflow_id}}/instances/{{$global.instance_id}}
 ...headers
 
 {

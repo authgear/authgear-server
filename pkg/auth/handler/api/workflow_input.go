@@ -15,7 +15,7 @@ import (
 func ConfigureWorkflowInputRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("POST", "OPTIONS").
-		WithPathPattern("/api/workflow/v1/:instanceid")
+		WithPathPattern("/api/v1/workflows/:workflowid/instances/:instanceid")
 }
 
 var WorkflowInputRequestSchema = validation.NewSimpleSchema(`
@@ -41,7 +41,7 @@ type WorkflowInputRequest struct {
 }
 
 type WorkflowInputWorkflowService interface {
-	FeedInput(instanceID string, input workflow.Input) (*workflow.ServiceOutput, error)
+	FeedInput(workflowID string, instanceID string, input workflow.Input) (*workflow.ServiceOutput, error)
 }
 
 type WorkflowInputHandler struct {
@@ -51,6 +51,7 @@ type WorkflowInputHandler struct {
 }
 
 func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	workflowID := httproute.GetParam(r, "workflowid")
 	instanceID := httproute.GetParam(r, "instanceid")
 
 	var err error
@@ -64,7 +65,7 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	var output *workflow.ServiceOutput
 	err = h.Database.WithTx(func() error {
-		output, err = h.handle(w, r, instanceID, request)
+		output, err = h.handle(w, r, workflowID, instanceID, request)
 		return err
 	})
 	if err != nil {
@@ -83,13 +84,19 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowInputHandler) handle(w http.ResponseWriter, r *http.Request, instanceID string, request WorkflowInputRequest) (*workflow.ServiceOutput, error) {
+func (h *WorkflowInputHandler) handle(
+	w http.ResponseWriter,
+	r *http.Request,
+	workflowID string,
+	instanceID string,
+	request WorkflowInputRequest,
+) (*workflow.ServiceOutput, error) {
 	input, err := workflow.InstantiateInputFromPublicRegistry(request.Input)
 	if err != nil {
 		return nil, err
 	}
 
-	output, err := h.Workflows.FeedInput(instanceID, input)
+	output, err := h.Workflows.FeedInput(workflowID, instanceID, input)
 	if err != nil && errors.Is(err, workflow.ErrNoChange) {
 		err = workflow.ErrInvalidInputKind
 	}

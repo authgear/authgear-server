@@ -17,7 +17,7 @@ import (
 func ConfigureWorkflowNewRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("POST", "OPTIONS").
-		WithPathPattern("/api/workflow/v1")
+		WithPathPattern("/api/v1/workflows")
 }
 
 var WorkflowNewRequestSchema = validation.NewSimpleSchema(`
