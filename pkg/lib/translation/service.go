@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -119,17 +120,20 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 }
 
 func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMessageData, error) {
-	sender, replyTo, subject, err := s.emailMessageHeader(msg.Name, args)
+	data := map[string]interface{}{"ClientID": clientid.GetClientID(s.Context)}
+	template.Embed(data, args)
+
+	sender, replyTo, subject, err := s.emailMessageHeader(msg.Name, data)
 	if err != nil {
 		return nil, err
 	}
 
-	textBody, err := s.renderTemplate(msg.TXTEmailTemplate, args)
+	textBody, err := s.renderTemplate(msg.TXTEmailTemplate, data)
 	if err != nil {
 		return nil, err
 	}
 
-	htmlBody, err := s.renderTemplate(msg.HTMLEmailTemplate, args)
+	htmlBody, err := s.renderTemplate(msg.HTMLEmailTemplate, data)
 	if err != nil {
 		return nil, err
 	}
@@ -168,12 +172,15 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 }
 
 func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessageData, error) {
-	sender, err := s.smsMessageHeader(msg.Name, args)
+	data := map[string]interface{}{"ClientID": clientid.GetClientID(s.Context)}
+	template.Embed(data, args)
+
+	sender, err := s.smsMessageHeader(msg.Name, data)
 	if err != nil {
 		return nil, err
 	}
 
-	body, err := s.renderTemplate(msg.SMSTemplate, args)
+	body, err := s.renderTemplate(msg.SMSTemplate, data)
 	if err != nil {
 		return nil, err
 	}
