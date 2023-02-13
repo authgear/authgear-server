@@ -55,6 +55,11 @@ func (i *IntentCreateSession) ReactTo(ctx context.Context, deps *workflow.Depend
 		"true",
 	)
 
+	if i.SkipCreate {
+		s = nil
+		sessionCookie = nil
+	}
+
 	return workflow.NewNodeSimple(&NodeDoCreateSession{
 		UserID:                   i.UserID,
 		CreateReason:             i.CreateReason,

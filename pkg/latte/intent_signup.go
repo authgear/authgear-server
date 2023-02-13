@@ -88,9 +88,8 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 			UserID:       i.userID(w),
 			CreateReason: session.CreateReasonSignup,
 			// FIXME(workflow): AMR
-			AMR: nil,
-			// FIXME(workflow): SkipCreate
-			SkipCreate: false,
+			AMR:        nil,
+			SkipCreate: workflow.GetSuppressIDPSessionCookie(ctx),
 		}), nil
 	}
 

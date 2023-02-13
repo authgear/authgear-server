@@ -42,5 +42,7 @@ func (s *Session) ToOutput() *SessionOutput {
 }
 
 func (s *Session) Context(ctx context.Context) context.Context {
-	return context.WithValue(ctx, contextKeyClientID, s.ClientID)
+	ctx = context.WithValue(ctx, contextKeyClientID, s.ClientID)
+	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
+	return ctx
 }
