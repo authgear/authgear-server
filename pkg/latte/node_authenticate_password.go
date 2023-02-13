@@ -2,7 +2,9 @@ package latte
 
 import (
 	"context"
+	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
@@ -24,10 +26,31 @@ func (n *NodeAuthenticatePassword) GetEffects(ctx context.Context, deps *workflo
 }
 
 func (n *NodeAuthenticatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	return []workflow.Input{}, nil
+	return []workflow.Input{
+		&InputPassword{},
+	}, nil
 }
 
 func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+	var inputPassword inputPassword
+	switch {
+	case workflow.AsInput(input, &inputPassword):
+		info := n.Authenticator
+		_, err := deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: inputPassword.GetPassword(),
+			},
+		})
+		if err != nil {
+			if errors.Is(err, authenticator.ErrInvalidCredentials) {
+				err = api.ErrInvalidCredentials
+			}
+			return nil, err
+		}
+		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{
+			Authenticator: info,
+		}), nil
+	}
 	return nil, workflow.ErrIncompatibleInput
 }
 
