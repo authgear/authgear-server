@@ -83,3 +83,9 @@ func (e *Endpoints) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
 	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
 	return u
 }
+
+func (e *Endpoints) WeChatAuthorizeURL(c config.OAuthSSOProviderConfig) *url.URL {
+	u := e.WeChatAuthorizeEndpointURL()
+	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
+	return u
+}

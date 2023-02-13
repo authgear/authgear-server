@@ -90,11 +90,10 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(forgotpassword.URLProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(webapp.WechatEndpoints), new(*endpoints.Endpoints)),
+		wire.Bind(new(sso.WechatURLProvider), new(*endpoints.Endpoints)),
 	),
 
 	webapp.DependencySet,
-	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),

@@ -1701,9 +1701,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -1713,7 +1710,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -4239,9 +4236,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -4251,7 +4245,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -5072,9 +5066,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -5084,7 +5075,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -5847,9 +5838,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -5859,7 +5847,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -6728,9 +6716,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -6740,7 +6725,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -7547,9 +7532,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -7559,7 +7541,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -8365,9 +8347,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -8377,7 +8356,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -9171,9 +9150,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -9183,7 +9159,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -9970,9 +9946,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -9982,7 +9955,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -10759,9 +10732,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -10771,7 +10741,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -11551,9 +11521,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -11563,7 +11530,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -12346,9 +12313,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -12358,7 +12322,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -13143,9 +13107,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -13155,7 +13116,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -13938,9 +13899,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -13950,7 +13908,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -14729,9 +14687,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -14741,7 +14696,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -15524,9 +15479,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -15536,7 +15488,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -16320,9 +16272,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -16332,7 +16281,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -17115,9 +17064,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -17127,7 +17073,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -17910,9 +17856,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -17922,7 +17865,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -18707,9 +18650,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -18719,7 +18659,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -19502,9 +19442,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -19514,7 +19451,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -20297,9 +20234,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -20309,7 +20243,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -21096,9 +21030,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -21108,7 +21039,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -21891,9 +21822,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -21903,7 +21831,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -22747,9 +22675,6 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -22759,7 +22684,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -23551,9 +23476,6 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -23563,7 +23485,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -24363,9 +24285,6 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -24375,7 +24294,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -25161,9 +25080,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -25173,7 +25089,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -25956,9 +25872,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -25968,7 +25881,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -26747,9 +26660,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -26759,7 +26669,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -27542,9 +27452,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -27554,7 +27461,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -28333,9 +28240,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -28345,7 +28249,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -29134,9 +29038,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -29146,7 +29047,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -29925,9 +29826,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -29937,7 +29835,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -30718,9 +30616,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -30730,7 +30625,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -31509,9 +31404,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -31521,7 +31413,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -32332,9 +32224,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -32344,7 +32233,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -33134,9 +33023,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -33146,7 +33032,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -33949,9 +33835,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -33961,7 +33844,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -34748,9 +34631,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -34760,7 +34640,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -35540,9 +35420,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -35552,7 +35429,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -36340,9 +36217,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -36352,7 +36226,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -37132,9 +37006,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -37144,7 +37015,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -37924,9 +37795,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -37936,7 +37804,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -38716,9 +38584,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -38728,7 +38593,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -39509,9 +39374,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -39521,7 +39383,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -40320,9 +40182,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -40332,7 +40191,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -41112,9 +40971,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -41124,7 +40980,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -41904,9 +41760,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -41916,7 +41769,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -42696,9 +42549,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -42708,7 +42558,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -43488,9 +43338,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -43500,7 +43347,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -44287,9 +44134,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -44299,7 +44143,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -45080,9 +44924,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -45092,7 +44933,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -45871,9 +45712,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -45883,7 +45721,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -46677,9 +46515,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -46689,7 +46524,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -47468,9 +47303,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -47480,7 +47312,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -48259,9 +48091,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -48271,7 +48100,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -49068,9 +48897,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -49080,7 +48906,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -49826,9 +49652,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -49838,7 +49661,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -50583,9 +50406,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -50595,7 +50415,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -51384,9 +51204,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -51396,7 +51213,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
@@ -54829,9 +54646,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OTPMessageSender: messageSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	wechatURLProvider := &webapp2.WechatURLProvider{
-		Endpoints: endpointsEndpoints,
-	}
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
@@ -54841,7 +54655,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Credentials:                  oAuthSSOProviderCredentials,
 		RedirectURL:                  endpointsEndpoints,
 		Clock:                        clockClock,
-		WechatURLProvider:            wechatURLProvider,
+		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
