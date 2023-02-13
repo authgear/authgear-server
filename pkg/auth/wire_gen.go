@@ -52770,20 +52770,35 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	dependencies := &workflow.Dependencies{
-		Config:          appConfig,
-		FeatureConfig:   featureConfig,
-		Clock:           clockClock,
-		RemoteIP:        remoteIP,
-		Users:           userProvider,
-		Identities:      identityFacade,
-		Authenticators:  authenticatorFacade,
-		StdAttrsService: stdattrsService,
-		OTPCodes:        otpService,
-		OOBCodeSender:   codeSender,
-		Verification:    workflowVerificationFacade,
-		Events:          eventService,
-		RateLimiter:     limiter,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OOBCodeSender:       codeSender,
+		Verification:        workflowVerificationFacade,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
@@ -53432,20 +53447,35 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	dependencies := &workflow.Dependencies{
-		Config:          appConfig,
-		FeatureConfig:   featureConfig,
-		Clock:           clockClock,
-		RemoteIP:        remoteIP,
-		Users:           userProvider,
-		Identities:      identityFacade,
-		Authenticators:  authenticatorFacade,
-		StdAttrsService: stdattrsService,
-		OTPCodes:        otpService,
-		OOBCodeSender:   codeSender,
-		Verification:    workflowVerificationFacade,
-		Events:          eventService,
-		RateLimiter:     limiter,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OOBCodeSender:       codeSender,
+		Verification:        workflowVerificationFacade,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
@@ -54064,20 +54094,35 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
 	dependencies := &workflow.Dependencies{
-		Config:          appConfig,
-		FeatureConfig:   featureConfig,
-		Clock:           clockClock,
-		RemoteIP:        remoteIP,
-		Users:           userProvider,
-		Identities:      identityFacade,
-		Authenticators:  authenticatorFacade,
-		StdAttrsService: stdattrsService,
-		OTPCodes:        otpService,
-		OOBCodeSender:   codeSender,
-		Verification:    workflowVerificationFacade,
-		Events:          eventService,
-		RateLimiter:     limiter,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OOBCodeSender:       codeSender,
+		Verification:        workflowVerificationFacade,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{

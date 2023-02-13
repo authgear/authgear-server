@@ -1,10 +1,12 @@
 package workflow
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -12,6 +14,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -62,10 +66,29 @@ type EventService interface {
 
 type UserService interface {
 	Create(userID string) (*user.User, error)
+	UpdateLoginTime(userID string, t time.Time) error
+}
+
+type IDPSessionService interface {
+	MakeSession(*session.Attrs) (*idpsession.IDPSession, string)
+	Create(*idpsession.IDPSession) error
+}
+
+type SessionService interface {
+	RevokeWithoutEvent(session.Session) error
 }
 
 type StdAttrsService interface {
 	PopulateStandardAttributes(userID string, iden *identity.Info) error
+}
+
+type AuthenticationInfoService interface {
+	Save(entry *authenticationinfo.Entry) error
+}
+
+type CookieManager interface {
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type Dependencies struct {
@@ -82,6 +105,13 @@ type Dependencies struct {
 	OTPCodes        OTPCodeService
 	OOBCodeSender   OOBCodeSender
 	Verification    VerificationService
+
+	IDPSessions         IDPSessionService
+	Sessions            SessionService
+	AuthenticationInfos AuthenticationInfoService
+	SessionCookie       session.CookieDef
+
+	Cookies CookieManager
 
 	Events      EventService
 	RateLimiter RateLimiter

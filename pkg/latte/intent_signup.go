@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -47,6 +48,9 @@ func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies
 	case 3:
 		// Create a primary password.
 		return nil, nil
+	case 4:
+		// Create a session, if needed.
+		return nil, nil
 	default:
 		return nil, workflow.ErrEOF
 	}
@@ -78,6 +82,15 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 			UserID:                 i.userID(w),
 			AuthenticatorKind:      authenticator.KindPrimary,
 			AuthenticatorIsDefault: false,
+		}), nil
+	case 4:
+		return workflow.NewSubWorkflow(&IntentCreateSession{
+			UserID:       i.userID(w),
+			CreateReason: session.CreateReasonSignup,
+			// FIXME(workflow): AMR
+			AMR: nil,
+			// FIXME(workflow): SkipCreate
+			SkipCreate: false,
 		}), nil
 	}
 
