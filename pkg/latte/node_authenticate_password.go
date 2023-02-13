@@ -41,10 +41,12 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 				PlainPassword: inputPassword.GetPassword(),
 			},
 		})
-		if err != nil {
-			if errors.Is(err, authenticator.ErrInvalidCredentials) {
-				err = api.ErrInvalidCredentials
+		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+			if err := DispatchAuthenticationFailedEvent(deps.Events, info); err != nil {
+				return nil, err
 			}
+			return nil, api.ErrInvalidCredentials
+		} else if err != nil {
 			return nil, err
 		}
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{

@@ -65,6 +65,7 @@ type RateLimiter interface {
 
 type EventService interface {
 	DispatchEvent(payload event.Payload) error
+	DispatchErrorEvent(payload event.NonBlockingPayload) error
 }
 
 type UserService interface {

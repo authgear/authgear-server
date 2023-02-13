@@ -54,10 +54,11 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	case workflow.AsInput(input, &inputCheckLoginLinkVerified):
 		info := n.Authenticator
 		_, err := deps.OTPCodes.VerifyMagicLinkCodeByTarget(info.OOBOTP.Email, true)
-		if err != nil {
-			if errors.Is(err, otp.ErrInvalidCode) {
-				err = api.ErrInvalidCredentials
-			}
+		if errors.Is(err, otp.ErrInvalidCode) {
+			// Don't fire the AuthenticationFailedEvent
+			// The event should be fired only when the user submits code through the login link
+			return nil, api.ErrInvalidCredentials
+		} else if err != nil {
 			return nil, err
 		}
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{
