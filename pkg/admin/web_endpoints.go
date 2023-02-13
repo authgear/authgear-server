@@ -42,11 +42,11 @@ func (*OAuthURLProvider) RevokeEndpointURL() *url.URL {
 
 type WechatURLProvider struct{}
 
-func (*WechatURLProvider) AuthorizeEndpointURL(config.OAuthSSOProviderConfig) *url.URL {
+func (*WechatURLProvider) WeChatAuthorizeURL(config.OAuthSSOProviderConfig) *url.URL {
 	panic("not implemented")
 }
 
-func (*WechatURLProvider) CallbackEndpointURL() *url.URL {
+func (*WechatURLProvider) WeChatCallbackEndpointURL() *url.URL {
 	panic("not implemented")
 }
 

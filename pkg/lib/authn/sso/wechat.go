@@ -13,8 +13,8 @@ const (
 )
 
 type WechatURLProvider interface {
-	AuthorizeEndpointURL(c config.OAuthSSOProviderConfig) *url.URL
-	CallbackEndpointURL() *url.URL
+	WeChatAuthorizeURL(c config.OAuthSSOProviderConfig) *url.URL
+	WeChatCallbackEndpointURL() *url.URL
 }
 
 type WechatImpl struct {
@@ -36,7 +36,7 @@ func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	v := url.Values{}
 	v.Add("response_type", "code")
 	v.Add("appid", w.ProviderConfig.ClientID)
-	v.Add("redirect_uri", w.URLProvider.CallbackEndpointURL().String())
+	v.Add("redirect_uri", w.URLProvider.WeChatCallbackEndpointURL().String())
 	v.Add("scope", w.ProviderConfig.Type.Scope())
 	v.Add("state", param.State)
 	prompt := w.GetPrompt(param.Prompt)
@@ -47,7 +47,7 @@ func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	authURL := wechatAuthorizationURL + "?" + v.Encode()
 	v = url.Values{}
 	v.Add("x_auth_url", authURL)
-	return w.URLProvider.AuthorizeEndpointURL(w.ProviderConfig).String() + "?" + v.Encode(), nil
+	return w.URLProvider.WeChatAuthorizeURL(w.ProviderConfig).String() + "?" + v.Encode(), nil
 }
 
 func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error) {
