@@ -143,7 +143,7 @@ func (p *Provider) SendCode(loginID string) error {
 		}
 
 		p.Logger.Debugf("sending sms")
-		if err := p.sendSMS(phone, codeStr); err != nil {
+		if err := p.sendSMS(phone, codeStr, info.UserID); err != nil {
 			return err
 		}
 	}
@@ -165,13 +165,17 @@ func (p *Provider) newCode(userID string) (code *Code, codeStr string) {
 	return
 }
 
-func (p *Provider) sendEmail(email string, code string, userID string) error {
-	// List out all primary password the user has.
-	ais, err := p.Authenticators.List(
+// List out all primary password the user has.
+func (p *Provider) getPrimaryPasswordList(userID string) ([]*authenticator.Info, error) {
+	return p.Authenticators.List(
 		userID,
 		authenticator.KeepType(model.AuthenticatorTypePassword),
 		authenticator.KeepKind(authenticator.KindPrimary),
 	)
+}
+
+func (p *Provider) sendEmail(email string, code string, userID string) error {
+	ais, err := p.getPrimaryPasswordList(userID)
 	if err != nil {
 		return err
 	}
@@ -217,7 +221,12 @@ func (p *Provider) sendEmail(email string, code string, userID string) error {
 	return nil
 }
 
-func (p *Provider) sendSMS(phone string, code string) (err error) {
+func (p *Provider) sendSMS(phone string, code string, userID string) (err error) {
+	ais, err := p.getPrimaryPasswordList(userID)
+	if err != nil {
+		return err
+	}
+
 	fc := p.FeatureConfig
 	if fc.Identity.LoginID.Types.Phone.Disabled {
 		return feature.ErrFeatureDisabledSendingSMS
@@ -226,8 +235,9 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 	u := p.URLs.ResetPasswordURL(code)
 
 	data := TemplateData{
-		Code: code,
-		Link: u.String(),
+		Code:        code,
+		Link:        u.String(),
+		HasPassword: len(ais) > 0,
 	}
 
 	msg, err := p.Translation.SMSMessageData(messageForgotPassword, data)
@@ -342,12 +352,7 @@ func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) error
 // ResetPassword ensures the user identified by userID has a password.
 // It perform necessary mutation to make this happens.
 func (p *Provider) ResetPassword(userID string, newPassword string) (err error) {
-	// List out all primary password the user has.
-	ais, err := p.Authenticators.List(
-		userID,
-		authenticator.KeepType(model.AuthenticatorTypePassword),
-		authenticator.KeepKind(authenticator.KindPrimary),
-	)
+	ais, err := p.getPrimaryPasswordList(userID)
 	if err != nil {
 		return
 	}
