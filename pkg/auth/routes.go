@@ -172,6 +172,17 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// A unique visit is started when the user visit auth entry point
 		p.Middleware(newWebAppVisitorIDMiddleware),
 	)
+	webappRequireAuthEnabledAuthEntrypointChain := httproute.Chain(
+		webappPageChain,
+		p.Middleware((newRequireAuthenticationEnabledMiddleware)),
+		p.Middleware(newAuthEntryPointMiddleware),
+		// A unique visit is started when the user visit auth entry point
+		p.Middleware(newWebAppVisitorIDMiddleware),
+	)
+	webappPromoteChain := httproute.Chain(
+		webappPageChain,
+		p.Middleware((newRequireAuthenticationEnabledMiddleware)),
+	)
 	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
 		newWebappPageChain(true),
@@ -189,8 +200,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		// visit the success page
 		p.Middleware(newSuccessPageMiddleware),
 	)
+	webappSettingsChain := httproute.Chain(
+		webappAuthenticatedChain,
+		p.Middleware(newRequireSettingsEnabledMiddleware),
+	)
 	webappSettingsSubRoutesChain := httproute.Chain(
 		webappAuthenticatedChain,
+		p.Middleware(newRequireSettingsEnabledMiddleware),
 		// SettingsSubRoutesMiddleware should be added to all the settings sub routes only
 		// but no /settings itself
 		// it redirects all sub routes to /settings if the current user is
@@ -208,12 +224,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	oauthAPIScopedRoute := httproute.Route{Middleware: oauthAPIScopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
+	webappPromoteRoute := httproute.Route{Middleware: webappPromoteChain}
 	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
+	webappRequireAuthEnabledAuthEntrypointRoute := httproute.Route{Middleware: webappRequireAuthEnabledAuthEntrypointChain}
 	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
 	webappConsentPageRoute := httproute.Route{Middleware: webappConsentPageChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
+	webappSettingsRoute := httproute.Route{Middleware: webappSettingsChain}
 	webappSettingsSubRoutesRoute := httproute.Route{Middleware: webappSettingsSubRoutesChain}
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
@@ -222,11 +241,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
-	router.Add(webapphandler.ConfigureLoginRoute(webappAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
-	router.Add(webapphandler.ConfigureSignupRoute(webappAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
+	router.Add(webapphandler.ConfigureLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
+	router.Add(webapphandler.ConfigureSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 
-	router.Add(webapphandler.ConfigurePromoteRoute(webappPageRoute), p.Handler(newWebAppPromoteHandler))
+	router.Add(webapphandler.ConfigurePromoteRoute(webappPromoteRoute), p.Handler(newWebAppPromoteHandler))
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureConfirmTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebConfirmTerminateOtherSessionsHandler))
 	router.Add(webapphandler.ConfigureUsePasskeyRoute(webappPageRoute), p.Handler(newWebAppUsePasskeyHandler))
@@ -255,6 +274,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureConnectWeb3AccountRoute(webappSIWERoute), p.Handler(newWebAppConnectWeb3AccountHandler))
 	router.Add(webapphandler.ConfigureMissingWeb3WalletRoute(webappPageRoute), p.Handler(newWebAppMissingWeb3WalletHandler))
+	router.Add(webapphandler.ConfigureFeatureDisabledRoute(webappPageRoute), p.Handler(newWebAppFeatureDisabledHandler))
 
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
 	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
@@ -262,7 +282,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
-	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))
+	router.Add(webapphandler.ConfigureSettingsRoute(webappSettingsRoute), p.Handler(newWebAppSettingsHandler))
 
 	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileHandler))
 	router.Add(webapphandler.ConfigureSettingsProfileEditRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileEditHandler))

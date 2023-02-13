@@ -129,6 +129,20 @@ func newWebAppVisitorIDMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	))
 }
 
+func newRequireAuthenticationEnabledMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.RequireAuthenticationEnabledMiddleware)),
+	))
+}
+
+func newRequireSettingsEnabledMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.RequireSettingsEnabledMiddleware)),
+	))
+}
+
 func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
