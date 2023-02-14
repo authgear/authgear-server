@@ -54182,10 +54182,21 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStore := workflow.NewEventStore(appID, handle, storeImpl)
 	factory := appProvider.LoggerFactory
+	httpConfig := appConfig.HTTP
+	oAuthConfig := appConfig.OAuth
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	corsAllowedOrigins := environmentConfig.CORSAllowedOrigins
+	corsMatcher := &middleware.CORSMatcher{
+		Config:             httpConfig,
+		OAuthConfig:        oAuthConfig,
+		CORSAllowedOrigins: corsAllowedOrigins,
+	}
 	workflowWebsocketHandler := &api.WorkflowWebsocketHandler{
 		Events:        eventStore,
 		LoggerFactory: factory,
 		RedisHandle:   handle,
+		OriginMatcher: corsMatcher,
 	}
 	return workflowWebsocketHandler
 }

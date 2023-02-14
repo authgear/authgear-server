@@ -32,6 +32,9 @@ func (h *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		RedisHub:      h.RedisHandle,
 		Delegate:      h,
 		LoggerFactory: h.LoggerFactory,
+		// Let the library to do CORS checking, which by default does not allow CORS.
+		// This websocket endpoint is intended for same-origin use only.
+		OriginMatcher: nil,
 	}
 
 	handler.ServeHTTP(w, r)

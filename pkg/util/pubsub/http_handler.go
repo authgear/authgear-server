@@ -25,6 +25,10 @@ type Delegate interface {
 	OnRedisSubscribe(r *http.Request) error
 }
 
+type WebsocketOriginMatcher interface {
+	MatchOrigin(origin string) bool
+}
+
 const (
 	WebsocketReadTimeout  = 30 * time.Second
 	WebsocketWriteTimeout = 10 * time.Second
@@ -37,6 +41,7 @@ type HTTPHandler struct {
 	RedisHub      RedisHub
 	Delegate      Delegate
 	LoggerFactory *log.Factory
+	OriginMatcher WebsocketOriginMatcher
 }
 
 func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +58,27 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("canceled root context")
 	}()
 
-	wsConn, err := websocket.Accept(w, r, &websocket.AcceptOptions{})
+	insecureSkipVerify := false
+	// If OriginMatcher is non-nil, check CORS here.
+	// Otherwise we let the library to do CORS checking for us.
+	// By default, the library does not allow CORS.
+	if h.OriginMatcher != nil {
+
+		// Non-browser user agent does not send origin header.
+		if origin := r.Header.Get("Origin"); origin != "" {
+			matched := h.OriginMatcher.MatchOrigin(origin)
+			if !matched {
+				http.Error(w, "origin is not allowed", http.StatusForbidden)
+				return
+			}
+			// origin is matched, we can tell the library to skip verify.
+			insecureSkipVerify = true
+		}
+	}
+
+	wsConn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		InsecureSkipVerify: insecureSkipVerify,
+	})
 	if err != nil {
 		logger.WithError(err).Debug("failed to accept websocket connection")
 		return
