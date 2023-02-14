@@ -3,7 +3,9 @@ package latte
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -20,7 +22,27 @@ func (n *NodeVerifiedAuthenticator) Kind() string {
 }
 
 func (n *NodeVerifiedAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
-	return nil, nil
+	return []workflow.Effect{
+		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// Mark authenticator as verified after login
+			var verifiedClaim *verification.Claim
+			switch n.Authenticator.Type {
+			case model.AuthenticatorTypeOOBEmail:
+				verifiedClaim = deps.Verification.NewVerifiedClaim(n.Authenticator.UserID, string(model.ClaimEmail), n.Authenticator.OOBOTP.Email)
+			case model.AuthenticatorTypeOOBSMS:
+				verifiedClaim = deps.Verification.NewVerifiedClaim(n.Authenticator.UserID, string(model.ClaimPhoneNumber), n.Authenticator.OOBOTP.Phone)
+			}
+
+			if verifiedClaim == nil {
+				return nil
+			}
+
+			if err := deps.Verification.MarkClaimVerified(verifiedClaim); err != nil {
+				return err
+			}
+			return nil
+		}),
+	}, nil
 }
 
 func (*NodeVerifiedAuthenticator) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
