@@ -22,11 +22,11 @@ func (n *NodeVerifiedLoginLink) GetEffects(ctx context.Context, deps *workflow.D
 }
 
 func (n *NodeVerifiedLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	return nil, nil
+	return nil, workflow.ErrEOF
 }
 
 func (n *NodeVerifiedLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	return nil, workflow.ErrEOF
+	return nil, workflow.ErrIncompatibleInput
 }
 
 func (n *NodeVerifiedLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
