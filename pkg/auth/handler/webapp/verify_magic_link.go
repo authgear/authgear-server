@@ -115,17 +115,21 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		// Update the web session and trigger the refresh event
-		webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
-			config.AppID(codeModel.AppID),
-		)
-		webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
-		if err != nil {
-			return err
+		if codeModel.WebSessionID != "" {
+			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
+				config.AppID(codeModel.AppID),
+			)
+			webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+			if err != nil {
+				return err
+			}
+			err = webSessionProvider.UpdateSession(webSession)
+			if err != nil {
+				return err
+			}
 		}
-		err = webSessionProvider.UpdateSession(webSession)
-		if err != nil {
-			return err
-		}
+
+		// fixme(workflow): publish workflow refresh event to web socket
 
 		finishWithState(MagicLinkOTPPageQueryStateMatched)
 		return nil
