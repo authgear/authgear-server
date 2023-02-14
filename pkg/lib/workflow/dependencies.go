@@ -32,11 +32,14 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 }
 
 type OTPCodeService interface {
 	GenerateCode(target string, otpMode otp.OTPMode, appID string, webSessionID string) (*otp.Code, error)
 	VerifyCode(target string, code string) error
+	VerifyMagicLinkCodeByTarget(target string, consume bool) (*otp.Code, error)
 }
 
 type OOBCodeSender interface {
@@ -62,6 +65,7 @@ type RateLimiter interface {
 
 type EventService interface {
 	DispatchEvent(payload event.Payload) error
+	DispatchErrorEvent(payload event.NonBlockingPayload) error
 }
 
 type UserService interface {
@@ -93,6 +97,10 @@ type CookieManager interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
+type AntiSpamOTPCodeBucketMaker interface {
+	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -115,6 +123,7 @@ type Dependencies struct {
 
 	Cookies CookieManager
 
-	Events      EventService
-	RateLimiter RateLimiter
+	Events                EventService
+	RateLimiter           RateLimiter
+	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
 }

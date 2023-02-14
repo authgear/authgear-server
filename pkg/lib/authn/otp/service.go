@@ -158,7 +158,10 @@ func (s *Service) VerifyMagicLinkCode(code string, consume bool) (*Code, error) 
 	} else if err != nil {
 		return nil, err
 	}
+	return s.VerifyMagicLinkCodeByTarget(target, consume)
+}
 
+func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Code, error) {
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidMagicLink
@@ -171,7 +174,7 @@ func (s *Service) VerifyMagicLinkCode(code string, consume bool) (*Code, error) 
 	}
 
 	if consume {
-		s.deleteCode(code)
+		s.deleteCode(codeModel.Code)
 	}
 
 	return codeModel, nil

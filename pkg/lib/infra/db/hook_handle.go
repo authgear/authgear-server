@@ -57,11 +57,21 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
 	h.tx = tx
 	defer func() {
+		shouldRunDidRollbackHooks := false
 		shouldRunDidCommitHooks := false
 		// WillCommitTx of hook is allowed to access the database.
 		// So the assignment to nil should happen last.
 		defer func() {
 			h.tx = nil
+
+			if shouldRunDidRollbackHooks {
+				// reset tx to complete the current transcation
+				// before running the DidRollbackTx hook
+				// so new tx can be opened inside the DidRollbackTx hook
+				for _, hook := range h.hooks {
+					hook.DidRollbackTx()
+				}
+			}
 
 			if shouldRunDidCommitHooks {
 				// reset tx to complete the current transcation
@@ -77,7 +87,18 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 			_ = rollbackTx(tx)
 			panic(r)
 		} else if err != nil {
+			// rollback hooks will be fire only for non-fatal errors
+			var hookError error
+			for _, hook := range h.hooks {
+				hookError = hook.WillRollbackTx()
+				if hookError != nil {
+					break
+				}
+			}
 			_ = rollbackTx(tx)
+			if hookError == nil {
+				shouldRunDidRollbackHooks = true
+			}
 		} else {
 			err = commitTx(tx, h.hooks)
 			if err == nil {
