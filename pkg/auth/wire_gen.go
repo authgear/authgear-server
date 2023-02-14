@@ -54334,13 +54334,16 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	corsAllowedOrigins := environmentConfig.CORSAllowedOrigins
-	factory := appProvider.LoggerFactory
-	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
-	corsMiddleware := &middleware.CORSMiddleware{
+	corsMatcher := &middleware.CORSMatcher{
 		Config:             httpConfig,
 		OAuthConfig:        oAuthConfig,
 		CORSAllowedOrigins: corsAllowedOrigins,
-		Logger:             corsMiddlewareLogger,
+	}
+	factory := appProvider.LoggerFactory
+	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
+	corsMiddleware := &middleware.CORSMiddleware{
+		Matcher: corsMatcher,
+		Logger:  corsMiddlewareLogger,
 	}
 	return corsMiddleware
 }
