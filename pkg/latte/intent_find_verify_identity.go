@@ -39,18 +39,18 @@ func (*IntentFindVerifyIdentity) JSONSchema() *validation.SimpleSchema {
 func (*IntentFindVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	if len(w.Nodes) == 0 {
 		return []workflow.Input{
-			&InputTriggerVerification{},
+			&InputSelectClaim{},
 		}, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
 func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var trigger inputTriggerVerification
+	var inputSelectClaim inputSelectClaim
 
 	switch {
-	case workflow.AsInput(input, &trigger):
-		claimName, claimValue := trigger.ClaimToVerify()
+	case workflow.AsInput(input, &inputSelectClaim):
+		claimName, claimValue := inputSelectClaim.NameValue()
 		identities, err := deps.Identities.ListByClaim(claimName, claimValue)
 		if err != nil {
 			return nil, err
