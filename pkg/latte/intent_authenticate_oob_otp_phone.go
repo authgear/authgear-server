@@ -2,6 +2,7 @@ package latte
 
 import (
 	"context"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -62,20 +63,21 @@ func (i *IntentAuthenticateOOBOTPPhone) GetEffects(ctx context.Context, deps *wo
 
 func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelSMS, i.Authenticator.OOBOTP.Phone)
-	pass, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
+	_, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
 	if err != nil {
 		return nil, err
 	}
-	var sec int
-	if pass {
-		// allow sending immediately
-		sec = 0
-	} else {
-		sec = int(resetDuration.Seconds())
+	now := deps.Clock.NowUTC()
+	canResendAt := now.Add(resetDuration)
+
+	type IntentAuthenticateOOBOTPPhoneOutput struct {
+		PhoneNumber string    `json:"phone_number"`
+		CanResendAt time.Time `json:"can_resend_at"`
 	}
 
-	return map[string]interface{}{
-		"cooldown_sec": sec,
+	return IntentAuthenticateOOBOTPPhoneOutput{
+		PhoneNumber: i.Authenticator.OOBOTP.Phone,
+		CanResendAt: canResendAt,
 	}, nil
 }
 
