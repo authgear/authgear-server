@@ -34,18 +34,18 @@ func (n *NodeVerifyEmail) GetEffects(ctx context.Context, deps *workflow.Depende
 
 func (*NodeVerifyEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
-		&InputOTPVerification{},
+		&InputTakeOOBOTPCode{},
 		&InputOTPVerificationResend{},
 	}, nil
 }
 
 func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var inputOTPVerification inputOTPVerification
+	var inputTakeOOBOTPCode inputTakeOOBOTPCode
 	var inputOTPVerificationResend inputOTPVerificationResend
 
 	switch {
-	case workflow.AsInput(input, &inputOTPVerification):
-		code := inputOTPVerification.GetOTPVerification()
+	case workflow.AsInput(input, &inputTakeOOBOTPCode):
+		code := inputTakeOOBOTPCode.GetCode()
 
 		err := deps.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(deps.RemoteIP)))
 		if err != nil {
