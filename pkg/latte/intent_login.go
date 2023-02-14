@@ -38,8 +38,7 @@ func (*IntentLogin) CanReactTo(ctx context.Context, deps *workflow.Dependencies,
 		return nil, nil
 	case 1:
 		return []workflow.Input{
-			&InputSelectEmailLoginLink{},
-			&InputSelectPassword{},
+			&InputSelectAuthenticatorType{},
 		}, nil
 	case 2:
 		// Create a session, if needed.
@@ -65,31 +64,36 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 		}), nil
 	case 1:
 		// 2nd step: authenticate email login link / password
-		var inputSelectEmailLoginLink inputSelectEmailLoginLink
-		var inputSelectPassword inputSelectPassword
+		var inputSelectAuthenticatorType inputSelectAuthenticatorType
 		switch {
-		case workflow.AsInput(input, &inputSelectEmailLoginLink):
-			emailAuthenticator, err := i.getAuthenticator(deps,
-				authenticator.KeepKind(authenticator.KindPrimary),
-				authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
-			)
-			if err != nil {
-				return nil, err
+		case workflow.AsInput(input, &inputSelectAuthenticatorType):
+			typ := inputSelectAuthenticatorType.GetAuthenticatorType()
+			switch typ {
+			case model.AuthenticatorTypeOOBEmail:
+				emailAuthenticator, err := i.getAuthenticator(deps,
+					authenticator.KeepKind(authenticator.KindPrimary),
+					authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
+				)
+				if err != nil {
+					return nil, err
+				}
+				return workflow.NewSubWorkflow(&IntentAuthenticateEmailLoginLink{
+					Authenticator: emailAuthenticator,
+				}), nil
+			case model.AuthenticatorTypePassword:
+				pwAuthenticator, err := i.getAuthenticator(deps,
+					authenticator.KeepKind(authenticator.KindPrimary),
+					authenticator.KeepType(model.AuthenticatorTypePassword),
+				)
+				if err != nil {
+					return nil, err
+				}
+				return workflow.NewSubWorkflow(&IntentAuthenticatePassword{
+					Authenticator: pwAuthenticator,
+				}), nil
+			default:
+				return nil, workflow.ErrIncompatibleInput
 			}
-			return workflow.NewSubWorkflow(&IntentAuthenticateEmailLoginLink{
-				Authenticator: emailAuthenticator,
-			}), nil
-		case workflow.AsInput(input, &inputSelectPassword):
-			pwAuthenticator, err := i.getAuthenticator(deps,
-				authenticator.KeepKind(authenticator.KindPrimary),
-				authenticator.KeepType(model.AuthenticatorTypePassword),
-			)
-			if err != nil {
-				return nil, err
-			}
-			return workflow.NewSubWorkflow(&IntentAuthenticatePassword{
-				Authenticator: pwAuthenticator,
-			}), nil
 		}
 	case 2:
 		return workflow.NewSubWorkflow(&IntentCreateSession{
