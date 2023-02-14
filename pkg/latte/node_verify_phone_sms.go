@@ -36,13 +36,13 @@ func (n *NodeVerifyPhoneSMS) GetEffects(ctx context.Context, deps *workflow.Depe
 func (*NodeVerifyPhoneSMS) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakeOOBOTPCode{},
-		&InputOTPVerificationResend{},
+		&InputResendCode{},
 	}, nil
 }
 
 func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPCode inputTakeOOBOTPCode
-	var inputOTPVerificationResend inputOTPVerificationResend
+	var inputResendCode inputResendCode
 
 	switch {
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
@@ -66,7 +66,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			NewVerifiedClaim: verifiedClaim,
 		}), nil
 
-	case workflow.AsInput(input, &inputOTPVerificationResend):
+	case workflow.AsInput(input, &inputResendCode):
 		err := n.sendCode(deps, w)
 		if err != nil {
 			return nil, err
