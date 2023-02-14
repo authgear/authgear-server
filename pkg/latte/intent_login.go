@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -92,7 +93,7 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 		}
 	case 2:
 		return workflow.NewSubWorkflow(&IntentCreateSession{
-			UserID:       i.Identity.UserID,
+			UserID:       i.userID(),
 			CreateReason: session.CreateReasonLogin,
 			AMR:          i.GetAMR(w),
 			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
@@ -101,8 +102,32 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
-	return nil, nil
+func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+	return []workflow.Effect{
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			createSession, workflow := workflow.MustFindSubWorkflow[*IntentCreateSession](w)
+			session := createSession.GetSession(workflow)
+			if session == nil {
+				return nil
+			}
+
+			userRef := model.UserRef{
+				Meta: model.Meta{
+					ID: i.userID(),
+				},
+			}
+			err := deps.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+				UserRef:  userRef,
+				Session:  *session.ToAPIModel(),
+				AdminAPI: false,
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}),
+	}, nil
 }
 
 func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
@@ -147,6 +172,10 @@ func (i *IntentLogin) GetAMR(w *workflow.Workflow) []string {
 	sort.Strings(amr)
 
 	return amr
+}
+
+func (i *IntentLogin) userID() string {
+	return i.Identity.UserID
 }
 
 type AMRGetter interface {

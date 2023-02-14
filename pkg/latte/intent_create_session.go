@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -77,4 +78,12 @@ func (*IntentCreateSession) GetEffects(ctx context.Context, deps *workflow.Depen
 
 func (*IntentCreateSession) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
+}
+
+func (i *IntentCreateSession) GetSession(w *workflow.Workflow) *idpsession.IDPSession {
+	node, ok := workflow.FindSingleNode[*NodeDoCreateSession](w)
+	if !ok {
+		return nil
+	}
+	return node.Session
 }
