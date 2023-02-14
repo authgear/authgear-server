@@ -15,7 +15,7 @@ func init() {
 }
 
 type NodeAuthenticateEmailLoginLink struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (n *NodeAuthenticateEmailLoginLink) Kind() string {

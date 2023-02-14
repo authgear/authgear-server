@@ -13,7 +13,7 @@ func init() {
 }
 
 type NodePopulateStandardAttributes struct {
-	IdentityInfo *identity.Info `json:"identity_info,omitempty"`
+	Identity *identity.Info `json:"identity,omitempty"`
 }
 
 func (n *NodePopulateStandardAttributes) Kind() string {
@@ -25,8 +25,8 @@ func (n *NodePopulateStandardAttributes) GetEffects(ctx context.Context, deps *w
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			if deps.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
 				err := deps.StdAttrsService.PopulateStandardAttributes(
-					n.IdentityInfo.UserID,
-					n.IdentityInfo,
+					n.Identity.UserID,
+					n.Identity,
 				)
 				if err != nil {
 					return err

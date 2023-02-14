@@ -62,7 +62,7 @@ func (i *IntentCreatePassword) ReactTo(ctx context.Context, deps *workflow.Depen
 		}
 
 		return workflow.NewNodeSimple(&NodeDoCreateAuthenticator{
-			AuthenticatorInfo: info,
+			Authenticator: info,
 		}), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput

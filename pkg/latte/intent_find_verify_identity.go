@@ -69,7 +69,7 @@ func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.D
 		}
 
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
-			IdentityInfo: iden,
+			Identity:     iden,
 			IsFromSignUp: false,
 		}), nil
 	default:

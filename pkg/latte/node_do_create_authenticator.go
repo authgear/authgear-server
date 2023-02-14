@@ -12,7 +12,7 @@ func init() {
 }
 
 type NodeDoCreateAuthenticator struct {
-	AuthenticatorInfo *authenticator.Info `json:"authenticator_info,omitempty"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (n *NodeDoCreateAuthenticator) Kind() string {
@@ -22,7 +22,7 @@ func (n *NodeDoCreateAuthenticator) Kind() string {
 func (n *NodeDoCreateAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			return deps.Authenticators.Create(n.AuthenticatorInfo, false)
+			return deps.Authenticators.Create(n.Authenticator, false)
 		}),
 	}, nil
 }

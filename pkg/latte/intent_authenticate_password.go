@@ -15,7 +15,7 @@ func init() {
 var IntentAuthenticatePasswordSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentAuthenticatePassword struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (i *IntentAuthenticatePassword) Kind() string {

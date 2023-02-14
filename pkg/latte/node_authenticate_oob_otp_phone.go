@@ -14,7 +14,7 @@ func init() {
 }
 
 type NodeAuthenticateOOBOTPPhone struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (n *NodeAuthenticateOOBOTPPhone) Kind() string {

@@ -13,7 +13,7 @@ func init() {
 
 type NodeVerifiedIdentity struct {
 	IdentityID       string              `json:"identity_id"`
-	NewVerifiedClaim *verification.Claim `json:"verified_claim"`
+	NewVerifiedClaim *verification.Claim `json:"verified_claim,omitempty"`
 }
 
 func (n *NodeVerifiedIdentity) Kind() string {

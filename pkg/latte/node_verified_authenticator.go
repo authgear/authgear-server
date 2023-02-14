@@ -14,7 +14,7 @@ func init() {
 }
 
 type NodeVerifiedAuthenticator struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (n *NodeVerifiedAuthenticator) Kind() string {

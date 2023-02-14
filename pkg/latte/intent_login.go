@@ -21,7 +21,7 @@ func init() {
 var IntentLoginSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentLogin struct {
-	Identity *identity.Info `json:"identity"`
+	Identity *identity.Info `json:"identity,omitempty"`
 }
 
 func (*IntentLogin) Kind() string {
