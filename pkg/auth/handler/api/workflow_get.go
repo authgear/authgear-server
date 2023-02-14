@@ -12,11 +12,11 @@ import (
 func ConfigureWorkflowGetRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("GET").
-		WithPathPattern("/api/workflow/v1/:instanceid")
+		WithPathPattern("/api/v1/workflows/:workflowid/instances/:instanceid")
 }
 
 type WorkflowGetWorkflowService interface {
-	Get(instanceID string) (*workflow.ServiceOutput, error)
+	Get(workflowID string, instanceID string) (*workflow.ServiceOutput, error)
 }
 
 type WorkflowGetHandler struct {
@@ -26,12 +26,13 @@ type WorkflowGetHandler struct {
 }
 
 func (h *WorkflowGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	workflowID := httproute.GetParam(r, "workflowid")
 	instanceID := httproute.GetParam(r, "instanceid")
 
 	var output *workflow.ServiceOutput
 	var err error
 	err = h.Database.WithTx(func() error {
-		output, err = h.Workflows.Get(instanceID)
+		output, err = h.Workflows.Get(workflowID, instanceID)
 		if err != nil {
 			return err
 		}

@@ -224,7 +224,7 @@ The response of HTTP API is as follows:
 - `node.workflow.intent`: The intent object.
 - `node.workflow.nodes`: The list of nodes the sub-workflow has gone through.
 
-### POST /api/workflow/v1/
+### POST /api/v1/workflows/
 
 Create a new workflow by specifying an intent.
 
@@ -239,11 +239,11 @@ Request body
 }
 ```
 
-### GET /api/workflow/v1/{instance-id}
+### GET /api/v1/workflows/{workflow-id}/instances/{instance-id}
 
 Retrieve a workflow by the instance ID.
 
-### POST /api/workflow/v1/{instance-id}
+### POST /api/v1/workflows/{workflow-id}/instances/{instance-id}
 
 Feed an input to the workflow to drive it.
 
@@ -261,6 +261,22 @@ Request body
 > There is a choice between support multiple input in a single request, and support single input in a request.
 > The later one makes the HTTP API implementation easier so it was chosen.
 > If the frontend collects information more than the current node is requiring, it has to feed the input one by one in correct order.
+
+### GET /api/v1/workflows/{workflow-id}/ws
+
+Subscribe to workflow events.
+
+Clients should not send any messages to server.
+Server would send following messages through WebSocket:
+
+### Refresh
+
+Indicates out-of-band data (e.g. OTP code) of the workflow has changed.
+Clients should re-fetch the current instance of workflow to get the latest state.
+
+```json
+{ "kind": "refresh" }
+```
 
 ### Redirect to an external OAuth provider
 
