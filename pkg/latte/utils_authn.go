@@ -1,23 +1,20 @@
 package latte
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
 type SendOOBCode struct {
-	Deps                 *workflow.Dependencies
-	Stage                authn.AuthenticationStage
-	IsAuthenticating     bool
-	AuthenticatorInfo    *authenticator.Info
-	IgnoreRatelimitError bool
-	OTPMode              otp.OTPMode
+	Deps              *workflow.Dependencies
+	Stage             authn.AuthenticationStage
+	IsAuthenticating  bool
+	AuthenticatorInfo *authenticator.Info
+	OTPMode           otp.OTPMode
 }
 
 func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
@@ -67,6 +64,12 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		}
 	}
 
+	bucket := p.Deps.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
+	err := p.Deps.RateLimiter.TakeToken(bucket)
+	if err != nil {
+		return nil, err
+	}
+
 	// fixme(workflow): update web session id for magic link
 	code, err := p.Deps.OTPCodes.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, string(p.Deps.Config.ID), "")
 	if err != nil {
@@ -78,15 +81,6 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		Target:     target,
 		CodeLength: len(code.Code),
 		Code:       code.Code,
-	}
-
-	bucket := p.Deps.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-	err = p.Deps.RateLimiter.TakeToken(bucket)
-	if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
-		// Ignore the rate limit error and do NOT send the code.
-		return result, nil
-	} else if err != nil {
-		return nil, err
 	}
 
 	err = p.Deps.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode)

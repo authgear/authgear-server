@@ -40,12 +40,11 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	case workflow.AsInput(input, &inputResendCode):
 		info := n.Authenticator
 		_, err := (&SendOOBCode{
-			Deps:                 deps,
-			Stage:                authenticatorKindToStage(info.Kind),
-			IsAuthenticating:     true,
-			AuthenticatorInfo:    info,
-			IgnoreRatelimitError: false,
-			OTPMode:              otp.OTPModeMagicLink,
+			Deps:              deps,
+			Stage:             authenticatorKindToStage(info.Kind),
+			IsAuthenticating:  true,
+			AuthenticatorInfo: info,
+			OTPMode:           otp.OTPModeMagicLink,
 		}).Do()
 		if err != nil {
 			return nil, err
