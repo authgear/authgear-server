@@ -94,6 +94,17 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
+		if GetMagicLinkStateFromQuery(r) == MagicLinkOTPPageQueryStateInitial {
+			code := r.URL.Query().Get("code")
+			_, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code)
+			if errors.Is(err, otp.ErrInvalidMagicLink) {
+				finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
+				return nil
+			} else if err != nil {
+				return err
+			}
+		}
+
 		h.Renderer.RenderHTML(w, r, TemplateWebVerifyMagicLinkOTPHTML, data)
 		return nil
 	})
