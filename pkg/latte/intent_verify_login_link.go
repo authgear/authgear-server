@@ -39,13 +39,13 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 	switch {
 	case workflow.AsInput(input, &inputTakeLoginLinkCode):
 		code := inputTakeLoginLinkCode.GetCode()
-		_, err := deps.OTPCodes.VerifyMagicLinkCode(code, false)
+		_, err := deps.OTPCodes.SetUserInputtedMagicLinkCode(code)
 		if err != nil {
 			return nil, err
 		}
-
+		// TODO(workflow): Send websocket event for refreshing workflow
 		return workflow.NewNodeSimple(
-			&NodeVerifiedLoginLink{Code: code},
+			&NodeVerifiedLoginLink{},
 		), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput

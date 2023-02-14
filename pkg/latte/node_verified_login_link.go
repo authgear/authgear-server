@@ -11,7 +11,6 @@ func init() {
 }
 
 type NodeVerifiedLoginLink struct {
-	Code string `json:"code"`
 }
 
 func (n *NodeVerifiedLoginLink) Kind() string {
@@ -19,24 +18,11 @@ func (n *NodeVerifiedLoginLink) Kind() string {
 }
 
 func (n *NodeVerifiedLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
-	return []workflow.Effect{
-		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			_, err := deps.OTPCodes.SetUserInputtedMagicLinkCode(n.Code)
-			if err != nil {
-				return err
-			}
-
-			// TODO(newman): Send websocket event for refreshing web session
-
-			return nil
-		}),
-	}, nil
+	return nil, nil
 }
 
 func (n *NodeVerifiedLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	return []workflow.Input{
-		&InputTakeLoginLinkCode{},
-	}, nil
+	return nil, nil
 }
 
 func (n *NodeVerifiedLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
