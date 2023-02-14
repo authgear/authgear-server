@@ -52,3 +52,9 @@ func (i *IntentAuthenticatePassword) GetEffects(ctx context.Context, deps *workf
 func (i *IntentAuthenticatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
+
+func (i *IntentAuthenticatePassword) GetAMR() []string {
+	return i.Authenticator.AMR()
+}
+
+var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}

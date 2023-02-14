@@ -78,3 +78,9 @@ func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *wo
 		"cooldown_sec": sec,
 	}, nil
 }
+
+func (i *IntentAuthenticateOOBOTPPhone) GetAMR() []string {
+	return i.Authenticator.AMR()
+}
+
+var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}

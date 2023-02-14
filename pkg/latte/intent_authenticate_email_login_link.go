@@ -80,3 +80,9 @@ func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps 
 		"cooldown_sec": sec,
 	}, nil
 }
+
+func (i *IntentAuthenticateEmailLoginLink) GetAMR() []string {
+	return i.Authenticator.AMR()
+}
+
+var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}
