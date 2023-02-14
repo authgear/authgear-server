@@ -27,18 +27,18 @@ func (n *NodeAuthenticatePassword) GetEffects(ctx context.Context, deps *workflo
 
 func (n *NodeAuthenticatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
-		&InputPassword{},
+		&InputTakePassword{},
 	}, nil
 }
 
 func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var inputPassword inputPassword
+	var inputTakePassword inputTakePassword
 	switch {
-	case workflow.AsInput(input, &inputPassword):
+	case workflow.AsInput(input, &inputTakePassword):
 		info := n.Authenticator
 		_, err := deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
-				PlainPassword: inputPassword.GetPassword(),
+				PlainPassword: inputTakePassword.GetPassword(),
 			},
 		})
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
