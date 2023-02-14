@@ -54148,6 +54148,30 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	return workflowInputHandler
 }
 
+func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	request := p.Request
+	contextContext := deps.ProvideRequestContext(request)
+	storeImpl := &workflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStore := workflow.NewEventStore(appID, handle, storeImpl)
+	factory := appProvider.LoggerFactory
+	workflowWebsocketHandler := &api.WorkflowWebsocketHandler{
+		Events:        eventStore,
+		LoggerFactory: factory,
+		RedisHandle:   handle,
+	}
+	return workflowWebsocketHandler
+}
+
 // Injectors from wire_middleware.go:
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {

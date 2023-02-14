@@ -1,0 +1,7 @@
+# @no-cookie-jar
+
+###
+# @name websocket
+# @keepStreaming
+WEBSOCKET {{WS_HOST}}/api/v1/workflows/{{$global.workflow_id}}/ws
+

@@ -594,3 +594,10 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerapi.WorkflowInputHandler)),
 	))
 }
+
+func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.WorkflowWebsocketHandler)),
+	))
+}

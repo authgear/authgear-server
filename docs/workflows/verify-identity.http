@@ -37,12 +37,15 @@ GET {{HOST}}/api/v1/workflows/{{$global.workflow_id}}/instances/{{$global.instan
 POST {{HOST}}/api/v1/workflows/{{$global.workflow_id}}/instances/{{$global.instance_id}}
 ...headers
 
+// "method": "email", "sms"
+// "claim_name": "email", "phone_number"
+
 {
     "input": {
         "kind": "latte.InputTriggerVerification",
         "data": {
-            "method": "", // "email", "sms"
-            "claim_name": "", // "email", "phone_number"
+            "method": "",
+            "claim_name": "",
             "claim_value": ""
         }
     }
