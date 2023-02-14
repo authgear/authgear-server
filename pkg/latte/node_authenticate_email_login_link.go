@@ -29,15 +29,15 @@ func (n *NodeAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps *w
 func (n *NodeAuthenticateEmailLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputCheckLoginLinkVerified{},
-		&InputResendCode{},
+		&InputResendOOBOTPCode{},
 	}, nil
 }
 
 func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	var inputCheckLoginLinkVerified inputCheckLoginLinkVerified
-	var inputResendCode inputResendCode
+	var inputResendOOBOTPCode inputResendOOBOTPCode
 	switch {
-	case workflow.AsInput(input, &inputResendCode):
+	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		info := n.Authenticator
 		_, err := (&SendOOBCode{
 			Deps:              deps,

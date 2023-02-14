@@ -28,15 +28,15 @@ func (n *NodeAuthenticateOOBOTPPhone) GetEffects(ctx context.Context, deps *work
 func (n *NodeAuthenticateOOBOTPPhone) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakeOOBOTPCode{},
-		&InputResendCode{},
+		&InputResendOOBOTPCode{},
 	}, nil
 }
 
 func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPCode inputTakeOOBOTPCode
-	var inputResendCode inputResendCode
+	var inputResendOOBOTPCode inputResendOOBOTPCode
 	switch {
-	case workflow.AsInput(input, &inputResendCode):
+	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		info := n.Authenticator
 		_, err := (&SendOOBCode{
 			Deps:              deps,
