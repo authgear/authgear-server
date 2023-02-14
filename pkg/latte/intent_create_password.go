@@ -33,24 +33,24 @@ func (*IntentCreatePassword) JSONSchema() *validation.SimpleSchema {
 func (*IntentCreatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	if len(w.Nodes) == 0 {
 		return []workflow.Input{
-			&InputCreatePassword{},
+			&InputTakeNewPassword{},
 		}, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
 func (i *IntentCreatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var inputCreatePassword inputCreatePassword
+	var inputTakeNewPassword inputTakeNewPassword
 
 	switch {
-	case workflow.AsInput(input, &inputCreatePassword):
+	case workflow.AsInput(input, &inputTakeNewPassword):
 		spec := &authenticator.Spec{
 			UserID:    i.UserID,
 			IsDefault: i.AuthenticatorIsDefault,
 			Kind:      i.AuthenticatorKind,
 			Type:      model.AuthenticatorTypePassword,
 			Password: &authenticator.PasswordSpec{
-				PlainPassword: inputCreatePassword.GetNewPassword(),
+				PlainPassword: inputTakeNewPassword.GetNewPassword(),
 			},
 		}
 
