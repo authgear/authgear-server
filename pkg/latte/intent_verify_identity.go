@@ -64,7 +64,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 
 	var node interface {
 		workflow.NodeSimple
-		sendCode(deps *workflow.Dependencies, w *workflow.Workflow) error
+		sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error
 	}
 	switch model.ClaimName(status.Name) {
 	case model.ClaimEmail:
@@ -87,7 +87,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 		return nil, api.ErrClaimNotVerifiable
 	}
 
-	err = node.sendCode(deps, w)
+	err = node.sendCode(ctx, deps, w)
 	if apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore rate limit error; continue the workflow
 	} else if err != nil {

@@ -10,6 +10,7 @@ import (
 )
 
 type SendOOBCode struct {
+	WorkflowID        string
 	Deps              *workflow.Dependencies
 	Stage             authn.AuthenticationStage
 	IsAuthenticating  bool
@@ -70,8 +71,9 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		return nil, err
 	}
 
-	// fixme(workflow): update web session id for magic link
-	code, err := p.Deps.OTPCodes.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, &otp.GenerateCodeOptions{})
+	code, err := p.Deps.OTPCodes.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, &otp.GenerateCodeOptions{
+		WorkflowID: p.WorkflowID,
+	})
 	if err != nil {
 		return nil, err
 	}

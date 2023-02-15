@@ -66,7 +66,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 		}), nil
 
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
-		err := n.sendCode(deps, w)
+		err := n.sendCode(ctx, deps, w)
 		if err != nil {
 			return nil, err
 		}
@@ -103,14 +103,15 @@ func (n *NodeVerifyEmail) bucket(deps *workflow.Dependencies) ratelimit.Bucket {
 	return AntiSpamEmailOTPCodeBucket(deps.Config.Messaging.Email, n.Email)
 }
 
-func (n *NodeVerifyEmail) sendCode(deps *workflow.Dependencies, w *workflow.Workflow) error {
+func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
 	err := deps.RateLimiter.TakeToken(n.bucket(deps))
 	if err != nil {
 		return err
 	}
 
-	// FIXME: web session ID?
-	code, err := deps.OTPCodes.GenerateCode(n.Email, otp.OTPModeCode, &otp.GenerateCodeOptions{})
+	code, err := deps.OTPCodes.GenerateCode(n.Email, otp.OTPModeCode, &otp.GenerateCodeOptions{
+		WorkflowID: workflow.GetWorkflowID(ctx),
+	})
 	if err != nil {
 		return err
 	}

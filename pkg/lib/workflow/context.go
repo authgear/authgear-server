@@ -27,3 +27,11 @@ var contextKeyState = contextKeyTypeState{}
 func GetState(ctx context.Context) string {
 	return ctx.Value(contextKeyState).(string)
 }
+
+type contextKeyTypeWorkflowID struct{}
+
+var contextKeyWorkflowID = contextKeyTypeWorkflowID{}
+
+func GetWorkflowID(ctx context.Context) string {
+	return ctx.Value(contextKeyWorkflowID).(string)
+}
