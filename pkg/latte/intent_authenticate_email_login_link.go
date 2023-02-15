@@ -44,6 +44,7 @@ func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *wo
 	case 0:
 		authenticator := i.Authenticator
 		_, err := (&SendOOBCode{
+			WorkflowID:        workflow.GetWorkflowID(ctx),
 			Deps:              deps,
 			Stage:             authenticatorKindToStage(authenticator.Kind),
 			IsAuthenticating:  true,

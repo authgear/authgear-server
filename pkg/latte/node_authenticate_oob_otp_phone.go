@@ -39,6 +39,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		info := n.Authenticator
 		_, err := (&SendOOBCode{
+			WorkflowID:        workflow.GetWorkflowID(ctx),
 			Deps:              deps,
 			Stage:             authenticatorKindToStage(info.Kind),
 			IsAuthenticating:  true,

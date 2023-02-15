@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -49,6 +50,10 @@ func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel
 	}
 }
 
+type WorkflowWebsocketEventStore interface {
+	Publish(workflowID string, e workflow.Event) error
+}
+
 type VerifyMagicLinkOTPHandler struct {
 	MagicLinkOTPCodeService     otp.Service
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
@@ -56,6 +61,7 @@ type VerifyMagicLinkOTPHandler struct {
 	BaseViewModel               *viewmodels.BaseViewModeler
 	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler
 	Renderer                    Renderer
+	WorkflowEvents              WorkflowWebsocketEventStore
 }
 
 func (h *VerifyMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -74,27 +80,38 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 	defer ctrl.Serve()
 
+	finishWithState := func(state MagicLinkOTPPageQueryState) {
+		url := url.URL{}
+		url.Path = r.URL.Path
+		query := r.URL.Query()
+		query.Set(MagicLinkOTPPageQueryStateKey, string(state))
+		url.RawQuery = query.Encode()
+
+		result := webapp.Result{
+			RedirectURI:      url.String(),
+			NavigationAction: "replace",
+		}
+		result.WriteResponse(w, r)
+	}
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebVerifyMagicLinkOTPHTML, data)
-		return nil
-	})
-
-	ctrl.PostAction("matched", func() error {
-		u := url.URL{}
-		u.Path = r.URL.Path
-		q := r.URL.Query()
-		q.Set(MagicLinkOTPPageQueryStateKey, string(MagicLinkOTPPageQueryStateMatched))
-		u.RawQuery = q.Encode()
-		result := webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
+		if GetMagicLinkStateFromQuery(r) == MagicLinkOTPPageQueryStateInitial {
+			code := r.URL.Query().Get("code")
+			_, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code)
+			if errors.Is(err, otp.ErrInvalidMagicLink) {
+				finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
+				return nil
+			} else if err != nil {
+				return err
+			}
 		}
-		result.WriteResponse(w, r)
+
+		h.Renderer.RenderHTML(w, r, TemplateWebVerifyMagicLinkOTPHTML, data)
 		return nil
 	})
 
@@ -106,26 +123,16 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		code := r.Form.Get("x_oob_otp_code")
 
-		var state MagicLinkOTPPageQueryState = MagicLinkOTPPageQueryStateInitial
-
 		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
-		if err != nil {
-			if errors.Is(err, otp.ErrCodeNotFound) {
-				state = MagicLinkOTPPageQueryStateInvalidCode
-			} else {
-				return err
-			}
+		if errors.Is(err, otp.ErrInvalidMagicLink) {
+			finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
+			return nil
+		} else if err != nil {
+			return err
 		}
 
-		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code, false)
-		if err != nil {
-			state = MagicLinkOTPPageQueryStateInvalidCode
-		} else if state == MagicLinkOTPPageQueryStateInitial {
-			state = MagicLinkOTPPageQueryStateMatched
-		}
-
-		if state == MagicLinkOTPPageQueryStateMatched {
-			// Update the web session and trigger the refresh event
+		// Update the web session and trigger the refresh event
+		if codeModel.WebSessionID != "" {
 			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
 				config.AppID(codeModel.AppID),
 			)
@@ -139,17 +146,14 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		url := url.URL{}
-		url.Path = r.URL.Path
-		query := r.URL.Query()
-		query.Set(MagicLinkOTPPageQueryStateKey, string(state))
-		url.RawQuery = query.Encode()
-
-		result := webapp.Result{
-			RedirectURI:      url.String(),
-			NavigationAction: "replace",
+		if codeModel.WorkflowID != "" {
+			err = h.WorkflowEvents.Publish(codeModel.WorkflowID, workflow.NewEventRefresh())
+			if err != nil {
+				return err
+			}
 		}
-		result.WriteResponse(w, r)
+
+		finishWithState(MagicLinkOTPPageQueryStateMatched)
 		return nil
 	})
 }

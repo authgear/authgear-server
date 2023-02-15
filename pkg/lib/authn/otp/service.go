@@ -12,6 +12,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
+type GenerateCodeOptions struct {
+	WebSessionID string
+	WorkflowID   string
+}
+
 type CodeStore interface {
 	Create(target string, code *Code) error
 	Get(target string) (*Code, error)
@@ -32,6 +37,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
 type Service struct {
 	Clock clock.Clock
 
+	AppID          config.AppID
 	CodeStore      CodeStore
 	MagicLinkStore MagicLinkStore
 	Logger         Logger
@@ -110,17 +116,19 @@ func (s *Service) handleFailedAttempt(target string) error {
 	return ErrInvalidCode
 }
 
-func (s *Service) GenerateCode(target string, otpMode OTPMode, appID string, webSessionID string) (*Code, error) {
+func (s *Service) GenerateCode(target string, otpMode OTPMode, opt *GenerateCodeOptions) (*Code, error) {
 	return s.createCode(target, otpMode, &Code{
-		AppID:        appID,
-		WebSessionID: webSessionID,
+		AppID:        string(s.AppID),
+		WebSessionID: opt.WebSessionID,
+		WorkflowID:   opt.WorkflowID,
 	})
 }
 
-func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID string) (*Code, error) {
+func (s *Service) GenerateWhatsappCode(target string, opt *GenerateCodeOptions) (*Code, error) {
 	return s.createCode(target, OTPModeCode, &Code{
-		AppID:        appID,
-		WebSessionID: webSessionID,
+		AppID:        string(s.AppID),
+		WebSessionID: opt.WebSessionID,
+		WorkflowID:   opt.WorkflowID,
 	})
 }
 
@@ -151,14 +159,27 @@ func (s *Service) VerifyCode(target string, code string) error {
 	return nil
 }
 
-func (s *Service) VerifyMagicLinkCode(code string, consume bool) (*Code, error) {
-	target, err := s.MagicLinkStore.Get(code)
+// VerifyMagicLinkCode verifies the code but it won't consume it
+func (s *Service) VerifyMagicLinkCode(userInputtedCode string) (*Code, error) {
+	target, err := s.MagicLinkStore.Get(userInputtedCode)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidMagicLink
 	} else if err != nil {
 		return nil, err
 	}
-	return s.VerifyMagicLinkCodeByTarget(target, consume)
+
+	codeModel, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return nil, ErrInvalidMagicLink
+	} else if err != nil {
+		return nil, err
+	}
+
+	if !secretcode.MagicLinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
+		return nil, ErrInvalidMagicLink
+	}
+
+	return codeModel, nil
 }
 
 func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Code, error) {
@@ -170,11 +191,11 @@ func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Cod
 	}
 
 	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidCode
+		return nil, ErrInvalidMagicLink
 	}
 
 	if consume {
-		s.deleteCode(codeModel.Code)
+		s.deleteCode(codeModel.Target)
 	}
 
 	return codeModel, nil
@@ -203,6 +224,8 @@ func (s *Service) VerifyWhatsappCode(target string, consume bool) error {
 	return nil
 }
 
+// SetUserInputtedCode set the user inputted code without verifying it
+// The code will be verified via VerifyWhatsappCode in the original interaction
 func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*Code, error) {
 	codeModel, err := s.getCode(target)
 	if err != nil {
@@ -217,16 +240,14 @@ func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*
 	return codeModel, nil
 }
 
+// SetUserInputtedMagicLinkCode set the user inputted code if the code is correct
+// If the code is incorrect, error will be returned and the approval screen should show
+// the error to the user
+// If the code is correct, the code will be set to the user inputted code
+// The code should be verified again via VerifyMagicLinkCodeByTarget in the original interaction
 func (s *Service) SetUserInputtedMagicLinkCode(userInputtedCode string) (*Code, error) {
-	target, err := s.MagicLinkStore.Get(userInputtedCode)
+	codeModel, err := s.VerifyMagicLinkCode(userInputtedCode)
 	if err != nil {
-		return nil, ErrInvalidMagicLink
-	}
-
-	codeModel, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidMagicLink
-	} else if err != nil {
 		return nil, err
 	}
 

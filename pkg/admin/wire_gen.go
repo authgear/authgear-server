@@ -417,6 +417,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,

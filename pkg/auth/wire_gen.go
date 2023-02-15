@@ -391,6 +391,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -871,6 +872,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -1436,6 +1438,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -2205,6 +2208,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -2671,6 +2675,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -3019,6 +3024,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -3434,6 +3440,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -3971,6 +3978,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -4758,6 +4766,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -5530,6 +5539,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -6409,6 +6419,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -7225,6 +7236,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -8040,6 +8052,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -8843,6 +8856,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -9639,6 +9653,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -10425,6 +10440,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -11214,6 +11230,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -12006,6 +12023,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -12800,6 +12818,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -13592,6 +13611,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -14380,6 +14400,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -15172,6 +15193,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -15965,6 +15987,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -16757,6 +16780,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -17549,6 +17573,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -18343,6 +18368,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -19135,6 +19161,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -19927,6 +19954,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -20723,6 +20751,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -21515,6 +21544,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -22014,11 +22044,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
-	handle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	handle := appProvider.Redis
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -22048,6 +22078,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         logger,
@@ -22368,6 +22399,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -22866,11 +22898,11 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
-	handle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	handle := appProvider.Redis
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -22900,6 +22932,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         logger,
@@ -23169,6 +23202,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         logger,
@@ -23671,11 +23705,11 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
-	handle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	handle := appProvider.Redis
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -23705,6 +23739,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         logger,
@@ -23978,6 +24013,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         logger,
@@ -24465,6 +24501,12 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, handle, workflowStoreImpl)
 	verifyMagicLinkOTPHandler := &webapp.VerifyMagicLinkOTPHandler{
 		MagicLinkOTPCodeService:     otpService,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -24472,6 +24514,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:               baseViewModeler,
 		AuthenticationViewModel:     authenticationViewModeler,
 		Renderer:                    responseRenderer,
+		WorkflowEvents:              eventStoreImpl,
 	}
 	return verifyMagicLinkOTPHandler
 }
@@ -24773,6 +24816,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -25565,6 +25609,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -26353,6 +26398,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -27145,6 +27191,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -27933,6 +27980,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -28731,6 +28779,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -29519,6 +29568,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -30309,6 +30359,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -31097,6 +31148,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -31917,6 +31969,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -32716,6 +32769,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -33528,6 +33582,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -34324,6 +34379,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -35113,6 +35169,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -35910,6 +35967,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -36699,6 +36757,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -37488,6 +37547,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -38277,6 +38337,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -39067,6 +39128,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -39875,6 +39937,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -40664,6 +40727,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -41453,6 +41517,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -42242,6 +42307,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -43031,6 +43097,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -43827,6 +43894,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -44617,6 +44685,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -45405,6 +45474,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -46208,6 +46278,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -46996,6 +47067,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -47784,6 +47856,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -48590,6 +48663,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -49345,6 +49419,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -50099,6 +50174,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -50897,6 +50973,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -51686,6 +51763,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -52454,6 +52532,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -52785,6 +52864,12 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SMSConfig:   smsConfig,
 		EmailConfig: emailConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
 		Config:                appConfig,
 		FeatureConfig:         featureConfig,
@@ -52805,15 +52890,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		RateLimiter:           limiter,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		WorkflowEvents:        eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
 		SQLExecutor: sqlExecutor,
-	}
-	workflowStoreImpl := &workflow.StoreImpl{
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Context: contextContext,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -53136,6 +53217,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -53468,6 +53550,12 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SMSConfig:   smsConfig,
 		EmailConfig: emailConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
 		Config:                appConfig,
 		FeatureConfig:         featureConfig,
@@ -53488,15 +53576,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		RateLimiter:           limiter,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		WorkflowEvents:        eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
 		SQLExecutor: sqlExecutor,
-	}
-	workflowStoreImpl := &workflow.StoreImpl{
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Context: contextContext,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -53789,6 +53873,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -54121,6 +54206,12 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SMSConfig:   smsConfig,
 		EmailConfig: emailConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
 		Config:                appConfig,
 		FeatureConfig:         featureConfig,
@@ -54141,15 +54232,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		RateLimiter:           limiter,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		WorkflowEvents:        eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
 		SQLExecutor: sqlExecutor,
-	}
-	workflowStoreImpl := &workflow.StoreImpl{
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Context: contextContext,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -54180,7 +54267,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Context: contextContext,
 	}
-	eventStore := workflow.NewEventStore(appID, handle, storeImpl)
+	eventStoreImpl := workflow.NewEventStore(appID, handle, storeImpl)
 	factory := appProvider.LoggerFactory
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
@@ -54193,7 +54280,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
 	workflowWebsocketHandler := &api.WorkflowWebsocketHandler{
-		Events:        eventStore,
+		Events:        eventStoreImpl,
 		LoggerFactory: factory,
 		RedisHandle:   handle,
 		OriginMatcher: corsMatcher,
@@ -54743,6 +54830,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -55258,6 +55346,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -56125,6 +56214,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,

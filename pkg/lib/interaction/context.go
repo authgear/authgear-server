@@ -54,9 +54,9 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, otpMode otp.OTPMode, appID string, webSessionID string) (*otp.Code, error)
+	GenerateCode(target string, otpMode otp.OTPMode, opt *otp.GenerateCodeOptions) (*otp.Code, error)
 	VerifyCode(target string, code string) error
-	VerifyMagicLinkCode(code string, consume bool) (*otp.Code, error)
+	VerifyMagicLinkCodeByTarget(code string, consume bool) (*otp.Code, error)
 }
 
 type OOBCodeSender interface {
@@ -70,7 +70,7 @@ type OOBCodeSender interface {
 }
 
 type WhatsappCodeProvider interface {
-	GenerateCode(phone string, appID string, webSessionID string) (*otp.Code, error)
+	GenerateCode(phone string, webSessionID string) (*otp.Code, error)
 	VerifyCode(phone string, consume bool) error
 }
 

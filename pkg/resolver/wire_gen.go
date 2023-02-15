@@ -429,6 +429,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,
@@ -927,6 +928,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	otpConfig := appConfig.OTP
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          appID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,

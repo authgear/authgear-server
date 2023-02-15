@@ -126,7 +126,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowNewWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
-	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStore)),
+	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 
 	viewmodelswebapp.DependencySet,
@@ -169,6 +169,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.ErrorCookie), new(*webapp.ErrorCookie)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
+	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),

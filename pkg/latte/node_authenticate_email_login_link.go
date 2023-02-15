@@ -40,6 +40,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		info := n.Authenticator
 		_, err := (&SendOOBCode{
+			WorkflowID:        workflow.GetWorkflowID(ctx),
 			Deps:              deps,
 			Stage:             authenticatorKindToStage(info.Kind),
 			IsAuthenticating:  true,
@@ -68,5 +69,19 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 }
 
 func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return map[string]interface{}{}, nil
+	loginLinkSubmitted := false
+	_, err := deps.OTPCodes.VerifyMagicLinkCodeByTarget(n.Authenticator.OOBOTP.Email, false)
+	if err != nil {
+		loginLinkSubmitted = false
+	} else {
+		loginLinkSubmitted = true
+	}
+
+	type NodeAuthenticateEmailLoginLinkOutput struct {
+		LoginLinkSubmitted bool `json:"login_link_submitted"`
+	}
+
+	return NodeAuthenticateEmailLoginLinkOutput{
+		LoginLinkSubmitted: loginLinkSubmitted,
+	}, nil
 }

@@ -67,7 +67,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 		}), nil
 
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
-		err := n.sendCode(deps, w)
+		err := n.sendCode(ctx, deps, w)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (n *NodeVerifyPhoneSMS) bucket(deps *workflow.Dependencies) ratelimit.Bucke
 	return AntiSpamSMSOTPCodeBucket(deps.Config.Messaging.SMS, n.PhoneNumber)
 }
 
-func (n *NodeVerifyPhoneSMS) sendCode(deps *workflow.Dependencies, w *workflow.Workflow) error {
+func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
 	// disallow sending sms verification code if phone identity is disabled
 	fc := deps.FeatureConfig
 	if fc.Identity.LoginID.Types.Phone.Disabled {
@@ -116,8 +116,9 @@ func (n *NodeVerifyPhoneSMS) sendCode(deps *workflow.Dependencies, w *workflow.W
 		return err
 	}
 
-	// FIXME: web session ID?
-	code, err := deps.OTPCodes.GenerateCode(n.PhoneNumber, otp.OTPModeCode, string(deps.Config.ID), "")
+	code, err := deps.OTPCodes.GenerateCode(n.PhoneNumber, otp.OTPModeCode, &otp.GenerateCodeOptions{
+		WorkflowID: workflow.GetWorkflowID(ctx),
+	})
 	if err != nil {
 		return err
 	}
