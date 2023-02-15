@@ -132,17 +132,34 @@ func (s *Service) GenerateWhatsappCode(target string, opt *GenerateCodeOptions) 
 	})
 }
 
-func (s *Service) CanVerifyCode(target string) (bool, error) {
-	_, err := s.getCode(target)
+func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
+	pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
+	if err != nil {
+		return false, err
+	}
+	if !pass {
+		return true, nil
+	}
+
+	_, err = s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
-		return false, nil
+		return true, nil
 	} else if err != nil {
 		return false, err
 	}
-	return true, nil
+	return false, nil
 }
 
 func (s *Service) VerifyCode(target string, code string) error {
+	bucket := s.TrackFailedAttemptBucket(target)
+	pass, _, err := s.RateLimiter.CheckToken(bucket)
+	if err != nil {
+		return err
+	}
+	if !pass {
+		return bucket.BucketError()
+	}
+
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return ErrInvalidCode

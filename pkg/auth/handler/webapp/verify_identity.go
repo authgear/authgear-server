@@ -46,13 +46,13 @@ const (
 )
 
 type VerifyIdentityViewModel struct {
-	VerificationCode             string
-	VerificationCodeSendCooldown int
-	VerificationCodeLength       int
-	VerificationCodeChannel      string
-	VerificationCanVerifyCode    bool
-	IdentityDisplayID            string
-	Action                       string
+	VerificationCode               string
+	VerificationCodeSendCooldown   int
+	VerificationCodeLength         int
+	VerificationCodeChannel        string
+	FailedAttemptRateLimitExceeded bool
+	IdentityDisplayID              string
+	Action                         string
 }
 
 type RateLimiter interface {
@@ -132,11 +132,11 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 			viewModel.VerificationCodeSendCooldown = int(resetDuration.Seconds())
 		}
 
-		canVerify, err := h.OTPCodeService.CanVerifyCode(target)
+		exceeded, err := h.OTPCodeService.FailedAttemptRateLimitExceeded(target)
 		if err != nil {
 			return nil, err
 		}
-		viewModel.VerificationCanVerifyCode = canVerify
+		viewModel.FailedAttemptRateLimitExceeded = exceeded
 	}
 
 	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}
