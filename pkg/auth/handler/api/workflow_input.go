@@ -41,6 +41,7 @@ type WorkflowInputRequest struct {
 }
 
 type WorkflowInputWorkflowService interface {
+	Get(workflowID string, instanceID string) (*workflow.ServiceOutput, error)
 	FeedInput(workflowID string, instanceID string, input workflow.Input) (*workflow.ServiceOutput, error)
 }
 
@@ -69,7 +70,13 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return err
 	})
 	if err != nil {
-		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, err)
+		if apiRespErr != nil {
+			// failed to get the workflow when preparing the error response
+			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+			return
+		}
+		h.JSON.WriteResponse(w, apiResp)
 		return
 	}
 
@@ -105,4 +112,28 @@ func (h *WorkflowInputHandler) handle(
 	}
 
 	return output, nil
+}
+
+func (h *WorkflowInputHandler) prepareErrorResponse(workflowID string, instanceID string, workflowErr error) (*api.Response, error) {
+	var output *workflow.ServiceOutput
+	var err error
+	err = h.Database.ReadOnly(func() error {
+		output, err = h.Workflows.Get(workflowID, instanceID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := WorkflowResponse{
+		Action:   output.Action,
+		Workflow: output.WorkflowOutput,
+	}
+	return &api.Response{
+		Error:  workflowErr,
+		Result: result,
+	}, nil
 }
