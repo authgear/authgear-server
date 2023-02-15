@@ -15,7 +15,8 @@ func init() {
 var IntentAuthenticatePasswordSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentAuthenticatePassword struct {
-	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
+	UserID            string             `json:"user_id,omitempty"`
+	AuthenticatorKind authenticator.Kind `json:"authenticator_kind,omitempty"`
 }
 
 func (i *IntentAuthenticatePassword) Kind() string {
@@ -37,9 +38,9 @@ func (i *IntentAuthenticatePassword) CanReactTo(ctx context.Context, deps *workf
 func (i *IntentAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	switch len(w.Nodes) {
 	case 0:
-		authenticator := i.Authenticator
 		return workflow.NewNodeSimple(&NodeAuthenticatePassword{
-			Authenticator: authenticator,
+			UserID:            i.UserID,
+			AuthenticatorKind: i.AuthenticatorKind,
 		}), nil
 	}
 	return nil, workflow.ErrIncompatibleInput
@@ -54,7 +55,8 @@ func (i *IntentAuthenticatePassword) OutputData(ctx context.Context, deps *workf
 }
 
 func (i *IntentAuthenticatePassword) GetAMR() []string {
-	return i.Authenticator.AMR()
+	// FIXME(workflow): get amr from node
+	return []string{}
 }
 
 var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}

@@ -81,15 +81,9 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 					Authenticator: emailAuthenticator,
 				}), nil
 			case model.AuthenticatorTypePassword:
-				pwAuthenticator, err := i.getAuthenticator(deps,
-					authenticator.KeepKind(authenticator.KindPrimary),
-					authenticator.KeepType(model.AuthenticatorTypePassword),
-				)
-				if err != nil {
-					return nil, err
-				}
 				return workflow.NewSubWorkflow(&IntentAuthenticatePassword{
-					Authenticator: pwAuthenticator,
+					UserID:            i.userID(),
+					AuthenticatorKind: authenticator.KindPrimary,
 				}), nil
 			default:
 				return nil, workflow.ErrIncompatibleInput
