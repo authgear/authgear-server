@@ -21,7 +21,7 @@ type CORSMiddleware struct {
 
 func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		matcher, err := m.Matcher.PrepareOriginMatcher()
+		matcher, err := m.Matcher.PrepareOriginMatcher(r)
 		// nolint: staticcheck
 		if err != nil {
 			// err is handled by not writing any CORS headers.

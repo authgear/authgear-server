@@ -22,7 +22,7 @@ type WorkflowWebsocketEventStore interface {
 }
 
 type WorkflowWebsocketOriginMatcher interface {
-	PrepareOriginMatcher() (*originmatcher.T, error)
+	PrepareOriginMatcher(r *http.Request) (*originmatcher.T, error)
 }
 
 type WorkflowWebsocketHandler struct {
@@ -33,7 +33,7 @@ type WorkflowWebsocketHandler struct {
 }
 
 func (h *WorkflowWebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	matcher, err := h.OriginMatcher.PrepareOriginMatcher()
+	matcher, err := h.OriginMatcher.PrepareOriginMatcher(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

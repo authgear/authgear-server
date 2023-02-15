@@ -14,17 +14,24 @@ import (
 var testBody = []byte{1, 2, 3}
 
 func TestCORSMiddleware(t *testing.T) {
+	type FixtureConfig struct {
+		Method string
+		URL    string
+		Origin string
+		Specs  []string
+		Env    string
+	}
 
-	fixture := func(method string, origin string, specs []string, env string) (r *http.Request, h http.Handler) {
-		r, _ = http.NewRequest(method, "", nil)
-		if origin != "" {
-			r.Header.Set("Origin", origin)
+	fixture := func(cfg FixtureConfig) (r *http.Request, h http.Handler) {
+		r, _ = http.NewRequest(cfg.Method, cfg.URL, nil)
+		if cfg.Origin != "" {
+			r.Header.Set("Origin", cfg.Origin)
 		}
 
 		m := CORSMiddleware{
 			Matcher: &CORSMatcher{
 				Config: &config.HTTPConfig{
-					AllowedOrigins: specs,
+					AllowedOrigins: cfg.Specs,
 				},
 				OAuthConfig: &config.OAuthConfig{
 					Clients: []config.OAuthClientConfig{
@@ -35,7 +42,7 @@ func TestCORSMiddleware(t *testing.T) {
 						},
 					},
 				},
-				CORSAllowedOrigins: config.CORSAllowedOrigins(env),
+				CORSAllowedOrigins: config.CORSAllowedOrigins(cfg.Env),
 			},
 			Logger: CORSMiddlewareLogger{log.Null},
 		}
@@ -48,7 +55,14 @@ func TestCORSMiddleware(t *testing.T) {
 
 	Convey("Test CORSMiddleware", t, func() {
 		Convey("should not handle request when CORS config is invalid", func() {
-			req, handler := fixture("OPTIONS", "http://test.example.com", []string{"example.*"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "http://test.example.com",
+				Origin: "http://test.example.com",
+				Specs:  []string{"example.*"},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -58,7 +72,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should handle OPTIONS request", func() {
-			req, handler := fixture("OPTIONS", "http://test.example.com", []string{"*.example.com"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "http://www.example.com",
+				Origin: "http://test.example.com",
+				Specs:  []string{"*.example.com"},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -68,8 +89,33 @@ func TestCORSMiddleware(t *testing.T) {
 			So(resp.Body.Len(), ShouldEqual, 0)
 		})
 
+		Convey("should always allow host", func() {
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "http://www.example.com:3000",
+				Origin: "http://www.example.com:3000",
+				Specs:  nil,
+				Env:    "",
+			})
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+
+			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
+			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://www.example.com:3000")
+			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
+			So(resp.Body.Len(), ShouldEqual, 0)
+		})
+
 		Convey("should handle localhost", func() {
-			req, handler := fixture("OPTIONS", "http://localhost:3000", []string{"localhost:3000"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "http://localhost:3000",
+				Origin: "http://localhost:3000",
+				Specs:  []string{"localhost:3000"},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -80,7 +126,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should handle POST request", func() {
-			req, handler := fixture("POST", "http://test.example.com", []string{"*.example.com"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "POST",
+				URL:    "http://www.example.com",
+				Origin: "http://test.example.com",
+				Specs:  []string{"*.example.com"},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -91,7 +144,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should handle request with request methods/headers", func() {
-			req, handler := fixture("OPTIONS", "http://test.example.com", []string{"*.example.com"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "http://www.example.com",
+				Origin: "http://test.example.com",
+				Specs:  []string{"*.example.com"},
+				Env:    "",
+			})
+
 			req.Header.Set("Access-Control-Request-Method", "GET")
 			req.Header.Set("Access-Control-Request-Headers", "Cookie")
 			resp := httptest.NewRecorder()
@@ -102,7 +162,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should echo request origin as allowed origin", func() {
-			req, handler := fixture("OPTIONS", "https://example.com", []string{"*"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "https://example.com",
+				Origin: "https://example.com",
+				Specs:  []string{"*"},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -112,7 +179,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should not handle request with not allowed origin", func() {
-			req, handler := fixture("OPTIONS", "http://example1.com", []string{"*.example.com"}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "OPTIONS",
+				URL:    "http://www.example.com",
+				Origin: "http://example1.com",
+				Specs:  []string{"*.example.com"},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -122,7 +196,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should allow origin through environment variable config", func() {
-			req, handler := fixture("POST", "http://test.example.com", []string{""}, "test.example.com,test2.example.com")
+			req, handler := fixture(FixtureConfig{
+				Method: "POST",
+				URL:    "http://www.example.com",
+				Origin: "http://test.example.com",
+				Specs:  []string{""},
+				Env:    "test.example.com,test2.example.com",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
@@ -133,7 +214,14 @@ func TestCORSMiddleware(t *testing.T) {
 		})
 
 		Convey("should allow origin in oauth client redirect uris", func() {
-			req, handler := fixture("POST", "http://myapp.example.com", []string{""}, "")
+			req, handler := fixture(FixtureConfig{
+				Method: "POST",
+				URL:    "http://www.example.com",
+				Origin: "http://myapp.example.com",
+				Specs:  []string{""},
+				Env:    "",
+			})
+
 			resp := httptest.NewRecorder()
 			handler.ServeHTTP(resp, req)
 
