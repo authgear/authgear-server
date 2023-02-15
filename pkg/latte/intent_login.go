@@ -81,15 +81,9 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 					Authenticator: emailAuthenticator,
 				}), nil
 			case model.AuthenticatorTypePassword:
-				pwAuthenticator, err := i.getAuthenticator(deps,
-					authenticator.KeepKind(authenticator.KindPrimary),
-					authenticator.KeepType(model.AuthenticatorTypePassword),
-				)
-				if err != nil {
-					return nil, err
-				}
 				return workflow.NewSubWorkflow(&IntentAuthenticatePassword{
-					Authenticator: pwAuthenticator,
+					UserID:            i.userID(),
+					AuthenticatorKind: authenticator.KindPrimary,
 				}), nil
 			default:
 				return nil, workflow.ErrIncompatibleInput
@@ -157,7 +151,7 @@ func (i *IntentLogin) GetAMR(w *workflow.Workflow) []string {
 
 	authCount := 0
 	for _, perWorkflow := range workflows {
-		if amrs := perWorkflow.Intent.(AMRGetter).GetAMR(); len(amrs) > 0 {
+		if amrs := perWorkflow.Intent.(AMRGetter).GetAMR(perWorkflow); len(amrs) > 0 {
 			authCount++
 			for _, value := range amrs {
 				amrSet[value] = struct{}{}
@@ -184,5 +178,5 @@ func (i *IntentLogin) userID() string {
 
 type AMRGetter interface {
 	workflow.Intent
-	GetAMR() []string
+	GetAMR(w *workflow.Workflow) []string
 }

@@ -85,8 +85,12 @@ func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *wo
 	}, nil
 }
 
-func (i *IntentAuthenticateOOBOTPPhone) GetAMR() []string {
-	return i.Authenticator.AMR()
+func (i *IntentAuthenticateOOBOTPPhone) GetAMR(w *workflow.Workflow) []string {
+	node, ok := workflow.FindSingleNode[*NodeVerifiedAuthenticator](w)
+	if !ok {
+		return []string{}
+	}
+	return node.GetAMR()
 }
 
-var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}
+var _ AMRGetter = &IntentAuthenticateOOBOTPPhone{}

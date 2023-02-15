@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
@@ -14,7 +15,8 @@ func init() {
 }
 
 type NodeAuthenticatePassword struct {
-	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
+	UserID            string             `json:"user_id,omitempty"`
+	AuthenticatorKind authenticator.Kind `json:"authenticator_kind,omitempty"`
 }
 
 func (n *NodeAuthenticatePassword) Kind() string {
@@ -35,8 +37,15 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 	var inputTakePassword inputTakePassword
 	switch {
 	case workflow.AsInput(input, &inputTakePassword):
-		info := n.Authenticator
-		_, err := deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+		info, err := n.getPasswordAuthenticator(deps)
+		// The user doesn't have the password authenticator
+		// always returns invalid credentials error
+		if errors.Is(err, api.ErrNoAuthenticator) {
+			return nil, api.ErrInvalidCredentials
+		} else if err != nil {
+			return nil, err
+		}
+		_, err = deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputTakePassword.GetPassword(),
 			},
@@ -58,4 +67,21 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 
 func (n *NodeAuthenticatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return map[string]interface{}{}, nil
+}
+
+func (n *NodeAuthenticatePassword) getPasswordAuthenticator(deps *workflow.Dependencies) (*authenticator.Info, error) {
+	ais, err := deps.Authenticators.List(
+		n.UserID,
+		authenticator.KeepKind(n.AuthenticatorKind),
+		authenticator.KeepType(model.AuthenticatorTypePassword),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ais) == 0 {
+		return nil, api.ErrNoAuthenticator
+	}
+
+	return ais[0], nil
 }
