@@ -3,10 +3,13 @@ package latte
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -72,5 +75,29 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 }
 
 func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return map[string]interface{}{}, nil
+	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelSMS, n.Authenticator.OOBOTP.Phone)
+	_, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
+	if err != nil {
+		return nil, err
+	}
+	now := deps.Clock.NowUTC()
+	canResendAt := now.Add(resetDuration)
+
+	target := n.Authenticator.OOBOTP.Phone
+	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	if err != nil {
+		return nil, err
+	}
+
+	type NodeAuthenticateOOBOTPPhoneOutput struct {
+		MaskedPhoneNumber              string    `json:"masked_phone_number"`
+		CanResendAt                    time.Time `json:"can_resend_at"`
+		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
+	}
+
+	return NodeAuthenticateOOBOTPPhoneOutput{
+		MaskedPhoneNumber:              phone.Mask(target),
+		CanResendAt:                    canResendAt,
+		FailedAttemptRateLimitExceeded: exceeded,
+	}, nil
 }

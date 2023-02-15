@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
@@ -86,16 +87,24 @@ func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Depende
 	now := deps.Clock.NowUTC()
 	canResendAt := now.Add(resetDuration)
 
+	target := n.Email
+	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	if err != nil {
+		return nil, err
+	}
+
 	type NodeVerifyEmailOutput struct {
-		Email       string    `json:"email"`
-		CodeLength  int       `json:"code_length"`
-		CanResendAt time.Time `json:"can_resend_at"`
+		MaskedEmail                    string    `json:"masked_email"`
+		CodeLength                     int       `json:"code_length"`
+		CanResendAt                    time.Time `json:"can_resend_at"`
+		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
 	}
 
 	return NodeVerifyEmailOutput{
-		Email:       n.Email,
-		CodeLength:  n.CodeLength,
-		CanResendAt: canResendAt,
+		MaskedEmail:                    mail.MaskAddress(target),
+		CodeLength:                     n.CodeLength,
+		CanResendAt:                    canResendAt,
+		FailedAttemptRateLimitExceeded: exceeded,
 	}, nil
 }
 

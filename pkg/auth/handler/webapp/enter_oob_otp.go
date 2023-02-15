@@ -41,11 +41,11 @@ func ConfigureEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type EnterOOBOTPViewModel struct {
-	OOBOTPTarget           string
-	OOBOTPCodeSendCooldown int
-	OOBOTPCodeLength       int
-	OOBOTPChannel          string
-	OOBOTPCanVerifyCode    bool
+	OOBOTPTarget                   string
+	OOBOTPCodeSendCooldown         int
+	OOBOTPCodeLength               int
+	OOBOTPChannel                  string
+	FailedAttemptRateLimitExceeded bool
 }
 
 type EnterOOBOTPHandler struct {
@@ -96,11 +96,11 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPCodeSendCooldown = int(resetDuration.Seconds())
 		}
 
-		canVerify, err := h.OTPCodeService.CanVerifyCode(target)
+		exceeded, err := h.OTPCodeService.FailedAttemptRateLimitExceeded(target)
 		if err != nil {
 			return nil, err
 		}
-		viewModel.OOBOTPCanVerifyCode = canVerify
+		viewModel.FailedAttemptRateLimitExceeded = exceeded
 	}
 
 	currentNode := graph.CurrentNode()

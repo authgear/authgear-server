@@ -31,7 +31,7 @@
 	name="x_verification_code"
 	placeholder="{{ template "verify-user-placeholder" }}"
 	value="{{ $.VerificationCode }}"
-	{{ if not $.VerificationCanVerifyCode }}disabled{{ end }}
+	{{ if $.FailedAttemptRateLimitExceeded }}disabled{{ end }}
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
 >
 <button
@@ -39,7 +39,7 @@
 	type="submit"
 	name="x_action"
 	value="{{ $.Action }}"
-	{{ if not $.VerificationCanVerifyCode }}disabled{{ end }}
+	{{ if $.FailedAttemptRateLimitExceeded }}disabled{{ end }}
 	data-authgear-event="authgear.button.enter_verification_code"
 >
 {{ template "next-button-label" }}
@@ -51,7 +51,7 @@
 
 {{ if not (eq $.Action "update_session_step") }}
 <span class="primary-txt text-sm">
-	{{ if $.VerificationCanVerifyCode }}
+	{{ if not $.FailedAttemptRateLimitExceeded }}
 	{{ template "verify-user-resend-button-hint" }}
 	{{ else }}
 	{{ template "verify-user-resend-button-rate-limited-hint" }}
