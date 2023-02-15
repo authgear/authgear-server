@@ -24501,6 +24501,12 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, handle, workflowStoreImpl)
 	verifyMagicLinkOTPHandler := &webapp.VerifyMagicLinkOTPHandler{
 		MagicLinkOTPCodeService:     otpService,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -24508,6 +24514,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:               baseViewModeler,
 		AuthenticationViewModel:     authenticationViewModeler,
 		Renderer:                    responseRenderer,
+		WorkflowEvents:              eventStoreImpl,
 	}
 	return verifyMagicLinkOTPHandler
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -49,6 +50,10 @@ func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel
 	}
 }
 
+type WorkflowWebsocketEventStore interface {
+	Publish(workflowID string, e workflow.Event) error
+}
+
 type VerifyMagicLinkOTPHandler struct {
 	MagicLinkOTPCodeService     otp.Service
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
@@ -56,6 +61,7 @@ type VerifyMagicLinkOTPHandler struct {
 	BaseViewModel               *viewmodels.BaseViewModeler
 	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler
 	Renderer                    Renderer
+	WorkflowEvents              WorkflowWebsocketEventStore
 }
 
 func (h *VerifyMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -140,7 +146,12 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		// fixme(workflow): publish workflow refresh event to web socket
+		if codeModel.WorkflowID != "" {
+			err = h.WorkflowEvents.Publish(codeModel.WorkflowID, workflow.NewEventLoginLinkCodeVerified())
+			if err != nil {
+				return err
+			}
+		}
 
 		finishWithState(MagicLinkOTPPageQueryStateMatched)
 		return nil
