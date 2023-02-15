@@ -109,6 +109,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 				return nil
 			}
 
+			// ref: https://github.com/authgear/authgear-server/issues/2930
 			userRef := model.UserRef{
 				Meta: model.Meta{
 					ID: i.userID(),

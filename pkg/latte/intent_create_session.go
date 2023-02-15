@@ -45,6 +45,7 @@ func (i *IntentCreateSession) ReactTo(ctx context.Context, deps *workflow.Depend
 	sessionCookie := deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
 
 	authnInfo := s.GetAuthenticationInfo()
+	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = i.SkipCreate && i.CreateReason == session.CreateReasonLogin
 	authnInfoEntry := authenticationinfo.NewEntry(authnInfo)
 	authnInfoCookie := deps.Cookies.ValueCookie(
 		authenticationinfo.CookieDef,

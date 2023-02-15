@@ -45,6 +45,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	sessionCookie := ctx.CookieManager.ValueCookie(ctx.SessionCookie.Def, token)
 
 	authenticationInfo := sessionToCreate.GetAuthenticationInfo()
+	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
 	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo)
 	authenticationInfoCookie := ctx.CookieManager.ValueCookie(authenticationinfo.CookieDef, authenticationInfoEntry.ID)
 
@@ -183,6 +184,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 
 			if n.SessionToCreate != nil {
 				if n.CreateReason == session.CreateReasonLogin || n.CreateReason == session.CreateReasonReauthenticate {
+					// ref: https://github.com/authgear/authgear-server/issues/2930
 					// For authentication that involves IDP session will dispatch user.authenticated event here
 					// For authentication that suppresses IDP session. e.g. biometric login
 					// They are handled in their own node.
