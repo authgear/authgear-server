@@ -88,16 +88,24 @@ func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Depe
 	now := deps.Clock.NowUTC()
 	canResendAt := now.Add(resetDuration)
 
+	target := n.PhoneNumber
+	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	if err != nil {
+		return nil, err
+	}
+
 	type NodeVerifyPhoneNumberOutput struct {
-		MaskedPhoneNumber string    `json:"masked_phone_number"`
-		CodeLength        int       `json:"code_length"`
-		CanResendAt       time.Time `json:"can_resend_at"`
+		MaskedPhoneNumber              string    `json:"masked_phone_number"`
+		CodeLength                     int       `json:"code_length"`
+		CanResendAt                    time.Time `json:"can_resend_at"`
+		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
 	}
 
 	return NodeVerifyPhoneNumberOutput{
-		MaskedPhoneNumber: phone.Mask(n.PhoneNumber),
-		CodeLength:        n.CodeLength,
-		CanResendAt:       canResendAt,
+		MaskedPhoneNumber:              phone.Mask(target),
+		CodeLength:                     n.CodeLength,
+		CanResendAt:                    canResendAt,
+		FailedAttemptRateLimitExceeded: exceeded,
 	}, nil
 }
 

@@ -41,6 +41,7 @@ type OTPCodeService interface {
 	VerifyCode(target string, code string) error
 	VerifyMagicLinkCodeByTarget(target string, consume bool) (*otp.Code, error)
 	SetUserInputtedMagicLinkCode(userInputtedCode string) (*otp.Code, error)
+	FailedAttemptRateLimitExceeded(target string) (bool, error)
 }
 
 type OOBCodeSender interface {

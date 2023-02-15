@@ -83,13 +83,21 @@ func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *work
 	now := deps.Clock.NowUTC()
 	canResendAt := now.Add(resetDuration)
 
+	target := n.Authenticator.OOBOTP.Phone
+	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	if err != nil {
+		return nil, err
+	}
+
 	type NodeAuthenticateOOBOTPPhoneOutput struct {
-		MaskedPhoneNumber string    `json:"masked_phone_number"`
-		CanResendAt       time.Time `json:"can_resend_at"`
+		MaskedPhoneNumber              string    `json:"masked_phone_number"`
+		CanResendAt                    time.Time `json:"can_resend_at"`
+		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
 	}
 
 	return NodeAuthenticateOOBOTPPhoneOutput{
-		MaskedPhoneNumber: phone.Mask(n.Authenticator.OOBOTP.Phone),
-		CanResendAt:       canResendAt,
+		MaskedPhoneNumber:              phone.Mask(target),
+		CanResendAt:                    canResendAt,
+		FailedAttemptRateLimitExceeded: exceeded,
 	}, nil
 }

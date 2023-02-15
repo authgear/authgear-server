@@ -88,15 +88,23 @@ func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *w
 	now := deps.Clock.NowUTC()
 	canResendAt := now.Add(resetDuration)
 
+	target := n.Authenticator.OOBOTP.Email
+	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	if err != nil {
+		return nil, err
+	}
+
 	type NodeAuthenticateEmailLoginLinkOutput struct {
-		LoginLinkSubmitted bool      `json:"login_link_submitted"`
-		MaskedEmail        string    `json:"masked_email"`
-		CanResendAt        time.Time `json:"can_resend_at"`
+		LoginLinkSubmitted             bool      `json:"login_link_submitted"`
+		MaskedEmail                    string    `json:"masked_email"`
+		CanResendAt                    time.Time `json:"can_resend_at"`
+		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
 	}
 
 	return NodeAuthenticateEmailLoginLinkOutput{
-		LoginLinkSubmitted: loginLinkSubmitted,
-		MaskedEmail:        mail.MaskAddress(n.Authenticator.OOBOTP.Email),
-		CanResendAt:        canResendAt,
+		LoginLinkSubmitted:             loginLinkSubmitted,
+		MaskedEmail:                    mail.MaskAddress(target),
+		CanResendAt:                    canResendAt,
+		FailedAttemptRateLimitExceeded: exceeded,
 	}, nil
 }

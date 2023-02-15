@@ -87,16 +87,24 @@ func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Depende
 	now := deps.Clock.NowUTC()
 	canResendAt := now.Add(resetDuration)
 
+	target := n.Email
+	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	if err != nil {
+		return nil, err
+	}
+
 	type NodeVerifyEmailOutput struct {
-		MaskedEmail string    `json:"masked_email"`
-		CodeLength  int       `json:"code_length"`
-		CanResendAt time.Time `json:"can_resend_at"`
+		MaskedEmail                    string    `json:"masked_email"`
+		CodeLength                     int       `json:"code_length"`
+		CanResendAt                    time.Time `json:"can_resend_at"`
+		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
 	}
 
 	return NodeVerifyEmailOutput{
-		MaskedEmail: mail.MaskAddress(n.Email),
-		CodeLength:  n.CodeLength,
-		CanResendAt: canResendAt,
+		MaskedEmail:                    mail.MaskAddress(target),
+		CodeLength:                     n.CodeLength,
+		CanResendAt:                    canResendAt,
+		FailedAttemptRateLimitExceeded: exceeded,
 	}, nil
 }
 
