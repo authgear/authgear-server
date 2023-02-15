@@ -37,7 +37,7 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, otpMode otp.OTPMode, webSessionID string) (*otp.Code, error)
+	GenerateCode(target string, otpMode otp.OTPMode, opt *otp.GenerateCodeOptions) (*otp.Code, error)
 	VerifyCode(target string, code string) error
 	VerifyMagicLinkCodeByTarget(target string, consume bool) (*otp.Code, error)
 	SetUserInputtedMagicLinkCode(userInputtedCode string) (*otp.Code, error)

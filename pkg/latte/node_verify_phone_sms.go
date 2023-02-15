@@ -117,7 +117,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(deps *workflow.Dependencies, w *workflow.W
 	}
 
 	// FIXME: web session ID?
-	code, err := deps.OTPCodes.GenerateCode(n.PhoneNumber, otp.OTPModeCode, "")
+	code, err := deps.OTPCodes.GenerateCode(n.PhoneNumber, otp.OTPModeCode, &otp.GenerateCodeOptions{})
 	if err != nil {
 		return err
 	}

@@ -200,7 +200,7 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			code, err := gqlCtx.OTPCode.GenerateCode(target, otp.OTPModeCode, "")
+			code, err := gqlCtx.OTPCode.GenerateCode(target, otp.OTPModeCode, &otp.GenerateCodeOptions{})
 			if err != nil {
 				return nil, err
 			}

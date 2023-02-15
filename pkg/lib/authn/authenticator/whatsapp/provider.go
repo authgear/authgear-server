@@ -12,7 +12,7 @@ type EventService interface {
 }
 
 type OTPCodeService interface {
-	GenerateWhatsappCode(target string, webSessionID string) (*otp.Code, error)
+	GenerateWhatsappCode(target string, opt *otp.GenerateCodeOptions) (*otp.Code, error)
 	VerifyWhatsappCode(target string, consume bool) error
 }
 
@@ -31,7 +31,9 @@ func (p *Provider) GetServerWhatsappPhone() string {
 }
 
 func (p *Provider) GenerateCode(phone string, webSessionID string) (*otp.Code, error) {
-	code, err := p.OTPCodeService.GenerateWhatsappCode(phone, webSessionID)
+	code, err := p.OTPCodeService.GenerateWhatsappCode(phone, &otp.GenerateCodeOptions{
+		WebSessionID: webSessionID,
+	})
 	if err != nil {
 		return nil, err
 	}

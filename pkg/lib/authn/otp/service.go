@@ -12,6 +12,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
+type GenerateCodeOptions struct {
+	WebSessionID string
+	WorkflowID   string
+}
+
 type CodeStore interface {
 	Create(target string, code *Code) error
 	Get(target string) (*Code, error)
@@ -111,17 +116,19 @@ func (s *Service) handleFailedAttempt(target string) error {
 	return ErrInvalidCode
 }
 
-func (s *Service) GenerateCode(target string, otpMode OTPMode, webSessionID string) (*Code, error) {
+func (s *Service) GenerateCode(target string, otpMode OTPMode, opt *GenerateCodeOptions) (*Code, error) {
 	return s.createCode(target, otpMode, &Code{
 		AppID:        string(s.AppID),
-		WebSessionID: webSessionID,
+		WebSessionID: opt.WebSessionID,
+		WorkflowID:   opt.WorkflowID,
 	})
 }
 
-func (s *Service) GenerateWhatsappCode(target string, webSessionID string) (*Code, error) {
+func (s *Service) GenerateWhatsappCode(target string, opt *GenerateCodeOptions) (*Code, error) {
 	return s.createCode(target, OTPModeCode, &Code{
 		AppID:        string(s.AppID),
-		WebSessionID: webSessionID,
+		WebSessionID: opt.WebSessionID,
+		WorkflowID:   opt.WorkflowID,
 	})
 }
 

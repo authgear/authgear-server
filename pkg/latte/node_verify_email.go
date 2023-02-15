@@ -110,7 +110,7 @@ func (n *NodeVerifyEmail) sendCode(deps *workflow.Dependencies, w *workflow.Work
 	}
 
 	// FIXME: web session ID?
-	code, err := deps.OTPCodes.GenerateCode(n.Email, otp.OTPModeCode, "")
+	code, err := deps.OTPCodes.GenerateCode(n.Email, otp.OTPModeCode, &otp.GenerateCodeOptions{})
 	if err != nil {
 		return err
 	}
