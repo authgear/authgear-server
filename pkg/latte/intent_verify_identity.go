@@ -20,7 +20,7 @@ func init() {
 var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`{}`)
 
 type IntentVerifyIdentity struct {
-	IdentityInfo *identity.Info `json:"identity_info,omitempty"`
+	Identity     *identity.Info `json:"identity,omitempty"`
 	IsFromSignUp bool           `json:"is_from_signup"`
 }
 
@@ -40,7 +40,7 @@ func (*IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Depe
 }
 
 func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	statuses, err := deps.Verification.GetIdentityVerificationStatus(i.IdentityInfo)
+	statuses, err := deps.Verification.GetIdentityVerificationStatus(i.Identity)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	if status.Verified || (i.IsFromSignUp && !status.RequiredToVerifyOnCreation) {
 		// Verified already; skip actual verification.
 		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
-			IdentityID:       i.IdentityInfo.ID,
+			IdentityID:       i.Identity.ID,
 			NewVerifiedClaim: nil,
 		}), nil
 	}
@@ -69,15 +69,15 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	switch model.ClaimName(status.Name) {
 	case model.ClaimEmail:
 		node = &NodeVerifyEmail{
-			UserID:     i.IdentityInfo.UserID,
-			IdentityID: i.IdentityInfo.ID,
+			UserID:     i.Identity.UserID,
+			IdentityID: i.Identity.ID,
 			Email:      status.Value,
 		}
 
 	case model.ClaimPhoneNumber:
 		node = &NodeVerifyPhoneSMS{
-			UserID:      i.IdentityInfo.UserID,
-			IdentityID:  i.IdentityInfo.ID,
+			UserID:      i.Identity.UserID,
+			IdentityID:  i.Identity.ID,
 			PhoneNumber: status.Value,
 		}
 		// FIXME(workflow): verify phone via whatsapp

@@ -90,24 +90,24 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 			}
 
 			return workflow.NewNodeSimple(&NodeDoCreateIdentity{
-				IdentityInfo: info,
+				Identity: info,
 			}), nil
 		}
 	case 1:
 		iden := i.identityInfo(w)
 		return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
-			IdentityInfo: iden,
+			Identity: iden,
 		}), nil
 	case 2:
 		iden := i.identityInfo(w)
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
-			IdentityInfo: iden,
+			Identity:     iden,
 			IsFromSignUp: true,
 		}), nil
 	case 3:
 		iden := i.identityInfo(w)
 		return workflow.NewSubWorkflow(&IntentCreateOOBOTPAuthenticatorForLoginID{
-			IdentityInfo: iden,
+			Identity: iden,
 		}), nil
 	}
 
@@ -120,7 +120,7 @@ func (i *IntentCreateLoginID) identityInfo(w *workflow.Workflow) *identity.Info 
 		panic(fmt.Errorf("workflow: expected NodeCreateIdentity"))
 	}
 
-	return node.IdentityInfo
+	return node.Identity
 }
 
 func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
@@ -136,7 +136,7 @@ func (*IntentCreateLoginID) GetNewIdentity(w *workflow.Workflow) (*identity.Info
 	if !ok {
 		return nil, false
 	}
-	return node.IdentityInfo, true
+	return node.Identity, true
 }
 
 func (*IntentCreateLoginID) GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool) {

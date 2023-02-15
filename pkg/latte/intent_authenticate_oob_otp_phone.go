@@ -19,7 +19,7 @@ func init() {
 var IntentAuthenticateOOBOTPPhoneSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentAuthenticateOOBOTPPhone struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (i *IntentAuthenticateOOBOTPPhone) Kind() string {

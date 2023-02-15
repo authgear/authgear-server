@@ -35,18 +35,18 @@ func (n *NodeVerifyPhoneSMS) GetEffects(ctx context.Context, deps *workflow.Depe
 
 func (*NodeVerifyPhoneSMS) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
-		&InputOTPVerification{},
-		&InputOTPVerificationResend{},
+		&InputTakeOOBOTPCode{},
+		&InputResendOOBOTPCode{},
 	}, nil
 }
 
 func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var inputOTPVerification inputOTPVerification
-	var inputOTPVerificationResend inputOTPVerificationResend
+	var inputTakeOOBOTPCode inputTakeOOBOTPCode
+	var inputResendOOBOTPCode inputResendOOBOTPCode
 
 	switch {
-	case workflow.AsInput(input, &inputOTPVerification):
-		code := inputOTPVerification.GetOTPVerification()
+	case workflow.AsInput(input, &inputTakeOOBOTPCode):
+		code := inputTakeOOBOTPCode.GetCode()
 
 		err := deps.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(deps.RemoteIP)))
 		if err != nil {
@@ -66,7 +66,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			NewVerifiedClaim: verifiedClaim,
 		}), nil
 
-	case workflow.AsInput(input, &inputOTPVerificationResend):
+	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		err := n.sendCode(deps, w)
 		if err != nil {
 			return nil, err

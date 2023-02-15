@@ -18,7 +18,7 @@ func init() {
 var IntentCreateOOBOTPAuthenticatorForLoginIDSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentCreateOOBOTPAuthenticatorForLoginID struct {
-	IdentityInfo           *identity.Info `json:"identity_info,omitempty"`
+	Identity               *identity.Info `json:"identity_info,omitempty"`
 	AuthenticatorIsDefault bool           `json:"authenticator_is_default"`
 }
 
@@ -40,7 +40,7 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) CanReactTo(ctx context.Context
 }
 
 func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	channel, target := i.IdentityInfo.LoginID.ToChannelTarget()
+	channel, target := i.Identity.LoginID.ToChannelTarget()
 
 	authenticatorType, err := model.GetOOBAuthenticatorType(channel)
 	if err != nil {
@@ -68,7 +68,7 @@ func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context,
 
 	spec := &authenticator.Spec{
 		Type:      authenticatorType,
-		UserID:    i.IdentityInfo.UserID,
+		UserID:    i.Identity.UserID,
 		IsDefault: i.AuthenticatorIsDefault,
 		// It must be primary because it is for a login ID.
 		Kind:   authenticator.KindPrimary,
@@ -89,7 +89,7 @@ func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context,
 	}
 
 	return workflow.NewNodeSimple(&NodeDoCreateAuthenticator{
-		AuthenticatorInfo: info,
+		Authenticator: info,
 	}), nil
 }
 
@@ -106,5 +106,5 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetNewAuthenticator(w *workflo
 	if !ok {
 		return nil, false
 	}
-	return node.AuthenticatorInfo, true
+	return node.Authenticator, true
 }

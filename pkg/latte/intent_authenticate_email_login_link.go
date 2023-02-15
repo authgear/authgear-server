@@ -20,7 +20,7 @@ func init() {
 var IntentAuthenticateEmailLoginLinkSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentAuthenticateEmailLoginLink struct {
-	Authenticator *authenticator.Info `json:"authenticator"`
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (i *IntentAuthenticateEmailLoginLink) Kind() string {
