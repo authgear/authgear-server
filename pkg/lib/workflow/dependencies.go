@@ -101,6 +101,9 @@ type CookieManager interface {
 type AntiSpamOTPCodeBucketMaker interface {
 	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
 }
+type EventStore interface {
+	Publish(workflowID string, e Event) error
+}
 
 type Dependencies struct {
 	Config        *config.AppConfig
@@ -127,4 +130,5 @@ type Dependencies struct {
 	Events                EventService
 	RateLimiter           RateLimiter
 	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
+	WorkflowEvents        EventStore
 }

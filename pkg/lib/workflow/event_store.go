@@ -17,15 +17,15 @@ func (p eventRedisPool) Get() *goredis.Client {
 	return p.Handle.Client()
 }
 
-type EventStore struct {
+type EventStoreImpl struct {
 	AppID       config.AppID
 	RedisHandle *appredis.Handle
 	Store       Store
 	publisher   *pubsub.Publisher
 }
 
-func NewEventStore(appID config.AppID, handle *appredis.Handle, store Store) *EventStore {
-	s := &EventStore{
+func NewEventStore(appID config.AppID, handle *appredis.Handle, store Store) *EventStoreImpl {
+	s := &EventStoreImpl{
 		AppID:       appID,
 		RedisHandle: handle,
 		Store:       store,
@@ -34,7 +34,7 @@ func NewEventStore(appID config.AppID, handle *appredis.Handle, store Store) *Ev
 	return s
 }
 
-func (s *EventStore) Publish(workflowID string, e Event) error {
+func (s *EventStoreImpl) Publish(workflowID string, e Event) error {
 	channelName, err := s.ChannelName(workflowID)
 	if errors.Is(err, ErrWorkflowNotFound) {
 		// Treat events to an non-existent (e.g. expired) workflow as noop.
@@ -56,7 +56,7 @@ func (s *EventStore) Publish(workflowID string, e Event) error {
 	return nil
 }
 
-func (s *EventStore) ChannelName(workflowID string) (string, error) {
+func (s *EventStoreImpl) ChannelName(workflowID string) (string, error) {
 	// Ignore events for workflows without session.
 	_, err := s.Store.GetSession(workflowID)
 	if err != nil {

@@ -52857,6 +52857,12 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SMSConfig:   smsConfig,
 		EmailConfig: emailConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
 		Config:                appConfig,
 		FeatureConfig:         featureConfig,
@@ -52877,15 +52883,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		RateLimiter:           limiter,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		WorkflowEvents:        eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
 		SQLExecutor: sqlExecutor,
-	}
-	workflowStoreImpl := &workflow.StoreImpl{
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Context: contextContext,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -53541,6 +53543,12 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SMSConfig:   smsConfig,
 		EmailConfig: emailConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
 		Config:                appConfig,
 		FeatureConfig:         featureConfig,
@@ -53561,15 +53569,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		RateLimiter:           limiter,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		WorkflowEvents:        eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
 		SQLExecutor: sqlExecutor,
-	}
-	workflowStoreImpl := &workflow.StoreImpl{
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Context: contextContext,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -54195,6 +54199,12 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SMSConfig:   smsConfig,
 		EmailConfig: emailConfig,
 	}
+	workflowStoreImpl := &workflow.StoreImpl{
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
 		Config:                appConfig,
 		FeatureConfig:         featureConfig,
@@ -54215,15 +54225,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Events:                eventService,
 		RateLimiter:           limiter,
 		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		WorkflowEvents:        eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
 	savePointImpl := &workflow.SavePointImpl{
 		SQLExecutor: sqlExecutor,
-	}
-	workflowStoreImpl := &workflow.StoreImpl{
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Context: contextContext,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -54254,7 +54260,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Context: contextContext,
 	}
-	eventStore := workflow.NewEventStore(appID, handle, storeImpl)
+	eventStoreImpl := workflow.NewEventStore(appID, handle, storeImpl)
 	factory := appProvider.LoggerFactory
 	httpConfig := appConfig.HTTP
 	oAuthConfig := appConfig.OAuth
@@ -54267,7 +54273,7 @@ func newAPIWorkflowWebsocketHandler(p *deps.RequestProvider) http.Handler {
 		CORSAllowedOrigins: corsAllowedOrigins,
 	}
 	workflowWebsocketHandler := &api.WorkflowWebsocketHandler{
-		Events:        eventStore,
+		Events:        eventStoreImpl,
 		LoggerFactory: factory,
 		RedisHandle:   handle,
 		OriginMatcher: corsMatcher,
