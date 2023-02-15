@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -89,13 +90,13 @@ func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *w
 
 	type NodeAuthenticateEmailLoginLinkOutput struct {
 		LoginLinkSubmitted bool      `json:"login_link_submitted"`
-		Email              string    `json:"email"`
+		MaskedEmail        string    `json:"masked_email"`
 		CanResendAt        time.Time `json:"can_resend_at"`
 	}
 
 	return NodeAuthenticateEmailLoginLinkOutput{
 		LoginLinkSubmitted: loginLinkSubmitted,
-		Email:              n.Authenticator.OOBOTP.Email,
+		MaskedEmail:        mail.MaskAddress(n.Authenticator.OOBOTP.Email),
 		CanResendAt:        canResendAt,
 	}, nil
 }

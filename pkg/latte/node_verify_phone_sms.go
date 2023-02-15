@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -88,15 +89,15 @@ func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Depe
 	canResendAt := now.Add(resetDuration)
 
 	type NodeVerifyPhoneNumberOutput struct {
-		PhoneNumber string    `json:"phone_number"`
-		CodeLength  int       `json:"code_length"`
-		CanResendAt time.Time `json:"can_resend_at"`
+		MaskedPhoneNumber string    `json:"masked_phone_number"`
+		CodeLength        int       `json:"code_length"`
+		CanResendAt       time.Time `json:"can_resend_at"`
 	}
 
 	return NodeVerifyPhoneNumberOutput{
-		PhoneNumber: n.PhoneNumber,
-		CodeLength:  n.CodeLength,
-		CanResendAt: canResendAt,
+		MaskedPhoneNumber: phone.Mask(n.PhoneNumber),
+		CodeLength:        n.CodeLength,
+		CanResendAt:       canResendAt,
 	}, nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
@@ -87,13 +88,13 @@ func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Depende
 	canResendAt := now.Add(resetDuration)
 
 	type NodeVerifyEmailOutput struct {
-		Email       string    `json:"email"`
+		MaskedEmail string    `json:"masked_email"`
 		CodeLength  int       `json:"code_length"`
 		CanResendAt time.Time `json:"can_resend_at"`
 	}
 
 	return NodeVerifyEmailOutput{
-		Email:       n.Email,
+		MaskedEmail: mail.MaskAddress(n.Email),
 		CodeLength:  n.CodeLength,
 		CanResendAt: canResendAt,
 	}, nil

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -83,12 +84,12 @@ func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *work
 	canResendAt := now.Add(resetDuration)
 
 	type NodeAuthenticateOOBOTPPhoneOutput struct {
-		PhoneNumber string    `json:"phone_number"`
-		CanResendAt time.Time `json:"can_resend_at"`
+		MaskedPhoneNumber string    `json:"masked_phone_number"`
+		CanResendAt       time.Time `json:"can_resend_at"`
 	}
 
 	return NodeAuthenticateOOBOTPPhoneOutput{
-		PhoneNumber: n.Authenticator.OOBOTP.Phone,
-		CanResendAt: canResendAt,
+		MaskedPhoneNumber: phone.Mask(n.Authenticator.OOBOTP.Phone),
+		CanResendAt:       canResendAt,
 	}, nil
 }
