@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 
+	"github.com/iawaknahc/originmatcher"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -19,17 +21,29 @@ type WorkflowWebsocketEventStore interface {
 	ChannelName(workflowID string) (string, error)
 }
 
+type WorkflowWebsocketOriginMatcher interface {
+	PrepareOriginMatcher() (*originmatcher.T, error)
+}
+
 type WorkflowWebsocketHandler struct {
 	Events        WorkflowWebsocketEventStore
 	LoggerFactory *log.Factory
 	RedisHandle   *appredis.Handle
+	OriginMatcher WorkflowWebsocketOriginMatcher
 }
 
 func (h *WorkflowWebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	matcher, err := h.OriginMatcher.PrepareOriginMatcher()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	handler := &pubsub.HTTPHandler{
 		RedisHub:      h.RedisHandle,
 		Delegate:      h,
 		LoggerFactory: h.LoggerFactory,
+		OriginMatcher: matcher,
 	}
 
 	handler.ServeHTTP(w, r)

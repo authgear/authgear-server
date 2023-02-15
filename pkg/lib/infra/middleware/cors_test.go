@@ -22,20 +22,22 @@ func TestCORSMiddleware(t *testing.T) {
 		}
 
 		m := CORSMiddleware{
-			Config: &config.HTTPConfig{
-				AllowedOrigins: specs,
-			},
-			OAuthConfig: &config.OAuthConfig{
-				Clients: []config.OAuthClientConfig{
-					{
-						RedirectURIs: []string{
-							"http://myapp.example.com/redrect",
+			Matcher: &CORSMatcher{
+				Config: &config.HTTPConfig{
+					AllowedOrigins: specs,
+				},
+				OAuthConfig: &config.OAuthConfig{
+					Clients: []config.OAuthClientConfig{
+						{
+							RedirectURIs: []string{
+								"http://myapp.example.com/redrect",
+							},
 						},
 					},
 				},
+				CORSAllowedOrigins: config.CORSAllowedOrigins(env),
 			},
-			Logger:             CORSMiddlewareLogger{log.Null},
-			CORSAllowedOrigins: config.CORSAllowedOrigins(env),
+			Logger: CORSMiddlewareLogger{log.Null},
 		}
 		h = m.Handle(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write(testBody)

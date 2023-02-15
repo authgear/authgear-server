@@ -3,11 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/iawaknahc/originmatcher"
-
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type CORSMiddlewareLogger struct{ *log.Logger }
@@ -19,21 +15,13 @@ func NewCORSMiddlewareLogger(lf *log.Factory) CORSMiddlewareLogger {
 // CORSMiddleware provides CORS headers by matching request origin with the configured allowed origins
 // The allowed origins are provided through app config and environment variable
 type CORSMiddleware struct {
-	Config             *config.HTTPConfig
-	OAuthConfig        *config.OAuthConfig
-	CORSAllowedOrigins config.CORSAllowedOrigins
-	Logger             CORSMiddlewareLogger
+	Matcher *CORSMatcher
+	Logger  CORSMiddlewareLogger
 }
 
 func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		allowedOrigins := m.Config.AllowedOrigins
-		allowedOrigins = append(allowedOrigins, m.CORSAllowedOrigins.List()...)
-		for _, oauthClient := range m.OAuthConfig.Clients {
-			allowedOrigins = append(allowedOrigins, oauthClient.RedirectURIs...)
-		}
-		allowedOrigins = slice.Deduplicate(allowedOrigins)
-		matcher, err := originmatcher.New(allowedOrigins)
+		matcher, err := m.Matcher.PrepareOriginMatcher()
 		// nolint: staticcheck
 		if err != nil {
 			// err is handled by not writing any CORS headers.

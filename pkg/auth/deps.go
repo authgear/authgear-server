@@ -127,6 +127,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStore)),
+	wire.Bind(new(handlerapi.WorkflowWebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
