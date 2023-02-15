@@ -107,7 +107,7 @@ type SessionListingService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, otpMode otp.OTPMode, appID string, webSessionID string) (*otp.Code, error)
+	GenerateCode(target string, otpMode otp.OTPMode, webSessionID string) (*otp.Code, error)
 }
 
 type ForgotPasswordService interface {

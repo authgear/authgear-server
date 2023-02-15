@@ -71,7 +71,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	}
 
 	// fixme(workflow): update web session id for magic link
-	code, err := p.Deps.OTPCodes.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, string(p.Deps.Config.ID), "")
+	code, err := p.Deps.OTPCodes.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, "")
 	if err != nil {
 		return nil, err
 	}

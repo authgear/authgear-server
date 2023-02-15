@@ -70,7 +70,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		}
 	}
 
-	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, string(p.Context.Config.ID), p.Context.WebSessionID)
+	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, p.Context.WebSessionID)
 	if err != nil {
 		return nil, err
 	}

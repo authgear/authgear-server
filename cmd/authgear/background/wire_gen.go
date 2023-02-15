@@ -441,6 +441,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
+		AppID:          configAppID,
 		CodeStore:      codeStoreRedis,
 		MagicLinkStore: magicLinkStoreRedis,
 		Logger:         otpLogger,

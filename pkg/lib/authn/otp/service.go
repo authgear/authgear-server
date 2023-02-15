@@ -32,6 +32,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
 type Service struct {
 	Clock clock.Clock
 
+	AppID          config.AppID
 	CodeStore      CodeStore
 	MagicLinkStore MagicLinkStore
 	Logger         Logger
@@ -110,16 +111,16 @@ func (s *Service) handleFailedAttempt(target string) error {
 	return ErrInvalidCode
 }
 
-func (s *Service) GenerateCode(target string, otpMode OTPMode, appID string, webSessionID string) (*Code, error) {
+func (s *Service) GenerateCode(target string, otpMode OTPMode, webSessionID string) (*Code, error) {
 	return s.createCode(target, otpMode, &Code{
-		AppID:        appID,
+		AppID:        string(s.AppID),
 		WebSessionID: webSessionID,
 	})
 }
 
-func (s *Service) GenerateWhatsappCode(target string, appID string, webSessionID string) (*Code, error) {
+func (s *Service) GenerateWhatsappCode(target string, webSessionID string) (*Code, error) {
 	return s.createCode(target, OTPModeCode, &Code{
-		AppID:        appID,
+		AppID:        string(s.AppID),
 		WebSessionID: webSessionID,
 	})
 }
