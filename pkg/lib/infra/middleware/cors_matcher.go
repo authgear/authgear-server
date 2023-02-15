@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"net/http"
+
 	"github.com/iawaknahc/originmatcher"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,13 +15,23 @@ type CORSMatcher struct {
 	CORSAllowedOrigins config.CORSAllowedOrigins
 }
 
-func (m *CORSMatcher) PrepareOriginMatcher() (*originmatcher.T, error) {
-	allowedOrigins := m.Config.AllowedOrigins
+func (m *CORSMatcher) PrepareOriginMatcher(r *http.Request) (*originmatcher.T, error) {
+	// The host header is always allowed.
+	allowedOrigins := []string{r.Host}
+
+	// Allow the allowed_origins.
+	allowedOrigins = append(allowedOrigins, m.Config.AllowedOrigins...)
+
+	// Allow the origins in environment variable.
 	allowedOrigins = append(allowedOrigins, m.CORSAllowedOrigins.List()...)
+
+	// Allow the origins listed in redirect_uris.
 	for _, oauthClient := range m.OAuthConfig.Clients {
 		allowedOrigins = append(allowedOrigins, oauthClient.RedirectURIs...)
 	}
+
 	allowedOrigins = slice.Deduplicate(allowedOrigins)
+
 	matcher, err := originmatcher.New(allowedOrigins)
 	if err != nil {
 		return nil, err
