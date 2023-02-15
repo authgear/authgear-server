@@ -87,8 +87,12 @@ func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps 
 	}, nil
 }
 
-func (i *IntentAuthenticateEmailLoginLink) GetAMR() []string {
-	return i.Authenticator.AMR()
+func (i *IntentAuthenticateEmailLoginLink) GetAMR(w *workflow.Workflow) []string {
+	node, ok := workflow.FindSingleNode[*NodeVerifiedAuthenticator](w)
+	if !ok {
+		return []string{}
+	}
+	return node.GetAMR()
 }
 
 var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}

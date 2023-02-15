@@ -54,9 +54,12 @@ func (i *IntentAuthenticatePassword) OutputData(ctx context.Context, deps *workf
 	return nil, nil
 }
 
-func (i *IntentAuthenticatePassword) GetAMR() []string {
-	// FIXME(workflow): get amr from node
-	return []string{}
+func (i *IntentAuthenticatePassword) GetAMR(w *workflow.Workflow) []string {
+	node, ok := workflow.FindSingleNode[*NodeVerifiedAuthenticator](w)
+	if !ok {
+		return []string{}
+	}
+	return node.GetAMR()
 }
 
-var _ AMRGetter = &IntentAuthenticateEmailLoginLink{}
+var _ AMRGetter = &IntentAuthenticatePassword{}

@@ -56,3 +56,7 @@ func (*NodeVerifiedAuthenticator) ReactTo(ctx context.Context, deps *workflow.De
 func (n *NodeVerifiedAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }
+
+func (n *NodeVerifiedAuthenticator) GetAMR() []string {
+	return n.Authenticator.AMR()
+}
