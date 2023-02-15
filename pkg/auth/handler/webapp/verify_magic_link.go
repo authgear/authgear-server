@@ -147,7 +147,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		if codeModel.WorkflowID != "" {
-			err = h.WorkflowEvents.Publish(codeModel.WorkflowID, workflow.NewEventLoginLinkCodeVerified())
+			err = h.WorkflowEvents.Publish(codeModel.WorkflowID, workflow.NewEventRefresh())
 			if err != nil {
 				return err
 			}

@@ -45,7 +45,7 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 		}
 
 		if codeModal.WorkflowID != "" {
-			err = deps.WorkflowEvents.Publish(codeModal.WorkflowID, workflow.NewEventLoginLinkCodeVerified())
+			err = deps.WorkflowEvents.Publish(codeModal.WorkflowID, workflow.NewEventRefresh())
 			if err != nil {
 				return nil, err
 			}
