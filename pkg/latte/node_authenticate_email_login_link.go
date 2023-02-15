@@ -3,8 +3,10 @@ package latte
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -77,11 +79,23 @@ func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *w
 		loginLinkSubmitted = true
 	}
 
+	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelEmail, n.Authenticator.OOBOTP.Email)
+	_, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
+	if err != nil {
+		return nil, err
+	}
+	now := deps.Clock.NowUTC()
+	canResendAt := now.Add(resetDuration)
+
 	type NodeAuthenticateEmailLoginLinkOutput struct {
-		LoginLinkSubmitted bool `json:"login_link_submitted"`
+		LoginLinkSubmitted bool      `json:"login_link_submitted"`
+		Email              string    `json:"email"`
+		CanResendAt        time.Time `json:"can_resend_at"`
 	}
 
 	return NodeAuthenticateEmailLoginLinkOutput{
 		LoginLinkSubmitted: loginLinkSubmitted,
+		Email:              n.Authenticator.OOBOTP.Email,
+		CanResendAt:        canResendAt,
 	}, nil
 }

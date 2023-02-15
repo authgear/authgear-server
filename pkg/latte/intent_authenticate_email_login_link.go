@@ -2,10 +2,8 @@ package latte
 
 import (
 	"context"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -68,23 +66,7 @@ func (i *IntentAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps 
 }
 
 func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelEmail, i.Authenticator.OOBOTP.Email)
-	_, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
-	if err != nil {
-		return nil, err
-	}
-	now := deps.Clock.NowUTC()
-	canResendAt := now.Add(resetDuration)
-
-	type IntentAuthenticateEmailLoginLinkOutput struct {
-		Email       string    `json:"email"`
-		CanResendAt time.Time `json:"can_resend_at"`
-	}
-
-	return IntentAuthenticateEmailLoginLinkOutput{
-		Email:       i.Authenticator.OOBOTP.Email,
-		CanResendAt: canResendAt,
-	}, nil
+	return map[string]interface{}{}, nil
 }
 
 func (i *IntentAuthenticateEmailLoginLink) GetAMR() []string {
