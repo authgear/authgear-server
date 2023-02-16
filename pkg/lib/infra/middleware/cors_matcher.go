@@ -25,9 +25,10 @@ func (m *CORSMatcher) PrepareOriginMatcher(r *http.Request) (*originmatcher.T, e
 	// Allow the origins in environment variable.
 	allowedOrigins = append(allowedOrigins, m.CORSAllowedOrigins.List()...)
 
-	// Allow the origins listed in redirect_uris.
+	// Allow the origins listed in redirect_uris and x_custom_ui_uri.
 	for _, oauthClient := range m.OAuthConfig.Clients {
 		allowedOrigins = append(allowedOrigins, oauthClient.RedirectURIs...)
+		allowedOrigins = append(allowedOrigins, oauthClient.CustomUIURI)
 	}
 
 	allowedOrigins = slice.Deduplicate(allowedOrigins)
