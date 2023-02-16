@@ -50,6 +50,18 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 		allowed = true
 	}
 
+	// Implicitly allow URIs at same origin as the custom ui uri.
+	if client.CustomUIURI != "" {
+		customUIURI, err := url.Parse(redirectURIString)
+		if err != nil {
+			return nil, protocol.NewErrorResponse("invalid_request", "invalid custom ui URI")
+		}
+		customUIURIOrigin := fmt.Sprintf("%s://%s", customUIURI.Scheme, customUIURI.Host)
+		if customUIURIOrigin == redirectURIOrigin {
+			allowed = true
+		}
+	}
+
 	if !allowed {
 		return nil, protocol.NewErrorResponse("invalid_request", "redirect URI is not allowed")
 	}
