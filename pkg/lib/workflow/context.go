@@ -4,14 +4,6 @@ import (
 	"context"
 )
 
-type contextKeyTypeClientID struct{}
-
-var contextKeyClientID = contextKeyTypeClientID{}
-
-func GetClientID(ctx context.Context) string {
-	return ctx.Value(contextKeyClientID).(string)
-}
-
 type contextKeyTypeSuppressIDPSessionCookie struct{}
 
 var contextKeySuppressIDPSessionCookie = contextKeyTypeSuppressIDPSessionCookie{}

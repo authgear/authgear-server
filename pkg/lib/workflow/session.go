@@ -2,6 +2,8 @@ package workflow
 
 import (
 	"context"
+
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 )
 
 type Session struct {
@@ -45,7 +47,7 @@ func (s *Session) ToOutput() *SessionOutput {
 }
 
 func (s *Session) Context(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, contextKeyClientID, s.ClientID)
+	ctx = clientid.WithClientID(ctx, s.ClientID)
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyState, s.State)
 	ctx = context.WithValue(ctx, contextKeyWorkflowID, s.WorkflowID)
