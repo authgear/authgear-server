@@ -56562,3 +56562,8 @@ func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	return tutorialMiddleware
 }
+
+func newWorkflowClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	clientIDMiddleware := &workflow.ClientIDMiddleware{}
+	return clientIDMiddleware
+}

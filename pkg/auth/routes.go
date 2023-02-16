@@ -104,6 +104,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
+	workflowChain := httproute.Chain(
+		apiChain,
+		p.Middleware(newWorkflowClientIDMiddleware),
+	)
 
 	apiAuthenticatedChain := httproute.Chain(
 		apiChain,
@@ -221,6 +225,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
+	workflowRoute := httproute.Route{Middleware: workflowChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
 	oauthAPIScopedRoute := httproute.Route{Middleware: oauthAPIScopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
@@ -336,10 +341,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureGeneratedStaticAssetsRoute(generatedStaticRoute), p.RootHandler(newWebAppGeneratedStaticAssetsHandler))
 
-	router.Add(apihandler.ConfigureWorkflowNewRoute(apiRoute), p.Handler(newAPIWorkflowNewHandler))
-	router.Add(apihandler.ConfigureWorkflowGetRoute(apiRoute), p.Handler(newAPIWorkflowGetHandler))
-	router.Add(apihandler.ConfigureWorkflowInputRoute(apiRoute), p.Handler(newAPIWorkflowInputHandler))
-	router.Add(apihandler.ConfigureWorkflowWebsocketRoute(apiRoute), p.Handler(newAPIWorkflowWebsocketHandler))
+	router.Add(apihandler.ConfigureWorkflowNewRoute(workflowRoute), p.Handler(newAPIWorkflowNewHandler))
+	router.Add(apihandler.ConfigureWorkflowGetRoute(workflowRoute), p.Handler(newAPIWorkflowGetHandler))
+	router.Add(apihandler.ConfigureWorkflowInputRoute(workflowRoute), p.Handler(newAPIWorkflowInputHandler))
+	router.Add(apihandler.ConfigureWorkflowWebsocketRoute(workflowRoute), p.Handler(newAPIWorkflowWebsocketHandler))
 
 	router.NotFound(webappPageRoute, p.Handler(newWebAppNotFoundHandler))
 
