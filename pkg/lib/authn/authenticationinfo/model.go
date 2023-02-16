@@ -17,6 +17,9 @@ type T struct {
 	// See https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_BIOMETRIC
 	AMR             []string  `json:"amr,omitempty"`
 	AuthenticatedAt time.Time `json:"authenticated_at,omitempty"`
+	// ShouldFireAuthenticatedEventWhenIssueOfflineGrant indicates we should fire authenticated event during code exchange
+	// This value will be filled in during interaction / workflow
+	ShouldFireAuthenticatedEventWhenIssueOfflineGrant bool `json:"should_fire_authenticated_event_when_issue_offline_grant,omitempty"`
 }
 
 type Entry struct {

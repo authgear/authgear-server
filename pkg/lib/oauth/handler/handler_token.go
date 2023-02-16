@@ -658,7 +658,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 	resp.IDToken(idToken)
 
-	// Dispatch event user.authenticated
+	// Biometric login should fire event user.authenticated
+	// for other scenarios, ref: https://github.com/authgear/authgear-server/issues/2930
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: authz.UserID,
@@ -750,6 +751,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	return offlineGrant, nil
 }
 
+// nolint: gocyclo
 func (h *TokenHandler) issueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
@@ -833,6 +835,23 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		sid = oidc.EncodeSID(offlineGrant)
 		accessTokenSessionID = offlineGrant.ID
 		accessTokenSessionKind = oauth.GrantSessionKindOffline
+
+		// ref: https://github.com/authgear/authgear-server/issues/2930
+		if info.ShouldFireAuthenticatedEventWhenIssueOfflineGrant {
+			userRef := model.UserRef{
+				Meta: model.Meta{
+					ID: authz.UserID,
+				},
+			}
+			err = h.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+				UserRef:  userRef,
+				Session:  *offlineGrant.ToAPIModel(),
+				AdminAPI: false,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
 	} else if code.IDTokenHintSID != "" {
 		sid = code.IDTokenHintSID
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok {
