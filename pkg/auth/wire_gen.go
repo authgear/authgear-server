@@ -52849,6 +52849,30 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:          remoteIP,
+		Translation:       translationService,
+		Config:            forgotPasswordConfig,
+		Store:             forgotpasswordStore,
+		Clock:             clockClock,
+		URLs:              endpointsEndpoints,
+		TaskQueue:         queue,
+		Logger:            providerLogger,
+		Identities:        identityFacade,
+		Authenticators:    authenticatorFacade,
+		FeatureConfig:     featureConfig,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -52882,6 +52906,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:              otpService,
 		OOBCodeSender:         codeSender,
 		Verification:          workflowVerificationFacade,
+		ForgotPassword:        forgotpasswordProvider,
 		IDPSessions:           idpsessionProvider,
 		Sessions:              manager2,
 		AuthenticationInfos:   authenticationinfoStoreRedis,
@@ -53535,6 +53560,30 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:          remoteIP,
+		Translation:       translationService,
+		Config:            forgotPasswordConfig,
+		Store:             forgotpasswordStore,
+		Clock:             clockClock,
+		URLs:              endpointsEndpoints,
+		TaskQueue:         queue,
+		Logger:            providerLogger,
+		Identities:        identityFacade,
+		Authenticators:    authenticatorFacade,
+		FeatureConfig:     featureConfig,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -53568,6 +53617,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:              otpService,
 		OOBCodeSender:         codeSender,
 		Verification:          workflowVerificationFacade,
+		ForgotPassword:        forgotpasswordProvider,
 		IDPSessions:           idpsessionProvider,
 		Sessions:              manager2,
 		AuthenticationInfos:   authenticationinfoStoreRedis,
@@ -54191,6 +54241,30 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		RemoteIP:          remoteIP,
+		Translation:       translationService,
+		Config:            forgotPasswordConfig,
+		Store:             forgotpasswordStore,
+		Clock:             clockClock,
+		URLs:              endpointsEndpoints,
+		TaskQueue:         queue,
+		Logger:            providerLogger,
+		Identities:        identityFacade,
+		Authenticators:    authenticatorFacade,
+		FeatureConfig:     featureConfig,
+		Events:            eventService,
+		RateLimiter:       limiter,
+		HardSMSBucketer:   hardSMSBucketer,
+		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -54224,6 +54298,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:              otpService,
 		OOBCodeSender:         codeSender,
 		Verification:          workflowVerificationFacade,
+		ForgotPassword:        forgotpasswordProvider,
 		IDPSessions:           idpsessionProvider,
 		Sessions:              manager2,
 		AuthenticationInfos:   authenticationinfoStoreRedis,
