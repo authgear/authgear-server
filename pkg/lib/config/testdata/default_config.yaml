@@ -544,3 +544,6 @@ web3:
   nft:
     collections:
 google_tag_manager: {}
+account_migration:
+  hook:
+    timeout: 5
