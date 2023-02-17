@@ -14,7 +14,12 @@ func init() {
 	workflow.RegisterPublicIntent(&IntentForgotPassword{})
 }
 
-var IntentForgotPasswordSchema = validation.NewSimpleSchema(`{}`)
+var IntentForgotPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"additionalProperties": false
+	}
+`)
 
 type IntentForgotPassword struct {
 }
