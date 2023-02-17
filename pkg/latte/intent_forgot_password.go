@@ -2,7 +2,10 @@ package latte
 
 import (
 	"context"
+	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -40,7 +43,13 @@ func (i *IntentForgotPassword) ReactTo(ctx context.Context, deps *workflow.Depen
 	case workflow.AsInput(input, &inputTakeLoginID):
 		loginID := inputTakeLoginID.GetLoginID()
 		node := NodeSendForgotPasswordCode{LoginID: loginID}
-		node.sendCode(ctx, deps, w)
+		err := node.sendCode(ctx, deps, w)
+		if err != nil {
+			if errors.Is(err, forgotpassword.ErrUserNotFound) {
+				return nil, api.ErrUserNotFound
+			}
+			return nil, err
+		}
 		return workflow.NewNodeSimple(&node), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput
