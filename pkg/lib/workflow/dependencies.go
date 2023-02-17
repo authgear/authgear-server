@@ -65,7 +65,6 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	ResetPassword(userID string, newPassword string) (err error)
 	ResetPasswordByCode(code string, newPassword string) (err error)
 }
 
