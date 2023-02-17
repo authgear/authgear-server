@@ -141,12 +141,13 @@ func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
 		return true, nil
 	}
 
-	_, err = s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		return true, nil
-	} else if err != nil {
-		return false, err
-	}
+	// We do not check the presence of the code here.
+	// If we were to check that, we will have the following bug.
+	// 1. Sign in.
+	// 2. Sign in immediately again within OTP cooldown period.
+	// 3. The code is not generated (thus absent), and we DO NOT report rate limit error.
+	// 4. This function return true, the client is confused that failed attempt rate limit is exceeded.
+
 	return false, nil
 }
 
