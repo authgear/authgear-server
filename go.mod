@@ -47,9 +47,9 @@ require (
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f
 	golang.org/x/crypto v0.1.0
-	golang.org/x/net v0.1.0
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.1.0
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.7.0
 	google.golang.org/api v0.101.0
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
@@ -79,7 +79,7 @@ require (
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.6.4
 	github.com/vimeo/go-magic v1.0.0
-	golang.org/x/term v0.1.0
+	golang.org/x/term v0.5.0
 )
 
 require github.com/twilio/twilio-go v1.3.1
@@ -219,7 +219,7 @@ require (
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
