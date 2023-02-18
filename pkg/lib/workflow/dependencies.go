@@ -64,6 +64,10 @@ type ForgotPasswordService interface {
 	SendCode(loginID string) error
 }
 
+type ResetPasswordService interface {
+	ResetPasswordByCode(code string, newPassword string) (err error)
+}
+
 type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
@@ -125,6 +129,7 @@ type Dependencies struct {
 	OOBCodeSender   OOBCodeSender
 	Verification    VerificationService
 	ForgotPassword  ForgotPasswordService
+	ResetPassword   ResetPasswordService
 
 	IDPSessions         IDPSessionService
 	Sessions            SessionService
