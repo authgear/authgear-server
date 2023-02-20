@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -38,6 +41,16 @@ func (*IntentMigrate) CanReactTo(ctx context.Context, deps *workflow.Dependencie
 	case 1:
 		// Migrate from the migration token.
 		return nil, nil
+	case 2:
+		// Create a email login ID.
+		// We assume the project is set to skip verify email on sign up.
+		return nil, nil
+	case 3:
+		// Create a primary password.
+		return nil, nil
+	case 4:
+		// Create a session, if needed.
+		return nil, nil
 	default:
 		return nil, workflow.ErrEOF
 	}
@@ -62,6 +75,30 @@ func (i *IntentMigrate) ReactTo(ctx context.Context, deps *workflow.Dependencies
 	case 1:
 		return workflow.NewSubWorkflow(&IntentMigrateAccount{
 			UseID: i.userID(w),
+		}), nil
+	case 2:
+		return workflow.NewSubWorkflow(&IntentCreateLoginID{
+			// LoginID key and LoginID type are fixed here.
+			UserID:      i.userID(w),
+			LoginIDType: model.LoginIDKeyTypeEmail,
+			LoginIDKey:  string(model.LoginIDKeyTypeEmail),
+		}), nil
+	case 3:
+		// The type, kind is fixed here.
+		return workflow.NewSubWorkflow(&IntentCreatePassword{
+			UserID:                 i.userID(w),
+			AuthenticatorKind:      authenticator.KindPrimary,
+			AuthenticatorIsDefault: false,
+		}), nil
+	case 4:
+		return workflow.NewSubWorkflow(&IntentCreateSession{
+			UserID:       i.userID(w),
+			CreateReason: session.CreateReasonSignup,
+			// AMR is NOT populated because
+			// 1. Strictly speaking this is NOT an authentication. It is a sign up.
+			// 2. 3 authenticators were created. Should we report all 3?
+			AMR:        nil,
+			SkipCreate: workflow.GetSuppressIDPSessionCookie(ctx),
 		}), nil
 	}
 
