@@ -13,6 +13,8 @@ type MigrateSpec struct {
 func (s *MigrateSpec) GetSpec() *Spec {
 	return &Spec{
 		Type: s.Type,
+		// Support migrate primary authenticator only
+		Kind: KindPrimary,
 		OOBOTP: &OOBOTPSpec{
 			Email: s.OOBOTP.Email,
 			Phone: s.OOBOTP.Phone,

@@ -38,7 +38,8 @@ func (*IntentMigrateAccount) CanReactTo(ctx context.Context, deps *workflow.Depe
 		// Migrate identities.
 		return nil, nil
 	case 2:
-		// FIXME(workflow): Migrate authenticators.
+		// Migrate authenticators.
+		return nil, nil
 	}
 
 	return nil, workflow.ErrEOF
@@ -66,7 +67,11 @@ func (i *IntentMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Depen
 			MigrateSpecs: specs,
 		}), nil
 	case 2:
-		// FIXME(workflow): Migrate authenticators
+		specs := i.getAuthenticatorMigrateSpecs(w)
+		return workflow.NewSubWorkflow(&IntentMigrateAuthenticators{
+			UserID:       i.UseID,
+			MigrateSpecs: specs,
+		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
