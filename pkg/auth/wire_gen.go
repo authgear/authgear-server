@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -52873,6 +52874,30 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
+	accountMigrationConfig := appConfig.AccountMigration
+	accountMigrationHookConfig := accountMigrationConfig.Hook
+	hookDenoClient := accountmigration.NewHookDenoClient(denoEndpoint, hookLogger, accountMigrationHookConfig)
+	denoMiddlewareLogger := accountmigration.NewDenoMiddlewareLogger(factory)
+	accountMigrationDenoHook := &accountmigration.AccountMigrationDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
+		Logger:   denoMiddlewareLogger,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig)
+	webhookMiddlewareLogger := accountmigration.NewWebhookMiddlewareLogger(factory)
+	accountMigrationWebHook := &accountmigration.AccountMigrationWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+		Logger:  webhookMiddlewareLogger,
+	}
+	accountmigrationService := &accountmigration.Service{
+		Config:   accountMigrationHookConfig,
+		DenoHook: accountMigrationDenoHook,
+		WebHook:  accountMigrationWebHook,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -52908,6 +52933,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Verification:          workflowVerificationFacade,
 		ForgotPassword:        forgotpasswordProvider,
 		ResetPassword:         forgotpasswordProvider,
+		AccountMigrations:     accountmigrationService,
 		IDPSessions:           idpsessionProvider,
 		Sessions:              manager2,
 		AuthenticationInfos:   authenticationinfoStoreRedis,
@@ -53585,6 +53611,30 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
+	accountMigrationConfig := appConfig.AccountMigration
+	accountMigrationHookConfig := accountMigrationConfig.Hook
+	hookDenoClient := accountmigration.NewHookDenoClient(denoEndpoint, hookLogger, accountMigrationHookConfig)
+	denoMiddlewareLogger := accountmigration.NewDenoMiddlewareLogger(factory)
+	accountMigrationDenoHook := &accountmigration.AccountMigrationDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
+		Logger:   denoMiddlewareLogger,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig)
+	webhookMiddlewareLogger := accountmigration.NewWebhookMiddlewareLogger(factory)
+	accountMigrationWebHook := &accountmigration.AccountMigrationWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+		Logger:  webhookMiddlewareLogger,
+	}
+	accountmigrationService := &accountmigration.Service{
+		Config:   accountMigrationHookConfig,
+		DenoHook: accountMigrationDenoHook,
+		WebHook:  accountMigrationWebHook,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -53620,6 +53670,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Verification:          workflowVerificationFacade,
 		ForgotPassword:        forgotpasswordProvider,
 		ResetPassword:         forgotpasswordProvider,
+		AccountMigrations:     accountmigrationService,
 		IDPSessions:           idpsessionProvider,
 		Sessions:              manager2,
 		AuthenticationInfos:   authenticationinfoStoreRedis,
@@ -54267,6 +54318,30 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
+	accountMigrationConfig := appConfig.AccountMigration
+	accountMigrationHookConfig := accountMigrationConfig.Hook
+	hookDenoClient := accountmigration.NewHookDenoClient(denoEndpoint, hookLogger, accountMigrationHookConfig)
+	denoMiddlewareLogger := accountmigration.NewDenoMiddlewareLogger(factory)
+	accountMigrationDenoHook := &accountmigration.AccountMigrationDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
+		Logger:   denoMiddlewareLogger,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig)
+	webhookMiddlewareLogger := accountmigration.NewWebhookMiddlewareLogger(factory)
+	accountMigrationWebHook := &accountmigration.AccountMigrationWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+		Logger:  webhookMiddlewareLogger,
+	}
+	accountmigrationService := &accountmigration.Service{
+		Config:   accountMigrationHookConfig,
+		DenoHook: accountMigrationDenoHook,
+		WebHook:  accountMigrationWebHook,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -54302,6 +54377,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Verification:          workflowVerificationFacade,
 		ForgotPassword:        forgotpasswordProvider,
 		ResetPassword:         forgotpasswordProvider,
+		AccountMigrations:     accountmigrationService,
 		IDPSessions:           idpsessionProvider,
 		Sessions:              manager2,
 		AuthenticationInfos:   authenticationinfoStoreRedis,
