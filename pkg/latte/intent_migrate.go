@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -105,7 +106,7 @@ func (i *IntentMigrate) ReactTo(ctx context.Context, deps *workflow.Dependencies
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
@@ -114,6 +115,45 @@ func (*IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			if err != nil {
 				return err
 			}
+			return nil
+		}),
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			var identities []*identity.Info
+			identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](w)
+			for _, subWorkflow := range identityWorkflows {
+				if iden, ok := subWorkflow.Intent.(NewIdentityGetter).GetNewIdentities(subWorkflow); ok {
+					identities = append(identities, iden...)
+				}
+			}
+
+			var authenticators []*authenticator.Info
+			authenticatorWorkflows := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
+			for _, subWorkflow := range authenticatorWorkflows {
+				if a, ok := subWorkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticators(subWorkflow); ok {
+					authenticators = append(authenticators, a...)
+				}
+			}
+
+			userID := i.userID(w)
+			isAdminAPI := false
+			state := workflow.GetState(ctx)
+
+			u, err := deps.Users.GetRaw(userID)
+			if err != nil {
+				return err
+			}
+
+			err = deps.Users.AfterCreate(
+				u,
+				identities,
+				authenticators,
+				isAdminAPI,
+				state,
+			)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		}),
 	}, nil

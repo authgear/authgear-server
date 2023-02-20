@@ -62,3 +62,19 @@ func (*IntentMigrateAuthenticators) GetEffects(ctx context.Context, deps *workfl
 func (*IntentMigrateAuthenticators) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
+
+func (*IntentMigrateAuthenticators) GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool) {
+	var authenticators []*authenticator.Info
+	authenticatorWorkflows := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
+	for _, subWorkflow := range authenticatorWorkflows {
+		if a, ok := subWorkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticators(subWorkflow); ok {
+			authenticators = append(authenticators, a...)
+		}
+	}
+
+	if len(authenticators) == 0 {
+		return nil, false
+	}
+
+	return authenticators, true
+}

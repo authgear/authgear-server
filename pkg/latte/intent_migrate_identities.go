@@ -60,3 +60,19 @@ func (*IntentMigrateIdentities) GetEffects(ctx context.Context, deps *workflow.D
 func (*IntentMigrateIdentities) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
+
+func (*IntentMigrateIdentities) GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool) {
+	var identities []*identity.Info
+	identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](w)
+	for _, subWorkflow := range identityWorkflows {
+		if iden, ok := subWorkflow.Intent.(NewIdentityGetter).GetNewIdentities(subWorkflow); ok {
+			identities = append(identities, iden...)
+		}
+	}
+
+	if len(identities) == 0 {
+		return nil, false
+	}
+
+	return identities, true
+}

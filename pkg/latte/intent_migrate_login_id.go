@@ -110,3 +110,11 @@ func (*IntentMigrateLoginID) GetEffects(ctx context.Context, deps *workflow.Depe
 func (*IntentMigrateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
+
+func (*IntentMigrateLoginID) GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool) {
+	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
+	if !ok {
+		return nil, false
+	}
+	return []*identity.Info{node.Identity}, true
+}

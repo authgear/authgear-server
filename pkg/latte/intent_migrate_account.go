@@ -85,6 +85,24 @@ func (*IntentMigrateAccount) OutputData(ctx context.Context, deps *workflow.Depe
 	return nil, nil
 }
 
+func (*IntentMigrateAccount) GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool) {
+	ws := workflow.FindSubWorkflows[NewIdentityGetter](w)
+	if len(ws) != 1 {
+		return nil, false
+	}
+	subworkflow := ws[0]
+	return subworkflow.Intent.(NewIdentityGetter).GetNewIdentities(subworkflow)
+}
+
+func (*IntentMigrateAccount) GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool) {
+	ws := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
+	if len(ws) != 1 {
+		return nil, false
+	}
+	subworkflow := ws[0]
+	return subworkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticators(subworkflow)
+}
+
 func (*IntentMigrateAccount) getIdentityMigrateSpecs(w *workflow.Workflow) []*identity.MigrateSpec {
 	node, ok := workflow.FindSingleNode[*NodeMigrateAccount](w)
 	if !ok {

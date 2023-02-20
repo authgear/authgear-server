@@ -103,3 +103,11 @@ func (*IntentMigrateOOBOTPAuthenticator) GetEffects(ctx context.Context, deps *w
 func (*IntentMigrateOOBOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
+
+func (*IntentMigrateOOBOTPAuthenticator) GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool) {
+	node, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](w)
+	if !ok {
+		return nil, false
+	}
+	return []*authenticator.Info{node.Authenticator}, true
+}
