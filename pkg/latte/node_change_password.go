@@ -29,14 +29,14 @@ func (n *NodeChangePassword) GetEffects(ctx context.Context, deps *workflow.Depe
 
 func (n *NodeChangePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	return []workflow.Input{
-		&InputTakeChangePassword{},
+		&InputChangePassword{},
 	}, nil
 }
 
 func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var inputTakeChangePassword inputTakeChangePassword
+	var inputChangePassword inputChangePassword
 	switch {
-	case workflow.AsInput(input, &inputTakeChangePassword):
+	case workflow.AsInput(input, &inputChangePassword):
 		info, err := n.getPasswordAuthenticator(deps)
 		// The user doesn't have the password authenticator
 		// always returns invalid credentials error
@@ -47,7 +47,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 		}
 		_, err = deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
-				PlainPassword: inputTakeChangePassword.GetOldPassword(),
+				PlainPassword: inputChangePassword.GetOldPassword(),
 			},
 		})
 		if err != nil {
@@ -56,7 +56,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 
 		changed, newInfo, err := deps.Authenticators.WithSpec(info, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
-				PlainPassword: inputTakeChangePassword.GetNewPassword(),
+				PlainPassword: inputChangePassword.GetNewPassword(),
 			},
 		})
 		if err != nil {
