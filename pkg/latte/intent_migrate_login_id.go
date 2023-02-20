@@ -6,7 +6,9 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -33,8 +35,13 @@ func (*IntentMigrateLoginID) JSONSchema() *validation.SimpleSchema {
 func (*IntentMigrateLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	switch len(w.Nodes) {
 	case 0:
+		// Create identity.
 		return nil, nil
 	case 1:
+		// Populate standard attributes.
+		return nil, nil
+	case 2:
+		// Mark identity as verified automatically.
 		return nil, nil
 	default:
 		return nil, workflow.ErrEOF
@@ -70,6 +77,19 @@ func (i *IntentMigrateLoginID) ReactTo(ctx context.Context, deps *workflow.Depen
 		iden := i.identityInfo(w)
 		return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
 			Identity: iden,
+		}), nil
+	case 2:
+		iden := i.identityInfo(w)
+		var verifiedClaim *verification.Claim
+		switch iden.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			verifiedClaim = deps.Verification.NewVerifiedClaim(i.UserID, string(model.ClaimEmail), iden.LoginID.LoginID)
+		case model.LoginIDKeyTypePhone:
+			verifiedClaim = deps.Verification.NewVerifiedClaim(i.UserID, string(model.ClaimPhoneNumber), iden.LoginID.LoginID)
+		}
+		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
+			IdentityID:       iden.ID,
+			NewVerifiedClaim: verifiedClaim,
 		}), nil
 	}
 	return nil, workflow.ErrIncompatibleInput
