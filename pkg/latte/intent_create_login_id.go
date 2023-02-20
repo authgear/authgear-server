@@ -131,21 +131,21 @@ func (*IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Depen
 	return nil, nil
 }
 
-func (*IntentCreateLoginID) GetNewIdentity(w *workflow.Workflow) (*identity.Info, bool) {
+func (*IntentCreateLoginID) GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool) {
 	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
 	if !ok {
 		return nil, false
 	}
-	return node.Identity, true
+	return []*identity.Info{node.Identity}, true
 }
 
-func (*IntentCreateLoginID) GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool) {
+func (*IntentCreateLoginID) GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool) {
 	ws := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
 	if len(ws) != 1 {
 		return nil, false
 	}
 	subworkflow := ws[0]
-	return subworkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticator(subworkflow)
+	return subworkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticators(subworkflow)
 }
 
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {

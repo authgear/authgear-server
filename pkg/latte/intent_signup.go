@@ -123,16 +123,16 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 			var identities []*identity.Info
 			identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](w)
 			for _, subWorkflow := range identityWorkflows {
-				if iden, ok := subWorkflow.Intent.(NewIdentityGetter).GetNewIdentity(subWorkflow); ok {
-					identities = append(identities, iden)
+				if iden, ok := subWorkflow.Intent.(NewIdentityGetter).GetNewIdentities(subWorkflow); ok {
+					identities = append(identities, iden...)
 				}
 			}
 
 			var authenticators []*authenticator.Info
 			authenticatorWorkflows := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
 			for _, subWorkflow := range authenticatorWorkflows {
-				if a, ok := subWorkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticator(subWorkflow); ok {
-					authenticators = append(authenticators, a)
+				if a, ok := subWorkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticators(subWorkflow); ok {
+					authenticators = append(authenticators, a...)
 				}
 			}
 
@@ -175,10 +175,10 @@ func (i *IntentSignup) userID(w *workflow.Workflow) string {
 
 type NewIdentityGetter interface {
 	workflow.Intent
-	GetNewIdentity(w *workflow.Workflow) (*identity.Info, bool)
+	GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool)
 }
 
 type NewAuthenticatorGetter interface {
 	workflow.Intent
-	GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool)
+	GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool)
 }
