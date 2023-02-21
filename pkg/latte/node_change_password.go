@@ -39,9 +39,9 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 	case workflow.AsInput(input, &inputChangePassword):
 		info, err := n.getPasswordAuthenticator(deps)
 		// The user doesn't have the password authenticator
-		// always returns invalid credentials error
+		// always returns no password error
 		if errors.Is(err, api.ErrNoAuthenticator) {
-			return nil, api.ErrInvalidCredentials
+			return nil, api.ErrNoPassword
 		} else if err != nil {
 			return nil, err
 		}

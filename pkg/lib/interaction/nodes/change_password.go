@@ -4,15 +4,11 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
-
-var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
-var ErrNoPassword = ChangePasswordFailed.NewWithCause("the user does not have a password", apierrors.StringCause("NoPassword"))
 
 func init() {
 	interaction.RegisterNode(&NodeChangePasswordBegin{})
@@ -94,7 +90,7 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 	}
 
 	if len(ais) == 0 {
-		err = ErrNoPassword
+		err = api.ErrNoPassword
 		return
 	}
 
