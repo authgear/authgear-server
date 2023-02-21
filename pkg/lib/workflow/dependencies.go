@@ -32,7 +32,9 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
+	Update(authenticatorInfo *authenticator.Info) error
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 }
 
