@@ -101,10 +101,10 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) OutputData(ctx context.Context
 	return nil, nil
 }
 
-func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetNewAuthenticator(w *workflow.Workflow) (*authenticator.Info, bool) {
+func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool) {
 	node, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](w)
 	if !ok {
 		return nil, false
 	}
-	return node.Authenticator, true
+	return []*authenticator.Info{node.Authenticator}, true
 }

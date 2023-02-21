@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -188,6 +189,7 @@ var CommonDependencySet = wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(interaction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+		wire.Bind(new(workflow.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 
 		identityoauth.DependencySet,
 
@@ -406,5 +408,10 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		workflow.DependencySet,
+	),
+
+	wire.NewSet(
+		accountmigration.DependencySet,
+		wire.Bind(new(workflow.AccountMigrationService), new(*accountmigration.Service)),
 	),
 )

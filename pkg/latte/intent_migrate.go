@@ -14,33 +14,33 @@ import (
 )
 
 func init() {
-	workflow.RegisterPrivateIntent(&IntentSignup{})
+	workflow.RegisterPublicIntent(&IntentMigrate{})
 }
 
-var IntentSignupSchema = validation.NewSimpleSchema(`
+var IntentMigrateSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"additionalProperties": false
 	}
 `)
 
-type IntentSignup struct{}
+type IntentMigrate struct{}
 
-func (*IntentSignup) Kind() string {
-	return "latte.IntentSignup"
+func (*IntentMigrate) Kind() string {
+	return "latte.IntentMigrate"
 }
 
-func (*IntentSignup) JSONSchema() *validation.SimpleSchema {
-	return IntentSignupSchema
+func (*IntentMigrate) JSONSchema() *validation.SimpleSchema {
+	return IntentMigrateSchema
 }
 
-func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*IntentMigrate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
 	switch len(w.Nodes) {
 	case 0:
 		// Generate a new user ID.
 		return nil, nil
 	case 1:
-		// Create a phone login ID.
+		// Migrate from the migration token.
 		return nil, nil
 	case 2:
 		// Create a email login ID.
@@ -57,7 +57,8 @@ func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies
 	}
 }
 
-func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentMigrate) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+	// Check the migration token
 	switch len(w.Nodes) {
 	case 0:
 		// The token will be taken in on-commit effect.
@@ -73,11 +74,8 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 			UserID: uuid.New(),
 		}), nil
 	case 1:
-		return workflow.NewSubWorkflow(&IntentCreateLoginID{
-			// LoginID key and LoginID type are fixed here.
-			UserID:      i.userID(w),
-			LoginIDType: model.LoginIDKeyTypePhone,
-			LoginIDKey:  string(model.LoginIDKeyTypePhone),
+		return workflow.NewSubWorkflow(&IntentMigrateAccount{
+			UseID: i.userID(w),
 		}), nil
 	case 2:
 		return workflow.NewSubWorkflow(&IntentCreateLoginID{
@@ -108,7 +106,7 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
@@ -161,24 +159,14 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 	}, nil
 }
 
-func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentMigrate) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *IntentSignup) userID(w *workflow.Workflow) string {
+func (i *IntentMigrate) userID(w *workflow.Workflow) string {
 	node, ok := workflow.FindSingleNode[*NodeDoCreateUser](w)
 	if !ok {
 		panic(fmt.Errorf("expected userID"))
 	}
 	return node.UserID
-}
-
-type NewIdentityGetter interface {
-	workflow.Intent
-	GetNewIdentities(w *workflow.Workflow) ([]*identity.Info, bool)
-}
-
-type NewAuthenticatorGetter interface {
-	workflow.Intent
-	GetNewAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, bool)
 }

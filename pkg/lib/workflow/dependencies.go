@@ -6,9 +6,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -116,6 +118,14 @@ type EventStore interface {
 	Publish(workflowID string, e Event) error
 }
 
+type AccountMigrationService interface {
+	Run(migrationTokenString string) (*accountmigration.HookResponse, error)
+}
+
+type LoginIDNormalizerFactory interface {
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -123,15 +133,17 @@ type Dependencies struct {
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
 
-	Users           UserService
-	Identities      IdentityService
-	Authenticators  AuthenticatorService
-	StdAttrsService StdAttrsService
-	OTPCodes        OTPCodeService
-	OOBCodeSender   OOBCodeSender
-	Verification    VerificationService
-	ForgotPassword  ForgotPasswordService
-	ResetPassword   ResetPasswordService
+	Users                    UserService
+	Identities               IdentityService
+	Authenticators           AuthenticatorService
+	StdAttrsService          StdAttrsService
+	OTPCodes                 OTPCodeService
+	OOBCodeSender            OOBCodeSender
+	Verification             VerificationService
+	ForgotPassword           ForgotPasswordService
+	ResetPassword            ResetPasswordService
+	AccountMigrations        AccountMigrationService
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 
 	IDPSessions         IDPSessionService
 	Sessions            SessionService
