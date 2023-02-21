@@ -3,7 +3,6 @@ package latte
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -12,7 +11,6 @@ func init() {
 }
 
 type NodeChangePasswordEnd struct {
-	Authenticator *authenticator.Info
 }
 
 func (n *NodeChangePasswordEnd) Kind() string {
