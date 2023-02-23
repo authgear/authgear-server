@@ -64,8 +64,7 @@ func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.D
 			}
 		}
 		if iden == nil {
-			// FIXME: define new identity not found error?
-			return nil, api.ErrUserNotFound
+			return nil, api.ErrIdentityNotFound
 		}
 
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
