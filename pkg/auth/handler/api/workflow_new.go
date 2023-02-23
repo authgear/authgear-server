@@ -111,7 +111,11 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 		// Do not clear the UI cookie so that a new session can be created again.
 		// httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
 	} else {
-		sessionOptions = &workflow.SessionOptions{}
+		// Accept client_id from query if the workflow is not OAuth related.
+		// This is essential if the templates of some features require client_id.
+		sessionOptions = &workflow.SessionOptions{
+			ClientID: r.FormValue("client_id"),
+		}
 	}
 
 	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
