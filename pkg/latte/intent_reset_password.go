@@ -30,28 +30,42 @@ func (*IntentResetPassword) JSONSchema() *validation.SimpleSchema {
 }
 
 func (*IntentResetPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+	switch len(w.Nodes) {
+	case 0:
 		return []workflow.Input{
-			&InputResetPasswordByCode{},
+			&InputTakeCode{},
+		}, nil
+	case 1:
+		return []workflow.Input{
+			&InputTakePassword{},
 		}, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
 func (i *IntentResetPassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	var inputResetPasswordByCode inputResetPasswordByCode
-
-	switch {
-	case workflow.AsInput(input, &inputResetPasswordByCode):
-		node := NodeDoResetPasswordByCode{
-			Code:        inputResetPasswordByCode.GetCode(),
-			NewPassword: inputResetPasswordByCode.GetNewPassword(),
+	switch len(w.Nodes) {
+	case 0:
+		var inputTakeCode inputTakeCode
+		if workflow.AsInput(input, &inputTakeCode) {
+			node := NodeValidateResetPasswordCode{
+				Code: inputTakeCode.GetCode(),
+			}
+			return workflow.NewNodeSimple(&node), nil
 		}
-		return workflow.NewNodeSimple(&node), nil
-	default:
-		return nil, workflow.ErrIncompatibleInput
-	}
+	case 1:
+		var inputTakePassword inputTakePassword
+		var code = i.getValidatedCode(w)
+		if workflow.AsInput(input, &inputTakePassword) {
+			node := NodeDoResetPasswordByCode{
+				Code:        code,
+				NewPassword: inputTakePassword.GetPassword(),
+			}
+			return workflow.NewNodeSimple(&node), nil
+		}
 
+	}
+	return nil, workflow.ErrIncompatibleInput
 }
 
 func (*IntentResetPassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
@@ -60,4 +74,12 @@ func (*IntentResetPassword) GetEffects(ctx context.Context, deps *workflow.Depen
 
 func (*IntentResetPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	return nil, nil
+}
+
+func (*IntentResetPassword) getValidatedCode(w *workflow.Workflow) string {
+	node, ok := workflow.FindSingleNode[*NodeValidateResetPasswordCode](w)
+	if !ok {
+		return ""
+	}
+	return node.Code
 }
