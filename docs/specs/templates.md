@@ -12,8 +12,8 @@ Authgear serves web pages and send email and SMS messages. Templates allow the d
   * [Translation file](#translation-file)
     * [Translation Resolution](#translation-resolution)
   * [Available templates](#available-templates)
-    * [`otp_message`](#otp_message)
-    * [`oob_magic_link`](#oob_magic_link)
+    * [`oob_message`](#oob_message)
+    * [`login_link`](#login_link)
 
 ## Template
 
@@ -122,13 +122,13 @@ One-time-password message. Used for authentication and user verification.
     - `Code`: The one-time-password.
     - `Host`: Host of authgear, usually used for [Web OTP](https://web.dev/web-otp/) API.
 
-### `oob_magic_link`
+### `login_link`
 
 Magic link. Used for authentication and user verification.
 
 - Template types:
-    - `authenticate_primary_oob_magic_link.txt` / `authenticate_secondary_oob_magic_link.txt`
-    - `authenticate_primary_oob_magic_link.html` / `authenticate_secondary_oob_magic_link.html`
+    - `authenticate_primary_login_link.txt` / `authenticate_secondary_login_link.txt`
+    - `authenticate_primary_login_link.html` / `authenticate_secondary_login_link.html`
 - Context:
     - `Email`: The recipient email of the message; empty if not sending an email message.
     - `Phone`: The recipient phone number of the message; empty if not sending an SMS message.
