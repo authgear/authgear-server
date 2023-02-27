@@ -48,7 +48,11 @@ func (i *IntentResetPassword) ReactTo(ctx context.Context, deps *workflow.Depend
 	case 0:
 		var inputTakeCode inputTakeCode
 		if workflow.AsInput(input, &inputTakeCode) {
-			node := NodeValidateResetPasswordCode{
+			err := deps.ResetPassword.CheckResetPasswordCode(inputTakeCode.GetCode())
+			if err != nil {
+				return nil, err
+			}
+			node := NodeValidatedResetPasswordCode{
 				Code: inputTakeCode.GetCode(),
 			}
 			return workflow.NewNodeSimple(&node), nil
@@ -77,7 +81,7 @@ func (*IntentResetPassword) OutputData(ctx context.Context, deps *workflow.Depen
 }
 
 func (*IntentResetPassword) getValidatedCode(w *workflow.Workflow) string {
-	node, ok := workflow.FindSingleNode[*NodeValidateResetPasswordCode](w)
+	node, ok := workflow.FindSingleNode[*NodeValidatedResetPasswordCode](w)
 	if !ok {
 		return ""
 	}
