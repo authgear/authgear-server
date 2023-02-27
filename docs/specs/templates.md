@@ -12,7 +12,8 @@ Authgear serves web pages and send email and SMS messages. Templates allow the d
   * [Translation file](#translation-file)
     * [Translation Resolution](#translation-resolution)
   * [Available templates](#available-templates)
-    * [otp_message](#otp_message)
+    * [`oob_message`](#oob_message)
+    * [`login_link`](#login_link)
 
 ## Template
 
@@ -107,22 +108,29 @@ And the user preferred languages is `["zh-Hant-HK"]`.
 
 > TODO: WIP need update
 
-### `otp_message`
+### `oob_message`
 
 One-time-password message. Used for authentication and user verification.
 
 - Template types:
-    - `otp_message_email.txt`
-    - `otp_message_email.html`
-    - `otp_message_sms.txt`
+    - `authenticate_primary_oob_email.txt` / `authenticate_secondary_oob_email.txt`
+    - `authenticate_primary_oob_email.html` / `authenticate_secondary_oob_email.html`
+    - `authenticate_primary_oob_sms.txt` / `authenticate_secondary_oob_sms.txt`
 - Context:
-    - `AppName`: the display name of the app.
     - `Email`: The recipient email of the message; empty if not sending an email message.
     - `Phone`: The recipient phone number of the message; empty if not sending an SMS message.
-    - `LoginID`: The login ID of the identity
-        - `LoginID.Key`: Login ID key
-        - `LoginID.Value`: Login ID
     - `Code`: The one-time-password.
     - `Host`: Host of authgear, usually used for [Web OTP](https://web.dev/web-otp/) API.
-    - `Origin`: The origin page of the OTP message, can be `signup`/`login`/`settings`.
-    - `Operation`: The operation triggering the OTP message, can be `primary_auth`/`secondary_auth`/`verify`.
+
+### `login_link`
+
+Magic link. Used for authentication and user verification.
+
+- Template types:
+    - `authenticate_primary_login_link.txt` / `authenticate_secondary_login_link.txt`
+    - `authenticate_primary_login_link.html` / `authenticate_secondary_login_link.html`
+- Context:
+    - `Email`: The recipient email of the message; empty if not sending an email message.
+    - `Phone`: The recipient phone number of the message; empty if not sending an SMS message.
+    - `Link`: The magic link.
+    - `Host`: Host of authgear, usually used for [Web OTP](https://web.dev/web-otp/) API.
