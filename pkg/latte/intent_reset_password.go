@@ -58,12 +58,12 @@ func (i *IntentResetPassword) ReactTo(ctx context.Context, deps *workflow.Depend
 			return workflow.NewNodeSimple(&node), nil
 		}
 	case 1:
-		var inputTakePassword inputTakePassword
+		var inputTakeNewPassword inputTakeNewPassword
 		var code = i.getValidatedCode(w)
-		if workflow.AsInput(input, &inputTakePassword) {
+		if workflow.AsInput(input, &inputTakeNewPassword) {
 			node := NodeDoResetPasswordByCode{
 				Code:        code,
-				NewPassword: inputTakePassword.GetPassword(),
+				NewPassword: inputTakeNewPassword.GetNewPassword(),
 			}
 			return workflow.NewNodeSimple(&node), nil
 		}
