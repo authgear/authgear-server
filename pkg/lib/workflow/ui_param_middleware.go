@@ -13,7 +13,7 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 		// This middleware only creates the holder of the ui params.
 		// This enables the holder to be mutated later in other places.
 		emptyState := ""
-		emptyUILocales := []string{}
+		emptyUILocales := ""
 		ctx := uiparam.WithUIParam(r.Context(), emptyState, emptyUILocales)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)

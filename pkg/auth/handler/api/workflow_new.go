@@ -116,7 +116,7 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 		sessionOptions = &workflow.SessionOptions{
 			ClientID:  r.FormValue("client_id"),
 			State:     r.FormValue("state"),
-			UILocales: protocol.ParseUILocales(r.FormValue("ui_locales")),
+			UILocales: r.FormValue("ui_locales"),
 		}
 	}
 
@@ -145,7 +145,7 @@ func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.
 		RedirectURI:              uiInfo.RedirectURI,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		State:                    uiInfo.State,
-		UILocales:                req.UILocales(),
+		UILocales:                req.UILocalesRaw(),
 	}
 
 	return sessionOptions, nil

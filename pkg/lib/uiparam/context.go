@@ -10,20 +10,20 @@ var uiParamContextKey = uiParamContextKeyType{}
 
 type uiParamContext struct {
 	State     string
-	UILocales []string
+	UILocales string
 }
 
 type UIParam interface {
 	GetState() string
-	GetUILocales() []string
+	GetUILocales() string
 }
 
 var _ UIParam = &uiParamContext{}
 
-func (u *uiParamContext) GetState() string       { return u.State }
-func (u *uiParamContext) GetUILocales() []string { return u.UILocales }
+func (u *uiParamContext) GetState() string     { return u.State }
+func (u *uiParamContext) GetUILocales() string { return u.UILocales }
 
-func WithUIParam(ctx context.Context, state string, uiLocales []string) context.Context {
+func WithUIParam(ctx context.Context, state string, uiLocales string) context.Context {
 	v, ok := ctx.Value(uiParamContextKey).(*uiParamContext)
 	if ok {
 		v.State = state
@@ -43,6 +43,6 @@ func GetUIParam(ctx context.Context) UIParam {
 	}
 	return &uiParamContext{
 		State:     "",
-		UILocales: []string{},
+		UILocales: "",
 	}
 }
