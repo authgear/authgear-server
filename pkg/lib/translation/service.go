@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -120,7 +121,12 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 }
 
 func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMessageData, error) {
-	data := map[string]interface{}{"ClientID": clientid.GetClientID(s.Context)}
+	uiParam := uiparam.GetUIParam(s.Context)
+	data := map[string]interface{}{
+		"ClientID":  clientid.GetClientID(s.Context),
+		"State":     uiParam.GetState(),
+		"UILocales": uiParam.GetUILocales(),
+	}
 	template.Embed(data, args)
 
 	sender, replyTo, subject, err := s.emailMessageHeader(msg.Name, data)
