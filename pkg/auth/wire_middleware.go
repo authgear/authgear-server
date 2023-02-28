@@ -178,3 +178,10 @@ func newWorkflowClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware
 		wire.Bind(new(httproute.Middleware), new(*workflow.ClientIDMiddleware)),
 	))
 }
+
+func newWorkflowUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*workflow.UIParamMiddleware)),
+	))
+}
