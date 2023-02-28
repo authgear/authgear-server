@@ -15,5 +15,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(EventStore), new(*EventStoreImpl)),
 	wire.Struct(new(ClientIDMiddleware), "*"),
 	wire.Struct(new(UIParamMiddleware), "*"),
+	wire.Struct(new(IntlMiddleware), "*"),
 	NewEventStore,
 )

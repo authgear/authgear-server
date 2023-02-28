@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type Session struct {
@@ -53,6 +54,7 @@ func (s *Session) ToOutput() *SessionOutput {
 func (s *Session) Context(ctx context.Context) context.Context {
 	ctx = clientid.WithClientID(ctx, s.ClientID)
 	ctx = uiparam.WithUIParam(ctx, s.State, s.UILocales)
+	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyState, s.State)
 	ctx = context.WithValue(ctx, contextKeyWorkflowID, s.WorkflowID)

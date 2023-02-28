@@ -56729,3 +56729,8 @@ func newWorkflowUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	uiParamMiddleware := &workflow.UIParamMiddleware{}
 	return uiParamMiddleware
 }
+
+func newWorkflowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	intlMiddleware := &workflow.IntlMiddleware{}
+	return intlMiddleware
+}
