@@ -9,10 +9,11 @@ import (
 type Session struct {
 	WorkflowID string `json:"workflow_id"`
 
-	ClientID                 string `json:"client_id,omitempty"`
-	RedirectURI              string `json:"redirect_uri,omitempty"`
-	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
-	State                    string `json:"state,omitempty"`
+	ClientID                 string   `json:"client_id,omitempty"`
+	RedirectURI              string   `json:"redirect_uri,omitempty"`
+	SuppressIDPSessionCookie bool     `json:"suppress_idp_session_cookie,omitempty"`
+	State                    string   `json:"state,omitempty"`
+	UILocales                []string `json:"ui_locales,omitempty"`
 }
 
 type SessionOutput struct {
@@ -26,6 +27,7 @@ type SessionOptions struct {
 	RedirectURI              string
 	SuppressIDPSessionCookie bool
 	State                    string
+	UILocales                []string
 }
 
 func NewSession(opts *SessionOptions) *Session {
@@ -35,6 +37,7 @@ func NewSession(opts *SessionOptions) *Session {
 		RedirectURI:              opts.RedirectURI,
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
 		State:                    opts.State,
+		UILocales:                opts.UILocales,
 	}
 }
 
