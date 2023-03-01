@@ -23,7 +23,7 @@ type SendOptions struct {
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
-	MagicLinkVerificationEndpointURL() *url.URL
+	LoginLinkVerificationEndpointURL() *url.URL
 }
 
 type TranslationService interface {
@@ -82,7 +82,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	data.Email = email
 
 	if opts.OTPMode == OTPModeLoginLink {
-		url := s.Endpoints.MagicLinkVerificationEndpointURL()
+		url := s.Endpoints.LoginLinkVerificationEndpointURL()
 		query := url.Query()
 		query.Set("code", data.Code)
 		url.RawQuery = query.Encode()
