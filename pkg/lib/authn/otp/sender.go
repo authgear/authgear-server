@@ -98,28 +98,28 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		emailType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
 		if opts.OTPMode == OTPModeLoginLink {
-			spec = messageSetupPrimaryMagicLink
+			spec = messageSetupPrimaryLoginLink
 		} else {
 			spec = messageSetupPrimaryOOB
 		}
 		emailType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
 		if opts.OTPMode == OTPModeLoginLink {
-			spec = messageSetupSecondaryMagicLink
+			spec = messageSetupSecondaryLoginLink
 		} else {
 			spec = messageSetupSecondaryOOB
 		}
 		emailType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
 		if opts.OTPMode == OTPModeLoginLink {
-			spec = messageAuthenticatePrimaryMagicLink
+			spec = messageAuthenticatePrimaryLoginLink
 		} else {
 			spec = messageAuthenticatePrimaryOOB
 		}
 		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
 		if opts.OTPMode == OTPModeLoginLink {
-			spec = messageAuthenticateSecondaryMagicLink
+			spec = messageAuthenticateSecondaryLoginLink
 		} else {
 			spec = messageAuthenticateSecondaryOOB
 		}
