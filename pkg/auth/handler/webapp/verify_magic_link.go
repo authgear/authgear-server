@@ -103,7 +103,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		if GetMagicLinkStateFromQuery(r) == MagicLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
 			_, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code)
-			if errors.Is(err, otp.ErrInvalidMagicLink) {
+			if errors.Is(err, otp.ErrInvalidLoginLink) {
 				finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
@@ -124,7 +124,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		code := r.Form.Get("x_oob_otp_code")
 
 		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
-		if errors.Is(err, otp.ErrInvalidMagicLink) {
+		if errors.Is(err, otp.ErrInvalidLoginLink) {
 			finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {

@@ -181,20 +181,20 @@ func (s *Service) VerifyCode(target string, code string) error {
 func (s *Service) VerifyMagicLinkCode(userInputtedCode string) (*Code, error) {
 	target, err := s.MagicLinkStore.Get(userInputtedCode)
 	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidMagicLink
+		return nil, ErrInvalidLoginLink
 	} else if err != nil {
 		return nil, err
 	}
 
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidMagicLink
+		return nil, ErrInvalidLoginLink
 	} else if err != nil {
 		return nil, err
 	}
 
 	if !secretcode.MagicLinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidMagicLink
+		return nil, ErrInvalidLoginLink
 	}
 
 	return codeModel, nil
@@ -203,13 +203,13 @@ func (s *Service) VerifyMagicLinkCode(userInputtedCode string) (*Code, error) {
 func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Code, error) {
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidMagicLink
+		return nil, ErrInvalidLoginLink
 	} else if err != nil {
 		return nil, err
 	}
 
 	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidMagicLink
+		return nil, ErrInvalidLoginLink
 	}
 
 	if consume {
