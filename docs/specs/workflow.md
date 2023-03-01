@@ -417,3 +417,52 @@ type MigrateOOBOTPSpec struct {
 	Phone string `json:"phone,omitempty"`
 }
 ```
+
+### Intent for CAPTCHA (Google reCAPTCHA)
+
+The IntentReCAPTCHA is a private intent, which supports Google reCAPTCHA v3 and v2.
+
+#### Input of IntentReCAPTCHA
+
+The IntentReCAPTCHA accepts input of reCAPTCHA v3 or v2 tokens. If the token won't pass the verification, the invalid ReCAPTCHA response error will be returned.
+
+```json
+{
+    "input": {
+        "kind": "latte.InputTakeReCAPTCHAV3Response",
+        "data": {
+          "response": "RECAPTCHA_V3_RESPONSE"
+        }
+    }
+}
+```
+
+```json
+{
+    "input": {
+        "kind": "latte.InputTakeReCAPTCHAV2Response",
+        "data": {
+          "response": "RECAPTCHA_V2_RESPONSE"
+        }
+    }
+}
+```
+
+#### Using reCAPTCHA v3 first with v2 as the fallback
+
+1. The client app should try to get the v3 response and submit it to the workflow.
+2. Authgear returns the invalid ReCAPTCHA response error if the user won't pass the reCAPTCHA v3.
+3. The client app should render the reCAPTCHA v2.
+4. The client app should submit the v2 response to the workflow again.
+
+#### authgear.secrets.yaml
+
+```yaml
+- data:
+    v2:
+      secret: THE_SECRET
+    v3:
+      secret: THE_SECRET
+      score_threshold: 0.5 # default is 0.5
+  key: recaptcha
+```
