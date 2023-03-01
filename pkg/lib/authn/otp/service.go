@@ -67,7 +67,7 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeExpiry.Duration())
 
 	switch otpMode {
-	case OTPModeMagicLink:
+	case OTPModeLoginLink:
 		codeModel.Code = secretcode.LoginLinkOTPSecretCode.Generate()
 		err := s.MagicLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
 		if err != nil {

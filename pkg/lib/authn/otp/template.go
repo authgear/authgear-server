@@ -19,7 +19,7 @@ type OTPMode string
 
 const (
 	OTPModeCode      OTPMode = "code"
-	OTPModeMagicLink OTPMode = "magic-link"
+	OTPModeLoginLink OTPMode = "login-link"
 )
 
 type MessageTemplateContext struct {

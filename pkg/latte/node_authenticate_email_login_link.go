@@ -48,7 +48,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 			Stage:             authenticatorKindToStage(info.Kind),
 			IsAuthenticating:  true,
 			AuthenticatorInfo: info,
-			OTPMode:           otp.OTPModeMagicLink,
+			OTPMode:           otp.OTPModeLoginLink,
 		}).Do()
 		if err != nil {
 			return nil, err

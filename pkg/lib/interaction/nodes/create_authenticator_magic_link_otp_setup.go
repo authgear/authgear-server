@@ -130,7 +130,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		IsAuthenticating:     false,
 		AuthenticatorInfo:    info,
 		IgnoreRatelimitError: true,
-		OTPMode:              otp.OTPModeMagicLink,
+		OTPMode:              otp.OTPModeLoginLink,
 	}).Do()
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) DeriveEdges(graph *interactio
 			Stage:            n.Stage,
 			IsAuthenticating: false,
 			Authenticator:    n.Authenticator,
-			OTPMode:          otp.OTPModeMagicLink,
+			OTPMode:          otp.OTPModeLoginLink,
 		},
 		&EdgeCreateAuthenticatorMagicLinkOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}

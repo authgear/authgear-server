@@ -81,7 +81,7 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	}
 	data.Email = email
 
-	if opts.OTPMode == OTPModeMagicLink {
+	if opts.OTPMode == OTPModeLoginLink {
 		url := s.Endpoints.MagicLinkVerificationEndpointURL()
 		query := url.Query()
 		query.Set("code", data.Code)
@@ -97,28 +97,28 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		spec = messageVerification
 		emailType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
+		if opts.OTPMode == OTPModeLoginLink {
 			spec = messageSetupPrimaryMagicLink
 		} else {
 			spec = messageSetupPrimaryOOB
 		}
 		emailType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
+		if opts.OTPMode == OTPModeLoginLink {
 			spec = messageSetupSecondaryMagicLink
 		} else {
 			spec = messageSetupSecondaryOOB
 		}
 		emailType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
+		if opts.OTPMode == OTPModeLoginLink {
 			spec = messageAuthenticatePrimaryMagicLink
 		} else {
 			spec = messageAuthenticatePrimaryOOB
 		}
 		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
+		if opts.OTPMode == OTPModeLoginLink {
 			spec = messageAuthenticateSecondaryMagicLink
 		} else {
 			spec = messageAuthenticateSecondaryOOB

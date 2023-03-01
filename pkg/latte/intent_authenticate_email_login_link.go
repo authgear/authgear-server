@@ -47,7 +47,7 @@ func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *wo
 			Stage:             authenticatorKindToStage(authenticator.Kind),
 			IsAuthenticating:  true,
 			AuthenticatorInfo: authenticator,
-			OTPMode:           otp.OTPModeMagicLink,
+			OTPMode:           otp.OTPModeLoginLink,
 		}).Do()
 		if apierrors.IsKind(err, ratelimit.RateLimited) {
 			// Ignore rate limit error for initial sending
