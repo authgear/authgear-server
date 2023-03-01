@@ -237,15 +237,15 @@ type AuthenticatorEmailOTPMode string
 
 const (
 	AuthenticatorEmailOTPModeCodeOnly      AuthenticatorEmailOTPMode = "code"
-	AuthenticatorEmailOTPModeMagicLinkOnly AuthenticatorEmailOTPMode = "login_link"
+	AuthenticatorEmailOTPModeLoginLinkOnly AuthenticatorEmailOTPMode = "login_link"
 )
 
 func (m *AuthenticatorEmailOTPMode) IsCodeEnabled() bool {
 	return *m == AuthenticatorEmailOTPModeCodeOnly
 }
 
-func (m *AuthenticatorEmailOTPMode) IsMagicLinkEnabled() bool {
-	return *m == AuthenticatorEmailOTPModeMagicLinkOnly
+func (m *AuthenticatorEmailOTPMode) IsLoginLinkEnabled() bool {
+	return *m == AuthenticatorEmailOTPModeLoginLinkOnly
 }
 
 func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
