@@ -43,7 +43,7 @@ type MagicLinkOTPViewModel struct {
 }
 
 type MagicLinkOTPHandler struct {
-	MagicLinkOTPCodeService   otp.Service
+	LoginLinkOTPCodeService   otp.Service
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
@@ -171,7 +171,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		_, err = h.MagicLinkOTPCodeService.VerifyMagicLinkCodeByTarget(email, false)
+		_, err = h.LoginLinkOTPCodeService.VerifyLoginLinkCodeByTarget(email, false)
 		if err == nil {
 			state = MagicLinkOTPPageQueryStateMatched
 		} else if errors.Is(err, otp.ErrInvalidCode) {

@@ -30,7 +30,7 @@ func (e *EdgeAuthenticationMagicLink) Instantiate(ctx *interaction.Context, grap
 	}
 
 	email := e.Authenticator.OOBOTP.Email
-	_, err := ctx.OTPCodeService.VerifyMagicLinkCodeByTarget(email, true)
+	_, err := ctx.OTPCodeService.VerifyLoginLinkCodeByTarget(email, true)
 	if errors.Is(err, otp.ErrInvalidCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {

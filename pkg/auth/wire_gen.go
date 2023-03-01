@@ -382,7 +382,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
@@ -394,7 +394,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -863,7 +863,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -875,7 +875,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -1429,7 +1429,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -1441,7 +1441,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -2199,7 +2199,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -2211,7 +2211,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -2666,7 +2666,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -2678,7 +2678,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -3015,7 +3015,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -3027,7 +3027,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -3431,7 +3431,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -3443,7 +3443,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -3969,7 +3969,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -3981,7 +3981,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -4757,7 +4757,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -4769,7 +4769,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -5530,7 +5530,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -5542,7 +5542,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -6410,7 +6410,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -6422,7 +6422,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -7227,7 +7227,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -7239,7 +7239,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -8043,7 +8043,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -8055,7 +8055,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -8847,7 +8847,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -8859,7 +8859,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -9644,7 +9644,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -9656,7 +9656,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -10431,7 +10431,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -10443,7 +10443,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -11221,7 +11221,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -11233,7 +11233,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -12014,7 +12014,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -12026,7 +12026,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -12809,7 +12809,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -12821,7 +12821,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -13602,7 +13602,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -13614,7 +13614,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -14391,7 +14391,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -14403,7 +14403,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -15184,7 +15184,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -15196,7 +15196,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -15978,7 +15978,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -15990,7 +15990,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -16771,7 +16771,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -16783,7 +16783,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -17564,7 +17564,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -17576,7 +17576,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -18359,7 +18359,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -18371,7 +18371,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -19152,7 +19152,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -19164,7 +19164,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -19945,7 +19945,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -19957,7 +19957,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -20742,7 +20742,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -20754,7 +20754,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -21535,7 +21535,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -21547,7 +21547,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -22055,7 +22055,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -22081,7 +22081,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -22390,7 +22390,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -22402,7 +22402,7 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -22909,7 +22909,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -22935,7 +22935,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -23205,7 +23205,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -23691,7 +23691,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationConfig: authenticationConfig,
 	}
 	magicLinkOTPHandler := &webapp.MagicLinkOTPHandler{
-		MagicLinkOTPCodeService:   otpService,
+		LoginLinkOTPCodeService:   otpService,
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
@@ -23716,7 +23716,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -23742,7 +23742,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -24016,7 +24016,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -24509,7 +24509,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, handle, workflowStoreImpl)
 	verifyMagicLinkOTPHandler := &webapp.VerifyMagicLinkOTPHandler{
-		MagicLinkOTPCodeService:     otpService,
+		LoginLinkOTPCodeService:     otpService,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
 		ControllerFactory:           controllerFactory,
 		BaseViewModel:               baseViewModeler,
@@ -24807,7 +24807,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -24819,7 +24819,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -25600,7 +25600,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -25612,7 +25612,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -26389,7 +26389,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -26401,7 +26401,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -27182,7 +27182,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -27194,7 +27194,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -27971,7 +27971,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -27983,7 +27983,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -28770,7 +28770,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -28782,7 +28782,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -29559,7 +29559,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -29571,7 +29571,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -30350,7 +30350,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -30362,7 +30362,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -31139,7 +31139,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -31151,7 +31151,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -31960,7 +31960,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -31972,7 +31972,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -32760,7 +32760,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -32772,7 +32772,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -33573,7 +33573,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -33585,7 +33585,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -34370,7 +34370,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -34382,7 +34382,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -35160,7 +35160,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -35172,7 +35172,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -35958,7 +35958,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -35970,7 +35970,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -36748,7 +36748,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -36760,7 +36760,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -37538,7 +37538,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -37550,7 +37550,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -38328,7 +38328,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -38340,7 +38340,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -39119,7 +39119,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -39131,7 +39131,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -39928,7 +39928,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -39940,7 +39940,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -40718,7 +40718,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -40730,7 +40730,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -41508,7 +41508,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -41520,7 +41520,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -42298,7 +42298,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -42310,7 +42310,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -43088,7 +43088,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -43100,7 +43100,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -43885,7 +43885,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -43897,7 +43897,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -44676,7 +44676,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -44688,7 +44688,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -45465,7 +45465,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -45477,7 +45477,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -46269,7 +46269,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -46281,7 +46281,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -47058,7 +47058,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -47070,7 +47070,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -47847,7 +47847,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -47859,7 +47859,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -48654,7 +48654,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -48666,7 +48666,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -49410,7 +49410,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -49422,7 +49422,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -50165,7 +50165,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -50177,7 +50177,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -50964,7 +50964,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -50976,7 +50976,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -51754,7 +51754,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -51766,7 +51766,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -52523,7 +52523,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -52535,7 +52535,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -53260,7 +53260,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -53272,7 +53272,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -53968,7 +53968,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -53980,7 +53980,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -54977,7 +54977,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -54989,7 +54989,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -55493,7 +55493,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -55505,7 +55505,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,
@@ -56361,7 +56361,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -56373,7 +56373,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,

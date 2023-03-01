@@ -24,7 +24,7 @@ type CodeStore interface {
 	Delete(target string) error
 }
 
-type MagicLinkStore interface {
+type LoginLinkStore interface {
 	Create(token string, target string, expireAt time.Time) error
 	Get(token string) (string, error)
 	Delete(token string) error
@@ -39,7 +39,7 @@ type Service struct {
 
 	AppID          config.AppID
 	CodeStore      CodeStore
-	MagicLinkStore MagicLinkStore
+	LoginLinkStore LoginLinkStore
 	Logger         Logger
 	RateLimiter    RateLimiter
 	OTPConfig      *config.OTPConfig
@@ -69,7 +69,7 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 	switch otpMode {
 	case OTPModeLoginLink:
 		codeModel.Code = secretcode.LoginLinkOTPSecretCode.Generate()
-		err := s.MagicLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
+		err := s.LoginLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
 		if err != nil {
 			return nil, err
 		}
@@ -177,9 +177,9 @@ func (s *Service) VerifyCode(target string, code string) error {
 	return nil
 }
 
-// VerifyMagicLinkCode verifies the code but it won't consume it
-func (s *Service) VerifyMagicLinkCode(userInputtedCode string) (*Code, error) {
-	target, err := s.MagicLinkStore.Get(userInputtedCode)
+// VerifyLoginLinkCode verifies the code but it won't consume it
+func (s *Service) VerifyLoginLinkCode(userInputtedCode string) (*Code, error) {
+	target, err := s.LoginLinkStore.Get(userInputtedCode)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidLoginLink
 	} else if err != nil {
@@ -200,7 +200,7 @@ func (s *Service) VerifyMagicLinkCode(userInputtedCode string) (*Code, error) {
 	return codeModel, nil
 }
 
-func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Code, error) {
+func (s *Service) VerifyLoginLinkCodeByTarget(target string, consume bool) (*Code, error) {
 	codeModel, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return nil, ErrInvalidLoginLink
@@ -258,13 +258,13 @@ func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*
 	return codeModel, nil
 }
 
-// SetUserInputtedMagicLinkCode set the user inputted code if the code is correct
+// SetUserInputtedLoginLinkCode set the user inputted code if the code is correct
 // If the code is incorrect, error will be returned and the approval screen should show
 // the error to the user
 // If the code is correct, the code will be set to the user inputted code
-// The code should be verified again via VerifyMagicLinkCodeByTarget in the original interaction
-func (s *Service) SetUserInputtedMagicLinkCode(userInputtedCode string) (*Code, error) {
-	codeModel, err := s.VerifyMagicLinkCode(userInputtedCode)
+// The code should be verified again via VerifyLoginLinkCodeByTarget in the original interaction
+func (s *Service) SetUserInputtedLoginLinkCode(userInputtedCode string) (*Code, error) {
+	codeModel, err := s.VerifyLoginLinkCode(userInputtedCode)
 	if err != nil {
 		return nil, err
 	}

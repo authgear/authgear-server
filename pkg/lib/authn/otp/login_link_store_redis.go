@@ -14,13 +14,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type MagicLinkStoreRedis struct {
+type LoginLinkStoreRedis struct {
 	Redis *appredis.Handle
 	AppID config.AppID
 	Clock clock.Clock
 }
 
-func (s *MagicLinkStoreRedis) set(token string, target string, expireAt time.Time) error {
+func (s *LoginLinkStoreRedis) set(token string, target string, expireAt time.Time) error {
 	ctx := context.Background()
 	data, err := json.Marshal(target)
 	if err != nil {
@@ -28,7 +28,7 @@ func (s *MagicLinkStoreRedis) set(token string, target string, expireAt time.Tim
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := redisMagicLinkKey(s.AppID, token)
+		key := redisLoginLinkKey(s.AppID, token)
 		ttl := expireAt.Sub(s.Clock.NowUTC())
 
 		_, err := conn.SetNX(ctx, key, data, ttl).Result()
@@ -42,13 +42,13 @@ func (s *MagicLinkStoreRedis) set(token string, target string, expireAt time.Tim
 	})
 }
 
-func (s *MagicLinkStoreRedis) Create(token string, target string, expireAt time.Time) error {
+func (s *LoginLinkStoreRedis) Create(token string, target string, expireAt time.Time) error {
 	return s.set(token, target, expireAt)
 }
 
-func (s *MagicLinkStoreRedis) Get(token string) (string, error) {
+func (s *LoginLinkStoreRedis) Get(token string) (string, error) {
 	ctx := context.Background()
-	key := redisMagicLinkKey(s.AppID, token)
+	key := redisLoginLinkKey(s.AppID, token)
 	var target string
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := conn.Get(ctx, key).Bytes()
@@ -68,10 +68,10 @@ func (s *MagicLinkStoreRedis) Get(token string) (string, error) {
 	return target, err
 }
 
-func (s *MagicLinkStoreRedis) Delete(token string) error {
+func (s *LoginLinkStoreRedis) Delete(token string) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := redisMagicLinkKey(s.AppID, token)
+		key := redisLoginLinkKey(s.AppID, token)
 		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
@@ -80,6 +80,6 @@ func (s *MagicLinkStoreRedis) Delete(token string) error {
 	})
 }
 
-func redisMagicLinkKey(appID config.AppID, token string) string {
-	return fmt.Sprintf("app:%s:magic-link:%s", appID, token)
+func redisLoginLinkKey(appID config.AppID, token string) string {
+	return fmt.Sprintf("app:%s:login-link:%s", appID, token)
 }

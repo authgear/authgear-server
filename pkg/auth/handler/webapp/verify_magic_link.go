@@ -55,7 +55,7 @@ type WorkflowWebsocketEventStore interface {
 }
 
 type VerifyMagicLinkOTPHandler struct {
-	MagicLinkOTPCodeService     otp.Service
+	LoginLinkOTPCodeService     otp.Service
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
 	ControllerFactory           ControllerFactory
 	BaseViewModel               *viewmodels.BaseViewModeler
@@ -102,7 +102,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		if GetMagicLinkStateFromQuery(r) == MagicLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
-			_, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code)
+			_, err := h.LoginLinkOTPCodeService.VerifyLoginLinkCode(code)
 			if errors.Is(err, otp.ErrInvalidLoginLink) {
 				finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
 				return nil
@@ -123,7 +123,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		code := r.Form.Get("x_oob_otp_code")
 
-		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
+		codeModel, err := h.LoginLinkOTPCodeService.SetUserInputtedLoginLinkCode(code)
 		if errors.Is(err, otp.ErrInvalidLoginLink) {
 			finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
 			return nil
