@@ -167,6 +167,9 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	if len(r.UILocales()) > 0 {
 		q.Set("ui_locales", strings.Join(r.UILocales(), " "))
 	}
+	if r.State() != "" {
+		q.Set("state", r.State())
+	}
 	endpoint.RawQuery = q.Encode()
 
 	return endpoint, nil
