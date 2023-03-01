@@ -232,8 +232,8 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	}
 
 	if len(emailoobs) > 0 {
-		if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsMagicLinkEnabled() {
-			edges = append(edges, &EdgeAuthenticationMagicLinkTrigger{
+		if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsLoginLinkEnabled() {
+			edges = append(edges, &EdgeAuthenticationLoginLinkTrigger{
 				Stage:          n.Stage,
 				Authenticators: emailoobs,
 			})

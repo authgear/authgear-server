@@ -407,7 +407,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -419,7 +419,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		AppID:          appID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,

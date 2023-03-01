@@ -11,51 +11,51 @@ import (
 )
 
 func init() {
-	interaction.RegisterNode(&NodeCreateAuthenticatorMagicLinkOTP{})
+	interaction.RegisterNode(&NodeCreateAuthenticatorLoginLinkOTP{})
 }
 
-type InputCreateAuthenticatorMagicLinkOTP interface {
-	VerifyMagicLink()
+type InputCreateAuthenticatorLoginLinkOTP interface {
+	VerifyLoginLink()
 }
 
-type EdgeCreateAuthenticatorMagicLinkOTP struct {
+type EdgeCreateAuthenticatorLoginLinkOTP struct {
 	Stage         authn.AuthenticationStage
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeCreateAuthenticatorMagicLinkOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var input InputCreateAuthenticatorMagicLinkOTP
+func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var input InputCreateAuthenticatorLoginLinkOTP
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
 	email := e.Authenticator.OOBOTP.Email
-	_, err := ctx.OTPCodeService.VerifyMagicLinkCodeByTarget(email, true)
+	_, err := ctx.OTPCodeService.VerifyLoginLinkCodeByTarget(email, true)
 	if errors.Is(err, otp.ErrInvalidCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {
 		return nil, err
 	}
 
-	return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: e.Authenticator}, nil
+	return &NodeCreateAuthenticatorLoginLinkOTP{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }
 
-type NodeCreateAuthenticatorMagicLinkOTP struct {
+type NodeCreateAuthenticatorLoginLinkOTP struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
 	Target        string                    `json:"target"`
 	Channel       string                    `json:"channel"`
 }
 
-func (n *NodeCreateAuthenticatorMagicLinkOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorLoginLinkOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorMagicLinkOTP) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTP) GetEffects() ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorMagicLinkOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,

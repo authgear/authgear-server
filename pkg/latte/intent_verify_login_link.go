@@ -39,7 +39,7 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 	switch {
 	case workflow.AsInput(input, &inputTakeLoginLinkCode):
 		code := inputTakeLoginLinkCode.GetCode()
-		codeModal, err := deps.OTPCodes.SetUserInputtedMagicLinkCode(code)
+		codeModal, err := deps.OTPCodes.SetUserInputtedLoginLinkCode(code)
 		if err != nil {
 			return nil, err
 		}

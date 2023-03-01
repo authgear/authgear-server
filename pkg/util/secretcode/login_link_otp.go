@@ -8,21 +8,21 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
-var MagicLinkOTPSecretCode = MagicLinkOTPSecretCodeType{}
+var LoginLinkOTPSecretCode = LoginLinkOTPSecretCodeType{}
 
-type MagicLinkOTPSecretCodeType struct{}
+type LoginLinkOTPSecretCodeType struct{}
 
-func (MagicLinkOTPSecretCodeType) Generate() string {
+func (LoginLinkOTPSecretCodeType) Generate() string {
 	code := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
 	return code
 }
 
-func (MagicLinkOTPSecretCodeType) Compare(a, b string) bool {
+func (LoginLinkOTPSecretCodeType) Compare(a, b string) bool {
 	formattedCode := strings.TrimSpace(a)
 	targetCode := strings.TrimSpace(b)
 	return subtle.ConstantTimeCompare([]byte(formattedCode), []byte(targetCode)) == 1
 }
 
-func (MagicLinkOTPSecretCodeType) CheckFormat(value interface{}) error {
+func (LoginLinkOTPSecretCodeType) CheckFormat(value interface{}) error {
 	return nil
 }

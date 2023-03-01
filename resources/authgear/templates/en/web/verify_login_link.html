@@ -9,17 +9,17 @@
 
 
 {{ if eq .StateQuery "invalid_code" }}
-  <h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "verify-magic-link-page-title" }}</h1>
-  <div class="text-sm break-words primary-txt text-center">{{ template "verify-magic-link-invalid-code-description" }}</div>
+  <h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "verify-login-link-page-title" }}</h1>
+  <div class="text-sm break-words primary-txt text-center">{{ template "verify-login-link-invalid-code-description" }}</div>
 {{ else if eq .StateQuery "matched" }}
   {{ $appName := ($.Translations.RenderText "app.name" nil) }}
-  <div class="mb-3 text-sm break-words primary-txt text-center whitespace-pre-wrap">{{ template "verify-magic-link-matched-description" (dict "AppOrClientName" $appName) }}</div>
+  <div class="mb-3 text-sm break-words primary-txt text-center whitespace-pre-wrap">{{ template "verify-login-link-matched-description" (dict "AppOrClientName" $appName) }}</div>
 {{ else }}
-  <h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "verify-magic-link-page-title" }}</h1>
+  <h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "verify-login-link-page-title" }}</h1>
 
   <div class="text-sm break-words primary-txt text-center">
     {{ $appName := ($.Translations.RenderText "app.name" nil) }}
-    {{ template "verify-magic-link-initial-description" (dict "AppOrClientName" $appName) }}
+    {{ template "verify-login-link-initial-description" (dict "AppOrClientName" $appName) }}
   </div>
 
   <input form="verify-form" type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
@@ -30,9 +30,9 @@
     type="submit"
     name="x_action"
     value=""
-    data-authgear-event="authgear.button.verify_magic_link"
+    data-authgear-event="authgear.button.verify_login_link"
   >
-    {{ template "verify-magic-link-next-button-label" }}
+    {{ template "verify-login-link-next-button-label" }}
   </button>
 {{ end }}
 {{ template "__watermark.html" . }}

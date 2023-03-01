@@ -9,8 +9,8 @@
     <ul class="messages-txt list-none flex flex-col flex-1 p-0 mx-0 my-1.5 text-sm">
         {{ if (eq .FlashMessageType "resend_code_success") }}
             <li>{{ template "success-resend-code" }}</li>
-        {{ else if (eq .FlashMessageType "resend_magic_link_success") }}
-            <li>{{ template "success-resend-magic-link" }}</li>
+        {{ else if (eq .FlashMessageType "resend_login_link_success") }}
+            <li>{{ template "success-resend-login-link" }}</li>
         {{ end }}
     </ul>
     <button type="button"

@@ -11,49 +11,49 @@ import (
 )
 
 func init() {
-	interaction.RegisterNode(&NodeAuthenticationMagicLink{})
+	interaction.RegisterNode(&NodeAuthenticationLoginLink{})
 }
 
-type InputAuthenticationMagicLink interface {
-	VerifyMagicLink()
+type InputAuthenticationLoginLink interface {
+	VerifyLoginLink()
 }
 
-type EdgeAuthenticationMagicLink struct {
+type EdgeAuthenticationLoginLink struct {
 	Stage         authn.AuthenticationStage
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeAuthenticationMagicLink) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var input InputAuthenticationMagicLink
+func (e *EdgeAuthenticationLoginLink) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var input InputAuthenticationLoginLink
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
 	email := e.Authenticator.OOBOTP.Email
-	_, err := ctx.OTPCodeService.VerifyMagicLinkCodeByTarget(email, true)
+	_, err := ctx.OTPCodeService.VerifyLoginLinkCodeByTarget(email, true)
 	if errors.Is(err, otp.ErrInvalidCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {
 		return nil, err
 	}
 
-	return &NodeAuthenticationMagicLink{Stage: e.Stage, Authenticator: e.Authenticator}, nil
+	return &NodeAuthenticationLoginLink{Stage: e.Stage, Authenticator: e.Authenticator}, nil
 }
 
-type NodeAuthenticationMagicLink struct {
+type NodeAuthenticationLoginLink struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationMagicLink) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationLoginLink) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationMagicLink) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationLoginLink) GetEffects() ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationMagicLink) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationLoginLink) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,

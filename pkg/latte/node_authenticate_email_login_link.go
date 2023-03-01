@@ -48,7 +48,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 			Stage:             authenticatorKindToStage(info.Kind),
 			IsAuthenticating:  true,
 			AuthenticatorInfo: info,
-			OTPMode:           otp.OTPModeMagicLink,
+			OTPMode:           otp.OTPModeLoginLink,
 		}).Do()
 		if err != nil {
 			return nil, err
@@ -56,7 +56,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 		return nil, workflow.ErrSameNode
 	case workflow.AsInput(input, &inputCheckLoginLinkVerified):
 		info := n.Authenticator
-		_, err := deps.OTPCodes.VerifyMagicLinkCodeByTarget(info.OOBOTP.Email, true)
+		_, err := deps.OTPCodes.VerifyLoginLinkCodeByTarget(info.OOBOTP.Email, true)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			// Don't fire the AuthenticationFailedEvent
 			// The event should be fired only when the user submits code through the login link
@@ -73,7 +73,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 
 func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
 	loginLinkSubmitted := false
-	_, err := deps.OTPCodes.VerifyMagicLinkCodeByTarget(n.Authenticator.OOBOTP.Email, false)
+	_, err := deps.OTPCodes.VerifyLoginLinkCodeByTarget(n.Authenticator.OOBOTP.Email, false)
 	if err != nil {
 		loginLinkSubmitted = false
 	} else {

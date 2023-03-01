@@ -252,8 +252,8 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 			// check if identity login id type match oob type
 			if n.Identity.LoginID != nil {
 				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
-					if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsMagicLinkEnabled() {
-						edges = append(edges, &EdgeCreateAuthenticatorMagicLinkOTPSetup{
+					if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsLoginLinkEnabled() {
+						edges = append(edges, &EdgeCreateAuthenticatorLoginLinkOTPSetup{
 							NewAuthenticatorID: n.NewAuthenticatorID,
 							Stage:              n.Stage,
 							IsDefault:          isDefault,
@@ -399,8 +399,8 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					})
 				}
 
-				if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsMagicLinkEnabled() {
-					edges = append(edges, &EdgeCreateAuthenticatorMagicLinkOTPSetup{
+				if n.AuthenticatorConfig.OOB.Email.EmailOTPMode.IsLoginLinkEnabled() {
+					edges = append(edges, &EdgeCreateAuthenticatorLoginLinkOTPSetup{
 						NewAuthenticatorID: n.NewAuthenticatorID,
 						Stage:              n.Stage,
 						IsDefault:          isDefault,

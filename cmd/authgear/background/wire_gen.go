@@ -431,7 +431,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AppID: configAppID,
 		Clock: clockClock,
 	}
-	magicLinkStoreRedis := &otp.MagicLinkStoreRedis{
+	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
 		Clock: clockClock,
@@ -443,7 +443,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:          clockClock,
 		AppID:          configAppID,
 		CodeStore:      codeStoreRedis,
-		MagicLinkStore: magicLinkStoreRedis,
+		LoginLinkStore: loginLinkStoreRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 		OTPConfig:      otpConfig,

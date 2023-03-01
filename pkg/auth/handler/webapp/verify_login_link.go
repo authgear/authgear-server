@@ -15,12 +15,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var TemplateWebVerifyMagicLinkOTPHTML = template.RegisterHTML(
-	"web/verify_magic_link.html",
+var TemplateWebVerifyLoginLinkOTPHTML = template.RegisterHTML(
+	"web/verify_login_link.html",
 	components...,
 )
 
-var VerifyMagicLinkOTPSchema = validation.NewSimpleSchema(`
+var VerifyLoginLinkOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
@@ -30,23 +30,23 @@ var VerifyMagicLinkOTPSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ConfigureVerifyMagicLinkOTPRoute(route httproute.Route) httproute.Route {
+func ConfigureVerifyLoginLinkOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/flows/verify_login_link")
 }
 
-type VerifyMagicLinkOTPViewModel struct {
+type VerifyLoginLinkOTPViewModel struct {
 	Code       string
-	StateQuery MagicLinkOTPPageQueryState
+	StateQuery LoginLinkOTPPageQueryState
 }
 
-func NewVerifyMagicLinkOTPViewModel(r *http.Request) VerifyMagicLinkOTPViewModel {
+func NewVerifyLoginLinkOTPViewModel(r *http.Request) VerifyLoginLinkOTPViewModel {
 	code := r.URL.Query().Get("code")
 
-	return VerifyMagicLinkOTPViewModel{
+	return VerifyLoginLinkOTPViewModel{
 		Code:       code,
-		StateQuery: GetMagicLinkStateFromQuery(r),
+		StateQuery: GetLoginLinkStateFromQuery(r),
 	}
 }
 
@@ -54,8 +54,8 @@ type WorkflowWebsocketEventStore interface {
 	Publish(workflowID string, e workflow.Event) error
 }
 
-type VerifyMagicLinkOTPHandler struct {
-	MagicLinkOTPCodeService     otp.Service
+type VerifyLoginLinkOTPHandler struct {
+	LoginLinkOTPCodeService     otp.Service
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
 	ControllerFactory           ControllerFactory
 	BaseViewModel               *viewmodels.BaseViewModeler
@@ -64,15 +64,15 @@ type VerifyMagicLinkOTPHandler struct {
 	WorkflowEvents              WorkflowWebsocketEventStore
 }
 
-func (h *VerifyMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *VerifyLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.Embed(data, NewVerifyMagicLinkOTPViewModel(r))
+	viewmodels.Embed(data, NewVerifyLoginLinkOTPViewModel(r))
 	viewmodels.Embed(data, baseViewModel)
 	return data, nil
 }
 
-func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -80,11 +80,11 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 	defer ctrl.Serve()
 
-	finishWithState := func(state MagicLinkOTPPageQueryState) {
+	finishWithState := func(state LoginLinkOTPPageQueryState) {
 		url := url.URL{}
 		url.Path = r.URL.Path
 		query := r.URL.Query()
-		query.Set(MagicLinkOTPPageQueryStateKey, string(state))
+		query.Set(LoginLinkOTPPageQueryStateKey, string(state))
 		url.RawQuery = query.Encode()
 
 		result := webapp.Result{
@@ -100,32 +100,32 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
-		if GetMagicLinkStateFromQuery(r) == MagicLinkOTPPageQueryStateInitial {
+		if GetLoginLinkStateFromQuery(r) == LoginLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
-			_, err := h.MagicLinkOTPCodeService.VerifyMagicLinkCode(code)
-			if errors.Is(err, otp.ErrInvalidMagicLink) {
-				finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
+			_, err := h.LoginLinkOTPCodeService.VerifyLoginLinkCode(code)
+			if errors.Is(err, otp.ErrInvalidLoginLink) {
+				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
 				return err
 			}
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebVerifyMagicLinkOTPHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebVerifyLoginLinkOTPHTML, data)
 		return nil
 	})
 
 	ctrl.PostAction("", func() error {
-		err := VerifyMagicLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := VerifyLoginLinkOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
 		code := r.Form.Get("x_oob_otp_code")
 
-		codeModel, err := h.MagicLinkOTPCodeService.SetUserInputtedMagicLinkCode(code)
-		if errors.Is(err, otp.ErrInvalidMagicLink) {
-			finishWithState(MagicLinkOTPPageQueryStateInvalidCode)
+		codeModel, err := h.LoginLinkOTPCodeService.SetUserInputtedLoginLinkCode(code)
+		if errors.Is(err, otp.ErrInvalidLoginLink) {
+			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {
 			return err
@@ -153,7 +153,7 @@ func (h *VerifyMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		finishWithState(MagicLinkOTPPageQueryStateMatched)
+		finishWithState(LoginLinkOTPPageQueryStateMatched)
 		return nil
 	})
 }

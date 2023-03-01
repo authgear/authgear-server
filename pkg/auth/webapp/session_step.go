@@ -26,11 +26,11 @@ const (
 	SessionStepSetupOOBOTPEmail              SessionStepKind = "setup-oob-otp-email"
 	SessionStepSetupOOBOTPSMS                SessionStepKind = "setup-oob-otp-sms"
 	SessionStepSetupWhatsappOTP              SessionStepKind = "setup-whatsapp-otp"
-	SessionStepSetupMagicLinkOTP             SessionStepKind = "setup-magic-link-otp"
+	SessionStepSetupLoginLinkOTP             SessionStepKind = "setup-login-link-otp"
 	SessionStepVerifyWhatsappOTPAuthn        SessionStepKind = "verify-whatsapp-otp-authn"
 	SessionStepVerifyWhatsappOTPSetup        SessionStepKind = "verify-whatsapp-otp-setup"
-	SessionStepVerifyMagicLinkOTPAuthn       SessionStepKind = "verify-magic-link-otp-authn"
-	SessionStepVerifyMagicLinkOTPSetup       SessionStepKind = "verify-magic-link-otp-setup"
+	SessionStepVerifyLoginLinkOTPAuthn       SessionStepKind = "verify-login-link-otp-authn"
+	SessionStepVerifyLoginLinkOTPSetup       SessionStepKind = "verify-login-link-otp-setup"
 	SessionStepEnterTOTP                     SessionStepKind = "enter-totp"
 	SessionStepSetupTOTP                     SessionStepKind = "setup-totp"
 	SessionStepEnterRecoveryCode             SessionStepKind = "enter-recovery-code"
@@ -79,14 +79,14 @@ func (k SessionStepKind) Path() string {
 		return "/flows/setup_oob_otp_sms"
 	case SessionStepSetupWhatsappOTP:
 		return "/flows/setup_whatsapp_otp"
-	case SessionStepSetupMagicLinkOTP:
+	case SessionStepSetupLoginLinkOTP:
 		return "/flows/setup_login_link_otp"
 	case SessionStepVerifyWhatsappOTPSetup,
 		SessionStepVerifyWhatsappOTPAuthn,
 		SessionStepVerifyIdentityViaWhatsapp:
 		return "/flows/whatsapp_otp"
-	case SessionStepVerifyMagicLinkOTPSetup,
-		SessionStepVerifyMagicLinkOTPAuthn:
+	case SessionStepVerifyLoginLinkOTPSetup,
+		SessionStepVerifyLoginLinkOTPAuthn:
 		return "/flows/login_link_otp"
 	case SessionStepEnterTOTP:
 		return "/flows/enter_totp"
@@ -135,7 +135,7 @@ func (k SessionStepKind) MatchPath(path string) bool {
 		default:
 			return false
 		}
-	case SessionStepVerifyMagicLinkOTPSetup:
+	case SessionStepVerifyLoginLinkOTPSetup:
 		switch path {
 		case "/flows/login_link_otp", "/flows/verify_login_link":
 			return true

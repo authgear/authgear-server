@@ -81,13 +81,13 @@ var _ nodes.InputAuthenticationWhatsappTrigger = &InputTriggerWhatsApp{}
 
 func (i *InputTriggerWhatsApp) GetWhatsappAuthenticatorIndex() int { return i.AuthenticatorIndex }
 
-type InputTriggerMagicLink struct {
+type InputTriggerLoginLink struct {
 	AuthenticatorIndex int
 }
 
-var _ nodes.InputAuthenticationMagicLinkTrigger = &InputTriggerMagicLink{}
+var _ nodes.InputAuthenticationLoginLinkTrigger = &InputTriggerLoginLink{}
 
-func (i *InputTriggerMagicLink) GetMagicLinkAuthenticatorIndex() int { return i.AuthenticatorIndex }
+func (i *InputTriggerLoginLink) GetLoginLinkAuthenticatorIndex() int { return i.AuthenticatorIndex }
 
 type InputSelectTOTP struct{}
 
@@ -107,11 +107,11 @@ func (i *InputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
 
 var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &InputSelectOOB{}
 
-type InputSelectMagicLink struct{}
+type InputSelectLoginLink struct{}
 
-func (i *InputSelectMagicLink) SetupPrimaryAuthenticatorMagicLinkOTP() {}
+func (i *InputSelectLoginLink) SetupPrimaryAuthenticatorLoginLinkOTP() {}
 
-var _ nodes.InputCreateAuthenticatorMagicLinkOTPSetupSelect = &InputSelectMagicLink{}
+var _ nodes.InputCreateAuthenticatorLoginLinkOTPSetupSelect = &InputSelectLoginLink{}
 
 type InputSetupPassword struct {
 	Stage    string
@@ -324,16 +324,16 @@ var _ nodes.InputAuthenticationWhatsapp = &InputVerifyWhatsappOTP{}
 var _ nodes.InputVerifyIdentityViaWhatsappCheckCode = &InputVerifyWhatsappOTP{}
 var _ nodes.InputCreateDeviceToken = &InputVerifyWhatsappOTP{}
 
-type InputVerifyMagicLinkOTP struct {
+type InputVerifyLoginLinkOTP struct {
 	DeviceToken bool
 }
 
-func (i *InputVerifyMagicLinkOTP) VerifyMagicLink()        {}
-func (i *InputVerifyMagicLinkOTP) CreateDeviceToken() bool { return i.DeviceToken }
+func (i *InputVerifyLoginLinkOTP) VerifyLoginLink()        {}
+func (i *InputVerifyLoginLinkOTP) CreateDeviceToken() bool { return i.DeviceToken }
 
-var _ nodes.InputCreateAuthenticatorMagicLinkOTP = &InputVerifyMagicLinkOTP{}
-var _ nodes.InputAuthenticationMagicLink = &InputVerifyMagicLinkOTP{}
-var _ nodes.InputCreateDeviceToken = &InputVerifyMagicLinkOTP{}
+var _ nodes.InputCreateAuthenticatorLoginLinkOTP = &InputVerifyLoginLinkOTP{}
+var _ nodes.InputAuthenticationLoginLink = &InputVerifyLoginLinkOTP{}
+var _ nodes.InputCreateDeviceToken = &InputVerifyLoginLinkOTP{}
 
 type InputSetupWhatsappOTP struct {
 	Phone string
@@ -343,14 +343,14 @@ func (i *InputSetupWhatsappOTP) GetWhatsappPhone() string { return i.Phone }
 
 var _ nodes.InputCreateAuthenticatorWhatsappOTPSetup = &InputSetupWhatsappOTP{}
 
-type InputSetupMagicLinkOTP struct {
+type InputSetupLoginLinkOTP struct {
 	InputType string
 	Target    string
 }
 
-func (i *InputSetupMagicLinkOTP) GetMagicLinkOTPTarget() string { return i.Target }
+func (i *InputSetupLoginLinkOTP) GetLoginLinkOTPTarget() string { return i.Target }
 
-var _ nodes.InputCreateAuthenticatorMagicLinkOTPSetup = &InputSetupMagicLinkOTP{}
+var _ nodes.InputCreateAuthenticatorLoginLinkOTPSetup = &InputSetupLoginLinkOTP{}
 
 type InputSelectVerifyIdentityViaOOBOTP struct{}
 

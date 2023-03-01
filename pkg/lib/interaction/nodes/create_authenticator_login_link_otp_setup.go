@@ -12,36 +12,36 @@ import (
 )
 
 func init() {
-	interaction.RegisterNode(&NodeCreateAuthenticatorMagicLinkOTPSetup{})
+	interaction.RegisterNode(&NodeCreateAuthenticatorLoginLinkOTPSetup{})
 }
 
-type InputCreateAuthenticatorMagicLinkOTPSetup interface {
-	GetMagicLinkOTPTarget() string
+type InputCreateAuthenticatorLoginLinkOTPSetup interface {
+	GetLoginLinkOTPTarget() string
 }
 
-type EdgeCreateAuthenticatorMagicLinkOTPSetup struct {
+type EdgeCreateAuthenticatorLoginLinkOTPSetup struct {
 	NewAuthenticatorID string
 	Stage              authn.AuthenticationStage
 	IsDefault          bool
 }
 
-type InputCreateAuthenticatorMagicLinkOTPSetupSelect interface {
-	SetupPrimaryAuthenticatorMagicLinkOTP()
+type InputCreateAuthenticatorLoginLinkOTPSetupSelect interface {
+	SetupPrimaryAuthenticatorLoginLinkOTP()
 }
 
-func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) IsDefaultAuthenticator() bool {
+func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) IsDefaultAuthenticator() bool {
 	return false
 }
 
-func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) AuthenticatorType() model.AuthenticatorType {
+func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) AuthenticatorType() model.AuthenticatorType {
 	// Currently only support send through email
 	return model.AuthenticatorTypeOOBEmail
 }
 
-func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var target string
 	if e.Stage == authn.AuthenticationStagePrimary {
-		var input InputCreateAuthenticatorMagicLinkOTPSetupSelect
+		var input InputCreateAuthenticatorLoginLinkOTPSetupSelect
 		matchedInput := interaction.Input(rawInput, &input)
 		if !matchedInput && !interaction.IsAdminAPI(rawInput) {
 			return nil, interaction.ErrIncompatibleInput
@@ -49,11 +49,11 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		identityInfo := graph.MustGetUserLastIdentity()
 		target = identityInfo.LoginID.LoginID
 	} else {
-		var input InputCreateAuthenticatorMagicLinkOTPSetup
+		var input InputCreateAuthenticatorLoginLinkOTPSetup
 		if !interaction.Input(rawInput, &input) {
 			return nil, interaction.ErrIncompatibleInput
 		}
-		target = input.GetMagicLinkOTPTarget()
+		target = input.GetLoginLinkOTPTarget()
 	}
 
 	// Validate target against channel
@@ -111,8 +111,8 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
-		// Admin skip verify MagicLink otp and create OOB authenticator directly
-		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
+		// Admin skip verify LoginLink otp and create OOB authenticator directly
+		return &NodeCreateAuthenticatorLoginLinkOTP{Stage: e.Stage, Authenticator: info}, nil
 	}
 
 	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
@@ -121,7 +121,7 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 	}
 
 	if aStatus == verification.AuthenticatorStatusVerified {
-		return &NodeCreateAuthenticatorMagicLinkOTP{Stage: e.Stage, Authenticator: info}, nil
+		return &NodeCreateAuthenticatorLoginLinkOTP{Stage: e.Stage, Authenticator: info}, nil
 	}
 
 	result, err := (&SendOOBCode{
@@ -130,46 +130,46 @@ func (e *EdgeCreateAuthenticatorMagicLinkOTPSetup) Instantiate(ctx *interaction.
 		IsAuthenticating:     false,
 		AuthenticatorInfo:    info,
 		IgnoreRatelimitError: true,
-		OTPMode:              otp.OTPModeMagicLink,
+		OTPMode:              otp.OTPModeLoginLink,
 	}).Do()
 	if err != nil {
 		return nil, err
 	}
 
-	return &NodeCreateAuthenticatorMagicLinkOTPSetup{
+	return &NodeCreateAuthenticatorLoginLinkOTPSetup{
 		Stage:         e.Stage,
 		Authenticator: info,
-		MagicLinkOTP:  result.Code,
+		LoginLinkOTP:  result.Code,
 		Target:        target,
 		Channel:       result.Channel,
 	}, nil
 }
 
-type NodeCreateAuthenticatorMagicLinkOTPSetup struct {
+type NodeCreateAuthenticatorLoginLinkOTPSetup struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
-	MagicLinkOTP  string                    `json:"magic_link_otp"`
+	LoginLinkOTP  string                    `json:"login_link_otp"`
 	Target        string                    `json:"target"`
 	Channel       string                    `json:"channel"`
 }
 
-// GetMagicLinkOTP implements MagicLinkOTPNode.
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTP() string {
-	return n.MagicLinkOTP
+// GetLoginLinkOTP implements LoginLinkOTPNode.
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetLoginLinkOTP() string {
+	return n.LoginLinkOTP
 }
 
-// GetMagicLinkOTPTarget implements MagicLinkOTPNode.
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPTarget() string {
+// GetLoginLinkOTPTarget implements LoginLinkOTPNode.
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetLoginLinkOTPTarget() string {
 	return n.Target
 }
 
-// GetMagicLinkOTPChannel implements MagicLinkOTPNode.
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPChannel() string {
+// GetLoginLinkOTPChannel implements LoginLinkOTPNode.
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetLoginLinkOTPChannel() string {
 	return n.Channel
 }
 
-// GetMagicLinkOTPOOBType implements MagicLinkOTPNode.
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPOOBType() interaction.OOBType {
+// GetLoginLinkOTPOOBType implements LoginLinkOTPNode.
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetLoginLinkOTPOOBType() interaction.OOBType {
 	switch n.Stage {
 	case authn.AuthenticationStagePrimary:
 		return interaction.OOBTypeSetupPrimary
@@ -180,23 +180,23 @@ func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetMagicLinkOTPOOBType() inte
 	}
 }
 
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetEffects() ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorMagicLinkOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,
 			IsAuthenticating: false,
 			Authenticator:    n.Authenticator,
-			OTPMode:          otp.OTPModeMagicLink,
+			OTPMode:          otp.OTPModeLoginLink,
 		},
-		&EdgeCreateAuthenticatorMagicLinkOTP{Stage: n.Stage, Authenticator: n.Authenticator},
+		&EdgeCreateAuthenticatorLoginLinkOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}
 	return edges, nil
 }

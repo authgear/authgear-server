@@ -294,24 +294,24 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SetupMagicLinkOTPHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SetupLoginLinkOTPHandler)),
 	))
 }
 
-func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.MagicLinkOTPHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.LoginLinkOTPHandler)),
 	))
 }
 
-func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyMagicLinkOTPHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.VerifyLoginLinkOTPHandler)),
 	))
 }
 

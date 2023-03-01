@@ -23,7 +23,7 @@ type SendOptions struct {
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
-	MagicLinkVerificationEndpointURL() *url.URL
+	LoginLinkVerificationEndpointURL() *url.URL
 }
 
 type TranslationService interface {
@@ -81,8 +81,8 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	}
 	data.Email = email
 
-	if opts.OTPMode == OTPModeMagicLink {
-		url := s.Endpoints.MagicLinkVerificationEndpointURL()
+	if opts.OTPMode == OTPModeLoginLink {
+		url := s.Endpoints.LoginLinkVerificationEndpointURL()
 		query := url.Query()
 		query.Set("code", data.Code)
 		url.RawQuery = query.Encode()
@@ -97,29 +97,29 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		spec = messageVerification
 		emailType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
-			spec = messageSetupPrimaryMagicLink
+		if opts.OTPMode == OTPModeLoginLink {
+			spec = messageSetupPrimaryLoginLink
 		} else {
 			spec = messageSetupPrimaryOOB
 		}
 		emailType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
-			spec = messageSetupSecondaryMagicLink
+		if opts.OTPMode == OTPModeLoginLink {
+			spec = messageSetupSecondaryLoginLink
 		} else {
 			spec = messageSetupSecondaryOOB
 		}
 		emailType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
-			spec = messageAuthenticatePrimaryMagicLink
+		if opts.OTPMode == OTPModeLoginLink {
+			spec = messageAuthenticatePrimaryLoginLink
 		} else {
 			spec = messageAuthenticatePrimaryOOB
 		}
 		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
-		if opts.OTPMode == OTPModeMagicLink {
-			spec = messageAuthenticateSecondaryMagicLink
+		if opts.OTPMode == OTPModeLoginLink {
+			spec = messageAuthenticateSecondaryLoginLink
 		} else {
 			spec = messageAuthenticateSecondaryOOB
 		}
