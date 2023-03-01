@@ -68,7 +68,7 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 
 	switch otpMode {
 	case OTPModeMagicLink:
-		codeModel.Code = secretcode.MagicLinkOTPSecretCode.Generate()
+		codeModel.Code = secretcode.LoginLinkOTPSecretCode.Generate()
 		err := s.MagicLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
 		if err != nil {
 			return nil, err
@@ -193,7 +193,7 @@ func (s *Service) VerifyMagicLinkCode(userInputtedCode string) (*Code, error) {
 		return nil, err
 	}
 
-	if !secretcode.MagicLinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
+	if !secretcode.LoginLinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
 		return nil, ErrInvalidLoginLink
 	}
 
@@ -208,7 +208,7 @@ func (s *Service) VerifyMagicLinkCodeByTarget(target string, consume bool) (*Cod
 		return nil, err
 	}
 
-	if !secretcode.MagicLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
+	if !secretcode.LoginLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
 		return nil, ErrInvalidLoginLink
 	}
 
