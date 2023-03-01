@@ -91,7 +91,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
 			}
 
-		case webapp.SessionStepSetupMagicLinkOTP:
+		case webapp.SessionStepSetupLoginLinkOTP:
 			graph, err := ctrl.InteractionGet()
 			if err != nil {
 				return err
@@ -105,7 +105,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 			case authn.AuthenticationStagePrimary:
 				choiceStep = webapp.SessionStepCreateAuthenticator
 				inputFn = func() (interface{}, error) {
-					return &InputSelectMagicLink{}, nil
+					return &InputSelectLoginLink{}, nil
 				}
 			case authn.AuthenticationStageSecondary:
 				choiceStep = webapp.SessionStepCreateAuthenticator
@@ -191,14 +191,14 @@ func handleAlternativeSteps(ctrl *Controller) {
 					AuthenticatorIndex: index,
 				}, nil
 			}
-		case webapp.SessionStepVerifyMagicLinkOTPAuthn:
+		case webapp.SessionStepVerifyLoginLinkOTPAuthn:
 			choiceStep = webapp.SessionStepAuthenticate
 			index, err := strconv.Atoi(ctrl.request.Form.Get("x_authenticator_index"))
 			if err != nil {
 				index = 0
 			}
 			inputFn = func() (interface{}, error) {
-				return &InputTriggerMagicLink{
+				return &InputTriggerLoginLink{
 					AuthenticatorIndex: index,
 				}, nil
 			}

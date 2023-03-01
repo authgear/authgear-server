@@ -252,9 +252,9 @@ func (s *Service2) doPost(
 					}
 					return
 				}
-			case *nodes.EdgeAuthenticationMagicLinkTrigger:
+			case *nodes.EdgeAuthenticationLoginLinkTrigger:
 				inputFn = func() (input interface{}, err error) {
-					input = &inputTriggerMagicLink{
+					input = &inputTriggerLoginLink{
 						AuthenticatorIndex: 0,
 					}
 					return
@@ -310,14 +310,14 @@ func (s *Service2) doPost(
 						graph.InstanceID,
 					))
 				}
-			case *nodes.EdgeCreateAuthenticatorMagicLinkOTPSetup:
+			case *nodes.EdgeCreateAuthenticatorLoginLinkOTPSetup:
 				if defaultEdge.Stage == authn.AuthenticationStagePrimary {
 					inputFn = func() (interface{}, error) {
-						return &inputSelectMagicLinkOTP{}, nil
+						return &inputSelectLoginLinkOTP{}, nil
 					}
 				} else {
 					session.Steps = append(session.Steps, NewSessionStep(
-						SessionStepSetupMagicLinkOTP,
+						SessionStepSetupLoginLinkOTP,
 						graph.InstanceID,
 					))
 				}
@@ -567,8 +567,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		}
 	case *nodes.NodeAuthenticationWhatsappTrigger:
 		return SessionStepVerifyWhatsappOTPAuthn
-	case *nodes.NodeAuthenticationMagicLinkTrigger:
-		return SessionStepVerifyMagicLinkOTPAuthn
+	case *nodes.NodeAuthenticationLoginLinkTrigger:
+		return SessionStepVerifyLoginLinkOTPAuthn
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		switch currentNode.Authenticator.Type {
 		case model.AuthenticatorTypeOOBEmail:
@@ -580,8 +580,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		}
 	case *nodes.NodeCreateAuthenticatorWhatsappOTPSetup:
 		return SessionStepVerifyWhatsappOTPSetup
-	case *nodes.NodeCreateAuthenticatorMagicLinkOTPSetup:
-		return SessionStepVerifyMagicLinkOTPSetup
+	case *nodes.NodeCreateAuthenticatorLoginLinkOTPSetup:
+		return SessionStepVerifyLoginLinkOTPSetup
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:

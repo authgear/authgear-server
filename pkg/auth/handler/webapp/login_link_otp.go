@@ -18,31 +18,31 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateWebMagicLinkHTML = template.RegisterHTML(
-	"web/magic_link_otp.html",
+var TemplateWebLoginLinkHTML = template.RegisterHTML(
+	"web/login_link_otp.html",
 	components...,
 )
 
-func ConfigureMagicLinkOTPRoute(route httproute.Route) httproute.Route {
+func ConfigureLoginLinkOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/flows/login_link_otp")
 }
 
-type MagicLinkOTPNode interface {
-	GetMagicLinkOTP() string
-	GetMagicLinkOTPTarget() string
-	GetMagicLinkOTPChannel() string
-	GetMagicLinkOTPOOBType() interaction.OOBType
+type LoginLinkOTPNode interface {
+	GetLoginLinkOTP() string
+	GetLoginLinkOTPTarget() string
+	GetLoginLinkOTPChannel() string
+	GetLoginLinkOTPOOBType() interaction.OOBType
 }
 
-type MagicLinkOTPViewModel struct {
+type LoginLinkOTPViewModel struct {
 	Target              string
 	OTPCodeSendCooldown int
-	StateQuery          MagicLinkOTPPageQueryState
+	StateQuery          LoginLinkOTPPageQueryState
 }
 
-type MagicLinkOTPHandler struct {
+type LoginLinkOTPHandler struct {
 	LoginLinkOTPCodeService   otp.Service
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
@@ -53,18 +53,18 @@ type MagicLinkOTPHandler struct {
 	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
 }
 
-func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewModel := MagicLinkOTPViewModel{
-		StateQuery: GetMagicLinkStateFromQuery(r),
+	viewModel := LoginLinkOTPViewModel{
+		StateQuery: GetLoginLinkStateFromQuery(r),
 	}
 	var alternatives *viewmodels.AlternativeStepsViewModel
 
-	var n MagicLinkOTPNode
+	var n LoginLinkOTPNode
 	if graph.FindLastNode(&n) {
-		channel := model.AuthenticatorOOBChannel(n.GetMagicLinkOTPChannel())
-		target := n.GetMagicLinkOTPTarget()
+		channel := model.AuthenticatorOOBChannel(n.GetLoginLinkOTPChannel())
+		target := n.GetLoginLinkOTPTarget()
 		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
@@ -76,20 +76,20 @@ func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 		} else {
 			viewModel.OTPCodeSendCooldown = int(resetDuration.Seconds())
 		}
-		viewModel.Target = mail.MaskAddress(n.GetMagicLinkOTPTarget())
+		viewModel.Target = mail.MaskAddress(n.GetLoginLinkOTPTarget())
 	}
 
 	currentNode := graph.CurrentNode()
 	switch currentNode.(type) {
-	case *nodes.NodeAuthenticationMagicLinkTrigger:
+	case *nodes.NodeAuthenticationLoginLinkTrigger:
 		var err error
-		alternatives, err = h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepVerifyMagicLinkOTPAuthn)
+		alternatives, err = h.AlternativeStepsViewModel.AuthenticationAlternatives(graph, webapp.SessionStepVerifyLoginLinkOTPAuthn)
 		if err != nil {
 			return nil, err
 		}
-	case *nodes.NodeCreateAuthenticatorMagicLinkOTPSetup:
+	case *nodes.NodeCreateAuthenticatorLoginLinkOTPSetup:
 		var err error
-		alternatives, err = h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupMagicLinkOTP)
+		alternatives, err = h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupLoginLinkOTP)
 		if err != nil {
 			return nil, err
 		}
@@ -103,7 +103,7 @@ func (h *MagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 	return data, nil
 }
 
-func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -127,7 +127,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebMagicLinkHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebLoginLinkHTML, data)
 		return nil
 	})
 
@@ -141,7 +141,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		if !result.IsInteractionErr {
-			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendMagicLinkSuccess))
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendLoginLinkSuccess))
 		}
 		result.WriteResponse(w, r)
 		return nil
@@ -153,9 +153,9 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return "", err
 		}
 		var code string
-		var n MagicLinkOTPNode
+		var n LoginLinkOTPNode
 		if graph.FindLastNode(&n) {
-			code = n.GetMagicLinkOTPTarget()
+			code = n.GetLoginLinkOTPTarget()
 		} else {
 			panic(fmt.Errorf("webapp: unexpected node for login link: %T", n))
 		}
@@ -164,7 +164,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	ctrl.PostAction("dryrun_verify", func() error {
-		var state MagicLinkOTPPageQueryState
+		var state LoginLinkOTPPageQueryState
 
 		email, err := getEmailFromGraph()
 		if err != nil {
@@ -173,16 +173,16 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 		_, err = h.LoginLinkOTPCodeService.VerifyLoginLinkCodeByTarget(email, false)
 		if err == nil {
-			state = MagicLinkOTPPageQueryStateMatched
+			state = LoginLinkOTPPageQueryStateMatched
 		} else if errors.Is(err, otp.ErrInvalidCode) {
-			state = MagicLinkOTPPageQueryStateInvalidCode
+			state = LoginLinkOTPPageQueryStateInvalidCode
 		} else {
 			return err
 		}
 
 		url := url.URL{Path: r.URL.Path}
 		query := r.URL.Query()
-		query.Set(MagicLinkOTPPageQueryStateKey, string(state))
+		query.Set(LoginLinkOTPPageQueryStateKey, string(state))
 		url.RawQuery = query.Encode()
 
 		result := webapp.Result{
@@ -196,7 +196,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	ctrl.PostAction("next", func() error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			input = &InputVerifyMagicLinkOTP{
+			input = &InputVerifyLoginLinkOTP{
 				DeviceToken: deviceToken,
 			}
 			return
@@ -206,7 +206,7 @@ func (h *MagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		result.RemoveQueries = setutil.Set[string]{
-			MagicLinkOTPPageQueryStateKey: struct{}{},
+			LoginLinkOTPPageQueryStateKey: struct{}{},
 		}
 		result.WriteResponse(w, r)
 		return nil

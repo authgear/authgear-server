@@ -22103,7 +22103,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 	return whatsappWATICallbackHandler
 }
 
-func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
@@ -22887,16 +22887,16 @@ func newWebAppSetupMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	setupMagicLinkOTPHandler := &webapp.SetupMagicLinkOTPHandler{
+	setupLoginLinkOTPHandler := &webapp.SetupLoginLinkOTPHandler{
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
 	}
-	return setupMagicLinkOTPHandler
+	return setupLoginLinkOTPHandler
 }
 
-func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
@@ -23690,7 +23690,7 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	alternativeStepsViewModeler := &viewmodels.AlternativeStepsViewModeler{
 		AuthenticationConfig: authenticationConfig,
 	}
-	magicLinkOTPHandler := &webapp.MagicLinkOTPHandler{
+	loginLinkOTPHandler := &webapp.LoginLinkOTPHandler{
 		LoginLinkOTPCodeService:   otpService,
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
@@ -23700,10 +23700,10 @@ func newWebAppMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:              flashMessage,
 		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
 	}
-	return magicLinkOTPHandler
+	return loginLinkOTPHandler
 }
 
-func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
 	appContext := appProvider.AppContext
@@ -24508,7 +24508,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: contextContext,
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, handle, workflowStoreImpl)
-	verifyMagicLinkOTPHandler := &webapp.VerifyMagicLinkOTPHandler{
+	verifyLoginLinkOTPHandler := &webapp.VerifyLoginLinkOTPHandler{
 		LoginLinkOTPCodeService:     otpService,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
 		ControllerFactory:           controllerFactory,
@@ -24517,7 +24517,7 @@ func newWebAppVerifyMagicLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                    responseRenderer,
 		WorkflowEvents:              eventStoreImpl,
 	}
-	return verifyMagicLinkOTPHandler
+	return verifyLoginLinkOTPHandler
 }
 
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {

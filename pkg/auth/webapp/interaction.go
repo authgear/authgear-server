@@ -22,13 +22,13 @@ var _ nodes.InputAuthenticationWhatsappTrigger = &inputTriggerWhatsapp{}
 
 func (i *inputTriggerWhatsapp) GetWhatsappAuthenticatorIndex() int { return i.AuthenticatorIndex }
 
-type inputTriggerMagicLink struct {
+type inputTriggerLoginLink struct {
 	AuthenticatorIndex int
 }
 
-var _ nodes.InputAuthenticationMagicLinkTrigger = &inputTriggerMagicLink{}
+var _ nodes.InputAuthenticationLoginLinkTrigger = &inputTriggerLoginLink{}
 
-func (i *inputTriggerMagicLink) GetMagicLinkAuthenticatorIndex() int { return i.AuthenticatorIndex }
+func (i *inputTriggerLoginLink) GetLoginLinkAuthenticatorIndex() int { return i.AuthenticatorIndex }
 
 type inputSelectTOTP struct{}
 
@@ -56,11 +56,11 @@ func (i *inputSelectOOB) SetupPrimaryAuthenticatorOOB() {}
 
 var _ nodes.InputCreateAuthenticatorOOBSetupSelect = &inputSelectOOB{}
 
-type inputSelectMagicLinkOTP struct{}
+type inputSelectLoginLinkOTP struct{}
 
-func (i *inputSelectMagicLinkOTP) SetupPrimaryAuthenticatorMagicLinkOTP() {}
+func (i *inputSelectLoginLinkOTP) SetupPrimaryAuthenticatorLoginLinkOTP() {}
 
-var _ nodes.InputCreateAuthenticatorMagicLinkOTPSetupSelect = &inputSelectMagicLinkOTP{}
+var _ nodes.InputCreateAuthenticatorLoginLinkOTPSetupSelect = &inputSelectLoginLinkOTP{}
 
 type inputSelectVerifyIdentityViaOOBOTP struct{}
 

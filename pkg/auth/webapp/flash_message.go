@@ -4,5 +4,5 @@ type FlashMessageType string
 
 const (
 	FlashMessageTypeResendCodeSuccess      FlashMessageType = "resend_code_success"
-	FlashMessageTypeResendMagicLinkSuccess FlashMessageType = "resend_magic_link_success"
+	FlashMessageTypeResendLoginLinkSuccess FlashMessageType = "resend_login_link_success"
 )

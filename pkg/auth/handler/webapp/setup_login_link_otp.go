@@ -12,12 +12,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var TemplateWebSetupMagicLinkOTPHTML = template.RegisterHTML(
-	"web/setup_magic_link_otp.html",
+var TemplateWebSetupLoginLinkOTPHTML = template.RegisterHTML(
+	"web/setup_login_link_otp.html",
 	components...,
 )
 
-var SetupMagicLinkOTPEmailSchema = validation.NewSimpleSchema(`
+var SetupLoginLinkOTPEmailSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
@@ -27,26 +27,26 @@ var SetupMagicLinkOTPEmailSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ConfigureSetupMagicLinkOTPRoute(route httproute.Route) httproute.Route {
+func ConfigureSetupLoginLinkOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
 		WithPathPattern("/flows/setup_login_link_otp")
 }
 
-type SetupMagicLinkOTPNode interface {
+type SetupLoginLinkOTPNode interface {
 }
 
-type SetupMagicLinkOTPHandler struct {
+type SetupLoginLinkOTPHandler struct {
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
 }
 
-func (h *SetupMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupMagicLinkOTP)
+	alternatives, err := h.AlternativeStepsViewModel.CreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupLoginLinkOTP)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (h *SetupMagicLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWrit
 	return data, nil
 }
 
-func (h *SetupMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *SetupLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -80,23 +80,23 @@ func (h *SetupMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebSetupMagicLinkOTPHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebSetupLoginLinkOTPHTML, data)
 		return nil
 	})
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = SetupMagicLinkOTPEmailSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = SetupLoginLinkOTPEmailSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}
 
-			target, err := FormToMagicLinkTarget(r.Form)
+			target, err := FormToLoginLinkTarget(r.Form)
 			if err != nil {
 				return
 			}
 
-			input = &InputSetupMagicLinkOTP{
+			input = &InputSetupLoginLinkOTP{
 				Target: target,
 			}
 			return
@@ -112,7 +112,7 @@ func (h *SetupMagicLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	handleAlternativeSteps(ctrl)
 }
 
-func FormToMagicLinkTarget(form url.Values) (target string, err error) {
+func FormToLoginLinkTarget(form url.Values) (target string, err error) {
 	target = form.Get("x_email")
 	return
 }
