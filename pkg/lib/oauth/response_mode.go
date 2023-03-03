@@ -21,7 +21,7 @@ const htmlRedirectTemplateString = `<!DOCTYPE html>
 {{- else }}
 <script>
 {{- end }}
-window.parent.postMessage("{{ .redirect_uri }}", "{{ .custom_ui_origin }}")
+window.parent.postMessage({ redirect_uri: "{{ .redirect_uri }}" }, "{{ .custom_ui_origin }}")
 window.location.href = "{{ .redirect_uri }}"
 </script>
 </body>

@@ -34,7 +34,7 @@ func TestWriteResponse(t *testing.T) {
 </head>
 <body>
 <script nonce="nonce">
-window.parent.postMessage("https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state", "https:\/\/ui.custom.com")
+window.parent.postMessage({ redirect_uri: "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state" }, "https:\/\/ui.custom.com")
 window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -48,7 +48,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 </head>
 <body>
 <script nonce="nonce">
-window.parent.postMessage("https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state", "https:\/\/ui.custom.com")
+window.parent.postMessage({ redirect_uri: "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state" }, "https:\/\/ui.custom.com")
 window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -62,7 +62,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 </head>
 <body>
 <script nonce="nonce">
-window.parent.postMessage("https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state", "https:\/\/ui.custom.com")
+window.parent.postMessage({ redirect_uri: "https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state" }, "https:\/\/ui.custom.com")
 window.location.href = "https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
