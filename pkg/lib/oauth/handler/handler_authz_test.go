@@ -30,7 +30,7 @@ const htmlRedirectTemplateString = `<!DOCTYPE html>
 </head>
 <body>
 <script>
-window.parent.postMessage("{{ .redirect_uri }}", "{{ .custom_ui_uri }}")
+window.parent.postMessage("{{ .redirect_uri }}", "{{ .custom_ui_origin }}")
 window.location.href = "{{ .redirect_uri }}"
 </script>
 </body>
@@ -40,11 +40,11 @@ window.location.href = "{{ .redirect_uri }}"
 func TestAuthorizationHandler(t *testing.T) {
 
 	htmlRedirectTemplate, _ := template.New("html_redirect").Parse(htmlRedirectTemplateString)
-	redirectHTML := func(redirectURI string, customUIURI string) string {
+	redirectHTML := func(redirectURI string, customUIOrigin string) string {
 		buf := strings.Builder{}
 		_ = htmlRedirectTemplate.Execute(&buf, map[string]string{
-			"redirect_uri":  redirectURI,
-			"custom_ui_uri": customUIURI,
+			"redirect_uri":     redirectURI,
+			"custom_ui_origin": customUIOrigin,
 		})
 		return buf.String()
 	}

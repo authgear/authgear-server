@@ -18,12 +18,12 @@ func TestWriteResponse(t *testing.T) {
 			r, _ := http.NewRequest("GET", "/", nil)
 			r = r.WithContext(web.WithCSPNonce(r.Context(), "nonce"))
 			redirectURI, _ := url.Parse("https://example.com")
-			customUIURI := "https://ui.custom.com"
+			customUIOrigin, _ := url.Parse("https://ui.custom.com")
 			response := map[string]string{
 				"code":  "this_is_the_code",
 				"state": "this_is_the_state",
 			}
-			WriteResponse(w, r, redirectURI, responseMode, customUIURI, response)
+			WriteResponse(w, r, redirectURI, responseMode, customUIOrigin, response)
 			So(w.Body.String(), ShouldEqual, expected)
 		}
 
