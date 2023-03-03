@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	htmltemplate "html/template"
 
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -120,20 +122,35 @@ func (s *Service) emailMessageHeader(name string, args interface{}) (sender, rep
 }
 
 func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMessageData, error) {
-	data := map[string]interface{}{"ClientID": clientid.GetClientID(s.Context)}
-	template.Embed(data, args)
+	uiParam := uiparam.GetUIParam(s.Context)
 
-	sender, replyTo, subject, err := s.emailMessageHeader(msg.Name, data)
+	// Ensure these data are safe to put at query
+	textData := map[string]interface{}{
+		"ClientID":  htmltemplate.URLQueryEscaper(clientid.GetClientID(s.Context)),
+		"State":     htmltemplate.URLQueryEscaper(uiParam.GetState()),
+		"UILocales": htmltemplate.URLQueryEscaper(uiParam.GetUILocales()),
+	}
+
+	// html template will handle the escape
+	htmlData := map[string]interface{}{
+		"ClientID":  clientid.GetClientID(s.Context),
+		"State":     uiParam.GetState(),
+		"UILocales": uiParam.GetUILocales(),
+	}
+	template.Embed(htmlData, args)
+	template.Embed(textData, args)
+
+	sender, replyTo, subject, err := s.emailMessageHeader(msg.Name, htmlData)
 	if err != nil {
 		return nil, err
 	}
 
-	textBody, err := s.renderTemplate(msg.TXTEmailTemplate, data)
+	textBody, err := s.renderTemplate(msg.TXTEmailTemplate, textData)
 	if err != nil {
 		return nil, err
 	}
 
-	htmlBody, err := s.renderTemplate(msg.HTMLEmailTemplate, data)
+	htmlBody, err := s.renderTemplate(msg.HTMLEmailTemplate, htmlData)
 	if err != nil {
 		return nil, err
 	}

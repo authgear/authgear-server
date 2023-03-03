@@ -111,10 +111,12 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 		// Do not clear the UI cookie so that a new session can be created again.
 		// httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
 	} else {
-		// Accept client_id from query if the workflow is not OAuth related.
-		// This is essential if the templates of some features require client_id.
+		// Accept client_id, state, ui_locales from query if the workflow is not OAuth related.
+		// This is essential if the templates of some features require these paramenters.
 		sessionOptions = &workflow.SessionOptions{
-			ClientID: r.FormValue("client_id"),
+			ClientID:  r.FormValue("client_id"),
+			State:     r.FormValue("state"),
+			UILocales: r.FormValue("ui_locales"),
 		}
 	}
 
@@ -143,6 +145,7 @@ func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.
 		RedirectURI:              uiInfo.RedirectURI,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		State:                    uiInfo.State,
+		UILocales:                req.UILocalesRaw(),
 	}
 
 	return sessionOptions, nil

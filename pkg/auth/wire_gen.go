@@ -56724,3 +56724,13 @@ func newWorkflowClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware
 	clientIDMiddleware := &workflow.ClientIDMiddleware{}
 	return clientIDMiddleware
 }
+
+func newWorkflowUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	uiParamMiddleware := &workflow.UIParamMiddleware{}
+	return uiParamMiddleware
+}
+
+func newWorkflowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	intlMiddleware := &workflow.IntlMiddleware{}
+	return intlMiddleware
+}

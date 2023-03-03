@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type Session struct {
@@ -13,6 +15,7 @@ type Session struct {
 	RedirectURI              string `json:"redirect_uri,omitempty"`
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
 	State                    string `json:"state,omitempty"`
+	UILocales                string `json:"ui_locales,omitempty"`
 }
 
 type SessionOutput struct {
@@ -26,6 +29,7 @@ type SessionOptions struct {
 	RedirectURI              string
 	SuppressIDPSessionCookie bool
 	State                    string
+	UILocales                string
 }
 
 func NewSession(opts *SessionOptions) *Session {
@@ -35,6 +39,7 @@ func NewSession(opts *SessionOptions) *Session {
 		RedirectURI:              opts.RedirectURI,
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
 		State:                    opts.State,
+		UILocales:                opts.UILocales,
 	}
 }
 
@@ -48,6 +53,8 @@ func (s *Session) ToOutput() *SessionOutput {
 
 func (s *Session) Context(ctx context.Context) context.Context {
 	ctx = clientid.WithClientID(ctx, s.ClientID)
+	ctx = uiparam.WithUIParam(ctx, s.State, s.UILocales)
+	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyState, s.State)
 	ctx = context.WithValue(ctx, contextKeyWorkflowID, s.WorkflowID)

@@ -8,3 +8,7 @@ func parseSpaceDelimitedString(s string) []string {
 	}
 	return strings.Split(s, " ")
 }
+
+func ParseUILocales(s string) []string {
+	return parseSpaceDelimitedString(s)
+}
