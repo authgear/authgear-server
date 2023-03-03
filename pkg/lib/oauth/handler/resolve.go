@@ -52,7 +52,7 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 
 	// Implicitly allow URIs at same origin as the custom ui uri.
 	if client.CustomUIURI != "" {
-		customUIURI, err := url.Parse(redirectURIString)
+		customUIURI, err := url.Parse(client.CustomUIURI)
 		if err != nil {
 			return nil, protocol.NewErrorResponse("invalid_request", "invalid custom ui URI")
 		}

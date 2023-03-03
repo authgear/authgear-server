@@ -96,14 +96,14 @@ type AuthorizationHandler struct {
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
 	client := resolveClient(h.Config, r)
-	customUIURI := client.CustomUIURI
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
 			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
-			CustomUIURI:  customUIURI,
+			CustomUIURI:  "",
 		}
 	}
+	customUIURI := client.CustomUIURI
 	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
 	if errResp != nil {
 		return authorizationResultError{
@@ -150,14 +150,13 @@ func (h *AuthorizationHandler) HandleConsentWithUserConsent(req *http.Request) h
 
 func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) httputil.Result {
 	consentRequest, err := h.prepareConsentRequest(req)
-	customUIURI := consentRequest.Client.CustomUIURI
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := authorizationResultError{
 			// Don't redirect for those unexpected errors
 			// e.g. oauth session expire or invalid client_id, redirect_uri
 			RedirectURI: nil,
-			CustomUIURI: customUIURI,
+			CustomUIURI: "",
 		}
 		if errors.As(err, &oauthError) {
 			resultErr.Response = oauthError.Response
@@ -173,6 +172,7 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 	authInfoEntry := consentRequest.AuthInfoEntry
 	authzReq := oauthSessionEntry.T.AuthorizationRequest
 	redirectURI := consentRequest.RedirectURI
+	customUIURI := consentRequest.Client.CustomUIURI
 
 	// delete oauth session and auth info with best effort
 	// don't block the user in case of failure
