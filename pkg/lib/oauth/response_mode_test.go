@@ -18,11 +18,12 @@ func TestWriteResponse(t *testing.T) {
 			r, _ := http.NewRequest("GET", "/", nil)
 			r = r.WithContext(web.WithCSPNonce(r.Context(), "nonce"))
 			redirectURI, _ := url.Parse("https://example.com")
+			customUIURI := "https://ui.custom.com"
 			response := map[string]string{
 				"code":  "this_is_the_code",
 				"state": "this_is_the_state",
 			}
-			WriteResponse(w, r, redirectURI, responseMode, response)
+			WriteResponse(w, r, redirectURI, responseMode, customUIURI, response)
 			So(w.Body.String(), ShouldEqual, expected)
 		}
 
@@ -33,6 +34,7 @@ func TestWriteResponse(t *testing.T) {
 </head>
 <body>
 <script nonce="nonce">
+window.parent.postMessage("https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state", "https:\/\/ui.custom.com")
 window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -46,6 +48,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 </head>
 <body>
 <script nonce="nonce">
+window.parent.postMessage("https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state", "https:\/\/ui.custom.com")
 window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
@@ -59,6 +62,7 @@ window.location.href = "https:\/\/example.com?code=this_is_the_code\u0026state=t
 </head>
 <body>
 <script nonce="nonce">
+window.parent.postMessage("https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state", "https:\/\/ui.custom.com")
 window.location.href = "https:\/\/example.com#code=this_is_the_code\u0026state=this_is_the_state"
 </script>
 </body>
