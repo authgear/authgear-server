@@ -83,7 +83,6 @@ func (r AuthorizationRequest) SSOEnabled() bool {
 }
 func (r AuthorizationRequest) ColorScheme() string        { return r["x_color_scheme"] }
 func (r AuthorizationRequest) OAuthProviderAlias() string { return r["x_oauth_provider_alias"] }
-func (r AuthorizationRequest) CustomUIQuery() string      { return r["x_custom_ui_query"] }
 
 type AuthorizationResponse map[string]string
 
