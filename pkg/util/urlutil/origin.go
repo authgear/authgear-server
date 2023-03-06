@@ -5,9 +5,9 @@ import (
 )
 
 func ExtractOrigin(u *url.URL) *url.URL {
-	newU := *u
-	newU.Path = ""
-	newU.RawQuery = ""
-	newU.Fragment = ""
-	return &newU
+	return &url.URL{
+		Scheme: u.Scheme,
+		Opaque: u.Opaque,
+		Host:   u.Host,
+	}
 }
