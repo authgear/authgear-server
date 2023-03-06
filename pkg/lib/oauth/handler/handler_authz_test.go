@@ -30,6 +30,7 @@ const htmlRedirectTemplateString = `<!DOCTYPE html>
 </head>
 <body>
 <script>
+window.parent.postMessage({ redirect_uri: "{{ .redirect_uri }}" }, "{{ .custom_ui_origin }}")
 window.location.href = "{{ .redirect_uri }}"
 </script>
 </body>
@@ -39,10 +40,11 @@ window.location.href = "{{ .redirect_uri }}"
 func TestAuthorizationHandler(t *testing.T) {
 
 	htmlRedirectTemplate, _ := template.New("html_redirect").Parse(htmlRedirectTemplateString)
-	redirectHTML := func(redirectURI string) string {
+	redirectHTML := func(redirectURI string, customUIOrigin string) string {
 		buf := strings.Builder{}
 		_ = htmlRedirectTemplate.Execute(&buf, map[string]string{
-			"redirect_uri": redirectURI,
+			"redirect_uri":     redirectURI,
+			"custom_ui_origin": customUIOrigin,
 		})
 		return buf.String()
 	}
@@ -98,6 +100,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"https://example.com/",
 					"https://example.com/settings",
 				},
+				CustomUIURI: "https://ui.custom.com",
 			}}
 			Convey("missing client ID", func() {
 				resp := handle(protocol.AuthorizationRequest{})
@@ -126,6 +129,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"http://accounts.example.com/settings?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client",
+					"https://ui.custom.com",
 				))
 			})
 		})
@@ -134,6 +138,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			h.Config.Clients = []config.OAuthClientConfig{{
 				ClientID:     "client-id",
 				RedirectURIs: []string{"https://example.com/cb?from=sso"},
+				CustomUIURI:  "https://ui.custom.com",
 			}}
 			resp := handle(protocol.AuthorizationRequest{
 				"client_id":     "client-id",
@@ -142,6 +147,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			So(resp.Result().StatusCode, ShouldEqual, 200)
 			So(resp.Body.String(), ShouldEqual, redirectHTML(
 				"https://example.com/cb?error=invalid_request&error_description=scope+is+required&from=sso",
+				"https://ui.custom.com",
 			))
 		})
 
@@ -149,6 +155,7 @@ func TestAuthorizationHandler(t *testing.T) {
 			h.Config.Clients = []config.OAuthClientConfig{{
 				ClientID:     "client-id",
 				RedirectURIs: []string{"https://example.com/"},
+				CustomUIURI:  "https://ui.custom.com",
 			}}
 			Convey("request validation", func() {
 				Convey("missing scope", func() {
@@ -159,6 +166,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=invalid_request&error_description=scope+is+required",
+						"https://ui.custom.com",
 					))
 				})
 				Convey("missing PKCE code challenge", func() {
@@ -170,6 +178,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=invalid_request&error_description=PKCE+code+challenge+is+required",
+						"https://ui.custom.com",
 					))
 				})
 				Convey("unsupported PKCE transform", func() {
@@ -183,6 +192,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=invalid_request&error_description=only+%27S256%27+PKCE+transform+is+supported",
+						"https://ui.custom.com",
 					))
 				})
 			})
@@ -207,6 +217,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope",
+					"https://ui.custom.com",
 				))
 			})
 			Convey("request authentication", func() {
@@ -272,7 +283,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					resp := handle(req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
-						"https://example.com/?code=authz-code&state=my-state",
+						"https://example.com/?code=authz-code&state=my-state", "https://ui.custom.com",
 					))
 
 					So(codeGrantStore.grants, ShouldHaveLength, 1)
@@ -326,7 +337,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					resp := handle(req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
-						"https://example.com/?code=authz-code",
+						"https://example.com/?code=authz-code", "https://ui.custom.com",
 					))
 
 					So(codeGrantStore.grants, ShouldHaveLength, 1)
@@ -353,6 +364,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				ClientID:      "client-id",
 				RedirectURIs:  []string{"https://example.com/"},
 				ResponseTypes: []string{"none"},
+				CustomUIURI:   "https://ui.custom.com",
 			}}
 			Convey("request validation", func() {
 				Convey("not allowed response types", func() {
@@ -364,6 +376,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?error=unauthorized_client&error_description=response+type+is+not+allowed+for+this+client",
+						"https://ui.custom.com",
 					))
 				})
 			})
@@ -386,6 +399,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?error=invalid_scope&error_description=must+request+%27openid%27+scope",
+					"https://ui.custom.com",
 				))
 			})
 			Convey("request authentication", func() {
@@ -445,7 +459,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					resp := handle(req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
-						"https://example.com/?state=my-state",
+						"https://example.com/?state=my-state", "https://ui.custom.com",
 					))
 
 					So(codeGrantStore.grants, ShouldBeEmpty)
