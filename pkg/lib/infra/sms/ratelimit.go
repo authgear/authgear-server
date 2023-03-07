@@ -15,11 +15,11 @@ type AntiSpamSMSBucketMaker struct {
 	Config *config.SMSConfig
 }
 
-func (m *AntiSpamSMSBucketMaker) IsEnabled() bool {
+func (m *AntiSpamSMSBucketMaker) IsPerPhoneEnabled() bool {
 	return m.Config.Ratelimit.PerPhone.Enabled
 }
 
-func (m *AntiSpamSMSBucketMaker) MakeBucket(phone string) ratelimit.Bucket {
+func (m *AntiSpamSMSBucketMaker) MakePerPhoneBucket(phone string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("sms-message:%s", phone),
 		Name:        "AntiSpamSMSBucket",
