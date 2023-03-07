@@ -110,7 +110,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	workflowChain := httproute.Chain(
 		apiChain,
-		p.Middleware(newWorkflowClientIDMiddleware),
 		p.Middleware(newWorkflowUIParamMiddleware),
 		p.Middleware(newWorkflowIntlMiddleware),
 	)
@@ -139,10 +138,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			httproute.MiddlewareFunc(httputil.NoStore),
 			httproute.MiddlewareFunc(webapp.IntlMiddleware),
 			p.Middleware(newWebAppSessionMiddleware),
-			p.Middleware(newWebAppUILocalesMiddleware),
+			p.Middleware(newWebAppUIParamMiddleware),
 			p.Middleware(newWebAppColorSchemeMiddleware),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
-			p.Middleware(newWebAppClientIDMiddleware),
 			p.Middleware(newTutorialMiddleware),
 		)
 	}

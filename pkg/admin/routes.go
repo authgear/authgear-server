@@ -45,6 +45,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
 			return newAuthorizationMiddleware(p, auth)
 		}),
+		p.Middleware(newUIParamMiddleware),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,

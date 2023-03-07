@@ -63,19 +63,6 @@ func NewSignedUpCookieDef() SignedUpCookieDef {
 	return SignedUpCookieDef{Def: def}
 }
 
-type ClientIDCookieDef struct {
-	Def *httputil.CookieDef
-}
-
-func NewClientIDCookieDef() ClientIDCookieDef {
-	def := &httputil.CookieDef{
-		NameSuffix: "client_id",
-		Path:       "/",
-		SameSite:   http.SameSiteNoneMode,
-	}
-	return ClientIDCookieDef{Def: def}
-}
-
 type ErrorState struct {
 	Form  url.Values
 	Error *apierrors.APIError

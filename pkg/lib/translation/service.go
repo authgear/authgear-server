@@ -6,7 +6,6 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 
-	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -126,16 +125,16 @@ func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMe
 
 	// Ensure these data are safe to put at query
 	textData := map[string]interface{}{
-		"ClientID":  htmltemplate.URLQueryEscaper(clientid.GetClientID(s.Context)),
-		"State":     htmltemplate.URLQueryEscaper(uiParam.GetState()),
-		"UILocales": htmltemplate.URLQueryEscaper(uiParam.GetUILocales()),
+		"ClientID":  htmltemplate.URLQueryEscaper(uiParam.ClientID),
+		"State":     htmltemplate.URLQueryEscaper(uiParam.State),
+		"UILocales": htmltemplate.URLQueryEscaper(uiParam.UILocales),
 	}
 
 	// html template will handle the escape
 	htmlData := map[string]interface{}{
-		"ClientID":  clientid.GetClientID(s.Context),
-		"State":     uiParam.GetState(),
-		"UILocales": uiParam.GetUILocales(),
+		"ClientID":  uiParam.ClientID,
+		"State":     uiParam.State,
+		"UILocales": uiParam.UILocales,
 	}
 	template.Embed(htmlData, args)
 	template.Embed(textData, args)
@@ -189,7 +188,8 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 }
 
 func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessageData, error) {
-	data := map[string]interface{}{"ClientID": clientid.GetClientID(s.Context)}
+	uiParam := uiparam.GetUIParam(s.Context)
+	data := map[string]interface{}{"ClientID": uiParam.ClientID}
 	template.Embed(data, args)
 
 	sender, err := s.smsMessageHeader(msg.Name, data)
