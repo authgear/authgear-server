@@ -19,24 +19,31 @@ func GetCSPNonce(ctx context.Context) string {
 	return nonce
 }
 
-func CSPDirectives(publicOrigin string, nonce string, cdnHost string, allowInlineScript bool) ([]string, error) {
-	u, err := url.Parse(publicOrigin)
+type CSPDirectivesOptions struct {
+	PublicOrigin      string
+	Nonce             string
+	CDNHost           string
+	AllowInlineScript bool
+}
+
+func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
+	u, err := url.Parse(opts.PublicOrigin)
 	if err != nil {
 		return nil, err
 	}
 
 	selfSrc := "'self'"
-	if cdnHost != "" {
-		selfSrc = fmt.Sprintf("'self' %v", cdnHost)
+	if opts.CDNHost != "" {
+		selfSrc = fmt.Sprintf("'self' %v", opts.CDNHost)
 	}
 
 	scriptSrc := ""
 	// Unsafe-inline gets ignored if nonce is provided
 	// https://w3c.github.io/webappsec-csp/#allow-all-inline
-	if allowInlineScript {
+	if opts.AllowInlineScript {
 		scriptSrc = "'unsafe-inline'"
 	} else {
-		scriptSrc = fmt.Sprintf("'nonce-%v'", nonce)
+		scriptSrc = fmt.Sprintf("'nonce-%v'", opts.Nonce)
 	}
 
 	return []string{

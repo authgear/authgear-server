@@ -42,7 +42,12 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 
 		r = r.WithContext(web.WithCSPNonce(r.Context(), nonce))
 
-		cspDirectives, err := web.CSPDirectives(m.HTTPConfig.PublicOrigin, nonce, string(m.WebAppCDNHost), m.AllowInlineScript)
+		cspDirectives, err := web.CSPDirectives(web.CSPDirectivesOptions{
+			PublicOrigin:      m.HTTPConfig.PublicOrigin,
+			Nonce:             nonce,
+			CDNHost:           string(m.WebAppCDNHost),
+			AllowInlineScript: m.AllowInlineScript,
+		})
 		if err != nil {
 			panic(err)
 		}
