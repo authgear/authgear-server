@@ -27,3 +27,16 @@ func (m *AntiSpamSMSBucketMaker) MakePerPhoneBucket(phone string) ratelimit.Buck
 		ResetPeriod: m.Config.Ratelimit.PerPhone.ResetPeriod.Duration(),
 	}
 }
+
+func (m *AntiSpamSMSBucketMaker) IsPerIPEnabled() bool {
+	return m.Config.Ratelimit.PerIP.Enabled
+}
+
+func (m *AntiSpamSMSBucketMaker) MakePerIPBucket(ip string) ratelimit.Bucket {
+	return ratelimit.Bucket{
+		Key:         fmt.Sprintf("sms-message-per-ip:%s", ip),
+		Name:        "AntiSpamSMSBucket",
+		Size:        m.Config.Ratelimit.PerIP.Size,
+		ResetPeriod: m.Config.Ratelimit.PerIP.ResetPeriod.Duration(),
+	}
+}

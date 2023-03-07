@@ -767,6 +767,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,

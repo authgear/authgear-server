@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SendOptions struct {
@@ -38,6 +39,8 @@ type HardSMSBucketer interface {
 type AntiSpamSMSBucketMaker interface {
 	IsPerPhoneEnabled() bool
 	MakePerPhoneBucket(phone string) ratelimit.Bucket
+	IsPerIPEnabled() bool
+	MakePerIPBucket(ip string) ratelimit.Bucket
 }
 
 type RateLimiter interface {
@@ -51,6 +54,7 @@ type EventService interface {
 }
 
 type MessageSender struct {
+	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
 	Endpoints   EndpointsProvider
 	TaskQueue   task.Queue
@@ -197,6 +201,13 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 
 	if s.AntiSpamSMSBucket.IsPerPhoneEnabled() {
 		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.AntiSpamSMSBucket.IsPerIPEnabled() {
+		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakePerIPBucket(string(s.RemoteIP)))
 		if err != nil {
 			return err
 		}

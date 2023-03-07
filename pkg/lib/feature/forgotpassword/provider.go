@@ -72,6 +72,8 @@ type HardSMSBucketer interface {
 type AntiSpamSMSBucketMaker interface {
 	IsPerPhoneEnabled() bool
 	MakePerPhoneBucket(phone string) ratelimit.Bucket
+	IsPerIPEnabled() bool
+	MakePerIPBucket(ip string) ratelimit.Bucket
 }
 
 type Provider struct {
@@ -247,6 +249,13 @@ func (p *Provider) sendSMS(phone string, code string, userID string) (err error)
 
 	if p.AntiSpamSMSBucket.IsPerPhoneEnabled() {
 		err = p.RateLimiter.TakeToken(p.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
+		if err != nil {
+			return err
+		}
+	}
+
+	if p.AntiSpamSMSBucket.IsPerIPEnabled() {
+		err = p.RateLimiter.TakeToken(p.AntiSpamSMSBucket.MakePerIPBucket(string(p.RemoteIP)))
 		if err != nil {
 			return err
 		}
