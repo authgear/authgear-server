@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 type dynamicCSPContextKeyType struct{}
@@ -20,9 +21,12 @@ func GetCSPNonce(ctx context.Context) string {
 }
 
 type CSPDirectivesOptions struct {
-	PublicOrigin      string
-	Nonce             string
-	CDNHost           string
+	PublicOrigin string
+	Nonce        string
+	CDNHost      string
+	// FrameAncestors supports the redirect approach used by the custom UI.
+	// The custom UI loads the redirect URI with an iframe.
+	FrameAncestors    []string
 	AllowInlineScript bool
 }
 
@@ -46,6 +50,11 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 		scriptSrc = fmt.Sprintf("'nonce-%v'", opts.Nonce)
 	}
 
+	frameAncestors := "'none'"
+	if len(opts.FrameAncestors) > 0 {
+		frameAncestors = strings.Join(opts.FrameAncestors, " ")
+	}
+
 	return []string{
 		"default-src 'self'",
 		fmt.Sprintf("script-src %v %v www.googletagmanager.com", selfSrc, scriptSrc),
@@ -61,6 +70,6 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 		// 'self' does not include websocket in Safari :(
 		fmt.Sprintf("connect-src 'self' https://www.google-analytics.com ws://%s wss://%s", u.Host, u.Host),
 		"block-all-mixed-content",
-		"frame-ancestors 'none'",
+		fmt.Sprintf("frame-ancestors %v", frameAncestors),
 	}, nil
 }
