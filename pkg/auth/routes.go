@@ -15,11 +15,15 @@ import (
 )
 
 func newUnsafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, true)
+	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(true), webapp.AllowFrameAncestors(false))
 }
 
 func newSafeDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, false)
+	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(false), webapp.AllowFrameAncestors(false))
+}
+
+func newConsentPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
+	return newDynamicCSPMiddleware(deps, webapp.AllowInlineScript(false), webapp.AllowFrameAncestors(true))
 }
 
 func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
@@ -195,7 +199,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// consent page only accepts idp session
-	webappConsentPageChain := newWebappPageChain(true)
+	webappConsentPageChain := httproute.Chain(
+		newWebappChain(true),
+		p.Middleware(newCSRFMiddleware),
+		p.Middleware(newConsentPageDynamicCSPMiddleware),
+	)
 	webappAuthenticatedChain := httproute.Chain(
 		webappPageChain,
 		webapp.RequireAuthenticatedMiddleware{},
