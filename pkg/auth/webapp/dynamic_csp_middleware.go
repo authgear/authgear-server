@@ -2,12 +2,14 @@ package webapp
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 // CSPNonceCookieDef is a HTTP session cookie.
@@ -21,11 +23,17 @@ var CSPNonceCookieDef = &httputil.CookieDef{
 	SameSite:   http.SameSiteNoneMode,
 }
 
+type AllowInlineScript bool
+
+type AllowFrameAncestors bool
+
 type DynamicCSPMiddleware struct {
-	Cookies           CookieManager
-	HTTPConfig        *config.HTTPConfig
-	WebAppCDNHost     config.WebAppCDNHost
-	AllowInlineScript bool
+	Cookies             CookieManager
+	HTTPConfig          *config.HTTPConfig
+	OAuthConfig         *config.OAuthConfig
+	WebAppCDNHost       config.WebAppCDNHost
+	AllowInlineScript   AllowInlineScript
+	AllowFrameAncestors AllowFrameAncestors
 }
 
 func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
@@ -42,7 +50,26 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 
 		r = r.WithContext(web.WithCSPNonce(r.Context(), nonce))
 
-		cspDirectives, err := web.CSPDirectives(m.HTTPConfig.PublicOrigin, nonce, string(m.WebAppCDNHost), m.AllowInlineScript)
+		var frameAncestors []string
+		if m.AllowFrameAncestors {
+			for _, oauthClient := range m.OAuthConfig.Clients {
+				if oauthClient.CustomUIURI != "" {
+					u, err := url.Parse(oauthClient.CustomUIURI)
+					if err != nil {
+						panic(err)
+					}
+					frameAncestors = append(frameAncestors, urlutil.ExtractOrigin(u).String())
+				}
+			}
+		}
+
+		cspDirectives, err := web.CSPDirectives(web.CSPDirectivesOptions{
+			PublicOrigin:      m.HTTPConfig.PublicOrigin,
+			Nonce:             nonce,
+			CDNHost:           string(m.WebAppCDNHost),
+			AllowInlineScript: bool(m.AllowInlineScript),
+			FrameAncestors:    frameAncestors,
+		})
 		if err != nil {
 			panic(err)
 		}

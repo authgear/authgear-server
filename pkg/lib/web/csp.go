@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 type dynamicCSPContextKeyType struct{}
@@ -19,24 +20,39 @@ func GetCSPNonce(ctx context.Context) string {
 	return nonce
 }
 
-func CSPDirectives(publicOrigin string, nonce string, cdnHost string, allowInlineScript bool) ([]string, error) {
-	u, err := url.Parse(publicOrigin)
+type CSPDirectivesOptions struct {
+	PublicOrigin string
+	Nonce        string
+	CDNHost      string
+	// FrameAncestors supports the redirect approach used by the custom UI.
+	// The custom UI loads the redirect URI with an iframe.
+	FrameAncestors    []string
+	AllowInlineScript bool
+}
+
+func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
+	u, err := url.Parse(opts.PublicOrigin)
 	if err != nil {
 		return nil, err
 	}
 
 	selfSrc := "'self'"
-	if cdnHost != "" {
-		selfSrc = fmt.Sprintf("'self' %v", cdnHost)
+	if opts.CDNHost != "" {
+		selfSrc = fmt.Sprintf("'self' %v", opts.CDNHost)
 	}
 
 	scriptSrc := ""
 	// Unsafe-inline gets ignored if nonce is provided
 	// https://w3c.github.io/webappsec-csp/#allow-all-inline
-	if allowInlineScript {
+	if opts.AllowInlineScript {
 		scriptSrc = "'unsafe-inline'"
 	} else {
-		scriptSrc = fmt.Sprintf("'nonce-%v'", nonce)
+		scriptSrc = fmt.Sprintf("'nonce-%v'", opts.Nonce)
+	}
+
+	frameAncestors := "'none'"
+	if len(opts.FrameAncestors) > 0 {
+		frameAncestors = strings.Join(opts.FrameAncestors, " ")
 	}
 
 	return []string{
@@ -54,6 +70,6 @@ func CSPDirectives(publicOrigin string, nonce string, cdnHost string, allowInlin
 		// 'self' does not include websocket in Safari :(
 		fmt.Sprintf("connect-src 'self' https://www.google-analytics.com ws://%s wss://%s", u.Host, u.Host),
 		"block-all-mixed-content",
-		"frame-ancestors 'none'",
+		fmt.Sprintf("frame-ancestors %v", frameAncestors),
 	}, nil
 }
