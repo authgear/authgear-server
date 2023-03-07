@@ -151,6 +151,11 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
+func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	uiParamMiddleware := &transport.UIParamMiddleware{}
+	return uiParamMiddleware
+}
+
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory

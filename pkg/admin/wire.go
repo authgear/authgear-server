@@ -56,6 +56,13 @@ func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAut
 	))
 }
 
+func newUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*transport.UIParamMiddleware)),
+	))
+}
+
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

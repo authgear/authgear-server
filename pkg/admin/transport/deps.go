@@ -5,6 +5,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	wire.Struct(new(UIParamMiddleware), "*"),
 	wire.Struct(new(GraphQLHandler), "*"),
 	wire.Struct(new(PresignImagesUploadHandler), "*"),
 	NewPresignImagesUploadHandlerLogger,
