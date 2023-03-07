@@ -10,7 +10,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/clientid"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -343,7 +343,7 @@ func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, wo
 	switch {
 	case AsInput(input, &inputServiceContext):
 		return NewNodeSimple(&nodeServiceContext{
-			ClientID: clientid.GetClientID(ctx),
+			ClientID: uiparam.GetUIParam(ctx).ClientID,
 		}), nil
 	default:
 		return nil, ErrIncompatibleInput

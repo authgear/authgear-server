@@ -55984,23 +55984,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sessionMiddleware
 }
 
-func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	request := p.Request
-	appProvider := p.AppProvider
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	appConfig := config.AppConfig
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	uiLocalesMiddleware := &webapp2.UILocalesMiddleware{
-		Cookies: cookieManager,
-	}
-	return uiLocalesMiddleware
-}
-
 func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
@@ -56018,32 +56001,21 @@ func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	return colorSchemeMiddleware
 }
 
-func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	appProvider := p.AppProvider
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	handle := appProvider.Redis
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	clientIDCookieDef := webapp2.NewClientIDCookieDef()
+func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
+	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	clientIDMiddleware := &webapp2.ClientIDMiddleware{
-		States:            sessionStoreRedis,
-		SessionCookieDef:  sessionCookieDef,
-		ClientIDCookieDef: clientIDCookieDef,
-		Cookies:           cookieManager,
+	uiParamMiddleware := &webapp2.UIParamMiddleware{
+		Cookies: cookieManager,
 	}
-	return clientIDMiddleware
+	return uiParamMiddleware
 }
 
 func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Middleware {
@@ -56721,11 +56693,6 @@ func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TutorialCookie: tutorialCookie,
 	}
 	return tutorialMiddleware
-}
-
-func newWorkflowClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	clientIDMiddleware := &workflow.ClientIDMiddleware{}
-	return clientIDMiddleware
 }
 
 func newWorkflowUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {

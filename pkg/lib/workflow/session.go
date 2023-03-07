@@ -3,7 +3,6 @@ package workflow
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
@@ -52,8 +51,11 @@ func (s *Session) ToOutput() *SessionOutput {
 }
 
 func (s *Session) Context(ctx context.Context) context.Context {
-	ctx = clientid.WithClientID(ctx, s.ClientID)
-	ctx = uiparam.WithUIParam(ctx, s.State, s.UILocales)
+	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
+		ClientID:  s.ClientID,
+		UILocales: s.UILocales,
+		State:     s.State,
+	})
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyState, s.State)

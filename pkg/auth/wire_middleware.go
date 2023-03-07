@@ -95,13 +95,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*webapp.UILocalesMiddleware)),
-	))
-}
-
 func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
@@ -109,10 +102,10 @@ func newWebAppColorSchemeMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	))
 }
 
-func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newWebAppUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*webapp.ClientIDMiddleware)),
+		wire.Bind(new(httproute.Middleware), new(*webapp.UIParamMiddleware)),
 	))
 }
 
@@ -169,13 +162,6 @@ func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*webapp.TutorialMiddleware)),
-	))
-}
-
-func newWorkflowClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*workflow.ClientIDMiddleware)),
 	))
 }
 

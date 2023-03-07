@@ -11,8 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
@@ -138,7 +138,8 @@ type BaseViewModeler struct {
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	now := m.Clock.NowUTC().Unix()
-	clientID := clientid.GetClientID(r.Context())
+	uiParam := uiparam.GetUIParam(r.Context())
+	clientID := uiParam.ClientID
 	client, _ := m.OAuth.GetClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
 	clientName := ""

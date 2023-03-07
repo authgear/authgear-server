@@ -8,40 +8,30 @@ type uiParamContextKeyType struct{}
 
 var uiParamContextKey = uiParamContextKeyType{}
 
-type uiParamContext struct {
+type T struct {
+	ClientID  string
 	State     string
 	UILocales string
 }
 
-type UIParam interface {
-	GetState() string
-	GetUILocales() string
-}
-
-var _ UIParam = &uiParamContext{}
-
-func (u *uiParamContext) GetState() string     { return u.State }
-func (u *uiParamContext) GetUILocales() string { return u.UILocales }
-
-func WithUIParam(ctx context.Context, state string, uiLocales string) context.Context {
-	v, ok := ctx.Value(uiParamContextKey).(*uiParamContext)
+func WithUIParam(ctx context.Context, uiParam *T) context.Context {
+	v, ok := ctx.Value(uiParamContextKey).(*T)
 	if ok {
-		v.State = state
-		v.UILocales = uiLocales
+		v.ClientID = uiParam.ClientID
+		v.State = uiParam.State
+		v.UILocales = uiParam.UILocales
 		return ctx
 	}
-	return context.WithValue(ctx, uiParamContextKey, &uiParamContext{
-		State:     state,
-		UILocales: uiLocales,
-	})
+	return context.WithValue(ctx, uiParamContextKey, uiParam)
 }
 
-func GetUIParam(ctx context.Context) UIParam {
-	v, ok := ctx.Value(uiParamContextKey).(*uiParamContext)
+func GetUIParam(ctx context.Context) *T {
+	v, ok := ctx.Value(uiParamContextKey).(*T)
 	if ok {
 		return v
 	}
-	return &uiParamContext{
+	return &T{
+		ClientID:  "",
 		State:     "",
 		UILocales: "",
 	}

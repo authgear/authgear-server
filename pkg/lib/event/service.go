@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -239,7 +239,8 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 
 	triggeredBy := payload.GetTriggeredBy()
 
-	clientID := clientid.GetClientID(s.Context)
+	uiParam := uiparam.GetUIParam(s.Context)
+	clientID := uiParam.ClientID
 
 	ctx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),
