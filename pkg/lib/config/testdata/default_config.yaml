@@ -273,6 +273,10 @@ messaging:
         enabled: false
         reset_period: ""
         size: 0
+      per_ip:
+        enabled: false
+        reset_period: ""
+        size: 0
       resend_cooldown_seconds: 60
   email:
     ratelimit:
