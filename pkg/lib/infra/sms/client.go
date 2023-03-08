@@ -62,10 +62,14 @@ func (c *Client) Send(opts SendOptions) error {
 		client = c.CustomClient
 	default:
 		var availableClients []RawClient = []RawClient{}
-		for _, c := range []RawClient{c.NexmoClient, c.TwilioClient, c.CustomClient} {
-			if c != nil {
-				availableClients = append(availableClients, c)
-			}
+		if c.NexmoClient != nil {
+			availableClients = append(availableClients, c.NexmoClient)
+		}
+		if c.TwilioClient != nil {
+			availableClients = append(availableClients, c.TwilioClient)
+		}
+		if c.CustomClient != nil {
+			availableClients = append(availableClients, c.CustomClient)
 		}
 		if len(availableClients) == 0 {
 			return ErrNoAvailableClient
