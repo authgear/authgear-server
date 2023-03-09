@@ -21,7 +21,6 @@ const htmlRedirectTemplateString = `<!DOCTYPE html>
 {{- else }}
 <script>
 {{- end }}
-window.parent.postMessage({ redirect_uri: "{{ .redirect_uri }}" }, "{{ .custom_ui_origin }}")
 window.location.href = "{{ .redirect_uri }}"
 </script>
 </body>
@@ -69,16 +68,16 @@ func init() {
 	}
 }
 
-func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, responseMode string, customUIOrigin *url.URL, response map[string]string) {
+func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, responseMode string, response map[string]string) {
 	if responseMode == "" {
 		responseMode = "query"
 	}
 
 	switch responseMode {
 	case "query":
-		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String(), customUIOrigin.String())
+		HTMLRedirect(w, r, urlutil.WithQueryParamsAdded(redirectURI, response).String())
 	case "fragment":
-		HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String(), customUIOrigin.String())
+		HTMLRedirect(w, r, urlutil.WithQueryParamsSetToFragment(redirectURI, response).String())
 	case "form_post":
 		FormPost(w, r, redirectURI, response)
 	default:
@@ -86,7 +85,7 @@ func WriteResponse(w http.ResponseWriter, r *http.Request, redirectURI *url.URL,
 	}
 }
 
-func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string, customUIOrigin string) {
+func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	// XHR and redirect.
 	//
@@ -96,10 +95,13 @@ func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string, c
 	// Therefore, we write HTML and use <meta http-equiv="refresh"> to redirect.
 	// rw.Header().Set("Location", redirectURI)
 	// rw.WriteHeader(http.StatusFound)
+
+	// iframe
+	// When an iframe is used to load the response, the iframe must have allow-top-navigation set.
+	// Then the window.location.href will navigate the top-level frame.
 	err := htmlRedirectTemplate.Execute(rw, map[string]string{
-		"CSPNonce":         web.GetCSPNonce(r.Context()),
-		"redirect_uri":     redirectURI,
-		"custom_ui_origin": customUIOrigin,
+		"CSPNonce":     web.GetCSPNonce(r.Context()),
+		"redirect_uri": redirectURI,
 	})
 	if err != nil {
 		panic(fmt.Errorf("oauth: failed to execute html_redirect template: %w", err))
