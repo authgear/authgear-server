@@ -11,7 +11,8 @@ func init() {
 }
 
 type NodeValidatedResetPasswordCode struct {
-	Code string `json:"code"`
+	Code   string `json:"code"`
+	UserID string `json:"user_id"`
 }
 
 func (n *NodeValidatedResetPasswordCode) Kind() string {
@@ -31,5 +32,11 @@ func (*NodeValidatedResetPasswordCode) ReactTo(ctx context.Context, deps *workfl
 }
 
 func (n *NodeValidatedResetPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return nil, nil
+	type NodeValidatedResetPasswordCodeOutput struct {
+		UserID string `json:"user_id"`
+	}
+
+	return &NodeValidatedResetPasswordCodeOutput{
+		UserID: n.UserID,
+	}, nil
 }

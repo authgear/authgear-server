@@ -301,13 +301,13 @@ func (p *Provider) checkResetPasswordCode(codeStr string) (code *Code, err error
 	return
 }
 
-func (p *Provider) CheckResetPasswordCode(codeStr string) error {
+func (p *Provider) CheckResetPasswordCode(codeStr string) (*Code, error) {
 	err := p.RateLimiter.RequireToken(AntiBruteForceVerifyBucket(string(p.RemoteIP)))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = p.checkResetPasswordCode(codeStr)
+	code, err := p.checkResetPasswordCode(codeStr)
 	if err != nil {
 		// SECURITY: potential TOCTOU problem, considered not significant for this flow,
 		// since rate limit on level of HTTP requests should applies.
@@ -315,10 +315,10 @@ func (p *Provider) CheckResetPasswordCode(codeStr string) error {
 		if terr != nil {
 			p.Logger.WithError(err).Error("failed to take reset password token")
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return code, nil
 }
 
 // ResetPassword consumes code and reset password to newPassword.

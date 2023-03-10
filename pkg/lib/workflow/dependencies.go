@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -71,7 +72,7 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	CheckResetPasswordCode(code string) error
+	CheckResetPasswordCode(code string) (*forgotpassword.Code, error)
 	ResetPasswordByCode(code string, newPassword string) (err error)
 }
 
