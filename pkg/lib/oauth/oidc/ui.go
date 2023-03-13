@@ -150,7 +150,7 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	var endpoint *url.URL
 	if client != nil && client.CustomUIURI != "" {
 		var err error
-		endpoint, err = BuildCustomUIEndpoint(client.CustomUIURI, r.CustomUIQuery())
+		endpoint, err = BuildCustomUIEndpoint(client.CustomUIURI)
 		if err != nil {
 			return nil, ErrInvalidCustomURI.Errorf("invalid custom ui uri: %w", err)
 		}
@@ -175,29 +175,11 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	return endpoint, nil
 }
 
-func BuildCustomUIEndpoint(base string, query string) (*url.URL, error) {
+func BuildCustomUIEndpoint(base string) (*url.URL, error) {
 	customUIURL, err := url.Parse(base)
 	if err != nil {
 		return nil, err
 	}
-
-	q := customUIURL.Query()
-
-	// Assign query from the SDK to the url
-	queryFromSDK, err := url.ParseQuery(query)
-	if err != nil {
-		return nil, err
-	}
-	for key, values := range queryFromSDK {
-		for idx, val := range values {
-			if idx == 0 {
-				q.Set(key, val)
-			} else {
-				q.Add(key, val)
-			}
-		}
-	}
-	customUIURL.RawQuery = q.Encode()
 
 	return customUIURL, nil
 }
