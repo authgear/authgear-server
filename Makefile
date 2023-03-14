@@ -98,9 +98,13 @@ tag-image:
 .PHONY: push-image
 push-image: DOCKER_IMAGE = quay.io/theauthgear/$(IMAGE_NAME)
 push-image:
-	docker push $(DOCKER_IMAGE):latest
-	docker push $(DOCKER_IMAGE):$(GIT_HASH)
-	if [ ! -z $(GIT_NAME) ]; then docker push $(DOCKER_IMAGE):$(GIT_NAME); fi
+	docker manifest inspect $(DOCKER_IMAGE):$(GIT_HASH) > /dev/null; if [ $$? -eq 0 ]; then \
+		echo "$(DOCKER_IMAGE):$(GIT_HASH) exists. Skip push"; \
+	else \
+		docker push $(DOCKER_IMAGE):latest ;\
+		docker push $(DOCKER_IMAGE):$(GIT_HASH) ;\
+		if [ ! -z $(GIT_NAME) ]; then docker push $(DOCKER_IMAGE):$(GIT_NAME); fi ;\
+	fi
 
 .PHONY: html-email
 html-email:
