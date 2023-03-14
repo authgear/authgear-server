@@ -38,7 +38,7 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordService interface {
-	CheckResetPasswordCode(codeStr string) error
+	CheckResetPasswordCode(codeStr string) (*forgotpassword.Code, error)
 }
 
 type ResetPasswordHandler struct {
@@ -59,7 +59,7 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) 
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
 
-	err := h.ResetPassword.CheckResetPasswordCode(r.Form.Get("code"))
+	_, err := h.ResetPassword.CheckResetPasswordCode(r.Form.Get("code"))
 	if apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
 		baseViewModel.SetError(err)
 	} else if err != nil {
