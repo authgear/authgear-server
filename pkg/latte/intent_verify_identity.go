@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -88,8 +87,8 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	}
 
 	err = node.sendCode(ctx, deps, w)
-	if apierrors.IsKind(err, ratelimit.RateLimited) {
-		// Ignore rate limit error; continue the workflow
+	if ratelimit.IsRateLimitErrorWithBucketName(err, "AntiSpamOTPCodeBucket") {
+		// Ignore resend cool down rate limit error; continue the workflow
 	} else if err != nil {
 		return nil, err
 	}

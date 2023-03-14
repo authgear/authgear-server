@@ -3,7 +3,6 @@ package latte
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -49,8 +48,8 @@ func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *wo
 			AuthenticatorInfo: authenticator,
 			OTPMode:           otp.OTPModeLoginLink,
 		}).Do()
-		if apierrors.IsKind(err, ratelimit.RateLimited) {
-			// Ignore rate limit error for initial sending
+		if ratelimit.IsRateLimitErrorWithBucketName(err, "AntiSpamOTPCodeBucket") {
+			// Ignore resend cooldown rate limit error for initial sending
 		} else if err != nil {
 			return nil, err
 		}

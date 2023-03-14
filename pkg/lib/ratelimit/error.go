@@ -4,6 +4,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
+const bucketNameKey = "bucket_name"
+
 var ErrUsageLimitExceeded = apierrors.ServiceUnavailable.WithReason("UsageLimitExceeded").
 	New("usage limit exceeded")
 
@@ -15,7 +17,20 @@ func ErrTooManyRequestsFrom(bucket Bucket) error {
 		return RateLimited.New(errMsg)
 	} else {
 		return RateLimited.NewWithInfo(errMsg, apierrors.Details{
-			"bucket_name": bucket.Name,
+			bucketNameKey: bucket.Name,
 		})
 	}
+}
+
+func IsRateLimitErrorWithBucketName(err error, bucketName string) bool {
+	if !apierrors.IsKind(err, RateLimited) {
+		return false
+	}
+
+	apiError := apierrors.AsAPIError(err)
+	if apiError == nil {
+		return false
+	}
+
+	return apiError.Info[bucketNameKey] == bucketName
 }
