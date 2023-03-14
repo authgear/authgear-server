@@ -47,6 +47,7 @@ type RateLimiter interface {
 	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
 	TakeToken(bucket ratelimit.Bucket) error
 	ClearBucket(bucket ratelimit.Bucket) error
+	RequireToken(bucket ratelimit.Bucket) error
 }
 
 type EventService interface {
@@ -76,6 +77,14 @@ func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, err
 	}
 
 	return ctx, nil
+}
+
+func (s *MessageSender) CanSendEmail(email string) error {
+	err := s.RateLimiter.RequireToken(mail.AntiSpamBucket(email))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
@@ -162,6 +171,22 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		return err
 	}
 
+	return nil
+}
+
+func (s *MessageSender) CanSendSMS(phone string) error {
+	if s.AntiSpamSMSBucket.IsPerPhoneEnabled() {
+		err := s.RateLimiter.RequireToken(s.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
+		if err != nil {
+			return err
+		}
+	}
+	if s.AntiSpamSMSBucket.IsPerIPEnabled() {
+		err := s.RateLimiter.RequireToken(s.AntiSpamSMSBucket.MakePerIPBucket(string(s.RemoteIP)))
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

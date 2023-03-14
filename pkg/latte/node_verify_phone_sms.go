@@ -120,7 +120,17 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	err := deps.RateLimiter.TakeToken(n.bucket(deps))
+	// Should check if we can send code to the target first before taking token
+	// from the AntiSpamOTPCodeBucket (resend cooldown)
+	// It may be blocked due to exceeding the per target or per ip rate limit,
+	// and this error should be returned
+	var err error
+	err = deps.OOBCodeSender.CanSendCode(model.AuthenticatorOOBChannelSMS, n.PhoneNumber)
+	if err != nil {
+		return err
+	}
+
+	err = deps.RateLimiter.TakeToken(n.bucket(deps))
 	if err != nil {
 		return err
 	}

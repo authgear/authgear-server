@@ -52,6 +52,10 @@ type OTPCodeService interface {
 }
 
 type OOBCodeSender interface {
+	CanSendCode(
+		channel model.AuthenticatorOOBChannel,
+		target string,
+	) error
 	SendCode(
 		channel model.AuthenticatorOOBChannel,
 		target string,

@@ -6,12 +6,28 @@ import (
 )
 
 type OTPMessageSender interface {
+	CanSendEmail(email string) error
 	SendEmail(email string, opts otp.SendOptions) error
+	CanSendSMS(phone string) error
 	SendSMS(phone string, opts otp.SendOptions) error
 }
 
 type CodeSender struct {
 	OTPMessageSender OTPMessageSender
+}
+
+func (s *CodeSender) CanSendCode(
+	channel model.AuthenticatorOOBChannel,
+	target string,
+) error {
+	switch channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return s.OTPMessageSender.CanSendEmail(target)
+	case model.AuthenticatorOOBChannelSMS:
+		return s.OTPMessageSender.CanSendSMS(target)
+	default:
+		panic("oob: unknown channel type: " + channel)
+	}
 }
 
 func (s *CodeSender) SendCode(
