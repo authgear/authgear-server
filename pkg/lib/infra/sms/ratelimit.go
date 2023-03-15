@@ -15,15 +15,28 @@ type AntiSpamSMSBucketMaker struct {
 	Config *config.SMSConfig
 }
 
-func (m *AntiSpamSMSBucketMaker) IsEnabled() bool {
+func (m *AntiSpamSMSBucketMaker) IsPerPhoneEnabled() bool {
 	return m.Config.Ratelimit.PerPhone.Enabled
 }
 
-func (m *AntiSpamSMSBucketMaker) MakeBucket(phone string) ratelimit.Bucket {
+func (m *AntiSpamSMSBucketMaker) MakePerPhoneBucket(phone string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("sms-message:%s", phone),
-		Name:        "AntiSpamSMSBucket",
+		Name:        "AntiSpamSMSBucketPerPhone",
 		Size:        m.Config.Ratelimit.PerPhone.Size,
 		ResetPeriod: m.Config.Ratelimit.PerPhone.ResetPeriod.Duration(),
+	}
+}
+
+func (m *AntiSpamSMSBucketMaker) IsPerIPEnabled() bool {
+	return m.Config.Ratelimit.PerIP.Enabled
+}
+
+func (m *AntiSpamSMSBucketMaker) MakePerIPBucket(ip string) ratelimit.Bucket {
+	return ratelimit.Bucket{
+		Key:         fmt.Sprintf("sms-message-per-ip:%s", ip),
+		Name:        "AntiSpamSMSBucketPerIP",
+		Size:        m.Config.Ratelimit.PerIP.Size,
+		ResetPeriod: m.Config.Ratelimit.PerIP.ResetPeriod.Duration(),
 	}
 }

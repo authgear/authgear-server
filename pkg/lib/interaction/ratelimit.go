@@ -68,5 +68,6 @@ func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(channel model.AuthenticatorOOBCh
 		Key:         fmt.Sprintf("otp-code:%s", target),
 		Size:        1,
 		ResetPeriod: resetPeriod,
+		Name:        "AntiSpamOTPCodeBucket",
 	}
 }

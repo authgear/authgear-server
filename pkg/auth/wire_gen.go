@@ -1693,6 +1693,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -4233,6 +4234,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -5064,6 +5066,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -5837,6 +5840,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -6716,6 +6720,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -7533,6 +7538,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -8349,6 +8355,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -9153,6 +9160,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -9950,6 +9958,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -10737,6 +10746,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -11527,6 +11537,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -12320,6 +12331,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -13115,6 +13127,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -13908,6 +13921,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -14697,6 +14711,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -15490,6 +15505,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -16284,6 +16300,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -17077,6 +17094,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -17870,6 +17888,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -18665,6 +18684,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -19458,6 +19478,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -20251,6 +20272,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -21048,6 +21070,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -21841,6 +21864,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -22696,6 +22720,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -23499,6 +23524,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -24310,6 +24336,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -25113,6 +25140,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -25906,6 +25934,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -26695,6 +26724,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -27488,6 +27518,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -28277,6 +28308,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -29076,6 +29108,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -29865,6 +29898,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -30656,6 +30690,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -31445,6 +31480,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -32266,6 +32302,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -33066,6 +33103,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -33879,6 +33917,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -34676,6 +34715,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -35466,6 +35506,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -36264,6 +36305,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -37054,6 +37096,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -37844,6 +37887,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -38634,6 +38678,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -39425,6 +39470,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -40234,6 +40280,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -41024,6 +41071,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -41814,6 +41862,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -42604,6 +42653,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -43394,6 +43444,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -44191,6 +44242,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -44982,6 +45034,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -45771,6 +45824,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -46575,6 +46629,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -47364,6 +47419,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -48153,6 +48209,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -48960,6 +49017,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -49716,6 +49774,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -50471,6 +50530,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -51270,6 +51330,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -52060,6 +52121,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -52836,6 +52898,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -53574,6 +53637,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -54282,6 +54346,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,
@@ -55802,6 +55867,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config: smsConfig,
 	}
 	messageSender := &otp.MessageSender{
+		RemoteIP:          remoteIP,
 		Translation:       translationService,
 		Endpoints:         endpointsEndpoints,
 		TaskQueue:         queue,

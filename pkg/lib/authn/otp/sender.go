@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SendOptions struct {
@@ -36,14 +37,17 @@ type HardSMSBucketer interface {
 }
 
 type AntiSpamSMSBucketMaker interface {
-	IsEnabled() bool
-	MakeBucket(phone string) ratelimit.Bucket
+	IsPerPhoneEnabled() bool
+	MakePerPhoneBucket(phone string) ratelimit.Bucket
+	IsPerIPEnabled() bool
+	MakePerIPBucket(ip string) ratelimit.Bucket
 }
 
 type RateLimiter interface {
 	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
 	TakeToken(bucket ratelimit.Bucket) error
 	ClearBucket(bucket ratelimit.Bucket) error
+	RequireToken(bucket ratelimit.Bucket) error
 }
 
 type EventService interface {
@@ -51,6 +55,7 @@ type EventService interface {
 }
 
 type MessageSender struct {
+	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
 	Endpoints   EndpointsProvider
 	TaskQueue   task.Queue
@@ -72,6 +77,14 @@ func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, err
 	}
 
 	return ctx, nil
+}
+
+func (s *MessageSender) CanSendEmail(email string) error {
+	err := s.RateLimiter.RequireToken(mail.AntiSpamBucket(email))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
@@ -161,6 +174,22 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	return nil
 }
 
+func (s *MessageSender) CanSendSMS(phone string) error {
+	if s.AntiSpamSMSBucket.IsPerPhoneEnabled() {
+		err := s.RateLimiter.RequireToken(s.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
+		if err != nil {
+			return err
+		}
+	}
+	if s.AntiSpamSMSBucket.IsPerIPEnabled() {
+		err := s.RateLimiter.RequireToken(s.AntiSpamSMSBucket.MakePerIPBucket(string(s.RemoteIP)))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 	data, err := s.makeData(opts)
 	if err != nil {
@@ -195,8 +224,15 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 		return err
 	}
 
-	if s.AntiSpamSMSBucket.IsEnabled() {
-		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakeBucket(phone))
+	if s.AntiSpamSMSBucket.IsPerPhoneEnabled() {
+		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
+		if err != nil {
+			return err
+		}
+	}
+
+	if s.AntiSpamSMSBucket.IsPerIPEnabled() {
+		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakePerIPBucket(string(s.RemoteIP)))
 		if err != nil {
 			return err
 		}
