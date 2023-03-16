@@ -16,5 +16,6 @@ func AntiSpamBucket(email string) ratelimit.Bucket {
 		Key:         fmt.Sprintf("email-message:%s", email),
 		Size:        10,
 		ResetPeriod: duration.PerMinute,
+		Name:        ratelimit.AntiSpamEmailPerEmailBucketName,
 	}
 }

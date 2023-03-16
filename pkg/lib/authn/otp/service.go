@@ -52,6 +52,7 @@ func (s *Service) TrackFailedAttemptBucket(target string) ratelimit.Bucket {
 		Key:         fmt.Sprintf("otp-failed-attempt:%s", target),
 		Size:        config.Size,
 		ResetPeriod: config.ResetPeriod.Duration(),
+		Name:        ratelimit.TrackFailedOTPAttemptBucketName,
 	}
 }
 
