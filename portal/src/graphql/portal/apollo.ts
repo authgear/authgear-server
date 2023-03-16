@@ -38,6 +38,10 @@ const cache = new InMemoryCache({
     AppResource: {
       keyFields: ["path"],
     },
+    // AppListItem doe snot have id, so we must teach Apollo what is the key of AppListItem.
+    AppListItem: {
+      keyFields: ["appID"],
+    },
   },
 });
 

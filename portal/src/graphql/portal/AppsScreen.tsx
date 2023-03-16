@@ -7,11 +7,13 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
-import { App, useAppListQuery } from "./query/appListQuery";
+import { useAppListQuery } from "./query/appListQuery";
+import { AppListItem } from "./globalTypes.generated";
 import styles from "./AppsScreen.module.css";
+import { toTypedID } from "../../util/graphql";
 
 interface AppListProps {
-  apps: App[] | null;
+  apps: AppListItem[] | null;
 }
 
 interface AppCardData {
@@ -19,6 +21,7 @@ interface AppCardData {
   appID: string;
   url: string;
 }
+
 const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   const { appName, appID, url } = props;
 
@@ -49,12 +52,13 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
 
   const appCardsData: AppCardData[] = useMemo(() => {
     return (apps ?? []).map((app) => {
-      const appID = app.effectiveAppConfig.id;
-      const appOrigin = app.effectiveAppConfig.http?.public_origin;
-      const relPath = "/project/" + encodeURIComponent(String(app.id));
+      const appID = app.appID;
+      const appOrigin = app.publicOrigin;
+      const typedID = toTypedID("App", appID);
+      const relPath = "/project/" + encodeURIComponent(typedID);
       return {
         appID,
-        appName: appOrigin ?? appID,
+        appName: appOrigin,
         url: relPath,
       };
     });

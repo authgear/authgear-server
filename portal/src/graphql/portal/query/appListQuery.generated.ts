@@ -3,30 +3,20 @@ import * as Types from '../globalTypes.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type AppListAppFragment = { __typename?: 'App', id: string, effectiveAppConfig: any };
-
 export type AppListQueryQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AppListQueryQuery = { __typename?: 'Query', apps?: { __typename?: 'AppConnection', edges?: Array<{ __typename?: 'AppEdge', node?: { __typename?: 'App', id: string, effectiveAppConfig: any } | null } | null> | null } | null };
+export type AppListQueryQuery = { __typename?: 'Query', appList?: Array<{ __typename?: 'AppListItem', appID: string, publicOrigin: string }> | null };
 
-export const AppListAppFragmentDoc = gql`
-    fragment AppListApp on App {
-  id
-  effectiveAppConfig
-}
-    `;
+
 export const AppListQueryDocument = gql`
     query appListQuery {
-  apps {
-    edges {
-      node {
-        ...AppListApp
-      }
-    }
+  appList {
+    appID
+    publicOrigin
   }
 }
-    ${AppListAppFragmentDoc}`;
+    `;
 
 /**
  * __useAppListQueryQuery__
