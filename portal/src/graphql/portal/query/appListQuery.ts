@@ -1,21 +1,17 @@
 import { QueryResult, useQuery } from "@apollo/client";
-import { useMemo } from "react";
-import { nonNullable } from "../../../util/types";
 import { client } from "../../portal/apollo";
 import {
-  AppListAppFragment,
   AppListQueryQuery,
   AppListQueryDocument,
 } from "./appListQuery.generated";
-
-export type App = AppListAppFragment;
+import { AppListItem } from "../globalTypes.generated";
 
 interface AppListQueryResult
   extends Pick<
     QueryResult<AppListQueryQuery>,
     "loading" | "error" | "refetch"
   > {
-  apps: App[] | null;
+  apps: AppListItem[] | null;
 }
 
 export const useAppListQuery = (): AppListQueryResult => {
@@ -24,11 +20,5 @@ export const useAppListQuery = (): AppListQueryResult => {
     { client }
   );
 
-  const apps = useMemo(() => {
-    return (
-      data?.apps?.edges?.map((edge) => edge?.node)?.filter(nonNullable) ?? null
-    );
-  }, [data]);
-
-  return { apps, loading, error, refetch };
+  return { apps: data?.appList ?? null, loading, error, refetch };
 };

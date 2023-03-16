@@ -87,24 +87,10 @@ export type AppSubscriptionUsageArgs = {
   date: Scalars['DateTime'];
 };
 
-/** A connection to a list of items. */
-export type AppConnection = {
-  __typename?: 'AppConnection';
-  /** Information to aid in pagination. */
-  edges?: Maybe<Array<Maybe<AppEdge>>>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-  /** Total number of nodes in the connection. */
-  totalCount?: Maybe<Scalars['Int']>;
-};
-
-/** An edge in a connection */
-export type AppEdge = {
-  __typename?: 'AppEdge';
-  /**  cursor for use in pagination */
-  cursor: Scalars['String'];
-  /** The item at the end of the edge */
-  node?: Maybe<App>;
+export type AppListItem = {
+  __typename?: 'AppListItem';
+  appID: Scalars['String'];
+  publicOrigin: Scalars['String'];
 };
 
 /** Resource file for an app */
@@ -473,19 +459,6 @@ export type OAuthSsoProviderClientSecretsUpdateInstructionsInput = {
   data?: InputMaybe<Array<OAuthSsoProviderClientSecretInput>>;
 };
 
-/** Information about pagination in a connection. */
-export type PageInfo = {
-  __typename?: 'PageInfo';
-  /** When paginating forwards, the cursor to continue. */
-  endCursor?: Maybe<Scalars['String']>;
-  /** When paginating forwards, are there more items? */
-  hasNextPage: Scalars['Boolean'];
-  /** When paginating backwards, are there more items? */
-  hasPreviousPage: Scalars['Boolean'];
-  /** When paginating backwards, the cursor to continue. */
-  startCursor?: Maybe<Scalars['String']>;
-};
-
 export enum Periodical {
   Monthly = 'MONTHLY',
   Weekly = 'WEEKLY'
@@ -517,8 +490,8 @@ export type Query = {
   __typename?: 'Query';
   /** Active users chart dataset */
   activeUserChart?: Maybe<Chart>;
-  /** All apps accessible by the viewer */
-  apps?: Maybe<AppConnection>;
+  /** The list of apps accessible to the current viewer */
+  appList?: Maybe<Array<AppListItem>>;
   /** Check whether the viewer can accept the collaboration invitation */
   checkCollaboratorInvitation?: Maybe<CheckCollaboratorInvitationPayload>;
   /** Fetch NFT Contract Metadata */
@@ -545,14 +518,6 @@ export type QueryActiveUserChartArgs = {
   periodical: Periodical;
   rangeFrom: Scalars['Date'];
   rangeTo: Scalars['Date'];
-};
-
-
-export type QueryAppsArgs = {
-  after?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['String']>;
-  first?: InputMaybe<Scalars['Int']>;
-  last?: InputMaybe<Scalars['Int']>;
 };
 
 

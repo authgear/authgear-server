@@ -6,3 +6,10 @@ export function extractRawID(id: string): string {
   }
   return parts[1];
 }
+
+export function toTypedID(typename: string, rawID: string): string {
+  return btoa(`${typename}:${rawID}`)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}

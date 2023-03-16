@@ -10,6 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
+type AppListItem struct {
+	AppID        string `json:"appID,omitempty"`
+	PublicOrigin string `json:"publicOrigin,omitempty"`
+}
+
 type App struct {
 	ID      string
 	Context *config.AppContext

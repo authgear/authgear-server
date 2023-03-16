@@ -115,14 +115,27 @@ func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 	return
 }
 
-func (s *AppService) List(userID string) ([]*model.App, error) {
+func (s *AppService) GetAppList(userID string) ([]*model.AppListItem, error) {
 	appIDs, err := s.AppAuthz.ListAuthorizedApps(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.GetMany(appIDs)
+	apps, err := s.GetMany(appIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	appList := []*model.AppListItem{}
+	for _, app := range apps {
+		appList = append(appList, &model.AppListItem{
+			AppID:        app.ID,
+			PublicOrigin: app.Context.Config.AppConfig.HTTP.PublicOrigin,
+		})
+	}
+	return appList, nil
 }
+
 func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
 	// On errors: ignore and return default quota.
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -41,10 +40,15 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return ctx.Users.Load(sessionInfo.UserID).Value, nil
 			},
 		},
-		"apps": &graphql.Field{
-			Description: "All apps accessible by the viewer",
-			Type:        connApp.ConnectionType,
-			Args:        relay.ConnectionArgs,
+		"appList": &graphql.Field{
+			Description: "The list of apps accessible to the current viewer",
+			Type: graphql.NewList(graphql.NewNonNull(graphql.NewObject(graphql.ObjectConfig{
+				Name: "AppListItem",
+				Fields: graphql.Fields{
+					"appID":        &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+					"publicOrigin": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+				},
+			}))),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
 
@@ -54,19 +58,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				// Access control is not needed here cause List returns accessible apps.
-				apps, err := ctx.AppService.List(sessionInfo.UserID)
+				apps, err := ctx.AppService.GetAppList(sessionInfo.UserID)
 				if err != nil {
 					return nil, err
 				}
-				args := relay.NewConnectionArguments(p.Args)
 
-				out := make([]interface{}, len(apps))
-				for i, app := range apps {
-					out[i] = app
-					ctx.Apps.Prime(app.ID, app)
-				}
-
-				return graphqlutil.NewConnectionFromArray(out, args), nil
+				return apps, nil
 			},
 		},
 		"checkCollaboratorInvitation": &graphql.Field{
