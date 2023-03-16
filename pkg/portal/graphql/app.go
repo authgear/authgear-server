@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
-	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -445,5 +444,3 @@ var nodeApp = node(
 		return gqlCtx.Apps.Load(id).Value, nil
 	},
 )
-
-var connApp = graphqlutil.NewConnectionDef(nodeApp)

@@ -97,25 +97,13 @@ type App implements Node {
 """The `AppConfig` scalar type represents an app config JSON object"""
 scalar AppConfig
 
-"""A connection to a list of items."""
-type AppConnection {
-  """Information to aid in pagination."""
-  edges: [AppEdge]
+""""""
+type AppListItem {
+  """"""
+  appID: String!
 
-  """Information to aid in pagination."""
-  pageInfo: PageInfo!
-
-  """Total number of nodes in the connection."""
-  totalCount: Int
-}
-
-"""An edge in a connection"""
-type AppEdge {
-  """ cursor for use in pagination"""
-  cursor: String!
-
-  """The item at the end of the edge"""
-  node: App
+  """"""
+  publicOrigin: String!
 }
 
 """Resource file for an app"""
@@ -517,21 +505,6 @@ input OAuthSSOProviderClientSecretsUpdateInstructionsInput {
   data: [OAuthSSOProviderClientSecretInput!]
 }
 
-"""Information about pagination in a connection."""
-type PageInfo {
-  """When paginating forwards, the cursor to continue."""
-  endCursor: String
-
-  """When paginating forwards, are there more items?"""
-  hasNextPage: Boolean!
-
-  """When paginating backwards, are there more items?"""
-  hasPreviousPage: Boolean!
-
-  """When paginating backwards, the cursor to continue."""
-  startCursor: String
-}
-
 """"""
 enum Periodical {
   """"""
@@ -588,8 +561,8 @@ type Query {
     rangeTo: Date!
   ): Chart
 
-  """All apps accessible by the viewer"""
-  apps(after: String, before: String, first: Int, last: Int): AppConnection
+  """The list of apps accessible to the current viewer"""
+  appList: [AppListItem!]
 
   """Check whether the viewer can accept the collaboration invitation"""
   checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload
