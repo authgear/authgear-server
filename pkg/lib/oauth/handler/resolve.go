@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -33,9 +34,19 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
 	}
 
-	allowed := false
+	err = validateRedirectURI(client, http, redirectURI)
+	if err != nil {
+		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
+	}
 
-	for _, u := range allowedURIs {
+	return redirectURI, nil
+}
+
+func validateRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig, redirectURI *url.URL) error {
+	allowed := false
+	redirectURIString := redirectURI.String()
+
+	for _, u := range client.RedirectURIs {
 		if u == redirectURIString {
 			allowed = true
 			break
@@ -54,7 +65,7 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 	if client.CustomUIURI != "" {
 		customUIURI, err := url.Parse(client.CustomUIURI)
 		if err != nil {
-			return nil, protocol.NewErrorResponse("invalid_request", "invalid custom ui URI")
+			return errors.New("invalid custom ui URI")
 		}
 		customUIURIOrigin := fmt.Sprintf("%s://%s", customUIURI.Scheme, customUIURI.Host)
 		if customUIURIOrigin == redirectURIOrigin {
@@ -63,8 +74,8 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 	}
 
 	if !allowed {
-		return nil, protocol.NewErrorResponse("invalid_request", "redirect URI is not allowed")
+		return errors.New("redirect URI is not allowed")
 	}
 
-	return redirectURI, nil
+	return nil
 }
