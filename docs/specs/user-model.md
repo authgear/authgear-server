@@ -117,7 +117,7 @@ From the user point of view, they do not perform any explicit authentication. Th
 - Anonymous user cannot have secondary authenticators
 - Anonymous user cannot access the settings page
 
-Anonymous users can be used only by first-party OAuth clients, since it allows
+Anonymous users can be used only by [first-party public clients](./oidc.md#first-party-public-clients), since it allows
 the client access of user credentials.
 
 #### Anonymous Identity JWT
@@ -158,7 +158,7 @@ Biometric identity does not require primary authentication.
 Biometric identity collects necessary device info so that
 nice name such as "iPhone 12 Mini" can be displayed to the user.
 
-Biometric authentication can be used only by first-party OAuth clients, since it allows
+Biometric authentication can be used only by [first-party public clients](./oidc.md#first-party-public-clients), since it allows
 the client access of user credentials.
 
 Biometric authentication must NOT involve the usage of webview, in order to provide a smooth user experience.

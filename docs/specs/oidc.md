@@ -16,6 +16,7 @@
     + [login_hint](#login_hint)
     + [acr_values](#acr_values)
     + [code_challenge_method](#code_challenge_method)
+    + [nonce](#nonce)
   * [Token Request](#token-request)
     + [grant_type](#grant_type)
     + [id_token_hint](#id_token_hint-1)
@@ -50,15 +51,19 @@
   * [Silent Authentication](#silent-authentication)
     + [Comparison with cookie sharing approach](#comparison-with-cookie-sharing-approach)
     + [Details of Silent Authentication](#details-of-silent-authentication)
-  * [First-party Clients](#first-party-clients)
+  * [Clients](#clients)
+    + [First-party clients](#first-party-clients)
+    + [First-party public clients](#first-party-public-clients)
+    + [First-party confidential clients](#first-party-confidential-clients)
+    + [Third-Party clients](#third-party-clients)
+    + [Confidential clients](#confidential-clients)
+    + [Consent Screen](#consent-screen)
+    + [Authorized Apps page](#authorized-apps-page)
     + [App Session Token](#app-session-token)
   * [How to construct authentication request to achieve different scenarios](#how-to-construct-authentication-request-to-achieve-different-scenarios)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
-    + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)
-  * [Third-party Clients](#third-party-clients)
-    + [Implementation Details](#implementation-details)
-
+    + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)⏎
 
 # OIDC
 
@@ -84,7 +89,7 @@ Supported [standard client metadata](https://openid.net/specs/openid-connect-reg
 - `client_id`: OIDC client ID.
 - `access_token_lifetime`: Access token lifetime in seconds, default to 1800.
 - `refresh_token_lifetime`: Refresh token lifetime in seconds, default to max(access_token_lifetime, 86400). It must be greater than or equal to `access_token_lifetime`.
-- `x_application_type`: Indicate the application type. Except `third_party_app`, all clients are [first-party client](#first-party-clients) even it is not specified. The application type is not changeable after creation on the portal. Supported values: `spa`, `traditional_webapp`, `native`, `third_party_app`.
+- `x_application_type`: Indicate the application type. See [Clients](#clients) for the meaning of the value. The application type is not changeable after creation on the portal. Supported values: `spa`, `traditional_webapp`, `native`, `confidential`, `third_party_app`.
 - `x_max_concurrent_session`: Indicate whether the client restricts the number of concurrent sessions, `0` means no restriction, default is `0`. Currently, only `0` or `1` are supported. If `x_max_concurrent_session` is `1`, all refresh tokens of the client will be revoked when a new one is requested.
 
 #### Generic RP Client Metadata example
@@ -146,7 +151,7 @@ Refresh token is not used.
 
 - `openid`: It is required by the OIDC spec
 - `offline_access`: It is required to issue refresh token.
-- `https://authgear.com/scopes/full-access`: Full access scope allows access to privileged user operations. Only first-party client can request this scope.
+- `https://authgear.com/scopes/full-access`: Full access scope allows access to privileged user operations. Only [first-party public clients](#first-party-public-clients) can request this scope.
 - `https://authgear.com/scopes/full-userinfo`: Returns the complete userinfo in the id_token or through the userinfo endpoint.
 
 ### response_type
@@ -207,6 +212,10 @@ Currently not supported.
 ### code_challenge_method
 
 Only `S256` is supported. `plain` is not supported.
+
+### nonce
+
+To mitigate replay attacks, provide a `nonce` in the authentication request. Authgear will include the `nonce` Claim in the ID Token, and the client must verify that the `nonce` claim value is equal to the value of the `nonce` parameter sent in the authentication request. The `nonce` is recommended but it is optional. The `nonce` value is a case sensitive string. Reference: [Authentication Request](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1).
 
 ## Token Request
 
@@ -461,44 +470,114 @@ Silent Authentication
 1. If authorization code request result is successful, send the token request to Authgear with code + code verifier
 1. Authgear returns token response to SDK with id token + new access token
 
-## First-party Clients
+## Clients
 
-OAuth protocol allows user to delegate access to clients, so that clients can
-act on behalf of the user.
+The value of `x_application_type` determines the type of the client.
 
-Usually, OAuth clients are third-party clients, with limited trust:
-- User need to give consent to a client before clients is allowed access.
-- Privileged user operations (e.g. change password) is usually not exposed
-  through APIs accessible through OAuth protocol.
+The tables summarizes client Party, confidentiality, PII in ID token, and access to privileged user operations of different `x_application_type`.
 
-However, developers may want to give first-party clients full trust:
-- First-party clients do not need user consent in authorization process.
-- First-party clients have access to privileged user operations through a
-  special OAuth scope value (`https://authgear.com/scopes/full-access`).
+|`x_application_type`|Client Party|Confidentiality|PII in ID token|Access to privileged user operations|
+|---|---|---|---|---|
+|`spa`|First-party|public|No|Yes|
+|`traditional_webapp`|First-party|public|No|Yes|
+|`native`|First-party|public|No|Yes|
+|`confidential`|First-party|confidential|Yes|No|
+|`third_party_app`|Third-party|confidential|Yes|No|
 
-If the clients' application type is not `third_party_app`, then they are
-first-party clients.
+### First-party clients
+
+First-party clients can only be created by the project collaborators thus are trusted.
+
+First-party clients are further divided into first-party public clients and first-party confidential clients.
 
 Developers should note the security implications for first-party clients:
-- Access tokens for first-party clients should not be passed to third-party
-  clients with limited trust.
+- Access tokens for first-party clients should not be passed to any third party with limited trust.
   (TODO: on-behalf-of flow https://tools.ietf.org/html/rfc7523)
-  (TODO: authenticate clients using client secret)
-  
+
+### First-party public clients
+
+First-party public clients have access to privileged user operations through the special scope value `https://authgear.com/scopes/full-access`
+
+The ID tokens issued to first-party public clients have no personal identifiable information (PII).
+This is because first-party public clients have access to [voluntary reauthentication](#voluntary-reauthentication).
+The ID token will appear in the query of the URL in reauthentication.
+
+### First-party confidential clients
+
+First-party confidential clients have `client_secret`. During code exchange, `client_secret` must be present.
+
+First-party confidential clients have NO access to privileged user operations, and CANNOT request the special scope value `https://authgear.com/scopes/full-access`.
+
+### Third-Party clients
+
+Third-party clients are always confidential, thus they have `client_secret`. During code exchange, `client_secret` must be present.
+
+Third-party clients have NO access to privileged user operations, and CANNOT request the special scope value `https://authgear.com/scopes/full-access`.
+
+Third-party clients can use the scope value `https://authgear.com/scopes/full-userinfo` to request complete user info.
+
+### Confidential clients
+
+Confidential clients can opt-out PKCE, but `client_secret` must be present during code exchange.
+
+The client secrets of confidential clients are stored in `authgear.secrets.yaml`.
+
+```yaml
+- data:
+    items:
+      - client_id: CLIENT_ID
+        keys:
+        - created_at: 1136171045
+          k: CLIENT_SECRET
+          kid: 06e1a1ed-3cec-4931-9179-d84e7dcaa558
+          kty: oct
+  key: oauth.client_secrets
+```
+
+### Consent Screen
+
+First-party clients are trusted so consent screen is skipped.
+
+Third-party clients are NOT trusted so the end-user must give explicit consent in the consent screen.
+
+The consent screen will be shown only if there is no authorization record (first-time login / the user revokes it). The consent screen will show the client name and the requested permissions.
+
+The concent screen example:
+
+```
+<!-- App Login -->
+
+# Authorize <CLIENT_NAME>
+
+<CLIENT_NAME> wants to access your account.
+
+- Allows <CLIENT_NAME> to access your email, phone number or username if available.
+- Allows <CLIENT_NAME> to access other information of your profile.
+- Allows <CLIENT_NAME> to access your information after login.
+
+[Cancel] [Authorize]
+
+```
+
+The list will be changed based on the requested scopes. The copywriting are listed as follows:
+
+- `https://authgear.com/scopes/full-userinfo`:
+  - Allows <CLIENT_NAME> to access your email, phone number or username if available.
+  - Allows <CLIENT_NAME> to access other information of your profile.
+- `offline_access`:
+  - Allows <CLIENT_NAME> to access your information after login.
+
+### Authorized Apps page
+
+In the **Signed in Sessions** page, only IdP sessions and sessions of first-party clients are listed. The refresh token of third-party clients are NOT listed in this page because revoking a refresh token of third-party clients DOES NOT affect the login in the third-party app.
+
+The **Authorized Apps** page lists authorizations of third-party client only. Revoking an authorization revokes all the refresh tokens of the third-party client.
+
 ### App Session Token
 
-For mobile first-party clients, developer may want to 'transfer' the
-user session from the native app (obtained through OAuth protocol) to
-web UI. In this case, developer may use refresh token to exchange for a
-one-time-use app session token, which can be used to open authenticated pages
-using the refresh token.
+Clients granted the scope `https://authgear.com/scopes/full-access` can use refresh token to exchange for a one-time-use app session token.
 
-First, the native app should perform authentication through standard
-OAuth flow to obtain an access token and refresh token.
-
-When the native app wants to copy the user session from app to web user agent,
-the native app may use the refresh token in the session token endpoint to
-obtain a one-time-use app session token:
+Pass the refresh token to `/oauth2/app-session-token` to exchange for a app session token:
 ```
 POST /oauth2/app-session-token HTTP/1.1
 Host: accounts.example.com
@@ -513,9 +592,7 @@ Content-Type: application/json
 {"result":{"app_session_token":"<app session token>"}}
 ```
 
-A one-time-use app session token would be returned, and the native app may
-then use it in OAuth authorization flow to open authenticated page in web user
-agent:
+Use the app session token as login hint in the authorization endpoint to open authenticated pages:
 ```
 GET /oauth2/authorize?client_id=client_id&prompt=none&response_type=none
     &login_hint=https%3A%2F%2Fauthgear.com%2Flogin_hint%3Ftype%3Dapp_session_token%26app_session_token%3D<app session token>
@@ -527,10 +604,6 @@ HTTP/1.1 302 Found
 Set-Cookie: <session cookie>
 Location: <redirect URI>
 ```
-
-When the app session token is requested:
-- The OAuth client associated with the access token must be a first-party
-  client.
 
 When the app session token is consumed:
 - If the app session token is invalid, normal OAuth authorization flow would be
@@ -575,89 +648,3 @@ The user is authenticated fully.
 
 It is possible that we show a tailor made screen that let the user to choose which login method to use,
 but this requires much effort to implement and may leak available login methods.
-
-## Third-Party Client
-
-To designate an OAuth Client as third-party, set the `x_application_type` to `third_party_app`.
-
-Third-party client doesn't support anonymous user, biometric login and re-authentication.
-
-The developer may want to request the full userinfo scope (https://authgear.com/scopes/full-userinfo) so that they can acquire the user's complete user info.
-
-### Authorization Flow
-
-For the third-party client, the PKCE `code_challenge` can be omitted in the authentication request. However, the `client_secret` must be provided when exchanging the access token with the authentication code.
-
-To mitigate replay attacks, the app can provide a `nonce` (A random value generated by the app) in the authentication request. Authgear will include the `nonce` Claim in the ID Token, and the client must verify that the `nonce` claim value is equal to the value of the `nonce` parameter sent in the authentication request. The `nonce` is recommended but it is optional. The `nonce` value is a case sensitive string. Reference: [Authentication Request](https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.3.1.2.1).
-
-### Consent Screen
-
-After users authenticate, there will be a consent screen. The consent screen will be shown only if there is no authorization record (first-time login / the user revokes it). The consent screen will show the client name and the requested permissions.
-
-The concent screen example:
-
-```
-<!-- App Login -->
-
-# Authorize <CLIENT_NAME>
-
-<CLIENT_NAME> wants to access your account.
-
-- Allows <CLIENT_NAME> to access your email, phone number or username if available.
-- Allows <CLIENT_NAME> to access other information of your profile.
-- Allows <CLIENT_NAME> to access your information after login.
-
-[Cancel] [Authorize]
-
-```
-
-The list will be changed based on the requested scopes. The copywriting are listed as follows:
-
-- `https://authgear.com/scopes/full-userinfo`:
-  - Allows <CLIENT_NAME> to access your email, phone number or username if available.
-  - Allows <CLIENT_NAME> to access other information of your profile.
-- `offline_access`:
-  - Allows <CLIENT_NAME> to access your information after login.
-
-### Settings
-
-IDP session is created when the user login. Opening the settings page solely depends on the IDP session. If the IDP session expires, the user will need to log in again to access the settings page.
-
-### Authorized Apps page
-
-In the original **Signed in Sessions** page, updating the list to show first-party sessions only (idp session and first-party app refresh token). Since revoking third-party app refresh token doesn't affect the login in the third-party app, in order to avoid confusion, we suggest to hide them.
-
-Add an authorized apps list under the session list, the list will show third-party app authorizations only. Revoking authorization means revoking all the sessions belonging to that app.
-
-### Configure third-party client in Portal
-
-- Add new consent screen section to allow the developer to configure the `client_name` for displaying on the consent screen.
-- The `client_name` will be the same as the oauth client's name right after creation.
-- The `client_secrets` will be generated by the server when updating the `authgear.yaml`.
-
-### Implementation Details
-
-#### Configuration migration
-
-To migrate the configuration to remove `is_first_party` and support the new application type `third_party_app`.
-
-- Add new application type `third_party_app`, determine if the client is a first-party app by checking the application type.
-- Ignore `is_first_party`. Make `is_first_party` not required in the JSON schema. Mark this as VersionA.
-- Deploy VersionA
-- Add and run a config migration to remove `is_first_party`.
-- Remove `is_first_party` from the JSON schema. Mark this as VersionB
-- Deploy VersionB
-
-#### authgear.secrets.yaml
-
-```yaml
-- data:
-    items:
-      - client_id: CLIENT_ID
-        keys:
-        - created_at: 1136171045
-          k: CLIENT_SECRET
-          kid: 06e1a1ed-3cec-4931-9179-d84e7dcaa558
-          kty: oct
-  key: oauth.client_secrets
-```
