@@ -160,6 +160,21 @@ func (c *OAuthClientConfig) IsPublic() bool {
 	return !c.IsConfidential()
 }
 
+func (c *OAuthClientConfig) HasFullAccessScope() bool {
+	switch c.ApplicationType {
+	case OAuthClientApplicationTypeSPA:
+		return true
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return true
+	case OAuthClientApplicationTypeNative:
+		return true
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return false
+	default:
+		return true
+	}
+}
+
 func (c *OAuthClientConfig) SetDefaults() {
 	if c.AccessTokenLifetime == 0 {
 		c.AccessTokenLifetime = DefaultAccessTokenLifetime
