@@ -141,6 +141,25 @@ func (c *OAuthClientConfig) ClientParty() ClientParty {
 	return ClientPartyFirst
 }
 
+func (c *OAuthClientConfig) IsConfidential() bool {
+	switch c.ApplicationType {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *OAuthClientConfig) IsPublic() bool {
+	return !c.IsConfidential()
+}
+
 func (c *OAuthClientConfig) SetDefaults() {
 	if c.AccessTokenLifetime == 0 {
 		c.AccessTokenLifetime = DefaultAccessTokenLifetime

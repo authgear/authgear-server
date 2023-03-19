@@ -185,19 +185,19 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		}
 	}
 
-	thirdPartyApps := []OAuthClientConfig{}
+	confidentialClients := []OAuthClientConfig{}
 	for _, c := range appConfig.OAuth.Clients {
-		if c.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
-			thirdPartyApps = append(thirdPartyApps, c)
+		if c.IsConfidential() {
+			confidentialClients = append(confidentialClients, c)
 		}
 	}
 
-	if len(thirdPartyApps) > 0 {
+	if len(confidentialClients) > 0 {
 		require(OAuthClientCredentialsKey, "OAuth client credentials")
 		_, data, _ := c.LookupDataWithIndex(OAuthClientCredentialsKey)
 		oauth, ok := data.(*OAuthClientCredentials)
 		if ok {
-			for _, c := range thirdPartyApps {
+			for _, c := range confidentialClients {
 				matched := false
 				for index := range oauth.Items {
 					item := oauth.Items[index]
