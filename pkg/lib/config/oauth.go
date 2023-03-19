@@ -175,6 +175,21 @@ func (c *OAuthClientConfig) HasFullAccessScope() bool {
 	}
 }
 
+func (c *OAuthClientConfig) PIIAllowedInIDToken() bool {
+	switch c.ApplicationType {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return true
+	default:
+		return false
+	}
+}
+
 func (c *OAuthClientConfig) SetDefaults() {
 	if c.AccessTokenLifetime == 0 {
 		c.AccessTokenLifetime = DefaultAccessTokenLifetime
