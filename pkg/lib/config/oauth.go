@@ -33,13 +33,6 @@ const (
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
 )
 
-type ClientParty string
-
-const (
-	ClientPartyFirst ClientParty = "first_party"
-	ClientPartyThird ClientParty = "third_party"
-)
-
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",
@@ -132,13 +125,23 @@ func (c *OAuthClientConfig) DefaultRedirectURI() string {
 	return ""
 }
 
-func (c *OAuthClientConfig) ClientParty() ClientParty {
-	if c.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
-		return ClientPartyThird
+func (c *OAuthClientConfig) IsThirdParty() bool {
+	switch c.ApplicationType {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return true
+	default:
+		return false
 	}
-	// Except OAuthClientApplicationTypeThirdPartyApp
-	// All the other clients are first party client
-	return ClientPartyFirst
+}
+
+func (c *OAuthClientConfig) IsFirstParty() bool {
+	return !c.IsThirdParty()
 }
 
 func (c *OAuthClientConfig) IsConfidential() bool {
