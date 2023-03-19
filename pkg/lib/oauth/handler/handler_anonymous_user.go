@@ -142,9 +142,9 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, apierrors.NewInvalid("invalid client ID")
 	}
 
-	if client.ClientParty() == config.ClientPartyThird {
+	if !client.HasFullAccessScope() {
 		// unauthorized_client
-		return nil, apierrors.NewInvalid("third-party clients may not use anonymous user")
+		return nil, apierrors.NewInvalid("this client may not use anonymous user")
 	}
 
 	// TODO(oauth): allow specifying scopes for anonymous user signup

@@ -58,7 +58,7 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 
 	thirdPartyClientIDSet := make(setutil.Set[string])
 	for _, c := range m.Config.Clients {
-		if c.ClientParty() == config.ClientPartyThird {
+		if c.IsThirdParty() {
 			thirdPartyClientIDSet[c.ClientID] = struct{}{}
 		}
 	}

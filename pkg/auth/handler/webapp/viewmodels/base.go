@@ -148,7 +148,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 	hasThirdPartyApp := false
 	for _, c := range m.OAuth.Clients {
-		if c.ClientParty() == config.ClientPartyThird {
+		if c.IsThirdParty() {
 			hasThirdPartyApp = true
 		}
 	}

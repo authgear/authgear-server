@@ -142,7 +142,7 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	// We MUST NOT include any personal identifiable information (PII) here.
 	// The ID token may be included in the GET request in form of `id_token_hint`.
 	nonPIIUserClaimsOnly := true
-	if opts.ClientLike.ClientParty == config.ClientPartyThird {
+	if opts.ClientLike.PIIAllowedInIDToken {
 		for _, s := range UserinfoScopes {
 			if slice.ContainsString(opts.ClientLike.Scopes, s) {
 				nonPIIUserClaimsOnly = false
@@ -268,7 +268,7 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 	// When the client is first party
 	// always include userinfo for the userinfo endpoint
 	// We check the scopes only for third party client
-	if clientLike.ClientParty == config.ClientPartyFirst {
+	if clientLike.IsFirstParty {
 		nonPIIUserClaimsOnly = false
 	} else {
 		for _, s := range UserinfoScopes {

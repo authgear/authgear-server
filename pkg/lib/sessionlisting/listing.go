@@ -59,7 +59,7 @@ func (s *SessionListingService) FilterForDisplay(sessions []session.Session, cur
 	// construct third-party app client id set
 	thirdPartyClientIDSet := make(setutil.Set[string])
 	for _, c := range s.OAuthConfig.Clients {
-		if c.ClientParty() == config.ClientPartyThird {
+		if c.IsThirdParty() {
 			thirdPartyClientIDSet[c.ClientID] = struct{}{}
 		}
 	}

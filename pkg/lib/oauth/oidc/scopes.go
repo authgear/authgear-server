@@ -22,8 +22,8 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 		if s == "offline_access" && !allowOfflineAccess {
 			return protocol.NewError("invalid_scope", "offline access is not allowed for this client")
 		}
-		if s == oauth.FullAccessScope && client.ClientParty() == config.ClientPartyThird {
-			return protocol.NewError("invalid_scope", "third-party clients may not request full user access")
+		if s == oauth.FullAccessScope && !client.HasFullAccessScope() {
+			return protocol.NewError("invalid_scope", "full access is not allowed for this client")
 		}
 		if s == "openid" {
 			hasOIDC = true
