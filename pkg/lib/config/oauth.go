@@ -33,6 +33,74 @@ const (
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
 )
 
+func (t OAuthClientApplicationType) IsThirdParty() bool {
+	switch t {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return true
+	default:
+		return false
+	}
+}
+
+func (t OAuthClientApplicationType) IsFirstParty() bool {
+	return !t.IsThirdParty()
+}
+
+func (t OAuthClientApplicationType) IsConfidential() bool {
+	switch t {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return true
+	default:
+		return false
+	}
+}
+
+func (t OAuthClientApplicationType) IsPublic() bool {
+	return !t.IsConfidential()
+}
+
+func (t OAuthClientApplicationType) HasFullAccessScope() bool {
+	switch t {
+	case OAuthClientApplicationTypeSPA:
+		return true
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return true
+	case OAuthClientApplicationTypeNative:
+		return true
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return false
+	default:
+		return true
+	}
+}
+
+func (t OAuthClientApplicationType) PIIAllowedInIDToken() bool {
+	switch t {
+	case OAuthClientApplicationTypeSPA:
+		return false
+	case OAuthClientApplicationTypeTraditionalWeb:
+		return false
+	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeThirdPartyApp:
+		return true
+	default:
+		return false
+	}
+}
+
 var _ = Schema.Add("OAuthClientConfig", `
 {
 	"type": "object",
@@ -126,71 +194,27 @@ func (c *OAuthClientConfig) DefaultRedirectURI() string {
 }
 
 func (c *OAuthClientConfig) IsThirdParty() bool {
-	switch c.ApplicationType {
-	case OAuthClientApplicationTypeSPA:
-		return false
-	case OAuthClientApplicationTypeTraditionalWeb:
-		return false
-	case OAuthClientApplicationTypeNative:
-		return false
-	case OAuthClientApplicationTypeThirdPartyApp:
-		return true
-	default:
-		return false
-	}
+	return c.ApplicationType.IsThirdParty()
 }
 
 func (c *OAuthClientConfig) IsFirstParty() bool {
-	return !c.IsThirdParty()
+	return c.ApplicationType.IsFirstParty()
 }
 
 func (c *OAuthClientConfig) IsConfidential() bool {
-	switch c.ApplicationType {
-	case OAuthClientApplicationTypeSPA:
-		return false
-	case OAuthClientApplicationTypeTraditionalWeb:
-		return false
-	case OAuthClientApplicationTypeNative:
-		return false
-	case OAuthClientApplicationTypeThirdPartyApp:
-		return true
-	default:
-		return false
-	}
+	return c.ApplicationType.IsConfidential()
 }
 
 func (c *OAuthClientConfig) IsPublic() bool {
-	return !c.IsConfidential()
+	return c.ApplicationType.IsPublic()
 }
 
 func (c *OAuthClientConfig) HasFullAccessScope() bool {
-	switch c.ApplicationType {
-	case OAuthClientApplicationTypeSPA:
-		return true
-	case OAuthClientApplicationTypeTraditionalWeb:
-		return true
-	case OAuthClientApplicationTypeNative:
-		return true
-	case OAuthClientApplicationTypeThirdPartyApp:
-		return false
-	default:
-		return true
-	}
+	return c.ApplicationType.HasFullAccessScope()
 }
 
 func (c *OAuthClientConfig) PIIAllowedInIDToken() bool {
-	switch c.ApplicationType {
-	case OAuthClientApplicationTypeSPA:
-		return false
-	case OAuthClientApplicationTypeTraditionalWeb:
-		return false
-	case OAuthClientApplicationTypeNative:
-		return false
-	case OAuthClientApplicationTypeThirdPartyApp:
-		return true
-	default:
-		return false
-	}
+	return c.ApplicationType.PIIAllowedInIDToken()
 }
 
 func (c *OAuthClientConfig) SetDefaults() {

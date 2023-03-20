@@ -38,9 +38,8 @@ type GenerateOAuthClientConfigOptions struct {
 }
 
 func GenerateOAuthConfigFromOptions(opts *GenerateOAuthClientConfigOptions) (*OAuthClientConfig, error) {
-	if opts.ApplicationType == OAuthClientApplicationTypeThirdPartyApp {
-		// third-party apps require client secret
-		return nil, errors.New("generating third-party apps is not supported")
+	if opts.ApplicationType.IsConfidential() {
+		return nil, errors.New("generating confidential clients is not supported")
 	}
 	clientID := make([]byte, 8)
 	corerand.SecureRand.Read(clientID)
