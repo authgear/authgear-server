@@ -127,6 +127,7 @@ func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMe
 	textData := map[string]interface{}{
 		"ClientID":  htmltemplate.URLQueryEscaper(uiParam.ClientID),
 		"State":     htmltemplate.URLQueryEscaper(uiParam.State),
+		"XState":    htmltemplate.URLQueryEscaper(uiParam.XState),
 		"UILocales": htmltemplate.URLQueryEscaper(uiParam.UILocales),
 	}
 
@@ -134,6 +135,7 @@ func (s *Service) EmailMessageData(msg *MessageSpec, args interface{}) (*EmailMe
 	htmlData := map[string]interface{}{
 		"ClientID":  uiParam.ClientID,
 		"State":     uiParam.State,
+		"XState":    uiParam.XState,
 		"UILocales": uiParam.UILocales,
 	}
 	template.Embed(htmlData, args)
