@@ -475,6 +475,7 @@ Silent Authentication
 The value of `x_application_type` determines the type of the client.
 
 The tables summarizes client Party, confidentiality, PII in ID token, and access to privileged user operations of different `x_application_type`.
+The content of this table is explained in [Rationale of limitations](#rationale-of-limitations).
 
 |`x_application_type`|Client Party|Confidentiality|PII in ID token|Access to privileged user operations|
 |---|---|---|---|---|
@@ -483,6 +484,15 @@ The tables summarizes client Party, confidentiality, PII in ID token, and access
 |`native`|First-party|public|No|Yes|
 |`confidential`|First-party|confidential|Yes|No|
 |`third_party_app`|Third-party|confidential|Yes|No|
+
+### Rationale of limitations
+
+1. By definition, first-party clients should have access to privileged user operations.
+2. Access to privileged user operations include reauthentication.
+3. Reauthentication requires `id_token_hint`. Thus ID token would appear in the query of the URL.
+4. Thus, first-party clients should have no PII in ID tokens.
+5. However, the use-case of first-party confidential client should be similar to third-party client. That means ID token should include PII. The difference between first-party confidential client between third-party client is trust. Since first-party confidential client is trusted, the consent screen can be skipped.
+6. Therefore, first-party confidential client should have PII in ID tokens. This implies first-party confidential client has no access to privileged user operations.
 
 ### First-party clients
 
