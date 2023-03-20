@@ -354,6 +354,20 @@ export interface PhoneInputConfig {
   preselect_by_ip_disabled?: boolean;
 }
 
+export interface OTPFailedAttemptConfig {
+  enabled?: boolean;
+  size?: number;
+  reset_period?: DurationString;
+}
+
+export interface OTPRatelimitConfig {
+  failed_attempt?: OTPFailedAttemptConfig;
+}
+
+export interface OTPConfig {
+  ratelimit?: OTPRatelimitConfig;
+}
+
 export interface UIConfig {
   phone_input?: PhoneInputConfig;
   dark_theme_disabled?: boolean;
@@ -514,6 +528,7 @@ export interface PortalAPIAppConfig {
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
+  otp?: OTPConfig;
   messaging?: MessagingConfig;
   ui?: UIConfig;
   localization?: LocalizationConfig;
