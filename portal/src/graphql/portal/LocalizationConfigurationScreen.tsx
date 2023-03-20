@@ -14,15 +14,19 @@ import ManageLanguageWidget from "./ManageLanguageWidget";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
-import { PortalAPIAppConfig } from "../../types";
+import { AuthenticatorEmailOTPMode, PortalAPIAppConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
+  RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
+  RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
   RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
   RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
+  RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML,
+  RESOURCE_SETUP_PRIMARY_LOGIN_LINK_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
@@ -120,6 +124,7 @@ interface ResourcesConfigurationContentProps {
   supportedLanguages: LanguageTag[];
   passwordlessViaEmailEnabled: boolean;
   passwordlessViaSMSEnabled: boolean;
+  passwordlessViaEmailOTPMode: AuthenticatorEmailOTPMode;
 }
 
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
@@ -143,6 +148,7 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       supportedLanguages,
       passwordlessViaEmailEnabled,
       passwordlessViaSMSEnabled,
+      passwordlessViaEmailOTPMode,
     } = props;
     const { renderToString } = useContext(Context);
     const { gitCommitHash } = useSystemConfig();
@@ -463,6 +469,21 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     ];
 
+    const passwordlessViaEmailTemplates = {
+      code: {
+        setupHtml: RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
+        setupPlainText: RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
+        authenticateHtml: RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
+        authenticatePlainText: RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
+      },
+      login_link: {
+        setupHtml: RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML,
+        setupPlainText: RESOURCE_SETUP_PRIMARY_LOGIN_LINK_TXT,
+        authenticateHtml: RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
+        authenticatePlainText: RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
+      },
+    }[passwordlessViaEmailOTPMode];
+
     const sectionsPasswordlessViaEmail: EditTemplatesWidgetSection[] = [
       {
         key: "setup",
@@ -486,8 +507,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
-            value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
-            onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
+            value: getValue(passwordlessViaEmailTemplates.setupHtml),
+            onChange: getOnChange(passwordlessViaEmailTemplates.setupHtml),
             editor: "code",
           },
           {
@@ -496,8 +517,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
             ),
             language: "plaintext",
-            value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
-            onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
+            value: getValue(passwordlessViaEmailTemplates.setupPlainText),
+            onChange: getOnChange(passwordlessViaEmailTemplates.setupPlainText),
             editor: "code",
           },
         ],
@@ -524,8 +545,10 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "html-email",
             title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
             language: "html",
-            value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
-            onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
+            value: getValue(passwordlessViaEmailTemplates.authenticateHtml),
+            onChange: getOnChange(
+              passwordlessViaEmailTemplates.authenticateHtml
+            ),
             editor: "code",
           },
           {
@@ -534,8 +557,12 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
               <FormattedMessage id="EditTemplatesWidget.plaintext-email" />
             ),
             language: "plaintext",
-            value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
-            onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
+            value: getValue(
+              passwordlessViaEmailTemplates.authenticatePlainText
+            ),
+            onChange: getOnChange(
+              passwordlessViaEmailTemplates.authenticatePlainText
+            ),
             editor: "code",
           },
         ],
@@ -681,6 +708,10 @@ const LocalizationConfigurationScreen: React.VFC =
       );
     }, [config.effectiveConfig]);
 
+    const passwordlessViaEmailOTPMode =
+      config.effectiveConfig.authenticator?.oob_otp?.email?.email_otp_mode ??
+      "code";
+
     const specifiers = useMemo<ResourceSpecifier[]>(() => {
       const specifiers = [];
       for (const locale of initialSupportedLanguages) {
@@ -763,6 +794,7 @@ const LocalizationConfigurationScreen: React.VFC =
           supportedLanguages={config.state.supportedLanguages}
           passwordlessViaEmailEnabled={passwordlessViaEmailEnabled}
           passwordlessViaSMSEnabled={passwordlessViaSMSEnabled}
+          passwordlessViaEmailOTPMode={passwordlessViaEmailOTPMode}
         />
       </FormContainer>
     );
