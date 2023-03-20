@@ -29,6 +29,7 @@ const (
 	OAuthClientApplicationTypeSPA            OAuthClientApplicationType = "spa"
 	OAuthClientApplicationTypeTraditionalWeb OAuthClientApplicationType = "traditional_webapp"
 	OAuthClientApplicationTypeNative         OAuthClientApplicationType = "native"
+	OAuthClientApplicationTypeConfidential   OAuthClientApplicationType = "confidential"
 	OAuthClientApplicationTypeThirdPartyApp  OAuthClientApplicationType = "third_party_app"
 	OAuthClientApplicationTypeUnspecified    OAuthClientApplicationType = ""
 )
@@ -40,6 +41,8 @@ func (t OAuthClientApplicationType) IsThirdParty() bool {
 	case OAuthClientApplicationTypeTraditionalWeb:
 		return false
 	case OAuthClientApplicationTypeNative:
+		return false
+	case OAuthClientApplicationTypeConfidential:
 		return false
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return true
@@ -60,6 +63,8 @@ func (t OAuthClientApplicationType) IsConfidential() bool {
 		return false
 	case OAuthClientApplicationTypeNative:
 		return false
+	case OAuthClientApplicationTypeConfidential:
+		return true
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return true
 	default:
@@ -79,6 +84,8 @@ func (t OAuthClientApplicationType) HasFullAccessScope() bool {
 		return true
 	case OAuthClientApplicationTypeNative:
 		return true
+	case OAuthClientApplicationTypeConfidential:
+		return false
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return false
 	default:
@@ -94,6 +101,8 @@ func (t OAuthClientApplicationType) PIIAllowedInIDToken() bool {
 		return false
 	case OAuthClientApplicationTypeNative:
 		return false
+	case OAuthClientApplicationTypeConfidential:
+		return true
 	case OAuthClientApplicationTypeThirdPartyApp:
 		return true
 	default:
@@ -110,7 +119,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"client_uri": { "type": "string", "format": "uri" },
 		"client_name": { "type": "string", "minLength": 1 },
 		"name": { "type": "string" },
-		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "third_party_app"] },
+		"x_application_type": { "type": "string", "enum": ["spa", "traditional_webapp", "native", "confidential", "third_party_app"] },
 		"x_max_concurrent_session": { "type": "integer", "enum": [0, 1] },
 		"redirect_uris": {
 			"type": "array",
@@ -152,7 +161,7 @@ var _ = Schema.Add("OAuthClientConfig", `
 		{
 			"if": {
 				"properties": {
-					"x_application_type": { "enum": ["third_party_app"] }
+					"x_application_type": { "enum": ["confidential", "third_party_app"] }
 				},
 				"required": ["x_application_type"]
 			},

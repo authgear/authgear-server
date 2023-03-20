@@ -13,13 +13,13 @@ import (
 func TestOAuthClientCredentialsItemMarshalUnmarshalJSON(t *testing.T) {
 	Convey("OAuthClientCredentialsItemMarshalUnmarshalJSON", t, func() {
 		// nolint: gosec
-		secretJSON := `{"client_id":"third_party_app","keys":[{"created_at":1136171045,"k":"c2VjcmV0MQ","kid":"9dc0e72c-bf34-4ab3-a616-393093bdae0b","kty":"oct"}]}`
+		secretJSON := `{"client_id":"confidential-client","keys":[{"created_at":1136171045,"k":"c2VjcmV0MQ","kid":"9dc0e72c-bf34-4ab3-a616-393093bdae0b","kty":"oct"}]}`
 
 		// Test Unmarshal
 		var item *config.OAuthClientCredentialsItem
 		err := json.Unmarshal([]byte(secretJSON), &item)
 		So(err, ShouldBeNil)
-		So(item.ClientID, ShouldEqual, "third_party_app")
+		So(item.ClientID, ShouldEqual, "confidential-client")
 		k, ok := item.Get(0)
 		So(ok, ShouldBeTrue)
 		So(k.KeyID(), ShouldEqual, "9dc0e72c-bf34-4ab3-a616-393093bdae0b")

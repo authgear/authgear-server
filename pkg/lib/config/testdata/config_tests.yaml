@@ -161,6 +161,21 @@ config:
         redirect_uris:
           - "http://example.com/oauth-redirect"
 ---
+name: oauth-client-valid-first-party-confidential-client
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        client_name: My App
+        x_application_type: confidential
+        redirect_uris:
+          - "http://example.com/oauth-redirect"
+---
 name: oauth-client-third-party-client-missing-client-name
 error: |-
   invalid configuration:
@@ -175,6 +190,23 @@ config:
       - name: Test Client
         client_id: test-client
         x_application_type: third_party_app
+        redirect_uris:
+          - "http://example.com/oauth-redirect"
+---
+name: oauth-client-first-party-confidential-client-missing-client-name
+error: |-
+  invalid configuration:
+  /oauth/clients/0: required
+    map[actual:[client_id name redirect_uris x_application_type] expected:[client_name] missing:[client_name]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  oauth:
+    clients:
+      - name: Test Client
+        client_id: test-client
+        x_application_type: confidential
         redirect_uris:
           - "http://example.com/oauth-redirect"
 ---
