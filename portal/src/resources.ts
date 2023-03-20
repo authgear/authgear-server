@@ -58,6 +58,34 @@ export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
   fallback: FALLBACK_EFFECTIVE_DATA,
 };
 
+export const RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_login_link.html`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_SETUP_PRIMARY_LOGIN_LINK_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/setup_primary_login_link.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+
+export const RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_login_link.html`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+export const RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_login_link.txt`,
+    type: "text",
+    extensions: [],
+    fallback: FALLBACK_EFFECTIVE_DATA,
+  };
+
 export const RESOURCE_FORGOT_PASSWORD_EMAIL_HTML: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_email.html`,
   type: "text",
@@ -72,6 +100,25 @@ export const RESOURCE_FORGOT_PASSWORD_EMAIL_TXT: ResourceDefinition = {
 };
 export const RESOURCE_FORGOT_PASSWORD_SMS_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/forgot_password_sms.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+
+export const RESOURCE_VERIFICATION_EMAIL_HTML: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/verification_email.html`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_VERIFICATION_EMAIL_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/verification_email.txt`,
+  type: "text",
+  extensions: [],
+  fallback: FALLBACK_EFFECTIVE_DATA,
+};
+export const RESOURCE_VERIFICATION_SMS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`templates/${"locale"}/messages/verification_sms.txt`,
   type: "text",
   extensions: [],
   fallback: FALLBACK_EFFECTIVE_DATA,
@@ -109,9 +156,19 @@ export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
 
+  RESOURCE_SETUP_PRIMARY_LOGIN_LINK_HTML,
+  RESOURCE_SETUP_PRIMARY_LOGIN_LINK_TXT,
+
+  RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_HTML,
+  RESOURCE_AUTHENTICATE_PRIMARY_LOGIN_LINK_TXT,
+
   RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
   RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
+
+  RESOURCE_VERIFICATION_EMAIL_HTML,
+  RESOURCE_VERIFICATION_EMAIL_TXT,
+  RESOURCE_VERIFICATION_SMS_TXT,
 ];
 
 export const RESOURCE_AUTHGEAR_LIGHT_THEME_CSS: ResourceDefinition = {
@@ -151,6 +208,8 @@ export const RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT: ResourceDefinition = {
 
 export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT =
   "email.forgot-password.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT =
+  "email.verification.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT =
   "email.setup-primary-oob.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT =
