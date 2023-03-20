@@ -69,6 +69,18 @@ value:
 
 ---
 part: OTPConfig
+name: too-large-failed-attempt-size
+error: |-
+  invalid value:
+  /ratelimit/failed_attempt/size: maximum
+    map[actual:11 maximum:10]
+value:
+  ratelimit:
+    failed_attempt:
+      size: 11
+
+---
+part: OTPConfig
 name: invalid-failed-attempt-reset-period
 error: |-
   invalid value:
