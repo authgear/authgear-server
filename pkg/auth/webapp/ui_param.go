@@ -29,6 +29,13 @@ var StateCookieDef = &httputil.CookieDef{
 	SameSite:   http.SameSiteNoneMode,
 }
 
+// XStateCookieDef is a HTTP session cookie.
+var XStateCookieDef = &httputil.CookieDef{
+	NameSuffix: "x_state",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
+}
+
 type UIParamMiddleware struct {
 	Cookies CookieManager
 }
@@ -74,6 +81,18 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 			}
 		}
 		uiParam.State = state
+
+		// x_state
+		xState := q.Get("x_state")
+		if xState != "" {
+			httputil.UpdateCookie(w, m.Cookies.ValueCookie(XStateCookieDef, xState))
+		}
+		if xState == "" {
+			if cookie, err := m.Cookies.GetCookie(r, XStateCookieDef); err == nil {
+				xState = cookie.Value
+			}
+		}
+		uiParam.XState = xState
 
 		// Put uiParam into context
 		ctx := r.Context()
