@@ -15,6 +15,9 @@ func (r AuthorizationRequest) ResponseMode() string { return r["response_mode"] 
 func (r AuthorizationRequest) Scope() []string      { return parseSpaceDelimitedString(r["scope"]) }
 func (r AuthorizationRequest) State() string        { return r["state"] }
 
+// A custom state that will be passed to the custom ui
+func (r AuthorizationRequest) XState() string { return r["x_state"] }
+
 // OIDC extension
 func (r AuthorizationRequest) Prompt() []string     { return parseSpaceDelimitedString(r["prompt"]) }
 func (r AuthorizationRequest) Nonce() string        { return r["nonce"] }

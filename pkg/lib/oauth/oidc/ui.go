@@ -170,6 +170,9 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	if r.State() != "" {
 		q.Set("state", r.State())
 	}
+	if r.XState() != "" {
+		q.Set("x_state", r.XState())
+	}
 	endpoint.RawQuery = q.Encode()
 
 	return endpoint, nil
