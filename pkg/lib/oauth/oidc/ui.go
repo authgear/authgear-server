@@ -34,6 +34,8 @@ type UIInfo struct {
 	CanUseIntentReauthenticate bool
 	// State is the state parameter
 	State string
+	// XState is the x_state parameter
+	XState string
 	// Page is the x_page parameter
 	Page string
 	// SuppressIDPSessionCookie is the x_suppress_idp_session_cookie and x_sso_enabled parameter.
@@ -125,6 +127,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		UserIDHint:                 userIDHint,
 		CanUseIntentReauthenticate: canUseIntentReauthenticate,
 		State:                      req.State(),
+		XState:                     req.XState(),
 		Page:                       req.Page(),
 		SuppressIDPSessionCookie:   req.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:         req.OAuthProviderAlias(),

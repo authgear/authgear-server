@@ -146,7 +146,7 @@ func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.
 		RedirectURI:              uiInfo.RedirectURI,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		State:                    uiInfo.State,
-		XState:                   req.XState(),
+		XState:                   uiInfo.XState,
 		UILocales:                req.UILocalesRaw(),
 	}
 
