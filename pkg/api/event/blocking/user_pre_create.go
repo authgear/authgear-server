@@ -3,7 +3,6 @@ package blocking
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 )
 
 const (
@@ -11,11 +10,12 @@ const (
 )
 
 type UserPreCreateBlockingEventPayload struct {
-	UserRef    model.UserRef    `json:"-" resolve:"user"`
-	UserModel  model.User       `json:"user"`
-	Identities []model.Identity `json:"identities"`
-	UIParam    *uiparam.T       `json:"-"`
-	AdminAPI   bool             `json:"-"`
+	UserRef     model.UserRef    `json:"-" resolve:"user"`
+	UserModel   model.User       `json:"user"`
+	Identities  []model.Identity `json:"identities"`
+	OAuthState  string           `json:"-"`
+	OAuthXState string           `json:"-"`
+	AdminAPI    bool             `json:"-"`
 }
 
 func (e *UserPreCreateBlockingEventPayload) BlockingEventType() event.Type {
@@ -34,10 +34,10 @@ func (e *UserPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredByTy
 }
 
 func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {
-	if e.UIParam != nil {
+	if e.OAuthState != "" || e.OAuthXState != "" {
 		ctx.OAuth = &event.OAuthContext{
-			State:  e.UIParam.State,
-			XState: e.UIParam.XState,
+			State:  e.OAuthState,
+			XState: e.OAuthXState,
 		}
 	}
 }

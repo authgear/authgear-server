@@ -60,12 +60,20 @@ func (c *Commands) AfterCreate(
 		identityModels = append(identityModels, i.ToModel())
 	}
 
+	var oauthState string
+	var oauthXState string
+	if uiParam != nil {
+		oauthState = uiParam.State
+		oauthXState = uiParam.XState
+	}
+
 	events := []event.Payload{
 		&blocking.UserPreCreateBlockingEventPayload{
-			UserRef:    *user.ToRef(),
-			Identities: identityModels,
-			AdminAPI:   isAdminAPI,
-			UIParam:    uiParam,
+			UserRef:     *user.ToRef(),
+			Identities:  identityModels,
+			AdminAPI:    isAdminAPI,
+			OAuthState:  oauthState,
+			OAuthXState: oauthXState,
 		},
 		&nonblocking.UserCreatedEventPayload{
 			UserRef:    *user.ToRef(),
