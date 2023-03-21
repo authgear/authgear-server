@@ -46,6 +46,10 @@ type Service struct {
 	Verification   *config.VerificationConfig
 }
 
+func (s *Service) isFailedAttemptRatelimitEnabled() bool {
+	return s.OTPConfig.Ratelimit.FailedAttempt.Enabled
+}
+
 func (s *Service) TrackFailedAttemptBucket(target string) ratelimit.Bucket {
 	config := s.OTPConfig.Ratelimit.FailedAttempt
 	return ratelimit.Bucket{
@@ -87,9 +91,11 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 	}
 
 	// Reset failed attempt count
-	err := s.RateLimiter.ClearBucket(s.TrackFailedAttemptBucket(target))
-	if err != nil {
-		return nil, err
+	if s.isFailedAttemptRatelimitEnabled() {
+		err := s.RateLimiter.ClearBucket(s.TrackFailedAttemptBucket(target))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return codeModel, nil
@@ -102,6 +108,10 @@ func (s *Service) deleteCode(target string) {
 }
 
 func (s *Service) handleFailedAttempt(target string) error {
+	if !s.isFailedAttemptRatelimitEnabled() {
+		return nil
+	}
+
 	err := s.RateLimiter.TakeToken(s.TrackFailedAttemptBucket(target))
 	if err != nil {
 		return err
@@ -134,6 +144,10 @@ func (s *Service) GenerateWhatsappCode(target string, opt *GenerateCodeOptions) 
 }
 
 func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
+	if !s.isFailedAttemptRatelimitEnabled() {
+		return false, nil
+	}
+
 	pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
 	if err != nil {
 		return false, err
@@ -153,13 +167,15 @@ func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
 }
 
 func (s *Service) VerifyCode(target string, code string) error {
-	bucket := s.TrackFailedAttemptBucket(target)
-	pass, _, err := s.RateLimiter.CheckToken(bucket)
-	if err != nil {
-		return err
-	}
-	if !pass {
-		return bucket.BucketError()
+	if s.isFailedAttemptRatelimitEnabled() {
+		bucket := s.TrackFailedAttemptBucket(target)
+		pass, _, err := s.RateLimiter.CheckToken(bucket)
+		if err != nil {
+			return err
+		}
+		if !pass {
+			return bucket.BucketError()
+		}
 	}
 
 	codeModel, err := s.getCode(target)

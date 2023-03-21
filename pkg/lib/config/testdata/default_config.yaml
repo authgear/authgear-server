@@ -540,8 +540,7 @@ verification:
 otp:
   ratelimit:
     failed_attempt:
-      size: 5
-      reset_period: 20m
+      enabled: false
 web3:
   siwe:
     networks:

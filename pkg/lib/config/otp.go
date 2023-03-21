@@ -33,9 +33,11 @@ var _ = Schema.Add("OTPFailedAttemptConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"enabled": { "type": "boolean" },
 		"size": {
 			"type": "integer",
-			"minimum": 1
+			"minimum": 1,
+			"maximum": 10
 		},
 		"reset_period": { "$ref": "#/$defs/DurationString" }
 	}
@@ -43,15 +45,18 @@ var _ = Schema.Add("OTPFailedAttemptConfig", `
 `)
 
 type OTPFailedAttemptConfig struct {
+	Enabled     bool           `json:"enabled,omitempty"`
 	Size        int            `json:"size,omitempty"`
 	ResetPeriod DurationString `json:"reset_period,omitempty"`
 }
 
 func (c *OTPFailedAttemptConfig) SetDefaults() {
-	if c.Size == 0 {
-		c.Size = 5
-	}
-	if c.ResetPeriod == "" {
-		c.ResetPeriod = "20m"
+	if c.Enabled {
+		if c.Size == 0 {
+			c.Size = 5
+		}
+		if c.ResetPeriod == "" {
+			c.ResetPeriod = "20m"
+		}
 	}
 }

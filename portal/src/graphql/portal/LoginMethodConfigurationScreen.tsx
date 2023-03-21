@@ -46,6 +46,7 @@ import {
   smsResendCooldownList,
   EmailRatelimitConfig,
   emailResendCooldownList,
+  OTPFailedAttemptConfig,
   authenticatorEmailOTPModeList,
   AuthenticatorEmailOTPMode,
   AuthenticatorOOBEmailConfig,
@@ -84,6 +85,7 @@ import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CustomTagPicker from "../../CustomTagPicker";
 import TextField from "../../TextField";
+import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
@@ -411,6 +413,7 @@ interface ConfigFormState {
   verificationConfig: VerificationConfig;
   smsRatelimitConfig: SMSRatelimitConfig;
   emailRatelimitConfig: EmailRatelimitConfig;
+  otpFailedAttemptConfig: OTPFailedAttemptConfig;
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
@@ -605,6 +608,11 @@ function correctInitialFormState(state: ConfigFormState): void {
       }
     }
   }
+
+  // Provide default number of otp failed attempts if config is disabled
+  if (!state.otpFailedAttemptConfig.enabled) {
+    state.otpFailedAttemptConfig.size = 5;
+  }
 }
 
 // eslint-disable-next-line complexity
@@ -783,6 +791,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     emailRatelimitConfig: {
       ...config.messaging?.email?.ratelimit,
     },
+    otpFailedAttemptConfig: {
+      ...config.otp?.ratelimit?.failed_attempt,
+    },
     authenticatorOOBEmailConfig: {
       email_otp_mode: DEFAULT_EMAIL_OTP_MODE,
       ...config.authenticator?.oob_otp?.email,
@@ -854,6 +865,9 @@ function constructConfig(
     config.messaging.sms.ratelimit ??= {};
     config.messaging.email ??= {};
     config.messaging.email.ratelimit ??= {};
+    config.otp ??= {};
+    config.otp.ratelimit ??= {};
+    config.otp.ratelimit.failed_attempt ??= {};
     config.authenticator ??= {};
     config.authenticator.oob_otp ??= {};
 
@@ -911,6 +925,17 @@ function constructConfig(
             },
     };
     config.messaging.email.ratelimit = currentState.emailRatelimitConfig;
+    config.otp.ratelimit = {
+      failed_attempt:
+        currentState.otpFailedAttemptConfig.enabled &&
+        currentState.otpFailedAttemptConfig.size != null
+          ? {
+              enabled: true,
+              size: currentState.otpFailedAttemptConfig.size,
+              reset_period: "20m",
+            }
+          : { enabled: false },
+    };
     config.authenticator.oob_otp.email =
       currentState.authenticatorOOBEmailConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
@@ -2092,6 +2117,7 @@ interface VerificationSettingsProps {
   verificationConfig: VerificationConfig;
   smsRatelimitConfig: SMSRatelimitConfig;
   emailRatelimitConfig: EmailRatelimitConfig;
+  otpFailedAttemptConfig: OTPFailedAttemptConfig;
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   dailySMSSendLimit: string;
@@ -2106,6 +2132,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
     verificationConfig,
     smsRatelimitConfig,
     emailRatelimitConfig,
+    otpFailedAttemptConfig,
     setState,
     authenticatorOOBEmailConfig,
     authenticatorOOBSMSConfig,
@@ -2119,6 +2146,29 @@ function VerificationSettings(props: VerificationSettingsProps) {
       setState((prev) =>
         produce(prev, (prev) => {
           prev.verificationConfig.code_expiry_seconds =
+            parseIntegerAllowLeadingZeros(value);
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeOTPFailedAttemptEnabled = useCallback(
+    (_, value) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.otpFailedAttemptConfig.enabled = value;
+        })
+      );
+    },
+    [setState]
+  );
+
+  const onChangeOTPFailedAttemptSize = useCallback(
+    (_, value) => {
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.otpFailedAttemptConfig.size =
             parseIntegerAllowLeadingZeros(value);
         })
       );
@@ -2293,6 +2343,31 @@ function VerificationSettings(props: VerificationSettingsProps) {
         value={verificationConfig.code_expiry_seconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
       />
+      <div className={styles.otpFailedAttemptContainer}>
+        <Toggle
+          label={renderToString(
+            "VerificationConfigurationScreen.otp-failed-attempt.label"
+          )}
+          offText={renderToString(
+            "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
+          )}
+          onText={renderToString("Toggle.on")}
+          checked={otpFailedAttemptConfig.enabled ?? false}
+          onChange={onChangeOTPFailedAttemptEnabled}
+        />
+        {otpFailedAttemptConfig.enabled ? (
+          <FormTextField
+            parentJSONPointer="/otp/ratelimit/failed_attempt"
+            fieldName="size"
+            type="text"
+            value={otpFailedAttemptConfig.size?.toFixed(0) ?? ""}
+            onChange={onChangeOTPFailedAttemptSize}
+          />
+        ) : null}
+        <WidgetDescription>
+          <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.description" />
+        </WidgetDescription>
+      </div>
       {showEmailSettings && showPhoneSettings ? (
         <Dropdown
           options={criteriaOptions}
@@ -2420,6 +2495,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationConfig,
       smsRatelimitConfig,
       emailRatelimitConfig,
+      otpFailedAttemptConfig,
       authenticatorOOBEmailConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
@@ -2662,6 +2738,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   verificationConfig={verificationConfig}
                   smsRatelimitConfig={smsRatelimitConfig}
                   emailRatelimitConfig={emailRatelimitConfig}
+                  otpFailedAttemptConfig={otpFailedAttemptConfig}
                   authenticatorOOBEmailConfig={authenticatorOOBEmailConfig}
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                   dailySMSSendLimit={dailySMSSendLimit}
