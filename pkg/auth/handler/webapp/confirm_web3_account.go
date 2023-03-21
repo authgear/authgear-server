@@ -99,16 +99,13 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 
 	userIDHint := ""
-	webhookState := ""
 	suppressIDPSessionCookie := false
 	if s := webapp.GetSession(r.Context()); s != nil {
-		webhookState = s.WebhookState
 		userIDHint = s.UserIDHint
 		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
 	}
 	intent := &intents.IntentAuthenticate{
 		Kind:                     intents.IntentAuthenticateKindLogin,
-		WebhookState:             webhookState,
 		UserIDHint:               userIDHint,
 		SuppressIDPSessionCookie: suppressIDPSessionCookie,
 	}

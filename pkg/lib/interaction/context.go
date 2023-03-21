@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -114,7 +115,12 @@ type UserService interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
 	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
-	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info, isAdminAPI bool, webhookState string) error
+	AfterCreate(
+		user *user.User,
+		identities []*identity.Info,
+		authenticators []*authenticator.Info,
+		isAdminAPI bool,
+		uiParam *uiparam.T) error
 	UpdateLoginTime(userID string, lastLoginAt time.Time) error
 }
 

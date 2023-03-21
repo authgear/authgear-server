@@ -27,6 +27,10 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 		state := q.Get("state")
 		uiParam.State = state
 
+		// x_state
+		xState := q.Get("x_state")
+		uiParam.XState = xState
+
 		// Put uiParam into context
 		ctx := r.Context()
 		ctx = uiparam.WithUIParam(ctx, &uiParam)

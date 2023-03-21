@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -103,10 +104,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				}
 			}
 
-			webhookState := ""
-			if intentWithWebhook, ok := graph.Intent.(interaction.IntentWithWebhookState); ok {
-				webhookState = intentWithWebhook.GetWebhookState()
-			}
+			uiParam := uiparam.GetUIParam(ctx.Request.Context())
 
 			// run the effects
 			err = ctx.Users.AfterCreate(
@@ -114,7 +112,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				graph.GetUserNewIdentities(),
 				graph.GetUserNewAuthenticators(),
 				n.IsAdminAPI,
-				webhookState,
+				uiParam,
 			)
 			if err != nil {
 				return err

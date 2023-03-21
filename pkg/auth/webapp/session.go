@@ -26,7 +26,6 @@ type SessionOptions struct {
 	Extra                      map[string]interface{}
 	Page                       string
 	UserIDHint                 string
-	WebhookState               string
 	UpdatedAt                  time.Time
 	CanUseIntentReauthenticate bool
 	SuppressIDPSessionCookie   bool
@@ -42,7 +41,6 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		Prompt:                     s.Prompt,
 		Extra:                      nil, // Omit extra by default
 		Page:                       s.Page,
-		WebhookState:               s.WebhookState,
 		UserIDHint:                 s.UserIDHint,
 		CanUseIntentReauthenticate: s.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
@@ -77,10 +75,6 @@ type Session struct {
 
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-
-	// WebhookState is the state parameter that will pass to the webhook
-	// during the web session
-	WebhookState string `json:"webhook_state,omitempty"`
 
 	// UserIDHint is the intended user ID.
 	// It is expected that the authenticated user is indicated by this user ID,
@@ -120,7 +114,6 @@ func NewSession(options SessionOptions) *Session {
 		Prompt:                     options.Prompt,
 		Page:                       options.Page,
 		UpdatedAt:                  options.UpdatedAt,
-		WebhookState:               options.WebhookState,
 		UserIDHint:                 options.UserIDHint,
 		CanUseIntentReauthenticate: options.CanUseIntentReauthenticate,
 		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,

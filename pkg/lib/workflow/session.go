@@ -14,6 +14,7 @@ type Session struct {
 	RedirectURI              string `json:"redirect_uri,omitempty"`
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
 	State                    string `json:"state,omitempty"`
+	XState                   string `json:"x_state,omitempty"`
 	UILocales                string `json:"ui_locales,omitempty"`
 }
 
@@ -28,6 +29,7 @@ type SessionOptions struct {
 	RedirectURI              string
 	SuppressIDPSessionCookie bool
 	State                    string
+	XState                   string
 	UILocales                string
 }
 
@@ -38,6 +40,7 @@ func NewSession(opts *SessionOptions) *Session {
 		RedirectURI:              opts.RedirectURI,
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
 		State:                    opts.State,
+		XState:                   opts.XState,
 		UILocales:                opts.UILocales,
 	}
 }
@@ -55,10 +58,10 @@ func (s *Session) Context(ctx context.Context) context.Context {
 		ClientID:  s.ClientID,
 		UILocales: s.UILocales,
 		State:     s.State,
+		XState:    s.XState,
 	})
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
-	ctx = context.WithValue(ctx, contextKeyState, s.State)
 	ctx = context.WithValue(ctx, contextKeyWorkflowID, s.WorkflowID)
 	return ctx
 }

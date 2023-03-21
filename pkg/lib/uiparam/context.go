@@ -11,6 +11,7 @@ var uiParamContextKey = uiParamContextKeyType{}
 type T struct {
 	ClientID  string
 	State     string
+	XState    string
 	UILocales string
 }
 
@@ -19,6 +20,7 @@ func WithUIParam(ctx context.Context, uiParam *T) context.Context {
 	if ok {
 		v.ClientID = uiParam.ClientID
 		v.State = uiParam.State
+		v.XState = uiParam.XState
 		v.UILocales = uiParam.UILocales
 		return ctx
 	}
@@ -33,6 +35,7 @@ func GetUIParam(ctx context.Context) *T {
 	return &T{
 		ClientID:  "",
 		State:     "",
+		XState:    "",
 		UILocales: "",
 	}
 }

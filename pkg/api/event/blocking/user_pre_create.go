@@ -10,11 +10,12 @@ const (
 )
 
 type UserPreCreateBlockingEventPayload struct {
-	UserRef    model.UserRef    `json:"-" resolve:"user"`
-	UserModel  model.User       `json:"user"`
-	Identities []model.Identity `json:"identities"`
-	OAuthState string           `json:"-"`
-	AdminAPI   bool             `json:"-"`
+	UserRef     model.UserRef    `json:"-" resolve:"user"`
+	UserModel   model.User       `json:"user"`
+	Identities  []model.Identity `json:"identities"`
+	OAuthState  string           `json:"-"`
+	OAuthXState string           `json:"-"`
+	AdminAPI    bool             `json:"-"`
 }
 
 func (e *UserPreCreateBlockingEventPayload) BlockingEventType() event.Type {
@@ -33,9 +34,10 @@ func (e *UserPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredByTy
 }
 
 func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {
-	if e.OAuthState != "" {
+	if e.OAuthState != "" || e.OAuthXState != "" {
 		ctx.OAuth = &event.OAuthContext{
-			State: e.OAuthState,
+			State:  e.OAuthState,
+			XState: e.OAuthXState,
 		}
 	}
 }

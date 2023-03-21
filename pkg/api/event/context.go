@@ -34,5 +34,6 @@ type Context struct {
 }
 
 type OAuthContext struct {
-	State string `json:"state,omitempty"`
+	State  string `json:"state,omitempty"`
+	XState string `json:"x_state,omitempty"`
 }
