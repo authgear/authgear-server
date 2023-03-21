@@ -92,7 +92,6 @@ func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Sessio
 		Prompt:                     uiInfo.Prompt,
 		UserIDHint:                 uiInfo.UserIDHint,
 		CanUseIntentReauthenticate: uiInfo.CanUseIntentReauthenticate,
-		WebhookState:               uiInfo.State,
 		Page:                       uiInfo.Page,
 		SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
 		OAuthProviderAlias:         uiInfo.OAuthProviderAlias,

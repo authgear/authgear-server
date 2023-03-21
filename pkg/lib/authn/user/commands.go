@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -31,7 +32,7 @@ func (c *Commands) AfterCreate(
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isAdminAPI bool,
-	webhookState string,
+	uiParam *uiparam.T,
 ) error {
 	isVerified, err := c.Verification.IsUserVerified(identities)
 	if err != nil {
@@ -64,7 +65,7 @@ func (c *Commands) AfterCreate(
 			UserRef:    *user.ToRef(),
 			Identities: identityModels,
 			AdminAPI:   isAdminAPI,
-			OAuthState: webhookState,
+			UIParam:    uiParam,
 		},
 		&nonblocking.UserCreatedEventPayload{
 			UserRef:    *user.ToRef(),

@@ -62,7 +62,6 @@ func (s *Session) Context(ctx context.Context) context.Context {
 	})
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
-	ctx = context.WithValue(ctx, contextKeyState, s.State)
 	ctx = context.WithValue(ctx, contextKeyWorkflowID, s.WorkflowID)
 	return ctx
 }

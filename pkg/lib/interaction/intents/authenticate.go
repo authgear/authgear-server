@@ -28,7 +28,6 @@ const (
 type IntentAuthenticate struct {
 	Kind                     IntentAuthenticateKind `json:"kind"`
 	SuppressIDPSessionCookie bool                   `json:"suppress_idp_session_cookie"`
-	WebhookState             string                 `json:"webhook_state"`
 	UserIDHint               string                 `json:"user_id_hint,omitempty"`
 }
 
@@ -374,9 +373,3 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		panic(fmt.Errorf("interaction: unexpected node: %T", node))
 	}
 }
-
-func (i *IntentAuthenticate) GetWebhookState() string {
-	return i.WebhookState
-}
-
-var _ interaction.IntentWithWebhookState = &IntentAuthenticate{}

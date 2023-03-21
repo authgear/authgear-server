@@ -104,19 +104,16 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	loginHint := ""
 	userIDHint := ""
-	webhookState := ""
 	suppressIDPSessionCookie := false
 	prompt := []string{}
 	if s := webapp.GetSession(r.Context()); s != nil {
 		loginHint = s.LoginHint
-		webhookState = s.WebhookState
 		prompt = s.Prompt
 		userIDHint = s.UserIDHint
 		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
 	}
 	intent := &intents.IntentAuthenticate{
 		Kind:                     intents.IntentAuthenticateKindPromote,
-		WebhookState:             webhookState,
 		UserIDHint:               userIDHint,
 		SuppressIDPSessionCookie: suppressIDPSessionCookie,
 	}

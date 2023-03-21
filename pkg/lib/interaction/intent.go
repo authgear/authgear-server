@@ -39,7 +39,3 @@ func InstantiateIntent(kind string) Intent {
 	}
 	return factory()
 }
-
-type IntentWithWebhookState interface {
-	GetWebhookState() string
-}

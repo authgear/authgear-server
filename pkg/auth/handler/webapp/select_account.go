@@ -215,7 +215,6 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				}
 
 				intent := &intents.IntentReauthenticate{
-					WebhookState:             webSession.WebhookState,
 					UserIDHint:               userIDHint,
 					SuppressIDPSessionCookie: suppressIDPSessionCookie,
 				}
