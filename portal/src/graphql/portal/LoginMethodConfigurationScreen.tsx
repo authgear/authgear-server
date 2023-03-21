@@ -85,6 +85,7 @@ import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CustomTagPicker from "../../CustomTagPicker";
 import TextField from "../../TextField";
+import FormTextField from "../../FormTextField";
 import Toggle from "../../Toggle";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
@@ -2355,7 +2356,9 @@ function VerificationSettings(props: VerificationSettingsProps) {
           onChange={onChangeOTPFailedAttemptEnabled}
         />
         {otpFailedAttemptConfig.enabled ? (
-          <TextField
+          <FormTextField
+            parentJSONPointer="/otp/ratelimit/failed_attempt"
+            fieldName="size"
             type="text"
             value={otpFailedAttemptConfig.size?.toFixed(0) ?? ""}
             onChange={onChangeOTPFailedAttemptSize}
