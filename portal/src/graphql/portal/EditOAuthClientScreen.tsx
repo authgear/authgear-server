@@ -330,6 +330,16 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
               docLink: "https://docs.authgear.com/get-started/xamarin",
             },
           ];
+        case "confidential":
+          return [
+            {
+              icon: <i className={cn("fab", "fa-openid")} />,
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.oidc"
+              ),
+              docLink: "https://docs.authgear.com/integrate/oidc-provider",
+            },
+          ];
         case "third_party_app":
           return [
             {
@@ -457,7 +467,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
                 <FormattedMessage
                   id="EditOAuthClientScreen.quick-start-widget.question"
                   values={{
-                    applicationType: client.x_application_type ?? "unspecified",
+                    applicationType: client.x_application_type ?? "",
                   }}
                 />
               </Text>
@@ -514,7 +524,7 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
               <FormattedMessage
                 id="EditOAuthClientScreen.quick-start-screen.question"
                 values={{
-                  applicationType: client?.x_application_type ?? "unspecified",
+                  applicationType: client?.x_application_type ?? "",
                 }}
               />
             </Text>

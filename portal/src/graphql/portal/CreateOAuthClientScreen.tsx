@@ -88,7 +88,10 @@ function constructConfig(
     } else if (draft.x_application_type === "native") {
       draft.redirect_uris = ["com.example.myapp://host/path"];
       draft.post_logout_redirect_uris = undefined;
-    } else if (draft.x_application_type === "third_party_app") {
+    } else if (
+      draft.x_application_type === "confidential" ||
+      draft.x_application_type === "third_party_app"
+    ) {
       draft.client_name = draft.name;
       draft.redirect_uris = ["http://localhost/after-authentication"];
       draft.post_logout_redirect_uris = undefined;
@@ -103,7 +106,10 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
-  if (currentState.newClient.x_application_type === "third_party_app") {
+  if (
+    currentState.newClient.x_application_type === "confidential" ||
+    currentState.newClient.x_application_type === "third_party_app"
+  ) {
     return {
       oauthClientSecrets: {
         action: "generate",
@@ -212,14 +218,25 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
           ),
         },
         {
-          key: "third_party_app",
-          text: renderToString("oauth-client.application-type.third-party-app"),
+          key: "confidential",
+          text: renderToString("oauth-client.application-type.confidential"),
           onRenderLabel: onRenderLabel(
             renderToString(
-              "CreateOAuthClientScreen.application-type.description.third-party-app"
+              "CreateOAuthClientScreen.application-type.description.confidential"
             )
           ),
         },
+        // Do not show this option.
+        //{
+        //  key: "third_party_app",
+        //  text: renderToString("oauth-client.application-type.third-party-app"),
+        //  onRenderLabel: onRenderLabel(
+        //    renderToString(
+        //      "CreateOAuthClientScreen.application-type.description.third-party-app"
+        //    )
+        //  ),
+        //  disabled: true,
+        //},
       ];
     }, [renderToString, onRenderLabel]);
 

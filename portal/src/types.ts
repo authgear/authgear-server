@@ -393,6 +393,7 @@ export const applicationTypes = [
   "spa",
   "traditional_webapp",
   "native",
+  "confidential",
   "third_party_app",
 ] as const;
 export type ApplicationType = typeof applicationTypes[number];
