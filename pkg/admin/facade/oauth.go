@@ -59,7 +59,7 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.To
 	if !ok {
 		return nil, apierrors.NewInvalid("invalid client ID")
 	}
-	if client.ClientParty() != config.ClientPartyFirst {
+	if !client.IsFirstParty() {
 		return nil, apierrors.NewForbidden("cannot create session for non-first party client")
 	}
 

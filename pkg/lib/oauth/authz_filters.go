@@ -38,7 +38,7 @@ type KeepThirdPartyAuthorizationFilter struct {
 func NewKeepThirdPartyAuthorizationFilter(oauthConfig *config.OAuthConfig) *KeepThirdPartyAuthorizationFilter {
 	s := make(setutil.Set[string])
 	for _, c := range oauthConfig.Clients {
-		if c.ClientParty() == config.ClientPartyThird {
+		if c.IsThirdParty() {
 			s[c.ClientID] = struct{}{}
 		}
 	}

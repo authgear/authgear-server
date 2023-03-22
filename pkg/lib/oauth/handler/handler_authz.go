@@ -226,7 +226,7 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 	authInfoEntry := consentRequest.AuthInfoEntry
 
 	authzReq := oauthSessionEntry.T.AuthorizationRequest
-	autoGrantAuthz := client.ClientParty() == config.ClientPartyFirst
+	autoGrantAuthz := client.IsFirstParty()
 	grantAuthz := autoGrantAuthz || withUserConsent
 
 	result, err := h.doHandleConsentRequest(redirectURI, client, authzReq, authInfoEntry.T, req, grantAuthz)
@@ -420,7 +420,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	authenticationInfo := idpSession.GetAuthenticationInfo()
-	autoGrantAuthz := client.ClientParty() == config.ClientPartyFirst
+	autoGrantAuthz := client.IsFirstParty()
 
 	result, err := h.finish(redirectURI, r, idpSession.SessionID(), authenticationInfo, idTokenHintSID, nil, autoGrantAuthz)
 	if err != nil {
@@ -560,9 +560,9 @@ func (h *AuthorizationHandler) validateRequest(
 
 	switch r.ResponseType() {
 	case "code":
-		if client.ClientParty() == config.ClientPartyFirst {
+		if client.IsPublic() {
 			if r.CodeChallenge() == "" {
-				return protocol.NewError("invalid_request", "PKCE code challenge is required")
+				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
 			}
 		}
 		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {

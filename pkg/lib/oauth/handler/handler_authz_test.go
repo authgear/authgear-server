@@ -172,7 +172,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					})
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
-						"https://example.com/?error=invalid_request&error_description=PKCE+code+challenge+is+required",
+						"https://example.com/?error=invalid_request&error_description=PKCE+code+challenge+is+required+for+public+clients",
 					))
 				})
 				Convey("unsupported PKCE transform", func() {

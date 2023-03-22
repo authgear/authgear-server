@@ -170,11 +170,12 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.Code() == "" {
 			return protocol.NewError("invalid_request", "code is required")
 		}
-		if client.ClientParty() == config.ClientPartyFirst {
+		if client.IsPublic() {
 			if r.CodeVerifier() == "" {
 				return protocol.NewError("invalid_request", "PKCE code verifier is required")
 			}
-		} else {
+		}
+		if client.IsConfidential() {
 			if r.ClientSecret() == "" {
 				return protocol.NewError("invalid_request", "client secret is required")
 			}
@@ -228,7 +229,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	// verify pkce
-	needVerifyPKCE := client.ClientParty() == config.ClientPartyFirst || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
+	needVerifyPKCE := client.IsPublic() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
 		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
 			return nil, errInvalidAuthzCode
@@ -236,7 +237,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	// verify client secret
-	needClientSecret := client.ClientParty() == config.ClientPartyThird
+	needClientSecret := client.IsConfidential()
 	if needClientSecret {
 		if r.ClientSecret() == "" {
 			return nil, protocol.NewError("invalid_request", "invalid client secret")
@@ -333,10 +334,10 @@ func (h *TokenHandler) handleAnonymousRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if client.ClientParty() == config.ClientPartyThird {
+	if !client.HasFullAccessScope() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
-			"third-party clients may not use anonymous user",
+			"this client may not use anonymous user",
 		)
 	}
 
@@ -447,10 +448,10 @@ func (h *TokenHandler) handleBiometricRequest(
 		)
 	}
 
-	if client.ClientParty() == config.ClientPartyThird {
+	if !client.HasFullAccessScope() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
-			"third-party clients may not use biometric authentication",
+			"this client may not use biometric authentication",
 		)
 	}
 	_, payload, err := jwtutil.SplitWithoutVerify([]byte(r.JWT()))
@@ -648,10 +649,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(offlineGrant),
 		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		ClientLike: &oauth.ClientLike{
-			ClientParty: client.ClientParty(),
-			Scopes:      scopes,
-		},
+		ClientLike:         oauth.ClientClientLike(client, scopes),
 	})
 	if err != nil {
 		return nil, err
@@ -683,10 +681,10 @@ func (h *TokenHandler) handleIDToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	if client.ClientParty() == config.ClientPartyThird {
+	if !client.HasFullAccessScope() {
 		return nil, protocol.NewError(
 			"unauthorized_client",
-			"third-party clients may not refresh id token",
+			"this client may not refresh id token",
 		)
 	}
 
@@ -698,14 +696,11 @@ func (h *TokenHandler) handleIDToken(
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(s),
 		AuthenticationInfo: s.GetAuthenticationInfo(),
-		ClientLike: &oauth.ClientLike{
-			ClientParty: client.ClientParty(),
-			// scopes are used for specifying which fields should be included in the ID token
-			// those fields may include personal identifiable information
-			// Since the ID token issued here will be used in id_token_hint
-			// so no scopes are needed
-			Scopes: []string{},
-		},
+		// scopes are used for specifying which fields should be included in the ID token
+		// those fields may include personal identifiable information
+		// Since the ID token issued here will be used in id_token_hint
+		// so no scopes are needed
+		ClientLike: oauth.ClientClientLike(client, []string{}),
 	})
 	if err != nil {
 		return nil, err
@@ -865,8 +860,8 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 				panic(fmt.Errorf("unknown session type: %v", typ))
 			}
 		}
-	} else if client.ClientParty() == config.ClientPartyThird {
-		// allow issuing access tokens if scopes don't contain offline_access and the client is third-party
+	} else if client.IsConfidential() {
+		// allow issuing access tokens if scopes don't contain offline_access and the client is confidential
 		// fill the response with nil for not returning the refresh token
 		offlineGrant, err := h.issueOfflineGrant(
 			client,
@@ -904,10 +899,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			SID:                sid,
 			Nonce:              code.OIDCNonce,
 			AuthenticationInfo: info,
-			ClientLike: &oauth.ClientLike{
-				ClientParty: client.ClientParty(),
-				Scopes:      code.Scopes,
-			},
+			ClientLike:         oauth.ClientClientLike(client, code.Scopes),
 		})
 		if err != nil {
 			return nil, err
@@ -941,10 +933,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-			ClientLike: &oauth.ClientLike{
-				ClientParty: client.ClientParty(),
-				Scopes:      authz.Scopes,
-			},
+			ClientLike:         oauth.ClientClientLike(client, authz.Scopes),
 		})
 		if err != nil {
 			return nil, err

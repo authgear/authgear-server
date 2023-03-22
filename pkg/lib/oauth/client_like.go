@@ -7,12 +7,14 @@ import (
 )
 
 type ClientLike struct {
-	ClientParty config.ClientParty
-	Scopes      []string
+	IsFirstParty        bool
+	PIIAllowedInIDToken bool
+	Scopes              []string
 }
 
 var ClientLikeNotFound = &ClientLike{
-	ClientParty: config.ClientPartyThird,
+	IsFirstParty:        false,
+	PIIAllowedInIDToken: false,
 }
 
 func SessionClientLike(s session.Session, c *config.OAuthConfig) *ClientLike {
@@ -20,19 +22,25 @@ func SessionClientLike(s session.Session, c *config.OAuthConfig) *ClientLike {
 	switch s := s.(type) {
 	case *idpsession.IDPSession:
 		return &ClientLike{
-			ClientParty: config.ClientPartyFirst,
-			Scopes:      scopes,
+			IsFirstParty:        true,
+			PIIAllowedInIDToken: false,
+			Scopes:              scopes,
 		}
 	case *OfflineGrant:
 		client, ok := c.GetClient(s.ClientID)
 		if !ok {
 			return ClientLikeNotFound
 		}
-		return &ClientLike{
-			ClientParty: client.ClientParty(),
-			Scopes:      scopes,
-		}
+		return ClientClientLike(client, scopes)
 	default:
 		panic("oauth: unexpected session type")
+	}
+}
+
+func ClientClientLike(client *config.OAuthClientConfig, scopes []string) *ClientLike {
+	return &ClientLike{
+		IsFirstParty:        client.IsFirstParty(),
+		PIIAllowedInIDToken: client.PIIAllowedInIDToken(),
+		Scopes:              scopes,
 	}
 }
