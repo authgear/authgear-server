@@ -108,22 +108,21 @@ func (s *Service) deleteCode(target string) {
 }
 
 func (s *Service) handleFailedAttempt(target string) error {
-	if !s.isFailedAttemptRatelimitEnabled() {
-		return nil
+	if s.isFailedAttemptRatelimitEnabled() {
+		err := s.RateLimiter.TakeToken(s.TrackFailedAttemptBucket(target))
+		if err != nil {
+			return err
+		}
+
+		pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
+		if err != nil {
+			return err
+		} else if !pass {
+			// Maximum number of failed attempt exceeded
+			s.deleteCode(target)
+		}
 	}
 
-	err := s.RateLimiter.TakeToken(s.TrackFailedAttemptBucket(target))
-	if err != nil {
-		return err
-	}
-
-	pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
-	if err != nil {
-		return err
-	} else if !pass {
-		// Maximum number of failed attempt exceeded
-		s.deleteCode(target)
-	}
 	return ErrInvalidCode
 }
 
