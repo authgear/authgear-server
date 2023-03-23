@@ -1,34 +1,34 @@
 package config
 
-var _ = Schema.Add("OTPConfig", `
+var _ = Schema.Add("OTPLegacyConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"ratelimit": { "$ref": "#/$defs/OTPRatelimitConfig" }
+		"ratelimit": { "$ref": "#/$defs/OTPLegacyRatelimitConfig" }
 	}
 }
 `)
 
-type OTPConfig struct {
-	Ratelimit *OTPRatelimitConfig `json:"ratelimit,omitempty"`
+type OTPLegacyConfig struct {
+	Ratelimit *OTPLegacyRatelimitConfig `json:"ratelimit,omitempty"`
 }
 
-var _ = Schema.Add("OTPRatelimitConfig", `
+var _ = Schema.Add("OTPLegacyRatelimitConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"failed_attempt": { "$ref": "#/$defs/OTPFailedAttemptConfig" }
+		"failed_attempt": { "$ref": "#/$defs/OTPLegacyFailedAttemptConfig" }
 	}
 }
 `)
 
-type OTPRatelimitConfig struct {
-	FailedAttempt *OTPFailedAttemptConfig `json:"failed_attempt,omitempty"`
+type OTPLegacyRatelimitConfig struct {
+	FailedAttempt *OTPLegacyFailedAttemptConfig `json:"failed_attempt,omitempty"`
 }
 
-var _ = Schema.Add("OTPFailedAttemptConfig", `
+var _ = Schema.Add("OTPLegacyFailedAttemptConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -44,13 +44,13 @@ var _ = Schema.Add("OTPFailedAttemptConfig", `
 }
 `)
 
-type OTPFailedAttemptConfig struct {
+type OTPLegacyFailedAttemptConfig struct {
 	Enabled     bool           `json:"enabled,omitempty"`
 	Size        int            `json:"size,omitempty"`
 	ResetPeriod DurationString `json:"reset_period,omitempty"`
 }
 
-func (c *OTPFailedAttemptConfig) SetDefaults() {
+func (c *OTPLegacyFailedAttemptConfig) SetDefaults() {
 	if c.Enabled {
 		if c.Size == 0 {
 			c.Size = 5

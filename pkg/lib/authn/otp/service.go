@@ -42,7 +42,7 @@ type Service struct {
 	LoginLinkStore LoginLinkStore
 	Logger         Logger
 	RateLimiter    RateLimiter
-	OTPConfig      *config.OTPConfig
+	OTPConfig      *config.OTPLegacyConfig
 	Verification   *config.VerificationConfig
 }
 
