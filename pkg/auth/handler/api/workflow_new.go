@@ -105,21 +105,19 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	if err == nil {
 		sessionOptions, err = h.makeSessionOptions(cookie)
 		if err != nil {
-			return nil, err
+			// Clear the cookie if it invalid or expired
+			httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
 		}
 
 		// Do not clear the UI cookie so that a new session can be created again.
 		// httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
-	} else {
-		// Accept client_id, state, ui_locales from query if the workflow is not OAuth related.
-		// This is essential if the templates of some features require these paramenters.
-		sessionOptions = &workflow.SessionOptions{
-			ClientID:  r.FormValue("client_id"),
-			State:     r.FormValue("state"),
-			XState:    r.FormValue("x_state"),
-			UILocales: r.FormValue("ui_locales"),
-		}
 	}
+	// Accept client_id, state, ui_locales from query. Override any values found in oauth session.
+	// This is essential if the templates of some features require these paramenters.
+	if sessionOptions == nil {
+		sessionOptions = &workflow.SessionOptions{}
+	}
+	sessionOptions = h.patchSessionOptions(r, sessionOptions)
 
 	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
 	if err != nil {
@@ -127,6 +125,30 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	}
 
 	return output, nil
+}
+
+func (h *WorkflowNewHandler) patchSessionOptions(
+	r *http.Request, opts *workflow.SessionOptions) *workflow.SessionOptions {
+
+	clientID := r.FormValue("client_id")
+	state := r.FormValue("state")
+	xState := r.FormValue("x_state")
+	uiLocales := r.FormValue("ui_locales")
+
+	if clientID != "" {
+		opts.ClientID = clientID
+	}
+	if state != "" {
+		opts.State = state
+	}
+	if xState != "" {
+		opts.XState = xState
+	}
+	if uiLocales != "" {
+		opts.UILocales = uiLocales
+	}
+
+	return opts
 }
 
 func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.SessionOptions, error) {
