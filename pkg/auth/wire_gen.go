@@ -4422,6 +4422,23 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	return appSessionTokenHandler
 }
 
+func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	httpConfig := appConfig.HTTP
+	proxyRedirectHandler := &handler.ProxyRedirectHandler{
+		OAuthConfig: oAuthConfig,
+		HTTPConfig:  httpConfig,
+	}
+	oauthProxyRedirectHandler := &oauth.ProxyRedirectHandler{
+		ProxyRedirectHandler: proxyRedirectHandler,
+	}
+	return oauthProxyRedirectHandler
+}
+
 func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory

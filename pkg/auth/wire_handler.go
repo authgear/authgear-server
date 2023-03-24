@@ -105,6 +105,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handleroauth.ProxyRedirectHandler)),
+	))
+}
+
 func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

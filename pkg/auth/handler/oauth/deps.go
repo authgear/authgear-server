@@ -22,4 +22,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(EndSessionHandler), "*"),
 	wire.Struct(new(ChallengeHandler), "*"),
 	wire.Struct(new(AppSessionTokenHandler), "*"),
+	wire.Struct(new(ProxyRedirectHandler), "*"),
 )
