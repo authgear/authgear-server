@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -100,26 +101,28 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 		return nil, err
 	}
 
-	var sessionOptions *workflow.SessionOptions
+	var sessionOptionsFromCookie *workflow.SessionOptions
 	cookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
 	if err == nil {
-		sessionOptions, err = h.makeSessionOptions(cookie)
-		if err != nil {
+		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(cookie)
+		if errors.Is(err, oauthsession.ErrNotFound) {
+			// Clear the cookie if it invalid or expired
+			httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
+		} else if err != nil {
+			// Still return error for any other errors.
 			return nil, err
 		}
 
 		// Do not clear the UI cookie so that a new session can be created again.
 		// httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
-	} else {
-		// Accept client_id, state, ui_locales from query if the workflow is not OAuth related.
-		// This is essential if the templates of some features require these paramenters.
-		sessionOptions = &workflow.SessionOptions{
-			ClientID:  r.FormValue("client_id"),
-			State:     r.FormValue("state"),
-			XState:    r.FormValue("x_state"),
-			UILocales: r.FormValue("ui_locales"),
-		}
 	}
+
+	// Accept client_id, state, ui_locales from query.
+	// This is essential if the templates of some features require these paramenters.
+	sessionOptionsFromQuery := h.makeSessionOptionsFromQuery(r)
+
+	// The query overrides the cookie.
+	sessionOptions := sessionOptionsFromQuery.PartiallyMergeFrom(sessionOptionsFromCookie)
 
 	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
 	if err != nil {
@@ -129,7 +132,7 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	return output, nil
 }
 
-func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.SessionOptions, error) {
+func (h *WorkflowNewHandler) makeSessionOptionsFromCookie(cookie *http.Cookie) (*workflow.SessionOptions, error) {
 	entry, err := h.OAuthSessions.Get(cookie.Value)
 	if err != nil {
 		return nil, err
@@ -151,4 +154,13 @@ func (h *WorkflowNewHandler) makeSessionOptions(cookie *http.Cookie) (*workflow.
 	}
 
 	return sessionOptions, nil
+}
+
+func (h *WorkflowNewHandler) makeSessionOptionsFromQuery(r *http.Request) *workflow.SessionOptions {
+	return &workflow.SessionOptions{
+		ClientID:  r.FormValue("client_id"),
+		State:     r.FormValue("state"),
+		XState:    r.FormValue("x_state"),
+		UILocales: r.FormValue("ui_locales"),
+	}
 }
