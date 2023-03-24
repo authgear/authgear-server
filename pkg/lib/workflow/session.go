@@ -33,6 +33,33 @@ type SessionOptions struct {
 	UILocales                string
 }
 
+func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
+	out := &SessionOptions{}
+	if s != nil {
+		out.ClientID = s.ClientID
+		out.RedirectURI = s.RedirectURI
+		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
+		out.State = s.State
+		out.XState = s.XState
+		out.UILocales = s.UILocales
+	}
+	if o != nil {
+		if o.ClientID != "" {
+			out.ClientID = o.ClientID
+		}
+		if o.State != "" {
+			out.State = o.State
+		}
+		if o.XState != "" {
+			out.XState = o.XState
+		}
+		if o.UILocales != "" {
+			out.UILocales = o.UILocales
+		}
+	}
+	return out
+}
+
 func NewSession(opts *SessionOptions) *Session {
 	return &Session{
 		WorkflowID:               newWorkflowID(),
