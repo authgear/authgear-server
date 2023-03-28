@@ -33,6 +33,8 @@ import {
   PasskeyAutofillController,
 } from "./passkey";
 import { WalletConfirmationController, WalletIconController } from "./web3";
+import { init as SentryInit } from "@sentry/browser";
+import { BrowserTracing } from "@sentry/tracing";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -90,3 +92,20 @@ Stimulus.register("passkey-autofill", PasskeyAutofillController);
 
 Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
 Stimulus.register("web3-wallet-icon", WalletIconController);
+
+declare global {
+  interface Window {
+    __config: {
+      sentryDSN: string;
+    };
+  }
+}
+
+if (window.__config.sentryDSN.length > 0) {
+  SentryInit({
+    dsn: window.__config.sentryDSN,
+    integrations: [new BrowserTracing()],
+    // Do not enable performance monitoring.
+    // tracesSampleRate: 0,
+  });
+}

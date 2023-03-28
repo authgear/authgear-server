@@ -40,5 +40,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 {{ end }}
 <!-- End Google Tag Manager -->
 
+<script nonce="{{ $.CSPNonce }}">
+  window.__config = {
+    sentryDSN: "{{ $.AuthUISentryDSN }}",
+  };
+</script>
+
 </head>
 {{ end }}

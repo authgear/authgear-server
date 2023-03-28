@@ -64,6 +64,7 @@ type BaseViewModel struct {
 	TutorialMessageType         string
 	// HasThirdPartyApp indicates whether the project has third-party client
 	HasThirdPartyClient bool
+	AuthUISentryDSN     string
 
 	FirstNonPasskeyPrimaryAuthenticatorType string
 }
@@ -134,6 +135,7 @@ type BaseViewModeler struct {
 	FlashMessage          FlashMessage
 	DefaultLanguageTag    template.DefaultLanguageTag
 	SupportedLanguageTags template.SupportedLanguageTags
+	AuthUISentryDSN       config.AuthUISentryDSN
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -223,6 +225,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		ResolvedLanguageTag:         resolvedLanguageTag,
 		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
 		HasThirdPartyClient:         hasThirdPartyApp,
+		AuthUISentryDSN:             string(m.AuthUISentryDSN),
 	}
 
 	if errorState, ok := m.ErrorCookie.GetError(r); ok {
