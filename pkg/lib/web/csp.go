@@ -21,9 +21,10 @@ func GetCSPNonce(ctx context.Context) string {
 }
 
 type CSPDirectivesOptions struct {
-	PublicOrigin string
-	Nonce        string
-	CDNHost      string
+	PublicOrigin    string
+	Nonce           string
+	CDNHost         string
+	AuthUISentryDSN string
 	// FrameAncestors supports the redirect approach used by the custom UI.
 	// The custom UI loads the redirect URI with an iframe.
 	FrameAncestors    []string
@@ -55,9 +56,19 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 		frameAncestors = strings.Join(opts.FrameAncestors, " ")
 	}
 
+	// https://docs.sentry.io/platforms/javascript/install/cdn/#content-security-policy
+	sentryDSNHost := ""
+	if len(opts.AuthUISentryDSN) > 0 {
+		u, err := url.Parse(opts.AuthUISentryDSN)
+		if err != nil {
+			return nil, fmt.Errorf("invalid AuthUISentryDSN %w", err)
+		}
+		sentryDSNHost = u.Host
+	}
+
 	return []string{
 		"default-src 'self'",
-		fmt.Sprintf("script-src %v %v www.googletagmanager.com", selfSrc, scriptSrc),
+		fmt.Sprintf("script-src %v %v www.googletagmanager.com https://browser.sentry-cdn.com", selfSrc, scriptSrc),
 		"frame-src 'self' www.googletagmanager.com",
 		fmt.Sprintf("font-src %v cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com", selfSrc),
 		fmt.Sprintf("style-src %v 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com", selfSrc),
@@ -68,7 +79,7 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 		"base-uri 'none'",
 		// https://github.com/w3c/webappsec-csp/issues/7
 		// 'self' does not include websocket in Safari :(
-		fmt.Sprintf("connect-src 'self' https://www.google-analytics.com ws://%s wss://%s", u.Host, u.Host),
+		strings.Trim(fmt.Sprintf("connect-src 'self' https://www.google-analytics.com ws://%s wss://%s %s", u.Host, u.Host, sentryDSNHost), " "),
 		"block-all-mixed-content",
 		fmt.Sprintf("frame-ancestors %v", frameAncestors),
 	}, nil

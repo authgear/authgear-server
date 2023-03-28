@@ -21,7 +21,7 @@ func TestCSPDirectives(t *testing.T) {
 			AllowInlineScript: false,
 		}, []string{
 			"default-src 'self'",
-			"script-src 'self' 'nonce-N0NC5' www.googletagmanager.com",
+			"script-src 'self' 'nonce-N0NC5' www.googletagmanager.com https://browser.sentry-cdn.com",
 			"frame-src 'self' www.googletagmanager.com",
 			"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
 			"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
@@ -40,7 +40,7 @@ func TestCSPDirectives(t *testing.T) {
 			AllowInlineScript: false,
 		}, []string{
 			"default-src 'self'",
-			"script-src 'self' cdn.localhost:3000 'nonce-N0NC5' www.googletagmanager.com",
+			"script-src 'self' cdn.localhost:3000 'nonce-N0NC5' www.googletagmanager.com https://browser.sentry-cdn.com",
 			"frame-src 'self' www.googletagmanager.com",
 			"font-src 'self' cdn.localhost:3000 cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
 			"style-src 'self' cdn.localhost:3000 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
@@ -59,7 +59,7 @@ func TestCSPDirectives(t *testing.T) {
 			AllowInlineScript: true,
 		}, []string{
 			"default-src 'self'",
-			"script-src 'self' cdn.localhost:3000 'unsafe-inline' www.googletagmanager.com",
+			"script-src 'self' cdn.localhost:3000 'unsafe-inline' www.googletagmanager.com https://browser.sentry-cdn.com",
 			"frame-src 'self' www.googletagmanager.com",
 			"font-src 'self' cdn.localhost:3000 cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
 			"style-src 'self' cdn.localhost:3000 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
@@ -79,7 +79,7 @@ func TestCSPDirectives(t *testing.T) {
 			FrameAncestors:    []string{"http://remote.localhost"},
 		}, []string{
 			"default-src 'self'",
-			"script-src 'self' cdn.localhost:3000 'nonce-N0NC5' www.googletagmanager.com",
+			"script-src 'self' cdn.localhost:3000 'nonce-N0NC5' www.googletagmanager.com https://browser.sentry-cdn.com",
 			"frame-src 'self' www.googletagmanager.com",
 			"font-src 'self' cdn.localhost:3000 cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
 			"style-src 'self' cdn.localhost:3000 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
@@ -89,6 +89,26 @@ func TestCSPDirectives(t *testing.T) {
 			"connect-src 'self' https://www.google-analytics.com ws://localhost:3000 wss://localhost:3000",
 			"block-all-mixed-content",
 			"frame-ancestors http://remote.localhost",
+		})
+
+		test(CSPDirectivesOptions{
+			PublicOrigin:      "http://localhost:3000",
+			Nonce:             "N0NC5",
+			CDNHost:           "",
+			AllowInlineScript: false,
+			AuthUISentryDSN:   "https://examplePublicKey@o0.ingest.sentry.io/0",
+		}, []string{
+			"default-src 'self'",
+			"script-src 'self' 'nonce-N0NC5' www.googletagmanager.com https://browser.sentry-cdn.com",
+			"frame-src 'self' www.googletagmanager.com",
+			"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com",
+			"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com",
+			"img-src 'self' http: https: data:",
+			"object-src 'none'",
+			"base-uri 'none'",
+			"connect-src 'self' https://www.google-analytics.com ws://localhost:3000 wss://localhost:3000 o0.ingest.sentry.io",
+			"block-all-mixed-content",
+			"frame-ancestors 'none'",
 		})
 	})
 }

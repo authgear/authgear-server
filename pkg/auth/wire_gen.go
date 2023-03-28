@@ -54698,11 +54698,13 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	oAuthConfig := appConfig.OAuth
 	webAppCDNHost := environmentConfig.WebAppCDNHost
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
 		Cookies:             cookieManager,
 		HTTPConfig:          httpConfig,
 		OAuthConfig:         oAuthConfig,
 		WebAppCDNHost:       webAppCDNHost,
+		AuthUISentryDSN:     authUISentryDSN,
 		AllowInlineScript:   allowInlineScript,
 		AllowFrameAncestors: allowFrameAncestors,
 	}
