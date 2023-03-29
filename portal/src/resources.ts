@@ -212,5 +212,9 @@ export const TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT =
   "email.verification.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT =
   "email.setup-primary-oob.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT =
+  "email.setup-primary-login-link.subject";
+export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT =
+  "email.authenticate-primary-login-link.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT =
   "email.authenticate-primary-oob.subject";
