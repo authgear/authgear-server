@@ -550,3 +550,4 @@ google_tag_manager: {}
 account_migration:
   hook:
     timeout: 5
+captcha: {}

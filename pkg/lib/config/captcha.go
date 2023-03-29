@@ -6,8 +6,7 @@ var _ = Schema.Add("CaptchaConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"provider": { "$ref": "#/$defs/CaptchaProvider" }
-	},
-	"required": ["provider"]
+	}
 }
 `)
 

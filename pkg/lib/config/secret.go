@@ -253,7 +253,8 @@ const (
 	ImagesKeyMaterialsKey      SecretKey = "images"
 	WATICredentialsKey         SecretKey = "whatsapp.wati"
 	// nolint: gosec
-	OAuthClientCredentialsKey       SecretKey = "oauth.client_secrets"
+	OAuthClientCredentialsKey SecretKey = "oauth.client_secrets"
+	// nolint: gosec
 	CaptchaCloudflareCredentialsKey SecretKey = "captcha.cloudflare"
 )
 
