@@ -122,7 +122,7 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	sessionOptionsFromQuery := h.makeSessionOptionsFromQuery(r)
 
 	// The query overrides the cookie.
-	sessionOptions := sessionOptionsFromQuery.PartiallyMergeFrom(sessionOptionsFromCookie)
+	sessionOptions := sessionOptionsFromCookie.PartiallyMergeFrom(sessionOptionsFromQuery)
 
 	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
 	if err != nil {
