@@ -40,6 +40,18 @@ import { BrowserTracing } from "@sentry/tracing";
 
 axios.defaults.withCredentials = true;
 
+const sentryDSN = document
+  .querySelector("meta[name=x-sentry-dsn]")
+  ?.getAttribute("content");
+if (sentryDSN != null && sentryDSN !== "") {
+  SentryInit({
+    dsn: sentryDSN,
+    integrations: [new BrowserTracing()],
+    // Do not enable performance monitoring.
+    // tracesSampleRate: 0,
+  });
+}
+
 start();
 
 const Stimulus = Application.start();
@@ -92,20 +104,3 @@ Stimulus.register("passkey-autofill", PasskeyAutofillController);
 
 Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
 Stimulus.register("web3-wallet-icon", WalletIconController);
-
-declare global {
-  interface Window {
-    __config: {
-      sentryDSN: string;
-    };
-  }
-}
-
-if (window.__config.sentryDSN.length > 0) {
-  SentryInit({
-    dsn: window.__config.sentryDSN,
-    integrations: [new BrowserTracing()],
-    // Do not enable performance monitoring.
-    // tracesSampleRate: 0,
-  });
-}
