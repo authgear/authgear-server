@@ -254,6 +254,8 @@ const (
 	WATICredentialsKey         SecretKey = "whatsapp.wati"
 	// nolint: gosec
 	OAuthClientCredentialsKey SecretKey = "oauth.client_secrets"
+	// nolint: gosec
+	CaptchaCloudflareCredentialsKey SecretKey = "captcha.cloudflare"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -276,23 +278,24 @@ type secretKeyDef struct {
 }
 
 var secretItemKeys = map[SecretKey]secretKeyDef{
-	DatabaseCredentialsKey:         {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
-	AuditDatabaseCredentialsKey:    {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
-	ElasticsearchCredentialsKey:    {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
-	RedisCredentialsKey:            {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
-	AnalyticRedisCredentialsKey:    {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
-	AdminAPIAuthKeyKey:             {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
-	OAuthSSOProviderCredentialsKey: {"OAuthSSOProviderCredentials", func() SecretItemData { return &OAuthSSOProviderCredentials{} }},
-	SMTPServerCredentialsKey:       {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
-	TwilioCredentialsKey:           {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
-	NexmoCredentialsKey:            {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
-	OAuthKeyMaterialsKey:           {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
-	CSRFKeyMaterialsKey:            {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
-	WebhookKeyMaterialsKey:         {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
-	ImagesKeyMaterialsKey:          {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
-	WATICredentialsKey:             {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
-	OAuthClientCredentialsKey:      {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
-	CustomSMSProviderConfigKey:     {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
+	DatabaseCredentialsKey:          {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
+	AuditDatabaseCredentialsKey:     {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
+	ElasticsearchCredentialsKey:     {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
+	RedisCredentialsKey:             {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
+	AnalyticRedisCredentialsKey:     {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
+	AdminAPIAuthKeyKey:              {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
+	OAuthSSOProviderCredentialsKey:  {"OAuthSSOProviderCredentials", func() SecretItemData { return &OAuthSSOProviderCredentials{} }},
+	SMTPServerCredentialsKey:        {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
+	TwilioCredentialsKey:            {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
+	NexmoCredentialsKey:             {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
+	OAuthKeyMaterialsKey:            {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
+	CSRFKeyMaterialsKey:             {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
+	WebhookKeyMaterialsKey:          {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
+	ImagesKeyMaterialsKey:           {"ImagesKeyMaterials", func() SecretItemData { return &ImagesKeyMaterials{} }},
+	WATICredentialsKey:              {"WATICredentials", func() SecretItemData { return &WATICredentials{} }},
+	OAuthClientCredentialsKey:       {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
+	CustomSMSProviderConfigKey:      {"CustomSMSProviderConfig", func() SecretItemData { return &CustomSMSProviderConfig{} }},
+	CaptchaCloudflareCredentialsKey: {"CaptchaCloudflareCredentials", func() SecretItemData { return &CaptchaCloudflareCredentials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
