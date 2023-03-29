@@ -33,10 +33,24 @@ import {
   PasskeyAutofillController,
 } from "./passkey";
 import { WalletConfirmationController, WalletIconController } from "./web3";
+import { init as SentryInit } from "@sentry/browser";
+import { BrowserTracing } from "@sentry/tracing";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
 axios.defaults.withCredentials = true;
+
+const sentryDSN = document
+  .querySelector("meta[name=x-sentry-dsn]")
+  ?.getAttribute("content");
+if (sentryDSN != null && sentryDSN !== "") {
+  SentryInit({
+    dsn: sentryDSN,
+    integrations: [new BrowserTracing()],
+    // Do not enable performance monitoring.
+    // tracesSampleRate: 0,
+  });
+}
 
 start();
 

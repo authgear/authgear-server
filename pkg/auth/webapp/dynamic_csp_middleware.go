@@ -32,6 +32,7 @@ type DynamicCSPMiddleware struct {
 	HTTPConfig          *config.HTTPConfig
 	OAuthConfig         *config.OAuthConfig
 	WebAppCDNHost       config.WebAppCDNHost
+	AuthUISentryDSN     config.AuthUISentryDSN
 	AllowInlineScript   AllowInlineScript
 	AllowFrameAncestors AllowFrameAncestors
 }
@@ -67,6 +68,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 			PublicOrigin:      m.HTTPConfig.PublicOrigin,
 			Nonce:             nonce,
 			CDNHost:           string(m.WebAppCDNHost),
+			AuthUISentryDSN:   string(m.AuthUISentryDSN),
 			AllowInlineScript: bool(m.AllowInlineScript),
 			FrameAncestors:    frameAncestors,
 		})

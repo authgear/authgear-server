@@ -1073,6 +1073,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -1088,6 +1089,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -6887,6 +6889,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -6902,6 +6905,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -7705,6 +7709,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -7720,6 +7725,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -8522,6 +8528,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -8537,6 +8544,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -9327,6 +9335,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -9342,6 +9351,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -10125,6 +10135,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -10140,6 +10151,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -10913,6 +10925,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -10928,6 +10941,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -11704,6 +11718,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -11719,6 +11734,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -12498,6 +12514,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -12513,6 +12530,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -13294,6 +13312,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -13309,6 +13328,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -14088,6 +14108,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -14103,6 +14124,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -14878,6 +14900,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -14893,6 +14916,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -15672,6 +15696,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -15687,6 +15712,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -16467,6 +16493,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -16482,6 +16509,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -17261,6 +17289,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -17276,6 +17305,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -18055,6 +18085,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -18070,6 +18101,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -18851,6 +18883,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -18866,6 +18899,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -19645,6 +19679,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -19660,6 +19695,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -20439,6 +20475,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -20454,6 +20491,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -21237,6 +21275,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -21252,6 +21291,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -22031,6 +22071,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -22046,6 +22087,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -22887,6 +22929,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -22902,6 +22945,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -23691,6 +23735,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -23706,6 +23751,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -24503,6 +24549,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -24518,6 +24565,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -25307,6 +25355,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -25322,6 +25371,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -26101,6 +26151,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -26116,6 +26167,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -26891,6 +26943,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -26906,6 +26959,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -27685,6 +27739,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -27700,6 +27755,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -28475,6 +28531,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -28490,6 +28547,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -29275,6 +29333,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -29290,6 +29349,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -30065,6 +30125,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -30080,6 +30141,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -30857,6 +30919,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -30872,6 +30935,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -31647,6 +31711,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -31662,6 +31727,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -32469,6 +32535,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -32484,6 +32551,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -33270,6 +33338,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -33285,6 +33354,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -34084,6 +34154,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -34099,6 +34170,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -34882,6 +34954,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -34897,6 +34970,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -35673,6 +35747,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -35688,6 +35763,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -36472,6 +36548,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -36487,6 +36564,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -37263,6 +37341,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -37278,6 +37357,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -38054,6 +38134,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -38069,6 +38150,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -38845,6 +38927,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -38860,6 +38943,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -39637,6 +39721,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -39652,6 +39737,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -40447,6 +40533,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -40462,6 +40549,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -41238,6 +41326,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -41253,6 +41342,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -42029,6 +42119,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -42044,6 +42135,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -42820,6 +42912,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -42835,6 +42928,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -43611,6 +43705,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -43626,6 +43721,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -44409,6 +44505,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -44424,6 +44521,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -45201,6 +45299,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -45216,6 +45315,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -45991,6 +46091,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -46006,6 +46107,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -46796,6 +46898,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -46811,6 +46914,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -47586,6 +47690,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -47601,6 +47706,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -48376,6 +48482,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -48391,6 +48498,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -50697,6 +50805,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -50712,6 +50821,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -51497,6 +51607,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -51512,6 +51623,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -52288,6 +52400,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -52303,6 +52416,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -54613,6 +54727,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
 	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -54628,6 +54743,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		FlashMessage:          flashMessage,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
 	}
 	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
@@ -54698,11 +54814,13 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	oAuthConfig := appConfig.OAuth
 	webAppCDNHost := environmentConfig.WebAppCDNHost
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
 		Cookies:             cookieManager,
 		HTTPConfig:          httpConfig,
 		OAuthConfig:         oAuthConfig,
 		WebAppCDNHost:       webAppCDNHost,
+		AuthUISentryDSN:     authUISentryDSN,
 		AllowInlineScript:   allowInlineScript,
 		AllowFrameAncestors: allowFrameAncestors,
 	}

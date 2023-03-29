@@ -33,6 +33,8 @@
     "@hotwired/turbo": "7.2.4",
     "@metamask/detect-provider": "2.0.0",
     "@metamask/jazzicon": "github:MetaMask/jazzicon#d923914fda6a8795f74c2e66134f73cd72070667",
+    "@sentry/browser": "7.45.0",
+    "@sentry/tracing": "7.45.0",
     "@tabler/icons": "1.107.0",
     "axios": "1.1.3",
     "cropperjs": "1.5.12",

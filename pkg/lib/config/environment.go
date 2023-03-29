@@ -8,6 +8,8 @@ type DevMode bool
 
 type SentryDSN string
 
+type AuthUISentryDSN string
+
 type ImagesCDNHost string
 
 type WebAppCDNHost string
@@ -35,6 +37,8 @@ type EnvironmentConfig struct {
 	LogLevel string `envconfig:"LOG_LEVEL" default:"warn"`
 	// SentryDSN sets the sentry DSN.
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
+	// AuthUISentryDSN sets the sentry DSN for auth ui.
+	AuthUISentryDSN AuthUISentryDSN `envconfig:"AUTH_UI_SENTRY_DSN"`
 	// GlobalDatabase configures the global database
 	GlobalDatabase GlobalDatabaseCredentialsEnvironmentConfig `envconfig:"DATABASE"`
 	// AuditDatabase configures the audit database
