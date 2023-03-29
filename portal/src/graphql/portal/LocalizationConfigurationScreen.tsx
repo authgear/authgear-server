@@ -34,8 +34,10 @@ import {
   RESOURCE_VERIFICATION_EMAIL_HTML,
   RESOURCE_VERIFICATION_EMAIL_TXT,
   RESOURCE_VERIFICATION_SMS_TXT,
+  TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_SUBJECT,
+  TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT,
   TRANSLATION_JSON_KEY_EMAIL_VERIFICATION_SUBJECT,
 } from "../../resources";
@@ -545,6 +547,19 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
       },
     }[passwordlessViaEmailOTPMode];
 
+    const passwordlessViaEmailSubject = {
+      code: {
+        setup: TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT,
+        authenticate:
+          TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT,
+      },
+      login_link: {
+        setup: TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_LOGIN_LINK_SUBJECT,
+        authenticate:
+          TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_LOGIN_LINK_SUBJECT,
+      },
+    }[passwordlessViaEmailOTPMode];
+
     const sectionsPasswordlessViaEmail: EditTemplatesWidgetSection[] = [
       {
         key: "setup",
@@ -556,12 +571,8 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             key: "email-subject",
             title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
             language: "plaintext",
-            value: getTranslationValue(
-              TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT
-            ),
-            onChange: getTranslationOnChange(
-              TRANSLATION_JSON_KEY_EMAIL_SETUP_PRIMARY_OOB_SUBJECT
-            ),
+            value: getTranslationValue(passwordlessViaEmailSubject.setup),
+            onChange: getTranslationOnChange(passwordlessViaEmailSubject.setup),
             editor: "textfield",
           },
           {
@@ -595,10 +606,10 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
             title: <FormattedMessage id="EditTemplatesWidget.email-subject" />,
             language: "plaintext",
             value: getTranslationValue(
-              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT
+              passwordlessViaEmailSubject.authenticate
             ),
             onChange: getTranslationOnChange(
-              TRANSLATION_JSON_KEY_EMAIL_AUTHENTICATE_PRIMARY_OOB_SUBJECT
+              passwordlessViaEmailSubject.authenticate
             ),
             editor: "textfield",
           },

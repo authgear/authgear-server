@@ -5,6 +5,7 @@
 /var/authgear.secrets.yaml
 /var/authgear.features.yaml
 /var/deno
+/var/templates
 /tls-cert.pem
 /tls-key.pem
 .parcel-cache/
