@@ -31,6 +31,7 @@ var configDeps = wire.NewSet(
 		"Web3",
 		"GoogleTagManager",
 		"AccountMigration",
+		"Captcha",
 	),
 	wire.FieldsOf(new(*config.IdentityConfig),
 		"LoginID",
@@ -90,6 +91,7 @@ var secretDeps = wire.NewSet(
 	ProvideImagesKeyMaterials,
 	ProvideWATICredentials,
 	ProvideOAuthClientCredentials,
+	ProvideCaptchaCloudflareCredentials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -173,5 +175,10 @@ func ProvideWATICredentials(c *config.SecretConfig) *config.WATICredentials {
 
 func ProvideOAuthClientCredentials(c *config.SecretConfig) *config.OAuthClientCredentials {
 	s, _ := c.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
+	return s
+}
+
+func ProvideCaptchaCloudflareCredentials(c *config.SecretConfig) *config.CaptchaCloudflareCredentials {
+	s, _ := c.LookupData(config.CaptchaCloudflareCredentialsKey).(*config.CaptchaCloudflareCredentials)
 	return s
 }

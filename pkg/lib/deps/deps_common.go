@@ -29,6 +29,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -39,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
@@ -272,6 +274,11 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		captcha.DependencySet,
+		wire.Bind(new(workflow.CaptchaService), new(*captcha.Provider)),
+	),
+
+	wire.NewSet(
 		oauthpq.DependencySet,
 		wire.Bind(new(oauth.AuthorizationStore), new(*oauthpq.AuthorizationStore)),
 		wire.Bind(new(facade.OAuthService), new(*oauthpq.AuthorizationStore)),
@@ -387,6 +394,10 @@ var CommonDependencySet = wire.NewSet(
 		sms.DependencySet,
 		wire.Bind(new(forgotpassword.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
 		wire.Bind(new(otp.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
+	),
+
+	wire.NewSet(
+		infracaptcha.DependencySet,
 	),
 
 	wire.NewSet(

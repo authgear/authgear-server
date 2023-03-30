@@ -140,6 +140,10 @@ type LoginIDNormalizerFactory interface {
 	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
 }
 
+type CaptchaService interface {
+	VerifyToken(token string) (bool, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -158,6 +162,7 @@ type Dependencies struct {
 	ResetPassword            ResetPasswordService
 	AccountMigrations        AccountMigrationService
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Captcha                  CaptchaService
 
 	IDPSessions         IDPSessionService
 	Sessions            SessionService

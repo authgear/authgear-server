@@ -42,6 +42,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -52,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	captcha2 "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -53092,6 +53094,16 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	captchaConfig := appConfig.Captcha
+	captchaProviderLogger := captcha.NewProviderLogger(factory)
+	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	captchaProvider := &captcha.Provider{
+		RemoteIP:         remoteIP,
+		Config:           captchaConfig,
+		Logger:           captchaProviderLogger,
+		CloudflareClient: cloudflareClient,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -53129,6 +53141,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		ResetPassword:            forgotpasswordProvider,
 		AccountMigrations:        accountmigrationService,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Captcha:                  captchaProvider,
 		IDPSessions:              idpsessionProvider,
 		Sessions:                 manager2,
 		AuthenticationInfos:      authenticationinfoStoreRedis,
@@ -53831,6 +53844,16 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	captchaConfig := appConfig.Captcha
+	captchaProviderLogger := captcha.NewProviderLogger(factory)
+	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	captchaProvider := &captcha.Provider{
+		RemoteIP:         remoteIP,
+		Config:           captchaConfig,
+		Logger:           captchaProviderLogger,
+		CloudflareClient: cloudflareClient,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -53868,6 +53891,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		ResetPassword:            forgotpasswordProvider,
 		AccountMigrations:        accountmigrationService,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Captcha:                  captchaProvider,
 		IDPSessions:              idpsessionProvider,
 		Sessions:                 manager2,
 		AuthenticationInfos:      authenticationinfoStoreRedis,
@@ -54540,6 +54564,16 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	captchaConfig := appConfig.Captcha
+	captchaProviderLogger := captcha.NewProviderLogger(factory)
+	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	captchaProvider := &captcha.Provider{
+		RemoteIP:         remoteIP,
+		Config:           captchaConfig,
+		Logger:           captchaProviderLogger,
+		CloudflareClient: cloudflareClient,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -54577,6 +54611,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		ResetPassword:            forgotpasswordProvider,
 		AccountMigrations:        accountmigrationService,
 		LoginIDNormalizerFactory: normalizerFactory,
+		Captcha:                  captchaProvider,
 		IDPSessions:              idpsessionProvider,
 		Sessions:                 manager2,
 		AuthenticationInfos:      authenticationinfoStoreRedis,
