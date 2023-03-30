@@ -16,8 +16,8 @@ func init() {
 var IntentAuthenticateOOBOTPPhoneSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentAuthenticateOOBOTPPhone struct {
-	Authenticator      *authenticator.Info `json:"authenticator,omitempty"`
-	IsCaptchaProtected bool                `json:"is_captcha_protected,omitempty"`
+	CaptchaProtectedIntent
+	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
 func (i *IntentAuthenticateOOBOTPPhone) Kind() string {

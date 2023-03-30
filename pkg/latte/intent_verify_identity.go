@@ -19,9 +19,9 @@ func init() {
 var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`{}`)
 
 type IntentVerifyIdentity struct {
-	Identity           *identity.Info `json:"identity,omitempty"`
-	IsFromSignUp       bool           `json:"is_from_signup"`
-	IsCaptchaProtected bool           `json:"is_captcha_protected,omitempty"`
+	CaptchaProtectedIntent
+	Identity     *identity.Info `json:"identity,omitempty"`
+	IsFromSignUp bool           `json:"is_from_signup"`
 }
 
 func (*IntentVerifyIdentity) Kind() string {
