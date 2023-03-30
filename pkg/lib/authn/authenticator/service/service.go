@@ -309,6 +309,14 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 		}
 		changed = (newAuth != a)
 		return changed, newAuth.ToInfo(), nil
+	case model.AuthenticatorTypeOOBEmail:
+		newAuth := s.OOBOTP.New(ai.ID, spec.UserID, model.AuthenticatorTypeOOBEmail, spec.OOBOTP.Email, spec.IsDefault, string(spec.Kind))
+		changed = (newAuth != ai.OOBOTP)
+		return changed, newAuth.ToInfo(), nil
+	case model.AuthenticatorTypeOOBSMS:
+		newAuth := s.OOBOTP.New(ai.ID, spec.UserID, model.AuthenticatorTypeOOBSMS, spec.OOBOTP.Phone, spec.IsDefault, string(spec.Kind))
+		changed = (newAuth != ai.OOBOTP)
+		return changed, newAuth.ToInfo(), nil
 	}
 
 	panic("authenticator: update authenticator is not supported for type " + ai.Type)
