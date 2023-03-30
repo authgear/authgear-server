@@ -3,6 +3,7 @@ package oob
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 
@@ -176,6 +177,57 @@ func (s *Store) Create(a *authenticator.OOBOTP) (err error) {
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Update(a *authenticator.OOBOTP) (err error) {
+	if a.OOBAuthenticatorType != model.AuthenticatorTypeOOBEmail &&
+		a.OOBAuthenticatorType != model.AuthenticatorTypeOOBSMS {
+		return errors.New("invalid oob authenticator type")
+	}
+
+	q := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_authenticator")).
+		Set("type", a.OOBAuthenticatorType).
+		Set("user_id", a.UserID).
+		Set("created_at", a.CreatedAt).
+		Set("updated_at", a.UpdatedAt).
+		Set("is_default", a.IsDefault).
+		Set("kind", a.Kind).
+		Where("id = ?", a.ID)
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return authenticator.ErrAuthenticatorNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Sprintf("authenticator_oob: want 1 row updated, got %v", rowsAffected))
+	}
+
+	q = s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_authenticator_oob")).
+		Set("phone", a.Phone).
+		Set("email", a.Email).
+		Where("id", a.ID)
+	result, err = s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return authenticator.ErrAuthenticatorNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Sprintf("authenticator_oob: want 1 row updated, got %v", rowsAffected))
 	}
 
 	return nil

@@ -57,6 +57,7 @@ type OOBOTPAuthenticatorProvider interface {
 	List(userID string) ([]*authenticator.OOBOTP, error)
 	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *authenticator.OOBOTP
 	Create(*authenticator.OOBOTP) error
+	Update(*authenticator.OOBOTP) error
 	Delete(*authenticator.OOBOTP) error
 }
 
@@ -377,10 +378,21 @@ func (s *Service) Update(info *authenticator.Info) error {
 			return err
 		}
 		*info = *a.ToInfo()
-
 	case model.AuthenticatorTypePasskey:
 		a := info.Passkey
 		if err := s.Passkey.Update(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
+	case model.AuthenticatorTypeOOBEmail:
+		a := info.OOBOTP
+		if err := s.OOBOTP.Update(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
+	case model.AuthenticatorTypeOOBSMS:
+		a := info.OOBOTP
+		if err := s.OOBOTP.Update(a); err != nil {
 			return err
 		}
 		*info = *a.ToInfo()

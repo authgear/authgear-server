@@ -66,6 +66,12 @@ func (p *Provider) Create(a *authenticator.OOBOTP) error {
 	return p.Store.Create(a)
 }
 
+func (p *Provider) Update(a *authenticator.OOBOTP) error {
+	now := p.Clock.NowUTC()
+	a.UpdatedAt = now
+	return p.Store.Update(a)
+}
+
 func sortAuthenticators(as []*authenticator.OOBOTP) {
 	sort.Slice(as, func(i, j int) bool {
 		return as[i].CreatedAt.Before(as[j].CreatedAt)
