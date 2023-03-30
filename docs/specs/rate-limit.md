@@ -34,32 +34,43 @@ Some considerations for rate limits design:
 
 Rate limits without default are hard-coded (non-configurable).
 
-| Operation | global | per-tenant | per-IP | per-target | per-user-per-IP | per-user | Rationales |
-| ----------|--------|------------|--------|------------|-----------------|----------|------------|
-| **Authentication**
-| Verify password authenticator | | | default: 60/minute | | default: 10/minute | | Mitigate credential brute-forcing. Per-user rate limit is not used to avoid DoS on actual user login.
-| Verify TOTP authenticator | | | default: 60/minute | | default: 10/minute
-| Verify OOB-OTP authenticator (email/SMS) | | | default: 60/minute | | default: 10/minute
-| Verify MFA recovery code | | | default: 60/minute | | default: 10/minute
-| Verify MFA device token | | | default: 60/minute | | default: 10/minute
-| Verify Passkey authenticator | | | default: 60/minute | | | | Since Authgear uses discoverable credentials, user is derived from passkey and per-user-per-IP rate limit is N/A.
-| SWIE nonce request | | | default: 60/minute | | | | Mitigate credential brute-force. User is not known at this point for Web3 login so only per-IP rate limit is used.
-| Signup new user | | | default: 10/minute | | | | Mitigate resource exhaustion by rapid registration of new user.
-| Signup new anonymous user | | | default: 60/minute | | | | A more generous limit is given for anonymous user signup, since it usually occurs on app startup of new installation.
-| Account enumeration (check login ID existence) | | | default: 10/minute | | | | Mitigate account enumeration.
-| **Features** 
-| Send OOB-OTP message | | | default: 10/hour; disabled | default: 1 minute cooldown | | | Mitigate mass/targeted message spam.
-| Send forgot password message | | | default: 10/hour; disabled | default: 1 minute cooldown
-| Send verification message | | | default: 10/hour; disabled | default: 1 minute cooldown | | default: 10/hour; disabled | Per-IP rate limit is used for verification during signup, per-user rate limit is used otherwise.
-| OOB-OTP failed verify attempts | | | | default: 5 attempts; disabled | | | Mitigate credential brute-force; revoke OTP when set limit exceeded.
-| Verification OTP failed verify attempts | | | | default: 5 attempts; disabled
-| Verify verification OTP | | | default: 60/minute | | | | Mitigate credential brute-force.
-| Verify forgot password OTP | | | default: 60/minute | | |
-| **Messaging**
-| Send SMS | environment variables | feature config | default: 60/minute; disabled | default: 50/day; disabled | | | If tenant would like rate limits for all SMS/email, contact server operator to adjust feature config.
-| Send Email | environment variables | feature config | default: 60/minute; disabled | default: 50/day; disabled | |
-| **Misc.** 
-| Presign upload image request | | | | | fixed: 10/hour | | Configuration not needed for now.
+
+| Operation                               | per-IP    | per-target        | per-user-per-IP | per-user | Rationales                                                                                                            |
+| --------------------------------------- | --------- | ----------------- | --------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Authentication**                      |           |                   |                 |          |                                                                                                                       |
+| Verify any credentials                  | 60/minute |                   | 10/minute       |          | Mitigate credential brute-forcing. Per-user rate limit is not used to avoid DoS on actual user login.                 |
+| Verify Password / Additional PW         | NIL       |                   | NIL             |          |                                                                                                                       |
+| Verify Email OTP                        | NIL       |                   | NIL             |          |                                                                                                                       |
+| Verify SMS OTP                          | NIL       |                   | NIL             |          |                                                                                                                       |
+| Verify TOTP                             | NIL       |                   | NIL             |          |                                                                                                                       |
+| Verify MFA recovery code                | NIL       |                   | NIL             |          |                                                                                                                       |
+| Verify MFA device tokens                | NIL       |                   | NIL             |          |                                                                                                                       |
+| Verify Passkey                          | NIL       |                   |                 |          | Since Authgear uses discoverable credentials, user is derived from passkey and per-user-per-IP rate limit is N/A.     |
+| SWIE nonce request                      | NIL       |                   |                 |          | Mitigate credential brute-force. User is not known at this point for Web3 login so only per-IP rate limit is used.    |
+| Signup new user                         | 10/minute |                   |                 |          | Mitigate resource exhaustion by rapid registration of new user.                                                       |
+| Signup new anonymous user               | 60/minute |                   |                 |          | A more generous limit is given for anonymous user signup, since it usually occurs on app startup of new installation. |
+| Check login ID existence                | 10/minute |                   |                 |          | Mitigate account enumeration.                                                                                         |
+| **Features**                            |           |                   |                 |          |                                                                                                                       |
+| Send Login OTP by SMS                   | NIL       | 1 minute cooldown |                 | NIL      | Mitigate mass/targeted message spam.                                                                                  |
+| Send Login OTP by Email                 | NIL       | 1 minute cooldown |                 | NIL      |                                                                                                                       |
+| Send Forgot Password by SMS             | NIL       | 1 minute cooldown |                 |          |                                                                                                                       |
+| Send Forgot Password by Email           | NIL       | 1 minute cooldown |                 |          |                                                                                                                       |
+| Send Verification by SMS                | NIL       | 1 minute cooldown |                 | NIL      | Per-IP rate limit is used for verification during signup, per-user rate limit is used otherwise.                      |
+| Send Verification by Email              | NIL       | 1 minute cooldown |                 | NIL      |                                                                                                                       | 
+| Login OTP failed verify attempts        |           | 5 attempts        |                 |          | Mitigate credential brute-force; revoke OTP when set limit exceeded.                                                  |
+| Verification OTP failed verify attempts |           | 5 attempts        |                 |          |                                                                                                                       |
+| Verify Verification OTP                 | 60/minute |                   |                 |          | Mitigate credential brute-force.                                                                                      |
+| Verify Forgot Password OTP              | 60/minute |                   |                 |          |                                                                                                                       |
+| **Misc.**                               |           |                   |                 |          |                                                                                                                       |
+| Presign upload image request            |           |                   | fixed: 10/hour  |          | Configuration not needed for now.                                                                                     |
+
+| Operation               | per-IP     | per-target |                                                                                                                      |
+| ----------------------- | ---------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Messaging**           |            |            |                                                                                                                      |
+| Send SMS (Global)       | disabled   | 50/day     | Configured using environment variables                                                                               |
+| Send Email (Global)     | disabled   | 50/day     |                                                                                                                      |
+| Send SMS (Per Tenant)   | 60/minute  | 10/hour    | Server operator can configured hard-limit using environment variable; tenant admin may set an additional rate limit. |
+| Send Email (Per Tenant) | 200/minute | 50/day     |                                                                                                                      |
 
 ## Future Works
 
@@ -75,13 +86,21 @@ verification:
     rate_limits:
         # No rate limit is applied
         # validate_code_per_ip:
-        #   period: 1h  # required
+        #   enabled: true
+        #   period: 1h  # required if enabled
         #   brust: 1    # default to 1
+---
+verification:
+    rate_limits:
+        # Turn off a default rate limit
+        validate_code_per_ip:
+            enabled: false
 ---
 verification:
     rate_limits:
         # 1 validation attempt allowed per hour.
         validate_code_per_ip:
+            enabled: true
             period: 1h  # required
             # brust: 1  # default to 1
 ---
@@ -89,6 +108,7 @@ verification:
     rate_limits:
         # 5 validation attempts allowed per hour.
         validate_code_per_ip:
+            enabled: true
             period: 1h  # required
             brust: 5    # default to 1
 ```
@@ -99,9 +119,11 @@ authentication:
     rate_limits:
         general:
             per_ip:
+                enabled: true
                 period: 1m
                 brust: 60
             per_user_per_ip:
+                enabled: true
                 period: 1m
                 brust: 10
         password:
@@ -138,14 +160,17 @@ authentication:
             per_user_per_ip: # default disabled
         signup:
             per_ip:
+                enabled: true
                 period: 1m
                 brust: 10
         signup_anonymous:
             per_ip:
+                enabled: true
                 period: 1m
                 brust: 60
         account_enumeration:
             per_ip:
+                enabled: true
                 period: 1m
                 brust: 10
 
@@ -156,12 +181,14 @@ forgot_password:
             send_message_per_ip: # default disabled
             send_message_cooldown: 1m
             validate_per_ip:
+                enabled: true
                 period: 1m
                 brust: 60
         sms:
             send_message_per_ip: # default disabled
             send_message_cooldown: 1m
             validate_per_ip:
+                enabled: true
                 period: 1m
                 brust: 60
 
@@ -170,16 +197,20 @@ verification:
     rate_limits:
         email:
             send_message_per_ip: # default disabled
+            send_message_per_user: # default disabled
             send_message_cooldown: 1m
             max_failed_attempts_revoke_otp: # 5 # default disabled
             validate_per_ip:
+                enabled: true
                 period: 1m
                 brust: 60
         sms:
             send_message_per_ip: # default disabled
+            send_message_per_user: # default disabled
             send_message_cooldown: 1m
             max_failed_attempts_revoke_otp: # 5 # default disabled
             validate_per_ip:
+                enabled: true
                 period: 1m
                 brust: 60
 
@@ -187,16 +218,20 @@ messaging:
     rate_limits:
         sms: # disabled
         sms_per_ip:
+            enabled: true
             period: 1m
             brust: 60
         sms_per_target:
+            enabled: true
             period: 1h
             brust: 10
         email: # disabled
         email_per_ip:
+            enabled: true
             period: 1m
             brust: 60
         email_per_target:
+            enabled: true
             period: 1h
             brust: 10
 
