@@ -141,7 +141,7 @@ type LoginIDNormalizerFactory interface {
 }
 
 type CaptchaService interface {
-	VerifyToken(token string) (bool, error)
+	VerifyToken(token string) error
 }
 
 type Dependencies struct {

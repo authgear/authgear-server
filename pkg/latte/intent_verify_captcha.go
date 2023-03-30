@@ -38,8 +38,11 @@ func (i *IntentVerifyCaptcha) ReactTo(ctx context.Context, deps *workflow.Depend
 
 	switch {
 	case workflow.AsInput(input, &inputTakeCaptchaToken):
-		// FIXME(tung): Verify the token
-		// token := inputTakeCaptchaToken.GetToken()
+		token := inputTakeCaptchaToken.GetToken()
+		err := deps.Captcha.VerifyToken(token)
+		if err != nil {
+			return nil, err
+		}
 		node := NodeVerifiedCaptcha{}
 		return workflow.NewNodeSimple(&node), nil
 	default:

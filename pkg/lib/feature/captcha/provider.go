@@ -22,24 +22,27 @@ type Provider struct {
 	CloudflareClient *captcha.CloudflareClient
 }
 
-func (p *Provider) VerifyToken(token string) (bool, error) {
+func (p *Provider) VerifyToken(token string) error {
 	if p.Config.Provider == nil {
-		return false, fmt.Errorf("captcha provider not configured")
+		return fmt.Errorf("captcha provider not configured")
 	}
 	switch *p.Config.Provider {
 	case config.CaptchaProviderCloudflare:
 		return p.verifyTokenByCloudflare(token)
 	}
-	return false, fmt.Errorf("unknown captcha provider")
+	return fmt.Errorf("unknown captcha provider")
 }
 
-func (p *Provider) verifyTokenByCloudflare(token string) (bool, error) {
+func (p *Provider) verifyTokenByCloudflare(token string) error {
 	if p.CloudflareClient == nil {
-		return false, fmt.Errorf("missing cloudflare credential")
+		return fmt.Errorf("missing cloudflare credential")
 	}
 	result, err := p.CloudflareClient.Verify(token, string(p.RemoteIP))
 	if err != nil {
-		return false, err
+		return err
 	}
-	return result.Success, nil
+	if !result.Success {
+		return ErrVerfificationFailed
+	}
+	return nil
 }

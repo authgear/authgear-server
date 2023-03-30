@@ -19,8 +19,9 @@ func init() {
 var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`{}`)
 
 type IntentVerifyIdentity struct {
-	Identity     *identity.Info `json:"identity,omitempty"`
-	IsFromSignUp bool           `json:"is_from_signup"`
+	Identity           *identity.Info `json:"identity,omitempty"`
+	IsFromSignUp       bool           `json:"is_from_signup"`
+	IsCaptchaProtected bool           `json:"is_captcha_protected,omitempty"`
 }
 
 func (*IntentVerifyIdentity) Kind() string {
@@ -59,6 +60,10 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 			IdentityID:       i.Identity.ID,
 			NewVerifiedClaim: nil,
 		}), nil
+	}
+
+	if i.IsCaptchaProtected && len(workflow.FindSubWorkflows[*IntentVerifyCaptcha](w)) == 0 {
+		return workflow.NewSubWorkflow(&IntentVerifyCaptcha{}), nil
 	}
 
 	var node interface {

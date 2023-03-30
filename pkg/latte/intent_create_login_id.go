@@ -22,9 +22,10 @@ func init() {
 var IntentCreateLoginIDSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentCreateLoginID struct {
-	UserID      string               `json:"user_id"`
-	LoginIDType model.LoginIDKeyType `json:"login_id_type"`
-	LoginIDKey  string               `json:"login_id_key"`
+	UserID             string               `json:"user_id"`
+	LoginIDType        model.LoginIDKeyType `json:"login_id_type"`
+	LoginIDKey         string               `json:"login_id_key"`
+	IsCaptchaProtected bool                 `json:"is_captcha_protected,omitempty"`
 }
 
 var _ NewIdentityGetter = &IntentCreateLoginID{}
@@ -101,8 +102,9 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 	case 2:
 		iden := i.identityInfo(w)
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
-			Identity:     iden,
-			IsFromSignUp: true,
+			Identity:           iden,
+			IsFromSignUp:       true,
+			IsCaptchaProtected: i.IsCaptchaProtected,
 		}), nil
 	case 3:
 		iden := i.identityInfo(w)
