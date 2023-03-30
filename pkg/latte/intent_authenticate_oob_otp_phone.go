@@ -29,9 +29,18 @@ func (i *IntentAuthenticateOOBOTPPhone) JSONSchema() *validation.SimpleSchema {
 }
 
 func (i *IntentAuthenticateOOBOTPPhone) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
-	case 0:
-		return nil, nil
+	if i.IsCaptchaProtected {
+		switch len(w.Nodes) {
+		case 0:
+			return nil, nil
+		case 1:
+			return nil, nil
+		}
+	} else {
+		switch len(w.Nodes) {
+		case 0:
+			return nil, nil
+		}
 	}
 	return nil, workflow.ErrEOF
 }
