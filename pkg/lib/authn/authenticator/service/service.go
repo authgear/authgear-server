@@ -496,6 +496,47 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	panic("authenticator: unhandled authenticator type " + info.Type)
 }
 
+func (s *Service) UpdateOrphans(identityInfo *identity.Info) error {
+	authenticators, err := s.List(identityInfo.UserID)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range authenticators {
+		if a.IsDependentOf(identityInfo) {
+			spec := &authenticator.Spec{
+				Type:      a.Type,
+				UserID:    a.UserID,
+				IsDefault: a.IsDefault,
+				Kind:      a.Kind,
+			}
+			switch a.Type {
+			case model.AuthenticatorTypeOOBEmail:
+				spec.OOBOTP = &authenticator.OOBOTPSpec{
+					Email: identityInfo.LoginID.LoginID,
+				}
+			case model.AuthenticatorTypeOOBSMS:
+				spec.OOBOTP = &authenticator.OOBOTPSpec{
+					Phone: identityInfo.LoginID.LoginID,
+				}
+			}
+
+			changed, newAuth, err := s.WithSpec(a, spec)
+			if err != nil {
+				return err
+			}
+			if changed {
+				err = s.Update(newAuth)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 	if len(identities) == 0 {
 		return nil

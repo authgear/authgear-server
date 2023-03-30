@@ -44,6 +44,7 @@ type AuthenticatorService interface {
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
+	UpdateOrphans(identityInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
 }
 
@@ -172,6 +173,11 @@ func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 	}
 
 	err = c.markOAuthEmailAsVerified(info)
+	if err != nil {
+		return err
+	}
+
+	err = c.Authenticators.UpdateOrphans(info)
 	if err != nil {
 		return err
 	}
