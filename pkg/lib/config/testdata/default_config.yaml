@@ -531,12 +531,30 @@ verification:
       enabled: true
       required: true
   criteria: any
+  code_valid_period: 1h0m0s
   code_expiry_seconds: 3600
   sms:
     message: {}
   email:
     message:
       subject: Email Verification Instruction
+  rate_limits:
+    email:
+      trigger_per_ip: {}
+      trigger_per_user: {}
+      trigger_cooldown: 1m
+      validate_per_ip:
+        enabled: true
+        period: 1m
+        burst: 60
+    sms:
+      trigger_per_ip: {}
+      trigger_per_user: {}
+      trigger_cooldown: 1m
+      validate_per_ip:
+        enabled: true
+        period: 1m
+        burst: 60
 otp:
   ratelimit:
     failed_attempt:
