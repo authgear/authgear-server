@@ -190,12 +190,7 @@ func (s *Store) Update(a *authenticator.OOBOTP) (err error) {
 
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_authenticator")).
-		Set("type", a.OOBAuthenticatorType).
-		Set("user_id", a.UserID).
-		Set("created_at", a.CreatedAt).
 		Set("updated_at", a.UpdatedAt).
-		Set("is_default", a.IsDefault).
-		Set("kind", a.Kind).
 		Where("id = ?", a.ID)
 	result, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
