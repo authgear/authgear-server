@@ -174,8 +174,15 @@ authentication:
                 period: 1m
                 burst: 10
 
+authenticator:
+    oob_otp:
+        sms:
+            code_valid_period: 20m
+        email:
+            code_valid_period: 20m
+
 forgot_password:
-    valid_period: 20m
+    code_valid_period: 20m
     rate_limits:
         email:
             trigger_per_ip: # default disabled
@@ -193,7 +200,7 @@ forgot_password:
                 burst: 60
 
 verification:
-    valid_period: 1h
+    code_valid_period: 1h
     rate_limits:
         email:
             trigger_per_ip: # default disabled
