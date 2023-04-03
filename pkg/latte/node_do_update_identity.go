@@ -38,7 +38,7 @@ func (n *NodeDoUpdateIdentity) GetEffects(ctx context.Context, deps *workflow.De
 				return err
 			}
 
-			if err := deps.Identities.Update(n.IdentityAfterUpdate); err != nil {
+			if err := deps.Identities.Update(n.IdentityBeforeUpdate, n.IdentityAfterUpdate); err != nil {
 				s1 := n.IdentityBeforeUpdate.ToSpec()
 				s2 := n.IdentityAfterUpdate.ToSpec()
 				return identityFillDetails(err, &s2, &s1)

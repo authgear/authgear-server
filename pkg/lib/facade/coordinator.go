@@ -44,6 +44,7 @@ type AuthenticatorService interface {
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
+	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
 }
 
@@ -165,23 +166,28 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 	return nil
 }
 
-func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
-	err := c.Identities.Update(info)
+func (c *Coordinator) IdentityUpdate(oldInfo *identity.Info, newInfo *identity.Info) error {
+	err := c.Identities.Update(newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.markOAuthEmailAsVerified(info)
+	err = c.markOAuthEmailAsVerified(newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.removeOrphans(info.UserID)
+	err = c.Authenticators.UpdateOrphans(oldInfo, newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(info.UserID)
+	err = c.removeOrphans(newInfo.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(newInfo.UserID)
 	if err != nil {
 		return err
 	}

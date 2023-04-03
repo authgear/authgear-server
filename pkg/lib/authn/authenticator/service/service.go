@@ -56,7 +56,9 @@ type OOBOTPAuthenticatorProvider interface {
 	GetMany(ids []string) ([]*authenticator.OOBOTP, error)
 	List(userID string) ([]*authenticator.OOBOTP, error)
 	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *authenticator.OOBOTP
+	WithSpec(a *authenticator.OOBOTP, spec *authenticator.OOBOTPSpec) (*authenticator.OOBOTP, error)
 	Create(*authenticator.OOBOTP) error
+	Update(*authenticator.OOBOTP) error
 	Delete(*authenticator.OOBOTP) error
 }
 
@@ -309,6 +311,16 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 		}
 		changed = (newAuth != a)
 		return changed, newAuth.ToInfo(), nil
+	case model.AuthenticatorTypeOOBEmail:
+		fallthrough
+	case model.AuthenticatorTypeOOBSMS:
+		a := ai.OOBOTP
+		newAuth, err := s.OOBOTP.WithSpec(a, spec.OOBOTP)
+		if err != nil {
+			return false, nil, err
+		}
+		changed = (newAuth != a)
+		return changed, newAuth.ToInfo(), nil
 	}
 
 	panic("authenticator: update authenticator is not supported for type " + ai.Type)
@@ -369,10 +381,21 @@ func (s *Service) Update(info *authenticator.Info) error {
 			return err
 		}
 		*info = *a.ToInfo()
-
 	case model.AuthenticatorTypePasskey:
 		a := info.Passkey
 		if err := s.Passkey.Update(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
+	case model.AuthenticatorTypeOOBEmail:
+		a := info.OOBOTP
+		if err := s.OOBOTP.Update(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
+	case model.AuthenticatorTypeOOBSMS:
+		a := info.OOBOTP
+		if err := s.OOBOTP.Update(a); err != nil {
 			return err
 		}
 		*info = *a.ToInfo()
@@ -474,6 +497,47 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	}
 
 	panic("authenticator: unhandled authenticator type " + info.Type)
+}
+
+func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error {
+	authenticators, err := s.List(oldInfo.UserID)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range authenticators {
+		if a.IsDependentOf(oldInfo) {
+			spec := &authenticator.Spec{
+				Type:      a.Type,
+				UserID:    a.UserID,
+				IsDefault: a.IsDefault,
+				Kind:      a.Kind,
+			}
+			switch a.Type {
+			case model.AuthenticatorTypeOOBEmail:
+				spec.OOBOTP = &authenticator.OOBOTPSpec{
+					Email: newInfo.LoginID.LoginID,
+				}
+			case model.AuthenticatorTypeOOBSMS:
+				spec.OOBOTP = &authenticator.OOBOTPSpec{
+					Phone: newInfo.LoginID.LoginID,
+				}
+			}
+
+			changed, newAuth, err := s.WithSpec(a, spec)
+			if err != nil {
+				return err
+			}
+			if changed {
+				err = s.Update(newAuth)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) RemoveOrphans(identities []*identity.Info) error {

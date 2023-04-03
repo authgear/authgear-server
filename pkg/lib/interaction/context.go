@@ -37,7 +37,7 @@ type IdentityService interface {
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	Create(is *identity.Info) error
-	Update(info *identity.Info) error
+	Update(oldInfo *identity.Info, newInfo *identity.Info) error
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 }
