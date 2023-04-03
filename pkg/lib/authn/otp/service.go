@@ -69,7 +69,7 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 		codeModel = &Code{}
 	}
 	codeModel.Target = target
-	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeExpiry.Duration())
+	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeValidPeriod.Duration())
 
 	switch otpMode {
 	case OTPModeLoginLink:
@@ -126,6 +126,31 @@ func (s *Service) handleFailedAttempt(target string) error {
 	return ErrInvalidCode
 }
 
+func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions) (string, error) {
+	code := &Code{
+		AppID:        string(s.AppID),
+		Target:       target,
+		WebSessionID: opt.WebSessionID,
+		WorkflowID:   opt.WorkflowID,
+	}
+	code.Target = target
+	code.Purpose = kind.Purpose()
+	code.Code = kind.GenerateCode()
+	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
+
+	// TODO: lookup-able code
+
+	err := s.CodeStore.Create(target, code)
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: rate limits
+	// TODO: reset failed attempts
+
+	return code.Code, nil
+}
+
 func (s *Service) GenerateCode(target string, otpMode OTPMode, opt *GenerateCodeOptions) (*Code, error) {
 	return s.createCode(target, otpMode, &Code{
 		AppID:        string(s.AppID),
@@ -163,6 +188,31 @@ func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
 	// 4. This function return true, the client is confused that failed attempt rate limit is exceeded.
 
 	return false, nil
+}
+
+func (s *Service) VerifyOTP(kind Kind, target string, otp string) error {
+	// TODO: check failed attempts revocation
+	// TODO: rate limits
+
+	code, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return ErrInvalidCode
+	} else if err != nil {
+		return err
+	}
+
+	if code.Purpose != kind.Purpose() {
+		return ErrInvalidCode
+	}
+
+	if !kind.VerifyCode(otp, code.Code) {
+		// TODO: handle failed attempts
+		return ErrInvalidCode
+	}
+
+	s.deleteCode(target)
+
+	return nil
 }
 
 func (s *Service) VerifyCode(target string, code string) error {
@@ -291,4 +341,22 @@ func (s *Service) SetUserInputtedLoginLinkCode(userInputtedCode string) (*Code, 
 	}
 
 	return codeModel, nil
+}
+
+func (s *Service) InspectState(kind Kind, target string) (*State, error) {
+	code, err := s.getCode(target)
+	if err != nil {
+		return nil, err
+	}
+
+	if code.Purpose != kind.Purpose() {
+		return nil, ErrCodeNotFound
+	}
+
+	return &State{
+		ExpireAt:        code.ExpireAt,
+		CanResendAt:     code.ExpireAt, // TODO: check rate limit
+		SubmittedCode:   code.UserInputtedCode,
+		TooManyAttempts: false, // TODO: check failed attempts revocation
+	}, nil
 }
