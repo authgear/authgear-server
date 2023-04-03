@@ -56,6 +56,7 @@ type OOBOTPAuthenticatorProvider interface {
 	GetMany(ids []string) ([]*authenticator.OOBOTP, error)
 	List(userID string) ([]*authenticator.OOBOTP, error)
 	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *authenticator.OOBOTP
+	WithSpec(a *authenticator.OOBOTP, spec *authenticator.OOBOTPSpec) (*authenticator.OOBOTP, error)
 	Create(*authenticator.OOBOTP) error
 	Update(*authenticator.OOBOTP) error
 	Delete(*authenticator.OOBOTP) error
@@ -311,12 +312,13 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 		changed = (newAuth != a)
 		return changed, newAuth.ToInfo(), nil
 	case model.AuthenticatorTypeOOBEmail:
-		newAuth := s.OOBOTP.New(ai.ID, spec.UserID, model.AuthenticatorTypeOOBEmail, spec.OOBOTP.Email, spec.IsDefault, string(spec.Kind))
-		changed = (newAuth != ai.OOBOTP)
-		return changed, newAuth.ToInfo(), nil
 	case model.AuthenticatorTypeOOBSMS:
-		newAuth := s.OOBOTP.New(ai.ID, spec.UserID, model.AuthenticatorTypeOOBSMS, spec.OOBOTP.Phone, spec.IsDefault, string(spec.Kind))
-		changed = (newAuth != ai.OOBOTP)
+		a := ai.OOBOTP
+		newAuth, err := s.OOBOTP.WithSpec(a, spec.OOBOTP)
+		if err != nil {
+			return false, nil, err
+		}
+		changed = (newAuth != a)
 		return changed, newAuth.ToInfo(), nil
 	}
 
