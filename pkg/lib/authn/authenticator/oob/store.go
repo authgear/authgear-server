@@ -215,7 +215,7 @@ func (s *Store) Update(a *authenticator.OOBOTP) (err error) {
 		Update(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Set("phone", a.Phone).
 		Set("email", a.Email).
-		Where("id", a.ID)
+		Where("id = ?", a.ID)
 	result, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
 		return err
