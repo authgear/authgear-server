@@ -121,6 +121,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	}
 
 	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), n.Email, &otp.GenerateCodeOptions{
+		UserID:     n.UserID,
 		WorkflowID: workflow.GetWorkflowID(ctx),
 	})
 	if err != nil {

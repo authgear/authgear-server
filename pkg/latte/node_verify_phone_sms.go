@@ -128,6 +128,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 	}
 
 	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, &otp.GenerateCodeOptions{
+		UserID:     n.UserID,
 		WorkflowID: workflow.GetWorkflowID(ctx),
 	})
 	if err != nil {

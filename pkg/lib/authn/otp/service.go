@@ -8,11 +8,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 type GenerateCodeOptions struct {
+	UserID       string
 	WebSessionID string
 	WorkflowID   string
 }
@@ -30,6 +32,12 @@ type LoginLinkStore interface {
 	Delete(token string) error
 }
 
+type AttemptTracker interface {
+	ResetFailedAttempts(purpose string, target string) error
+	GetFailedAttempts(purpose string, target string) (int, error)
+	IncrementFailedAttempts(purpose string, target string) (int, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
@@ -38,8 +46,10 @@ type Service struct {
 	Clock clock.Clock
 
 	AppID          config.AppID
+	RemoteIP       httputil.RemoteIP
 	CodeStore      CodeStore
 	LoginLinkStore LoginLinkStore
+	AttemptTracker AttemptTracker
 	Logger         Logger
 	RateLimiter    RateLimiter
 	OTPConfig      *config.OTPLegacyConfig
@@ -126,7 +136,49 @@ func (s *Service) handleFailedAttempt(target string) error {
 	return ErrInvalidCode
 }
 
+func (s *Service) handleFailedAttemptsRevocation(kind Kind, target string) error {
+	failedAttempts, err := s.AttemptTracker.IncrementFailedAttempts(kind.Purpose(), target)
+	if err != nil {
+		return err
+	}
+
+	maxFailedAttempts := kind.RevocationMaxFailedAttempts()
+	if maxFailedAttempts != 0 && failedAttempts >= maxFailedAttempts {
+		return ErrTooManyAttempts
+	}
+
+	return nil
+}
+
+func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error {
+	failedAttempts, err := s.AttemptTracker.GetFailedAttempts(kind.Purpose(), target)
+	if err != nil {
+		return err
+	}
+
+	maxFailedAttempts := kind.RevocationMaxFailedAttempts()
+	if maxFailedAttempts != 0 && failedAttempts >= maxFailedAttempts {
+		return ErrTooManyAttempts
+	}
+
+	return nil
+}
+
 func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions) (string, error) {
+	if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
+		return "", err
+	}
+
+	if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerIP(string(s.RemoteIP))); err != nil {
+		return "", err
+	}
+
+	if opt.UserID != "" {
+		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opt.UserID)); err != nil {
+			return "", err
+		}
+	}
+
 	code := &Code{
 		AppID:        string(s.AppID),
 		Target:       target,
@@ -145,8 +197,10 @@ func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions
 		return "", err
 	}
 
-	// TODO: rate limits
-	// TODO: reset failed attempts
+	if err := s.AttemptTracker.ResetFailedAttempts(kind.Purpose(), target); err != nil {
+		// non-critical error; log and continue
+		s.Logger.WithError(err).Warn("failed to reset failed attempts counter")
+	}
 
 	return code.Code, nil
 }
@@ -191,8 +245,14 @@ func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
 }
 
 func (s *Service) VerifyOTP(kind Kind, target string, otp string) error {
-	// TODO: check failed attempts revocation
-	// TODO: rate limits
+	if err := s.checkFailedAttemptsRevocation(kind, target); err != nil {
+		return err
+	}
+
+	reservation := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
+	if err := reservation.Error(); err != nil {
+		return err
+	}
 
 	code, err := s.getCode(target)
 	if errors.Is(err, ErrCodeNotFound) {
@@ -206,8 +266,20 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string) error {
 	}
 
 	if !kind.VerifyCode(otp, code.Code) {
-		// TODO: handle failed attempts
+		ferr := s.handleFailedAttemptsRevocation(kind, target)
+		if errors.Is(ferr, ErrTooManyAttempts) {
+			return ferr
+		} else if ferr != nil {
+			// log the error, and return original error
+			s.Logger.WithError(ferr).Warn("failed to handle failed attempts")
+		}
 		return ErrInvalidCode
+	}
+
+	// code is valid; restore reserved rate limit tokens
+	if err := s.RateLimiter.Cancel(reservation); err != nil {
+		// non-critical error; log and continue
+		s.Logger.WithError(err).Warn("failed to restore rate limit tokens")
 	}
 
 	s.deleteCode(target)
@@ -353,10 +425,18 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		return nil, ErrCodeNotFound
 	}
 
+	ferr := s.checkFailedAttemptsRevocation(kind, target)
+	tooManyAttempts := false
+	if errors.Is(ferr, ErrTooManyAttempts) {
+		tooManyAttempts = true
+	} else if ferr != nil {
+		return nil, ferr
+	}
+
 	return &State{
 		ExpireAt:        code.ExpireAt,
 		CanResendAt:     code.ExpireAt, // TODO: check rate limit
 		SubmittedCode:   code.UserInputtedCode,
-		TooManyAttempts: false, // TODO: check failed attempts revocation
+		TooManyAttempts: tooManyAttempts,
 	}, nil
 }

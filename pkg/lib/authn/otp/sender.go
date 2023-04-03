@@ -48,6 +48,10 @@ type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 	ClearBucket(bucket ratelimit.Bucket) error
 	RequireToken(bucket ratelimit.Bucket) error
+
+	Allow(spec ratelimit.BucketSpec) error
+	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Cancel(r *ratelimit.Reservation) error
 }
 
 type EventService interface {
