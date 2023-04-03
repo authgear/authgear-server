@@ -73,24 +73,27 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	// Ensure info is up-to-date.
+	var newIdentityInfo *identity.Info
 	if exactMatch != nil && exactMatch.Type == model.IdentityTypeOAuth {
-		exactMatch, err = ctx.Identities.UpdateWithSpec(exactMatch, e.IdentitySpec, identity.NewIdentityOptions{})
+		newIdentityInfo, err = ctx.Identities.UpdateWithSpec(exactMatch, e.IdentitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return &NodeSelectIdentityEnd{
-		IdentitySpec: e.IdentitySpec,
-		IdentityInfo: exactMatch,
-		OtherMatch:   otherMatch,
+		IdentitySpec:    e.IdentitySpec,
+		OldIdentityInfo: exactMatch,
+		NewIdentityInfo: newIdentityInfo,
+		OtherMatch:      otherMatch,
 	}, nil
 }
 
 type NodeSelectIdentityEnd struct {
-	IdentitySpec *identity.Spec `json:"identity_spec"`
-	IdentityInfo *identity.Info `json:"identity_info"`
-	OtherMatch   *identity.Info `json:"other_match"`
+	IdentitySpec    *identity.Spec `json:"identity_spec"`
+	OldIdentityInfo *identity.Info `json:"old_identity_info"`
+	NewIdentityInfo *identity.Info `json:"identity_info"`
+	OtherMatch      *identity.Info `json:"other_match"`
 }
 
 func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -100,8 +103,8 @@ func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interac
 func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 	// Update OAuth identity
 	eff := func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-		if n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
-			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
+		if n.NewIdentityInfo != nil && n.NewIdentityInfo.Type == model.IdentityTypeOAuth {
+			_, err := ctx.Identities.CheckDuplicated(n.NewIdentityInfo)
 			if err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 					return n.FillDetails(api.ErrDuplicatedIdentity)
@@ -109,7 +112,7 @@ func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			err = ctx.Identities.Update(n.IdentityInfo)
+			err = ctx.Identities.Update(n.OldIdentityInfo, n.NewIdentityInfo)
 			if err != nil {
 				return err
 			}
@@ -136,15 +139,15 @@ func (n *NodeSelectIdentityEnd) FillDetails(err error) error {
 
 	// The spec fetches an exact match and other match.
 	// Normally it is the sign-in cases.
-	if n.IdentityInfo != nil && n.OtherMatch != nil {
+	if n.NewIdentityInfo != nil && n.OtherMatch != nil {
 		s := n.OtherMatch.ToSpec()
 		otherSpec = &s
 	}
 
 	// The spec fetches an exact match.
 	// Normally it is the sign-up cases.
-	if n.IdentityInfo != nil && n.OtherMatch == nil {
-		s := n.IdentityInfo.ToSpec()
+	if n.NewIdentityInfo != nil && n.OtherMatch == nil {
+		s := n.NewIdentityInfo.ToSpec()
 		otherSpec = &s
 	}
 

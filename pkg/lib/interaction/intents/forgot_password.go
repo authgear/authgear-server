@@ -27,7 +27,7 @@ func (i *IntentForgotPassword) DeriveEdgesForNode(graph *interaction.Graph, node
 	case *nodes.NodeSelectIdentityEnd:
 		return []interaction.Edge{
 			&nodes.EdgeForgotPasswordBegin{
-				IdentityInfo: node.IdentityInfo,
+				IdentityInfo: node.NewIdentityInfo,
 			},
 		}, nil
 	default:

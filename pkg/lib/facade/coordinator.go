@@ -166,28 +166,28 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 	return nil
 }
 
-func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
-	err := c.Identities.Update(info)
+func (c *Coordinator) IdentityUpdate(oldInfo *identity.Info, newInfo *identity.Info) error {
+	err := c.Identities.Update(newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.markOAuthEmailAsVerified(info)
+	err = c.markOAuthEmailAsVerified(newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.Authenticators.UpdateOrphans(info)
+	err = c.Authenticators.UpdateOrphans(newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.removeOrphans(info.UserID)
+	err = c.removeOrphans(newInfo.UserID)
 	if err != nil {
 		return err
 	}
 
-	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(info.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(newInfo.UserID)
 	if err != nil {
 		return err
 	}

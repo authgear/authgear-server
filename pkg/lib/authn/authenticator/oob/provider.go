@@ -64,14 +64,14 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 func (p *Provider) WithSpec(a *authenticator.OOBOTP, spec *authenticator.OOBOTPSpec) (*authenticator.OOBOTP, error) {
 	switch a.OOBAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
-		if (spec.Email == a.ToTarget()) {
+		if spec.Email == a.ToTarget() {
 			return a, nil
 		}
 		newAuth := *a
 		newAuth.Email = spec.Email
 		return &newAuth, nil
 	case model.AuthenticatorTypeOOBSMS:
-		if (spec.Phone == a.ToTarget()) {
+		if spec.Phone == a.ToTarget() {
 			return a, nil
 		}
 		newAuth := *a

@@ -32,7 +32,7 @@ type IdentityService interface {
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	Create(is *identity.Info) error
-	Update(is *identity.Info) error
+	Update(oldIs *identity.Info, newIs *identity.Info) error
 }
 
 type AuthenticatorService interface {
