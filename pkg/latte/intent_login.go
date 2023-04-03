@@ -21,6 +21,7 @@ func init() {
 var IntentLoginSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentLogin struct {
+	CaptchaProtectedIntent
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
@@ -59,9 +60,11 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 		if err != nil {
 			return nil, err
 		}
-		return workflow.NewSubWorkflow(&IntentAuthenticateOOBOTPPhone{
+		intent := &IntentAuthenticateOOBOTPPhone{
 			Authenticator: phoneAuthenticator,
-		}), nil
+		}
+		intent.IsCaptchaProtected = i.IsCaptchaProtected
+		return workflow.NewSubWorkflow(intent), nil
 	case 1:
 		// 2nd step: authenticate email login link / password
 		var inputSelectAuthenticatorType inputSelectAuthenticatorType

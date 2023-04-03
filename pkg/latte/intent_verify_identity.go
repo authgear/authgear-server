@@ -19,6 +19,7 @@ func init() {
 var IntentVerifyIdentitySchema = validation.NewSimpleSchema(`{}`)
 
 type IntentVerifyIdentity struct {
+	CaptchaProtectedIntent
 	Identity     *identity.Info `json:"identity,omitempty"`
 	IsFromSignUp bool           `json:"is_from_signup"`
 }
@@ -31,9 +32,19 @@ func (*IntentVerifyIdentity) JSONSchema() *validation.SimpleSchema {
 	return IntentVerifyIdentitySchema
 }
 
-func (*IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
-		return nil, nil
+func (i *IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+	if i.IsCaptchaProtected {
+		switch len(w.Nodes) {
+		case 0:
+			return nil, nil
+		case 1:
+			return nil, nil
+		}
+	} else {
+		switch len(w.Nodes) {
+		case 0:
+			return nil, nil
+		}
 	}
 	return nil, workflow.ErrEOF
 }
@@ -59,6 +70,10 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 			IdentityID:       i.Identity.ID,
 			NewVerifiedClaim: nil,
 		}), nil
+	}
+
+	if i.IsCaptchaProtected && len(workflow.FindSubWorkflows[*IntentVerifyCaptcha](w)) == 0 {
+		return workflow.NewSubWorkflow(&IntentVerifyCaptcha{}), nil
 	}
 
 	var node interface {

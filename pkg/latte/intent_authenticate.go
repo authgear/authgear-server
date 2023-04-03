@@ -20,7 +20,9 @@ var IntentAuthenticateSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-type IntentAuthenticate struct{}
+type IntentAuthenticate struct {
+	CaptchaProtectedIntent
+}
 
 func (*IntentAuthenticate) Kind() string {
 	return "latte.IntentAuthenticate"
@@ -40,7 +42,7 @@ func (*IntentAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Depend
 	return nil, workflow.ErrEOF
 }
 
-func (*IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 
 	switch {
@@ -57,11 +59,15 @@ func (*IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependenc
 			return nil, err
 		}
 		if exactMatch == nil {
-			return workflow.NewSubWorkflow(&IntentSignup{}), nil
+			intent := &IntentSignup{}
+			intent.IsCaptchaProtected = i.IsCaptchaProtected
+			return workflow.NewSubWorkflow(intent), nil
 		}
-		return workflow.NewSubWorkflow(&IntentLogin{
+		intent := &IntentLogin{
 			Identity: exactMatch,
-		}), nil
+		}
+		intent.IsCaptchaProtected = i.IsCaptchaProtected
+		return workflow.NewSubWorkflow(intent), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}

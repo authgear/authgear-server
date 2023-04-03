@@ -25,7 +25,9 @@ var IntentSignupSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-type IntentSignup struct{}
+type IntentSignup struct {
+	CaptchaProtectedIntent
+}
 
 func (*IntentSignup) Kind() string {
 	return "latte.IntentSignup"
@@ -74,12 +76,14 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 			UserID: uuid.New(),
 		}), nil
 	case 1:
-		return workflow.NewSubWorkflow(&IntentCreateLoginID{
+		intent := &IntentCreateLoginID{
 			// LoginID key and LoginID type are fixed here.
 			UserID:      i.userID(w),
 			LoginIDType: model.LoginIDKeyTypePhone,
 			LoginIDKey:  string(model.LoginIDKeyTypePhone),
-		}), nil
+		}
+		intent.IsCaptchaProtected = i.IsCaptchaProtected
+		return workflow.NewSubWorkflow(intent), nil
 	case 2:
 		return workflow.NewSubWorkflow(&IntentCreateLoginID{
 			// LoginID key and LoginID type are fixed here.
