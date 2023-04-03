@@ -312,6 +312,7 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 		changed = (newAuth != a)
 		return changed, newAuth.ToInfo(), nil
 	case model.AuthenticatorTypeOOBEmail:
+		fallthrough
 	case model.AuthenticatorTypeOOBSMS:
 		a := ai.OOBOTP
 		newAuth, err := s.OOBOTP.WithSpec(a, spec.OOBOTP)
