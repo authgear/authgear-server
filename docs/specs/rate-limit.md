@@ -11,10 +11,10 @@ Authgear enforces various rate limits to address potential threats:
 Rate limit in Authgear uses a variant of token bucket rate limiting,
 configured by 2 variables:
 - Period: The minimum period between operations
-- Brust: Number of operations before additional operations is denied
+- Burst: Number of operations before additional operations is denied
 
 When rate limit is requested, a token is taken from bucket. Buckets are filled
-with brust tokens initially. Rate limit is exceeded if tokens are exhausted.
+with burst tokens initially. Rate limit is exceeded if tokens are exhausted.
 The bucket is re-filled fully after the period is elapsed from the time first
 token is taken.
 
@@ -88,7 +88,7 @@ verification:
         # validate_code_per_ip:
         #   enabled: true
         #   period: 1h  # required if enabled
-        #   brust: 1    # default to 1
+        #   burst: 1    # default to 1
 ---
 verification:
     rate_limits:
@@ -102,7 +102,7 @@ verification:
         validate_code_per_ip:
             enabled: true
             period: 1h  # required
-            # brust: 1  # default to 1
+            # burst: 1  # default to 1
 ---
 verification:
     rate_limits:
@@ -110,7 +110,7 @@ verification:
         validate_code_per_ip:
             enabled: true
             period: 1h  # required
-            brust: 5    # default to 1
+            burst: 5    # default to 1
 ```
 
 The available rate limits can be configured as follow:
@@ -121,11 +121,11 @@ authentication:
             per_ip:
                 enabled: true
                 period: 1m
-                brust: 60
+                burst: 60
             per_user_per_ip:
                 enabled: true
                 period: 1m
-                brust: 10
+                burst: 10
         password:
             per_ip: # default disabled
             per_user_per_ip: # default disabled
@@ -162,17 +162,17 @@ authentication:
             per_ip:
                 enabled: true
                 period: 1m
-                brust: 10
+                burst: 10
         signup_anonymous:
             per_ip:
                 enabled: true
                 period: 1m
-                brust: 60
+                burst: 60
         account_enumeration:
             per_ip:
                 enabled: true
                 period: 1m
-                brust: 10
+                burst: 10
 
 forgot_password:
     code_expiry: 20m
@@ -183,14 +183,14 @@ forgot_password:
             validate_per_ip:
                 enabled: true
                 period: 1m
-                brust: 60
+                burst: 60
         sms:
             send_message_per_ip: # default disabled
             send_message_cooldown: 1m
             validate_per_ip:
                 enabled: true
                 period: 1m
-                brust: 60
+                burst: 60
 
 verification:
     code_expiry: 1h
@@ -203,7 +203,7 @@ verification:
             validate_per_ip:
                 enabled: true
                 period: 1m
-                brust: 60
+                burst: 60
         sms:
             send_message_per_ip: # default disabled
             send_message_per_user: # default disabled
@@ -212,7 +212,7 @@ verification:
             validate_per_ip:
                 enabled: true
                 period: 1m
-                brust: 60
+                burst: 60
 
 messaging:
     rate_limits:
@@ -220,19 +220,19 @@ messaging:
         sms_per_ip:
             enabled: true
             period: 1m
-            brust: 60
+            burst: 60
         sms_per_target:
             enabled: true
             period: 1h
-            brust: 10
+            burst: 10
         email: # disabled
         email_per_ip:
             enabled: true
             period: 1m
-            brust: 60
+            burst: 60
         email_per_target:
             enabled: true
             period: 1h
-            brust: 10
+            burst: 10
 
 ```
