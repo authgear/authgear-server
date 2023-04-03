@@ -54,7 +54,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, err
 		}
 
-		err = deps.OTPCodes.VerifyCode(n.PhoneNumber, code)
+		err = deps.OTPCodes.VerifyOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, code)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
@@ -80,16 +80,8 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 }
 
 func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	_, resetDuration, err := deps.RateLimiter.CheckToken(n.bucket(deps))
-	if err != nil {
-		return nil, err
-	}
-
-	now := deps.Clock.NowUTC()
-	canResendAt := now.Add(resetDuration)
-
 	target := n.PhoneNumber
-	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), target)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +96,8 @@ func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Depe
 	return NodeVerifyPhoneNumberOutput{
 		MaskedPhoneNumber:              phone.Mask(target),
 		CodeLength:                     n.CodeLength,
-		CanResendAt:                    canResendAt,
-		FailedAttemptRateLimitExceeded: exceeded,
+		CanResendAt:                    state.CanResendAt,
+		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
 }
 
@@ -135,15 +127,15 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return err
 	}
 
-	code, err := deps.OTPCodes.GenerateCode(n.PhoneNumber, otp.OTPModeCode, &otp.GenerateCodeOptions{
+	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, &otp.GenerateCodeOptions{
 		WorkflowID: workflow.GetWorkflowID(ctx),
 	})
 	if err != nil {
 		return err
 	}
-	n.CodeLength = len(code.Code)
+	n.CodeLength = len(code)
 
-	err = deps.OOBCodeSender.SendCode(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, code.Code, otp.MessageTypeVerification, otp.OTPModeCode)
+	err = deps.OOBCodeSender.SendCode(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, code, otp.MessageTypeVerification, otp.OTPModeCode)
 	if err != nil {
 		return err
 	}
