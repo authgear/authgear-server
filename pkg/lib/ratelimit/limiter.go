@@ -125,3 +125,69 @@ func (l *Limiter) ClearBucket(bucket Bucket) error {
 		return conn.Reset(bucket, now)
 	})
 }
+
+func (l *Limiter) Allow(spec BucketSpec) error {
+	if !spec.Enabled {
+		return nil
+	}
+	return l.TakeToken(spec.bucket())
+}
+
+func (l *Limiter) Reserve(spec BucketSpec) *Reservation {
+	if l.isDisabled() || !spec.Enabled {
+		return &Reservation{spec: spec, ok: true}
+	}
+
+	bucket := spec.bucket()
+	now := l.Clock.NowUTC()
+
+	pass := false
+	var timeToAct *time.Time
+	err := l.Storage.WithConn(func(conn StorageConn) error {
+		// Check if we should refill the bucket.
+		resetTime, err := conn.GetResetTime(bucket, now)
+		if err != nil {
+			return err
+		}
+		if !now.Before(resetTime) {
+			// Refill bucket to full.
+			err = conn.Reset(bucket, now)
+			if err != nil {
+				return err
+			}
+			resetTime = now
+		}
+
+		// Try to take one token.
+		tokens, err := conn.TakeToken(bucket, now)
+		if err != nil {
+			return err
+		}
+
+		pass = tokens >= 0
+		if !pass {
+			timeToAct = &resetTime
+		}
+		l.Logger.
+			WithField("key", bucket.Key).
+			WithField("tokens", tokens).
+			WithField("pass", pass).
+			Debug("check rate limit")
+		return nil
+	})
+
+	return &Reservation{
+		spec:      spec,
+		ok:        pass,
+		err:       err,
+		timeToAct: timeToAct,
+	}
+}
+
+func (l *Limiter) Cancel(r *Reservation) error {
+	// FIXME:
+	return l.Storage.WithConn(func(conn StorageConn) error {
+		now := l.Clock.NowUTC()
+		return conn.Reset(r.spec.bucket(), now)
+	})
+}
