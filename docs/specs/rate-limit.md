@@ -131,16 +131,16 @@ authentication:
             per_user_per_ip: # default disabled
         oob_otp:
             email:
-                send_message_per_ip: # default disabled
-                send_message_per_user: # default disabled
-                send_message_cooldown: 1m
+                trigger_per_ip: # default disabled
+                trigger_per_user: # default disabled
+                trigger_cooldown: 1m
                 max_failed_attempts_revoke_otp: # 5 # default disabled
                 validate_per_ip: # default disabled
                 validate_per_user_per_ip: # default disabled
             sms:
-                send_message_per_ip: # default disabled
-                send_message_per_user: # default disabled
-                send_message_cooldown: 1m
+                trigger_per_ip: # default disabled
+                trigger_per_user: # default disabled
+                trigger_cooldown: 1m
                 max_failed_attempts_revoke_otp: # 5 # default disabled
                 validate_per_ip: # default disabled
                 validate_per_user_per_ip: # default disabled
@@ -175,39 +175,39 @@ authentication:
                 burst: 10
 
 forgot_password:
-    code_expiry: 20m
+    valid_period: 20m
     rate_limits:
         email:
-            send_message_per_ip: # default disabled
-            send_message_cooldown: 1m
+            trigger_per_ip: # default disabled
+            trigger_cooldown: 1m
             validate_per_ip:
                 enabled: true
                 period: 1m
                 burst: 60
         sms:
-            send_message_per_ip: # default disabled
-            send_message_cooldown: 1m
+            trigger_per_ip: # default disabled
+            trigger_cooldown: 1m
             validate_per_ip:
                 enabled: true
                 period: 1m
                 burst: 60
 
 verification:
-    code_expiry: 1h
+    valid_period: 1h
     rate_limits:
         email:
-            send_message_per_ip: # default disabled
-            send_message_per_user: # default disabled
-            send_message_cooldown: 1m
+            trigger_per_ip: # default disabled
+            trigger_per_user: # default disabled
+            trigger_cooldown: 1m
             max_failed_attempts_revoke_otp: # 5 # default disabled
             validate_per_ip:
                 enabled: true
                 period: 1m
                 burst: 60
         sms:
-            send_message_per_ip: # default disabled
-            send_message_per_user: # default disabled
-            send_message_cooldown: 1m
+            trigger_per_ip: # default disabled
+            trigger_per_user: # default disabled
+            trigger_cooldown: 1m
             max_failed_attempts_revoke_otp: # 5 # default disabled
             validate_per_ip:
                 enabled: true
