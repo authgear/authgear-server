@@ -498,14 +498,14 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	panic("authenticator: unhandled authenticator type " + info.Type)
 }
 
-func (s *Service) UpdateOrphans(identityInfo *identity.Info) error {
-	authenticators, err := s.List(identityInfo.UserID)
+func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error {
+	authenticators, err := s.List(oldInfo.UserID)
 	if err != nil {
 		return err
 	}
 
 	for _, a := range authenticators {
-		if a.IsDependentOf(identityInfo) {
+		if a.IsDependentOf(oldInfo) {
 			spec := &authenticator.Spec{
 				Type:      a.Type,
 				UserID:    a.UserID,
@@ -515,11 +515,11 @@ func (s *Service) UpdateOrphans(identityInfo *identity.Info) error {
 			switch a.Type {
 			case model.AuthenticatorTypeOOBEmail:
 				spec.OOBOTP = &authenticator.OOBOTPSpec{
-					Email: identityInfo.LoginID.LoginID,
+					Email: newInfo.LoginID.LoginID,
 				}
 			case model.AuthenticatorTypeOOBSMS:
 				spec.OOBOTP = &authenticator.OOBOTPSpec{
-					Phone: identityInfo.LoginID.LoginID,
+					Phone: newInfo.LoginID.LoginID,
 				}
 			}
 
