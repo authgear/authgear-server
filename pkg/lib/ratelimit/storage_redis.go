@@ -29,9 +29,11 @@ type storageRedisConn struct {
 	Conn  *goredis.Conn
 }
 
-func (s storageRedisConn) TakeToken(bucket Bucket, now time.Time) (int, error) {
+func (s storageRedisConn) TakeToken(bucket Bucket, now time.Time, delta int) (int, error) {
+	// FIXME: token may underflow to negative?
+
 	ctx := context.Background()
-	tokenTaken, err := s.Conn.HIncrBy(ctx, redisBucketKey(s.AppID, bucket), "token_taken", 1).Result()
+	tokenTaken, err := s.Conn.HIncrBy(ctx, redisBucketKey(s.AppID, bucket), "token_taken", int64(delta)).Result()
 	if err != nil {
 		return 0, err
 	}

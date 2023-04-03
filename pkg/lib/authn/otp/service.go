@@ -416,15 +416,6 @@ func (s *Service) SetUserInputtedLoginLinkCode(userInputtedCode string) (*Code, 
 }
 
 func (s *Service) InspectState(kind Kind, target string) (*State, error) {
-	code, err := s.getCode(target)
-	if err != nil {
-		return nil, err
-	}
-
-	if code.Purpose != kind.Purpose() {
-		return nil, ErrCodeNotFound
-	}
-
 	ferr := s.checkFailedAttemptsRevocation(kind, target)
 	tooManyAttempts := false
 	if errors.Is(ferr, ErrTooManyAttempts) {
@@ -433,10 +424,36 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		return nil, ferr
 	}
 
-	return &State{
-		ExpireAt:        code.ExpireAt,
-		CanResendAt:     code.ExpireAt, // TODO: check rate limit
-		SubmittedCode:   code.UserInputtedCode,
+	// Inspect rate limit state by reserving no tokens.
+	reservation := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
+	now := s.Clock.NowUTC()
+	canResendAt := now.Add(reservation.DelayFrom(now))
+	if err := s.RateLimiter.Cancel(reservation); err != nil {
+		return nil, err
+	}
+
+	state := &State{
+		ExpireAt:        now,
+		CanResendAt:     canResendAt,
+		SubmittedCode:   "",
 		TooManyAttempts: tooManyAttempts,
-	}, nil
+	}
+
+	code, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		code = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	if code != nil && code.Purpose != kind.Purpose() {
+		return nil, ErrCodeNotFound
+	}
+
+	if code != nil {
+		state.ExpireAt = code.ExpireAt
+		state.SubmittedCode = code.UserInputtedCode
+	}
+
+	return state, nil
 }

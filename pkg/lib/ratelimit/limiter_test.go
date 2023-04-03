@@ -25,10 +25,10 @@ func (s *storageMemory) WithConn(f func(ratelimit.StorageConn) error) error {
 	return f(s)
 }
 
-func (s *storageMemory) TakeToken(bucket ratelimit.Bucket, now time.Time) (int, error) {
+func (s *storageMemory) TakeToken(bucket ratelimit.Bucket, now time.Time, delta int) (int, error) {
 	data, ok := s.items[bucket.Key]
 	if ok {
-		data.tokenTaken++
+		data.tokenTaken += delta
 		return bucket.Size - data.tokenTaken, nil
 	}
 

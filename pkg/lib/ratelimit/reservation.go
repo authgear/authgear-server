@@ -7,10 +7,11 @@ import (
 )
 
 type Reservation struct {
-	spec      BucketSpec
-	ok        bool
-	err       error
-	timeToAct *time.Time
+	spec       BucketSpec
+	ok         bool
+	err        error
+	tokenTaken int
+	timeToAct  *time.Time
 }
 
 func (r *Reservation) Error() error {

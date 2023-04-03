@@ -7,7 +7,7 @@ type Storage interface {
 }
 
 type StorageConn interface {
-	TakeToken(bucket Bucket, now time.Time) (int, error)
+	TakeToken(bucket Bucket, now time.Time, delta int) (int, error)
 	CheckToken(bucket Bucket) (int, error)
 	GetResetTime(bucket Bucket, now time.Time) (time.Time, error)
 	Reset(bucket Bucket, now time.Time) error

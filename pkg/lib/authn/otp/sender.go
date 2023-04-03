@@ -51,6 +51,7 @@ type RateLimiter interface {
 
 	Allow(spec ratelimit.BucketSpec) error
 	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	ReserveN(spec ratelimit.BucketSpec, n int) *ratelimit.Reservation
 	Cancel(r *ratelimit.Reservation) error
 }
 
