@@ -70,7 +70,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 	case *nodes.NodeSelectIdentityEnd:
 		switch i.Kind {
 		case IntentAuthenticateKindLogin:
-			if node.NewIdentityInfo == nil {
+			if node.IdentityInfo == nil {
 				switch node.IdentitySpec.Type {
 				// Special case: login with new OAuth/anonymous identity means signup.
 				// Special case: login and signup with SIWE shares the same behaviour.
@@ -85,19 +85,19 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 
 			return []interaction.Edge{
 				&nodes.EdgeEnsureVerificationBegin{
-					Identity:        node.NewIdentityInfo,
+					Identity:        node.IdentityInfo,
 					RequestedByUser: false,
 				},
 			}, nil
 		case IntentAuthenticateKindSignup:
-			if node.NewIdentityInfo != nil {
+			if node.IdentityInfo != nil {
 				switch node.IdentitySpec.Type {
 				// Special case: signup with existing OAuth identity means login.
 				// Special case: login and signup with SIWE shares the same behaviour.
 				case model.IdentityTypeOAuth, model.IdentityTypeSIWE:
 					return []interaction.Edge{
 						&nodes.EdgeDoUseIdentity{
-							Identity:   node.NewIdentityInfo,
+							Identity:   node.IdentityInfo,
 							UserIDHint: i.UserIDHint,
 						},
 					}, nil
@@ -110,13 +110,13 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 				&nodes.EdgeDoCreateUser{},
 			}, nil
 		case IntentAuthenticateKindPromote:
-			if node.NewIdentityInfo == nil || node.NewIdentityInfo.Type != model.IdentityTypeAnonymous {
+			if node.IdentityInfo == nil || node.IdentityInfo.Type != model.IdentityTypeAnonymous {
 				return nil, errors.New("promote intent is used to select non-anonymous identity")
 			}
 
 			return []interaction.Edge{
 				&nodes.EdgeEnsureVerificationBegin{
-					Identity:        node.NewIdentityInfo,
+					Identity:        node.IdentityInfo,
 					RequestedByUser: false,
 				},
 			}, nil
@@ -204,15 +204,15 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 
 			selectIdentity := mustFindNodeSelectIdentity(graph)
-			if selectIdentity.NewIdentityInfo.Type != model.IdentityTypeAnonymous {
+			if selectIdentity.IdentityInfo.Type != model.IdentityTypeAnonymous {
 				panic("interaction: expect anonymous identity")
 			}
 
-			if selectIdentity.NewIdentityInfo.UserID == node.Identity.UserID {
+			if selectIdentity.IdentityInfo.UserID == node.Identity.UserID {
 				// Remove anonymous identity before proceeding
 				return []interaction.Edge{
 					&nodes.EdgeDoRemoveIdentity{
-						Identity: selectIdentity.NewIdentityInfo,
+						Identity: selectIdentity.IdentityInfo,
 					},
 				}, nil
 			}
