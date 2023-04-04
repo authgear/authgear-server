@@ -73,7 +73,9 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	// Ensure info is up-to-date.
+	var oldIdentityInfo *identity.Info
 	if exactMatch != nil && exactMatch.Type == model.IdentityTypeOAuth {
+		oldIdentityInfo = exactMatch
 		exactMatch, err = ctx.Identities.UpdateWithSpec(exactMatch, e.IdentitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
@@ -81,16 +83,18 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	return &NodeSelectIdentityEnd{
-		IdentitySpec: e.IdentitySpec,
-		IdentityInfo: exactMatch,
-		OtherMatch:   otherMatch,
+		IdentitySpec:    e.IdentitySpec,
+		IdentityInfo:    exactMatch,
+		OldIdentityInfo: oldIdentityInfo,
+		OtherMatch:      otherMatch,
 	}, nil
 }
 
 type NodeSelectIdentityEnd struct {
-	IdentitySpec *identity.Spec `json:"identity_spec"`
-	IdentityInfo *identity.Info `json:"identity_info"`
-	OtherMatch   *identity.Info `json:"other_match"`
+	IdentitySpec    *identity.Spec `json:"identity_spec"`
+	IdentityInfo    *identity.Info `json:"identity_info"`
+	OldIdentityInfo *identity.Info `json:"old_identity_info"`
+	OtherMatch      *identity.Info `json:"other_match"`
 }
 
 func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -100,7 +104,7 @@ func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interac
 func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 	// Update OAuth identity
 	eff := func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-		if n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
+		if n.OldIdentityInfo != nil && n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
 			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
 			if err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
@@ -109,8 +113,7 @@ func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			// FIXME
-			err = ctx.Identities.Update(nil, n.IdentityInfo)
+			err = ctx.Identities.Update(n.OldIdentityInfo, n.IdentityInfo)
 			if err != nil {
 				return err
 			}
