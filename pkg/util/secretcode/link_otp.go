@@ -8,12 +8,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
+const linkOTPLength = 32
+
 var LinkOTPSecretCode = LinkOTPSecretCodeType{}
 
 type LinkOTPSecretCodeType struct{}
 
+func (LinkOTPSecretCodeType) Length() int {
+	return linkOTPLength
+}
+
 func (LinkOTPSecretCodeType) Generate() string {
-	code := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
+	code := rand.StringWithAlphabet(linkOTPLength, base32.Alphabet, rand.SecureRand)
 	return code
 }
 

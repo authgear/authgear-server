@@ -412,11 +412,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -428,20 +423,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -457,6 +447,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -830,11 +821,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -859,6 +845,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -886,7 +873,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -1006,6 +992,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:             logger,
+		Config:                appConfig,
 		OAuthConfig:           oAuthConfig,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
 		Users:                 userLoader,

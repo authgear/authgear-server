@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -30,7 +31,15 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(ctx *interaction.Conte
 	}
 
 	email := e.Authenticator.OOBOTP.Email
-	_, err := ctx.OTPCodeService.VerifyLoginLinkCodeByTarget(email, true)
+	err := ctx.OTPCodeService.VerifyOTP(
+		otp.KindOOBOTP(ctx.Config, model.AuthenticatorOOBChannelEmail),
+		email,
+		"",
+		&otp.VerifyOptions{
+			UseSubmittedCode: true,
+			UserID:           e.Authenticator.UserID,
+		},
+	)
 	if errors.Is(err, otp.ErrInvalidCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {

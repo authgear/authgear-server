@@ -9,21 +9,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
+type SendOOBCodeResult struct {
+	Target     string
+	Channel    string
+	CodeLength int
+}
+
 type SendOOBCode struct {
-	Clock                clock.Clock
 	Context              *interaction.Context
 	Stage                authn.AuthenticationStage
 	IsAuthenticating     bool
 	AuthenticatorInfo    *authenticator.Info
 	IgnoreRatelimitError bool
-	OTPMode              otp.OTPMode
-	Code                 string
+	OTPForm              otp.Form
 }
 
-func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
+func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 	var messageType otp.MessageType
 	switch p.Stage {
 	case authn.AuthenticationStagePrimary:
@@ -70,22 +73,18 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		}
 	}
 
-	code, err := p.Context.OTPCodeService.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, &otp.GenerateCodeOptions{
-		WebSessionID: p.Context.WebSessionID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := &otp.CodeSendResult{
+	result := &SendOOBCodeResult{
 		Channel:    string(channel),
 		Target:     target,
-		CodeLength: len(code.Code),
-		Code:       code.Code,
+		CodeLength: p.OTPForm.CodeLength(),
 	}
 
-	bucket := p.Context.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-	err = p.Context.RateLimiter.TakeToken(bucket)
+	code, err := p.Context.OTPCodeService.GenerateOTP(
+		otp.KindOOBOTP(p.Context.Config, channel),
+		p.AuthenticatorInfo.OOBOTP.ToTarget(),
+		p.OTPForm,
+		&otp.GenerateOptions{WebSessionID: p.Context.WebSessionID},
+	)
 	if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
@@ -93,7 +92,15 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		return nil, err
 	}
 
-	err = p.Context.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode)
+	// FIXME: mode -> form
+	var mode otp.OTPMode
+	switch p.OTPForm {
+	case otp.FormCode:
+		mode = otp.OTPModeCode
+	case otp.FormLink:
+		mode = otp.OTPModeLoginLink
+	}
+	err = p.Context.OOBCodeSender.SendCode(channel, target, code, messageType, mode)
 	if err != nil {
 		return nil, err
 	}

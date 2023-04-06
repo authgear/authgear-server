@@ -130,7 +130,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 		IsAuthenticating:     false,
 		AuthenticatorInfo:    info,
 		IgnoreRatelimitError: true,
-		OTPMode:              otp.OTPModeLoginLink,
+		OTPForm:              otp.FormLink,
 	}).Do()
 	if err != nil {
 		return nil, err
@@ -139,7 +139,6 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 	return &NodeCreateAuthenticatorLoginLinkOTPSetup{
 		Stage:         e.Stage,
 		Authenticator: info,
-		LoginLinkOTP:  result.Code,
 		Target:        target,
 		Channel:       result.Channel,
 	}, nil
@@ -148,14 +147,8 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 type NodeCreateAuthenticatorLoginLinkOTPSetup struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
-	LoginLinkOTP  string                    `json:"login_link_otp"`
 	Target        string                    `json:"target"`
 	Channel       string                    `json:"channel"`
-}
-
-// GetLoginLinkOTP implements LoginLinkOTPNode.
-func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetLoginLinkOTP() string {
-	return n.LoginLinkOTP
 }
 
 // GetLoginLinkOTPTarget implements LoginLinkOTPNode.
@@ -194,7 +187,7 @@ func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) DeriveEdges(graph *interactio
 			Stage:            n.Stage,
 			IsAuthenticating: false,
 			Authenticator:    n.Authenticator,
-			OTPMode:          otp.OTPModeLoginLink,
+			OTPForm:          otp.FormLink,
 		},
 		&EdgeCreateAuthenticatorLoginLinkOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}

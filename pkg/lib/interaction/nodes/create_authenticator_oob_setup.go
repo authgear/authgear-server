@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -198,6 +199,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		IsAuthenticating:     false,
 		AuthenticatorInfo:    info,
 		IgnoreRatelimitError: true,
+		OTPForm:              otp.FormCode,
 	}).Do()
 	if err != nil {
 		return nil, err
@@ -274,6 +276,7 @@ func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(graph *interaction.Graph) 
 			Stage:            n.Stage,
 			IsAuthenticating: false,
 			Authenticator:    n.Authenticator,
+			OTPForm:          otp.FormCode,
 		},
 		&EdgeCreateAuthenticatorOOB{Stage: n.Stage, Authenticator: n.Authenticator},
 	}, nil

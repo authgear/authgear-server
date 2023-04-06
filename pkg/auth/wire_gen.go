@@ -384,11 +384,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -400,20 +395,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -429,6 +419,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -879,11 +870,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -895,20 +881,15 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -924,6 +905,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -1461,11 +1443,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1477,20 +1454,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -1506,6 +1478,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -1788,11 +1761,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -1821,6 +1789,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -1848,7 +1817,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -2246,11 +2214,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2262,20 +2225,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -2291,6 +2249,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -2727,11 +2686,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2743,20 +2697,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -2772,6 +2721,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -3090,11 +3040,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3106,20 +3051,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -3135,6 +3075,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -3520,11 +3461,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3536,20 +3472,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -3565,6 +3496,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -4072,11 +4004,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4088,20 +4015,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -4117,6 +4039,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -4399,11 +4322,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -4432,6 +4350,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -4459,7 +4378,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -4892,11 +4810,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4908,20 +4821,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -4937,6 +4845,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -5262,11 +5171,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -5295,6 +5199,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -5322,7 +5227,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -5680,11 +5584,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5696,20 +5595,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -5725,6 +5619,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -6050,11 +5945,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -6083,6 +5973,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -6110,7 +6001,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -6575,11 +6465,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6591,20 +6476,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -6620,6 +6500,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -6944,11 +6825,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -6976,6 +6852,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -7003,7 +6880,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -7409,11 +7285,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7425,20 +7296,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -7454,6 +7320,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -7778,11 +7645,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -7810,6 +7672,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -7837,7 +7700,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -8242,11 +8104,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8258,20 +8115,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -8287,6 +8139,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -8611,11 +8464,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -8643,6 +8491,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -8670,7 +8519,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -9063,11 +8911,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9079,20 +8922,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -9108,6 +8946,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -9432,11 +9271,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -9464,6 +9298,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -9491,7 +9326,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -9877,11 +9711,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9893,20 +9722,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -9922,6 +9746,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -10246,11 +10071,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -10278,6 +10098,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -10305,7 +10126,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -10681,11 +10501,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10697,20 +10512,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -10726,6 +10536,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -11050,11 +10861,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11082,6 +10888,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -11109,7 +10916,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -11488,11 +11294,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11504,20 +11305,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -11533,6 +11329,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -11857,11 +11654,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11889,6 +11681,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -11916,7 +11709,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -12298,11 +12090,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12314,20 +12101,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -12343,6 +12125,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -12667,11 +12450,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -12699,6 +12477,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -12726,7 +12505,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -13110,11 +12888,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13126,20 +12899,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -13155,6 +12923,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -13479,11 +13248,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -13511,6 +13275,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -13538,7 +13303,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -13920,11 +13684,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13936,20 +13695,15 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -13965,6 +13719,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -14289,11 +14044,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -14321,6 +14071,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -14348,7 +14099,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -14726,11 +14476,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14742,20 +14487,15 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -14771,6 +14511,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -15095,11 +14836,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15127,6 +14863,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -15154,7 +14891,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -15536,11 +15272,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15552,20 +15283,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -15581,6 +15307,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -15905,11 +15632,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15937,6 +15659,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -15964,7 +15687,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -16347,11 +16069,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16363,20 +16080,15 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -16392,6 +16104,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -16716,11 +16429,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -16748,6 +16456,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -16775,7 +16484,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -17157,11 +16865,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17173,20 +16876,15 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -17202,6 +16900,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -17526,11 +17225,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -17558,6 +17252,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -17585,7 +17280,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -17967,11 +17661,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17983,20 +17672,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -18012,6 +17696,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -18336,11 +18021,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -18368,6 +18048,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -18395,7 +18076,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -18779,11 +18459,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18795,20 +18470,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -18824,6 +18494,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -19148,11 +18819,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -19180,6 +18846,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -19207,7 +18874,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -19589,11 +19255,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19605,20 +19266,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -19634,6 +19290,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -19958,11 +19615,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -19990,6 +19642,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -20017,7 +19670,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -20399,11 +20051,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20415,20 +20062,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -20444,6 +20086,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -20768,11 +20411,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -20800,6 +20438,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -20827,7 +20466,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -20921,7 +20559,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:               limiter,
 		FlashMessage:              flashMessage,
 		OTPCodeService:            otpService,
-		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
+		Clock:                     clockClock,
+		Config:                    appConfig,
 	}
 	return enterOOBOTPHandler
 }
@@ -21213,11 +20852,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21229,20 +20863,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -21258,6 +20887,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -21582,11 +21212,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -21614,6 +21239,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -21641,7 +21267,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -22023,11 +21648,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22039,20 +21659,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -22068,6 +21683,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -22392,11 +22008,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -22424,6 +22035,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -22451,7 +22063,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -22548,77 +22159,20 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
-	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
 	appContext := appProvider.AppContext
 	config := appContext.Config
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	request := p.Request
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	handle := appProvider.Redis
-	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	factory := appProvider.LoggerFactory
-	logger := otp.NewLogger(factory)
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
-	featureConfig := config.FeatureConfig
-	rateLimitFeatureConfig := featureConfig.RateLimit
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
-	}
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
-	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         logger,
-		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
-	}
-	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	clockClock := _wireSystemClockValue
+	handle := appProvider.Redis
 	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
 		Clock:       clockClock,
 		RedisHandle: handle,
 	}
 	whatsappWATICallbackHandler := &webapp.WhatsappWATICallbackHandler{
-		OTPCodeService:              otpService,
 		Logger:                      whatsappWATICallbackHandlerLogger,
 		WATICredentials:             watiCredentials,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -22913,11 +22467,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22929,20 +22478,15 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -22958,6 +22502,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -23282,11 +22827,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -23314,6 +22854,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -23341,7 +22882,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -23454,11 +22994,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -23484,20 +23019,15 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 		Config:  rateLimitFeatureConfig,
 	}
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
-	otpService := otp.Service{
+	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	appdbHandle := appProvider.AppDatabase
 	serviceLogger := webapp2.NewServiceLogger(factory)
@@ -23754,33 +23284,21 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	service3 := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         logger,
-		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
-	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
 	}
-	service4 := &service2.Service{
+	service3 := &service2.Service{
 		Store:                            store3,
 		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
 		OOBOTP:                           oobProvider,
-		OTPCodeService:                   service3,
+		OTPCodeService:                   otpService,
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -23821,7 +23339,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
-		Authenticators:     service4,
+		Authenticators:     service3,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
@@ -24016,7 +23534,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
-		Authenticators:             service4,
+		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               commands,
@@ -24105,11 +23623,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24137,9 +23650,10 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
-		OTPCodeService:  service3,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -24154,7 +23668,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:             anonymousProvider,
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
-		OTPCodeService:                  service3,
+		OTPCodeService:                  otpService,
 		OOBCodeSender:                   codeSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
@@ -24164,7 +23678,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -24251,6 +23764,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationConfig: authenticationConfig,
 	}
 	loginLinkOTPHandler := &webapp.LoginLinkOTPHandler{
+		Clock:                     clockClock,
 		LoginLinkOTPCodeService:   otpService,
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
@@ -24258,7 +23772,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                  responseRenderer,
 		RateLimiter:               limiter,
 		FlashMessage:              flashMessage,
-		AntiSpamOTPCodeBucket:     antiSpamOTPCodeBucketMaker,
+		Config:                    appConfig,
 	}
 	return loginLinkOTPHandler
 }
@@ -24277,11 +23791,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	handle := appProvider.Redis
 	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
 		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
@@ -24311,20 +23820,15 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 		Config:  rateLimitFeatureConfig,
 	}
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
-	otpService := otp.Service{
+	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
 		Clock:       clockClock,
@@ -24585,33 +24089,21 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	service3 := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         logger,
-		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
-	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
 	}
-	service4 := &service2.Service{
+	service3 := &service2.Service{
 		Store:                            store3,
 		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
 		OOBOTP:                           oobProvider,
-		OTPCodeService:                   service3,
+		OTPCodeService:                   otpService,
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -24652,7 +24144,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawQueries:         rawQueries,
 		Store:              userStore,
 		Identities:         serviceService,
-		Authenticators:     service4,
+		Authenticators:     service3,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
@@ -24847,7 +24339,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
-		Authenticators:             service4,
+		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
 		UserCommands:               commands,
@@ -24936,11 +24428,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24968,9 +24455,10 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
-		OTPCodeService:  service3,
+		OTPCodeService:  otpService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -24985,7 +24473,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousIdentities:             anonymousProvider,
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
-		OTPCodeService:                  service3,
+		OTPCodeService:                  otpService,
 		OOBCodeSender:                   codeSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
@@ -24995,7 +24483,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -25096,6 +24583,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel:     authenticationViewModeler,
 		Renderer:                    responseRenderer,
 		WorkflowEvents:              eventStoreImpl,
+		Config:                      appConfig,
 	}
 	return verifyLoginLinkOTPHandler
 }
@@ -25387,11 +24875,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25403,20 +24886,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -25432,6 +24910,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -25756,11 +25235,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -25788,6 +25262,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -25815,7 +25290,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -26197,11 +25671,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26213,20 +25682,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -26242,6 +25706,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -26566,11 +26031,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -26598,6 +26058,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -26625,7 +26086,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -27003,11 +26463,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27019,20 +26474,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -27048,6 +26498,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -27372,11 +26823,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -27404,6 +26850,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -27431,7 +26878,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -27515,13 +26961,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	verifyIdentityHandler := &webapp.VerifyIdentityHandler{
-		ControllerFactory:     controllerFactory,
-		BaseViewModel:         baseViewModeler,
-		Renderer:              responseRenderer,
-		RateLimiter:           limiter,
-		FlashMessage:          flashMessage,
-		OTPCodeService:        otpService,
-		AntiSpamOTPCodeBucket: antiSpamOTPCodeBucketMaker,
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		Renderer:          responseRenderer,
+		RateLimiter:       limiter,
+		FlashMessage:      flashMessage,
+		OTPCodeService:    otpService,
+		Clock:             clockClock,
+		Config:            appConfig,
 	}
 	return verifyIdentityHandler
 }
@@ -27813,11 +27260,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27829,20 +27271,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -27858,6 +27295,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -28182,11 +27620,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -28214,6 +27647,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -28241,7 +27675,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -28619,11 +28052,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28635,20 +28063,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -28664,6 +28087,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -28988,11 +28412,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -29020,6 +28439,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -29047,7 +28467,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -29435,11 +28854,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29451,20 +28865,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -29480,6 +28889,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -29804,11 +29214,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -29836,6 +29241,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -29863,7 +29269,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -30241,11 +29646,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30257,20 +29657,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -30286,6 +29681,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -30610,11 +30006,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -30642,6 +30033,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -30669,7 +30061,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -31049,11 +30440,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31065,20 +30451,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -31094,6 +30475,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -31418,11 +30800,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -31450,6 +30827,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -31477,7 +30855,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -31855,11 +31232,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31871,20 +31243,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -31900,6 +31267,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -32224,11 +31592,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -32256,6 +31619,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -32283,7 +31647,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -32693,11 +32056,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32709,20 +32067,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -32738,6 +32091,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -33062,11 +32416,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -33094,6 +32443,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -33121,7 +32471,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -33510,11 +32859,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33526,20 +32870,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -33555,6 +32894,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -33879,11 +33219,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -33911,6 +33246,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -33938,7 +33274,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -34340,11 +33675,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34356,20 +33686,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -34385,6 +33710,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -34709,11 +34035,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -34741,6 +34062,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -34768,7 +34090,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -35154,11 +34475,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35170,20 +34486,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -35199,6 +34510,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -35523,11 +34835,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -35555,6 +34862,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -35582,7 +34890,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -35961,11 +35268,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35977,20 +35279,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -36006,6 +35303,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -36330,11 +35628,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -36362,6 +35655,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -36389,7 +35683,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -36776,11 +36069,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36792,20 +36080,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -36821,6 +36104,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -37145,11 +36429,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37177,6 +36456,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -37204,7 +36484,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -37583,11 +36862,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37599,20 +36873,15 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -37628,6 +36897,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -37952,11 +37222,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37984,6 +37249,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -38011,7 +37277,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -38390,11 +37655,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38406,20 +37666,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -38435,6 +37690,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -38759,11 +38015,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -38791,6 +38042,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -38818,7 +38070,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -39197,11 +38448,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -39213,20 +38459,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -39242,6 +38483,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -39566,11 +38808,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -39598,6 +38835,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -39625,7 +38863,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -40005,11 +39242,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40021,20 +39253,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -40050,6 +39277,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -40374,11 +39602,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -40406,6 +39629,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -40433,7 +39657,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -40831,11 +40054,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40847,20 +40065,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -40876,6 +40089,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -41200,11 +40414,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -41232,6 +40441,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -41259,7 +40469,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -41638,11 +40847,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41654,20 +40858,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -41683,6 +40882,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -42007,11 +41207,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -42039,6 +41234,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -42066,7 +41262,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -42445,11 +41640,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42461,20 +41651,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -42490,6 +41675,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -42814,11 +42000,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -42846,6 +42027,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -42873,7 +42055,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -43252,11 +42433,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -43268,20 +42444,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -43297,6 +42468,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -43621,11 +42793,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -43653,6 +42820,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -43680,7 +42848,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -44059,11 +43226,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44075,20 +43237,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -44104,6 +43261,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -44428,11 +43586,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -44460,6 +43613,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -44487,7 +43641,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -44873,11 +44026,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44889,20 +44037,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -44918,6 +44061,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -45242,11 +44386,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -45274,6 +44413,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -45301,7 +44441,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -45681,11 +44820,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45697,20 +44831,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -45726,6 +44855,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -46050,11 +45180,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -46082,6 +45207,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -46109,7 +45235,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -46487,11 +45612,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46503,20 +45623,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -46532,6 +45647,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -46856,11 +45972,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -46888,6 +45999,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -46915,7 +46027,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -47308,11 +46419,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -47324,20 +46430,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -47353,6 +46454,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -47677,11 +46779,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -47709,6 +46806,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -47736,7 +46834,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -48114,11 +47211,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48130,20 +47222,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -48159,6 +47246,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -48483,11 +47571,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -48515,6 +47598,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -48542,7 +47626,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -48920,11 +48003,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48936,20 +48014,15 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -48965,6 +48038,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -49289,11 +48363,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -49321,6 +48390,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -49348,7 +48418,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -49744,11 +48813,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -49760,20 +48824,15 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -49789,6 +48848,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -50113,11 +49173,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -50145,6 +49200,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -50172,7 +49228,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -50515,11 +49570,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -50531,20 +49581,15 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -50560,6 +49605,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -50884,11 +49930,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -50916,6 +49957,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -50943,7 +49985,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -51285,11 +50326,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51301,20 +50337,15 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -51330,6 +50361,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -51654,11 +50686,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -51686,6 +50713,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -51713,7 +50741,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -52101,11 +51128,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52117,20 +51139,15 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -52146,6 +51163,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -52470,11 +51488,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -52502,6 +51515,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -52529,7 +51543,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -52908,11 +51921,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52924,20 +51932,15 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -52953,6 +51956,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -53277,11 +52281,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -53309,6 +52308,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -53336,7 +52336,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -53694,11 +52693,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -53710,20 +52704,15 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -53739,6 +52728,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -54451,11 +53441,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -54467,20 +53452,15 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -54496,6 +53476,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -55179,11 +54160,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -55195,20 +54171,15 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -55224,6 +54195,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -56215,11 +55187,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -56231,20 +55198,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -56260,6 +55222,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -56745,11 +55708,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -56761,20 +55719,15 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -56790,6 +55743,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
@@ -57114,11 +56068,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		HardSMSBucketer:   hardSMSBucketer,
 		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -57146,6 +56095,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	whatsappProvider := &whatsapp.Provider{
+		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
@@ -57173,7 +56123,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		AntiSpamOTPCodeBucket:           antiSpamOTPCodeBucketMaker,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -57600,11 +56549,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AppID: appID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -57616,20 +56560,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -57645,6 +56584,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,

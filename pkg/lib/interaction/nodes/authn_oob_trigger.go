@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -98,6 +99,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 		IsAuthenticating:     true,
 		AuthenticatorInfo:    targetInfo,
 		IgnoreRatelimitError: true,
+		OTPForm:              otp.FormCode,
 	}).Do()
 	if err != nil {
 		return nil, err
@@ -169,6 +171,7 @@ func (n *NodeAuthenticationOOBTrigger) DeriveEdges(graph *interaction.Graph) ([]
 			Stage:            n.Stage,
 			IsAuthenticating: true,
 			Authenticator:    n.Authenticator,
+			OTPForm:          otp.FormCode,
 		},
 		&EdgeAuthenticationOOB{Stage: n.Stage, Authenticator: n.Authenticator},
 	}, nil

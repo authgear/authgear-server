@@ -431,11 +431,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AppID: configAppID,
 		Clock: clockClock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
-		Redis: appredisHandle,
-		AppID: configAppID,
-		Clock: clockClock,
-	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -447,20 +442,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          configAppID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
 		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
@@ -476,6 +466,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,

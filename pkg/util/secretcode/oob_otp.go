@@ -8,12 +8,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
+const oobOTPLength = 6
+
 var OOBOTPSecretCode = OOBOTPSecretCodeType{}
 
 type OOBOTPSecretCodeType struct{}
 
+func (OOBOTPSecretCodeType) Length() int {
+	return oobOTPLength
+}
+
 func (OOBOTPSecretCodeType) Generate() string {
-	code := rand.StringWithAlphabet(6, "0123456789", rand.SecureRand)
+	code := rand.StringWithAlphabet(oobOTPLength, "0123456789", rand.SecureRand)
 	return code
 }
 

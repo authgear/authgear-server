@@ -15,7 +15,7 @@ type EdgeOOBResendCode struct {
 	Stage            authn.AuthenticationStage
 	IsAuthenticating bool
 	Authenticator    *authenticator.Info
-	OTPMode          otp.OTPMode
+	OTPForm          otp.Form
 }
 
 func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -30,7 +30,7 @@ func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interac
 		IsAuthenticating:     e.IsAuthenticating,
 		AuthenticatorInfo:    e.Authenticator,
 		IgnoreRatelimitError: false,
-		OTPMode:              e.OTPMode,
+		OTPForm:              e.OTPForm,
 	}).Do()
 	if err != nil {
 		return nil, err

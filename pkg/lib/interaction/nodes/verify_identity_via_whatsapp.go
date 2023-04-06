@@ -43,7 +43,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 	node := &NodeVerifyIdentityViaWhatsapp{
 		Identity:        e.Identity,
 		RequestedByUser: e.RequestedByUser,
-		WhatsappOTP:     code.Code,
+		WhatsappOTP:     code,
 		Phone:           phone,
 		PhoneOTPMode:    ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}

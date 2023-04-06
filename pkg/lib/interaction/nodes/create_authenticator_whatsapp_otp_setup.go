@@ -108,7 +108,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 	return &NodeCreateAuthenticatorWhatsappOTPSetup{
 		Stage:         e.Stage,
 		Authenticator: info,
-		WhatsappOTP:   code.Code,
+		WhatsappOTP:   code,
 		Phone:         phone,
 		PhoneOTPMode:  ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}, nil

@@ -8,9 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -63,18 +66,15 @@ type FlashMessage interface {
 	Flash(rw http.ResponseWriter, messageType string)
 }
 
-type AntiSpamOTPCodeBucketMaker interface {
-	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
-}
-
 type VerifyIdentityHandler struct {
-	ControllerFactory     ControllerFactory
-	BaseViewModel         *viewmodels.BaseViewModeler
-	Renderer              Renderer
-	RateLimiter           RateLimiter
-	FlashMessage          FlashMessage
-	OTPCodeService        OTPCodeService
-	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
+	ControllerFactory ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	RateLimiter       RateLimiter
+	FlashMessage      FlashMessage
+	OTPCodeService    OTPCodeService
+	Clock             clock.Clock
+	Config            *config.AppConfig
 }
 
 type VerifyIdentityNode interface {
@@ -120,23 +120,17 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 			panic("webapp: unknown verification channel")
 		}
 
-		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+		state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, channel), target)
 		if err != nil {
 			return nil, err
 		}
-		if pass {
-			// allow sending immediately
+		viewModel.FailedAttemptRateLimitExceeded = state.TooManyAttempts
+		cooldown := int(state.CanResendAt.Sub(h.Clock.NowUTC()).Seconds())
+		if cooldown < 0 {
 			viewModel.VerificationCodeSendCooldown = 0
 		} else {
-			viewModel.VerificationCodeSendCooldown = int(resetDuration.Seconds())
+			viewModel.VerificationCodeSendCooldown = cooldown
 		}
-
-		exceeded, err := h.OTPCodeService.FailedAttemptRateLimitExceeded(target)
-		if err != nil {
-			return nil, err
-		}
-		viewModel.FailedAttemptRateLimitExceeded = exceeded
 	}
 
 	phoneOTPAlternatives := viewmodels.PhoneOTPAlternativeStepsViewModel{}

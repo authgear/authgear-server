@@ -24,6 +24,10 @@ func (f Form) codeType() secretCode {
 	}
 }
 
+func (f Form) CodeLength() int {
+	return f.codeType().Length()
+}
+
 func (f Form) GenerateCode() string {
 	return f.codeType().Generate()
 }
@@ -33,6 +37,7 @@ func (f Form) VerifyCode(input string, expected string) bool {
 }
 
 type secretCode interface {
+	Length() int
 	Generate() string
 	Compare(string, string) bool
 }

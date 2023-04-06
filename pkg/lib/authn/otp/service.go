@@ -2,26 +2,19 @@ package otp
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
-type GenerateCodeOptions struct {
-	UserID       string
-	WebSessionID string
-	WorkflowID   string
-}
-
 type GenerateOptions struct {
-	UserID     string
-	WorkflowID string
+	UserID         string
+	WorkflowID     string
+	WebSessionID   string
+	SkipRateLimits bool
 }
 
 type VerifyOptions struct {
@@ -35,12 +28,6 @@ type CodeStore interface {
 	Get(target string) (*Code, error)
 	Update(target string, code *Code) error
 	Delete(target string) error
-}
-
-type LoginLinkStore interface {
-	Create(token string, target string, expireAt time.Time) error
-	Get(token string) (string, error)
-	Delete(token string) error
 }
 
 type LookupStore interface {
@@ -65,68 +52,14 @@ type Service struct {
 	AppID          config.AppID
 	RemoteIP       httputil.RemoteIP
 	CodeStore      CodeStore
-	LoginLinkStore LoginLinkStore
 	LookupStore    LookupStore
 	AttemptTracker AttemptTracker
 	Logger         Logger
 	RateLimiter    RateLimiter
-	OTPConfig      *config.OTPLegacyConfig
-	Verification   *config.VerificationConfig
-}
-
-func (s *Service) isFailedAttemptRatelimitEnabled() bool {
-	return s.OTPConfig.Ratelimit.FailedAttempt.Enabled
-}
-
-func (s *Service) TrackFailedAttemptBucket(target string) ratelimit.Bucket {
-	config := s.OTPConfig.Ratelimit.FailedAttempt
-	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("otp-failed-attempt:%s", target),
-		Size:        config.Size,
-		ResetPeriod: config.ResetPeriod.Duration(),
-		Name:        ratelimit.TrackFailedOTPAttemptBucketName,
-	}
 }
 
 func (s *Service) getCode(target string) (*Code, error) {
 	return s.CodeStore.Get(target)
-}
-
-func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*Code, error) {
-	if codeModel == nil {
-		codeModel = &Code{}
-	}
-	codeModel.Target = target
-	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeValidPeriod.Duration())
-
-	switch otpMode {
-	case OTPModeLoginLink:
-		codeModel.Code = secretcode.LinkOTPSecretCode.Generate()
-		err := s.LoginLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
-		if err != nil {
-			return nil, err
-		}
-		err = s.CodeStore.Create(target, codeModel)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		codeModel.Code = secretcode.OOBOTPSecretCode.Generate()
-		err := s.CodeStore.Create(target, codeModel)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Reset failed attempt count
-	if s.isFailedAttemptRatelimitEnabled() {
-		err := s.RateLimiter.ClearBucket(s.TrackFailedAttemptBucket(target))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return codeModel, nil
 }
 
 func (s *Service) deleteCode(target string) {
@@ -135,25 +68,6 @@ func (s *Service) deleteCode(target string) {
 	}
 	// No need delete from lookup store;
 	// lookup entry is invalidated since target is no longer exist.
-}
-
-func (s *Service) handleFailedAttempt(target string) error {
-	if s.isFailedAttemptRatelimitEnabled() {
-		err := s.RateLimiter.TakeToken(s.TrackFailedAttemptBucket(target))
-		if err != nil {
-			return err
-		}
-
-		pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
-		if err != nil {
-			return err
-		} else if !pass {
-			// Maximum number of failed attempt exceeded
-			s.deleteCode(target)
-		}
-	}
-
-	return ErrInvalidCode
 }
 
 func (s *Service) handleFailedAttemptsRevocation(kind Kind, target string) error {
@@ -185,32 +99,33 @@ func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error 
 }
 
 func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
-	if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
-		return "", err
-	}
-
-	if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerIP(string(s.RemoteIP))); err != nil {
-		return "", err
-	}
-
-	if opts.UserID != "" {
-		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opts.UserID)); err != nil {
+	if !opts.SkipRateLimits {
+		if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
 			return "", err
+		}
+
+		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerIP(string(s.RemoteIP))); err != nil {
+			return "", err
+		}
+
+		if opts.UserID != "" {
+			if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opts.UserID)); err != nil {
+				return "", err
+			}
 		}
 	}
 
 	code := &Code{
-		AppID:      string(s.AppID),
-		Target:     target,
-		WorkflowID: opts.WorkflowID,
+		AppID:        string(s.AppID),
+		Target:       target,
+		WorkflowID:   opts.WorkflowID,
+		WebSessionID: opts.WebSessionID,
 	}
 	code.Target = target
 	code.Purpose = kind.Purpose()
 	code.Form = form
 	code.Code = form.GenerateCode()
 	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
-
-	// TODO: lookup-able code
 
 	err := s.CodeStore.Create(target, code)
 	if err != nil {
@@ -230,45 +145,6 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 	}
 
 	return code.Code, nil
-}
-
-func (s *Service) GenerateCode(target string, otpMode OTPMode, opt *GenerateCodeOptions) (*Code, error) {
-	return s.createCode(target, otpMode, &Code{
-		AppID:        string(s.AppID),
-		WebSessionID: opt.WebSessionID,
-		WorkflowID:   opt.WorkflowID,
-	})
-}
-
-func (s *Service) GenerateWhatsappCode(target string, opt *GenerateCodeOptions) (*Code, error) {
-	return s.createCode(target, OTPModeCode, &Code{
-		AppID:        string(s.AppID),
-		WebSessionID: opt.WebSessionID,
-		WorkflowID:   opt.WorkflowID,
-	})
-}
-
-func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
-	if !s.isFailedAttemptRatelimitEnabled() {
-		return false, nil
-	}
-
-	pass, _, err := s.RateLimiter.CheckToken(s.TrackFailedAttemptBucket(target))
-	if err != nil {
-		return false, err
-	}
-	if !pass {
-		return true, nil
-	}
-
-	// We do not check the presence of the code here.
-	// If we were to check that, we will have the following bug.
-	// 1. Sign in.
-	// 2. Sign in immediately again within OTP cooldown period.
-	// 3. The code is not generated (thus absent), and we DO NOT report rate limit error.
-	// 4. This function return true, the client is confused that failed attempt rate limit is exceeded.
-
-	return false, nil
 }
 
 func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOptions) error {
@@ -343,134 +219,6 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	return nil
 }
 
-func (s *Service) VerifyCode(target string, code string) error {
-	if s.isFailedAttemptRatelimitEnabled() {
-		bucket := s.TrackFailedAttemptBucket(target)
-		pass, _, err := s.RateLimiter.CheckToken(bucket)
-		if err != nil {
-			return err
-		}
-		if !pass {
-			return bucket.BucketError()
-		}
-	}
-
-	codeModel, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		return ErrInvalidCode
-	} else if err != nil {
-		return err
-	}
-
-	if !secretcode.OOBOTPSecretCode.Compare(code, codeModel.Code) {
-		return s.handleFailedAttempt(target)
-	}
-
-	s.deleteCode(target)
-
-	return nil
-}
-
-// VerifyLoginLinkCode verifies the code but it won't consume it
-func (s *Service) VerifyLoginLinkCode(userInputtedCode string) (*Code, error) {
-	target, err := s.LoginLinkStore.Get(userInputtedCode)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidLoginLink
-	} else if err != nil {
-		return nil, err
-	}
-
-	codeModel, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidLoginLink
-	} else if err != nil {
-		return nil, err
-	}
-
-	if !secretcode.LinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidLoginLink
-	}
-
-	return codeModel, nil
-}
-
-func (s *Service) VerifyLoginLinkCodeByTarget(target string, consume bool) (*Code, error) {
-	codeModel, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		return nil, ErrInvalidLoginLink
-	} else if err != nil {
-		return nil, err
-	}
-
-	if !secretcode.LinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return nil, ErrInvalidLoginLink
-	}
-
-	if consume {
-		s.deleteCode(codeModel.Target)
-	}
-
-	return codeModel, nil
-}
-
-func (s *Service) VerifyWhatsappCode(target string, consume bool) error {
-	codeModel, err := s.getCode(target)
-	if errors.Is(err, ErrCodeNotFound) {
-		return ErrInvalidCode
-	} else if err != nil {
-		return err
-	}
-
-	if codeModel.UserInputtedCode == "" {
-		return ErrInputRequired
-	}
-
-	if !secretcode.OOBOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
-		return s.handleFailedAttempt(target)
-	}
-
-	if consume {
-		s.deleteCode(target)
-	}
-
-	return nil
-}
-
-// SetUserInputtedCode set the user inputted code without verifying it
-// The code will be verified via VerifyWhatsappCode in the original interaction
-func (s *Service) SetUserInputtedCode(target string, userInputtedCode string) (*Code, error) {
-	codeModel, err := s.getCode(target)
-	if err != nil {
-		return nil, err
-	}
-
-	codeModel.UserInputtedCode = userInputtedCode
-	if err := s.CodeStore.Update(target, codeModel); err != nil {
-		return nil, err
-	}
-
-	return codeModel, nil
-}
-
-// SetUserInputtedLoginLinkCode set the user inputted code if the code is correct
-// If the code is incorrect, error will be returned and the approval screen should show
-// the error to the user
-// If the code is correct, the code will be set to the user inputted code
-// The code should be verified again via VerifyLoginLinkCodeByTarget in the original interaction
-func (s *Service) SetUserInputtedLoginLinkCode(userInputtedCode string) (*Code, error) {
-	codeModel, err := s.VerifyLoginLinkCode(userInputtedCode)
-	if err != nil {
-		return nil, err
-	}
-
-	codeModel.UserInputtedCode = userInputtedCode
-	if err := s.CodeStore.Update(codeModel.Target, codeModel); err != nil {
-		return nil, err
-	}
-
-	return codeModel, nil
-}
-
 func (s *Service) SetSubmittedCode(kind Kind, target string, code string) (*State, error) {
 	codeModel, err := s.getCode(target)
 	if err != nil {
@@ -528,6 +276,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		state.ExpireAt = code.ExpireAt
 		state.SubmittedCode = code.UserInputtedCode
 		state.WorkflowID = code.WorkflowID
+		state.WebSessionID = code.WebSessionID
 	}
 
 	return state, nil

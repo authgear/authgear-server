@@ -107,7 +107,7 @@ type SessionListingService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, otpMode otp.OTPMode, opt *otp.GenerateCodeOptions) (*otp.Code, error)
+	GenerateOTP(kind otp.Kind, target string, form otp.Form, opts *otp.GenerateOptions) (string, error)
 }
 
 type ForgotPasswordService interface {
@@ -121,6 +121,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} 
 type Context struct {
 	GQLLogger Logger
 
+	Config                *config.AppConfig
 	OAuthConfig           *config.OAuthConfig
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 

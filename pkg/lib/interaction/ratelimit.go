@@ -2,10 +2,7 @@ package interaction
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -48,26 +45,5 @@ func AntiAccountEnumerationBucket(ip string) ratelimit.Bucket {
 		Key:         fmt.Sprintf("account-enumeration:%s", ip),
 		Size:        10,
 		ResetPeriod: duration.PerMinute,
-	}
-}
-
-type AntiSpamOTPCodeBucketMaker struct {
-	SMSConfig   *config.SMSConfig
-	EmailConfig *config.EmailConfig
-}
-
-func (m *AntiSpamOTPCodeBucketMaker) MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket {
-	var resetPeriod time.Duration
-	switch channel {
-	case model.AuthenticatorOOBChannelSMS:
-		resetPeriod = m.SMSConfig.Ratelimit.ResendCooldownSeconds.Duration()
-	case model.AuthenticatorOOBChannelEmail:
-		resetPeriod = m.EmailConfig.Ratelimit.ResendCooldownSeconds.Duration()
-	}
-	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("otp-code:%s", target),
-		Size:        1,
-		ResetPeriod: resetPeriod,
-		Name:        "AntiSpamOTPCodeBucket",
 	}
 }
