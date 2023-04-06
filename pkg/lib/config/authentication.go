@@ -29,7 +29,8 @@ var _ = Schema.Add("AuthenticationConfig", `
 		},
 		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" },
 		"device_token": { "$ref": "#/$defs/DeviceTokenConfig" },
-		"recovery_code": { "$ref": "#/$defs/RecoveryCodeConfig" }
+		"recovery_code": { "$ref": "#/$defs/RecoveryCodeConfig" },
+		"rate_limits": { "$ref": "#/$defs/AuthenticationRateLimitsConfig" }
 	},
 	"allOf": [
 		{
@@ -144,13 +145,14 @@ var _ = Schema.Add("SecondaryAuthenticatorType", `
 `)
 
 type AuthenticationConfig struct {
-	Identities                  []model.IdentityType        `json:"identities,omitempty"`
-	PrimaryAuthenticators       *[]model.AuthenticatorType  `json:"primary_authenticators,omitempty"`
-	SecondaryAuthenticators     *[]model.AuthenticatorType  `json:"secondary_authenticators,omitempty"`
-	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
-	DeviceToken                 *DeviceTokenConfig          `json:"device_token,omitempty"`
-	RecoveryCode                *RecoveryCodeConfig         `json:"recovery_code,omitempty"`
-	PublicSignupDisabled        bool                        `json:"public_signup_disabled,omitempty"`
+	Identities                  []model.IdentityType            `json:"identities,omitempty"`
+	PrimaryAuthenticators       *[]model.AuthenticatorType      `json:"primary_authenticators,omitempty"`
+	SecondaryAuthenticators     *[]model.AuthenticatorType      `json:"secondary_authenticators,omitempty"`
+	SecondaryAuthenticationMode SecondaryAuthenticationMode     `json:"secondary_authentication_mode,omitempty"`
+	DeviceToken                 *DeviceTokenConfig              `json:"device_token,omitempty"`
+	RecoveryCode                *RecoveryCodeConfig             `json:"recovery_code,omitempty"`
+	PublicSignupDisabled        bool                            `json:"public_signup_disabled,omitempty"`
+	RateLimits                  *AuthenticationRateLimitsConfig `json:"rate_limits,omitempty"`
 }
 
 func (c *AuthenticationConfig) SetDefaults() {

@@ -191,14 +191,16 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"phone_otp_mode": { "$ref": "#/$defs/AuthenticatorPhoneOTPMode" }
+		"phone_otp_mode": { "$ref": "#/$defs/AuthenticatorPhoneOTPMode" },
+		"code_valid_period": { "$ref": "#/$defs/DurationString" }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum      *int                      `json:"maximum,omitempty"`
-	PhoneOTPMode AuthenticatorPhoneOTPMode `json:"phone_otp_mode,omitempty"`
+	Maximum         *int                      `json:"maximum,omitempty"`
+	PhoneOTPMode    AuthenticatorPhoneOTPMode `json:"phone_otp_mode,omitempty"`
+	CodeValidPeriod DurationString            `json:"code_valid_period,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
@@ -208,6 +210,9 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
+	if c.CodeValidPeriod == "" {
+		c.CodeValidPeriod = "1h"
+	}
 }
 
 var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
@@ -216,14 +221,16 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"email_otp_mode": { "$ref": "#/$defs/AuthenticatorEmailOTPMode" }
+		"email_otp_mode": { "$ref": "#/$defs/AuthenticatorEmailOTPMode" },
+		"code_valid_period": { "$ref": "#/$defs/DurationString" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum      *int                      `json:"maximum,omitempty"`
-	EmailOTPMode AuthenticatorEmailOTPMode `json:"email_otp_mode,omitempty"`
+	Maximum         *int                      `json:"maximum,omitempty"`
+	EmailOTPMode    AuthenticatorEmailOTPMode `json:"email_otp_mode,omitempty"`
+	CodeValidPeriod DurationString            `json:"code_valid_period,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticatorEmailOTPMode", `
@@ -254,5 +261,8 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	}
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
+	}
+	if c.CodeValidPeriod == "" {
+		c.CodeValidPeriod = "1h"
 	}
 }
