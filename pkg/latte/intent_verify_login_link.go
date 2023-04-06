@@ -67,7 +67,8 @@ func (i *IntentVerifyLoginLink) setSubmittedCode(deps *workflow.Dependencies, co
 	}
 
 	err = deps.OTPCodes.VerifyOTP(kind, target, code, &otp.VerifyOptions{
-		UserID:      "", // FIXME: user ID
+		// No need pass user ID (for rate limit checking),
+		// since able to lookup by code strongly implies valid request.
 		SkipConsume: true,
 	})
 	if err != nil {
