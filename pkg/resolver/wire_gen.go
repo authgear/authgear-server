@@ -455,6 +455,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -967,6 +968,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            serviceStore,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,

@@ -59,7 +59,7 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 }
 
 func (i *IntentVerifyLoginLink) setSubmittedCode(deps *workflow.Dependencies, code string) error {
-	kind := otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail, otp.FormLink)
+	kind := otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail)
 
 	target, err := deps.OTPCodes.LookupCode(kind, code)
 	if err != nil {

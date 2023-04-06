@@ -77,10 +77,11 @@ func (p *SendOOBCode) Do() error {
 		return err
 	}
 
-	kind := otp.KindOOBOTP(p.Deps.Config, channel, p.OTPForm)
+	kind := otp.KindOOBOTP(p.Deps.Config, channel)
 	code, err := p.Deps.OTPCodes.GenerateOTP(
 		kind,
 		target,
+		p.OTPForm,
 		&otp.GenerateOptions{
 			UserID:     p.AuthenticatorInfo.UserID,
 			WorkflowID: p.WorkflowID,

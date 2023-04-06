@@ -6,49 +6,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
-
-type secretCode interface {
-	Generate() string
-	Compare(string, string) bool
-}
 
 type kindOOBOTP struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
-	form    Form
 }
 
-func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel, form Form) Kind {
-	return kindOOBOTP{config: config, channel: channel, form: form}
+func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
+	return kindOOBOTP{config: config, channel: channel}
 }
 
 func (k kindOOBOTP) Purpose() string {
 	return "oob-otp"
-}
-
-func (k kindOOBOTP) AllowLookupByCode() bool {
-	return k.form == FormLink
-}
-
-func (k kindOOBOTP) code() secretCode {
-	switch k.form {
-	case FormCode:
-		return secretcode.OOBOTPSecretCode
-	case FormLink:
-		return secretcode.LoginLinkOTPSecretCode
-	default:
-		panic("unexpected form: " + k.form)
-	}
-}
-
-func (k kindOOBOTP) GenerateCode() string {
-	return k.code().Generate()
-}
-
-func (k kindOOBOTP) VerifyCode(input string, expected string) bool {
-	return k.code().Compare(input, expected)
 }
 
 func (k kindOOBOTP) ValidPeriod() time.Duration {

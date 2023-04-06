@@ -448,6 +448,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service4 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,

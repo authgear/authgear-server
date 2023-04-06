@@ -45,7 +45,7 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateOTP(kind otp.Kind, target string, opt *otp.GenerateOptions) (string, error)
+	GenerateOTP(kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 	InspectState(kind otp.Kind, target string) (*otp.State, error)
 

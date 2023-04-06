@@ -420,6 +420,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -914,6 +915,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -1495,6 +1497,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -2279,6 +2282,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -2759,6 +2763,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -3121,6 +3126,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -3550,6 +3556,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -4101,6 +4108,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -4920,6 +4928,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -5707,6 +5716,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -6601,6 +6611,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -7434,6 +7445,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -8266,6 +8278,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -9086,6 +9099,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -9899,6 +9913,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -10702,6 +10717,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -11508,6 +11524,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -12317,6 +12334,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -13128,6 +13146,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -13937,6 +13956,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -14742,6 +14762,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -15551,6 +15572,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -16361,6 +16383,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -17170,6 +17193,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -17979,6 +18003,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -18790,6 +18815,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -19599,6 +19625,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -20408,6 +20435,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -21221,6 +21249,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -22030,6 +22059,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -22919,6 +22949,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -23741,6 +23772,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service4 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -24571,6 +24603,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service4 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -25390,6 +25423,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -26199,6 +26233,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -27004,6 +27039,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -27813,6 +27849,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -28618,6 +28655,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -29433,6 +29471,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -30238,6 +30277,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -31045,6 +31085,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -31850,6 +31891,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -32687,6 +32729,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -33503,6 +33546,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -34332,6 +34376,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -35145,6 +35190,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -35951,6 +35997,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -36765,6 +36812,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -37571,6 +37619,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -38377,6 +38426,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -39183,6 +39233,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -39990,6 +40041,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -40815,6 +40867,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -41621,6 +41674,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -42427,6 +42481,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -43233,6 +43288,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -44039,6 +44095,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -44852,6 +44909,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -45659,6 +45717,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -46464,6 +46523,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -47284,6 +47344,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -48089,6 +48150,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -48894,6 +48956,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -49717,6 +49780,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -50487,6 +50551,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -51256,6 +51321,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -52071,6 +52137,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -52877,6 +52944,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -53662,6 +53730,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -54418,6 +54487,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -55145,6 +55215,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -56180,6 +56251,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -56709,6 +56781,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -57563,6 +57636,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,

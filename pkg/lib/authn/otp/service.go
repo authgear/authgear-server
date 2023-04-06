@@ -13,13 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
-type Form string
-
-const (
-	FormCode Form = "code"
-	FormLink Form = "link"
-)
-
 type GenerateCodeOptions struct {
 	UserID       string
 	WebSessionID string
@@ -108,7 +101,7 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 
 	switch otpMode {
 	case OTPModeLoginLink:
-		codeModel.Code = secretcode.LoginLinkOTPSecretCode.Generate()
+		codeModel.Code = secretcode.LinkOTPSecretCode.Generate()
 		err := s.LoginLinkStore.Create(codeModel.Code, codeModel.Target, codeModel.ExpireAt)
 		if err != nil {
 			return nil, err
@@ -191,7 +184,7 @@ func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error 
 	return nil
 }
 
-func (s *Service) GenerateOTP(kind Kind, target string, opts *GenerateOptions) (string, error) {
+func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
 	if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
 		return "", err
 	}
@@ -213,7 +206,8 @@ func (s *Service) GenerateOTP(kind Kind, target string, opts *GenerateOptions) (
 	}
 	code.Target = target
 	code.Purpose = kind.Purpose()
-	code.Code = kind.GenerateCode()
+	code.Form = form
+	code.Code = form.GenerateCode()
 	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
 
 	// TODO: lookup-able code
@@ -223,7 +217,7 @@ func (s *Service) GenerateOTP(kind Kind, target string, opts *GenerateOptions) (
 		return "", err
 	}
 
-	if kind.AllowLookupByCode() {
+	if form.AllowLookupByCode() {
 		err := s.LookupStore.Create(code.Purpose, code.Code, code.Target, code.ExpireAt)
 		if err != nil {
 			return "", err
@@ -328,7 +322,7 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 		codeToVerify = code.UserInputtedCode
 	}
 
-	if !kind.VerifyCode(codeToVerify, code.Code) {
+	if !code.Form.VerifyCode(codeToVerify, code.Code) {
 		ferr := s.handleFailedAttemptsRevocation(kind, target)
 		if errors.Is(ferr, ErrTooManyAttempts) {
 			return ferr
@@ -393,7 +387,7 @@ func (s *Service) VerifyLoginLinkCode(userInputtedCode string) (*Code, error) {
 		return nil, err
 	}
 
-	if !secretcode.LoginLinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
+	if !secretcode.LinkOTPSecretCode.Compare(userInputtedCode, codeModel.Code) {
 		return nil, ErrInvalidLoginLink
 	}
 
@@ -408,7 +402,7 @@ func (s *Service) VerifyLoginLinkCodeByTarget(target string, consume bool) (*Cod
 		return nil, err
 	}
 
-	if !secretcode.LoginLinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
+	if !secretcode.LinkOTPSecretCode.Compare(codeModel.UserInputtedCode, codeModel.Code) {
 		return nil, ErrInvalidLoginLink
 	}
 

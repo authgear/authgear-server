@@ -467,6 +467,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,

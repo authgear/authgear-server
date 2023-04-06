@@ -122,6 +122,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
 		n.Email,
+		otp.FormCode,
 		&otp.GenerateOptions{
 			UserID:     n.UserID,
 			WorkflowID: workflow.GetWorkflowID(ctx),

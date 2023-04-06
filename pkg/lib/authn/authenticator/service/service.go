@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
@@ -63,7 +64,7 @@ type OOBOTPAuthenticatorProvider interface {
 }
 
 type OTPCodeService interface {
-	VerifyCode(target string, code string) error
+	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 }
 
 type RateLimiter interface {
@@ -72,6 +73,7 @@ type RateLimiter interface {
 
 type Service struct {
 	Store                            *Store
+	Config                           *config.AppConfig
 	Password                         PasswordAuthenticatorProvider
 	Passkey                          PasskeyAuthenticatorProvider
 	TOTP                             TOTPAuthenticatorProvider
@@ -482,10 +484,20 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 
 		return
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
+		var channel model.AuthenticatorOOBChannel
+		switch info.Type {
+		case model.AuthenticatorTypeOOBEmail:
+			channel = model.AuthenticatorOOBChannelEmail
+		case model.AuthenticatorTypeOOBSMS:
+			channel = model.AuthenticatorOOBChannelSMS
+		}
+		kind := otp.KindOOBOTP(s.Config, channel)
+
 		code := spec.OOBOTP.Code
 		a := info.OOBOTP
-		// FIXME: oob-otp kind
-		err = s.OTPCodeService.VerifyCode(a.ToTarget(), code)
+		err = s.OTPCodeService.VerifyOTP(kind, a.ToTarget(), code, &otp.VerifyOptions{
+			UserID: info.UserID,
+		})
 		if errors.Is(err, otp.ErrInvalidCode) {
 			err = authenticator.ErrInvalidCredentials
 			return

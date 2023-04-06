@@ -8,9 +8,6 @@ import (
 
 type Kind interface {
 	Purpose() string
-	AllowLookupByCode() bool
-	GenerateCode() string
-	VerifyCode(input string, expected string) bool
 	ValidPeriod() time.Duration
 
 	RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec
