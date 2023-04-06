@@ -13,6 +13,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
+type Form string
+
+const (
+	FormCode Form = "code"
+	FormLink Form = "link"
+)
+
 type GenerateCodeOptions struct {
 	UserID       string
 	WebSessionID string

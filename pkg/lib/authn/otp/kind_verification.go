@@ -18,11 +18,22 @@ func KindVerification(config *config.AppConfig, channel model.AuthenticatorOOBCh
 	return kindVerification{config: config, channel: channel}
 }
 
-func (k kindVerification) Purpose() string      { return "verification" }
-func (k kindVerification) GenerateCode() string { return secretcode.OOBOTPSecretCode.Generate() }
+func (k kindVerification) Purpose() string {
+	return "verification"
+}
+
+func (k kindVerification) AllowLookupByCode() bool {
+	return false
+}
+
+func (k kindVerification) GenerateCode() string {
+	return secretcode.OOBOTPSecretCode.Generate()
+}
+
 func (k kindVerification) VerifyCode(input string, expected string) bool {
 	return secretcode.OOBOTPSecretCode.Compare(input, expected)
 }
+
 func (k kindVerification) ValidPeriod() time.Duration {
 	return k.config.Verification.CodeValidPeriod.Duration()
 }
