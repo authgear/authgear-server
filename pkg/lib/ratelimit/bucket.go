@@ -49,12 +49,18 @@ type BucketSpec struct {
 }
 
 func NewBucketSpec(config *config.RateLimitConfig, name string, args ...string) BucketSpec {
+	enabled := config.Enabled != nil && *config.Enabled
+	var duration time.Duration
+	if enabled {
+		duration = config.Period.Duration()
+	}
+
 	return BucketSpec{
 		Name:      name,
 		Arguments: args,
 
-		Enabled: config.Enabled != nil && *config.Enabled,
-		Period:  config.Period.Duration(),
+		Enabled: enabled,
+		Period:  duration,
 		Burst:   config.Burst,
 	}
 }
