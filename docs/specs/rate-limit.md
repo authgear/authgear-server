@@ -80,7 +80,7 @@ Rate limits without default are hard-coded (non-configurable).
 
 ## Configuration
 
-In general, rate limits are configured using two fields:
+In general, rate limits are configured using 3 fields:
 ```yaml
 verification:
     rate_limits:
