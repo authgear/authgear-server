@@ -19,7 +19,7 @@ type CodeStoreRedis struct {
 	Clock clock.Clock
 }
 
-func (s *CodeStoreRedis) set(target string, code *Code) error {
+func (s *CodeStoreRedis) set(purpose string, target string, code *Code) error {
 	ctx := context.Background()
 	data, err := json.Marshal(code)
 	if err != nil {
@@ -27,7 +27,7 @@ func (s *CodeStoreRedis) set(target string, code *Code) error {
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		codeKey := redisCodeKey(s.AppID, target)
+		codeKey := redisCodeKey(s.AppID, purpose, target)
 		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
 
 		_, err := conn.SetEX(ctx, codeKey, data, ttl).Result()
@@ -41,13 +41,13 @@ func (s *CodeStoreRedis) set(target string, code *Code) error {
 	})
 }
 
-func (s *CodeStoreRedis) Create(target string, code *Code) error {
-	return s.set(target, code)
+func (s *CodeStoreRedis) Create(purpose string, target string, code *Code) error {
+	return s.set(purpose, target, code)
 }
 
-func (s *CodeStoreRedis) Get(target string) (*Code, error) {
+func (s *CodeStoreRedis) Get(purpose string, target string) (*Code, error) {
 	ctx := context.Background()
-	key := redisCodeKey(s.AppID, target)
+	key := redisCodeKey(s.AppID, purpose, target)
 	var codeModel *Code
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := conn.Get(ctx, key).Bytes()
@@ -67,14 +67,14 @@ func (s *CodeStoreRedis) Get(target string) (*Code, error) {
 	return codeModel, err
 }
 
-func (s *CodeStoreRedis) Update(target string, code *Code) error {
-	return s.set(target, code)
+func (s *CodeStoreRedis) Update(purpose, target string, code *Code) error {
+	return s.set(purpose, target, code)
 }
 
-func (s *CodeStoreRedis) Delete(target string) error {
+func (s *CodeStoreRedis) Delete(purpose, target string) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := redisCodeKey(s.AppID, target)
+		key := redisCodeKey(s.AppID, purpose, target)
 		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
@@ -83,7 +83,6 @@ func (s *CodeStoreRedis) Delete(target string) error {
 	})
 }
 
-// FIXME: purpose
-func redisCodeKey(appID config.AppID, target string) string {
-	return fmt.Sprintf("app:%s:otp-code:%s", appID, target)
+func redisCodeKey(appID config.AppID, purpose string, target string) string {
+	return fmt.Sprintf("app:%s:otp-code:%s:%s", appID, purpose, target)
 }

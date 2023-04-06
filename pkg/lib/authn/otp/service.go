@@ -24,10 +24,10 @@ type VerifyOptions struct {
 }
 
 type CodeStore interface {
-	Create(target string, code *Code) error
-	Get(target string) (*Code, error)
-	Update(target string, code *Code) error
-	Delete(target string) error
+	Create(purpose string, target string, code *Code) error
+	Get(purpose string, target string) (*Code, error)
+	Update(purpose string, target string, code *Code) error
+	Delete(purpose string, target string) error
 }
 
 type LookupStore interface {
@@ -58,12 +58,12 @@ type Service struct {
 	RateLimiter    RateLimiter
 }
 
-func (s *Service) getCode(target string) (*Code, error) {
-	return s.CodeStore.Get(target)
+func (s *Service) getCode(kind Kind, target string) (*Code, error) {
+	return s.CodeStore.Get(kind.Purpose(), target)
 }
 
-func (s *Service) deleteCode(target string) {
-	if err := s.CodeStore.Delete(target); err != nil {
+func (s *Service) deleteCode(kind Kind, target string) {
+	if err := s.CodeStore.Delete(kind.Purpose(), target); err != nil {
 		s.Logger.WithError(err).Error("failed to delete code after validation")
 	}
 	// No need delete from lookup store;
@@ -127,7 +127,7 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 	code.Code = form.GenerateCode()
 	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
 
-	err := s.CodeStore.Create(target, code)
+	err := s.CodeStore.Create(kind.Purpose(), target, code)
 	if err != nil {
 		return "", err
 	}
@@ -182,7 +182,7 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 		}()
 	}
 
-	code, err := s.getCode(target)
+	code, err := s.getCode(kind, target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return ErrInvalidCode
 	} else if err != nil {
@@ -213,20 +213,20 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	isCodeValid = true
 
 	if !opts.SkipConsume {
-		s.deleteCode(target)
+		s.deleteCode(kind, target)
 	}
 
 	return nil
 }
 
 func (s *Service) SetSubmittedCode(kind Kind, target string, code string) (*State, error) {
-	codeModel, err := s.getCode(target)
+	codeModel, err := s.getCode(kind, target)
 	if err != nil {
 		return nil, err
 	}
 
 	codeModel.UserInputtedCode = code
-	if err := s.CodeStore.Update(target, codeModel); err != nil {
+	if err := s.CodeStore.Update(kind.Purpose(), target, codeModel); err != nil {
 		return nil, err
 	}
 
@@ -261,7 +261,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		TooManyAttempts: tooManyAttempts,
 	}
 
-	code, err := s.getCode(target)
+	code, err := s.getCode(kind, target)
 	if errors.Is(err, ErrCodeNotFound) {
 		code = nil
 	} else if err != nil {
