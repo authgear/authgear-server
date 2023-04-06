@@ -436,6 +436,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AppID: configAppID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: configAppID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -450,6 +455,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,

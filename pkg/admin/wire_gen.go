@@ -417,6 +417,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -431,6 +436,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,

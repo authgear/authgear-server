@@ -424,6 +424,11 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		AppID: appID,
 		Clock: clock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -438,6 +443,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -931,6 +937,11 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -944,6 +955,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,

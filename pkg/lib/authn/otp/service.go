@@ -39,6 +39,12 @@ type LoginLinkStore interface {
 	Delete(token string) error
 }
 
+type LookupStore interface {
+	Create(purpose string, code string, target string, expireAt time.Time) error
+	Get(purpose string, code string) (string, error)
+	Delete(purpose string, code string) error
+}
+
 type AttemptTracker interface {
 	ResetFailedAttempts(purpose string, target string) error
 	GetFailedAttempts(purpose string, target string) (int, error)
@@ -56,6 +62,7 @@ type Service struct {
 	RemoteIP       httputil.RemoteIP
 	CodeStore      CodeStore
 	LoginLinkStore LoginLinkStore
+	LookupStore    LookupStore
 	AttemptTracker AttemptTracker
 	Logger         Logger
 	RateLimiter    RateLimiter
@@ -122,6 +129,8 @@ func (s *Service) deleteCode(target string) {
 	if err := s.CodeStore.Delete(target); err != nil {
 		s.Logger.WithError(err).Error("failed to delete code after validation")
 	}
+	// No need delete from lookup store;
+	// lookup entry is invalidated since target is no longer exist.
 }
 
 func (s *Service) handleFailedAttempt(target string) error {
@@ -202,6 +211,13 @@ func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions
 	err := s.CodeStore.Create(target, code)
 	if err != nil {
 		return "", err
+	}
+
+	if kind.AllowLookupByCode() {
+		err := s.LookupStore.Create(code.Purpose, code.Code, code.Target, code.ExpireAt)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if err := s.AttemptTracker.ResetFailedAttempts(kind.Purpose(), target); err != nil {

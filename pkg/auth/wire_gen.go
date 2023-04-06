@@ -389,6 +389,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -403,6 +408,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -877,6 +883,11 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -891,6 +902,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -1452,6 +1464,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1466,6 +1483,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -2230,6 +2248,11 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2244,6 +2267,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -2704,6 +2728,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2718,6 +2747,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -3060,6 +3090,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3074,6 +3109,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -3483,6 +3519,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3497,6 +3538,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -4028,6 +4070,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4042,6 +4089,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -4841,6 +4889,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4855,6 +4908,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -5622,6 +5676,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5636,6 +5695,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -6510,6 +6570,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6524,6 +6589,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -7337,6 +7403,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7351,6 +7422,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -8163,6 +8235,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8177,6 +8254,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -8977,6 +9055,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8991,6 +9074,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -9784,6 +9868,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9798,6 +9887,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -10581,6 +10671,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10595,6 +10690,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -11381,6 +11477,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11395,6 +11496,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -12184,6 +12286,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12198,6 +12305,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -12989,6 +13097,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13003,6 +13116,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -13792,6 +13906,11 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13806,6 +13925,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -14591,6 +14711,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14605,6 +14730,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -15394,6 +15520,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15408,6 +15539,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -16198,6 +16330,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16212,6 +16349,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -17001,6 +17139,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17015,6 +17158,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -17804,6 +17948,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17818,6 +17967,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -18609,6 +18759,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18623,6 +18778,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -19412,6 +19568,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19426,6 +19587,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -20215,6 +20377,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20229,6 +20396,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -21022,6 +21190,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21036,6 +21209,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -21825,6 +21999,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21839,6 +22018,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -22360,6 +22540,11 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -22388,6 +22573,7 @@ func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
@@ -22702,6 +22888,11 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22716,6 +22907,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -23236,6 +23428,11 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -23264,6 +23461,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
@@ -23531,6 +23729,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
@@ -24055,6 +24254,11 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -24083,6 +24287,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
@@ -24354,6 +24559,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         logger,
 		RateLimiter:    limiter,
@@ -25153,6 +25359,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25167,6 +25378,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -25956,6 +26168,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25970,6 +26187,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -26755,6 +26973,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26769,6 +26992,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -27558,6 +27782,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27572,6 +27801,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -28357,6 +28587,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28371,6 +28606,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -29166,6 +29402,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29180,6 +29421,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -29965,6 +30207,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29979,6 +30226,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -30766,6 +31014,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30780,6 +31033,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -31565,6 +31819,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31579,6 +31838,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -32396,6 +32656,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32410,6 +32675,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -33206,6 +33472,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33220,6 +33491,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -34029,6 +34301,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34043,6 +34320,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -34836,6 +35114,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34850,6 +35133,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -35636,6 +35920,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35650,6 +35939,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -36444,6 +36734,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36458,6 +36753,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -37244,6 +37540,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37258,6 +37559,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -38044,6 +38346,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38058,6 +38365,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -38844,6 +39152,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38858,6 +39171,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -39645,6 +39959,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -39659,6 +39978,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -40464,6 +40784,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40478,6 +40803,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -41264,6 +41590,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41278,6 +41609,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -42064,6 +42396,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42078,6 +42415,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -42864,6 +43202,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42878,6 +43221,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -43664,6 +44008,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -43678,6 +44027,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -44471,6 +44821,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44485,6 +44840,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -45272,6 +45628,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45286,6 +45647,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -46071,6 +46433,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46085,6 +46452,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -46885,6 +47253,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46899,6 +47272,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -47684,6 +48058,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -47698,6 +48077,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -48483,6 +48863,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48497,6 +48882,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -49300,6 +49686,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -49314,6 +49705,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -50064,6 +50456,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -50078,6 +50475,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -50827,6 +51225,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -50841,6 +51244,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -51636,6 +52040,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51650,6 +52059,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -52436,6 +52846,11 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52450,6 +52865,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -53215,6 +53631,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -53229,6 +53650,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -53971,6 +54393,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -53985,6 +54412,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -54698,6 +55126,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -54712,6 +55145,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -55733,6 +56167,11 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -55747,6 +56186,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -56256,6 +56696,11 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: handle,
 		AppID: appID,
@@ -56270,6 +56715,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
@@ -57104,6 +57550,11 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AppID: appID,
 		Clock: clockClock,
 	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -57118,6 +57569,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,

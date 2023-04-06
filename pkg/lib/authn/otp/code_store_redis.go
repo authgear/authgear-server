@@ -83,6 +83,7 @@ func (s *CodeStoreRedis) Delete(target string) error {
 	})
 }
 
+// FIXME: purpose
 func redisCodeKey(appID config.AppID, target string) string {
 	return fmt.Sprintf("app:%s:otp-code:%s", appID, target)
 }
