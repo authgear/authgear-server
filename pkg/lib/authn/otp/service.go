@@ -32,7 +32,9 @@ type GenerateOptions struct {
 }
 
 type VerifyOptions struct {
-	UserID string
+	UserID           string
+	UseSubmittedCode bool
+	SkipConsume      bool
 }
 
 type CodeStore interface {
@@ -321,7 +323,12 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 		return ErrInvalidCode
 	}
 
-	if !kind.VerifyCode(otp, code.Code) {
+	codeToVerify := otp
+	if opts.UseSubmittedCode {
+		codeToVerify = code.UserInputtedCode
+	}
+
+	if !kind.VerifyCode(codeToVerify, code.Code) {
 		ferr := s.handleFailedAttemptsRevocation(kind, target)
 		if errors.Is(ferr, ErrTooManyAttempts) {
 			return ferr
@@ -335,7 +342,9 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	// Set flag to return reserved rate limit tokens
 	isCodeValid = true
 
-	s.deleteCode(target)
+	if !opts.SkipConsume {
+		s.deleteCode(target)
+	}
 
 	return nil
 }
@@ -468,6 +477,24 @@ func (s *Service) SetUserInputtedLoginLinkCode(userInputtedCode string) (*Code, 
 	return codeModel, nil
 }
 
+func (s *Service) SetSubmittedCode(kind Kind, target string, code string) (*State, error) {
+	codeModel, err := s.getCode(target)
+	if err != nil {
+		return nil, err
+	}
+
+	codeModel.UserInputtedCode = code
+	if err := s.CodeStore.Update(target, codeModel); err != nil {
+		return nil, err
+	}
+
+	return s.InspectState(kind, target)
+}
+
+func (s *Service) LookupCode(kind Kind, code string) (target string, err error) {
+	return s.LookupStore.Get(kind.Purpose(), code)
+}
+
 func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 	ferr := s.checkFailedAttemptsRevocation(kind, target)
 	tooManyAttempts := false
@@ -506,6 +533,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 	if code != nil {
 		state.ExpireAt = code.ExpireAt
 		state.SubmittedCode = code.UserInputtedCode
+		state.WorkflowID = code.WorkflowID
 	}
 
 	return state, nil
