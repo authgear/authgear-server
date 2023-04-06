@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -41,16 +42,19 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 	switch {
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		info := n.Authenticator
-		_, err := (&SendOOBCode{
+		err := (&SendOOBCode{
 			WorkflowID:        workflow.GetWorkflowID(ctx),
 			Deps:              deps,
 			Stage:             authenticatorKindToStage(info.Kind),
 			IsAuthenticating:  true,
 			AuthenticatorInfo: info,
+			OTPForm:           otp.FormCode,
+			IsResend:          true,
 		}).Do()
 		if err != nil {
 			return nil, err
 		}
+
 		return nil, workflow.ErrSameNode
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
 		info := n.Authenticator
@@ -75,16 +79,11 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 }
 
 func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelSMS, n.Authenticator.OOBOTP.Phone)
-	_, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
-	if err != nil {
-		return nil, err
-	}
-	now := deps.Clock.NowUTC()
-	canResendAt := now.Add(resetDuration)
-
 	target := n.Authenticator.OOBOTP.Phone
-	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	state, err := deps.OTPCodes.InspectState(
+		otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelSMS, otp.FormCode),
+		target,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +96,7 @@ func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *work
 
 	return NodeAuthenticateOOBOTPPhoneOutput{
 		MaskedPhoneNumber:              phone.Mask(target),
-		CanResendAt:                    canResendAt,
-		FailedAttemptRateLimitExceeded: exceeded,
+		CanResendAt:                    state.CanResendAt,
+		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
 }

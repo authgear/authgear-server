@@ -2,7 +2,10 @@ package latte
 
 import (
 	"context"
+	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -39,16 +42,12 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 	switch {
 	case workflow.AsInput(input, &inputTakeLoginLinkCode):
 		code := inputTakeLoginLinkCode.GetCode()
-		codeModal, err := deps.OTPCodes.SetUserInputtedLoginLinkCode(code)
-		if err != nil {
-			return nil, err
-		}
 
-		if codeModal.WorkflowID != "" {
-			err = deps.WorkflowEvents.Publish(codeModal.WorkflowID, workflow.NewEventRefresh())
-			if err != nil {
-				return nil, err
-			}
+		err := i.setSubmittedCode(deps, code)
+		if errors.Is(err, otp.ErrCodeNotFound) || errors.Is(err, otp.ErrInvalidCode) {
+			return nil, otp.ErrInvalidLoginLink
+		} else if err != nil {
+			return nil, err
 		}
 
 		return workflow.NewNodeSimple(
@@ -57,6 +56,37 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}
+}
+
+func (i *IntentVerifyLoginLink) setSubmittedCode(deps *workflow.Dependencies, code string) error {
+	kind := otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail, otp.FormLink)
+
+	target, err := deps.OTPCodes.LookupCode(kind, code)
+	if err != nil {
+		return err
+	}
+
+	err = deps.OTPCodes.VerifyOTP(kind, target, code, &otp.VerifyOptions{
+		UserID:      "", // FIXME: user ID
+		SkipConsume: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	state, err := deps.OTPCodes.SetSubmittedCode(kind, target, code)
+	if err != nil {
+		return err
+	}
+
+	if state.WorkflowID != "" {
+		err = deps.WorkflowEvents.Publish(state.WorkflowID, workflow.NewEventRefresh())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (i *IntentVerifyLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {

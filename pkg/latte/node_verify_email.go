@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -105,28 +104,23 @@ func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Depende
 	}, nil
 }
 
-func (n *NodeVerifyEmail) bucket(deps *workflow.Dependencies) ratelimit.Bucket {
-	return AntiSpamEmailOTPCodeBucket(deps.Config.Messaging.Email, n.Email)
+func (n *NodeVerifyEmail) otpKind(deps *workflow.Dependencies) otp.Kind {
+	return otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail)
+}
+
+func (n *NodeVerifyEmail) otpTarget() string {
+	return n.Email
 }
 
 func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
-	// Should check if we can send code to the target first before taking token
-	// from the AntiSpamOTPCodeBucket (resend cooldown)
-	// It may be blocked due to exceeding the per target or per ip rate limit,
-	// and this error should be returned
 	var err error
 	err = deps.OOBCodeSender.CanSendCode(model.AuthenticatorOOBChannelEmail, n.Email)
 	if err != nil {
 		return err
 	}
 
-	err = deps.RateLimiter.TakeToken(n.bucket(deps))
-	if err != nil {
-		return err
-	}
-
 	code, err := deps.OTPCodes.GenerateOTP(
-		otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail),
+		n.otpKind(deps),
 		n.Email,
 		&otp.GenerateOptions{
 			UserID:     n.UserID,

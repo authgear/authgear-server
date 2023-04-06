@@ -45,14 +45,12 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, otpMode otp.OTPMode, opt *otp.GenerateCodeOptions) (*otp.Code, error)
-	VerifyLoginLinkCodeByTarget(target string, consume bool) (*otp.Code, error)
-	SetUserInputtedLoginLinkCode(userInputtedCode string) (*otp.Code, error)
-	FailedAttemptRateLimitExceeded(target string) (bool, error)
-
 	GenerateOTP(kind otp.Kind, target string, opt *otp.GenerateOptions) (string, error)
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 	InspectState(kind otp.Kind, target string) (*otp.State, error)
+
+	LookupCode(kind otp.Kind, code string) (target string, err error)
+	SetSubmittedCode(kind otp.Kind, target string, code string) (*otp.State, error)
 }
 
 type OOBCodeSender interface {
@@ -128,9 +126,6 @@ type CookieManager interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
-type AntiSpamOTPCodeBucketMaker interface {
-	MakeBucket(channel model.AuthenticatorOOBChannel, target string) ratelimit.Bucket
-}
 type EventStore interface {
 	Publish(workflowID string, e Event) error
 }
@@ -174,8 +169,7 @@ type Dependencies struct {
 
 	Cookies CookieManager
 
-	Events                EventService
-	RateLimiter           RateLimiter
-	AntiSpamOTPCodeBucket AntiSpamOTPCodeBucketMaker
-	WorkflowEvents        EventStore
+	Events         EventService
+	RateLimiter    RateLimiter
+	WorkflowEvents EventStore
 }

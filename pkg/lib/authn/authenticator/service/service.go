@@ -484,6 +484,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
 		code := spec.OOBOTP.Code
 		a := info.OOBOTP
+		// FIXME: oob-otp kind
 		err = s.OTPCodeService.VerifyCode(a.ToTarget(), code)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			err = authenticator.ErrInvalidCredentials

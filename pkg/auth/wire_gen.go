@@ -54035,11 +54035,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -54070,7 +54065,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                  cookieManager,
 		Events:                   eventService,
 		RateLimiter:              limiter,
-		AntiSpamOTPCodeBucket:    antiSpamOTPCodeBucketMaker,
 		WorkflowEvents:           eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
@@ -54798,11 +54792,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -54833,7 +54822,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                  cookieManager,
 		Events:                   eventService,
 		RateLimiter:              limiter,
-		AntiSpamOTPCodeBucket:    antiSpamOTPCodeBucketMaker,
 		WorkflowEvents:           eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
@@ -55531,11 +55519,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
-	emailConfig := messagingConfig.Email
-	antiSpamOTPCodeBucketMaker := &interaction.AntiSpamOTPCodeBucketMaker{
-		SMSConfig:   smsConfig,
-		EmailConfig: emailConfig,
-	}
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -55566,7 +55549,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                  cookieManager,
 		Events:                   eventService,
 		RateLimiter:              limiter,
-		AntiSpamOTPCodeBucket:    antiSpamOTPCodeBucketMaker,
 		WorkflowEvents:           eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
