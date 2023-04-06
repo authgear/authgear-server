@@ -171,9 +171,7 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 		tokenTaken = n
 
 		pass = tokens >= 0
-		if !pass {
-			timeToAct = &resetTime
-		}
+		timeToAct = &resetTime
 		l.Logger.
 			WithField("key", bucket.Key).
 			WithField("tokens", tokens).
