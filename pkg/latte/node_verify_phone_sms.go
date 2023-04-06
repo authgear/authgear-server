@@ -54,7 +54,12 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, err
 		}
 
-		err = deps.OTPCodes.VerifyOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, code)
+		err = deps.OTPCodes.VerifyOTP(
+			otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS),
+			n.PhoneNumber,
+			code,
+			&otp.VerifyOptions{UserID: n.UserID},
+		)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
@@ -127,10 +132,14 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return err
 	}
 
-	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, &otp.GenerateCodeOptions{
-		UserID:     n.UserID,
-		WorkflowID: workflow.GetWorkflowID(ctx),
-	})
+	code, err := deps.OTPCodes.GenerateOTP(
+		otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS),
+		n.PhoneNumber,
+		&otp.GenerateOptions{
+			UserID:     n.UserID,
+			WorkflowID: workflow.GetWorkflowID(ctx),
+		},
+	)
 	if err != nil {
 		return err
 	}

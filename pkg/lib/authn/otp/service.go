@@ -26,6 +26,15 @@ type GenerateCodeOptions struct {
 	WorkflowID   string
 }
 
+type GenerateOptions struct {
+	UserID     string
+	WorkflowID string
+}
+
+type VerifyOptions struct {
+	UserID string
+}
+
 type CodeStore interface {
 	Create(target string, code *Code) error
 	Get(target string) (*Code, error)
@@ -180,7 +189,7 @@ func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error 
 	return nil
 }
 
-func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions) (string, error) {
+func (s *Service) GenerateOTP(kind Kind, target string, opts *GenerateOptions) (string, error) {
 	if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
 		return "", err
 	}
@@ -189,17 +198,16 @@ func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions
 		return "", err
 	}
 
-	if opt.UserID != "" {
-		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opt.UserID)); err != nil {
+	if opts.UserID != "" {
+		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opts.UserID)); err != nil {
 			return "", err
 		}
 	}
 
 	code := &Code{
-		AppID:        string(s.AppID),
-		Target:       target,
-		WebSessionID: opt.WebSessionID,
-		WorkflowID:   opt.WorkflowID,
+		AppID:      string(s.AppID),
+		Target:     target,
+		WorkflowID: opts.WorkflowID,
 	}
 	code.Target = target
 	code.Purpose = kind.Purpose()
@@ -267,14 +275,39 @@ func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
 	return false, nil
 }
 
-func (s *Service) VerifyOTP(kind Kind, target string, otp string) error {
+func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOptions) error {
 	if err := s.checkFailedAttemptsRevocation(kind, target); err != nil {
 		return err
 	}
 
-	reservation := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
-	if err := reservation.Error(); err != nil {
+	isCodeValid := false
+
+	reservation1 := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
+	if err := reservation1.Error(); err != nil {
 		return err
+	}
+	defer func() {
+		if isCodeValid {
+			if err := s.RateLimiter.Cancel(reservation1); err != nil {
+				// non-critical error; log and continue
+				s.Logger.WithError(err).Warn("failed to return rate limit tokens")
+			}
+		}
+	}()
+
+	if opts.UserID != "" {
+		reservation2 := s.RateLimiter.Reserve(kind.RateLimitValidatePerUserPerIP(opts.UserID, string(s.RemoteIP)))
+		if err := reservation2.Error(); err != nil {
+			return err
+		}
+		defer func() {
+			if isCodeValid {
+				if err := s.RateLimiter.Cancel(reservation2); err != nil {
+					// non-critical error; log and continue
+					s.Logger.WithError(err).Warn("failed to return rate limit tokens")
+				}
+			}
+		}()
 	}
 
 	code, err := s.getCode(target)
@@ -299,11 +332,8 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string) error {
 		return ErrInvalidCode
 	}
 
-	// code is valid; restore reserved rate limit tokens
-	if err := s.RateLimiter.Cancel(reservation); err != nil {
-		// non-critical error; log and continue
-		s.Logger.WithError(err).Warn("failed to restore rate limit tokens")
-	}
+	// Set flag to return reserved rate limit tokens
+	isCodeValid = true
 
 	s.deleteCode(target)
 

@@ -53,7 +53,12 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 			return nil, err
 		}
 
-		err = deps.OTPCodes.VerifyOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), n.Email, code)
+		err = deps.OTPCodes.VerifyOTP(
+			otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail),
+			n.Email,
+			code,
+			&otp.VerifyOptions{UserID: n.UserID},
+		)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
@@ -120,10 +125,14 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 		return err
 	}
 
-	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), n.Email, &otp.GenerateCodeOptions{
-		UserID:     n.UserID,
-		WorkflowID: workflow.GetWorkflowID(ctx),
-	})
+	code, err := deps.OTPCodes.GenerateOTP(
+		otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail),
+		n.Email,
+		&otp.GenerateOptions{
+			UserID:     n.UserID,
+			WorkflowID: workflow.GetWorkflowID(ctx),
+		},
+	)
 	if err != nil {
 		return err
 	}

@@ -17,5 +17,6 @@ type Kind interface {
 	RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec
 	RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
 	RateLimitValidatePerIP(ip string) ratelimit.BucketSpec
+	RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec
 	RevocationMaxFailedAttempts() int
 }

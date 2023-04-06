@@ -50,8 +50,8 @@ type OTPCodeService interface {
 	SetUserInputtedLoginLinkCode(userInputtedCode string) (*otp.Code, error)
 	FailedAttemptRateLimitExceeded(target string) (bool, error)
 
-	GenerateOTP(kind otp.Kind, target string, opt *otp.GenerateCodeOptions) (string, error)
-	VerifyOTP(kind otp.Kind, target string, otp string) error
+	GenerateOTP(kind otp.Kind, target string, opt *otp.GenerateOptions) (string, error)
+	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 	InspectState(kind otp.Kind, target string) (*otp.State, error)
 }
 

@@ -79,6 +79,10 @@ func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec
 		"VerificationValidateCode", "ip", ip)
 }
 
+func (k kindVerification) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
+	return ratelimit.BucketSpecDisabled
+}
+
 func (k kindVerification) RevocationMaxFailedAttempts() int {
 	return selectByChannel(k.channel,
 		k.config.Verification.RateLimits.Email.MaxFailedAttemptsRevokeOTP,
