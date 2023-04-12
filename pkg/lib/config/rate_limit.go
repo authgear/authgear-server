@@ -14,6 +14,20 @@ var _ = Schema.Add("RateLimitConfig", `
 }
 `)
 
+var _ = FeatureConfigSchema.Add("RateLimitConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"enabled": { "type": "boolean" },
+		"period": { "$ref": "#/$defs/DurationString" },
+		"burst": { "type": "integer", "minimum": 1 }
+	},
+	"if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+	"then": { "required": ["period"] }
+}
+`)
+
 type RateLimitConfig struct {
 	Enabled *bool          `json:"enabled,omitempty"`
 	Period  DurationString `json:"period,omitempty"`
