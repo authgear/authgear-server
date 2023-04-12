@@ -59,4 +59,6 @@ type EnvironmentConfig struct {
 	NFTIndexerAPIEndpoint NFTIndexerAPIEndpoint `envconfig:"NFT_INDEXER_API_ENDPOINT"`
 
 	DenoEndpoint DenoEndpoint `envconfig:"DENO_ENDPOINT"`
+
+	RateLimits RateLimitsEnvironmentConfig `envconfig:"RATE_LIMITS"`
 }
