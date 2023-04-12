@@ -8,11 +8,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 type GenerateCodeOptions struct {
+	UserID       string
 	WebSessionID string
 	WorkflowID   string
 }
@@ -30,6 +32,12 @@ type LoginLinkStore interface {
 	Delete(token string) error
 }
 
+type AttemptTracker interface {
+	ResetFailedAttempts(purpose string, target string) error
+	GetFailedAttempts(purpose string, target string) (int, error)
+	IncrementFailedAttempts(purpose string, target string) (int, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
@@ -38,11 +46,13 @@ type Service struct {
 	Clock clock.Clock
 
 	AppID          config.AppID
+	RemoteIP       httputil.RemoteIP
 	CodeStore      CodeStore
 	LoginLinkStore LoginLinkStore
+	AttemptTracker AttemptTracker
 	Logger         Logger
 	RateLimiter    RateLimiter
-	OTPConfig      *config.OTPConfig
+	OTPConfig      *config.OTPLegacyConfig
 	Verification   *config.VerificationConfig
 }
 
@@ -69,7 +79,7 @@ func (s *Service) createCode(target string, otpMode OTPMode, codeModel *Code) (*
 		codeModel = &Code{}
 	}
 	codeModel.Target = target
-	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeExpiry.Duration())
+	codeModel.ExpireAt = s.Clock.NowUTC().Add(s.Verification.CodeValidPeriod.Duration())
 
 	switch otpMode {
 	case OTPModeLoginLink:
@@ -126,6 +136,75 @@ func (s *Service) handleFailedAttempt(target string) error {
 	return ErrInvalidCode
 }
 
+func (s *Service) handleFailedAttemptsRevocation(kind Kind, target string) error {
+	failedAttempts, err := s.AttemptTracker.IncrementFailedAttempts(kind.Purpose(), target)
+	if err != nil {
+		return err
+	}
+
+	maxFailedAttempts := kind.RevocationMaxFailedAttempts()
+	if maxFailedAttempts != 0 && failedAttempts >= maxFailedAttempts {
+		return ErrTooManyAttempts
+	}
+
+	return nil
+}
+
+func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error {
+	failedAttempts, err := s.AttemptTracker.GetFailedAttempts(kind.Purpose(), target)
+	if err != nil {
+		return err
+	}
+
+	maxFailedAttempts := kind.RevocationMaxFailedAttempts()
+	if maxFailedAttempts != 0 && failedAttempts >= maxFailedAttempts {
+		return ErrTooManyAttempts
+	}
+
+	return nil
+}
+
+func (s *Service) GenerateOTP(kind Kind, target string, opt *GenerateCodeOptions) (string, error) {
+	if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
+		return "", err
+	}
+
+	if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerIP(string(s.RemoteIP))); err != nil {
+		return "", err
+	}
+
+	if opt.UserID != "" {
+		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opt.UserID)); err != nil {
+			return "", err
+		}
+	}
+
+	code := &Code{
+		AppID:        string(s.AppID),
+		Target:       target,
+		WebSessionID: opt.WebSessionID,
+		WorkflowID:   opt.WorkflowID,
+	}
+	code.Target = target
+	code.Purpose = kind.Purpose()
+	code.Code = kind.GenerateCode()
+	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
+
+	// TODO: lookup-able code
+
+	err := s.CodeStore.Create(target, code)
+	if err != nil {
+		return "", err
+	}
+
+	if err := s.AttemptTracker.ResetFailedAttempts(kind.Purpose(), target); err != nil {
+		// non-critical error; log and continue
+		s.Logger.WithError(err).Warn("failed to reset failed attempts counter")
+	}
+
+	return code.Code, nil
+}
+
 func (s *Service) GenerateCode(target string, otpMode OTPMode, opt *GenerateCodeOptions) (*Code, error) {
 	return s.createCode(target, otpMode, &Code{
 		AppID:        string(s.AppID),
@@ -163,6 +242,49 @@ func (s *Service) FailedAttemptRateLimitExceeded(target string) (bool, error) {
 	// 4. This function return true, the client is confused that failed attempt rate limit is exceeded.
 
 	return false, nil
+}
+
+func (s *Service) VerifyOTP(kind Kind, target string, otp string) error {
+	if err := s.checkFailedAttemptsRevocation(kind, target); err != nil {
+		return err
+	}
+
+	reservation := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
+	if err := reservation.Error(); err != nil {
+		return err
+	}
+
+	code, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return ErrInvalidCode
+	} else if err != nil {
+		return err
+	}
+
+	if code.Purpose != kind.Purpose() {
+		return ErrInvalidCode
+	}
+
+	if !kind.VerifyCode(otp, code.Code) {
+		ferr := s.handleFailedAttemptsRevocation(kind, target)
+		if errors.Is(ferr, ErrTooManyAttempts) {
+			return ferr
+		} else if ferr != nil {
+			// log the error, and return original error
+			s.Logger.WithError(ferr).Warn("failed to handle failed attempts")
+		}
+		return ErrInvalidCode
+	}
+
+	// code is valid; restore reserved rate limit tokens
+	if err := s.RateLimiter.Cancel(reservation); err != nil {
+		// non-critical error; log and continue
+		s.Logger.WithError(err).Warn("failed to restore rate limit tokens")
+	}
+
+	s.deleteCode(target)
+
+	return nil
 }
 
 func (s *Service) VerifyCode(target string, code string) error {
@@ -291,4 +413,47 @@ func (s *Service) SetUserInputtedLoginLinkCode(userInputtedCode string) (*Code, 
 	}
 
 	return codeModel, nil
+}
+
+func (s *Service) InspectState(kind Kind, target string) (*State, error) {
+	ferr := s.checkFailedAttemptsRevocation(kind, target)
+	tooManyAttempts := false
+	if errors.Is(ferr, ErrTooManyAttempts) {
+		tooManyAttempts = true
+	} else if ferr != nil {
+		return nil, ferr
+	}
+
+	// Inspect rate limit state by reserving no tokens.
+	reservation := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
+	now := s.Clock.NowUTC()
+	canResendAt := now.Add(reservation.DelayFrom(now))
+	if err := s.RateLimiter.Cancel(reservation); err != nil {
+		return nil, err
+	}
+
+	state := &State{
+		ExpireAt:        now,
+		CanResendAt:     canResendAt,
+		SubmittedCode:   "",
+		TooManyAttempts: tooManyAttempts,
+	}
+
+	code, err := s.getCode(target)
+	if errors.Is(err, ErrCodeNotFound) {
+		code = nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	if code != nil && code.Purpose != kind.Purpose() {
+		return nil, ErrCodeNotFound
+	}
+
+	if code != nil {
+		state.ExpireAt = code.ExpireAt
+		state.SubmittedCode = code.UserInputtedCode
+	}
+
+	return state, nil
 }

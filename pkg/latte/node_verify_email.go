@@ -53,7 +53,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 			return nil, err
 		}
 
-		err = deps.OTPCodes.VerifyCode(n.Email, code)
+		err = deps.OTPCodes.VerifyOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), n.Email, code)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
@@ -79,16 +79,8 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 }
 
 func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	_, resetDuration, err := deps.RateLimiter.CheckToken(n.bucket(deps))
-	if err != nil {
-		return nil, err
-	}
-
-	now := deps.Clock.NowUTC()
-	canResendAt := now.Add(resetDuration)
-
 	target := n.Email
-	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target)
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +95,8 @@ func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Depende
 	return NodeVerifyEmailOutput{
 		MaskedEmail:                    mail.MaskAddress(target),
 		CodeLength:                     n.CodeLength,
-		CanResendAt:                    canResendAt,
-		FailedAttemptRateLimitExceeded: exceeded,
+		CanResendAt:                    state.CanResendAt,
+		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
 }
 
@@ -128,15 +120,16 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 		return err
 	}
 
-	code, err := deps.OTPCodes.GenerateCode(n.Email, otp.OTPModeCode, &otp.GenerateCodeOptions{
+	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), n.Email, &otp.GenerateCodeOptions{
+		UserID:     n.UserID,
 		WorkflowID: workflow.GetWorkflowID(ctx),
 	})
 	if err != nil {
 		return err
 	}
-	n.CodeLength = len(code.Code)
+	n.CodeLength = len(code)
 
-	err = deps.OOBCodeSender.SendCode(model.AuthenticatorOOBChannelEmail, n.Email, code.Code, otp.MessageTypeVerification, otp.OTPModeCode)
+	err = deps.OOBCodeSender.SendCode(model.AuthenticatorOOBChannelEmail, n.Email, code, otp.MessageTypeVerification, otp.OTPModeCode)
 	if err != nil {
 		return err
 	}

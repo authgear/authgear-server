@@ -38,7 +38,7 @@ func TestAppConfigSchema(t *testing.T) {
 		"testdata/account_deletion_tests.yaml",
 		"testdata/account_anonymization_tests.yaml",
 		"testdata/google_tag_manager_tests.yaml",
-		"testdata/ratelimit_tests.yaml",
+		"testdata/rate_limit_tests.yaml",
 	}
 
 	type TestCase struct {

@@ -417,17 +417,24 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	otpLogger := otp.NewLogger(factory)
-	otpConfig := appConfig.OTP
+	otpLegacyConfig := appConfig.OTP
 	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clockClock,
 		AppID:          appID,
+		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
 		LoginLinkStore: loginLinkStoreRedis,
+		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpConfig,
+		OTPConfig:      otpLegacyConfig,
 		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{

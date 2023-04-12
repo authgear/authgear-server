@@ -21,23 +21,32 @@ var _ = Schema.Add("VerificationConfig", `
 	"properties": {
 		"claims": { "$ref": "#/$defs/VerificationClaimsConfig" },
 		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
-		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 60 }
+		"rate_limits": { "$ref": "#/$defs/VerificationRateLimitsConfig" },
+		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 60 },
+		"code_valid_period": { "$ref": "#/$defs/DurationString" }
 	}
 }
 `)
 
 type VerificationConfig struct {
-	Claims     *VerificationClaimsConfig `json:"claims,omitempty"`
-	Criteria   VerificationCriteria      `json:"criteria,omitempty"`
-	CodeExpiry DurationSeconds           `json:"code_expiry_seconds,omitempty"`
+	Claims     *VerificationClaimsConfig     `json:"claims,omitempty"`
+	Criteria   VerificationCriteria          `json:"criteria,omitempty"`
+	RateLimits *VerificationRateLimitsConfig `json:"rate_limits,omitempty"`
+
+	// CodeExpirySeconds is deprecated
+	CodeExpirySeconds DurationSeconds `json:"code_expiry_seconds,omitempty"`
+	CodeValidPeriod   DurationString  `json:"code_valid_period,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {
 	if c.Criteria == "" {
 		c.Criteria = VerificationCriteriaAny
 	}
-	if c.CodeExpiry == 0 {
-		c.CodeExpiry = DurationSeconds(3600)
+	if c.CodeExpirySeconds == 0 {
+		c.CodeExpirySeconds = DurationSeconds(3600)
+	}
+	if c.CodeValidPeriod == "" {
+		c.CodeValidPeriod = DurationString(c.CodeExpirySeconds.Duration().String())
 	}
 }
 
@@ -79,5 +88,91 @@ func (c *VerificationClaimConfig) SetDefaults() {
 	}
 	if c.Required == nil {
 		c.Required = newBool(true)
+	}
+}
+
+var _ = Schema.Add("VerificationRateLimitsConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"email": { "$ref": "#/$defs/VerificationRateLimitsEmailConfig" },
+		"sms": { "$ref": "#/$defs/VerificationRateLimitsSMSConfig" }
+	}
+}
+`)
+
+type VerificationRateLimitsConfig struct {
+	Email *VerificationRateLimitsEmailConfig `json:"email,omitempty"`
+	SMS   *VerificationRateLimitsSMSConfig   `json:"sms,omitempty"`
+}
+
+var _ = Schema.Add("VerificationRateLimitsEmailConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"trigger_per_ip": { "$ref": "#/$defs/RateLimitConfig" },
+		"trigger_per_user": { "$ref": "#/$defs/RateLimitConfig" },
+		"trigger_cooldown": { "$ref": "#/$defs/DurationString" },
+		"max_failed_attempts_revoke_otp": { "type": "integer", "minimum": 1 },
+		"validate_per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type VerificationRateLimitsEmailConfig struct {
+	TriggerPerIP               *RateLimitConfig `json:"trigger_per_ip,omitempty"`
+	TriggerPerUser             *RateLimitConfig `json:"trigger_per_user,omitempty"`
+	TriggerCooldown            DurationString   `json:"trigger_cooldown,omitempty"`
+	MaxFailedAttemptsRevokeOTP int              `json:"max_failed_attempts_revoke_otp,omitempty"`
+	ValidatePerIP              *RateLimitConfig `json:"validate_per_ip,omitempty"`
+}
+
+func (c *VerificationRateLimitsEmailConfig) SetDefaults() {
+	if c.TriggerCooldown == "" {
+		c.TriggerCooldown = "1m"
+	}
+	if c.ValidatePerIP.Enabled == nil {
+		c.ValidatePerIP = &RateLimitConfig{
+			Enabled: newBool(true),
+			Period:  "1m",
+			Burst:   60,
+		}
+	}
+}
+
+var _ = Schema.Add("VerificationRateLimitsSMSConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"trigger_per_ip": { "$ref": "#/$defs/RateLimitConfig" },
+		"trigger_per_user": { "$ref": "#/$defs/RateLimitConfig" },
+		"trigger_cooldown": { "$ref": "#/$defs/DurationString" },
+		"max_failed_attempts_revoke_otp": { "type": "integer", "minimum": 1 },
+		"validate_per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type VerificationRateLimitsSMSConfig struct {
+	TriggerPerIP               *RateLimitConfig `json:"trigger_per_ip,omitempty"`
+	TriggerPerUser             *RateLimitConfig `json:"trigger_per_user,omitempty"`
+	TriggerCooldown            DurationString   `json:"trigger_cooldown,omitempty"`
+	MaxFailedAttemptsRevokeOTP int              `json:"max_failed_attempts_revoke_otp,omitempty"`
+	ValidatePerIP              *RateLimitConfig `json:"validate_per_ip,omitempty"`
+}
+
+func (c *VerificationRateLimitsSMSConfig) SetDefaults() {
+	if c.TriggerCooldown == "" {
+		c.TriggerCooldown = "1m"
+	}
+	if c.ValidatePerIP.Enabled == nil {
+		c.ValidatePerIP = &RateLimitConfig{
+			Enabled: newBool(true),
+			Period:  "1m",
+			Burst:   60,
+		}
 	}
 }

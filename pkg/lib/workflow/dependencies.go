@@ -46,10 +46,13 @@ type AuthenticatorService interface {
 
 type OTPCodeService interface {
 	GenerateCode(target string, otpMode otp.OTPMode, opt *otp.GenerateCodeOptions) (*otp.Code, error)
-	VerifyCode(target string, code string) error
 	VerifyLoginLinkCodeByTarget(target string, consume bool) (*otp.Code, error)
 	SetUserInputtedLoginLinkCode(userInputtedCode string) (*otp.Code, error)
 	FailedAttemptRateLimitExceeded(target string) (bool, error)
+
+	GenerateOTP(kind otp.Kind, target string, opt *otp.GenerateCodeOptions) (string, error)
+	VerifyOTP(kind otp.Kind, target string, otp string) error
+	InspectState(kind otp.Kind, target string) (*otp.State, error)
 }
 
 type OOBCodeSender interface {

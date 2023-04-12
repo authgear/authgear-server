@@ -1,0 +1,71 @@
+part: RateLimitConfig
+name: invalid-period
+error: |-
+  invalid value:
+  /period: format
+    map[error:time: invalid duration "foobar" format:x_duration_string]
+value:
+  enabled: true
+  period: foobar
+---
+part: RateLimitConfig
+name: negative-period
+error: |-
+  invalid value:
+  /period: format
+    map[error:non-positive duration "-10h" format:x_duration_string]
+value:
+  enabled: true
+  period: -10h
+---
+part: RateLimitConfig
+name: zero-period
+error: |-
+  invalid value:
+  /period: format
+    map[error:non-positive duration "0s" format:x_duration_string]
+value:
+  enabled: true
+  period: 0s
+---
+part: RateLimitConfig
+name: invalid-burst
+error: |-
+  invalid value:
+  /burst: type
+    map[actual:[string] expected:[integer]]
+value:
+  enabled: true
+  period: 1h
+  burst: foobar
+---
+part: RateLimitConfig
+name: negative-burst
+error: |-
+  invalid value:
+  /burst: minimum
+    map[actual:-10 minimum:1]
+value:
+  enabled: true
+  period: 1h
+  burst: -10
+---
+part: RateLimitConfig
+name: zero-burst
+error: |-
+  invalid value:
+  /burst: minimum
+    map[actual:0 minimum:1]
+value:
+  enabled: true
+  period: 1h
+  burst: 0
+---
+part: RateLimitConfig
+name: missing-period
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:[enabled] expected:[period] missing:[period]]
+value:
+  enabled: true

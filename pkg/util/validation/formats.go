@@ -472,6 +472,12 @@ func (FormatDurationString) CheckFormat(value interface{}) error {
 		return nil
 	}
 
-	_, err := time.ParseDuration(str)
-	return err
+	d, err := time.ParseDuration(str)
+	if err != nil {
+		return err
+	} else if d <= 0 {
+		return fmt.Errorf("non-positive duration %q", str)
+	}
+
+	return nil
 }
