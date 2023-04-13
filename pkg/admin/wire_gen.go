@@ -57,6 +57,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -763,26 +764,28 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
+	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	rateLimits := messaging.RateLimits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: rateLimitsFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		RateLimits: rateLimits,
+		TaskQueue:  queue,
+		Events:     eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -804,6 +807,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -864,7 +874,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,

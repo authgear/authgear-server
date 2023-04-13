@@ -79,6 +79,15 @@ func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 		CodeLength: p.OTPForm.CodeLength(),
 	}
 
+	msg, err := p.Context.OTPSender.Prepare(channel, p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPForm, messageType)
+	if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer msg.Close()
+
 	code, err := p.Context.OTPCodeService.GenerateOTP(
 		otp.KindOOBOTP(p.Context.Config, channel),
 		p.AuthenticatorInfo.OOBOTP.ToTarget(),
@@ -92,15 +101,7 @@ func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 		return nil, err
 	}
 
-	// FIXME: mode -> form
-	var mode otp.OTPMode
-	switch p.OTPForm {
-	case otp.FormCode:
-		mode = otp.OTPModeCode
-	case otp.FormLink:
-		mode = otp.OTPModeLoginLink
-	}
-	err = p.Context.OOBCodeSender.SendCode(channel, target, code, messageType, mode)
+	err = p.Context.OTPSender.Send(msg, code)
 	if err != nil {
 		return nil, err
 	}

@@ -45,6 +45,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -104,7 +105,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.EventService), new(*event.Service)),
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
-		wire.Bind(new(otp.EventService), new(*event.Service)),
+		wire.Bind(new(messaging.EventService), new(*event.Service)),
 		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
@@ -151,8 +152,6 @@ var CommonDependencySet = wire.NewSet(
 		authenticatorpassword.DependencySet,
 		wire.Bind(new(facade.PasswordHistoryStore), new(*authenticatorpassword.HistoryStore)),
 		authenticatoroob.DependencySet,
-		wire.Bind(new(interaction.OOBCodeSender), new(*authenticatoroob.CodeSender)),
-		wire.Bind(new(workflow.OOBCodeSender), new(*authenticatoroob.CodeSender)),
 		authenticatortotp.DependencySet,
 		authenticatorpasskey.DependencySet,
 
@@ -334,7 +333,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(whatsapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
-		wire.Bind(new(authenticatoroob.OTPMessageSender), new(*otp.MessageSender)),
+		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
+		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
 	),
 
 	wire.NewSet(
@@ -356,6 +356,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(forgotpassword.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
@@ -385,13 +386,16 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		usage.DependencySet,
 		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
-		wire.Bind(new(otp.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 	),
 
 	wire.NewSet(
 		sms.DependencySet,
 		wire.Bind(new(forgotpassword.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
-		wire.Bind(new(otp.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
+	),
+
+	wire.NewSet(
+		messaging.DependencySet,
+		wire.Bind(new(otp.Sender), new(*messaging.Sender)),
 	),
 
 	wire.NewSet(

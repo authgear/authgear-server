@@ -2,17 +2,11 @@ package otp
 
 import (
 	"net/url"
-	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/lib/tasks"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SendOptions struct {
@@ -32,238 +26,189 @@ type TranslationService interface {
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
 }
 
-type HardSMSBucketer interface {
-	Bucket() ratelimit.Bucket
+type Sender interface {
+	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
+	PrepareSMS(phoneNumber string, msgType nonblocking.MessageType) (*messaging.SMSMessage, error)
 }
 
-type AntiSpamSMSBucketMaker interface {
-	IsPerPhoneEnabled() bool
-	MakePerPhoneBucket(phone string) ratelimit.Bucket
-	IsPerIPEnabled() bool
-	MakePerIPBucket(ip string) ratelimit.Bucket
+type PreparedMessage struct {
+	email *messaging.EmailMessage
+	sms   *messaging.SMSMessage
+	spec  *translation.MessageSpec
+	form  Form
 }
 
-type RateLimiter interface {
-	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
-	TakeToken(bucket ratelimit.Bucket) error
-	ClearBucket(bucket ratelimit.Bucket) error
-	RequireToken(bucket ratelimit.Bucket) error
-
-	Allow(spec ratelimit.BucketSpec) error
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
-	ReserveN(spec ratelimit.BucketSpec, n int) *ratelimit.Reservation
-	Cancel(r *ratelimit.Reservation) error
-}
-
-type EventService interface {
-	DispatchEvent(payload event.Payload) error
+func (m *PreparedMessage) Close() {
+	if m.email != nil {
+		m.email.Close()
+	}
+	if m.sms != nil {
+		m.sms.Close()
+	}
 }
 
 type MessageSender struct {
-	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
 	Endpoints   EndpointsProvider
-	TaskQueue   task.Queue
-	Events      EventService
-
-	RateLimiter       RateLimiter
-	HardSMSBucketer   HardSMSBucketer
-	AntiSpamSMSBucket AntiSpamSMSBucketMaker
+	Sender      Sender
 }
 
-func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
-	ctx := &MessageTemplateContext{
-		// To be filled by caller
-		Email: "",
-		Phone: "",
-		Code:  opts.OTP,
-		URL:   opts.URL,
+func (s *MessageSender) setupTemplateContext(otp string, msg *PreparedMessage) (*MessageTemplateContext, error) {
+	email := ""
+	if msg.email != nil {
+		email = msg.email.Recipient
+	}
+
+	phone := ""
+	if msg.sms != nil {
+		phone = msg.sms.To
+	}
+
+	url := ""
+	if msg.form == FormLink {
+		linkURL := s.Endpoints.LoginLinkVerificationEndpointURL()
+		query := linkURL.Query()
+		query.Set("code", otp)
+		linkURL.RawQuery = query.Encode()
+
+		url = linkURL.String()
+	}
+
+	return &MessageTemplateContext{
+		Email: email,
+		Phone: phone,
+		Code:  otp,
+		URL:   url,
 		Host:  s.Endpoints.BaseURL().Host,
-	}
-
-	return ctx, nil
+	}, nil
 }
 
-func (s *MessageSender) CanSendEmail(email string) error {
-	err := s.RateLimiter.RequireToken(mail.AntiSpamBucket(email))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
-	data, err := s.makeData(opts)
-	if err != nil {
-		return err
-	}
-	data.Email = email
-
-	if opts.OTPMode == OTPModeLoginLink {
-		url := s.Endpoints.LoginLinkVerificationEndpointURL()
-		query := url.Query()
-		query.Set("code", data.Code)
-		url.RawQuery = query.Encode()
-
-		data.URL = url.String()
-	}
-
+func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.MessageSpec, nonblocking.MessageType) {
 	var spec *translation.MessageSpec
-	var emailType nonblocking.MessageType
-	switch opts.MessageType {
+	var msgType nonblocking.MessageType
+	switch typ {
 	case MessageTypeVerification:
 		spec = messageVerification
-		emailType = nonblocking.MessageTypeVerification
+		msgType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
-		if opts.OTPMode == OTPModeLoginLink {
+		if form == FormLink {
 			spec = messageSetupPrimaryLoginLink
 		} else {
 			spec = messageSetupPrimaryOOB
 		}
-		emailType = nonblocking.MessageTypeSetupPrimaryOOB
+		msgType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
-		if opts.OTPMode == OTPModeLoginLink {
+		if form == FormLink {
 			spec = messageSetupSecondaryLoginLink
 		} else {
 			spec = messageSetupSecondaryOOB
 		}
-		emailType = nonblocking.MessageTypeSetupSecondaryOOB
+		msgType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
-		if opts.OTPMode == OTPModeLoginLink {
+		if form == FormLink {
 			spec = messageAuthenticatePrimaryLoginLink
 		} else {
 			spec = messageAuthenticatePrimaryOOB
 		}
-		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
+		msgType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
-		if opts.OTPMode == OTPModeLoginLink {
+		if form == FormLink {
 			spec = messageAuthenticateSecondaryLoginLink
 		} else {
 			spec = messageAuthenticateSecondaryOOB
 		}
-		emailType = nonblocking.MessageTypeAuthenticateSecondaryOOB
+		msgType = nonblocking.MessageTypeAuthenticateSecondaryOOB
 	default:
-		panic("otp: unknown message type: " + opts.MessageType)
+		panic("otp: unknown message type: " + msgType)
 	}
 
-	msg, err := s.Translation.EmailMessageData(spec, data)
+	return spec, msgType
+}
+
+func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target string, form Form, typ MessageType) (*PreparedMessage, error) {
+	switch channel {
+	case model.AuthenticatorOOBChannelEmail:
+		return s.prepareEmail(target, form, typ)
+	case model.AuthenticatorOOBChannelSMS:
+		return s.prepareSMS(target, form, typ)
+	default:
+		panic("otp: unknown channel: " + channel)
+	}
+}
+
+func (s *MessageSender) prepareEmail(email string, form Form, typ MessageType) (*PreparedMessage, error) {
+	spec, msgType := s.selectMessage(form, typ)
+
+	msg, err := s.Sender.PrepareEmail(email, msgType)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = s.RateLimiter.TakeToken(mail.AntiSpamBucket(email))
+	return &PreparedMessage{
+		email: msg,
+		spec:  spec,
+		form:  form,
+	}, nil
+}
+
+func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ MessageType) (*PreparedMessage, error) {
+	spec, msgType := s.selectMessage(form, typ)
+
+	msg, err := s.Sender.PrepareSMS(phoneNumber, msgType)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
-		EmailMessages: []mail.SendOptions{{
-			Sender:    msg.Sender,
-			ReplyTo:   msg.ReplyTo,
-			Subject:   msg.Subject,
-			Recipient: email,
-			TextBody:  msg.TextBody,
-			HTMLBody:  msg.HTMLBody,
-		}},
-	})
+	return &PreparedMessage{
+		sms:  msg,
+		spec: spec,
+		form: form,
+	}, nil
+}
 
-	err = s.Events.DispatchEvent(&nonblocking.EmailSentEventPayload{
-		Sender:    msg.Sender,
-		Recipient: email,
-		Type:      emailType,
-	})
-	if err != nil {
-		return err
+func (s *MessageSender) Send(msg *PreparedMessage, otp string) error {
+	if msg.email != nil {
+		return s.sendEmail(msg, otp)
 	}
-
+	if msg.sms != nil {
+		return s.sendSMS(msg, otp)
+	}
 	return nil
 }
 
-func (s *MessageSender) CanSendSMS(phone string) error {
-	if s.AntiSpamSMSBucket.IsPerPhoneEnabled() {
-		err := s.RateLimiter.RequireToken(s.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
-		if err != nil {
-			return err
-		}
+func (s *MessageSender) sendEmail(msg *PreparedMessage, otp string) error {
+	ctx, err := s.setupTemplateContext(otp, msg)
+	if err != nil {
+		return err
 	}
-	if s.AntiSpamSMSBucket.IsPerIPEnabled() {
-		err := s.RateLimiter.RequireToken(s.AntiSpamSMSBucket.MakePerIPBucket(string(s.RemoteIP)))
-		if err != nil {
-			return err
-		}
+
+	data, err := s.Translation.EmailMessageData(msg.spec, ctx)
+	if err != nil {
+		return err
 	}
-	return nil
+
+	msg.email.Sender = data.Sender
+	msg.email.ReplyTo = data.ReplyTo
+	msg.email.Subject = data.Subject
+	msg.email.TextBody = data.TextBody
+	msg.email.HTMLBody = data.HTMLBody
+
+	return msg.email.Send()
 }
 
-func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
-	data, err := s.makeData(opts)
-	if err != nil {
-		return err
-	}
-	data.Phone = phone
-
-	var spec *translation.MessageSpec
-	var smsType nonblocking.MessageType
-	switch opts.MessageType {
-	case MessageTypeVerification:
-		spec = messageVerification
-		smsType = nonblocking.MessageTypeVerification
-	case MessageTypeSetupPrimaryOOB:
-		spec = messageSetupPrimaryOOB
-		smsType = nonblocking.MessageTypeSetupPrimaryOOB
-	case MessageTypeSetupSecondaryOOB:
-		spec = messageSetupSecondaryOOB
-		smsType = nonblocking.MessageTypeSetupSecondaryOOB
-	case MessageTypeAuthenticatePrimaryOOB:
-		spec = messageAuthenticatePrimaryOOB
-		smsType = nonblocking.MessageTypeAuthenticatePrimaryOOB
-	case MessageTypeAuthenticateSecondaryOOB:
-		spec = messageAuthenticateSecondaryOOB
-		smsType = nonblocking.MessageTypeAuthenticateSecondaryOOB
-	default:
-		panic("otp: unknown message type: " + opts.MessageType)
-	}
-
-	msg, err := s.Translation.SMSMessageData(spec, data)
+func (s *MessageSender) sendSMS(msg *PreparedMessage, otp string) error {
+	ctx, err := s.setupTemplateContext(otp, msg)
 	if err != nil {
 		return err
 	}
 
-	if s.AntiSpamSMSBucket.IsPerPhoneEnabled() {
-		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakePerPhoneBucket(phone))
-		if err != nil {
-			return err
-		}
-	}
-
-	if s.AntiSpamSMSBucket.IsPerIPEnabled() {
-		err = s.RateLimiter.TakeToken(s.AntiSpamSMSBucket.MakePerIPBucket(string(s.RemoteIP)))
-		if err != nil {
-			return err
-		}
-	}
-
-	err = s.RateLimiter.TakeToken(s.HardSMSBucketer.Bucket())
+	data, err := s.Translation.SMSMessageData(msg.spec, ctx)
 	if err != nil {
 		return err
 	}
 
-	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
-		SMSMessages: []sms.SendOptions{{
-			Sender: msg.Sender,
-			To:     phone,
-			Body:   msg.Body,
-		}},
-	})
+	msg.sms.Sender = data.Sender
+	msg.sms.Body = data.Body
 
-	err = s.Events.DispatchEvent(&nonblocking.SMSSentEventPayload{
-		Sender:    msg.Sender,
-		Recipient: phone,
-		Type:      smsType,
-	})
-	if err != nil {
-		return err
-	}
-
-	return
+	return msg.sms.Send()
 }

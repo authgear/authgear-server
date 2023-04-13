@@ -67,15 +67,11 @@ func (p *SendOOBCode) Do() error {
 		}
 	}
 
-	// Should check if we can send code to the target first before taking token
-	// from the AntiSpamOTPCodeBucket (resend cooldown)
-	// It may be blocked due to exceeding the per target or per ip rate limit,
-	// and this error should be returned
-	var err error
-	err = p.Deps.OOBCodeSender.CanSendCode(channel, target)
+	msg, err := p.Deps.OTPSender.Prepare(channel, target, p.OTPForm, messageType)
 	if err != nil {
 		return err
 	}
+	defer msg.Close()
 
 	kind := otp.KindOOBOTP(p.Deps.Config, channel)
 	code, err := p.Deps.OTPCodes.GenerateOTP(
@@ -92,15 +88,7 @@ func (p *SendOOBCode) Do() error {
 		return err
 	}
 
-	// FIXME: mode -> form
-	var mode otp.OTPMode
-	switch p.OTPForm {
-	case otp.FormCode:
-		mode = otp.OTPModeCode
-	case otp.FormLink:
-		mode = otp.OTPModeLoginLink
-	}
-	err = p.Deps.OOBCodeSender.SendCode(channel, target, code, messageType, mode)
+	err = p.Deps.OTPSender.Send(msg, code)
 	if err != nil {
 		return err
 	}

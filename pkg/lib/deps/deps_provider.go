@@ -34,6 +34,7 @@ var envConfigDeps = wire.NewSet(
 		"RedisConfig",
 		"NFTIndexerAPIEndpoint",
 		"DenoEndpoint",
+		"RateLimits",
 	),
 )
 

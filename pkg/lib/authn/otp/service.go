@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -40,6 +41,13 @@ type AttemptTracker interface {
 	ResetFailedAttempts(purpose string, target string) error
 	GetFailedAttempts(purpose string, target string) (int, error)
 	IncrementFailedAttempts(purpose string, target string) (int, error)
+}
+
+type RateLimiter interface {
+	Allow(spec ratelimit.BucketSpec) error
+	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	ReserveN(spec ratelimit.BucketSpec, n int) *ratelimit.Reservation
+	Cancel(r *ratelimit.Reservation) error
 }
 
 type Logger struct{ *log.Logger }
