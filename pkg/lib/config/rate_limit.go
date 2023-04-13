@@ -1,5 +1,7 @@
 package config
 
+import "math"
+
 var _ = Schema.Add("RateLimitConfig", `
 {
 	"type": "object",
@@ -38,4 +40,13 @@ func (c *RateLimitConfig) SetDefaults() {
 	if c.Enabled != nil && *c.Enabled && c.Burst == 0 {
 		c.Burst = 1
 	}
+}
+
+func (c *RateLimitConfig) Rate() float64 {
+	if c.Enabled == nil || !*c.Enabled {
+		// Infinite rate if disabled.
+		return math.Inf(1)
+	}
+	// request/seconds
+	return float64(c.Burst) / c.Period.Duration().Seconds()
 }

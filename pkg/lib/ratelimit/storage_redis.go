@@ -97,5 +97,8 @@ func (s storageRedisConn) Reset(bucket Bucket, now time.Time) error {
 }
 
 func redisBucketKey(appID config.AppID, bucket Bucket) string {
+	if bucket.IsGlobal {
+		return fmt.Sprintf("rate-limit:%s", bucket.Key)
+	}
 	return fmt.Sprintf("app:%s:rate-limit:%s", appID, bucket.Key)
 }
