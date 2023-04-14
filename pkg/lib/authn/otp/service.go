@@ -139,16 +139,16 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 	}
 
 	code := &Code{
-		AppID:        string(s.AppID),
-		Target:       target,
+		Target:   target,
+		Purpose:  kind.Purpose(),
+		Form:     form,
+		Code:     form.GenerateCode(),
+		ExpireAt: s.Clock.NowUTC().Add(kind.ValidPeriod()),
+
+		UserID:       opts.UserID,
 		WorkflowID:   opts.WorkflowID,
 		WebSessionID: opts.WebSessionID,
 	}
-	code.Target = target
-	code.Purpose = kind.Purpose()
-	code.Form = form
-	code.Code = form.GenerateCode()
-	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
 
 	err := s.CodeStore.Create(kind.Purpose(), code)
 	if err != nil {
@@ -320,6 +320,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 	if code != nil {
 		state.ExpireAt = code.ExpireAt
 		state.SubmittedCode = code.UserInputtedCode
+		state.UserID = code.UserID
 		state.WorkflowID = code.WorkflowID
 		state.WebSessionID = code.WebSessionID
 	}

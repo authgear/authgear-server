@@ -19,7 +19,7 @@ type Code struct {
 	Consumed bool      `json:"consumed"`
 
 	UserInputtedCode string `json:"user_inputted_code,omitempty"`
-	AppID            string `json:"app_id,omitempty"`
+	UserID           string `json:"user_id,omitempty"`
 	WebSessionID     string `json:"web_session_id,omitempty"`
 	WorkflowID       string `json:"workflow_id,omitempty"`
 }
