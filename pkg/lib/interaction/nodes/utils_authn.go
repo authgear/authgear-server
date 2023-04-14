@@ -101,7 +101,7 @@ func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 		return nil, err
 	}
 
-	err = p.Context.OTPSender.Send(msg, code)
+	err = p.Context.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return nil, err
 	}

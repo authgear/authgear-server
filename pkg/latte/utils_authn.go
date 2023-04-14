@@ -89,7 +89,7 @@ func (p *SendOOBCode) Do() error {
 		return err
 	}
 
-	err = p.Deps.OTPSender.Send(msg, code)
+	err = p.Deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}

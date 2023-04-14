@@ -15,14 +15,7 @@ const (
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
 )
 
-type OTPMode string
-
-const (
-	OTPModeCode      OTPMode = "code"
-	OTPModeLoginLink OTPMode = "login-link"
-)
-
-type MessageTemplateContext struct {
+type messageTemplateContext struct {
 	Email string
 	Phone string
 	Code  string

@@ -1,24 +1,23 @@
 package otp
 
 import (
-	"net/url"
+	neturl "net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type SendOptions struct {
-	OTP         string
-	URL         string
-	MessageType MessageType
-	OTPMode     OTPMode
+	OTP     string
+	Context map[string]interface{}
 }
 
 type EndpointsProvider interface {
-	BaseURL() *url.URL
-	LoginLinkVerificationEndpointURL() *url.URL
+	BaseURL() *neturl.URL
+	LoginLinkVerificationEndpointURL() *neturl.URL
 }
 
 type TranslationService interface {
@@ -32,10 +31,11 @@ type Sender interface {
 }
 
 type PreparedMessage struct {
-	email *messaging.EmailMessage
-	sms   *messaging.SMSMessage
-	spec  *translation.MessageSpec
-	form  Form
+	email   *messaging.EmailMessage
+	sms     *messaging.SMSMessage
+	spec    *translation.MessageSpec
+	form    Form
+	msgType nonblocking.MessageType
 }
 
 func (m *PreparedMessage) Close() {
@@ -53,7 +53,7 @@ type MessageSender struct {
 	Sender      Sender
 }
 
-func (s *MessageSender) setupTemplateContext(otp string, msg *PreparedMessage) (*MessageTemplateContext, error) {
+func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (any, error) {
 	email := ""
 	if msg.email != nil {
 		email = msg.email.Recipient
@@ -66,21 +66,36 @@ func (s *MessageSender) setupTemplateContext(otp string, msg *PreparedMessage) (
 
 	url := ""
 	if msg.form == FormLink {
-		linkURL := s.Endpoints.LoginLinkVerificationEndpointURL()
-		query := linkURL.Query()
-		query.Set("code", otp)
-		linkURL.RawQuery = query.Encode()
+		var linkURL *neturl.URL
+		switch msg.msgType {
+		case nonblocking.MessageTypeSetupPrimaryOOB,
+			nonblocking.MessageTypeSetupSecondaryOOB,
+			nonblocking.MessageTypeAuthenticatePrimaryOOB,
+			nonblocking.MessageTypeAuthenticateSecondaryOOB:
+
+			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL()
+			query := linkURL.Query()
+			query.Set("code", opts.OTP)
+			linkURL.RawQuery = query.Encode()
+
+		default:
+			panic("otp: unexpected message type for link: " + msg.msgType)
+		}
 
 		url = linkURL.String()
 	}
 
-	return &MessageTemplateContext{
+	ctx := make(map[string]any)
+	template.Embed(ctx, messageTemplateContext{
 		Email: email,
 		Phone: phone,
-		Code:  otp,
+		Code:  opts.OTP,
 		URL:   url,
 		Host:  s.Endpoints.BaseURL().Host,
-	}, nil
+	})
+	template.Embed(ctx, opts.Context)
+
+	return ctx, nil
 }
 
 func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.MessageSpec, nonblocking.MessageType) {
@@ -145,9 +160,10 @@ func (s *MessageSender) prepareEmail(email string, form Form, typ MessageType) (
 	}
 
 	return &PreparedMessage{
-		email: msg,
-		spec:  spec,
-		form:  form,
+		email:   msg,
+		spec:    spec,
+		form:    form,
+		msgType: msgType,
 	}, nil
 }
 
@@ -160,24 +176,25 @@ func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ MessageTyp
 	}
 
 	return &PreparedMessage{
-		sms:  msg,
-		spec: spec,
-		form: form,
+		sms:     msg,
+		spec:    spec,
+		form:    form,
+		msgType: msgType,
 	}, nil
 }
 
-func (s *MessageSender) Send(msg *PreparedMessage, otp string) error {
+func (s *MessageSender) Send(msg *PreparedMessage, opts SendOptions) error {
 	if msg.email != nil {
-		return s.sendEmail(msg, otp)
+		return s.sendEmail(msg, opts)
 	}
 	if msg.sms != nil {
-		return s.sendSMS(msg, otp)
+		return s.sendSMS(msg, opts)
 	}
 	return nil
 }
 
-func (s *MessageSender) sendEmail(msg *PreparedMessage, otp string) error {
-	ctx, err := s.setupTemplateContext(otp, msg)
+func (s *MessageSender) sendEmail(msg *PreparedMessage, opts SendOptions) error {
+	ctx, err := s.setupTemplateContext(msg, opts)
 	if err != nil {
 		return err
 	}
@@ -196,8 +213,8 @@ func (s *MessageSender) sendEmail(msg *PreparedMessage, otp string) error {
 	return msg.email.Send()
 }
 
-func (s *MessageSender) sendSMS(msg *PreparedMessage, otp string) error {
-	ctx, err := s.setupTemplateContext(otp, msg)
+func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
+	ctx, err := s.setupTemplateContext(msg, opts)
 	if err != nil {
 		return err
 	}

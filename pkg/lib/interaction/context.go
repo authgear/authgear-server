@@ -61,7 +61,7 @@ type OTPCodeService interface {
 
 type OTPSender interface {
 	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
-	Send(msg *otp.PreparedMessage, otp string) error
+	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
 type WhatsappCodeProvider interface {

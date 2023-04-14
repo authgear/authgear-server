@@ -134,7 +134,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		}
 	}
 
-	err = ctx.OTPSender.Send(msg, code)
+	err = ctx.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return nil, err
 	}

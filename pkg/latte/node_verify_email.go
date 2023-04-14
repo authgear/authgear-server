@@ -133,7 +133,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	}
 	n.CodeLength = len(code)
 
-	err = deps.OTPSender.Send(msg, code)
+	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}
