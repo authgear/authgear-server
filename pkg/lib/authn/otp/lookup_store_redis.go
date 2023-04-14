@@ -19,7 +19,7 @@ type LookupStoreRedis struct {
 	Clock clock.Clock
 }
 
-func (s *LookupStoreRedis) Create(purpose string, code string, target string, expireAt time.Time) error {
+func (s *LookupStoreRedis) Create(purpose Purpose, code string, target string, expireAt time.Time) error {
 	ctx := context.Background()
 	key := redisLookupKey(s.AppID, purpose, code)
 
@@ -37,7 +37,7 @@ func (s *LookupStoreRedis) Create(purpose string, code string, target string, ex
 	})
 }
 
-func (s *LookupStoreRedis) Get(purpose string, code string) (target string, err error) {
+func (s *LookupStoreRedis) Get(purpose Purpose, code string) (target string, err error) {
 	ctx := context.Background()
 	key := redisLookupKey(s.AppID, purpose, code)
 
@@ -54,7 +54,7 @@ func (s *LookupStoreRedis) Get(purpose string, code string) (target string, err 
 	return
 }
 
-func (s *LookupStoreRedis) Delete(purpose string, code string) error {
+func (s *LookupStoreRedis) Delete(purpose Purpose, code string) error {
 	ctx := context.Background()
 	key := redisLookupKey(s.AppID, purpose, code)
 
@@ -67,6 +67,6 @@ func (s *LookupStoreRedis) Delete(purpose string, code string) error {
 	})
 }
 
-func redisLookupKey(appID config.AppID, purpose string, code string) string {
+func redisLookupKey(appID config.AppID, purpose Purpose, code string) string {
 	return fmt.Sprintf("app:%s:otp-lookup:%s:%s", appID, purpose, code)
 }

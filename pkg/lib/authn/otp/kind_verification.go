@@ -8,6 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
+const PurposeVerification Purpose = "verification"
+
 type kindVerification struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
@@ -17,8 +19,8 @@ func KindVerification(config *config.AppConfig, channel model.AuthenticatorOOBCh
 	return kindVerification{config: config, channel: channel}
 }
 
-func (k kindVerification) Purpose() string {
-	return "verification"
+func (k kindVerification) Purpose() Purpose {
+	return PurposeVerification
 }
 
 func (k kindVerification) ValidPeriod() time.Duration {

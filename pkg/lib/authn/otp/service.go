@@ -25,22 +25,22 @@ type VerifyOptions struct {
 }
 
 type CodeStore interface {
-	Create(purpose string, code *Code) error
-	Get(purpose string, target string) (*Code, error)
-	Update(purpose string, code *Code) error
-	Delete(purpose string, target string) error
+	Create(purpose Purpose, code *Code) error
+	Get(purpose Purpose, target string) (*Code, error)
+	Update(purpose Purpose, code *Code) error
+	Delete(purpose Purpose, target string) error
 }
 
 type LookupStore interface {
-	Create(purpose string, code string, target string, expireAt time.Time) error
-	Get(purpose string, code string) (string, error)
-	Delete(purpose string, code string) error
+	Create(purpose Purpose, code string, target string, expireAt time.Time) error
+	Get(purpose Purpose, code string) (string, error)
+	Delete(purpose Purpose, code string) error
 }
 
 type AttemptTracker interface {
-	ResetFailedAttempts(purpose string, target string) error
-	GetFailedAttempts(purpose string, target string) (int, error)
-	IncrementFailedAttempts(purpose string, target string) (int, error)
+	ResetFailedAttempts(purpose Purpose, target string) error
+	GetFailedAttempts(purpose Purpose, target string) (int, error)
+	IncrementFailedAttempts(purpose Purpose, target string) (int, error)
 }
 
 type RateLimiter interface {
@@ -261,13 +261,13 @@ func (s *Service) SetSubmittedCode(kind Kind, target string, code string) (*Stat
 	return s.InspectState(kind, target)
 }
 
-func (s *Service) LookupCode(kind Kind, code string) (target string, err error) {
-	return s.LookupStore.Get(kind.Purpose(), code)
+func (s *Service) LookupCode(purpose Purpose, code string) (target string, err error) {
+	return s.LookupStore.Get(purpose, code)
 }
 
 // InspectWhatsappOTP is deprecated. Whatsapp OTP is to be revamped.
 func (s *Service) InspectWhatsappOTP(kind Kind, target string) (string, error) {
-	code, err := s.getCode(kind, target)
+	code, err := s.getCode(kind.Purpose(), target)
 	if err != nil {
 		return "", err
 	}

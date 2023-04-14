@@ -12,7 +12,7 @@ const (
 
 type Code struct {
 	Target   string    `json:"target"`
-	Purpose  string    `json:"purpose"`
+	Purpose  Purpose   `json:"purpose"`
 	Form     Form      `json:"form"`
 	Code     string    `json:"code"`
 	ExpireAt time.Time `json:"expire_at"`
