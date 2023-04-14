@@ -18,7 +18,7 @@ type RateLimits struct {
 	RemoteIP    httputil.RemoteIP
 
 	Config        *config.MessagingRateLimitsConfig
-	FeatureConfig *config.RateLimitsFeatureConfig
+	FeatureConfig *config.MessagingFeatureConfig
 	EnvConfig     *config.RateLimitsEnvironmentConfig
 }
 
@@ -76,7 +76,7 @@ func (l *RateLimits) checkEmail(email string) (msg *message, err error) {
 	}()
 
 	re, err = l.check(re,
-		l.EnvConfig.EmailPerIP, l.FeatureConfig.EmailPerIP, l.Config.EmailPerIP,
+		l.EnvConfig.EmailPerIP, l.FeatureConfig.RateLimits.EmailPerIP, l.Config.EmailPerIP,
 		"MessagingEmailPerIP", string(l.RemoteIP),
 	)
 	if err != nil {
@@ -84,7 +84,7 @@ func (l *RateLimits) checkEmail(email string) (msg *message, err error) {
 	}
 
 	re, err = l.check(re,
-		l.EnvConfig.EmailPerTarget, l.FeatureConfig.EmailPerTarget, l.Config.EmailPerTarget,
+		l.EnvConfig.EmailPerTarget, l.FeatureConfig.RateLimits.EmailPerTarget, l.Config.EmailPerTarget,
 		"MessagingEmailPerTarget", email,
 	)
 	if err != nil {
@@ -92,7 +92,7 @@ func (l *RateLimits) checkEmail(email string) (msg *message, err error) {
 	}
 
 	re, err = l.check(re,
-		l.EnvConfig.Email, l.FeatureConfig.Email, l.Config.Email,
+		l.EnvConfig.Email, l.FeatureConfig.RateLimits.Email, l.Config.Email,
 		"MessagingEmail",
 	)
 	if err != nil {
@@ -109,7 +109,7 @@ func (l *RateLimits) checkSMS(phoneNumber string) (msg *message, err error) {
 	}()
 
 	re, err = l.check(re,
-		l.EnvConfig.SMSPerIP, l.FeatureConfig.SMSPerIP, l.Config.SMSPerIP,
+		l.EnvConfig.SMSPerIP, l.FeatureConfig.RateLimits.SMSPerIP, l.Config.SMSPerIP,
 		"MessagingSMSPerIP", string(l.RemoteIP),
 	)
 	if err != nil {
@@ -117,7 +117,7 @@ func (l *RateLimits) checkSMS(phoneNumber string) (msg *message, err error) {
 	}
 
 	re, err = l.check(re,
-		l.EnvConfig.SMSPerTarget, l.FeatureConfig.SMSPerTarget, l.Config.SMSPerTarget,
+		l.EnvConfig.SMSPerTarget, l.FeatureConfig.RateLimits.SMSPerTarget, l.Config.SMSPerTarget,
 		"MessagingSMSPerTarget", phoneNumber,
 	)
 	if err != nil {
@@ -125,7 +125,7 @@ func (l *RateLimits) checkSMS(phoneNumber string) (msg *message, err error) {
 	}
 
 	re, err = l.check(re,
-		l.EnvConfig.SMS, l.FeatureConfig.SMS, l.Config.SMS,
+		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
 		"MessagingSMS",
 	)
 	if err != nil {

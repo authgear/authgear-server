@@ -767,14 +767,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{

@@ -60,6 +60,7 @@ var configDeps = wire.NewSet(
 		"Collaborator",
 		"RateLimit",
 		"RateLimits",
+		"Messaging",
 		"AdminAPI",
 	),
 	ProvideDefaultLanguageTag,

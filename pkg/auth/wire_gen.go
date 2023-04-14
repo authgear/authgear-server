@@ -1707,14 +1707,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -4277,14 +4277,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -5135,14 +5135,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -5918,14 +5918,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -6807,14 +6807,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -7636,14 +7636,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -8464,14 +8464,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -9280,14 +9280,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -10089,14 +10089,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -10888,14 +10888,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -11690,14 +11690,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -12495,14 +12495,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -13302,14 +13302,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -14107,14 +14107,14 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -14908,14 +14908,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -15713,14 +15713,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -16519,14 +16519,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -17324,14 +17324,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -18129,14 +18129,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -18936,14 +18936,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -19741,14 +19741,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -20546,14 +20546,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -21356,14 +21356,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -22161,14 +22161,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -22989,14 +22989,14 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -23794,14 +23794,14 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -24608,14 +24608,14 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -25424,14 +25424,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -26229,14 +26229,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -27030,14 +27030,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -27836,14 +27836,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -28637,14 +28637,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -29448,14 +29448,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -30249,14 +30249,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -31052,14 +31052,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -31853,14 +31853,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -32686,14 +32686,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -33498,14 +33498,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -34323,14 +34323,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -35132,14 +35132,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -35934,14 +35934,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -36744,14 +36744,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -37546,14 +37546,14 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -38348,14 +38348,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -39150,14 +39150,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -39953,14 +39953,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -40774,14 +40774,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -41576,14 +41576,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -42378,14 +42378,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -43180,14 +43180,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -43982,14 +43982,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -44791,14 +44791,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -45594,14 +45594,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -46395,14 +46395,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -47211,14 +47211,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -48012,14 +48012,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -48813,14 +48813,14 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -49632,14 +49632,14 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -50398,14 +50398,14 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -51163,14 +51163,14 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -51974,14 +51974,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -52776,14 +52776,14 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -53564,14 +53564,14 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -54322,14 +54322,14 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -55050,14 +55050,14 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
@@ -56599,14 +56599,14 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	messagingLogger := messaging.NewLogger(factory)
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
-	rateLimitsFeatureConfig := featureConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
 	rateLimits := messaging.RateLimits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
-		FeatureConfig: rateLimitsFeatureConfig,
+		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
