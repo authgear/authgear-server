@@ -58,7 +58,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
@@ -1748,36 +1747,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -1829,8 +1807,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -4326,36 +4304,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -4407,8 +4364,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -5192,36 +5149,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -5273,8 +5209,8 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -5983,36 +5919,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -6064,8 +5979,8 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -6880,36 +6795,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -6960,8 +6854,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -7003,6 +6897,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -7717,36 +7612,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -7797,8 +7671,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -7840,6 +7714,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -8553,36 +8428,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -8633,8 +8487,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -8676,6 +8530,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -9377,36 +9232,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -9457,8 +9291,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -9500,6 +9334,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -10194,36 +10029,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -10274,8 +10088,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -10317,6 +10131,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -11001,36 +10816,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -11081,8 +10875,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -11124,6 +10918,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -11811,36 +11606,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -11891,8 +11665,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -11934,6 +11708,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -12624,36 +12399,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -12704,8 +12458,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -12747,6 +12501,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -13439,36 +13194,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -13519,8 +13253,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -13562,6 +13296,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -14252,36 +13987,15 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -14332,8 +14046,8 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -14375,6 +14089,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -15061,36 +14776,15 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -15141,8 +14835,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -15184,6 +14878,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -15874,36 +15569,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -15954,8 +15628,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -15997,6 +15671,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -16688,36 +16363,15 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -16768,8 +16422,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -16811,6 +16465,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -17501,36 +17156,15 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -17581,8 +17215,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -17624,6 +17258,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -18314,36 +17949,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -18394,8 +18008,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -18437,6 +18051,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -19129,36 +18744,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -19209,8 +18803,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -19252,6 +18846,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -19942,36 +19537,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -20022,8 +19596,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -20065,6 +19639,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -20755,36 +20330,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -20835,8 +20389,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -20878,6 +20432,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -21573,36 +21128,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -21653,8 +21187,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -21696,6 +21230,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -22386,36 +21921,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -22466,8 +21980,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -22509,6 +22023,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -23222,36 +22737,15 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -23302,8 +22796,8 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -23345,6 +22839,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -24035,36 +23530,15 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   handle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -24115,8 +23589,8 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -24158,6 +23632,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -24857,36 +24332,15 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   handle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -24937,8 +24391,8 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -24980,6 +24434,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -25681,36 +25136,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -25761,8 +25195,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -25804,6 +25238,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -26494,36 +25929,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -26574,8 +25988,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -26617,6 +26031,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -27303,36 +26718,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -27383,8 +26777,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -27426,6 +26820,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -28117,36 +27512,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -28197,8 +27571,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -28240,6 +27614,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -28926,36 +28301,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -29006,8 +28360,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -29049,6 +28403,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -29745,36 +29100,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -29825,8 +29159,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -29868,6 +29202,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -30554,36 +29889,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -30634,8 +29948,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -30677,6 +29991,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -30727,7 +30042,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		PasswordPolicy:    passwordChecker,
-		ResetPassword:     forgotpasswordProvider,
+		ResetPassword:     forgotpasswordService,
 	}
 	return resetPasswordHandler
 }
@@ -31365,36 +30680,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -31445,8 +30739,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -31488,6 +30782,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -32174,36 +31469,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -32254,8 +31528,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -32297,6 +31571,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -33015,36 +32290,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -33095,8 +32349,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -33138,6 +32392,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -33835,36 +33090,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -33915,8 +33149,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -33958,6 +33192,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -34668,36 +33903,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -34748,8 +33962,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -34791,6 +34005,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -35485,36 +34700,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -35565,8 +34759,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -35608,6 +34802,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -36295,36 +35490,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -36375,8 +35549,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -36418,6 +35592,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -37113,36 +36288,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -37193,8 +36347,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -37236,6 +36390,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -37923,36 +37078,15 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -38003,8 +37137,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -38046,6 +37180,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -38733,36 +37868,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -38813,8 +37927,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -38856,6 +37970,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -39543,36 +38658,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -39623,8 +38717,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -39666,6 +38760,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -40354,36 +39449,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -40434,8 +39508,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -40477,6 +39551,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -41183,36 +40258,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -41263,8 +40317,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -41306,6 +40360,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -41993,36 +41048,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -42073,8 +41107,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -42116,6 +41150,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -42803,36 +41838,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -42883,8 +41897,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -42926,6 +41940,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -43613,36 +42628,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -43693,8 +42687,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -43736,6 +42730,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -44423,36 +43418,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -44503,8 +43477,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -44546,6 +43520,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -45240,36 +44215,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -45320,8 +44274,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -45363,6 +44317,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -46051,36 +45006,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -46131,8 +45065,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -46174,6 +45108,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -46860,36 +45795,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -46940,8 +45854,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -46983,6 +45897,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -47684,36 +46599,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -47764,8 +46658,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -47807,6 +46701,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -48493,36 +47388,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -48573,8 +47447,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -48616,6 +47490,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -49302,36 +48177,15 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -49382,8 +48236,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -49425,6 +48279,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -50129,36 +48984,15 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   handle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -50209,8 +49043,8 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -50903,36 +49737,15 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   handle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -50983,8 +49796,8 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -51676,36 +50489,15 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -51756,8 +50548,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -51799,6 +50591,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -52495,36 +51288,15 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -52575,8 +51347,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -52618,6 +51390,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -53305,36 +52078,15 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -53385,8 +52137,8 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -53428,6 +52180,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	flashMessage := &httputil.FlashMessage{
 		Cookies: cookieManager,
@@ -54091,36 +52844,15 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	accountMigrationConfig := appConfig.AccountMigration
 	accountMigrationHookConfig := accountMigrationConfig.Hook
@@ -54147,13 +52879,13 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		WebHook:  accountMigrationWebHook,
 	}
 	captchaConfig := appConfig.Captcha
-	captchaProviderLogger := captcha.NewProviderLogger(factory)
+	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
 	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
-		Logger:           captchaProviderLogger,
+		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
 	manager2 := &session.Manager{
@@ -54184,8 +52916,8 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:                 otpService,
 		OTPSender:                messageSender,
 		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordProvider,
-		ResetPassword:            forgotpasswordProvider,
+		ForgotPassword:           forgotpasswordService,
+		ResetPassword:            forgotpasswordService,
 		AccountMigrations:        accountmigrationService,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Captcha:                  captchaProvider,
@@ -54857,36 +53589,15 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	accountMigrationConfig := appConfig.AccountMigration
 	accountMigrationHookConfig := accountMigrationConfig.Hook
@@ -54913,13 +53624,13 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		WebHook:  accountMigrationWebHook,
 	}
 	captchaConfig := appConfig.Captcha
-	captchaProviderLogger := captcha.NewProviderLogger(factory)
+	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
 	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
-		Logger:           captchaProviderLogger,
+		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
 	manager2 := &session.Manager{
@@ -54950,8 +53661,8 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:                 otpService,
 		OTPSender:                messageSender,
 		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordProvider,
-		ResetPassword:            forgotpasswordProvider,
+		ForgotPassword:           forgotpasswordService,
+		ResetPassword:            forgotpasswordService,
 		AccountMigrations:        accountmigrationService,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Captcha:                  captchaProvider,
@@ -55593,36 +54304,15 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	accountMigrationConfig := appConfig.AccountMigration
 	accountMigrationHookConfig := accountMigrationConfig.Hook
@@ -55649,13 +54339,13 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		WebHook:  accountMigrationWebHook,
 	}
 	captchaConfig := appConfig.Captcha
-	captchaProviderLogger := captcha.NewProviderLogger(factory)
+	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
 	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
 	captchaProvider := &captcha.Provider{
 		RemoteIP:         remoteIP,
 		Config:           captchaConfig,
-		Logger:           captchaProviderLogger,
+		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
 	manager2 := &session.Manager{
@@ -55686,8 +54376,8 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:                 otpService,
 		OTPSender:                messageSender,
 		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordProvider,
-		ResetPassword:            forgotpasswordProvider,
+		ForgotPassword:           forgotpasswordService,
+		ResetPassword:            forgotpasswordService,
 		AccountMigrations:        accountmigrationService,
 		LoginIDNormalizerFactory: normalizerFactory,
 		Captcha:                  captchaProvider,
@@ -57160,36 +55850,15 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   handle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -57240,8 +55909,8 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,

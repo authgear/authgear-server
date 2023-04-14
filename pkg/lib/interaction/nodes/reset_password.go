@@ -85,7 +85,7 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 				userID := resetInput.GetResetPasswordUserID()
 				newPassword := resetInput.GetNewPassword()
 
-				err := ctx.ResetPassword.ResetPassword(userID, newPassword)
+				err := ctx.ResetPassword.SetPassword(userID, newPassword)
 				if err != nil {
 					return err
 				}
@@ -96,7 +96,7 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 				code := codeInput.GetCode()
 				newPassword := codeInput.GetNewPassword()
 
-				err := ctx.ResetPassword.ResetPasswordByCode(code, newPassword)
+				err := ctx.ResetPassword.ResetPassword(code, newPassword)
 				if err != nil {
 					return err
 				}

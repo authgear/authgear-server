@@ -13,6 +13,7 @@ const (
 	MessageTypeSetupSecondaryOOB        MessageType = "setup-secondary-oob"
 	MessageTypeAuthenticatePrimaryOOB   MessageType = "authenticate-primary-oob"
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
+	MessageTypeForgotPassword           MessageType = "forgot-password"
 )
 
 type messageTemplateContext struct {
@@ -21,6 +22,9 @@ type messageTemplateContext struct {
 	Code  string
 	URL   string
 	Host  string
+
+	// compatibility with forgot password templates
+	Link string
 }
 
 var (
@@ -55,6 +59,10 @@ var (
 
 	TemplateMessageAuthenticateSecondaryLoginLinkEmailTXT  = template.RegisterPlainText("messages/authenticate_secondary_login_link.txt")
 	TemplateMessageAuthenticateSecondaryLoginLinkEmailHTML = template.RegisterHTML("messages/authenticate_secondary_login_link.html")
+
+	TemplateMessageForgotPasswordSMSTXT    = template.RegisterPlainText("messages/forgot_password_sms.txt")
+	TemplateMessageForgotPasswordEmailTXT  = template.RegisterPlainText("messages/forgot_password_email.txt")
+	TemplateMessageForgotPasswordEmailHTML = template.RegisterHTML("messages/forgot_password_email.html")
 )
 
 var (
@@ -107,5 +115,11 @@ var (
 		Name:              "authenticate-secondary-login-link",
 		TXTEmailTemplate:  TemplateMessageAuthenticateSecondaryLoginLinkEmailTXT,
 		HTMLEmailTemplate: TemplateMessageAuthenticateSecondaryLoginLinkEmailHTML,
+	}
+	messageForgotPassword = &translation.MessageSpec{
+		Name:              "forgot-password",
+		TXTEmailTemplate:  TemplateMessageForgotPasswordEmailTXT,
+		HTMLEmailTemplate: TemplateMessageForgotPasswordEmailHTML,
+		SMSTemplate:       TemplateMessageForgotPasswordSMSTXT,
 	}
 )

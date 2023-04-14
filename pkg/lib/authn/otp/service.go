@@ -66,8 +66,8 @@ type Service struct {
 	RateLimiter    RateLimiter
 }
 
-func (s *Service) getCode(kind Kind, target string) (*Code, error) {
-	return s.CodeStore.Get(kind.Purpose(), target)
+func (s *Service) getCode(purpose Purpose, target string) (*Code, error) {
+	return s.CodeStore.Get(purpose, target)
 }
 
 func (s *Service) deleteCode(kind Kind, target string) error {
@@ -79,9 +79,9 @@ func (s *Service) deleteCode(kind Kind, target string) error {
 	return nil
 }
 
-func (s *Service) consumeCode(kind Kind, code *Code) error {
+func (s *Service) consumeCode(purpose Purpose, code *Code) error {
 	code.Consumed = true
-	if err := s.CodeStore.Update(kind.Purpose(), code); err != nil {
+	if err := s.CodeStore.Update(purpose, code); err != nil {
 		return err
 	}
 	// No need delete from lookup store;
@@ -205,7 +205,7 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 		}()
 	}
 
-	code, err := s.getCode(kind, target)
+	code, err := s.getCode(kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {
 		return ErrInvalidCode
 	} else if err != nil {
@@ -239,7 +239,7 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	isCodeValid = true
 
 	if !opts.SkipConsume {
-		if err := s.consumeCode(kind, code); err != nil {
+		if err := s.consumeCode(kind.Purpose(), code); err != nil {
 			return err
 		}
 	}
@@ -247,8 +247,26 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	return nil
 }
 
+func (s *Service) ConsumeCode(purpose Purpose, target string) error {
+	code, err := s.getCode(purpose, target)
+	if errors.Is(err, ErrCodeNotFound) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	if code.Purpose != purpose {
+		return nil
+	}
+	if code.Consumed {
+		return nil
+	}
+
+	return s.consumeCode(purpose, code)
+}
+
 func (s *Service) SetSubmittedCode(kind Kind, target string, code string) (*State, error) {
-	codeModel, err := s.getCode(kind, target)
+	codeModel, err := s.getCode(kind.Purpose(), target)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +321,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		TooManyAttempts: tooManyAttempts,
 	}
 
-	code, err := s.getCode(kind, target)
+	code, err := s.getCode(kind.Purpose(), target)
 	if errors.Is(err, ErrCodeNotFound) {
 		code = nil
 	} else if err != nil {

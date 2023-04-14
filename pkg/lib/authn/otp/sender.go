@@ -11,13 +11,14 @@ import (
 )
 
 type SendOptions struct {
-	OTP     string
-	Context map[string]interface{}
+	OTP               string
+	AdditionalContext any
 }
 
 type EndpointsProvider interface {
 	BaseURL() *neturl.URL
 	LoginLinkVerificationEndpointURL() *neturl.URL
+	ResetPasswordEndpointURL() *neturl.URL
 }
 
 type TranslationService interface {
@@ -78,6 +79,13 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 			query.Set("code", opts.OTP)
 			linkURL.RawQuery = query.Encode()
 
+		case nonblocking.MessageTypeForgotPassword:
+
+			linkURL = s.Endpoints.ResetPasswordEndpointURL()
+			query := linkURL.Query()
+			query.Set("code", opts.OTP)
+			linkURL.RawQuery = query.Encode()
+
 		default:
 			panic("otp: unexpected message type for link: " + msg.msgType)
 		}
@@ -91,9 +99,12 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 		Phone: phone,
 		Code:  opts.OTP,
 		URL:   url,
+		Link:  url,
 		Host:  s.Endpoints.BaseURL().Host,
 	})
-	template.Embed(ctx, opts.Context)
+	if opts.AdditionalContext != nil {
+		template.Embed(ctx, opts.AdditionalContext)
+	}
 
 	return ctx, nil
 }
@@ -133,6 +144,9 @@ func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.
 			spec = messageAuthenticateSecondaryOOB
 		}
 		msgType = nonblocking.MessageTypeAuthenticateSecondaryOOB
+	case MessageTypeForgotPassword:
+		spec = messageForgotPassword
+		msgType = nonblocking.MessageTypeForgotPassword
 	default:
 		panic("otp: unknown message type: " + msgType)
 	}
