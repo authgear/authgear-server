@@ -445,6 +445,9 @@ interface Entity {
 
 """"""
 input GenerateOOBOTPCodeInput {
+  """Purpose of the generated OTP code."""
+  purpose: OTPPurpose
+
   """Target user's email or phone number."""
   target: String!
 }
@@ -607,6 +610,15 @@ type Mutation {
 interface Node {
   """The id of the object"""
   id: ID!
+}
+
+""""""
+enum OTPPurpose {
+  """"""
+  LOGIN
+
+  """"""
+  VERIFICATION
 }
 
 """Information about pagination in a connection."""

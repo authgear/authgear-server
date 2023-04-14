@@ -167,9 +167,32 @@ var _ = registerMutationField(
 	},
 )
 
+var otpPurpose = graphql.NewEnum(graphql.EnumConfig{
+	Name: "OTPPurpose",
+	Values: graphql.EnumValueConfigMap{
+		"LOGIN": &graphql.EnumValueConfig{
+			Value: "login",
+		},
+		"VERIFICATION": &graphql.EnumValueConfig{
+			Value: "verification",
+		},
+	},
+})
+
+type OTPPurpose string
+
+const (
+	OTPPurposeLogin        OTPPurpose = "login"
+	OTPPurposeVerification OTPPurpose = "verification"
+)
+
 var generateOOBOTPCodeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "GenerateOOBOTPCodeInput",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"purpose": &graphql.InputObjectFieldConfig{
+			Type:        otpPurpose,
+			Description: "Purpose of the generated OTP code.",
+		},
 		"target": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Target user's email or phone number.",
@@ -200,6 +223,11 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			target := input["target"].(string)
 
+			purpose := OTPPurposeLogin
+			if p, ok := input["purpose"].(string); ok {
+				purpose = OTPPurpose(p)
+			}
+
 			gqlCtx := GQLContext(p.Context)
 
 			var channel apimodel.AuthenticatorOOBChannel
@@ -209,8 +237,18 @@ var _ = registerMutationField(
 				channel = apimodel.AuthenticatorOOBChannelEmail
 			}
 
+			var kind otp.Kind
+			switch purpose {
+			case OTPPurposeLogin:
+				kind = otp.KindOOBOTP(gqlCtx.Config, channel)
+			case OTPPurposeVerification:
+				kind = otp.KindVerification(gqlCtx.Config, channel)
+			default:
+				panic("admin: unknown purpose: " + purpose)
+			}
+
 			code, err := gqlCtx.OTPCode.GenerateOTP(
-				otp.KindOOBOTP(gqlCtx.Config, channel),
+				kind,
 				target,
 				otp.FormCode,
 				&otp.GenerateOptions{SkipRateLimits: true},
