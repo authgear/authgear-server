@@ -2,8 +2,8 @@ package latte
 
 import (
 	"context"
-	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -44,8 +44,8 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 		code := inputTakeLoginLinkCode.GetCode()
 
 		err := i.setSubmittedCode(deps, code)
-		if errors.Is(err, otp.ErrCodeNotFound) || errors.Is(err, otp.ErrInvalidCode) {
-			return nil, otp.ErrInvalidLoginLink
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
+			return nil, otp.ErrInvalidCode
 		} else if err != nil {
 			return nil, err
 		}

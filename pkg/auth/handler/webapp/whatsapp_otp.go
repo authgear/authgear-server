@@ -1,11 +1,11 @@
 package webapp
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -147,10 +147,8 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = h.WhatsappCodeProvider.VerifyCode(phone, false)
 		if err == nil {
 			state = WhatsappOTPPageQueryStateMatched
-		} else if errors.Is(err, otp.ErrInvalidCode) {
+		} else if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			state = WhatsappOTPPageQueryStateInvalidCode
-		} else if errors.Is(err, otp.ErrInputRequired) {
-			state = WhatsappOTPPageQueryStateNoCode
 		} else {
 			return err
 		}

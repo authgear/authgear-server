@@ -1,10 +1,10 @@
 package webapp
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -107,7 +107,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
 
 			target, err := h.LoginLinkOTPCodeService.LookupCode(kind, code)
-			if errors.Is(err, otp.ErrCodeNotFound) {
+			if apierrors.IsKind(err, otp.InvalidOTPCode) {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
@@ -117,7 +117,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			err = h.LoginLinkOTPCodeService.VerifyOTP(
 				kind, target, code, &otp.VerifyOptions{SkipConsume: true},
 			)
-			if errors.Is(err, otp.ErrInvalidCode) {
+			if apierrors.IsKind(err, otp.InvalidOTPCode) {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
@@ -139,7 +139,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
 
 		target, err := h.LoginLinkOTPCodeService.LookupCode(kind, code)
-		if errors.Is(err, otp.ErrCodeNotFound) {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {
@@ -147,7 +147,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		state, err := h.LoginLinkOTPCodeService.SetSubmittedCode(kind, target, code)
-		if errors.Is(err, otp.ErrCodeNotFound) {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {

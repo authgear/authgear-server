@@ -2,10 +2,10 @@ package latte
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -67,7 +67,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 				UserID:           info.UserID,
 			},
 		)
-		if errors.Is(err, otp.ErrInvalidCode) {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			// Don't fire the AuthenticationFailedEvent
 			// The event should be fired only when the user submits code through the login link
 			return nil, api.ErrInvalidCredentials
