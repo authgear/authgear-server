@@ -16,6 +16,7 @@ type Code struct {
 	Form     Form      `json:"form"`
 	Code     string    `json:"code"`
 	ExpireAt time.Time `json:"expire_at"`
+	Consumed bool      `json:"consumed"`
 
 	UserInputtedCode string `json:"user_inputted_code,omitempty"`
 	AppID            string `json:"app_id,omitempty"`

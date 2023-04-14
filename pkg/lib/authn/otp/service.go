@@ -25,9 +25,9 @@ type VerifyOptions struct {
 }
 
 type CodeStore interface {
-	Create(purpose string, target string, code *Code) error
+	Create(purpose string, code *Code) error
 	Get(purpose string, target string) (*Code, error)
-	Update(purpose string, target string, code *Code) error
+	Update(purpose string, code *Code) error
 	Delete(purpose string, target string) error
 }
 
@@ -72,6 +72,16 @@ func (s *Service) getCode(kind Kind, target string) (*Code, error) {
 
 func (s *Service) deleteCode(kind Kind, target string) error {
 	if err := s.CodeStore.Delete(kind.Purpose(), target); err != nil {
+		return err
+	}
+	// No need delete from lookup store;
+	// lookup entry is invalidated since target is no longer exist.
+	return nil
+}
+
+func (s *Service) consumeCode(kind Kind, code *Code) error {
+	code.Consumed = true
+	if err := s.CodeStore.Update(kind.Purpose(), code); err != nil {
 		return err
 	}
 	// No need delete from lookup store;
@@ -140,7 +150,7 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 	code.Code = form.GenerateCode()
 	code.ExpireAt = s.Clock.NowUTC().Add(kind.ValidPeriod())
 
-	err := s.CodeStore.Create(kind.Purpose(), target, code)
+	err := s.CodeStore.Create(kind.Purpose(), code)
 	if err != nil {
 		return "", err
 	}
@@ -205,6 +215,9 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	if code.Purpose != kind.Purpose() {
 		return ErrInvalidCode
 	}
+	if code.Consumed {
+		return ErrConsumedCode
+	}
 
 	codeToVerify := otp
 	if opts.UseSubmittedCode {
@@ -226,7 +239,7 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	isCodeValid = true
 
 	if !opts.SkipConsume {
-		if err := s.deleteCode(kind, target); err != nil {
+		if err := s.consumeCode(kind, code); err != nil {
 			return err
 		}
 	}
@@ -241,7 +254,7 @@ func (s *Service) SetSubmittedCode(kind Kind, target string, code string) (*Stat
 	}
 
 	codeModel.UserInputtedCode = code
-	if err := s.CodeStore.Update(kind.Purpose(), target, codeModel); err != nil {
+	if err := s.CodeStore.Update(kind.Purpose(), codeModel); err != nil {
 		return nil, err
 	}
 
@@ -299,6 +312,9 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 
 	if code != nil && code.Purpose != kind.Purpose() {
 		return nil, ErrCodeNotFound
+	}
+	if code != nil && code.Consumed {
+		return nil, ErrConsumedCode
 	}
 
 	if code != nil {
