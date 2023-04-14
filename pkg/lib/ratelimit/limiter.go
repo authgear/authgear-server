@@ -21,11 +21,11 @@ type Limiter struct {
 	Logger  Logger
 	Storage Storage
 	Clock   clock.Clock
-	Config  *config.RateLimitFeatureConfig
+	Config  *config.RateLimitsFeatureConfig
 }
 
 func (l *Limiter) isDisabled() bool {
-	return l.Config != nil && l.Config.Disabled != nil && *(l.Config.Disabled) == true
+	return l.Config.Disabled
 }
 
 func (l *Limiter) TakeToken(bucket Bucket) error {
