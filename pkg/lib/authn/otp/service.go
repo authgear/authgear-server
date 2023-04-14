@@ -62,12 +62,13 @@ func (s *Service) getCode(kind Kind, target string) (*Code, error) {
 	return s.CodeStore.Get(kind.Purpose(), target)
 }
 
-func (s *Service) deleteCode(kind Kind, target string) {
+func (s *Service) deleteCode(kind Kind, target string) error {
 	if err := s.CodeStore.Delete(kind.Purpose(), target); err != nil {
-		s.Logger.WithError(err).Error("failed to delete code after validation")
+		return err
 	}
 	// No need delete from lookup store;
 	// lookup entry is invalidated since target is no longer exist.
+	return nil
 }
 
 func (s *Service) handleFailedAttemptsRevocation(kind Kind, target string) error {
@@ -213,7 +214,9 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 	isCodeValid = true
 
 	if !opts.SkipConsume {
-		s.deleteCode(kind, target)
+		if err := s.deleteCode(kind, target); err != nil {
+			return err
+		}
 	}
 
 	return nil
