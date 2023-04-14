@@ -35,7 +35,12 @@ func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
 		sortDirection = model.SortDirectionDesc
 	}
 
-	return builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", sortBy, sortDirection))
+	suffix := ""
+	if sortBy == SortByLastLoginAt {
+		suffix = "NULLS LAST"
+	}
+
+	return builder.OrderBy(fmt.Sprintf("%s %s %s", sortBy, sortDirection, suffix))
 }
 
 var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")
