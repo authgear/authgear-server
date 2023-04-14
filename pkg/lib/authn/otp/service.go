@@ -93,6 +93,10 @@ func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error 
 
 	maxFailedAttempts := kind.RevocationMaxFailedAttempts()
 	if maxFailedAttempts != 0 && failedAttempts >= maxFailedAttempts {
+		err = s.deleteCode(kind, target)
+		if err != nil {
+			s.Logger.WithError(err).Warn("failed to revoke OTP")
+		}
 		return ErrTooManyAttempts
 	}
 
