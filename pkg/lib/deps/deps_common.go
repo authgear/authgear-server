@@ -386,6 +386,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		usage.DependencySet,
 		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
+		wire.Bind(new(messaging.UsageLimiter), new(*usage.Limiter)),
 	),
 
 	wire.NewSet(

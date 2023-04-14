@@ -765,22 +765,30 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
+	}
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
 	messagingFeatureConfig := featureConfig.Messaging
 	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	rateLimits := messaging.RateLimits{
+	limits := messaging.Limits{
 		Logger:        messagingLogger,
 		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
 		RemoteIP:      remoteIP,
 		Config:        messagingRateLimitsConfig,
 		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
 	sender := &messaging.Sender{
-		RateLimits: rateLimits,
-		TaskQueue:  queue,
-		Events:     eventService,
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
 		Translation: translationService,

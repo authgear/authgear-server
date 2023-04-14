@@ -20,13 +20,13 @@ type EventService interface {
 }
 
 type Sender struct {
-	RateLimits RateLimits
-	TaskQueue  task.Queue
-	Events     EventService
+	Limits    Limits
+	TaskQueue task.Queue
+	Events    EventService
 }
 
 func (s *Sender) PrepareEmail(email string, msgType nonblocking.MessageType) (*EmailMessage, error) {
-	msg, err := s.RateLimits.checkEmail(email)
+	msg, err := s.Limits.checkEmail(email)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s *Sender) PrepareEmail(email string, msgType nonblocking.MessageType) (*E
 }
 
 func (s *Sender) PrepareSMS(phoneNumber string, msgType nonblocking.MessageType) (*SMSMessage, error) {
-	msg, err := s.RateLimits.checkSMS(phoneNumber)
+	msg, err := s.Limits.checkSMS(phoneNumber)
 	if err != nil {
 		return nil, err
 	}
