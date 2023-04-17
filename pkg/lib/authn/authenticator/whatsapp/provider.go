@@ -1,11 +1,12 @@
 package whatsapp
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 type EventService interface {
@@ -15,6 +16,7 @@ type EventService interface {
 type OTPCodeService interface {
 	GenerateOTP(kind otp.Kind, target string, form otp.Form, opts *otp.GenerateOptions) (string, error)
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
+	InspectWhatsappOTP(kind otp.Kind, target string) (string, error)
 }
 
 type Provider struct {
@@ -33,13 +35,24 @@ func (p *Provider) GetServerWhatsappPhone() string {
 }
 
 func (p *Provider) GenerateCode(phone string, webSessionID string) (string, error) {
+	kind := otp.KindWhatsapp(p.Config)
 	code, err := p.OTPCodeService.GenerateOTP(
-		otp.KindOOBOTP(p.Config, model.AuthenticatorOOBChannelSMS),
+		kind,
 		phone,
 		otp.FormCode,
 		&otp.GenerateOptions{WebSessionID: webSessionID},
 	)
-	if err != nil {
+	if apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore rate limits; return current OTP
+		code, serr := p.OTPCodeService.InspectWhatsappOTP(kind, phone)
+		if apierrors.IsKind(serr, otp.InvalidOTPCode) {
+			// Current OTP is invalidated; return original rate limit error
+			return "", err
+		} else if serr != nil {
+			return "", serr
+		}
+		return code, nil
+	} else if err != nil {
 		return "", err
 	}
 
@@ -48,7 +61,7 @@ func (p *Provider) GenerateCode(phone string, webSessionID string) (string, erro
 
 func (p *Provider) VerifyCode(phone string, consume bool) error {
 	err := p.OTPCodeService.VerifyOTP(
-		otp.KindOOBOTP(p.Config, model.AuthenticatorOOBChannelSMS),
+		otp.KindWhatsapp(p.Config),
 		phone,
 		"",
 		&otp.VerifyOptions{SkipConsume: !consume, UseSubmittedCode: true},

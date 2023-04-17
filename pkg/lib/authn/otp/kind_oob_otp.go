@@ -8,17 +8,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
+const PurposeOOBOTP string = "oob-otp"
+
+const PurposeWhatsapp string = "whatsapp"
+
 type kindOOBOTP struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
+	purpose string
 }
 
 func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
-	return kindOOBOTP{config: config, channel: channel}
+	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP}
+}
+
+// KindWhatsapp is for Whatsapp OTP code;
+// it uses different purpose than OOB-OTP, since it is shown to user rather than received from user.
+// Reusing same purpose leads to OTP for whatsapp usable for SMS OTP.
+func KindWhatsapp(config *config.AppConfig) Kind {
+	return kindOOBOTP{config: config, channel: model.AuthenticatorOOBChannelSMS, purpose: PurposeWhatsapp}
 }
 
 func (k kindOOBOTP) Purpose() string {
-	return "oob-otp"
+	return k.purpose
 }
 
 func (k kindOOBOTP) ValidPeriod() time.Duration {
@@ -34,7 +46,7 @@ func (k kindOOBOTP) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP,
 		),
-		"OOBOTPTrigger", "ip", ip)
+		"OOBOTPTrigger", string(k.purpose), "ip", ip)
 }
 
 func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
@@ -43,13 +55,13 @@ func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec 
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser,
 		),
-		"OOBOTPTrigger", "user", userID)
+		"OOBOTPTrigger", string(k.purpose), "user", userID)
 }
 
 func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.BucketSpec{
 		Name:      "OOBOTPCooldown",
-		Arguments: []string{target},
+		Arguments: []string{string(k.purpose), target},
 
 		Enabled: true,
 		Period: selectByChannel(k.channel,
@@ -68,7 +80,7 @@ func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
 	if config.Enabled == nil {
 		config = k.config.Authentication.RateLimits.General.PerIP
 	}
-	return ratelimit.NewBucketSpec(config, "OOBOTPValidateCode", "ip", ip)
+	return ratelimit.NewBucketSpec(config, "OOBOTPValidateCode", string(k.purpose), "ip", ip)
 }
 
 func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
@@ -79,7 +91,7 @@ func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) rate
 	if config.Enabled == nil {
 		config = k.config.Authentication.RateLimits.General.PerUserPerIP
 	}
-	return ratelimit.NewBucketSpec(config, "OOBOTPValidateCode", "user", userID, "ip", ip)
+	return ratelimit.NewBucketSpec(config, "OOBOTPValidateCode", string(k.purpose), "user", userID, "ip", ip)
 }
 
 func (k kindOOBOTP) RevocationMaxFailedAttempts() int {
