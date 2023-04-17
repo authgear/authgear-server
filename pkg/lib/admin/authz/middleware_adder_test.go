@@ -70,7 +70,7 @@ func TestMiddleware(t *testing.T) {
 				Clock: m.Clock,
 			}
 
-			err = adder.AddAuthz(m.Auth, m.AppID, m.AuthKey, r.Header)
+			err = adder.AddAuthz(m.Auth, m.AppID, m.AuthKey, nil, r.Header)
 			So(err, ShouldBeNil)
 
 			recorder := httptest.NewRecorder()

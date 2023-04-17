@@ -21,7 +21,7 @@ type AdminAPIAuthzService interface {
 }
 
 type AdminAPIService interface {
-	Director(appID string, path string) (func(*http.Request), error)
+	Director(appID string, p string, userID string) (func(*http.Request), error)
 }
 
 type AdminAPILogger struct{ *log.Logger }
@@ -80,7 +80,7 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	director, err := h.AdminAPI.Director(appID, p)
+	director, err := h.AdminAPI.Director(appID, p, sessionInfo.UserID)
 	if err != nil {
 		h.Logger.WithError(err).Errorf("failed to proxy admin API request")
 		http.Error(w, err.Error(), http.StatusInternalServerError)

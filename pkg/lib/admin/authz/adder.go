@@ -17,7 +17,12 @@ type Adder struct {
 	Clock clock.Clock
 }
 
-func (a *Adder) AddAuthz(auth config.AdminAPIAuth, appID config.AppID, authKey *config.AdminAPIAuthKey, hdr http.Header) (err error) {
+func (a *Adder) AddAuthz(
+	auth config.AdminAPIAuth,
+	appID config.AppID,
+	authKey *config.AdminAPIAuthKey,
+	auditContext interface{},
+	hdr http.Header) (err error) {
 	switch auth {
 	case config.AdminAPIAuthNone:
 		break
@@ -31,6 +36,7 @@ func (a *Adder) AddAuthz(auth config.AdminAPIAuth, appID config.AppID, authKey *
 		_ = payload.Set(jwt.AudienceKey, string(appID))
 		_ = payload.Set(jwt.IssuedAtKey, now.Unix())
 		_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
+		_ = payload.Set(JWTKeyAuditContext, auditContext)
 
 		key, _ := authKey.Set.Get(0)
 

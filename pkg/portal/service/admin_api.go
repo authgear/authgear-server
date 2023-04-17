@@ -13,7 +13,12 @@ import (
 )
 
 type AuthzAdder interface {
-	AddAuthz(auth config.AdminAPIAuth, appID config.AppID, authKey *config.AdminAPIAuthKey, hdr http.Header) (err error)
+	AddAuthz(
+		auth config.AdminAPIAuth,
+		appID config.AppID,
+		authKey *config.AdminAPIAuthKey,
+		auditContext interface{},
+		hdr http.Header) (err error)
 }
 
 type AdminAPIService struct {
@@ -21,6 +26,12 @@ type AdminAPIService struct {
 	AdminAPIConfig *portalconfig.AdminAPIConfig
 	ConfigSource   *configsource.ConfigSource
 	AuthzAdder     AuthzAdder
+}
+
+type AuthzAuditContext struct {
+	Triggerer   string `json:"triggerer"`
+	ActorUserID string `json:"actor_user_id"`
+	Referrer    string `json:"refererer"`
 }
 
 func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
@@ -64,7 +75,7 @@ func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
 	}
 }
 
-func (s *AdminAPIService) Director(appID string, p string) (director func(*http.Request), err error) {
+func (s *AdminAPIService) Director(appID string, p string, actorUserID string) (director func(*http.Request), err error) {
 	cfg, err := s.ResolveConfig(appID)
 	if err != nil {
 		return
@@ -95,7 +106,17 @@ func (s *AdminAPIService) Director(appID string, p string) (director func(*http.
 		r.Host = host
 		r.Header.Set("X-Forwarded-Host", r.Host)
 
-		err = s.AuthzAdder.AddAuthz(s.AdminAPIConfig.Auth, config.AppID(appID), authKey, r.Header)
+		err = s.AuthzAdder.AddAuthz(
+			s.AdminAPIConfig.Auth,
+			config.AppID(appID),
+			authKey,
+			AuthzAuditContext{
+				Triggerer:   "portal",
+				ActorUserID: actorUserID,
+				Referrer:    r.Header.Get("Referer"),
+			},
+			r.Header,
+		)
 		if err != nil {
 			panic(err)
 		}
@@ -103,6 +124,6 @@ func (s *AdminAPIService) Director(appID string, p string) (director func(*http.
 	return
 }
 
-func (s *AdminAPIService) SelfDirector() (director func(*http.Request), err error) {
-	return s.Director(s.AuthgearConfig.AppID, "/graphql")
+func (s *AdminAPIService) SelfDirector(actorUserID string) (director func(*http.Request), err error) {
+	return s.Director(s.AuthgearConfig.AppID, "/graphql", actorUserID)
 }
