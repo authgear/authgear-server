@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"context"
 	"net/http"
 
 	getsentry "github.com/getsentry/sentry-go"
@@ -8,7 +9,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
@@ -157,4 +162,17 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 		h := f(requestProvider)
 		h.ServeHTTP(w, r)
 	})
+}
+
+type AppProvider struct {
+	*RootProvider
+
+	Context            context.Context
+	LoggerFactory      *log.Factory
+	AppDatabase        *appdb.Handle
+	AuditReadDatabase  *auditdb.ReadHandle
+	AuditWriteDatabase *auditdb.WriteHandle
+	Redis              *appredis.Handle
+	AnalyticRedis      *analyticredis.Handle
+	AppContext         *config.AppContext
 }

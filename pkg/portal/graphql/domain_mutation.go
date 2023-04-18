@@ -284,9 +284,13 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+			appProvider, err := gqlCtx.AppService.GetAppProvider(appID)
+			if err != nil {
+				return nil, err
+			}
 
 			// Access Control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
 			}

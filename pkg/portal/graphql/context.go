@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
@@ -40,6 +41,7 @@ type CollaboratorInvitationLoader interface {
 
 type AppService interface {
 	Get(id string) (*model.App, error)
+	GetAppProvider(appID string) (*deps.AppProvider, error)
 	GetAppList(userID string) ([]*model.AppListItem, error)
 	Create(userID string, id string) error
 	UpdateResources(app *model.App, updates []appresource.Update) error

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,10 +18,16 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
@@ -29,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/sentry"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -76,9 +84,11 @@ type AppResourceManagerFactory interface {
 }
 
 type AppService struct {
-	Logger      AppServiceLogger
-	SQLBuilder  *globaldb.SQLBuilder
-	SQLExecutor *globaldb.SQLExecutor
+	Context      context.Context
+	RootProvider *deps.RootProvider
+	Logger       AppServiceLogger
+	SQLBuilder   *globaldb.SQLBuilder
+	SQLExecutor  *globaldb.SQLExecutor
 
 	AppConfig        *portalconfig.AppConfig
 	AppConfigs       AppConfigService
@@ -100,6 +110,80 @@ func (s *AppService) Get(id string) (*model.App, error) {
 	return &model.App{
 		ID:      id,
 		Context: appCtx,
+	}, nil
+}
+
+func (s *AppService) GetAppProvider(appID string) (*deps.AppProvider, error) {
+	appCtx, err := s.AppConfigs.ResolveContext(appID)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := appCtx.Config
+	ctx := s.Context
+
+	loggerFactory := s.RootProvider.LoggerFactory.ReplaceHooks(
+		log.NewDefaultMaskLogHook(),
+		config.NewSecretMaskLogHook(cfg.SecretConfig),
+		sentry.NewLogHookFromContext(ctx),
+	)
+	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
+
+	appDatabase := appdb.NewHandle(
+		ctx,
+		s.RootProvider.Database,
+		&s.RootProvider.EnvironmentConfig.DatabaseConfig,
+		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
+		loggerFactory,
+	)
+	var auditDatabaseCredentials *config.AuditDatabaseCredentials
+	if a := cfg.SecretConfig.LookupData(config.AuditDatabaseCredentialsKey); a != nil {
+		auditDatabaseCredentials = a.(*config.AuditDatabaseCredentials)
+	}
+	auditReadDatabase := auditdb.NewReadHandle(
+		ctx,
+		s.RootProvider.Database,
+		&s.RootProvider.EnvironmentConfig.DatabaseConfig,
+		auditDatabaseCredentials,
+		loggerFactory,
+	)
+	auditWriteDatabase := auditdb.NewWriteHandle(
+		ctx,
+		s.RootProvider.Database,
+		&s.RootProvider.EnvironmentConfig.DatabaseConfig,
+		auditDatabaseCredentials,
+		loggerFactory,
+	)
+
+	redisHub := redis.NewHub(s.RootProvider.RedisPool, loggerFactory)
+	redis := appredis.NewHandle(
+		s.RootProvider.RedisPool,
+		redisHub,
+		&s.RootProvider.EnvironmentConfig.RedisConfig,
+		cfg.SecretConfig.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials),
+		loggerFactory,
+	)
+	var analyticRedisCredentials *config.AnalyticRedisCredentials
+	if c := cfg.SecretConfig.LookupData(config.AnalyticRedisCredentialsKey); c != nil {
+		analyticRedisCredentials = c.(*config.AnalyticRedisCredentials)
+	}
+	analyticRedis := analyticredis.NewHandle(
+		s.RootProvider.RedisPool,
+		&s.RootProvider.EnvironmentConfig.RedisConfig,
+		analyticRedisCredentials,
+		loggerFactory,
+	)
+
+	return &deps.AppProvider{
+		RootProvider:       s.RootProvider,
+		Context:            ctx,
+		LoggerFactory:      loggerFactory,
+		AppDatabase:        appDatabase,
+		AuditReadDatabase:  auditReadDatabase,
+		AuditWriteDatabase: auditWriteDatabase,
+		Redis:              redis,
+		AnalyticRedis:      analyticRedis,
+		AppContext:         appCtx,
 	}, nil
 }
 
