@@ -87,7 +87,8 @@ func (p *SendOOBCode) Do() error {
 			WorkflowID: p.WorkflowID,
 		})
 	if !p.IsResend && ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(target).Name) {
-		// Ignore trigger cooldown rate limit error for initial sending
+		// Ignore trigger cooldown rate limit error for initial sending, and do NOT send the code.
+		return nil
 	} else if err != nil {
 		return err
 	}
