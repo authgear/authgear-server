@@ -174,7 +174,7 @@ func (s *AppService) GetAppProvider(appID string) (*deps.AppProvider, error) {
 		loggerFactory,
 	)
 
-	return &deps.AppProvider{
+	appProvider := &deps.AppProvider{
 		RootProvider:       s.RootProvider,
 		Context:            ctx,
 		LoggerFactory:      loggerFactory,
@@ -184,7 +184,9 @@ func (s *AppService) GetAppProvider(appID string) (*deps.AppProvider, error) {
 		Redis:              redis,
 		AnalyticRedis:      analyticRedis,
 		AppContext:         appCtx,
-	}, nil
+	}
+	appProvider.TaskQueue = s.RootProvider.TaskQueueFactory(appProvider)
+	return appProvider, nil
 }
 
 func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {

@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -142,6 +143,7 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
 
 type Context struct {
+	Request   *http.Request
 	GQLLogger Logger
 
 	Users                   UserLoader

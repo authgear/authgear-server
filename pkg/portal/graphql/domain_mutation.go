@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -285,6 +286,7 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 			appProvider, err := gqlCtx.AppService.GetAppProvider(appID)
+			portalAppSvc := portalapp.NewPortalAppService(appProvider, gqlCtx.Request)
 			if err != nil {
 				return nil, err
 			}

@@ -15,6 +15,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -23,6 +25,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
+
+type TaskQueueFactory func(*AppProvider) task.Queue
 
 type RootProvider struct {
 	EnvironmentConfig      *config.EnvironmentConfig
@@ -50,6 +54,8 @@ type RootProvider struct {
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
 	FilesystemCache        *httputil.FilesystemCache
+	EmbeddedResources      *web.GlobalEmbeddedResourceManager
+	TaskQueueFactory       TaskQueueFactory
 }
 
 func NewRootProvider(
@@ -72,6 +78,7 @@ func NewRootProvider(
 	analyticConfig *config.AnalyticConfig,
 	stripeConfig *portalconfig.StripeConfig,
 	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
+	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -98,6 +105,11 @@ func NewRootProvider(
 	)
 
 	filesystemCache := httputil.NewFilesystemCache()
+
+	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
+	if err != nil {
+		return nil, err
+	}
 
 	return &RootProvider{
 		EnvironmentConfig:      cfg,
@@ -130,7 +142,9 @@ func NewRootProvider(
 			appBuiltinResourceDirectory,
 			appCustomResourceDirectory,
 		),
-		FilesystemCache: filesystemCache,
+		FilesystemCache:   filesystemCache,
+		EmbeddedResources: embeddedResources,
+		TaskQueueFactory:  taskQueueFactory,
 	}, nil
 }
 
@@ -175,4 +189,5 @@ type AppProvider struct {
 	Redis              *appredis.Handle
 	AnalyticRedis      *analyticredis.Handle
 	AppContext         *config.AppContext
+	TaskQueue          task.Queue
 }

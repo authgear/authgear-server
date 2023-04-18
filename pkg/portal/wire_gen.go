@@ -84,6 +84,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
+	request := p.Request
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
 	authgearConfig := rootProvider.AuthgearConfig
@@ -101,11 +102,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
+	context := deps.ProvideRequestContext(request)
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
@@ -222,6 +222,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfig: appConfig,
 	}
 	appService := &service.AppService{
+		Context:          context,
+		RootProvider:     rootProvider,
 		Logger:           appServiceLogger,
 		SQLBuilder:       sqlBuilder,
 		SQLExecutor:      sqlExecutor,
@@ -295,6 +297,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		APIEndpoint: nftIndexerAPIEndpoint,
 	}
 	graphqlContext := &graphql.Context{
+		Request:                 request,
 		GQLLogger:               logger,
 		Users:                   userLoader,
 		Apps:                    appLoader,

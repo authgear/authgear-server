@@ -69,7 +69,7 @@ import (
 )
 
 var CommonDependencySet = wire.NewSet(
-	configDeps,
+	ConfigDeps,
 	utilsDeps,
 
 	appdb.DependencySet,
