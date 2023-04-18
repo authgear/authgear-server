@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/version"
-	"github.com/authgear/authgear-server/pkg/worker"
 )
 
 type Controller struct {
@@ -48,9 +47,9 @@ func (c *Controller) Start() {
 		golog.Fatalf("failed to load server config: %s", err)
 	}
 
-	var wrk *worker.Worker
 	taskQueueFactory := deps.TaskQueueFactory(func(provider *deps.AppProvider) task.Queue {
-		return newInProcessQueue(provider, wrk.Executor)
+		// FIXME(tung): Put a correct executor here
+		return newInProcessQueue(provider, nil)
 	})
 
 	p, err := deps.NewRootProvider(
@@ -75,6 +74,7 @@ func (c *Controller) Start() {
 		&cfg.GoogleTagManager,
 		taskQueueFactory,
 	)
+
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
 	}

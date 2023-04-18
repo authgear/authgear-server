@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -129,6 +130,7 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			// Access Control: authenticated user.
+
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
 				return nil, AccessDenied.New("only authenticated users can delete domain")
@@ -145,9 +147,16 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
+			appProvider, err := gqlCtx.AppService.GetAppProvider(appID)
+
+			if err != nil {
+				return nil, err
+			}
+
+			portalAppSvc := portalapp.NewPortalAppService(appProvider, gqlCtx.Request)
 
 			// Access Control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
 			}
@@ -183,6 +192,11 @@ var _ = registerMutationField(
 					return nil, err
 				}
 			}
+
+			portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainDeletedEventPayload{
+				Domain:   deletedDomain,
+				DomainID: domainID,
+			})
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": gqlCtx.Apps.Load(appID),
@@ -286,10 +300,10 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 			appProvider, err := gqlCtx.AppService.GetAppProvider(appID)
-			portalAppSvc := portalapp.NewPortalAppService(appProvider, gqlCtx.Request)
 			if err != nil {
 				return nil, err
 			}
+			portalAppSvc := portalapp.NewPortalAppService(appProvider, gqlCtx.Request)
 
 			// Access Control: collaborator.
 			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
@@ -303,6 +317,12 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx.Domains.Prime(domain.ID, domain)
+
+			portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainVerifiedEventPayload{
+				Domain:   domain.Domain,
+				DomainID: domain.ID,
+			})
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"domain": gqlCtx.Domains.Load(domain.ID),
 				"app":    gqlCtx.Apps.Load(appID),
