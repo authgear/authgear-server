@@ -96,14 +96,26 @@ func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interactio
 	}, nil
 }
 
-func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*otp.CodeSendResult, error) {
+func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*SendOOBCodeResult, error) {
 	loginIDType := n.Identity.LoginID.LoginIDType
 	channel, target := n.Identity.LoginID.ToChannelTarget()
 
-	code, err := ctx.OTPCodeService.GenerateCode(target, otp.OTPModeCode, &otp.GenerateCodeOptions{
-		WebSessionID: ctx.WebSessionID,
-	})
-	if errors.Is(err, otp.ErrCodeNotFound) {
+	result := &SendOOBCodeResult{
+		Channel:    string(channel),
+		Target:     target,
+		CodeLength: otp.FormCode.CodeLength(),
+	}
+
+	code, err := ctx.OTPCodeService.GenerateOTP(
+		otp.KindVerification(ctx.Config, channel),
+		target,
+		otp.FormCode,
+		&otp.GenerateOptions{WebSessionID: ctx.WebSessionID},
+	)
+	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if errors.Is(err, otp.ErrCodeNotFound) {
 		return nil, verification.ErrCodeNotFound
 	} else if err != nil {
 		return nil, err
@@ -117,21 +129,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		}
 	}
 
-	result := &otp.CodeSendResult{
-		Channel:    string(channel),
-		Target:     target,
-		CodeLength: len(code.Code),
-	}
-	bucket := ctx.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-	err = ctx.RateLimiter.TakeToken(bucket)
-	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
-		// Ignore the rate limit error and do NOT send the code.
-		return result, nil
-	} else if err != nil {
-		return nil, err
-	}
-
-	err = ctx.OOBCodeSender.SendCode(channel, target, code.Code, otp.MessageTypeVerification, otp.OTPModeCode)
+	err = ctx.OOBCodeSender.SendCode(channel, target, code, otp.MessageTypeVerification, otp.OTPModeCode)
 	if err != nil {
 		return nil, err
 	}
@@ -157,13 +155,18 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 	loginIDModel := e.Identity.LoginID
-	_, target := loginIDModel.ToChannelTarget()
+	channel, target := loginIDModel.ToChannelTarget()
 
 	err := ctx.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(ctx.RemoteIP)))
 	if err != nil {
 		return nil, err
 	}
-	err = ctx.OTPCodeService.VerifyCode(target, input.GetVerificationCode())
+	err = ctx.OTPCodeService.VerifyOTP(
+		otp.KindVerification(ctx.Config, channel),
+		target,
+		input.GetVerificationCode(),
+		&otp.VerifyOptions{UserID: e.Identity.UserID},
+	)
 	if errors.Is(err, otp.ErrInvalidCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {

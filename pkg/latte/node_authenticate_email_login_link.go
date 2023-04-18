@@ -42,21 +42,31 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	switch {
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
 		info := n.Authenticator
-		_, err := (&SendOOBCode{
+		err := (&SendOOBCode{
 			WorkflowID:        workflow.GetWorkflowID(ctx),
 			Deps:              deps,
 			Stage:             authenticatorKindToStage(info.Kind),
 			IsAuthenticating:  true,
 			AuthenticatorInfo: info,
-			OTPMode:           otp.OTPModeLoginLink,
+			OTPForm:           otp.FormLink,
+			IsResend:          true,
 		}).Do()
 		if err != nil {
 			return nil, err
 		}
+
 		return nil, workflow.ErrSameNode
 	case workflow.AsInput(input, &inputCheckLoginLinkVerified):
 		info := n.Authenticator
-		_, err := deps.OTPCodes.VerifyLoginLinkCodeByTarget(info.OOBOTP.Email, true)
+		err := deps.OTPCodes.VerifyOTP(
+			otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail),
+			info.OOBOTP.Email,
+			"",
+			&otp.VerifyOptions{
+				UseSubmittedCode: true,
+				UserID:           info.UserID,
+			},
+		)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			// Don't fire the AuthenticationFailedEvent
 			// The event should be fired only when the user submits code through the login link
@@ -72,24 +82,11 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 }
 
 func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	loginLinkSubmitted := false
-	_, err := deps.OTPCodes.VerifyLoginLinkCodeByTarget(n.Authenticator.OOBOTP.Email, false)
-	if err != nil {
-		loginLinkSubmitted = false
-	} else {
-		loginLinkSubmitted = true
-	}
-
-	bucket := deps.AntiSpamOTPCodeBucket.MakeBucket(model.AuthenticatorOOBChannelEmail, n.Authenticator.OOBOTP.Email)
-	_, resetDuration, err := deps.RateLimiter.CheckToken(bucket)
-	if err != nil {
-		return nil, err
-	}
-	now := deps.Clock.NowUTC()
-	canResendAt := now.Add(resetDuration)
-
 	target := n.Authenticator.OOBOTP.Email
-	exceeded, err := deps.OTPCodes.FailedAttemptRateLimitExceeded(target)
+	state, err := deps.OTPCodes.InspectState(
+		otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail),
+		target,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +99,9 @@ func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *w
 	}
 
 	return NodeAuthenticateEmailLoginLinkOutput{
-		LoginLinkSubmitted:             loginLinkSubmitted,
+		LoginLinkSubmitted:             state.SubmittedCode != "",
 		MaskedEmail:                    mail.MaskAddress(target),
-		CanResendAt:                    canResendAt,
-		FailedAttemptRateLimitExceeded: exceeded,
+		CanResendAt:                    state.CanResendAt,
+		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
 }

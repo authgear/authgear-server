@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -54,7 +53,12 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, err
 		}
 
-		err = deps.OTPCodes.VerifyOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, code)
+		err = deps.OTPCodes.VerifyOTP(
+			otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS),
+			n.PhoneNumber,
+			code,
+			&otp.VerifyOptions{UserID: n.UserID},
+		)
 		if errors.Is(err, otp.ErrInvalidCode) {
 			return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
@@ -101,8 +105,12 @@ func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Depe
 	}, nil
 }
 
-func (n *NodeVerifyPhoneSMS) bucket(deps *workflow.Dependencies) ratelimit.Bucket {
-	return AntiSpamSMSOTPCodeBucket(deps.Config.Messaging.SMS, n.PhoneNumber)
+func (n *NodeVerifyPhoneSMS) otpKind(deps *workflow.Dependencies) otp.Kind {
+	return otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS)
+}
+
+func (n *NodeVerifyPhoneSMS) otpTarget() string {
+	return n.PhoneNumber
 }
 
 func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
@@ -112,25 +120,21 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	// Should check if we can send code to the target first before taking token
-	// from the AntiSpamOTPCodeBucket (resend cooldown)
-	// It may be blocked due to exceeding the per target or per ip rate limit,
-	// and this error should be returned
 	var err error
 	err = deps.OOBCodeSender.CanSendCode(model.AuthenticatorOOBChannelSMS, n.PhoneNumber)
 	if err != nil {
 		return err
 	}
 
-	err = deps.RateLimiter.TakeToken(n.bucket(deps))
-	if err != nil {
-		return err
-	}
-
-	code, err := deps.OTPCodes.GenerateOTP(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), n.PhoneNumber, &otp.GenerateCodeOptions{
-		UserID:     n.UserID,
-		WorkflowID: workflow.GetWorkflowID(ctx),
-	})
+	code, err := deps.OTPCodes.GenerateOTP(
+		n.otpKind(deps),
+		n.PhoneNumber,
+		otp.FormCode,
+		&otp.GenerateOptions{
+			UserID:     n.UserID,
+			WorkflowID: workflow.GetWorkflowID(ctx),
+		},
+	)
 	if err != nil {
 		return err
 	}

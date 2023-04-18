@@ -295,6 +295,29 @@ authentication:
   recovery_code:
     disabled: false
     count: 16
+  rate_limits:
+    general:
+      per_ip:
+        enabled: true
+        period: 1m
+        burst: 60
+      per_user_per_ip:
+        enabled: true
+        period: 1m
+        burst: 10
+    oob_otp:
+      email:
+        trigger_per_ip: {}
+        trigger_per_user: {}
+        trigger_cooldown: 1m
+        validate_per_ip: {}
+        validate_per_user_per_ip: {}
+      sms:
+        trigger_per_ip: {}
+        trigger_per_user: {}
+        trigger_cooldown: 1m
+        validate_per_ip: {}
+        validate_per_user_per_ip: {}
 session:
   lifetime_seconds: 31449600
   idle_timeout_enabled: true
@@ -416,11 +439,13 @@ authenticator:
       maximum: 99
       message: {}
       phone_otp_mode: "whatsapp_sms"
+      code_valid_period: 1h
     email:
       maximum: 99
       email_otp_mode: "code"
       message:
         subject: Email Verification Instruction
+      code_valid_period: 1h
 user_profile:
   custom_attributes: {}
   standard_attributes:

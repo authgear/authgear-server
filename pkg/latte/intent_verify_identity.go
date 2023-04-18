@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -78,6 +79,8 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 
 	var node interface {
 		workflow.NodeSimple
+		otpKind(deps *workflow.Dependencies) otp.Kind
+		otpTarget() string
 		sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error
 	}
 	switch model.ClaimName(status.Name) {
@@ -101,9 +104,10 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 		return nil, api.ErrClaimNotVerifiable
 	}
 
+	kind := node.otpKind(deps)
 	err = node.sendCode(ctx, deps, w)
-	if ratelimit.IsRateLimitErrorWithBucketName(err, "AntiSpamOTPCodeBucket") {
-		// Ignore resend cool down rate limit error; continue the workflow
+	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.otpTarget()).Name) {
+		// Ignore trigger cooldown rate limit error; continue the workflow
 	} else if err != nil {
 		return nil, err
 	}

@@ -68,7 +68,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 		Authenticator:      targetInfo,
 		Authenticators:     e.Authenticators,
 		AuthenticatorIndex: idx,
-		WhatsappOTP:        code.Code,
+		WhatsappOTP:        code,
 		Phone:              phone,
 		PhoneOTPMode:       ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}, nil

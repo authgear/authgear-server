@@ -3,7 +3,6 @@ package webapp
 import (
 	"crypto/subtle"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -74,15 +73,17 @@ func ConfigureWhatsappWATICallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type WhatsappWATICallbackHandler struct {
-	OTPCodeService              OTPCodeService
 	Logger                      WhatsappWATICallbackHandlerLogger
 	WATICredentials             *config.WATICredentials
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
 }
 
 type OTPCodeService interface {
-	FailedAttemptRateLimitExceeded(target string) (bool, error)
-	SetUserInputtedCode(target string, userInputtedCode string) (*otp.Code, error)
+	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
+	InspectState(kind otp.Kind, target string) (*otp.State, error)
+
+	LookupCode(kind otp.Kind, code string) (target string, err error)
+	SetSubmittedCode(kind otp.Kind, target string, code string) (*otp.State, error)
 }
 
 type WhatsappWATICallbackHandlerLogger struct{ *log.Logger }
@@ -133,10 +134,10 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	phone := message.From
-	if !strings.HasPrefix(phone, "+") {
-		phone = fmt.Sprintf("+%s", phone)
-	}
+	// phone := message.From
+	// if !strings.HasPrefix(phone, "+") {
+	// 	phone = fmt.Sprintf("+%s", phone)
+	// }
 
 	textBody := message.Text.Body
 	code := ""
@@ -152,24 +153,5 @@ func (h *WhatsappWATICallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	codeModel, err := h.OTPCodeService.SetUserInputtedCode(phone, code)
-	if err != nil {
-		if errors.Is(err, otp.ErrCodeNotFound) {
-			err = errors.New("whatsapp code not found")
-		}
-		return
-	}
-
-	// Update the web session and trigger the refresh event
-	webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
-		config.AppID(codeModel.AppID),
-	)
-	webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
-	if err != nil {
-		return
-	}
-	err = webSessionProvider.UpdateSession(webSession)
-	if err != nil {
-		return
-	}
+	// FIXME: global whatsapp code store
 }

@@ -298,6 +298,8 @@ export type Entity = {
 };
 
 export type GenerateOobotpCodeInput = {
+  /** Purpose of the generated OTP code. */
+  purpose?: InputMaybe<OtpPurpose>;
   /** Target user's email or phone number. */
   target: Scalars['String'];
 };
@@ -522,6 +524,11 @@ export type Node = {
   /** The id of the object */
   id: Scalars['ID'];
 };
+
+export enum OtpPurpose {
+  Login = 'LOGIN',
+  Verification = 'VERIFICATION'
+}
 
 /** Information about pagination in a connection. */
 export type PageInfo = {

@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 type kindVerification struct {
@@ -18,11 +17,10 @@ func KindVerification(config *config.AppConfig, channel model.AuthenticatorOOBCh
 	return kindVerification{config: config, channel: channel}
 }
 
-func (k kindVerification) Purpose() string      { return "verification" }
-func (k kindVerification) GenerateCode() string { return secretcode.OOBOTPSecretCode.Generate() }
-func (k kindVerification) VerifyCode(input string, expected string) bool {
-	return secretcode.OOBOTPSecretCode.Compare(input, expected)
+func (k kindVerification) Purpose() string {
+	return "verification"
 }
+
 func (k kindVerification) ValidPeriod() time.Duration {
 	return k.config.Verification.CodeValidPeriod.Duration()
 }
@@ -66,6 +64,10 @@ func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec
 			k.config.Verification.RateLimits.SMS.ValidatePerIP,
 		),
 		"VerificationValidateCode", "ip", ip)
+}
+
+func (k kindVerification) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
+	return ratelimit.BucketSpecDisabled
 }
 
 func (k kindVerification) RevocationMaxFailedAttempts() int {

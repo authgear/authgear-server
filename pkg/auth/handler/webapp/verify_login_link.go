@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -55,13 +56,14 @@ type WorkflowWebsocketEventStore interface {
 }
 
 type VerifyLoginLinkOTPHandler struct {
-	LoginLinkOTPCodeService     otp.Service
+	LoginLinkOTPCodeService     OTPCodeService
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
 	ControllerFactory           ControllerFactory
 	BaseViewModel               *viewmodels.BaseViewModeler
 	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler
 	Renderer                    Renderer
 	WorkflowEvents              WorkflowWebsocketEventStore
+	Config                      *config.AppConfig
 }
 
 func (h *VerifyLoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -102,8 +104,20 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		if GetLoginLinkStateFromQuery(r) == LoginLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
-			_, err := h.LoginLinkOTPCodeService.VerifyLoginLinkCode(code)
-			if errors.Is(err, otp.ErrInvalidLoginLink) {
+			kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
+
+			target, err := h.LoginLinkOTPCodeService.LookupCode(kind, code)
+			if errors.Is(err, otp.ErrCodeNotFound) {
+				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+				return nil
+			} else if err != nil {
+				return err
+			}
+
+			err = h.LoginLinkOTPCodeService.VerifyOTP(
+				kind, target, code, &otp.VerifyOptions{SkipConsume: true},
+			)
+			if errors.Is(err, otp.ErrInvalidCode) {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
@@ -122,9 +136,18 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		code := r.Form.Get("x_oob_otp_code")
+		kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
 
-		codeModel, err := h.LoginLinkOTPCodeService.SetUserInputtedLoginLinkCode(code)
-		if errors.Is(err, otp.ErrInvalidLoginLink) {
+		target, err := h.LoginLinkOTPCodeService.LookupCode(kind, code)
+		if errors.Is(err, otp.ErrCodeNotFound) {
+			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+			return nil
+		} else if err != nil {
+			return err
+		}
+
+		state, err := h.LoginLinkOTPCodeService.SetSubmittedCode(kind, target, code)
+		if errors.Is(err, otp.ErrCodeNotFound) {
 			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {
@@ -132,11 +155,11 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		// Update the web session and trigger the refresh event
-		if codeModel.WebSessionID != "" {
+		if state.WebSessionID != "" {
 			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
-				config.AppID(codeModel.AppID),
+				h.Config.ID,
 			)
-			webSession, err := webSessionProvider.GetSession(codeModel.WebSessionID)
+			webSession, err := webSessionProvider.GetSession(state.WebSessionID)
 			if err != nil {
 				return err
 			}
@@ -146,8 +169,8 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		if codeModel.WorkflowID != "" {
-			err = h.WorkflowEvents.Publish(codeModel.WorkflowID, workflow.NewEventRefresh())
+		if state.WorkflowID != "" {
+			err = h.WorkflowEvents.Publish(state.WorkflowID, workflow.NewEventRefresh())
 			if err != nil {
 				return err
 			}

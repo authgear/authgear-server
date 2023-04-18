@@ -41,7 +41,10 @@ func (s storageRedisConn) TakeToken(bucket Bucket, now time.Time, delta int) (in
 	tokens := int64(bucket.Size) - tokenTaken
 
 	// Populate reset time if not yet exists.
-	resetTime := now.Add(bucket.ResetPeriod)
+	resetTime := now
+	if tokenTaken > 0 {
+		resetTime = resetTime.Add(bucket.ResetPeriod)
+	}
 
 	created, err := s.Conn.HSetNX(ctx, redisBucketKey(s.AppID, bucket), "reset_time", resetTime.UnixNano()).Result()
 	if err != nil {

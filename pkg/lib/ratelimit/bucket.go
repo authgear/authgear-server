@@ -48,6 +48,8 @@ type BucketSpec struct {
 	Burst   int
 }
 
+var BucketSpecDisabled = BucketSpec{Enabled: false}
+
 func NewBucketSpec(config *config.RateLimitConfig, name string, args ...string) BucketSpec {
 	enabled := config.Enabled != nil && *config.Enabled
 	var duration time.Duration

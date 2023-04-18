@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -15,10 +16,11 @@ type SendOOBCode struct {
 	Stage             authn.AuthenticationStage
 	IsAuthenticating  bool
 	AuthenticatorInfo *authenticator.Info
-	OTPMode           otp.OTPMode
+	OTPForm           otp.Form
+	IsResend          bool
 }
 
-func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
+func (p *SendOOBCode) Do() error {
 	var messageType otp.MessageType
 	switch p.Stage {
 	case authn.AuthenticationStagePrimary:
@@ -56,11 +58,11 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		switch p.Stage {
 		case authn.AuthenticationStagePrimary:
 			if fc.Identity.LoginID.Types.Phone.Disabled {
-				return nil, feature.ErrFeatureDisabledSendingSMS
+				return feature.ErrFeatureDisabledSendingSMS
 			}
 		case authn.AuthenticationStageSecondary:
 			if fc.Authentication.SecondaryAuthenticators.OOBOTPSMS.Disabled {
-				return nil, feature.ErrFeatureDisabledSendingSMS
+				return feature.ErrFeatureDisabledSendingSMS
 			}
 		}
 	}
@@ -72,35 +74,38 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	var err error
 	err = p.Deps.OOBCodeSender.CanSendCode(channel, target)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	bucket := p.Deps.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-	err = p.Deps.RateLimiter.TakeToken(bucket)
+	kind := otp.KindOOBOTP(p.Deps.Config, channel)
+	code, err := p.Deps.OTPCodes.GenerateOTP(
+		kind,
+		target,
+		p.OTPForm,
+		&otp.GenerateOptions{
+			UserID:     p.AuthenticatorInfo.UserID,
+			WorkflowID: p.WorkflowID,
+		})
+	if !p.IsResend && ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(target).Name) {
+		// Ignore trigger cooldown rate limit error for initial sending
+	} else if err != nil {
+		return err
+	}
+
+	// FIXME: mode -> form
+	var mode otp.OTPMode
+	switch p.OTPForm {
+	case otp.FormCode:
+		mode = otp.OTPModeCode
+	case otp.FormLink:
+		mode = otp.OTPModeLoginLink
+	}
+	err = p.Deps.OOBCodeSender.SendCode(channel, target, code, messageType, mode)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	code, err := p.Deps.OTPCodes.GenerateCode(p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPMode, &otp.GenerateCodeOptions{
-		WorkflowID: p.WorkflowID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := &otp.CodeSendResult{
-		Channel:    string(channel),
-		Target:     target,
-		CodeLength: len(code.Code),
-		Code:       code.Code,
-	}
-
-	err = p.Deps.OOBCodeSender.SendCode(channel, target, code.Code, messageType, p.OTPMode)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return nil
 }
 
 func authenticatorKindToStage(kind authenticator.Kind) authn.AuthenticationStage {

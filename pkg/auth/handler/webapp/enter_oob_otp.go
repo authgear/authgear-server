@@ -7,9 +7,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -56,7 +59,8 @@ type EnterOOBOTPHandler struct {
 	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
 	OTPCodeService            OTPCodeService
-	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
+	Clock                     clock.Clock
+	Config                    *config.AppConfig
 }
 
 type EnterOOBOTPNode interface {
@@ -84,23 +88,18 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
-		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+		state, err := h.OTPCodeService.InspectState(otp.KindOOBOTP(h.Config, channel), target)
 		if err != nil {
 			return nil, err
-		}
-		if pass {
-			// allow sending immediately
-			viewModel.OOBOTPCodeSendCooldown = 0
-		} else {
-			viewModel.OOBOTPCodeSendCooldown = int(resetDuration.Seconds())
 		}
 
-		exceeded, err := h.OTPCodeService.FailedAttemptRateLimitExceeded(target)
-		if err != nil {
-			return nil, err
+		viewModel.FailedAttemptRateLimitExceeded = state.TooManyAttempts
+		cooldown := int(state.CanResendAt.Sub(h.Clock.NowUTC()).Seconds())
+		if cooldown < 0 {
+			viewModel.OOBOTPCodeSendCooldown = 0
+		} else {
+			viewModel.OOBOTPCodeSendCooldown = cooldown
 		}
-		viewModel.FailedAttemptRateLimitExceeded = exceeded
 	}
 
 	currentNode := graph.CurrentNode()

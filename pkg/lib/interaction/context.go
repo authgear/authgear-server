@@ -55,9 +55,8 @@ type AuthenticatorService interface {
 }
 
 type OTPCodeService interface {
-	GenerateCode(target string, otpMode otp.OTPMode, opt *otp.GenerateCodeOptions) (*otp.Code, error)
-	VerifyCode(target string, code string) error
-	VerifyLoginLinkCodeByTarget(code string, consume bool) (*otp.Code, error)
+	GenerateOTP(kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
+	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 }
 
 type OOBCodeSender interface {
@@ -71,7 +70,7 @@ type OOBCodeSender interface {
 }
 
 type WhatsappCodeProvider interface {
-	GenerateCode(phone string, webSessionID string) (*otp.Code, error)
+	GenerateCode(phone string, webSessionID string) (string, error)
 	VerifyCode(phone string, consume bool) error
 }
 
@@ -222,7 +221,6 @@ type Context struct {
 	LoginIDNormalizerFactory        LoginIDNormalizerFactory
 	Verification                    VerificationService
 	RateLimiter                     RateLimiter
-	AntiSpamOTPCodeBucket           *AntiSpamOTPCodeBucketMaker
 
 	Nonces NonceService
 

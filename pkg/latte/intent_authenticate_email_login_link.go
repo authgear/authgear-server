@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -40,19 +39,18 @@ func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *wo
 	switch len(w.Nodes) {
 	case 0:
 		authenticator := i.Authenticator
-		_, err := (&SendOOBCode{
+		err := (&SendOOBCode{
 			WorkflowID:        workflow.GetWorkflowID(ctx),
 			Deps:              deps,
 			Stage:             authenticatorKindToStage(authenticator.Kind),
 			IsAuthenticating:  true,
 			AuthenticatorInfo: authenticator,
-			OTPMode:           otp.OTPModeLoginLink,
+			OTPForm:           otp.FormLink,
 		}).Do()
-		if ratelimit.IsRateLimitErrorWithBucketName(err, "AntiSpamOTPCodeBucket") {
-			// Ignore resend cooldown rate limit error for initial sending
-		} else if err != nil {
+		if err != nil {
 			return nil, err
 		}
+
 		return workflow.NewNodeSimple(&NodeAuthenticateEmailLoginLink{
 			Authenticator: authenticator,
 		}), nil

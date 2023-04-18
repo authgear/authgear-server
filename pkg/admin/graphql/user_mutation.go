@@ -6,9 +6,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 var createUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -165,9 +167,32 @@ var _ = registerMutationField(
 	},
 )
 
+var otpPurpose = graphql.NewEnum(graphql.EnumConfig{
+	Name: "OTPPurpose",
+	Values: graphql.EnumValueConfigMap{
+		"LOGIN": &graphql.EnumValueConfig{
+			Value: "login",
+		},
+		"VERIFICATION": &graphql.EnumValueConfig{
+			Value: "verification",
+		},
+	},
+})
+
+type OTPPurpose string
+
+const (
+	OTPPurposeLogin        OTPPurpose = "login"
+	OTPPurposeVerification OTPPurpose = "verification"
+)
+
 var generateOOBOTPCodeInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "GenerateOOBOTPCodeInput",
 	Fields: graphql.InputObjectConfigFieldMap{
+		"purpose": &graphql.InputObjectFieldConfig{
+			Type:        otpPurpose,
+			Description: "Purpose of the generated OTP code.",
+		},
 		"target": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "Target user's email or phone number.",
@@ -198,15 +223,42 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			target := input["target"].(string)
 
+			purpose := OTPPurposeLogin
+			if p, ok := input["purpose"].(string); ok {
+				purpose = OTPPurpose(p)
+			}
+
 			gqlCtx := GQLContext(p.Context)
 
-			code, err := gqlCtx.OTPCode.GenerateCode(target, otp.OTPModeCode, &otp.GenerateCodeOptions{})
+			var channel apimodel.AuthenticatorOOBChannel
+			if err := phone.EnsureE164(target); err == nil {
+				channel = apimodel.AuthenticatorOOBChannelSMS
+			} else {
+				channel = apimodel.AuthenticatorOOBChannelEmail
+			}
+
+			var kind otp.Kind
+			switch purpose {
+			case OTPPurposeLogin:
+				kind = otp.KindOOBOTP(gqlCtx.Config, channel)
+			case OTPPurposeVerification:
+				kind = otp.KindVerification(gqlCtx.Config, channel)
+			default:
+				panic("admin: unknown purpose: " + purpose)
+			}
+
+			code, err := gqlCtx.OTPCode.GenerateOTP(
+				kind,
+				target,
+				otp.FormCode,
+				&otp.GenerateOptions{SkipRateLimits: true},
+			)
 			if err != nil {
 				return nil, err
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"code": code.Code,
+				"code": code,
 			}).Value, nil
 		},
 	},

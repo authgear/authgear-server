@@ -10,9 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -30,7 +32,6 @@ func ConfigureLoginLinkOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginLinkOTPNode interface {
-	GetLoginLinkOTP() string
 	GetLoginLinkOTPTarget() string
 	GetLoginLinkOTPChannel() string
 	GetLoginLinkOTPOOBType() interaction.OOBType
@@ -43,14 +44,15 @@ type LoginLinkOTPViewModel struct {
 }
 
 type LoginLinkOTPHandler struct {
-	LoginLinkOTPCodeService   otp.Service
+	Clock                     clock.Clock
+	LoginLinkOTPCodeService   OTPCodeService
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
 	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
-	AntiSpamOTPCodeBucket     AntiSpamOTPCodeBucketMaker
+	Config                    *config.AppConfig
 }
 
 func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -65,17 +67,22 @@ func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 	if graph.FindLastNode(&n) {
 		channel := model.AuthenticatorOOBChannel(n.GetLoginLinkOTPChannel())
 		target := n.GetLoginLinkOTPTarget()
-		bucket := h.AntiSpamOTPCodeBucket.MakeBucket(channel, target)
-		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+
+		state, err := h.LoginLinkOTPCodeService.InspectState(
+			otp.KindOOBOTP(h.Config, channel),
+			target,
+		)
 		if err != nil {
 			return nil, err
 		}
-		if pass {
-			// allow sending immediately
+
+		cooldown := int(state.CanResendAt.Sub(h.Clock.NowUTC()).Seconds())
+		if cooldown < 0 {
 			viewModel.OTPCodeSendCooldown = 0
 		} else {
-			viewModel.OTPCodeSendCooldown = int(resetDuration.Seconds())
+			viewModel.OTPCodeSendCooldown = cooldown
 		}
+
 		viewModel.Target = mail.MaskAddress(n.GetLoginLinkOTPTarget())
 	}
 
@@ -171,7 +178,10 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		_, err = h.LoginLinkOTPCodeService.VerifyLoginLinkCodeByTarget(email, false)
+		kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
+		err = h.LoginLinkOTPCodeService.VerifyOTP(
+			kind, email, "", &otp.VerifyOptions{UseSubmittedCode: true, SkipConsume: true},
+		)
 		if err == nil {
 			state = LoginLinkOTPPageQueryStateMatched
 		} else if errors.Is(err, otp.ErrInvalidCode) {
