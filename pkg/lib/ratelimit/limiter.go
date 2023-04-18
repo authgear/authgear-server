@@ -191,6 +191,10 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 }
 
 func (l *Limiter) Cancel(r *Reservation) error {
+	if r == nil || r.isConsumed || r.tokenTaken == 0 {
+		return nil
+	}
+
 	bucket := r.spec.bucket()
 	now := l.Clock.NowUTC()
 

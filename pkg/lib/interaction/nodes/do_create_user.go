@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -35,19 +36,6 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
 	if interaction.Input(rawInput, &bypassInput) {
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
-	}
-
-	if !bypassRateLimit {
-		// check the rate limit only to ensure that we have token to signup
-		// the token will be token after running the effects successfully
-		bucket := interaction.AntiSpamSignupBucket(string(ctx.RemoteIP))
-		pass, _, err := ctx.RateLimiter.CheckToken(bucket)
-		if err != nil {
-			return nil, err
-		}
-		if !pass {
-			return nil, bucket.BucketError()
-		}
 	}
 
 	return &NodeDoCreateUser{
@@ -88,21 +76,21 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				}
 			}
 
-			if !n.BypassRateLimit && isAnonymous {
+			var reservation *ratelimit.Reservation
+			if !n.BypassRateLimit {
 				// `graph.GetUserNewIdentities` is used to identify if the
 				// new user is anonymous user.
 				// Therefore this checking need to be done in `EffectOnCommit`
 				// to ensure all nodes are run.
+
 				// check the rate limit only before running the effects
-				bucket := interaction.AntiSpamSignupAnonymousBucket(ip)
-				pass, _, err := ctx.RateLimiter.CheckToken(bucket)
-				if err != nil {
+				bucket := interaction.SignupPerIPRateLimitBucketSpec(ctx.Config.Authentication, isAnonymous, ip)
+				reservation = ctx.RateLimiter.Reserve(bucket)
+				if reservation.Error() != nil {
 					return err
 				}
-				if !pass {
-					return bucket.BucketError()
-				}
 			}
+			defer ctx.RateLimiter.Cancel(reservation)
 
 			uiParam := uiparam.GetUIParam(ctx.Request.Context())
 
@@ -118,20 +106,8 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			// take the token after running the effects successfully
-			if !n.BypassRateLimit {
-				err := ctx.RateLimiter.TakeToken(interaction.AntiSpamSignupBucket(ip))
-				if err != nil {
-					return err
-				}
+			reservation.Consume()
 
-				if isAnonymous {
-					err := ctx.RateLimiter.TakeToken(interaction.AntiSpamSignupAnonymousBucket(ip))
-					if err != nil {
-						return err
-					}
-				}
-			}
 			return nil
 		}),
 	}, nil

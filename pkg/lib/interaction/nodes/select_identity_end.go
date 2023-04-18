@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 func init() {
@@ -27,12 +28,15 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 
+	var reservation *ratelimit.Reservation
 	if !bypassRateLimit {
-		err := ctx.RateLimiter.TakeToken(interaction.AntiAccountEnumerationBucket(string(ctx.RemoteIP)))
-		if err != nil {
+		spec := interaction.AccountEnumerationPerIPRateLimitBucketSpec(ctx.Config.Authentication, string(ctx.RemoteIP))
+		reservation = ctx.RateLimiter.Reserve(spec)
+		if err := reservation.Error(); err != nil {
 			return nil, err
 		}
 	}
+	defer ctx.RateLimiter.Cancel(reservation)
 
 	var otherMatch *identity.Info
 	exactMatch, otherMatches, err := ctx.Identities.SearchBySpec(e.IdentitySpec)
@@ -41,6 +45,9 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	if exactMatch == nil {
+		// Exact match not found; consume account enumeration rate limit.
+		reservation.Consume()
+
 		// Take the first one as other match.
 		if len(otherMatches) > 0 {
 			otherMatch = otherMatches[0]

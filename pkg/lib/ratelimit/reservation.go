@@ -12,6 +12,7 @@ type Reservation struct {
 	err        error
 	tokenTaken int
 	timeToAct  *time.Time
+	isConsumed bool
 }
 
 func (r *Reservation) Error() error {
@@ -35,4 +36,8 @@ func (r *Reservation) DelayFrom(t time.Time) time.Duration {
 		return 0
 	}
 	return delay
+}
+
+func (r *Reservation) Consume() {
+	r.isConsumed = true
 }
