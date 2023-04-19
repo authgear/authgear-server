@@ -207,12 +207,12 @@ func NewPortalAppService(appProvider *deps.AppProvider, request *http.Request) P
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -306,7 +306,7 @@ func NewPortalAppService(appProvider *deps.AppProvider, request *http.Request) P
 		AppID: appID,
 		Clock: clock,
 	}
-	loginLinkStoreRedis := &otp.LoginLinkStoreRedis{
+	lookupStoreRedis := &otp.LookupStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
@@ -317,25 +317,22 @@ func NewPortalAppService(appProvider *deps.AppProvider, request *http.Request) P
 		Clock: clock,
 	}
 	otpLogger := otp.NewLogger(factory)
-	otpLegacyConfig := appConfig.OTP
-	verificationConfig := appConfig.Verification
 	otpService := &otp.Service{
 		Clock:          clock,
 		AppID:          appID,
 		RemoteIP:       remoteIP,
 		CodeStore:      codeStoreRedis,
-		LoginLinkStore: loginLinkStoreRedis,
+		LookupStore:    lookupStoreRedis,
 		AttemptTracker: attemptTrackerRedis,
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
-		OTPConfig:      otpLegacyConfig,
-		Verification:   verificationConfig,
 	}
 	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
 		PasswordConfig: authenticatorPasswordConfig,
 	}
 	service3 := &service2.Service{
 		Store:                            store3,
+		Config:                           appConfig,
 		Password:                         passwordProvider,
 		Passkey:                          provider2,
 		TOTP:                             totpProvider,
@@ -344,6 +341,7 @@ func NewPortalAppService(appProvider *deps.AppProvider, request *http.Request) P
 		RateLimiter:                      limiter,
 		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
 	}
+	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
