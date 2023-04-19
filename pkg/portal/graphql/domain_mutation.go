@@ -89,6 +89,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainCreatedEventPayload{
+					Domain:   domainModel.Domain,
+					DomainID: domainModel.ID,
+				})
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			gqlCtx.Domains.Prime(domainModel.ID, domainModel)
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"domain": gqlCtx.Domains.Load(domainModel.ID),
