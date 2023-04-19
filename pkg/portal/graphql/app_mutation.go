@@ -309,6 +309,9 @@ var _ = registerMutationField(
 			newAppConfig := newApp.Context.Config.AppConfig
 
 			appConfigDiff, err := formatAppConfigDiff(originalAppConfig, newAppConfig)
+			if err != nil {
+				return nil, err
+			}
 			var updatedSecrets []string = []string{}
 			if secretUpdateInstructionsMap, ok := secretConfigUpdateInstructionsJSONValue.(map[string]interface{}); ok {
 				for k := range secretUpdateInstructionsMap {
@@ -588,7 +591,10 @@ func formatAppConfigDiff(originalConfig *config.AppConfig, newConfig *config.App
 		Coloring:       false,
 	}
 	var oMap map[string]interface{}
-	json.Unmarshal(oBytes, &oMap)
+	err = json.Unmarshal(oBytes, &oMap)
+	if err != nil {
+		return "", err
+	}
 	formatter := diffformatter.NewAsciiFormatter(oMap, config)
 	formattedDiff, err := formatter.Format(diff)
 	if err != nil {
