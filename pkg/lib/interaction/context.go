@@ -61,7 +61,7 @@ type OTPCodeService interface {
 
 type OTPSender interface {
 	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
-	Send(msg *otp.PreparedMessage, otp string) error
+	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
 type WhatsappCodeProvider interface {
@@ -145,8 +145,8 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	ResetPassword(userID string, newPassword string) (err error)
-	ResetPasswordByCode(code string, newPassword string) (err error)
+	ResetPassword(code string, newPassword string) error
+	SetPassword(userID string, newPassword string) error
 }
 
 type PasskeyService interface {

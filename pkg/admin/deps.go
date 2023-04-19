@@ -82,7 +82,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.OAuthFacade), new(*facade.OAuthFacade)),
 	wire.Bind(new(graphql.SessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(graphql.OTPCodeService), new(*otp.Service)),
-	wire.Bind(new(graphql.ForgotPasswordService), new(*forgotpassword.Provider)),
+	wire.Bind(new(graphql.ForgotPasswordService), new(*forgotpassword.Service)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),
@@ -92,7 +92,6 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(forgotpassword.URLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.WechatURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),

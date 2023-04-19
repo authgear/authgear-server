@@ -8,8 +8,8 @@ var PasswordResetFailed = apierrors.Invalid.WithReason("PasswordResetFailed")
 
 var ErrInvalidCode = PasswordResetFailed.NewWithCause("invalid code", apierrors.StringCause("InvalidCode"))
 var ErrUsedCode = PasswordResetFailed.NewWithCause("used code", apierrors.StringCause("UsedCode"))
-var ErrExpiredCode = PasswordResetFailed.NewWithCause("expired code", apierrors.StringCause("ExpiredCode"))
 
 var SendCodeFailed = apierrors.Invalid.WithReason("ForgotPasswordFailed")
 
+var ErrFeatureDisabled = SendCodeFailed.NewWithCause("forgot password is disabled", apierrors.StringCause("FeatureDisabled"))
 var ErrUserNotFound = SendCodeFailed.NewWithCause("specified user not found", apierrors.StringCause("UserNotFound"))

@@ -5,10 +5,12 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
 
@@ -82,8 +84,9 @@ func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, 
 	err := ctx.ForgotPassword.SendCode(loginID)
 	if errors.Is(err, forgotpassword.ErrUserNotFound) {
 		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
-	}
-	if err != nil {
+	} else if apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore send code rate limits; show success to user anyways.
+	} else if err != nil {
 		return nil, err
 	}
 

@@ -106,7 +106,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
 		wire.Bind(new(messaging.EventService), new(*event.Service)),
-		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
 		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
@@ -266,10 +265,10 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		forgotpassword.DependencySet,
-		wire.Bind(new(interaction.ForgotPasswordService), new(*forgotpassword.Provider)),
-		wire.Bind(new(interaction.ResetPasswordService), new(*forgotpassword.Provider)),
-		wire.Bind(new(workflow.ForgotPasswordService), new(*forgotpassword.Provider)),
-		wire.Bind(new(workflow.ResetPasswordService), new(*forgotpassword.Provider)),
+		wire.Bind(new(interaction.ForgotPasswordService), new(*forgotpassword.Service)),
+		wire.Bind(new(interaction.ResetPasswordService), new(*forgotpassword.Service)),
+		wire.Bind(new(workflow.ForgotPasswordService), new(*forgotpassword.Service)),
+		wire.Bind(new(workflow.ResetPasswordService), new(*forgotpassword.Service)),
 	),
 
 	wire.NewSet(
@@ -333,14 +332,15 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(whatsapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(forgotpassword.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
+		wire.Bind(new(forgotpassword.OTPSender), new(*otp.MessageSender)),
 	),
 
 	wire.NewSet(
 		translation.DependencySet,
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
-		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
 		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
 	),
@@ -357,7 +357,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
-		wire.Bind(new(forgotpassword.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
@@ -385,13 +384,11 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		usage.DependencySet,
-		wire.Bind(new(forgotpassword.HardSMSBucketer), new(*usage.HardSMSBucketer)),
 		wire.Bind(new(messaging.UsageLimiter), new(*usage.Limiter)),
 	),
 
 	wire.NewSet(
 		sms.DependencySet,
-		wire.Bind(new(forgotpassword.AntiSpamSMSBucketMaker), new(*sms.AntiSpamSMSBucketMaker)),
 	),
 
 	wire.NewSet(

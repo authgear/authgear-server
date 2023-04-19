@@ -6,8 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
+type Purpose string
+
 type Kind interface {
-	Purpose() string
+	Purpose() Purpose
 	ValidPeriod() time.Duration
 
 	RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec

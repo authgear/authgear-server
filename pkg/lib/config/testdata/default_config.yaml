@@ -562,6 +562,22 @@ forgot_password:
     subject: Reset password instruction
   sms_message: {}
   reset_code_expiry_seconds: 1200
+  code_valid_period: 20m0s
+  rate_limits:
+    email:
+      trigger_per_ip: {}
+      trigger_cooldown: 1m
+      validate_per_ip:
+        enabled: true
+        period: 1m
+        burst: 60
+    sms:
+      trigger_per_ip: {}
+      trigger_cooldown: 1m
+      validate_per_ip:
+        enabled: true
+        period: 1m
+        burst: 60
 welcome_message:
   email_message:
     subject: Welcome!

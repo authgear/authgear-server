@@ -1,8 +1,7 @@
 package service
 
 import (
-	"errors"
-
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -498,7 +497,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		err = s.OTPCodeService.VerifyOTP(kind, a.ToTarget(), code, &otp.VerifyOptions{
 			UserID: info.UserID,
 		})
-		if errors.Is(err, otp.ErrInvalidCode) {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			err = authenticator.ErrInvalidCredentials
 			return
 		} else if err != nil {

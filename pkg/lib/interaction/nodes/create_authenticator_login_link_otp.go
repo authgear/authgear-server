@@ -1,8 +1,7 @@
 package nodes
 
 import (
-	"errors"
-
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -40,7 +39,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(ctx *interaction.Conte
 			UserID:           e.Authenticator.UserID,
 		},
 	)
-	if errors.Is(err, otp.ErrInvalidCode) {
+	if apierrors.IsKind(err, otp.InvalidOTPCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {
 		return nil, err

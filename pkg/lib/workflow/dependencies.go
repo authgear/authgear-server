@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -49,13 +48,13 @@ type OTPCodeService interface {
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 	InspectState(kind otp.Kind, target string) (*otp.State, error)
 
-	LookupCode(kind otp.Kind, code string) (target string, err error)
+	LookupCode(purpose otp.Purpose, code string) (target string, err error)
 	SetSubmittedCode(kind otp.Kind, target string, code string) (*otp.State, error)
 }
 
 type OTPSender interface {
 	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
-	Send(msg *otp.PreparedMessage, otp string) error
+	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
 type VerificationService interface {
@@ -69,8 +68,8 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	CheckResetPasswordCode(code string) (*forgotpassword.Code, error)
-	ResetPasswordByCode(code string, newPassword string) (err error)
+	VerifyCode(code string) (userID string, err error)
+	ResetPassword(code string, newPassword string) error
 }
 
 type RateLimiter interface {

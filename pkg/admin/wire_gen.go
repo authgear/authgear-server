@@ -55,7 +55,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -808,36 +807,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	forgotPasswordConfig := appConfig.ForgotPassword
-	forgotpasswordStore := &forgotpassword.Store{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
-	}
-	providerLogger := forgotpassword.NewProviderLogger(factory)
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
-	}
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
-	}
-	forgotpasswordProvider := &forgotpassword.Provider{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Config:            forgotPasswordConfig,
-		Store:             forgotpasswordStore,
-		Clock:             clockClock,
-		URLs:              endpointsEndpoints,
-		TaskQueue:         queue,
-		Logger:            providerLogger,
-		Identities:        identityFacade,
-		Authenticators:    authenticatorFacade,
-		FeatureConfig:     featureConfig,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -885,8 +863,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
-		ForgotPassword:                  forgotpasswordProvider,
-		ResetPassword:                   forgotpasswordProvider,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
@@ -1028,7 +1006,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthFacade:           oAuthFacade,
 		SessionListing:        sessionListingService,
 		OTPCode:               otpService,
-		ForgotPassword:        forgotpasswordProvider,
+		ForgotPassword:        forgotpasswordService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

@@ -1,11 +1,11 @@
 package webapp
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -184,7 +184,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		)
 		if err == nil {
 			state = LoginLinkOTPPageQueryStateMatched
-		} else if errors.Is(err, otp.ErrInvalidCode) {
+		} else if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			state = LoginLinkOTPPageQueryStateInvalidCode
 		} else {
 			return err

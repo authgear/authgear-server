@@ -2,9 +2,9 @@ package latte
 
 import (
 	"context"
-	"errors"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -58,7 +58,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 			code,
 			&otp.VerifyOptions{UserID: n.UserID},
 		)
-		if errors.Is(err, otp.ErrInvalidCode) {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
 			return nil, err
@@ -133,7 +133,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	}
 	n.CodeLength = len(code)
 
-	err = deps.OTPSender.Send(msg, code)
+	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}

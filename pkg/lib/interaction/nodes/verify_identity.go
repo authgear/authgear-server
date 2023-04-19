@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -124,8 +122,6 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
-	} else if errors.Is(err, otp.ErrCodeNotFound) {
-		return nil, verification.ErrCodeNotFound
 	} else if err != nil {
 		return nil, err
 	}
@@ -138,7 +134,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		}
 	}
 
-	err = ctx.OTPSender.Send(msg, code)
+	err = ctx.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +172,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		input.GetVerificationCode(),
 		&otp.VerifyOptions{UserID: e.Identity.UserID},
 	)
-	if errors.Is(err, otp.ErrInvalidCode) {
+	if apierrors.IsKind(err, otp.InvalidOTPCode) {
 		return nil, verification.ErrInvalidVerificationCode
 	} else if err != nil {
 		return nil, err

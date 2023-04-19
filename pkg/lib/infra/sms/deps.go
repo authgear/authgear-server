@@ -15,5 +15,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Client), "*"),
 	wire.Struct(new(SMSWebHook), "*"),
 	wire.Struct(new(SMSDenoHook), "*"),
-	wire.Struct(new(AntiSpamSMSBucketMaker), "*"),
 )

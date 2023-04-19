@@ -8,14 +8,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
-const PurposeOOBOTP string = "oob-otp"
+const PurposeOOBOTP Purpose = "oob-otp"
 
-const PurposeWhatsapp string = "whatsapp"
+const PurposeWhatsapp Purpose = "whatsapp"
 
 type kindOOBOTP struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
-	purpose string
+	purpose Purpose
 }
 
 func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
@@ -29,7 +29,7 @@ func KindWhatsapp(config *config.AppConfig) Kind {
 	return kindOOBOTP{config: config, channel: model.AuthenticatorOOBChannelSMS, purpose: PurposeWhatsapp}
 }
 
-func (k kindOOBOTP) Purpose() string {
+func (k kindOOBOTP) Purpose() Purpose {
 	return k.purpose
 }
 

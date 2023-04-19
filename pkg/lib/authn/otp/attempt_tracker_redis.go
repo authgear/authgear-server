@@ -18,7 +18,7 @@ type AttemptTrackerRedis struct {
 	Clock clock.Clock
 }
 
-func (s *AttemptTrackerRedis) ResetFailedAttempts(purpose string, target string) error {
+func (s *AttemptTrackerRedis) ResetFailedAttempts(purpose Purpose, target string) error {
 	ctx := context.Background()
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
@@ -27,7 +27,7 @@ func (s *AttemptTrackerRedis) ResetFailedAttempts(purpose string, target string)
 	})
 }
 
-func (s *AttemptTrackerRedis) GetFailedAttempts(purpose string, target string) (int, error) {
+func (s *AttemptTrackerRedis) GetFailedAttempts(purpose Purpose, target string) (int, error) {
 	ctx := context.Background()
 
 	var failedAttempts int
@@ -45,7 +45,7 @@ func (s *AttemptTrackerRedis) GetFailedAttempts(purpose string, target string) (
 	return failedAttempts, err
 }
 
-func (s *AttemptTrackerRedis) IncrementFailedAttempts(purpose string, target string) (int, error) {
+func (s *AttemptTrackerRedis) IncrementFailedAttempts(purpose Purpose, target string) (int, error) {
 	ctx := context.Background()
 
 	var failedAttempts int64
@@ -60,6 +60,6 @@ func (s *AttemptTrackerRedis) IncrementFailedAttempts(purpose string, target str
 	return int(failedAttempts), err
 }
 
-func redisFailedAttemptsKey(appID config.AppID, purpose string, target string) string {
+func redisFailedAttemptsKey(appID config.AppID, purpose Purpose, target string) string {
 	return fmt.Sprintf("app:%s:failed-attempts:%s:%s", appID, purpose, target)
 }

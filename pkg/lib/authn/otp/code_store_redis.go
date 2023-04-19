@@ -19,7 +19,7 @@ type CodeStoreRedis struct {
 	Clock clock.Clock
 }
 
-func (s *CodeStoreRedis) set(purpose string, target string, code *Code) error {
+func (s *CodeStoreRedis) set(purpose Purpose, code *Code) error {
 	ctx := context.Background()
 	data, err := json.Marshal(code)
 	if err != nil {
@@ -27,7 +27,7 @@ func (s *CodeStoreRedis) set(purpose string, target string, code *Code) error {
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		codeKey := redisCodeKey(s.AppID, purpose, target)
+		codeKey := redisCodeKey(s.AppID, purpose, code.Target)
 		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
 
 		_, err := conn.SetEX(ctx, codeKey, data, ttl).Result()
@@ -41,11 +41,11 @@ func (s *CodeStoreRedis) set(purpose string, target string, code *Code) error {
 	})
 }
 
-func (s *CodeStoreRedis) Create(purpose string, target string, code *Code) error {
-	return s.set(purpose, target, code)
+func (s *CodeStoreRedis) Create(purpose Purpose, code *Code) error {
+	return s.set(purpose, code)
 }
 
-func (s *CodeStoreRedis) Get(purpose string, target string) (*Code, error) {
+func (s *CodeStoreRedis) Get(purpose Purpose, target string) (*Code, error) {
 	ctx := context.Background()
 	key := redisCodeKey(s.AppID, purpose, target)
 	var codeModel *Code
@@ -67,11 +67,11 @@ func (s *CodeStoreRedis) Get(purpose string, target string) (*Code, error) {
 	return codeModel, err
 }
 
-func (s *CodeStoreRedis) Update(purpose, target string, code *Code) error {
-	return s.set(purpose, target, code)
+func (s *CodeStoreRedis) Update(purpose Purpose, code *Code) error {
+	return s.set(purpose, code)
 }
 
-func (s *CodeStoreRedis) Delete(purpose, target string) error {
+func (s *CodeStoreRedis) Delete(purpose Purpose, target string) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		key := redisCodeKey(s.AppID, purpose, target)
@@ -83,6 +83,6 @@ func (s *CodeStoreRedis) Delete(purpose, target string) error {
 	})
 }
 
-func redisCodeKey(appID config.AppID, purpose string, target string) string {
+func redisCodeKey(appID config.AppID, purpose Purpose, target string) string {
 	return fmt.Sprintf("app:%s:otp-code:%s:%s", appID, purpose, target)
 }
