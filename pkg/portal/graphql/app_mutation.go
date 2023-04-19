@@ -10,12 +10,19 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+
+	"github.com/yudai/gojsondiff"
+	diffformatter "github.com/yudai/gojsondiff/formatter"
 )
 
 var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -230,6 +237,8 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			originalAppConfig := app.Context.Config.AppConfig
+
 			var resourceUpdates []appresource.Update
 			for _, f := range updates {
 				f := f.(map[string]interface{})
@@ -286,6 +295,24 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.AppService.UpdateResources(app, resourceUpdates)
+			if err != nil {
+				return nil, err
+			}
+
+			newApp, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			newAppConfig := newApp.Context.Config.AppConfig
+
+			appConfigDiff, err := formatAppConfigDiff(originalAppConfig, newAppConfig)
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectAppUpdatedEventPayload{
+					AppConfigDiff: appConfigDiff,
+				})
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -528,4 +555,34 @@ func checkAppQuota(ctx *Context, userID string) error {
 	}
 
 	return nil
+}
+
+func formatAppConfigDiff(originalConfig *config.AppConfig, newConfig *config.AppConfig) (string, error) {
+	oBytes, err := json.Marshal(originalConfig)
+	if err != nil {
+		return "", err
+	}
+	nBytes, err := json.Marshal(newConfig)
+	if err != nil {
+		return "", err
+	}
+	diff, err := gojsondiff.New().Compare(oBytes, nBytes)
+	if err != nil {
+		return "", err
+	}
+	if !diff.Modified() {
+		return "", nil
+	}
+	config := diffformatter.AsciiFormatterConfig{
+		ShowArrayIndex: true,
+		Coloring:       false,
+	}
+	var oMap map[string]interface{}
+	json.Unmarshal(oBytes, &oMap)
+	formatter := diffformatter.NewAsciiFormatter(oMap, config)
+	formattedDiff, err := formatter.Format(diff)
+	if err != nil {
+		return "", err
+	}
+	return formattedDiff, nil
 }
