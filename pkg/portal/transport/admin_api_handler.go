@@ -7,6 +7,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -21,7 +22,7 @@ type AdminAPIAuthzService interface {
 }
 
 type AdminAPIService interface {
-	Director(appID string, p string, userID string) (func(*http.Request), error)
+	Director(appID string, p string, userID string, usage service.Usage) (func(*http.Request), error)
 }
 
 type AdminAPILogger struct{ *log.Logger }
@@ -80,7 +81,7 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	director, err := h.AdminAPI.Director(appID, p, sessionInfo.UserID)
+	director, err := h.AdminAPI.Director(appID, p, sessionInfo.UserID, service.UsageProxy)
 	if err != nil {
 		h.Logger.WithError(err).Errorf("failed to proxy admin API request")
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -28,10 +28,17 @@ type AdminAPIService struct {
 	AuthzAdder     AuthzAdder
 }
 
-type AuthzAuditContext struct {
-	Triggerer   string `json:"triggerer"`
-	ActorUserID string `json:"actor_user_id"`
-	Referrer    string `json:"refererer"`
+type Usage string
+
+const (
+	UsageProxy    Usage = "proxy"
+	UsageInternal Usage = "internal"
+)
+
+type PortalAdminAPIAuthContext struct {
+	Usage       Usage  `json:"usage"`
+	ActorUserID string `json:"actor_user_id,omitempty"`
+	HTTPReferer string `json:"http_referer,omitempty"`
 }
 
 func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
@@ -75,7 +82,7 @@ func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
 	}
 }
 
-func (s *AdminAPIService) Director(appID string, p string, actorUserID string) (director func(*http.Request), err error) {
+func (s *AdminAPIService) Director(appID string, p string, actorUserID string, usage Usage) (director func(*http.Request), err error) {
 	cfg, err := s.ResolveConfig(appID)
 	if err != nil {
 		return
@@ -110,10 +117,10 @@ func (s *AdminAPIService) Director(appID string, p string, actorUserID string) (
 			s.AdminAPIConfig.Auth,
 			config.AppID(appID),
 			authKey,
-			AuthzAuditContext{
-				Triggerer:   "portal",
+			PortalAdminAPIAuthContext{
+				Usage:       usage,
 				ActorUserID: actorUserID,
-				Referrer:    r.Header.Get("Referer"),
+				HTTPReferer: r.Header.Get("Referer"),
 			},
 			r.Header,
 		)
@@ -124,6 +131,6 @@ func (s *AdminAPIService) Director(appID string, p string, actorUserID string) (
 	return
 }
 
-func (s *AdminAPIService) SelfDirector(actorUserID string) (director func(*http.Request), err error) {
-	return s.Director(s.AuthgearConfig.AppID, "/graphql", actorUserID)
+func (s *AdminAPIService) SelfDirector(actorUserID string, usage Usage) (director func(*http.Request), err error) {
+	return s.Director(s.AuthgearConfig.AppID, "/graphql", actorUserID, usage)
 }
