@@ -14,12 +14,12 @@ const (
 
 type UsageLimiter interface {
 	Reserve(name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
-	Cancel(r *usage.Reservation) error
+	Cancel(r *usage.Reservation)
 }
 
 type RateLimiter interface {
 	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
-	Cancel(r *ratelimit.Reservation) error
+	Cancel(r *ratelimit.Reservation)
 }
 
 // FIXME: hard usage limits

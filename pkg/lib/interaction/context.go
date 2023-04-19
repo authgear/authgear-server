@@ -173,7 +173,7 @@ type CookieManager interface {
 type RateLimiter interface {
 	Allow(spec ratelimit.BucketSpec) error
 	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
-	Cancel(r *ratelimit.Reservation) error
+	Cancel(r *ratelimit.Reservation)
 }
 
 type NonceService interface {
