@@ -100,16 +100,42 @@ func (m *MockRateLimiter) EXPECT() *MockRateLimiterMockRecorder {
 	return m.recorder
 }
 
-// TakeToken mocks base method.
-func (m *MockRateLimiter) TakeToken(bucket ratelimit.Bucket) error {
+// Allow mocks base method.
+func (m *MockRateLimiter) Allow(spec ratelimit.BucketSpec) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TakeToken", bucket)
+	ret := m.ctrl.Call(m, "Allow", spec)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// TakeToken indicates an expected call of TakeToken.
-func (mr *MockRateLimiterMockRecorder) TakeToken(bucket interface{}) *gomock.Call {
+// Allow indicates an expected call of Allow.
+func (mr *MockRateLimiterMockRecorder) Allow(spec interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TakeToken", reflect.TypeOf((*MockRateLimiter)(nil).TakeToken), bucket)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Allow", reflect.TypeOf((*MockRateLimiter)(nil).Allow), spec)
+}
+
+// Cancel mocks base method.
+func (m *MockRateLimiter) Cancel(r *ratelimit.Reservation) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Cancel", r)
+}
+
+// Cancel indicates an expected call of Cancel.
+func (mr *MockRateLimiterMockRecorder) Cancel(r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cancel", reflect.TypeOf((*MockRateLimiter)(nil).Cancel), r)
+}
+
+// Reserve mocks base method.
+func (m *MockRateLimiter) Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Reserve", spec)
+	ret0, _ := ret[0].(*ratelimit.Reservation)
+	return ret0
+}
+
+// Reserve indicates an expected call of Reserve.
+func (mr *MockRateLimiterMockRecorder) Reserve(spec interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reserve", reflect.TypeOf((*MockRateLimiter)(nil).Reserve), spec)
 }

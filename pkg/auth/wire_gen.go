@@ -294,13 +294,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -781,13 +782,14 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -1355,13 +1357,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           siweStoreRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -2124,13 +2127,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           siweStoreRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -2597,13 +2601,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -2952,13 +2957,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -3374,13 +3380,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           siweStoreRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -3918,13 +3925,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           siweStoreRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -4489,6 +4497,7 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	web3Config := appConfig.Web3
+	authenticationConfig := appConfig.Authentication
 	clockClock := _wireSystemClockValue
 	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.Redis
@@ -4514,13 +4523,14 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -4722,13 +4732,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -5494,13 +5505,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -6373,13 +6385,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -7192,13 +7205,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -8010,13 +8024,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -8816,13 +8831,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -9615,13 +9631,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -10404,13 +10421,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -11196,13 +11214,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -11991,13 +12010,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -12788,13 +12808,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -13583,13 +13604,14 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -14374,13 +14396,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -15169,13 +15192,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -15965,13 +15989,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -16760,13 +16785,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -17555,13 +17581,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -18352,13 +18379,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -19147,13 +19175,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -19942,13 +19971,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -20742,13 +20772,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -21537,13 +21568,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -22355,13 +22387,14 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -23176,13 +23209,14 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -23980,13 +24014,14 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -24760,13 +24795,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -25555,13 +25591,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -26346,13 +26383,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -27142,13 +27180,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -27933,13 +27972,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -28734,13 +28774,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -29525,13 +29566,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -30318,13 +30360,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -31109,13 +31152,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -31932,13 +31976,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -32734,13 +32779,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -33549,13 +33595,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -34348,13 +34395,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -35140,13 +35188,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -35940,13 +35989,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -36732,13 +36782,14 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -37524,13 +37575,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -38316,13 +38368,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -39109,13 +39162,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -39920,13 +39974,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -40712,13 +40767,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -41504,13 +41560,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -42296,13 +42353,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -43088,13 +43146,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -43887,13 +43946,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -44680,13 +44740,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -45471,13 +45532,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -46277,13 +46339,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -47068,13 +47131,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -47859,13 +47923,14 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -48668,13 +48733,14 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -49423,13 +49489,14 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -50177,13 +50244,14 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -50978,13 +51046,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -51770,13 +51839,14 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -52541,13 +52611,14 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -53287,13 +53358,14 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -54004,13 +54076,14 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -55029,13 +55102,14 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           siweStoreRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -55551,13 +55625,14 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -56390,13 +56465,14 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,

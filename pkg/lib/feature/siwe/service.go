@@ -2,9 +2,11 @@ package siwe
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -32,7 +34,9 @@ type NonceStore interface {
 }
 
 type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
+	Allow(spec ratelimit.BucketSpec) error
+	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Cancel(r *ratelimit.Reservation)
 }
 
 type Logger struct{ *log.Logger }
@@ -40,14 +44,33 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("siwe")} }
 
 type Service struct {
-	RemoteIP   httputil.RemoteIP
-	HTTPConfig *config.HTTPConfig
-	Web3Config *config.Web3Config
+	RemoteIP             httputil.RemoteIP
+	HTTPConfig           *config.HTTPConfig
+	Web3Config           *config.Web3Config
+	AuthenticationConfig *config.AuthenticationConfig
 
 	Clock       clock.Clock
 	NonceStore  NonceStore
 	RateLimiter RateLimiter
 	Logger      Logger
+}
+
+func (s *Service) rateLimitGenerateNonce() ratelimit.BucketSpec {
+	return ratelimit.BucketSpec{
+		Enabled:   true,
+		Name:      "SIWENonce",
+		Arguments: []string{string(s.RemoteIP)},
+
+		Period: time.Minute,
+		Burst:  100,
+	}
+}
+
+func (s *Service) rateLimitVerifyMessage() ratelimit.BucketSpec {
+	return ratelimit.NewBucketSpec(
+		s.AuthenticationConfig.RateLimits.SIWE.PerIP, "SIWEVerify",
+		"ip", string(s.RemoteIP),
+	)
 }
 
 func (s *Service) CreateNewNonce() (*Nonce, error) {
@@ -57,7 +80,7 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 		ExpireAt: s.Clock.NowUTC().Add(duration.Short),
 	}
 
-	err := s.RateLimiter.TakeToken(AntiSpamNonceBucket(string(s.RemoteIP)))
+	err := s.RateLimiter.Allow(s.rateLimitGenerateNonce())
 	if err != nil {
 		return nil, err
 	}
@@ -72,14 +95,6 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 
 func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error) {
 	message, err := siwego.ParseMessage(msg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	messageNonce := message.GetNonce()
-	existingNonce, err := s.NonceStore.Get(&Nonce{
-		Nonce: messageNonce,
-	})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -105,14 +120,32 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 		return nil, nil, InvalidNetwork.NewWithInfo("network does not match expected network", apierrors.Details{"expected_chain_id": fmt.Sprintf("_%s", expectedNetworkID.Network)})
 	}
 
+	reservation := s.RateLimiter.Reserve(s.rateLimitVerifyMessage())
+	defer s.RateLimiter.Cancel(reservation)
+	if err := reservation.Error(); err != nil {
+		return nil, nil, err
+	}
+
+	messageNonce := message.GetNonce()
+	existingNonce, err := s.NonceStore.Get(&Nonce{
+		Nonce: messageNonce,
+	})
+	if errors.Is(err, ErrNonceNotFound) {
+		reservation.Consume()
+		return nil, nil, err
+	} else if err != nil {
+		return nil, nil, err
+	}
+
 	publicOrigin, err := url.Parse(s.HTTPConfig.PublicOrigin)
 	if err != nil {
 		return nil, nil, err
 	}
-	now := s.Clock.NowUTC()
 
+	now := s.Clock.NowUTC()
 	pubKey, err := message.Verify(signature, &publicOrigin.Host, &existingNonce.Nonce, &now)
 	if err != nil {
+		reservation.Consume()
 		return nil, nil, err
 	}
 
