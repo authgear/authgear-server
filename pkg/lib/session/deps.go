@@ -10,3 +10,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Manager), "*"),
 	NewSessionCookieDef,
 )
+
+var SessionUserIDGetterDependencySet = wire.NewSet(
+	wire.Struct(new(SessionUserIDGetter), "*"),
+)

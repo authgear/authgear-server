@@ -33,3 +33,15 @@ func GetValidSessionInfo(ctx context.Context) *model.SessionInfo {
 	}
 	return val.SessionInfo
 }
+
+type SessionUserIDGetter struct {
+	Context context.Context
+}
+
+func (g *SessionUserIDGetter) GetSessionUserID() *string {
+	session := GetValidSessionInfo(g.Context)
+	if session == nil {
+		return nil
+	}
+	return &session.UserID
+}

@@ -103,4 +103,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
 
 	adminauthz.DependencySet,
+
+	wire.NewSet(
+		session.SessionUserIDGetterDependencySet,
+		wire.Bind(new(event.SessionUserIDGetter), new(*session.SessionUserIDGetter)),
+	),
 )

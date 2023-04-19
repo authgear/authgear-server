@@ -36,21 +36,24 @@ func TestServiceDispatchEvent(t *testing.T) {
 			FallbackLanguage:   &fallbackLanguage,
 			SupportedLanguages: supportedLanguages,
 		}
+		noSessionUserIDGetter := NewMockSessionUserIDGetter(ctrl)
 
 		service := &Service{
-			Context:      ctx,
-			Logger:       logger,
-			Database:     database,
-			Clock:        clock,
-			Localization: localization,
-			Store:        store,
-			Resolver:     resolver,
-			Sinks:        []Sink{sink},
+			Context:             ctx,
+			Logger:              logger,
+			Database:            database,
+			Clock:               clock,
+			Localization:        localization,
+			Store:               store,
+			Resolver:            resolver,
+			SessionUserIDGetter: noSessionUserIDGetter,
+			Sinks:               []Sink{sink},
 		}
 
 		var seq0 int64
 		store.EXPECT().NextSequenceNumber().AnyTimes().Return(seq0, nil)
 		resolver.EXPECT().Resolve(gomock.Any()).AnyTimes().Return(nil)
+		noSessionUserIDGetter.EXPECT().GetSessionUserID().AnyTimes().Return(nil)
 
 		Convey("only use database hook once", func() {
 			user := model.User{

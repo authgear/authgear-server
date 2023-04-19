@@ -8,9 +8,7 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
-	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -36,21 +34,26 @@ type Resolver interface {
 	Resolve(anything interface{}) (err error)
 }
 
+type SessionUserIDGetter interface {
+	GetSessionUserID() *string
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
 
 type Service struct {
-	Context         context.Context
-	RemoteIP        httputil.RemoteIP
-	UserAgentString httputil.UserAgentString
-	Logger          Logger
-	Database        Database
-	Clock           clock.Clock
-	Localization    *config.LocalizationConfig
-	Store           Store
-	Resolver        Resolver
-	Sinks           []Sink
+	Context             context.Context
+	RemoteIP            httputil.RemoteIP
+	UserAgentString     httputil.UserAgentString
+	Logger              Logger
+	Database            Database
+	Clock               clock.Clock
+	Localization        *config.LocalizationConfig
+	Store               Store
+	Resolver            Resolver
+	SessionUserIDGetter SessionUserIDGetter
+	Sinks               []Sink
 
 	NonBlockingPayloads      []event.NonBlockingPayload `wire:"-"`
 	NonBlockingEvents        []*event.Event             `wire:"-"`
@@ -215,14 +218,7 @@ func (s *Service) nextSeq() (seq int64, err error) {
 }
 
 func (s *Service) makeContext(payload event.Payload) event.Context {
-	userID := session.GetUserID(s.Context)
-
-	if userID == nil {
-		portalSession := portalsession.GetValidSessionInfo(s.Context)
-		if portalSession != nil {
-			userID = &portalSession.UserID
-		}
-	}
+	userID := s.SessionUserIDGetter.GetSessionUserID()
 
 	if userID == nil {
 		uid := payload.UserID()

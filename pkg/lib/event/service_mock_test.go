@@ -172,3 +172,40 @@ func (mr *MockResolverMockRecorder) Resolve(anything interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockResolver)(nil).Resolve), anything)
 }
+
+// MockSessionUserIDGetter is a mock of SessionUserIDGetter interface.
+type MockSessionUserIDGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockSessionUserIDGetterMockRecorder
+}
+
+// MockSessionUserIDGetterMockRecorder is the mock recorder for MockSessionUserIDGetter.
+type MockSessionUserIDGetterMockRecorder struct {
+	mock *MockSessionUserIDGetter
+}
+
+// NewMockSessionUserIDGetter creates a new mock instance.
+func NewMockSessionUserIDGetter(ctrl *gomock.Controller) *MockSessionUserIDGetter {
+	mock := &MockSessionUserIDGetter{ctrl: ctrl}
+	mock.recorder = &MockSessionUserIDGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSessionUserIDGetter) EXPECT() *MockSessionUserIDGetterMockRecorder {
+	return m.recorder
+}
+
+// GetSessionUserID mocks base method.
+func (m *MockSessionUserIDGetter) GetSessionUserID() *string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSessionUserID")
+	ret0, _ := ret[0].(*string)
+	return ret0
+}
+
+// GetSessionUserID indicates an expected call of GetSessionUserID.
+func (mr *MockSessionUserIDGetterMockRecorder) GetSessionUserID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionUserID", reflect.TypeOf((*MockSessionUserIDGetter)(nil).GetSessionUserID))
+}

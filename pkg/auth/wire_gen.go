@@ -1617,7 +1617,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2387,7 +2390,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -3639,7 +3645,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -4185,7 +4194,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4992,7 +5004,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5765,7 +5780,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6645,7 +6663,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7465,7 +7486,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8284,7 +8308,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9091,7 +9118,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9891,7 +9921,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10681,7 +10714,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11474,7 +11510,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12270,7 +12309,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13068,7 +13110,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13864,7 +13909,10 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14656,7 +14704,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15452,7 +15503,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16249,7 +16303,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17045,7 +17102,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17841,7 +17901,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18639,7 +18702,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19435,7 +19501,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20231,7 +20300,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21032,7 +21104,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21828,7 +21903,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22647,7 +22725,10 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -23443,7 +23524,10 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -24248,7 +24332,10 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -25055,7 +25142,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25851,7 +25941,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26643,7 +26736,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27440,7 +27536,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28232,7 +28331,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29034,7 +29136,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29826,7 +29931,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30620,7 +30728,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31412,7 +31523,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32236,7 +32350,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33039,7 +33156,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33855,7 +33975,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34655,7 +34778,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35448,7 +35574,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36249,7 +36378,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37042,7 +37174,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37835,7 +37970,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38628,7 +38766,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -39422,7 +39563,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40234,7 +40378,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41027,7 +41174,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41820,7 +41970,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42613,7 +42766,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -43406,7 +43562,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44206,7 +44365,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45000,7 +45162,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45792,7 +45957,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46599,7 +46767,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -47391,7 +47562,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48183,7 +48357,10 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48993,7 +49170,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -49749,7 +49929,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -50504,7 +50687,10 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51306,7 +51492,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52099,7 +52288,10 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52870,7 +53062,10 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -53617,7 +53812,10 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -54335,7 +54533,10 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -55373,7 +55574,10 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
@@ -55885,7 +56089,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -56725,7 +56932,10 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: contextContext,
+	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,

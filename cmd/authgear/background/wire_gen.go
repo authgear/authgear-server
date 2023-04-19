@@ -598,7 +598,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: ctx,
+	}
+	eventService := event.NewService(ctx, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,

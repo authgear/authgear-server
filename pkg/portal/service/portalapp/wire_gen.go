@@ -40,6 +40,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
@@ -475,7 +476,10 @@ func NewPortalAppService(appProvider *deps.AppProvider, request *http.Request) P
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(context, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	sessionUserIDGetter := &session.SessionUserIDGetter{
+		Context: context,
+	}
+	eventService := event.NewService(context, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
 	portalAppService := PortalAppService{
 		Events: eventService,
 	}

@@ -56,3 +56,11 @@ func GetUserID(ctx context.Context) *string {
 	userID := actx.Session.GetAuthenticationInfo().UserID
 	return &userID
 }
+
+type SessionUserIDGetter struct {
+	Context context.Context
+}
+
+func (g *SessionUserIDGetter) GetSessionUserID() *string {
+	return GetUserID(g.Context)
+}
