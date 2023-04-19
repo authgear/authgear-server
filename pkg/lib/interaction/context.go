@@ -59,14 +59,9 @@ type OTPCodeService interface {
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 }
 
-type OOBCodeSender interface {
-	SendCode(
-		channel model.AuthenticatorOOBChannel,
-		target string,
-		code string,
-		messageType otp.MessageType,
-		otpMode otp.OTPMode,
-	) error
+type OTPSender interface {
+	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
+	Send(msg *otp.PreparedMessage, otp string) error
 }
 
 type WhatsappCodeProvider interface {
@@ -212,7 +207,7 @@ type Context struct {
 	AnonymousUserPromotionCodeStore AnonymousUserPromotionCodeStore
 	BiometricIdentities             BiometricIdentityProvider
 	OTPCodeService                  OTPCodeService
-	OOBCodeSender                   OOBCodeSender
+	OTPSender                       OTPSender
 	OAuthProviderFactory            OAuthProviderFactory
 	MFA                             MFAService
 	ForgotPassword                  ForgotPasswordService

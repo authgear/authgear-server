@@ -22,6 +22,7 @@ var _ = FeatureConfigSchema.Add("RateLimitFeatureConfig", `
 }
 `)
 
+// RateLimitFeatureConfig is deprecated
 type RateLimitFeatureConfig struct {
 	Disabled *bool                     `json:"disabled,omitempty"`
 	SMS      *SMSRateLimitBucketConfig `json:"sms,omitempty"`

@@ -106,6 +106,15 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		CodeLength: otp.FormCode.CodeLength(),
 	}
 
+	msg, err := ctx.OTPSender.Prepare(channel, target, otp.FormCode, otp.MessageTypeVerification)
+	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer msg.Close()
+
 	code, err := ctx.OTPCodeService.GenerateOTP(
 		otp.KindVerification(ctx.Config, channel),
 		target,
@@ -129,7 +138,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		}
 	}
 
-	err = ctx.OOBCodeSender.SendCode(channel, target, code, otp.MessageTypeVerification, otp.OTPModeCode)
+	err = ctx.OTPSender.Send(msg, code)
 	if err != nil {
 		return nil, err
 	}

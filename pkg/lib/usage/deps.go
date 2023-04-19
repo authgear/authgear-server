@@ -5,7 +5,9 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	NewLogger,
 	wire.Struct(new(HardSMSBucketer), "*"),
 	wire.Struct(new(GlobalDBStore), "*"),
 	wire.Struct(new(CountCollector), "*"),
+	wire.Struct(new(Limiter), "*"),
 )

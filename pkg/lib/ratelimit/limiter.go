@@ -21,11 +21,11 @@ type Limiter struct {
 	Logger  Logger
 	Storage Storage
 	Clock   clock.Clock
-	Config  *config.RateLimitFeatureConfig
+	Config  *config.RateLimitsFeatureConfig
 }
 
 func (l *Limiter) isDisabled() bool {
-	return l.Config != nil && l.Config.Disabled != nil && *(l.Config.Disabled) == true
+	return l.Config.Disabled
 }
 
 func (l *Limiter) TakeToken(bucket Bucket) error {
@@ -173,6 +173,7 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 		pass = tokens >= 0
 		timeToAct = &resetTime
 		l.Logger.
+			WithField("global", bucket.IsGlobal).
 			WithField("key", bucket.Key).
 			WithField("tokens", tokens).
 			WithField("pass", pass).

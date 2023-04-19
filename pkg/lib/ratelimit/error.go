@@ -6,6 +6,7 @@ import (
 
 const bucketNameKey = "bucket_name"
 
+// ErrUsageLimitExceeded is deprecated; see usage.ErrUsageLimitExceeded.
 var ErrUsageLimitExceeded = apierrors.ServiceUnavailable.WithReason("UsageLimitExceeded").
 	New("usage limit exceeded")
 

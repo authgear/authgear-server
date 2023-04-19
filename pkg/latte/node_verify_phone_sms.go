@@ -120,11 +120,11 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	var err error
-	err = deps.OOBCodeSender.CanSendCode(model.AuthenticatorOOBChannelSMS, n.PhoneNumber)
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, otp.FormCode, otp.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
+	defer msg.Close()
 
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
@@ -140,7 +140,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 	}
 	n.CodeLength = len(code)
 
-	err = deps.OOBCodeSender.SendCode(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, code, otp.MessageTypeVerification, otp.OTPModeCode)
+	err = deps.OTPSender.Send(msg, code)
 	if err != nil {
 		return err
 	}

@@ -227,12 +227,12 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Redis: appredisHandle,
 	}
 	featureConfig := configConfig.FeatureConfig
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	noopTaskQueue := NewNoopTaskQueue()

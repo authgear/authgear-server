@@ -113,11 +113,11 @@ func (n *NodeVerifyEmail) otpTarget() string {
 }
 
 func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
-	var err error
-	err = deps.OOBCodeSender.CanSendCode(model.AuthenticatorOOBChannelEmail, n.Email)
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, otp.FormCode, otp.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
+	defer msg.Close()
 
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
@@ -133,7 +133,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	}
 	n.CodeLength = len(code)
 
-	err = deps.OOBCodeSender.SendCode(model.AuthenticatorOOBChannelEmail, n.Email, code, otp.MessageTypeVerification, otp.OTPModeCode)
+	err = deps.OTPSender.Send(msg, code)
 	if err != nil {
 		return err
 	}

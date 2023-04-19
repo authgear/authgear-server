@@ -73,6 +73,7 @@ func TestLimiter(t *testing.T) {
 			Logger:  ratelimit.Logger{log.Null},
 			Storage: &storageMemory{items: make(map[string]*storageMemoryItem)},
 			Clock:   c,
+			Config:  &config.RateLimitsFeatureConfig{},
 		}
 		expectedErr := b.BucketError()
 
@@ -256,9 +257,8 @@ func TestLimiter(t *testing.T) {
 		})
 
 		Convey("Disabled", func() {
-			disabled := true
-			limiter.Config = &config.RateLimitFeatureConfig{
-				Disabled: &disabled,
+			limiter.Config = &config.RateLimitsFeatureConfig{
+				Disabled: true,
 			}
 
 			for i := 0; i < 2*b.Size; i++ {

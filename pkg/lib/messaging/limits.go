@@ -1,0 +1,158 @@
+package messaging
+
+import (
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+)
+
+const (
+	usageLimitEmail usage.LimitName = "Email"
+	usageLimitSMS   usage.LimitName = "SMS"
+)
+
+type UsageLimiter interface {
+	Reserve(name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	Cancel(r *usage.Reservation) error
+}
+
+type RateLimiter interface {
+	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Cancel(r *ratelimit.Reservation) error
+}
+
+// FIXME: hard usage limits
+type Limits struct {
+	Logger       Logger
+	RateLimiter  RateLimiter
+	UsageLimiter UsageLimiter
+	RemoteIP     httputil.RemoteIP
+
+	Config        *config.MessagingRateLimitsConfig
+	FeatureConfig *config.MessagingFeatureConfig
+	EnvConfig     *config.RateLimitsEnvironmentConfig
+}
+
+func (l *Limits) check(
+	reservations []*ratelimit.Reservation,
+	global config.RateLimitsEnvironmentConfigEntry,
+	feature *config.RateLimitConfig,
+	local *config.RateLimitConfig,
+	name string,
+	args ...string,
+) (re []*ratelimit.Reservation, err error) {
+	re = reservations
+
+	globalLimit := ratelimit.NewGlobalBucketSpec(global, name, args...)
+	r := l.RateLimiter.Reserve(globalLimit)
+	if err = r.Error(); err != nil {
+		return
+	}
+	re = append(re, r)
+
+	localLimitConfig := local
+	if feature.Rate() < local.Rate() {
+		localLimitConfig = feature
+	}
+	localLimit := ratelimit.NewBucketSpec(localLimitConfig, name, args...)
+	r = l.RateLimiter.Reserve(localLimit)
+	if err = r.Error(); err != nil {
+		return
+	}
+	re = append(re, r)
+
+	return
+}
+
+func (l *Limits) checkEmail(email string) (msg *message, err error) {
+	msg = &message{
+		logger:       l.Logger,
+		rateLimiter:  l.RateLimiter,
+		usageLimiter: l.UsageLimiter,
+	}
+	defer func() {
+		if err != nil {
+			// Return reserved tokens
+			msg.Close()
+			msg = nil
+		}
+	}()
+
+	msg.usageLimit, err = l.UsageLimiter.Reserve(usageLimitEmail, l.FeatureConfig.EmailUsage)
+	if err != nil {
+		return
+	}
+
+	msg.rateLimits, err = l.check(msg.rateLimits,
+		l.EnvConfig.EmailPerIP, l.FeatureConfig.RateLimits.EmailPerIP, l.Config.EmailPerIP,
+		"MessagingEmailPerIP", string(l.RemoteIP),
+	)
+	if err != nil {
+		return
+	}
+
+	msg.rateLimits, err = l.check(msg.rateLimits,
+		l.EnvConfig.EmailPerTarget, l.FeatureConfig.RateLimits.EmailPerTarget, l.Config.EmailPerTarget,
+		"MessagingEmailPerTarget", email,
+	)
+	if err != nil {
+		return
+	}
+
+	msg.rateLimits, err = l.check(msg.rateLimits,
+		l.EnvConfig.Email, l.FeatureConfig.RateLimits.Email, l.Config.Email,
+		"MessagingEmail",
+	)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
+	msg = &message{
+		logger:       l.Logger,
+		rateLimiter:  l.RateLimiter,
+		usageLimiter: l.UsageLimiter,
+	}
+	defer func() {
+		if err != nil {
+			// Return reserved tokens
+			msg.Close()
+			msg = nil
+		}
+	}()
+
+	msg.usageLimit, err = l.UsageLimiter.Reserve(usageLimitSMS, l.FeatureConfig.SMSUsage)
+	if err != nil {
+		return
+	}
+
+	msg.rateLimits, err = l.check(msg.rateLimits,
+		l.EnvConfig.SMSPerIP, l.FeatureConfig.RateLimits.SMSPerIP, l.Config.SMSPerIP,
+		"MessagingSMSPerIP", string(l.RemoteIP),
+	)
+	if err != nil {
+		return
+	}
+
+	msg.rateLimits, err = l.check(msg.rateLimits,
+		l.EnvConfig.SMSPerTarget, l.FeatureConfig.RateLimits.SMSPerTarget, l.Config.SMSPerTarget,
+		"MessagingSMSPerTarget", phoneNumber,
+	)
+	if err != nil {
+		return
+	}
+
+	msg.rateLimits, err = l.check(msg.rateLimits,
+		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
+		"MessagingSMS",
+	)
+	if err != nil {
+		return
+	}
+
+	return
+}

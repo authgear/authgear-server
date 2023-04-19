@@ -53,18 +53,9 @@ type OTPCodeService interface {
 	SetSubmittedCode(kind otp.Kind, target string, code string) (*otp.State, error)
 }
 
-type OOBCodeSender interface {
-	CanSendCode(
-		channel model.AuthenticatorOOBChannel,
-		target string,
-	) error
-	SendCode(
-		channel model.AuthenticatorOOBChannel,
-		target string,
-		code string,
-		messageType otp.MessageType,
-		otpMode otp.OTPMode,
-	) error
+type OTPSender interface {
+	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
+	Send(msg *otp.PreparedMessage, otp string) error
 }
 
 type VerificationService interface {
@@ -154,7 +145,7 @@ type Dependencies struct {
 	Authenticators           AuthenticatorService
 	StdAttrsService          StdAttrsService
 	OTPCodes                 OTPCodeService
-	OOBCodeSender            OOBCodeSender
+	OTPSender                OTPSender
 	Verification             VerificationService
 	ForgotPassword           ForgotPasswordService
 	ResetPassword            ResetPasswordService

@@ -281,6 +281,25 @@ messaging:
   email:
     ratelimit:
       resend_cooldown_seconds: 60
+  rate_limits:
+    sms: {}
+    sms_per_ip:
+      enabled: true
+      period: 1m
+      burst: 60
+    sms_per_target:
+      enabled: true
+      period: 1h
+      burst: 10
+    email: {}
+    email_per_ip:
+      enabled: true
+      period: 1m
+      burst: 200
+    email_per_target:
+      enabled: true
+      period: 24h
+      burst: 50
 authentication:
   identities:
     - oauth

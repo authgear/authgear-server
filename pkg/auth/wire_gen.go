@@ -60,6 +60,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -285,12 +286,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -771,12 +772,12 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -1344,12 +1345,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -1703,26 +1704,36 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -1744,6 +1755,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -1808,7 +1826,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -2115,12 +2133,12 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -2587,12 +2605,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -2941,12 +2959,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -3362,12 +3380,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -3905,12 +3923,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -4264,26 +4282,36 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -4305,6 +4333,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -4369,7 +4404,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -4503,12 +4538,12 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	featureConfig := config.FeatureConfig
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -4711,12 +4746,12 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -5113,26 +5148,36 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -5154,6 +5199,13 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -5218,7 +5270,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -5485,12 +5537,12 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -5887,26 +5939,36 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -5928,6 +5990,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -5992,7 +6061,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -6125,12 +6194,12 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	}
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	secretConfig := config.SecretConfig
 	imagesKeyMaterials := deps.ProvideImagesKeyMaterials(secretConfig)
@@ -6366,12 +6435,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -6767,26 +6836,36 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -6808,6 +6887,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -6871,7 +6957,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -7186,12 +7272,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -7587,26 +7673,36 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -7628,6 +7724,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -7691,7 +7794,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -8005,12 +8108,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -8406,26 +8509,36 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -8447,6 +8560,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -8510,7 +8630,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -8812,12 +8932,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -9213,26 +9333,36 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -9254,6 +9384,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -9317,7 +9454,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -9612,12 +9749,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -10013,26 +10150,36 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -10054,6 +10201,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -10117,7 +10271,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -10402,12 +10556,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -10803,26 +10957,36 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -10844,6 +11008,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -10907,7 +11078,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -11195,12 +11366,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -11596,26 +11767,36 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -11637,6 +11818,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -11700,7 +11888,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -11991,12 +12179,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -12392,26 +12580,36 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -12433,6 +12631,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -12496,7 +12701,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -12789,12 +12994,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -13190,26 +13395,36 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -13231,6 +13446,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -13294,7 +13516,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -13585,12 +13807,12 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -13986,26 +14208,36 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -14027,6 +14259,13 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -14090,7 +14329,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -14377,12 +14616,12 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -14778,26 +15017,36 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -14819,6 +15068,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -14882,7 +15138,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -15173,12 +15429,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -15574,26 +15830,36 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -15615,6 +15881,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -15678,7 +15951,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -15970,12 +16243,12 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -16371,26 +16644,36 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -16412,6 +16695,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -16475,7 +16765,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -16766,12 +17056,12 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -17167,26 +17457,36 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -17208,6 +17508,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -17271,7 +17578,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -17562,12 +17869,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -17963,26 +18270,36 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -18004,6 +18321,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -18067,7 +18391,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -18360,12 +18684,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -18761,26 +19085,36 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -18802,6 +19136,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -18865,7 +19206,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -19156,12 +19497,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -19557,26 +19898,36 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -19598,6 +19949,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -19661,7 +20019,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -19952,12 +20310,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -20353,26 +20711,36 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -20394,6 +20762,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -20457,7 +20832,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -20753,12 +21128,12 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -21154,26 +21529,36 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -21195,6 +21580,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -21258,7 +21650,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -21549,12 +21941,12 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -21950,26 +22342,36 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -21991,6 +22393,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -22054,7 +22463,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -22368,12 +22777,12 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -22769,26 +23178,36 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -22810,6 +23229,13 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -22873,7 +23299,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -23012,12 +23438,12 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	featureConfig := config.FeatureConfig
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	otpService := &otp.Service{
 		Clock:          clockClock,
@@ -23565,26 +23991,36 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -23606,6 +24042,13 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -23669,7 +24112,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -23813,12 +24256,12 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	featureConfig := config.FeatureConfig
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	otpService := &otp.Service{
 		Clock:          clockClock,
@@ -24370,26 +24813,36 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -24411,6 +24864,13 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -24474,7 +24934,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -24776,12 +25236,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -25177,26 +25637,36 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -25218,6 +25688,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -25281,7 +25758,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -25572,12 +26049,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -25973,26 +26450,36 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -26014,6 +26501,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -26077,7 +26571,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -26364,12 +26858,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -26765,26 +27259,36 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -26806,6 +27310,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -26869,7 +27380,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -27161,12 +27672,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -27562,26 +28073,36 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -27603,6 +28124,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -27666,7 +28194,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -27953,12 +28481,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -28354,26 +28882,36 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -28395,6 +28933,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -28458,7 +29003,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -28755,12 +29300,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -29156,26 +29701,36 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -29197,6 +29752,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -29260,7 +29822,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -29547,12 +30109,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -29948,26 +30510,36 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -29989,6 +30561,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -30052,7 +30631,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -30341,12 +30920,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -30742,26 +31321,36 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -30783,6 +31372,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -30846,7 +31442,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -31133,12 +31729,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -31534,26 +32130,36 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -31575,6 +32181,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -31638,7 +32251,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -31957,12 +32570,12 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -32358,26 +32971,36 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -32399,6 +33022,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -32462,7 +33092,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -32760,12 +33390,12 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -33161,26 +33791,36 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -33202,6 +33842,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -33265,7 +33912,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -33576,12 +34223,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -33977,26 +34624,36 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -34018,6 +34675,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -34081,7 +34745,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -34376,12 +35040,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -34777,26 +35441,36 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -34818,6 +35492,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -34881,7 +35562,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -35169,12 +35850,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -35570,26 +36251,36 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -35611,6 +36302,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -35674,7 +36372,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -35970,12 +36668,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -36371,26 +37069,36 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -36412,6 +37120,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -36475,7 +37190,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -36763,12 +37478,12 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -37164,26 +37879,36 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -37205,6 +37930,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -37268,7 +38000,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -37556,12 +38288,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -37957,26 +38689,36 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -37998,6 +38740,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -38061,7 +38810,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -38349,12 +39098,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -38750,26 +39499,36 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -38791,6 +39550,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -38854,7 +39620,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -39143,12 +39909,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -39544,26 +40310,36 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -39585,6 +40361,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -39648,7 +40431,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -39955,12 +40738,12 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -40356,26 +41139,36 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -40397,6 +41190,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -40460,7 +41260,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -40748,12 +41548,12 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -41149,26 +41949,36 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -41190,6 +42000,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -41253,7 +42070,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -41541,12 +42358,12 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -41942,26 +42759,36 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -41983,6 +42810,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -42046,7 +42880,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -42334,12 +43168,12 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -42735,26 +43569,36 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -42776,6 +43620,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -42839,7 +43690,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -43127,12 +43978,12 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -43528,26 +44379,36 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -43569,6 +44430,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -43632,7 +44500,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -43927,12 +44795,12 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -44328,26 +45196,36 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -44369,6 +45247,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -44432,7 +45317,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -44721,12 +45606,12 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -45122,26 +46007,36 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -45163,6 +46058,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -45226,7 +46128,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -45513,12 +46415,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -45914,26 +46816,36 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -45955,6 +46867,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -46018,7 +46937,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -46320,12 +47239,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -46721,26 +47640,36 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -46762,6 +47691,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -46825,7 +47761,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -47112,12 +48048,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -47513,26 +48449,36 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -47554,6 +48500,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -47617,7 +48570,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -47904,12 +48857,12 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -48305,26 +49258,36 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -48346,6 +49309,13 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -48409,7 +49379,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -48714,12 +49684,12 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Redis: handle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -49115,26 +50085,36 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -49156,6 +50136,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Redis:   handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -49219,7 +50206,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -49471,12 +50458,12 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: handle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -49872,26 +50859,36 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -49913,6 +50910,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Redis:   handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -49976,7 +50980,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -50227,12 +51231,12 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -50628,26 +51632,36 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -50669,6 +51683,13 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -50732,7 +51753,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -51029,12 +52050,12 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -51430,26 +52451,36 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -51471,6 +52502,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -51534,7 +52572,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -51822,12 +52860,12 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -52223,26 +53261,36 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -52264,6 +53312,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -52327,7 +53382,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -52492,12 +53547,12 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -53002,26 +54057,36 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -53033,6 +54098,13 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -53110,7 +54182,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           authenticatorFacade,
 		StdAttrsService:          stdattrsService,
 		OTPCodes:                 otpService,
-		OOBCodeSender:            codeSender,
+		OTPSender:                messageSender,
 		Verification:             workflowVerificationFacade,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
@@ -53240,12 +54312,12 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -53751,26 +54823,36 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -53782,6 +54864,13 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -53859,7 +54948,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           authenticatorFacade,
 		StdAttrsService:          stdattrsService,
 		OTPCodes:                 otpService,
-		OOBCodeSender:            codeSender,
+		OTPSender:                messageSender,
 		Verification:             workflowVerificationFacade,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
@@ -53959,12 +55048,12 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -54470,26 +55559,36 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -54501,6 +55600,13 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -54578,7 +55684,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:           authenticatorFacade,
 		StdAttrsService:          stdattrsService,
 		OTPCodes:                 otpService,
-		OOBCodeSender:            codeSender,
+		OTPSender:                messageSender,
 		Verification:             workflowVerificationFacade,
 		ForgotPassword:           forgotpasswordProvider,
 		ResetPassword:            forgotpasswordProvider,
@@ -55088,12 +56194,12 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		AppID: appID,
 		Redis: handle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -55609,12 +56715,12 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Redis: handle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -56010,26 +57116,36 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	hardSMSBucketer := &usage.HardSMSBucketer{
-		FeatureConfig: featureConfig,
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
-	smsConfig := messagingConfig.SMS
-	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
-		Config: smsConfig,
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	sender := &messaging.Sender{
+		Limits:    limits,
+		TaskQueue: queue,
+		Events:    eventService,
 	}
 	messageSender := &otp.MessageSender{
-		RemoteIP:          remoteIP,
-		Translation:       translationService,
-		Endpoints:         endpointsEndpoints,
-		TaskQueue:         queue,
-		Events:            eventService,
-		RateLimiter:       limiter,
-		HardSMSBucketer:   hardSMSBucketer,
-		AntiSpamSMSBucket: antiSpamSMSBucketMaker,
-	}
-	codeSender := &oob.CodeSender{
-		OTPMessageSender: messageSender,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      sender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -56051,6 +57167,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Redis:   handle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
+	hardSMSBucketer := &usage.HardSMSBucketer{
+		FeatureConfig: featureConfig,
+	}
+	smsConfig := messagingConfig.SMS
+	antiSpamSMSBucketMaker := &sms.AntiSpamSMSBucketMaker{
+		Config: smsConfig,
+	}
 	forgotpasswordProvider := &forgotpassword.Provider{
 		RemoteIP:          remoteIP,
 		Translation:       translationService,
@@ -56114,7 +57237,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
 		BiometricIdentities:             biometricProvider,
 		OTPCodeService:                  otpService,
-		OOBCodeSender:                   codeSender,
+		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
 		MFA:                             mfaService,
 		ForgotPassword:                  forgotpasswordProvider,
@@ -56450,12 +57573,12 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		AppID: appID,
 		Redis: appredisHandle,
 	}
-	rateLimitFeatureConfig := featureConfig.RateLimit
+	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Clock:   clockClock,
-		Config:  rateLimitFeatureConfig,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
