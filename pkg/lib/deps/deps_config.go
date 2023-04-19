@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var ConfigDeps = wire.NewSet(
+var configDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.Config), "AppConfig", "SecretConfig", "FeatureConfig"),
 	wire.FieldsOf(new(*config.AppConfig),
 		"ID",
