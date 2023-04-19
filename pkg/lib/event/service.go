@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -215,6 +216,14 @@ func (s *Service) nextSeq() (seq int64, err error) {
 
 func (s *Service) makeContext(payload event.Payload) event.Context {
 	userID := session.GetUserID(s.Context)
+
+	if userID == nil {
+		portalSession := portalsession.GetValidSessionInfo(s.Context)
+		if portalSession != nil {
+			userID = &portalSession.UserID
+		}
+	}
+
 	if userID == nil {
 		uid := payload.UserID()
 		if uid != "" {
