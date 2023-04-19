@@ -1,9 +1,12 @@
 package mfa
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -24,10 +27,12 @@ type StoreRecoveryCode interface {
 }
 
 type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
+	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Cancel(r *ratelimit.Reservation)
 }
 
 type Service struct {
+	IP            httputil.RemoteIP
 	DeviceTokens  StoreDeviceToken
 	RecoveryCodes StoreRecoveryCode
 	Clock         clock.Clock
@@ -37,6 +42,38 @@ type Service struct {
 
 func (s *Service) GenerateDeviceToken() string {
 	return GenerateDeviceToken()
+}
+
+func (s *Service) reserveRateLimit(
+	name string,
+	perUserPerIP *config.RateLimitConfig,
+	perIP *config.RateLimitConfig,
+	userID string,
+) (rPerUserPerIP *ratelimit.Reservation, rPerIP *ratelimit.Reservation, err error) {
+	if perUserPerIP.Enabled == nil {
+		perUserPerIP = s.Config.RateLimits.General.PerUserPerIP
+	}
+	if perIP.Enabled == nil {
+		perIP = s.Config.RateLimits.General.PerIP
+	}
+
+	rPerUserPerIP = s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
+		perUserPerIP, name,
+		"user", userID, "ip", string(s.IP),
+	))
+	if err = rPerUserPerIP.Error(); err != nil {
+		return
+	}
+
+	rPerIP = s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
+		perIP, name,
+		"ip", string(s.IP),
+	))
+	if err = rPerIP.Error(); err != nil {
+		return
+	}
+
+	return
 }
 
 func (s *Service) CreateDeviceToken(userID string, token string) (*DeviceToken, error) {
@@ -55,12 +92,23 @@ func (s *Service) CreateDeviceToken(userID string, token string) (*DeviceToken, 
 }
 
 func (s *Service) VerifyDeviceToken(userID string, token string) error {
-	err := s.RateLimiter.TakeToken(AntiBruteForceDeviceTokenBucket(userID))
+	perUserPerIP, perIP, err := s.reserveRateLimit("VerifyDeviceToken",
+		s.Config.RateLimits.DeviceToken.PerUserPerIP,
+		s.Config.RateLimits.DeviceToken.PerIP,
+		userID,
+	)
+	defer s.RateLimiter.Cancel(perUserPerIP)
+	defer s.RateLimiter.Cancel(perIP)
+
 	if err != nil {
 		return err
 	}
 
 	_, err = s.DeviceTokens.Get(userID, token)
+	if errors.Is(err, ErrDeviceTokenNotFound) {
+		perUserPerIP.Consume()
+		perIP.Consume()
+	}
 	return err
 }
 
@@ -109,23 +157,35 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode, error) {
-	err := s.RateLimiter.TakeToken(AntiBruteForceRecoveryCodeBucket(userID))
+	perUserPerIP, perIP, err := s.reserveRateLimit("VerifyRecoveryCode",
+		s.Config.RateLimits.RecoveryCode.PerUserPerIP,
+		s.Config.RateLimits.RecoveryCode.PerIP,
+		userID,
+	)
+	defer s.RateLimiter.Cancel(perUserPerIP)
+	defer s.RateLimiter.Cancel(perIP)
+
 	if err != nil {
 		return nil, err
 	}
 
 	code, err = secretcode.RecoveryCode.FormatForComparison(code)
 	if err != nil {
-		err = ErrRecoveryCodeNotFound
-		return nil, err
+		return nil, ErrRecoveryCodeNotFound
 	}
 
 	rc, err := s.RecoveryCodes.Get(userID, code)
-	if err != nil {
+	if errors.Is(err, ErrRecoveryCodeNotFound) {
+		perUserPerIP.Consume()
+		perIP.Consume()
+		return nil, err
+	} else if err != nil {
 		return nil, err
 	}
 
 	if rc.Consumed {
+		// Do not consume the rate limit tokens here,
+		// since trying a used recovery code is rare and usually mistakes of real user.
 		return nil, ErrRecoveryCodeConsumed
 	}
 

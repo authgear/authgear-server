@@ -634,6 +634,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
+		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,

@@ -648,6 +648,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
+		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
 		RecoveryCodes: storeRecoveryCodePQ,
 		Clock:         clockClock,
