@@ -42,6 +42,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	wire.Bind(new(EventService), new(*event.Service)),
 	portaldeps.AppDependencySet,
 
 	deps.ConfigDeps,
