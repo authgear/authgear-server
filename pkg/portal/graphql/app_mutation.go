@@ -240,6 +240,7 @@ var _ = registerMutationField(
 			originalAppConfig := app.Context.Config.AppConfig
 
 			var resourceUpdates []appresource.Update
+			var auditedUpdatePaths []string = []string{}
 			for _, f := range updates {
 				f := f.(map[string]interface{})
 				path := f["path"].(string)
@@ -262,6 +263,7 @@ var _ = registerMutationField(
 					Path: path,
 					Data: data,
 				})
+				auditedUpdatePaths = append(auditedUpdatePaths, path)
 			}
 
 			// Update authgear.yaml
@@ -307,10 +309,18 @@ var _ = registerMutationField(
 			newAppConfig := newApp.Context.Config.AppConfig
 
 			appConfigDiff, err := formatAppConfigDiff(originalAppConfig, newAppConfig)
+			var updatedSecrets []string = []string{}
+			if secretUpdateInstructionsMap, ok := secretConfigUpdateInstructionsJSONValue.(map[string]interface{}); ok {
+				for k := range secretUpdateInstructionsMap {
+					updatedSecrets = append(updatedSecrets, k)
+				}
+			}
 			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
 				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
 				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectAppUpdatedEventPayload{
-					AppConfigDiff: appConfigDiff,
+					AppConfigDiff:    appConfigDiff,
+					UpdatedSecrets:   updatedSecrets,
+					UpdatedResources: auditedUpdatePaths,
 				})
 			})
 			if err != nil {
