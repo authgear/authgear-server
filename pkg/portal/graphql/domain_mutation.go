@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -147,16 +148,9 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
-			appProvider, err := gqlCtx.AppService.GetAppProvider(appID)
-
-			if err != nil {
-				return nil, err
-			}
-
-			portalAppSvc := portalapp.NewPortalAppService(appProvider, gqlCtx.Request)
 
 			// Access Control: collaborator.
-			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
 			}
@@ -193,10 +187,16 @@ var _ = registerMutationField(
 				}
 			}
 
-			portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainDeletedEventPayload{
-				Domain:   deletedDomain,
-				DomainID: domainID,
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainDeletedEventPayload{
+					Domain:   deletedDomain,
+					DomainID: domainID,
+				})
 			})
+			if err != nil {
+				return nil, err
+			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": gqlCtx.Apps.Load(appID),
@@ -299,14 +299,9 @@ var _ = registerMutationField(
 			appID := resolvedNodeID.ID
 
 			gqlCtx := GQLContext(p.Context)
-			appProvider, err := gqlCtx.AppService.GetAppProvider(appID)
-			if err != nil {
-				return nil, err
-			}
-			portalAppSvc := portalapp.NewPortalAppService(appProvider, gqlCtx.Request)
 
 			// Access Control: collaborator.
-			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
 			}
@@ -318,10 +313,16 @@ var _ = registerMutationField(
 
 			gqlCtx.Domains.Prime(domain.ID, domain)
 
-			portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainVerifiedEventPayload{
-				Domain:   domain.Domain,
-				DomainID: domain.ID,
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainVerifiedEventPayload{
+					Domain:   domain.Domain,
+					DomainID: domain.ID,
+				})
 			})
+			if err != nil {
+				return nil, err
+			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"domain": gqlCtx.Domains.Load(domain.ID),

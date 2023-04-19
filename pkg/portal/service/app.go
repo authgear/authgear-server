@@ -113,10 +113,10 @@ func (s *AppService) Get(id string) (*model.App, error) {
 	}, nil
 }
 
-func (s *AppService) GetAppProvider(appID string) (*deps.AppProvider, error) {
+func (s *AppService) WithAppProvider(appID string, executor func(*deps.AppProvider) error) error {
 	appCtx, err := s.AppConfigs.ResolveContext(appID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	cfg := appCtx.Config
@@ -186,7 +186,10 @@ func (s *AppService) GetAppProvider(appID string) (*deps.AppProvider, error) {
 		AppContext:         appCtx,
 	}
 	appProvider.TaskQueue = s.RootProvider.TaskQueueFactory(appProvider)
-	return appProvider, nil
+
+	return appDatabase.WithTx(func() error {
+		return executor(appProvider)
+	})
 }
 
 func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {

@@ -42,7 +42,7 @@ type CollaboratorInvitationLoader interface {
 
 type AppService interface {
 	Get(id string) (*model.App, error)
-	GetAppProvider(appID string) (*deps.AppProvider, error)
+	WithAppProvider(appID string, executor func(*deps.AppProvider) error) error
 	GetAppList(userID string) ([]*model.AppListItem, error)
 	Create(userID string, id string) error
 	UpdateResources(app *model.App, updates []appresource.Update) error
