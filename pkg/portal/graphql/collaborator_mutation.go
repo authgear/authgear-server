@@ -5,7 +5,10 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/portal/deps"
+	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -76,6 +79,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorDeletedEventPayload{
+					CollaboratorID:     targetCollab.ID,
+					CollaboratorUserID: targetCollab.UserID,
+					CollaboratorRole:   string(targetCollab.Role),
+				})
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": gqlCtx.Apps.Load(appID),
 			}).Value, nil
@@ -134,6 +149,17 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.CollaboratorService.DeleteInvitation(invitation)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AppService.WithAppProvider(invitation.AppID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorInvitationDeletedEventPayload{
+					InviteeEmail: invitation.InviteeEmail,
+					InvitedBy:    invitation.InvitedBy,
+				})
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -233,6 +259,18 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx.CollaboratorInvitations.Prime(invitation.ID, invitation)
+
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorInvitationCreatedEventPayload{
+					InviteeEmail: invitation.InviteeEmail,
+					InvitedBy:    invitation.InvitedBy,
+				})
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app":                    gqlCtx.Apps.Load(appID),
 				"collaboratorInvitation": gqlCtx.CollaboratorInvitations.Load(invitation.ID),
@@ -281,6 +319,19 @@ var _ = registerMutationField(
 			}
 
 			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)
+			if err != nil {
+				return nil, err
+			}
+
+			appID := collaborator.AppID
+
+			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
+				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
+				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorInvitationAcceptedEventPayload{
+					CollaboratorUserID: collaborator.UserID,
+					CollaboratorRole:   string(collaborator.Role),
+				})
+			})
 			if err != nil {
 				return nil, err
 			}
