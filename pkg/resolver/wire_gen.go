@@ -440,19 +440,20 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -945,19 +946,20 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            serviceStore,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          serviceStore,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost

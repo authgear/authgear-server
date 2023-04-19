@@ -405,19 +405,20 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -891,19 +892,20 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -1464,19 +1466,20 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -2231,19 +2234,20 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -2703,19 +2707,20 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -3057,19 +3062,20 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -3478,19 +3484,20 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -4021,19 +4028,20 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -4823,19 +4831,20 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -5593,19 +5602,20 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -6470,19 +6480,20 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -7287,19 +7298,20 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -8103,19 +8115,20 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -8907,19 +8920,20 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -9704,19 +9718,20 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -10491,19 +10506,20 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -11281,19 +11297,20 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -12074,19 +12091,20 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -12869,19 +12887,20 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -13662,19 +13681,20 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -14451,19 +14471,20 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -15244,19 +15265,20 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -16038,19 +16060,20 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -16831,19 +16854,20 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -17624,19 +17648,20 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -18419,19 +18444,20 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -19212,19 +19238,20 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -20005,19 +20032,20 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -20803,19 +20831,20 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -21596,19 +21625,20 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -22412,19 +22442,20 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -23205,19 +23236,20 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -24007,19 +24039,20 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -24811,19 +24844,20 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -25604,19 +25638,20 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -26393,19 +26428,20 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -27187,19 +27223,20 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -27976,19 +28013,20 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -28775,19 +28813,20 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -29564,19 +29603,20 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -30355,19 +30395,20 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -31144,19 +31185,20 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -31965,19 +32007,20 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -32765,19 +32808,20 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -33578,19 +33622,20 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -34375,19 +34420,20 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -35165,19 +35211,20 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -35963,19 +36010,20 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -36753,19 +36801,20 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -37543,19 +37592,20 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -38333,19 +38383,20 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -39124,19 +39175,20 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -39933,19 +39985,20 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -40723,19 +40776,20 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -41513,19 +41567,20 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -42303,19 +42358,20 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -43093,19 +43149,20 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -43890,19 +43947,20 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -44681,19 +44739,20 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -45470,19 +45529,20 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -46274,19 +46334,20 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -47063,19 +47124,20 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -47852,19 +47914,20 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -48659,19 +48722,20 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -49412,19 +49476,20 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -50164,19 +50229,20 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -50963,19 +51029,20 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -51753,19 +51820,20 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -52522,19 +52590,20 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -53266,19 +53335,20 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -53981,19 +54051,20 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -55004,19 +55075,20 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -55525,19 +55597,20 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -56362,19 +56435,20 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile

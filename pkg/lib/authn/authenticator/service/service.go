@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 type PasswordAuthenticatorProvider interface {
@@ -66,20 +65,15 @@ type OTPCodeService interface {
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 }
 
-type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
-}
-
 type Service struct {
-	Store                            *Store
-	Config                           *config.AppConfig
-	Password                         PasswordAuthenticatorProvider
-	Passkey                          PasskeyAuthenticatorProvider
-	TOTP                             TOTPAuthenticatorProvider
-	OOBOTP                           OOBOTPAuthenticatorProvider
-	OTPCodeService                   OTPCodeService
-	RateLimiter                      RateLimiter
-	AntiBruteForceAuthenticateBucket AntiBruteForceAuthenticateBucketMaker
+	Store          *Store
+	Config         *config.AppConfig
+	Password       PasswordAuthenticatorProvider
+	Passkey        PasskeyAuthenticatorProvider
+	TOTP           TOTPAuthenticatorProvider
+	OOBOTP         OOBOTPAuthenticatorProvider
+	OTPCodeService OTPCodeService
+	RateLimits     RateLimits
 }
 
 func (s *Service) Get(id string) (*authenticator.Info, error) {
@@ -445,8 +439,10 @@ func (s *Service) Delete(info *authenticator.Info) error {
 }
 
 func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
-	err = s.RateLimiter.TakeToken(s.AntiBruteForceAuthenticateBucket.MakeBucket(info.UserID, info.Type))
-	if err != nil {
+	r := s.RateLimits.Reserve(info.UserID, info.Type)
+	defer s.RateLimits.Cancel(r)
+
+	if err = r.Error(); err != nil {
 		return
 	}
 
@@ -456,6 +452,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.Password
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
+			r.Consume()
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -466,6 +463,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.Passkey
 		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
+			r.Consume()
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -476,6 +474,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		code := spec.TOTP.Code
 		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
+			r.Consume()
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -498,6 +497,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 			UserID: info.UserID,
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
+			r.Consume()
 			err = authenticator.ErrInvalidCredentials
 			return
 		} else if err != nil {
