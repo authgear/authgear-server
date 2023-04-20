@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -55,6 +56,13 @@ var _ = registerMutationField(
 			userID := authz.UserID
 
 			err = gqlCtx.AuthorizationFacade.Delete(authz)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIDeleteAuthorizationExecutedEventPayload{
+				Authorization: *authz.ToAPIModel(),
+			})
 			if err != nil {
 				return nil, err
 			}
