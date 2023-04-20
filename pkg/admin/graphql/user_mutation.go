@@ -779,6 +779,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(
+				&nonblocking.AdminAPIScheduleAccountAnonymizationExecutedEventPayload{
+					UserRef: apimodel.UserRef{
+						Meta: apimodel.Meta{
+							ID: userID,
+						},
+					},
+				})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -828,6 +840,18 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.UserFacade.UnscheduleAnonymization(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(
+				&nonblocking.AdminAPIUnscheduleAccountAnonymizationExecutedEventPayload{
+					UserRef: apimodel.UserRef{
+						Meta: apimodel.Meta{
+							ID: userID,
+						},
+					},
+				})
 			if err != nil {
 				return nil, err
 			}
