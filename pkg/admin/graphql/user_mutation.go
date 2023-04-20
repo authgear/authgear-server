@@ -135,6 +135,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIResetPasswordExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -170,6 +181,13 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.ForgotPassword.SendCode(loginID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPISendResetPasswordMessageExecutedEventPayload{
+				LoginID: loginID,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -269,6 +287,13 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIGenerateOOBOTPCodeExecutedEventPayload{
+				Target: target,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"code": code,
 			}).Value, nil
@@ -338,6 +363,15 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPISetVerifiedStatusExecutedEventPayload{
+				ClaimName:  claimName,
+				ClaimValue: claimValue,
+				IsVerified: isVerified,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -401,6 +435,18 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.UserFacade.SetDisabled(userID, isDisabled, reason)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPISetDisabledStatusExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				IsDisabled: isDisabled,
+			})
 			if err != nil {
 				return nil, err
 			}
