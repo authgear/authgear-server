@@ -504,6 +504,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIScheduleAccountDeletionExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -553,6 +564,17 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.UserFacade.UnscheduleDeletion(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIUnscheduleAccountDeletionExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}
