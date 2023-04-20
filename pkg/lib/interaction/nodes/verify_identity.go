@@ -146,10 +146,6 @@ type InputVerifyIdentityCheckCode interface {
 	GetVerificationCode() string
 }
 
-type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
-}
-
 type EdgeVerifyIdentityCheckCode struct {
 	Identity *identity.Info
 }
@@ -162,11 +158,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 	loginIDModel := e.Identity.LoginID
 	channel, target := loginIDModel.ToChannelTarget()
 
-	err := ctx.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(ctx.RemoteIP)))
-	if err != nil {
-		return nil, err
-	}
-	err = ctx.OTPCodeService.VerifyOTP(
+	err := ctx.OTPCodeService.VerifyOTP(
 		otp.KindVerification(ctx.Config, channel),
 		target,
 		input.GetVerificationCode(),

@@ -47,7 +47,7 @@ type RateLimiter interface {
 	Allow(spec ratelimit.BucketSpec) error
 	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
 	ReserveN(spec ratelimit.BucketSpec, n int) *ratelimit.Reservation
-	Cancel(r *ratelimit.Reservation) error
+	Cancel(r *ratelimit.Reservation)
 }
 
 type Logger struct{ *log.Logger }
@@ -175,34 +175,29 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 		return err
 	}
 
-	isCodeValid := false
+	var reservations []*ratelimit.Reservation
 
-	reservation1 := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
-	if err := reservation1.Error(); err != nil {
-		return err
-	}
+	isCodeValid := false
 	defer func() {
 		if isCodeValid {
-			if err := s.RateLimiter.Cancel(reservation1); err != nil {
-				// non-critical error; log and continue
-				s.Logger.WithError(err).Warn("failed to return rate limit tokens")
+			for _, r := range reservations {
+				s.RateLimiter.Cancel(r)
 			}
 		}
 	}()
 
+	r1 := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
+	if err := r1.Error(); err != nil {
+		return err
+	}
+	reservations = append(reservations, r1)
+
 	if opts.UserID != "" {
-		reservation2 := s.RateLimiter.Reserve(kind.RateLimitValidatePerUserPerIP(opts.UserID, string(s.RemoteIP)))
-		if err := reservation2.Error(); err != nil {
+		r2 := s.RateLimiter.Reserve(kind.RateLimitValidatePerUserPerIP(opts.UserID, string(s.RemoteIP)))
+		if err := r2.Error(); err != nil {
 			return err
 		}
-		defer func() {
-			if isCodeValid {
-				if err := s.RateLimiter.Cancel(reservation2); err != nil {
-					// non-critical error; log and continue
-					s.Logger.WithError(err).Warn("failed to return rate limit tokens")
-				}
-			}
-		}()
+		reservations = append(reservations, r2)
 	}
 
 	code, err := s.getCode(kind.Purpose(), target)
@@ -310,9 +305,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 	reservation := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
 	now := s.Clock.NowUTC()
 	canResendAt := now.Add(reservation.DelayFrom(now))
-	if err := s.RateLimiter.Cancel(reservation); err != nil {
-		return nil, err
-	}
+	s.RateLimiter.Cancel(reservation)
 
 	state := &State{
 		ExpireAt:        now,

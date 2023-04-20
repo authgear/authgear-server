@@ -81,14 +81,14 @@ func (l *Limiter) Reserve(name LimitName, config *config.UsageLimitConfig) (*Res
 	return &Reservation{taken: true, name: name, config: config}, nil
 }
 
-func (l *Limiter) Cancel(r *Reservation) error {
+func (l *Limiter) Cancel(r *Reservation) {
 	if !r.taken {
-		return nil
+		return
 	}
 
 	key := redisLimitKey(l.AppID, r.name)
 
-	return l.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := l.Redis.WithConn(func(conn *goredis.Conn) error {
 		ctx := context.Background()
 		_, err := conn.IncrBy(ctx, key, -1).Result()
 		if err != nil {
@@ -101,6 +101,14 @@ func (l *Limiter) Cancel(r *Reservation) error {
 
 		return nil
 	})
+
+	if err != nil {
+		// Errors here are non-critical and non-recoverable;
+		// log and continue.
+		l.Logger.WithError(err).
+			WithField("key", key).
+			Warn("failed to cancel reservation")
+	}
 }
 
 func redisLimitKey(appID config.AppID, name LimitName) string {

@@ -73,8 +73,9 @@ type ResetPasswordService interface {
 }
 
 type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
-	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
+	Allow(spec ratelimit.BucketSpec) error
+	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Cancel(r *ratelimit.Reservation)
 }
 
 type EventService interface {

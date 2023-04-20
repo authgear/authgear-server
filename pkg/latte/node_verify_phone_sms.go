@@ -48,12 +48,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
 		code := inputTakeOOBOTPCode.GetCode()
 
-		err := deps.RateLimiter.TakeToken(verification.AutiBruteForceVerifyBucket(string(deps.RemoteIP)))
-		if err != nil {
-			return nil, err
-		}
-
-		err = deps.OTPCodes.VerifyOTP(
+		err := deps.OTPCodes.VerifyOTP(
 			otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS),
 			n.PhoneNumber,
 			code,

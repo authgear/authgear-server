@@ -190,11 +190,15 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 	}
 }
 
-func (l *Limiter) Cancel(r *Reservation) error {
+func (l *Limiter) Cancel(r *Reservation) {
+	if r == nil || r.isConsumed || r.tokenTaken == 0 {
+		return
+	}
+
 	bucket := r.spec.bucket()
 	now := l.Clock.NowUTC()
 
-	return l.Storage.WithConn(func(conn StorageConn) error {
+	err := l.Storage.WithConn(func(conn StorageConn) error {
 		// Check if we should refill the bucket.
 		resetTime, err := conn.GetResetTime(bucket, now)
 		if err != nil {
@@ -215,4 +219,13 @@ func (l *Limiter) Cancel(r *Reservation) error {
 		r.tokenTaken = 0
 		return nil
 	})
+
+	if err != nil {
+		// Errors here are non-critical and non-recoverable;
+		// log and continue.
+		l.Logger.WithError(err).
+			WithField("global", bucket.IsGlobal).
+			WithField("key", bucket.Key).
+			Warn("failed to cancel reservation")
+	}
 }

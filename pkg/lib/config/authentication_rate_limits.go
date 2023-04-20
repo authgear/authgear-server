@@ -6,14 +6,20 @@ var _ = Schema.Add("AuthenticationRateLimitsConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"general": { "$ref": "#/$defs/AuthenticationRateLimitsGeneralConfig" },
-		"oob_otp": { "$ref": "#/$defs/AuthenticationRateLimitsOOBOTPConfig" }
+		"oob_otp": { "$ref": "#/$defs/AuthenticationRateLimitsOOBOTPConfig" },
+		"signup": { "$ref": "#/$defs/AuthenticationRateLimitsSignupConfig" },
+		"signup_anonymous": { "$ref": "#/$defs/AuthenticationRateLimitsSignupAnonymousConfig" },
+		"account_enumeration": { "$ref": "#/$defs/AuthenticationRateLimitsAccountEnumerationConfig" }
 	}
 }
 `)
 
 type AuthenticationRateLimitsConfig struct {
-	General *AuthenticationRateLimitsGeneralConfig `json:"general,omitempty"`
-	OOBOTP  *AuthenticationRateLimitsOOBOTPConfig  `json:"oob_otp,omitempty"`
+	General            *AuthenticationRateLimitsGeneralConfig            `json:"general,omitempty"`
+	OOBOTP             *AuthenticationRateLimitsOOBOTPConfig             `json:"oob_otp,omitempty"`
+	Signup             *AuthenticationRateLimitsSignupConfig             `json:"signup,omitempty"`
+	SignupAnonymous    *AuthenticationRateLimitsSignupAnonymousConfig    `json:"signup_anonymous,omitempty"`
+	AccountEnumeration *AuthenticationRateLimitsAccountEnumerationConfig `json:"account_enumeration,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticationRateLimitsGeneralConfig", `
@@ -122,5 +128,77 @@ type AuthenticationRateLimitsOOBOTPSMSConfig struct {
 func (c *AuthenticationRateLimitsOOBOTPSMSConfig) SetDefaults() {
 	if c.TriggerCooldown == "" {
 		c.TriggerCooldown = "1m"
+	}
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsSignupConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsSignupConfig struct {
+	PerIP *RateLimitConfig `json:"per_ip,omitempty"`
+}
+
+func (c *AuthenticationRateLimitsSignupConfig) SetDefaults() {
+	if c.PerIP.Enabled == nil {
+		c.PerIP = &RateLimitConfig{
+			Enabled: newBool(true),
+			Period:  "1m",
+			Burst:   10,
+		}
+	}
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsSignupAnonymousConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsSignupAnonymousConfig struct {
+	PerIP *RateLimitConfig `json:"per_ip,omitempty"`
+}
+
+func (c *AuthenticationRateLimitsSignupAnonymousConfig) SetDefaults() {
+	if c.PerIP.Enabled == nil {
+		c.PerIP = &RateLimitConfig{
+			Enabled: newBool(true),
+			Period:  "1m",
+			Burst:   60,
+		}
+	}
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsAccountEnumerationConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsAccountEnumerationConfig struct {
+	PerIP *RateLimitConfig `json:"per_ip,omitempty"`
+}
+
+func (c *AuthenticationRateLimitsAccountEnumerationConfig) SetDefaults() {
+	if c.PerIP.Enabled == nil {
+		c.PerIP = &RateLimitConfig{
+			Enabled: newBool(true),
+			Period:  "1m",
+			Burst:   10,
+		}
 	}
 }

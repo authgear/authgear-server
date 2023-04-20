@@ -145,18 +145,5 @@ func (s *Service) Run(webSessionID string, graph *Graph) (err error) {
 }
 
 func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
-	bypassRateLimit := false
-	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
-	if Input(input, &bypassInput) {
-		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
-	}
-
-	if !bypassRateLimit {
-		err := ctx.RateLimiter.TakeToken(AntiSpamRequestBucket(string(ctx.RemoteIP)))
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
 	return graph.accept(ctx, input)
 }

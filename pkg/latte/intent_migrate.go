@@ -62,15 +62,6 @@ func (i *IntentMigrate) ReactTo(ctx context.Context, deps *workflow.Dependencies
 	// Check the migration token
 	switch len(w.Nodes) {
 	case 0:
-		// The token will be taken in on-commit effect.
-		bucket := AntiSpamSignupBucket(string(deps.RemoteIP))
-		pass, _, err := deps.RateLimiter.CheckToken(bucket)
-		if err != nil {
-			return nil, err
-		}
-		if !pass {
-			return nil, bucket.BucketError()
-		}
 		return workflow.NewNodeSimple(&NodeDoCreateUser{
 			UserID: uuid.New(),
 		}), nil
@@ -111,8 +102,8 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
-			bucket := AntiSpamSignupBucket(string(deps.RemoteIP))
-			err := deps.RateLimiter.TakeToken(bucket)
+			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
+			err := deps.RateLimiter.Allow(spec)
 			if err != nil {
 				return err
 			}

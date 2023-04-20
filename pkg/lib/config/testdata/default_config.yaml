@@ -337,6 +337,21 @@ authentication:
         trigger_cooldown: 1m
         validate_per_ip: {}
         validate_per_user_per_ip: {}
+    signup:
+      per_ip:
+        enabled: true
+        period: 1m
+        burst: 10
+    signup_anonymous:
+      per_ip:
+        enabled: true
+        period: 1m
+        burst: 60
+    account_enumeration:
+      per_ip:
+        enabled: true
+        period: 1m
+        burst: 10
 session:
   lifetime_seconds: 31449600
   idle_timeout_enabled: true

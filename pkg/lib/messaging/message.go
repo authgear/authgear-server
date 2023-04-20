@@ -21,18 +21,12 @@ func (m *message) Close() {
 	}
 
 	for _, r := range m.rateLimits {
-		err := m.rateLimiter.Cancel(r)
-		if err != nil {
-			m.logger.WithError(err).Warn("failed to return reserved token")
-		}
+		m.rateLimiter.Cancel(r)
 	}
 	m.rateLimits = nil
 
 	if m.usageLimit != nil {
-		err := m.usageLimiter.Cancel(m.usageLimit)
-		if err != nil {
-			m.logger.WithError(err).Warn("failed to return reserved token")
-		}
+		m.usageLimiter.Cancel(m.usageLimit)
 	}
 	m.usageLimit = nil
 }
