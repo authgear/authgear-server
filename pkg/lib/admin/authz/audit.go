@@ -7,7 +7,7 @@ type auditContextKeyType struct{}
 var auditContextKey = auditContextKeyType{}
 
 const (
-	JWTKeyAuditContext = "audit_context"
+	JWTKeyAuditContext string = "audit_context"
 )
 
 type T struct {

@@ -83,7 +83,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			authorized = true
 
 			requestCtx := r.Context()
-			auditCtx, ok := token.Get("audit_context")
+			auditCtx, ok := token.Get(JWTKeyAuditContext)
 			if ok {
 				newCtx := WithAdminAuthzAudit(requestCtx, auditCtx)
 				r = r.WithContext(newCtx)
