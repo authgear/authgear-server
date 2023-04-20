@@ -146,6 +146,105 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"WHATSAPP_OTP_VERIFIED": &graphql.EnumValueConfig{
 			Value: "whatsapp.otp.verified",
 		},
+		"ADMIN_API_ANONYMIZE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.anonymize_user.executed",
+		},
+		"ADMIN_API_CREATE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.create_identity.executed",
+		},
+		"ADMIN_API_CREATE_SESSION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.create_session.executed",
+		},
+		"ADMIN_API_CREATE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.create_user.executed",
+		},
+		"ADMIN_API_DELETE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.delete_authenticator.executed",
+		},
+		"ADMIN_API_DELETE_AUTHORIZATION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.delete_authorization.executed",
+		},
+		"ADMIN_API_DELETE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.delete_identity.executed",
+		},
+		"ADMIN_API_DELETE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.delete_user.executed",
+		},
+		"ADMIN_API_GENERATE_OOB_OTP_CODE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.generate_oob_otp_code.executed",
+		},
+		"ADMIN_API_RESET_PASSWORD_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.reset_password.executed",
+		},
+		"ADMIN_API_REVOKE_ALL_SESSIONS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.revoke_all_sessions.executed",
+		},
+		"ADMIN_API_REVOKE_SESSION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.revoke_session.executed",
+		},
+		"ADMIN_API_SCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.schedule_account_anonymization.executed",
+		},
+		"ADMIN_API_SCHEDULE_ACCOUNT_DELETION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.schedule_account_deletion.executed",
+		},
+		"ADMIN_API_SEND_RESET_PASSWORD_MESSAGE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.send_reset_password_message.executed",
+		},
+		"ADMIN_API_SET_DISABLED_STATUS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.set_disabled_status.executed",
+		},
+		"ADMIN_API_SET_VERIFIED_STATUS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.set_verified_status.executed",
+		},
+		"ADMIN_API_UNSCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.unschedule_account_anonymization.executed",
+		},
+		"ADMIN_API_UNSCHEDULE_ACCOUNT_DELETION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.unschedule_account_deletion.executed",
+		},
+		"ADMIN_API_UPDATE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.update_identity.executed",
+		},
+		"ADMIN_API_UPDATE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.update_user.executed",
+		},
+		"PROJECT_APP_UPDATED": &graphql.EnumValueConfig{
+			Value: "project.app.updated",
+		},
+		"PROJECT_BILLING_CHECKOUT_CREATED": &graphql.EnumValueConfig{
+			Value: "project.billing.checkout.created",
+		},
+		"PROJECT_BILLING_SUBSCRIPTION_CANCELLED": &graphql.EnumValueConfig{
+			Value: "project.billing.subscription.cancelled",
+		},
+		"PROJECT_BILLING_SUBSCRIPTION_STATUS_UPDATED": &graphql.EnumValueConfig{
+			Value: "project.billing.subscription.status.updated",
+		},
+		"PROJECT_BILLING_SUBSCRIPTION_UPDATED": &graphql.EnumValueConfig{
+			Value: "project.billing.subscription.updated",
+		},
+		"PROJECT_COLLABORATOR_DELETED": &graphql.EnumValueConfig{
+			Value: "project.collaborator.deleted",
+		},
+		"PROJECT_COLLABORATOR_INVITATION_ACCEPTED": &graphql.EnumValueConfig{
+			Value: "project.collaborator.invitation.accepted",
+		},
+		"PROJECT_COLLABORATOR_INVITATION_CREATED": &graphql.EnumValueConfig{
+			Value: "project.collaborator.invitation.created",
+		},
+		"PROJECT_COLLABORATOR_INVITATION_DELETED": &graphql.EnumValueConfig{
+			Value: "project.collaborator.invitation.deleted",
+		},
+		"PROJECT_DOMAIN_CREATED": &graphql.EnumValueConfig{
+			Value: "project.domain.created",
+		},
+		"PROJECT_DOMAIN_DELETED": &graphql.EnumValueConfig{
+			Value: "project.domain.deleted",
+		},
+		"PROJECT_DOMAIN_VERIFIED": &graphql.EnumValueConfig{
+			Value: "project.domain.verified",
+		},
 	},
 })
 
