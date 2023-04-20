@@ -288,7 +288,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIGenerateOOBOTPCodeExecutedEventPayload{
-				Target: target,
+				Target:  target,
+				Purpose: string(purpose),
 			})
 			if err != nil {
 				return nil, err

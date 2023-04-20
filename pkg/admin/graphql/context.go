@@ -100,7 +100,7 @@ type AuthorizationFacade interface {
 }
 
 type OAuthFacade interface {
-	CreateSession(clientID string, userID string) (protocol.TokenResponse, error)
+	CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error)
 }
 
 type SessionListingService interface {

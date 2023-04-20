@@ -12,6 +12,7 @@ const (
 type AdminAPICreateSessionExecutedEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
+	Session   model.Session `json:"session"`
 }
 
 func (e *AdminAPICreateSessionExecutedEventPayload) NonBlockingEventType() event.Type {

@@ -9,7 +9,8 @@ const (
 )
 
 type AdminAPIGenerateOOBOTPCodeExecutedEventPayload struct {
-	Target string `json:"target"`
+	Target  string `json:"target"`
+	Purpose string `json:"purpose"`
 }
 
 func (e *AdminAPIGenerateOOBOTPCodeExecutedEventPayload) NonBlockingEventType() event.Type {

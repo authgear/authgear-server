@@ -12,7 +12,7 @@ const (
 type AdminAPIRevokeSessionExecutedEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
-	SessionID string        `json:"session_id"`
+	Session   model.Session `json:"session"`
 }
 
 func (e *AdminAPIRevokeSessionExecutedEventPayload) NonBlockingEventType() event.Type {

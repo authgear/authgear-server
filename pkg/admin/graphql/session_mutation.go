@@ -67,7 +67,7 @@ var _ = registerMutationField(
 						ID: userID,
 					},
 				},
-				SessionID: sessionID,
+				Session: *s.ToAPIModel(),
 			})
 			if err != nil {
 				return nil, err
@@ -197,7 +197,7 @@ var _ = registerMutationField(
 
 			clientID := input["clientID"].(string)
 
-			resp, err := gqlCtx.OAuthFacade.CreateSession(clientID, userID)
+			s, resp, err := gqlCtx.OAuthFacade.CreateSession(clientID, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -208,6 +208,7 @@ var _ = registerMutationField(
 						ID: userID,
 					},
 				},
+				Session: *s.ToAPIModel(),
 			})
 			if err != nil {
 				return nil, err
