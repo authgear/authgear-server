@@ -3,7 +3,6 @@ package nonblocking
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
 const (
@@ -11,9 +10,9 @@ const (
 )
 
 type AdminAPIDeleteAuthenticatorExecutedEventPayload struct {
-	UserRef       model.UserRef      `json:"-" resolve:"user"`
-	UserModel     model.User         `json:"user"`
-	Authenticator authenticator.Info `json:"authenticator"`
+	UserRef       model.UserRef       `json:"-" resolve:"user"`
+	UserModel     model.User          `json:"user"`
+	Authenticator model.Authenticator `json:"authenticator"`
 }
 
 func (e *AdminAPIDeleteAuthenticatorExecutedEventPayload) NonBlockingEventType() event.Type {
