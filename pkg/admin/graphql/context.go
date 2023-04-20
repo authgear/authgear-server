@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -114,6 +115,10 @@ type ForgotPasswordService interface {
 	SendCode(loginID string) error
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("admin-graphql")} }
@@ -142,6 +147,7 @@ type Context struct {
 	SessionListing      SessionListingService
 	OTPCode             OTPCodeService
 	ForgotPassword      ForgotPasswordService
+	Events              EventService
 }
 
 func (c *Context) Logger() *log.Logger {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -776,6 +777,17 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.UserFacade.Anonymize(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIAnonymizeUserExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}
