@@ -24,6 +24,7 @@ type Context struct {
 	Timestamp          int64           `json:"timestamp"`
 	UserID             *string         `json:"user_id"`
 	TriggeredBy        TriggeredByType `json:"triggered_by"`
+	AuditContext       interface{}     `json:"audit_context"`
 	PreferredLanguages []string        `json:"preferred_languages"`
 	Language           string          `json:"language"`
 

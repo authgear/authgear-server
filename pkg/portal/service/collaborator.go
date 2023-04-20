@@ -53,7 +53,7 @@ type CollaboratorServiceEndpointsProvider interface {
 }
 
 type CollaboratorServiceAdminAPIService interface {
-	SelfDirector() (func(*http.Request), error)
+	SelfDirector(actorUserID string, usage Usage) (func(*http.Request), error)
 }
 
 type CollaboratorAppConfigService interface {
@@ -540,7 +540,7 @@ func (s *CollaboratorService) CheckInviteeEmail(i *model.CollaboratorInvitation,
 		return err
 	}
 
-	director, err := s.AdminAPI.SelfDirector()
+	director, err := s.AdminAPI.SelfDirector(actorID, UsageInternal)
 	if err != nil {
 		return err
 	}

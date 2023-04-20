@@ -7,11 +7,12 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserLoaderAdminAPIService interface {
-	SelfDirector() (func(*http.Request), error)
+	SelfDirector(actorUserID string, usage service.Usage) (func(*http.Request), error)
 }
 
 type UserLoader struct {
@@ -57,7 +58,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 		return nil, err
 	}
 
-	director, err := l.AdminAPI.SelfDirector()
+	director, err := l.AdminAPI.SelfDirector("", service.UsageInternal)
 	if err != nil {
 		return nil, err
 	}
