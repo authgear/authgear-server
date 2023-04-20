@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	AdminAPISendResetPasswordMessageExecuted event.Type = "admin_api.send_reset_password_message.executed"
+	AdminAPISendResetPasswordMessageExecuted event.Type = "admin_api.send_reset_password_message.executed" // nolint:gosec
 )
 
 type AdminAPISendResetPasswordMessageExecutedEventPayload struct {
