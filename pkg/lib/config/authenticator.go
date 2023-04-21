@@ -92,6 +92,7 @@ var _ = Schema.Add("PasswordRatelimitConfig", `
 }
 `)
 
+// PasswordRatelimitConfig is deprecated
 type PasswordRatelimitConfig struct {
 	FailedAttempt *PasswordFailedAttemptConfig `json:"failed_attempt,omitempty"`
 }

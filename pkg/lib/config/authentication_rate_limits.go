@@ -6,7 +6,13 @@ var _ = Schema.Add("AuthenticationRateLimitsConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"general": { "$ref": "#/$defs/AuthenticationRateLimitsGeneralConfig" },
+		"password": { "$ref": "#/$defs/AuthenticationRateLimitsPasswordConfig" },
 		"oob_otp": { "$ref": "#/$defs/AuthenticationRateLimitsOOBOTPConfig" },
+		"totp": { "$ref": "#/$defs/AuthenticationRateLimitsTOTPConfig" },
+		"passkey": { "$ref": "#/$defs/AuthenticationRateLimitsPasskeyConfig" },
+		"siwe": { "$ref": "#/$defs/AuthenticationRateLimitsSIWEConfig" },
+		"recovery_code": { "$ref": "#/$defs/AuthenticationRateLimitsRecoveryCodeConfig" },
+		"device_token": { "$ref": "#/$defs/AuthenticationRateLimitsDeviceTokenConfig" },
 		"signup": { "$ref": "#/$defs/AuthenticationRateLimitsSignupConfig" },
 		"signup_anonymous": { "$ref": "#/$defs/AuthenticationRateLimitsSignupAnonymousConfig" },
 		"account_enumeration": { "$ref": "#/$defs/AuthenticationRateLimitsAccountEnumerationConfig" }
@@ -15,8 +21,15 @@ var _ = Schema.Add("AuthenticationRateLimitsConfig", `
 `)
 
 type AuthenticationRateLimitsConfig struct {
-	General            *AuthenticationRateLimitsGeneralConfig            `json:"general,omitempty"`
-	OOBOTP             *AuthenticationRateLimitsOOBOTPConfig             `json:"oob_otp,omitempty"`
+	General      *AuthenticationRateLimitsGeneralConfig      `json:"general,omitempty"`
+	Password     *AuthenticationRateLimitsPasswordConfig     `json:"password,omitempty"`
+	OOBOTP       *AuthenticationRateLimitsOOBOTPConfig       `json:"oob_otp,omitempty"`
+	TOTP         *AuthenticationRateLimitsTOTPConfig         `json:"totp,omitempty"`
+	Passkey      *AuthenticationRateLimitsPasskeyConfig      `json:"passkey,omitempty"`
+	SIWE         *AuthenticationRateLimitsSIWEConfig         `json:"siwe,omitempty"`
+	RecoveryCode *AuthenticationRateLimitsRecoveryCodeConfig `json:"recovery_code,omitempty"`
+	DeviceToken  *AuthenticationRateLimitsDeviceTokenConfig  `json:"device_token,omitempty"`
+
 	Signup             *AuthenticationRateLimitsSignupConfig             `json:"signup,omitempty"`
 	SignupAnonymous    *AuthenticationRateLimitsSignupAnonymousConfig    `json:"signup_anonymous,omitempty"`
 	AccountEnumeration *AuthenticationRateLimitsAccountEnumerationConfig `json:"account_enumeration,omitempty"`
@@ -53,6 +66,22 @@ func (c *AuthenticationRateLimitsGeneralConfig) SetDefaults() {
 			Burst:   10,
 		}
 	}
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsPasswordConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" },
+		"per_user_per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsPasswordConfig struct {
+	PerIP        *RateLimitConfig `json:"per_ip,omitempty"`
+	PerUserPerIP *RateLimitConfig `json:"per_user_per_ip,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticationRateLimitsOOBOTPConfig", `
@@ -129,6 +158,82 @@ func (c *AuthenticationRateLimitsOOBOTPSMSConfig) SetDefaults() {
 	if c.TriggerCooldown == "" {
 		c.TriggerCooldown = "1m"
 	}
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsTOTPConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" },
+		"per_user_per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsTOTPConfig struct {
+	PerIP        *RateLimitConfig `json:"per_ip,omitempty"`
+	PerUserPerIP *RateLimitConfig `json:"per_user_per_ip,omitempty"`
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsPasskeyConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsPasskeyConfig struct {
+	PerIP *RateLimitConfig `json:"per_ip,omitempty"`
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsSIWEConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsSIWEConfig struct {
+	PerIP *RateLimitConfig `json:"per_ip,omitempty"`
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsRecoveryCodeConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" },
+		"per_user_per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsRecoveryCodeConfig struct {
+	PerIP        *RateLimitConfig `json:"per_ip,omitempty"`
+	PerUserPerIP *RateLimitConfig `json:"per_user_per_ip,omitempty"`
+}
+
+var _ = Schema.Add("AuthenticationRateLimitsDeviceTokenConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"per_ip": { "$ref": "#/$defs/RateLimitConfig" },
+		"per_user_per_ip": { "$ref": "#/$defs/RateLimitConfig" }
+	}
+}
+`)
+
+type AuthenticationRateLimitsDeviceTokenConfig struct {
+	PerIP        *RateLimitConfig `json:"per_ip,omitempty"`
+	PerUserPerIP *RateLimitConfig `json:"per_user_per_ip,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticationRateLimitsSignupConfig", `

@@ -329,13 +329,14 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clock,
-		NonceStore:  siweStoreRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clock,
+		NonceStore:           siweStoreRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -440,19 +441,20 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            store3,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -813,13 +815,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
-		RemoteIP:    remoteIP,
-		HTTPConfig:  httpConfig,
-		Web3Config:  web3Config,
-		Clock:       clockClock,
-		NonceStore:  storeRedis,
-		RateLimiter: limiter,
-		Logger:      siweLogger,
+		RemoteIP:             remoteIP,
+		HTTPConfig:           httpConfig,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
 	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
@@ -945,19 +948,20 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Logger:         otpLogger,
 		RateLimiter:    limiter,
 	}
-	antiBruteForceAuthenticateBucketMaker := service2.AntiBruteForceAuthenticateBucketMaker{
-		PasswordConfig: authenticatorPasswordConfig,
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
 	}
 	service3 := &service2.Service{
-		Store:                            serviceStore,
-		Config:                           appConfig,
-		Password:                         passwordProvider,
-		Passkey:                          provider2,
-		TOTP:                             totpProvider,
-		OOBOTP:                           oobProvider,
-		OTPCodeService:                   otpService,
-		RateLimiter:                      limiter,
-		AntiBruteForceAuthenticateBucket: antiBruteForceAuthenticateBucketMaker,
+		Store:          serviceStore,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
