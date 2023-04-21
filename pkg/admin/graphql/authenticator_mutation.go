@@ -60,7 +60,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIDeleteAuthenticatorExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationDeleteAuthenticatorExecutedEventPayload{
 				Authenticator: info.ToModel(),
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{

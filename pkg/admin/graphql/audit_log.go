@@ -146,68 +146,68 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"WHATSAPP_OTP_VERIFIED": &graphql.EnumValueConfig{
 			Value: "whatsapp.otp.verified",
 		},
-		"ADMIN_API_ANONYMIZE_USER_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.anonymize_user.executed",
+		"ADMIN_API_MUTATION_ANONYMIZE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.anonymize_user.executed",
 		},
-		"ADMIN_API_CREATE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.create_identity.executed",
+		"ADMIN_API_MUTATION_CREATE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_identity.executed",
 		},
-		"ADMIN_API_CREATE_SESSION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.create_session.executed",
+		"ADMIN_API_MUTATION_CREATE_SESSION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_session.executed",
 		},
-		"ADMIN_API_CREATE_USER_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.create_user.executed",
+		"ADMIN_API_MUTATION_CREATE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.create_user.executed",
 		},
-		"ADMIN_API_DELETE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.delete_authenticator.executed",
+		"ADMIN_API_MUTATION_DELETE_AUTHENTICATOR_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_authenticator.executed",
 		},
-		"ADMIN_API_DELETE_AUTHORIZATION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.delete_authorization.executed",
+		"ADMIN_API_MUTATION_DELETE_AUTHORIZATION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_authorization.executed",
 		},
-		"ADMIN_API_DELETE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.delete_identity.executed",
+		"ADMIN_API_MUTATION_DELETE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_identity.executed",
 		},
-		"ADMIN_API_DELETE_USER_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.delete_user.executed",
+		"ADMIN_API_MUTATION_DELETE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.delete_user.executed",
 		},
-		"ADMIN_API_GENERATE_OOB_OTP_CODE_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.generate_oob_otp_code.executed",
+		"ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.generate_oob_otp_code.executed",
 		},
-		"ADMIN_API_RESET_PASSWORD_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.reset_password.executed",
+		"ADMIN_API_MUTATION_RESET_PASSWORD_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.reset_password.executed",
 		},
-		"ADMIN_API_REVOKE_ALL_SESSIONS_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.revoke_all_sessions.executed",
+		"ADMIN_API_MUTATION_REVOKE_ALL_SESSIONS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.revoke_all_sessions.executed",
 		},
-		"ADMIN_API_REVOKE_SESSION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.revoke_session.executed",
+		"ADMIN_API_MUTATION_REVOKE_SESSION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.revoke_session.executed",
 		},
-		"ADMIN_API_SCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.schedule_account_anonymization.executed",
+		"ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.schedule_account_anonymization.executed",
 		},
-		"ADMIN_API_SCHEDULE_ACCOUNT_DELETION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.schedule_account_deletion.executed",
+		"ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_DELETION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.schedule_account_deletion.executed",
 		},
-		"ADMIN_API_SEND_RESET_PASSWORD_MESSAGE_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.send_reset_password_message.executed",
+		"ADMIN_API_MUTATION_SEND_RESET_PASSWORD_MESSAGE_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.send_reset_password_message.executed",
 		},
-		"ADMIN_API_SET_DISABLED_STATUS_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.set_disabled_status.executed",
+		"ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.set_disabled_status.executed",
 		},
-		"ADMIN_API_SET_VERIFIED_STATUS_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.set_verified_status.executed",
+		"ADMIN_API_MUTATION_SET_VERIFIED_STATUS_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.set_verified_status.executed",
 		},
-		"ADMIN_API_UNSCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.unschedule_account_anonymization.executed",
+		"ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.unschedule_account_anonymization.executed",
 		},
-		"ADMIN_API_UNSCHEDULE_ACCOUNT_DELETION_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.unschedule_account_deletion.executed",
+		"ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_DELETION_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.unschedule_account_deletion.executed",
 		},
-		"ADMIN_API_UPDATE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.update_identity.executed",
+		"ADMIN_API_MUTATION_UPDATE_IDENTITY_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.update_identity.executed",
 		},
-		"ADMIN_API_UPDATE_USER_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.update_user.executed",
+		"ADMIN_API_MUTATION_UPDATE_USER_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.update_user.executed",
 		},
 		"PROJECT_APP_UPDATED": &graphql.EnumValueConfig{
 			Value: "project.app.updated",

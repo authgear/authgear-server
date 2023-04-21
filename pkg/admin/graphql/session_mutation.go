@@ -61,7 +61,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIRevokeSessionExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationRevokeSessionExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -126,7 +126,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIRevokeAllSessionsExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationRevokeAllSessionsExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -202,7 +202,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPICreateSessionExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationCreateSessionExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
