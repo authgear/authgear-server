@@ -44,6 +44,22 @@ import CommandBarButton from "../../CommandBarButton";
 
 const pageSize = 10;
 
+const ALL_ACTIVITY_TYPES = Object.values(AuditLogActivityType);
+const ADMIN_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
+  (activityType) =>
+    activityType.startsWith("ADMIN_API") || activityType.startsWith("PROJECT")
+);
+const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
+  (activityType) => !ADMIN_ACTIVITY_TYPES.includes(activityType)
+);
+
+type AuditLogKind = "user" | "admin";
+const ALL_AUDIT_LOG_KIND: Array<AuditLogKind> = ["admin", "user"];
+
+function isAuditLogKind(s: string): s is AuditLogKind {
+  return ALL_AUDIT_LOG_KIND.includes(s as AuditLogKind);
+}
+
 function RefreshButton(props: ICommandBarItemProps) {
   const tooltipStyle: Partial<ITooltipHostStyles> = {
     root: { display: "inline-block" },
@@ -96,6 +112,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const queryPage = searchParams.get("page");
   const queryActivityType = searchParams.get("activity_type");
   const queryLastUpdatedAt = searchParams.get("last_updated_at");
+  const queryActivityKind = searchParams.get("kind") ?? "";
 
   const initialOffset = useMemo(() => {
     if (queryPage != null) {
@@ -117,6 +134,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       : new Date()
   );
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
+  const [activityKind] = useState<AuditLogKind>(() => {
+    if (isAuditLogKind(queryActivityKind)) {
+      return queryActivityKind;
+    }
+    return "user";
+  });
 
   const {
     committedValue: rangeFrom,
@@ -202,6 +225,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   // Sync state to searchParams.
+  // eslint-disable-next-line complexity
   useEffect(() => {
     const page = offset / pageSize + 1;
 
@@ -215,6 +239,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     const newQueryPage = page.toString();
     const newQueryActivityType = selectedKey;
     const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
+    const newActivityKind = activityKind;
 
     params["from"] = newQueryFrom;
     params["to"] = newQueryTo;
@@ -222,6 +247,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     params["page"] = newQueryPage;
     params["activity_type"] = newQueryActivityType;
     params["last_updated_at"] = newQueryLastUpdatedAt;
+    params["kind"] = newActivityKind;
 
     let callSet = false;
     if (newQueryFrom !== queryFrom) {
@@ -242,6 +268,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (newQueryLastUpdatedAt !== queryLastUpdatedAt) {
       callSet = true;
     }
+    if (newActivityKind !== queryActivityKind) {
+      callSet = true;
+    }
 
     if (callSet) {
       setSearchParams(params);
@@ -253,16 +282,22 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     queryPage,
     queryActivityType,
     queryLastUpdatedAt,
-
     rangeFrom,
     rangeTo,
     sortDirection,
     offset,
     selectedKey,
     lastUpdatedAt,
-
     setSearchParams,
+    activityKind,
+    queryActivityKind,
   ]);
+
+  const availableActivityTypes = useMemo(() => {
+    return activityKind === "admin"
+      ? ADMIN_ACTIVITY_TYPES
+      : USER_ACTIVITY_TYPES;
+  }, [activityKind]);
 
   const activityTypeOptions = useMemo(() => {
     const options = [
@@ -271,21 +306,21 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         text: renderToString("AuditLogActivityType.ALL"),
       },
     ];
-    for (const key of Object.values(AuditLogActivityType)) {
+    for (const key of availableActivityTypes) {
       options.push({
         key: key,
         text: renderToString("AuditLogActivityType." + key),
       });
     }
     return options;
-  }, [renderToString]);
+  }, [availableActivityTypes, renderToString]);
 
   const activityTypes: AuditLogActivityType[] | null = useMemo(() => {
     if (selectedKey === "ALL") {
-      return null;
+      return availableActivityTypes;
     }
     return [selectedKey] as AuditLogActivityType[];
-  }, [selectedKey]);
+  }, [availableActivityTypes, selectedKey]);
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="AuditLogScreen.title" /> }];
