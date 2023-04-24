@@ -43,6 +43,7 @@ import {
   authenticatorEmailOTPModeList,
   AuthenticatorEmailOTPMode,
   AuthenticatorOOBEmailConfig,
+  RateLimitConfig,
 } from "../../types";
 import {
   DEFAULT_TEMPLATE_LOCALE,
@@ -425,6 +426,7 @@ interface ConfigFormState {
   otpRevokeFailedAttemptsEnabled: boolean;
   otpRevokeFailedAttempts: number | undefined;
   dailySMSSendLimit: number | undefined;
+  dailyVerificationLimit: number | undefined;
 }
 
 interface FeatureConfigFormState {
@@ -730,6 +732,18 @@ function setPrimaryAuthenticator(
   );
 }
 
+function getRateLimitDailyLimit(
+  config: RateLimitConfig | undefined
+): number | undefined {
+  if (config?.enabled) {
+    const { burst, period } = config;
+    const secondsPerDay = 24 * 60 * 60;
+    const days = period ? parseDuration(period) / secondsPerDay : 1;
+    return (burst ?? 1) / days;
+  }
+  return undefined;
+}
+
 function getConsistentValue<T>(...values: T[]): T | undefined {
   if (values.length === 0) {
     return undefined;
@@ -799,15 +813,20 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const otpRevokeFailedAttemptsEnabled =
     (otpRevokeFailedAttemptsRaw ?? 0) !== 0;
 
-  let dailySMSSendLimit: number | undefined;
-  const smsRateLimitPerTargetConfig =
-    config.messaging?.rate_limits?.sms_per_target ?? {};
-  if (smsRateLimitPerTargetConfig.enabled) {
-    const { burst, period } = smsRateLimitPerTargetConfig;
-    const secondsPerDay = 24 * 60 * 60;
-    const days = period ? parseDuration(period) / secondsPerDay : 1;
-    dailySMSSendLimit = (burst ?? 1) / days;
-  }
+  const dailySMSSendLimit = getRateLimitDailyLimit(
+    config.messaging?.rate_limits?.sms_per_target ?? {}
+  );
+
+  const dailyEmailVerificationLimit = getRateLimitDailyLimit(
+    config.verification?.rate_limits?.email?.trigger_per_user ?? {}
+  );
+  const dailySMSVerificationLimit = getRateLimitDailyLimit(
+    config.verification?.rate_limits?.sms?.trigger_per_user ?? {}
+  );
+  const dailyVerificationLimit = getConsistentValue(
+    dailyEmailVerificationLimit,
+    dailySMSVerificationLimit
+  );
 
   const state: ConfigFormState = {
     identitiesControl: controlListOf(
@@ -882,6 +901,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     otpRevokeFailedAttemptsEnabled,
     otpRevokeFailedAttempts,
     dailySMSSendLimit,
+    dailyVerificationLimit,
   };
   correctInitialFormState(state);
   return state;
@@ -1038,6 +1058,26 @@ function constructConfig(
             burst: currentState.dailySMSSendLimit,
           }),
     };
+
+    if (currentState.dailyVerificationLimit == null) {
+      config.verification.rate_limits.email.trigger_per_user = {
+        enabled: false,
+      };
+      config.verification.rate_limits.sms.trigger_per_user = {
+        enabled: false,
+      };
+    } else {
+      config.verification.rate_limits.email.trigger_per_user = {
+        enabled: true,
+        period: "24h",
+        burst: currentState.dailyVerificationLimit,
+      };
+      config.verification.rate_limits.sms.trigger_per_user = {
+        enabled: true,
+        period: "24h",
+        burst: currentState.dailyVerificationLimit,
+      };
+    }
 
     clearEmptyObject(config);
   });
@@ -2223,6 +2263,7 @@ interface VerificationSettingsProps {
   otpRevokeFailedAttemptsEnabled: boolean;
   otpRevokeFailedAttempts: number | undefined;
   dailySMSSendLimit: number | undefined;
+  dailyVerificationLimit: number | undefined;
 
   setState: FormModel["setState"];
 }
@@ -2243,6 +2284,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
     otpRevokeFailedAttemptsEnabled,
     otpRevokeFailedAttempts,
     dailySMSSendLimit,
+    dailyVerificationLimit,
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -2391,6 +2433,25 @@ function VerificationSettings(props: VerificationSettingsProps) {
     [setState]
   );
 
+  const onChangeDailyVerificationLimit = useCallback(
+    (_, value: string | undefined) => {
+      setState((s) =>
+        produce(s, (s) => {
+          s.dailyVerificationLimit = tryProduce(
+            s.dailyVerificationLimit,
+            () => {
+              const num = parseNumber(value);
+              return num == null
+                ? undefined
+                : ensureInteger(ensurePositiveNumber(num));
+            }
+          );
+        })
+      );
+    },
+    [setState]
+  );
+
   const criteriaOptions = useMemo(
     () =>
       verificationCriteriaList.map((criteria) => ({
@@ -2524,6 +2585,18 @@ function VerificationSettings(props: VerificationSettingsProps) {
             selectedKey={authenticatorOOBEmailConfig.email_otp_mode}
             onChange={onChangeSecondaryEmailOTPMode}
           />
+          <TextField
+            type="text"
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.daily-limit.label"
+            )}
+            value={
+              dailyVerificationLimit == null
+                ? ""
+                : dailyVerificationLimit.toString()
+            }
+            onChange={onChangeDailyVerificationLimit}
+          />
         </>
       ) : null}
       {showPhoneSettings ? (
@@ -2618,6 +2691,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       otpRevokeFailedAttemptsEnabled,
       otpRevokeFailedAttempts,
       dailySMSSendLimit,
+      dailyVerificationLimit,
 
       phoneLoginIDDisabled,
       passwordPolicyFeatureConfig,
@@ -2863,6 +2937,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   }
                   otpRevokeFailedAttempts={otpRevokeFailedAttempts}
                   dailySMSSendLimit={dailySMSSendLimit}
+                  dailyVerificationLimit={dailyVerificationLimit}
                   setState={setState}
                 />
               </PivotItem>

@@ -451,6 +451,7 @@
   "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily SMS limit per phone number (leave blank to turn off limit)",
   "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
   "VerificationConfigurationScreen.verification.resend-cooldown.label": "Cooldown duration before resending OTP (seconds)",
+  "VerificationConfigurationScreen.verification.daily-limit.label": "Daily limits to trigger email verification from the setting page (leave blank to turn off limit)",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.description": "Enable or disable anonymous users. Anonymous users do not have identity. They can be promoted to normal users.",
