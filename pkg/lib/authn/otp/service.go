@@ -325,7 +325,8 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		return nil, ErrCodeNotFound
 	}
 	if code != nil && code.Consumed {
-		return nil, ErrConsumedCode
+		// Treat consumed code as not found.
+		code = nil
 	}
 
 	if code != nil {
