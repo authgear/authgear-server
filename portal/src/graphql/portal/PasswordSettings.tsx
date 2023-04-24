@@ -4,7 +4,6 @@ import { Checkbox, Dropdown, Label } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   AuthenticatorPasswordConfig,
-  ForgotPasswordConfig,
   PasswordPolicyFeatureConfig,
   PasswordPolicyConfig,
   isPasswordPolicyGuessableLevel,
@@ -21,10 +20,15 @@ import CustomTagPicker from "../../CustomTagPicker";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
-import { parseIntegerAllowLeadingZeros } from "../../util/input";
+import {
+  ensurePositiveNumber,
+  parseIntegerAllowLeadingZeros,
+  parseNumber,
+  tryProduce,
+} from "../../util/input";
 
 export interface State {
-  forgotPasswordConfig: ForgotPasswordConfig;
+  forgotPasswordCodeValidPeriodSeconds: number | undefined;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   passwordPolicyFeatureConfig?: PasswordPolicyFeatureConfig;
 }
@@ -82,7 +86,7 @@ export default function PasswordSettings<T extends State>(
   const {
     className,
     authenticatorPasswordConfig,
-    forgotPasswordConfig,
+    forgotPasswordCodeValidPeriodSeconds,
     passwordPolicyFeatureConfig,
     setState,
   } = props;
@@ -115,14 +119,19 @@ export default function PasswordSettings<T extends State>(
   );
 
   const onChangeCodeExpirySeconds = useCallback(
-    (_e, value) => {
+    (_e, value: string | undefined) => {
       if (value == null) {
         return;
       }
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.forgotPasswordConfig.reset_code_expiry_seconds =
-            parseIntegerAllowLeadingZeros(value);
+      setState((s) =>
+        produce(s, (s) => {
+          s.forgotPasswordCodeValidPeriodSeconds = tryProduce(
+            s.forgotPasswordCodeValidPeriodSeconds,
+            () => {
+              const num = parseNumber(value);
+              return num == null ? undefined : ensurePositiveNumber(num);
+            }
+          );
         })
       );
     },
@@ -242,7 +251,7 @@ export default function PasswordSettings<T extends State>(
         label={renderToString(
           "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
         )}
-        value={forgotPasswordConfig.reset_code_expiry_seconds?.toFixed(0) ?? ""}
+        value={forgotPasswordCodeValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
       />
       <HorizontalDivider />

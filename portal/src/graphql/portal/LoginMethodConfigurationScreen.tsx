@@ -36,7 +36,6 @@ import {
   AuthenticatorPhoneOTPMode,
   VerificationCriteria,
   VerificationClaimsConfig,
-  ForgotPasswordConfig,
   PasswordPolicyFeatureConfig,
   authenticatorPhoneOTPModeList,
   authenticatorPhoneOTPSMSModeList,
@@ -414,12 +413,12 @@ interface ConfigFormState {
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
-  forgotPasswordConfig: ForgotPasswordConfig;
   passkeyChecked: boolean;
 
   verificationClaims?: VerificationClaimsConfig;
   verificationCriteria?: VerificationCriteria;
 
+  forgotPasswordCodeValidPeriodSeconds: number | undefined;
   otpValidPeriodSeconds: number | undefined;
   smsOTPCooldownPeriodSeconds: number | undefined;
   emailOTPCooldownPeriodSeconds: number | undefined;
@@ -755,6 +754,12 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const passkeyIndex =
     config.authentication?.primary_authenticators?.indexOf("passkey");
 
+  const forgotPasswordCodeValidPeriod =
+    config.forgot_password?.code_valid_period;
+  const forgotPasswordCodeValidPeriodSeconds = forgotPasswordCodeValidPeriod
+    ? parseDuration(forgotPasswordCodeValidPeriod)
+    : undefined;
+
   const otpValidPeriod = getConsistentValue(
     // TODO: make independent fields
     // config.authenticator?.oob_otp?.email?.code_valid_period,
@@ -869,9 +874,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         ...config.authenticator?.password?.policy,
       },
     },
-    forgotPasswordConfig: {
-      ...config.forgot_password,
-    },
+    forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
     otpValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
@@ -931,6 +934,7 @@ function constructConfig(
     config.verification.rate_limits ??= {};
     config.verification.rate_limits.email ??= {};
     config.verification.rate_limits.sms ??= {};
+    config.forgot_password ??= {};
 
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
@@ -980,7 +984,12 @@ function constructConfig(
       currentState.authenticatorOOBEmailConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
-    config.forgot_password = currentState.forgotPasswordConfig;
+
+    if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
+      config.forgot_password.code_valid_period = formatDuration(
+        currentState.forgotPasswordCodeValidPeriodSeconds
+      );
+    }
 
     if (currentState.otpValidPeriodSeconds != null) {
       const duration = formatDuration(currentState.otpValidPeriodSeconds);
@@ -2597,7 +2606,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       authenticatorOOBEmailConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
-      forgotPasswordConfig,
+      forgotPasswordCodeValidPeriodSeconds,
       passkeyChecked,
 
       verificationClaims,
@@ -2866,7 +2875,9 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 itemKey="password"
               >
                 <PasswordSettings
-                  forgotPasswordConfig={forgotPasswordConfig}
+                  forgotPasswordCodeValidPeriodSeconds={
+                    forgotPasswordCodeValidPeriodSeconds
+                  }
                   authenticatorPasswordConfig={authenticatorPasswordConfig}
                   passwordPolicyFeatureConfig={passwordPolicyFeatureConfig}
                   setState={setState}
