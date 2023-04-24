@@ -5,10 +5,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
-	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	relay "github.com/authgear/graphql-go-relay"
@@ -98,12 +96,14 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = ctx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, ctx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectBillingCheckoutCreatedEventPayload{
-					SubscriptionCheckoutID: checkout.ID,
-					PlanName:               planName,
-				})
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectBillingCheckoutCreatedEventPayload{
+				SubscriptionCheckoutID: checkout.ID,
+				PlanName:               planName,
 			})
 			if err != nil {
 				return nil, err
@@ -302,12 +302,9 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = ctx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, ctx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectBillingSubscriptionUpdatedEventPayload{
-					SubscriptionID: subscription.ID,
-					PlanName:       planName,
-				})
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectBillingSubscriptionUpdatedEventPayload{
+				SubscriptionID: subscription.ID,
+				PlanName:       planName,
 			})
 			if err != nil {
 				return nil, err
@@ -544,12 +541,14 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = ctx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, ctx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectBillingSubscriptionStatusUpdatedEventPayload{
-					SubscriptionID: subscription.ID,
-					Cancelled:      cancelled,
-				})
+			app, err := ctx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = ctx.AuditService.Log(app, &nonblocking.ProjectBillingSubscriptionStatusUpdatedEventPayload{
+				SubscriptionID: subscription.ID,
+				Cancelled:      cancelled,
 			})
 			if err != nil {
 				return nil, err
@@ -651,12 +650,14 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInternalError("failed to update checkout session status")
 			}
 
-			err = ctx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, ctx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectBillingSubscriptionCancelledEventPayload{
-					SubscriptionID: subscription.ID,
-					CustomerID:     *customerID,
-				})
+			app, err := ctx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = ctx.AuditService.Log(app, &nonblocking.ProjectBillingSubscriptionCancelledEventPayload{
+				SubscriptionID: subscription.ID,
+				CustomerID:     *customerID,
 			})
 			if err != nil {
 				return nil, err

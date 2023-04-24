@@ -15,9 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
-	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 
@@ -318,13 +316,11 @@ var _ = registerMutationField(
 					updatedSecrets = append(updatedSecrets, k)
 				}
 			}
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectAppUpdatedEventPayload{
-					AppConfigDiff:    appConfigDiff,
-					UpdatedSecrets:   updatedSecrets,
-					UpdatedResources: auditedUpdatePaths,
-				})
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppUpdatedEventPayload{
+				AppConfigDiff:    appConfigDiff,
+				UpdatedSecrets:   updatedSecrets,
+				UpdatedResources: auditedUpdatePaths,
 			})
 			if err != nil {
 				return nil, err

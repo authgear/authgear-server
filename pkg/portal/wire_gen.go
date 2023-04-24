@@ -223,7 +223,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appService := &service.AppService{
 		Context:          context,
-		RootProvider:     rootProvider,
 		Logger:           appServiceLogger,
 		SQLBuilder:       sqlBuilder,
 		SQLExecutor:      sqlExecutor,

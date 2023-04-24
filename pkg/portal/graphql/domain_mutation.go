@@ -11,9 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
-	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -89,12 +87,9 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainCreatedEventPayload{
-					Domain:   domainModel.Domain,
-					DomainID: domainModel.ID,
-				})
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainCreatedEventPayload{
+				Domain:   domainModel.Domain,
+				DomainID: domainModel.ID,
 			})
 			if err != nil {
 				return nil, err
@@ -198,12 +193,9 @@ var _ = registerMutationField(
 				}
 			}
 
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainDeletedEventPayload{
-					Domain:   deletedDomain,
-					DomainID: domainID,
-				})
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainDeletedEventPayload{
+				Domain:   deletedDomain,
+				DomainID: domainID,
 			})
 			if err != nil {
 				return nil, err
@@ -317,6 +309,11 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			domain, err := gqlCtx.DomainService.VerifyDomain(appID, domainID)
 			if err != nil {
 				return nil, err
@@ -324,12 +321,9 @@ var _ = registerMutationField(
 
 			gqlCtx.Domains.Prime(domain.ID, domain)
 
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectDomainVerifiedEventPayload{
-					Domain:   domain.Domain,
-					DomainID: domain.ID,
-				})
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainVerifiedEventPayload{
+				Domain:   domain.Domain,
+				DomainID: domain.ID,
 			})
 			if err != nil {
 				return nil, err

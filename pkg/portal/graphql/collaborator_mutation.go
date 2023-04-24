@@ -7,8 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
-	"github.com/authgear/authgear-server/pkg/portal/deps"
-	"github.com/authgear/authgear-server/pkg/portal/service/portalapp"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -79,13 +77,15 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorDeletedEventPayload{
-					CollaboratorID:     targetCollab.ID,
-					CollaboratorUserID: targetCollab.UserID,
-					CollaboratorRole:   string(targetCollab.Role),
-				})
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorDeletedEventPayload{
+				CollaboratorID:     targetCollab.ID,
+				CollaboratorUserID: targetCollab.UserID,
+				CollaboratorRole:   string(targetCollab.Role),
 			})
 			if err != nil {
 				return nil, err
@@ -153,12 +153,14 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.AppService.WithAppProvider(invitation.AppID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorInvitationDeletedEventPayload{
-					InviteeEmail: invitation.InviteeEmail,
-					InvitedBy:    invitation.InvitedBy,
-				})
+			app, err := gqlCtx.AppService.Get(invitation.AppID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationDeletedEventPayload{
+				InviteeEmail: invitation.InviteeEmail,
+				InvitedBy:    invitation.InvitedBy,
 			})
 			if err != nil {
 				return nil, err
@@ -260,12 +262,14 @@ var _ = registerMutationField(
 
 			gqlCtx.CollaboratorInvitations.Prime(invitation.ID, invitation)
 
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorInvitationCreatedEventPayload{
-					InviteeEmail: invitation.InviteeEmail,
-					InvitedBy:    invitation.InvitedBy,
-				})
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationCreatedEventPayload{
+				InviteeEmail: invitation.InviteeEmail,
+				InvitedBy:    invitation.InvitedBy,
 			})
 			if err != nil {
 				return nil, err
@@ -325,12 +329,14 @@ var _ = registerMutationField(
 
 			appID := collaborator.AppID
 
-			err = gqlCtx.AppService.WithAppProvider(appID, func(ap *deps.AppProvider) error {
-				portalAppSvc := portalapp.NewPortalAppService(ap, gqlCtx.Request)
-				return portalAppSvc.Events.DispatchEvent(&nonblocking.ProjectCollaboratorInvitationAcceptedEventPayload{
-					CollaboratorUserID: collaborator.UserID,
-					CollaboratorRole:   string(collaborator.Role),
-				})
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationAcceptedEventPayload{
+				CollaboratorUserID: collaborator.UserID,
+				CollaboratorRole:   string(collaborator.Role),
 			})
 			if err != nil {
 				return nil, err
