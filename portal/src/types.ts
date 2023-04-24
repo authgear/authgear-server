@@ -1,3 +1,7 @@
+// type aliases in JSON schema
+export type DurationString = string;
+export type DurationSeconds = number;
+
 // HTTPConfig
 
 export interface HTTPConfig {
@@ -5,6 +9,14 @@ export interface HTTPConfig {
   allowed_origins?: string[];
   cookie_prefix?: string;
   cookie_domain?: string;
+}
+
+// RateLimitConfig
+
+export interface RateLimitConfig {
+  enabled?: boolean;
+  period?: DurationString;
+  burst?: number;
 }
 
 // LoginIDKeyConfig
@@ -190,11 +202,13 @@ export interface AuthenticatorOOBConfig {
 export interface AuthenticatorOOBEmailConfig {
   maximum?: number;
   email_otp_mode?: AuthenticatorEmailOTPMode;
+  code_valid_period?: DurationString;
 }
 
 export interface AuthenticatorOOBSMSConfig {
   maximum?: number;
   phone_otp_mode?: AuthenticatorPhoneOTPMode;
+  code_valid_period?: DurationString;
 }
 
 export interface AuthenticatorPasswordConfig {
@@ -270,6 +284,7 @@ export interface AuthenticationConfig {
   secondary_authentication_mode?: SecondaryAuthenticationMode;
   recovery_code?: RecoveryCodeConfig;
   device_token?: DeviceTokenConfig;
+  rate_limits?: AuthenticationRateLimitsConfig;
 }
 
 export interface VerificationClaimConfig {
@@ -299,52 +314,60 @@ export type AuthenticatorPhoneOTPMode =
 
 export const authenticatorPhoneOTPSMSModeList = ["sms", "whatsapp_sms"];
 
-// type alias of integer in JSON schema
-export type DurationSeconds = number;
+export interface AuthenticationRateLimitsConfig {
+  oob_otp?: AuthenticationRateLimitsOOBOTPConfig;
+}
+
+export interface AuthenticationRateLimitsOOBOTPConfig {
+  email?: AuthenticationRateLimitsEmailConfig;
+  sms?: AuthenticationRateLimitsSMSConfig;
+}
+
+export interface AuthenticationRateLimitsEmailConfig {
+  trigger_cooldown?: DurationString;
+  max_failed_attempts_revoke_otp?: number;
+}
+
+export interface AuthenticationRateLimitsSMSConfig {
+  trigger_cooldown?: DurationString;
+  max_failed_attempts_revoke_otp?: number;
+}
 
 export interface VerificationConfig {
   claims?: VerificationClaimsConfig;
   criteria?: VerificationCriteria;
-  code_expiry_seconds?: DurationSeconds;
+  code_valid_period?: DurationString;
+  rate_limits?: VerificationRateLimitsConfig;
+}
+
+export interface VerificationRateLimitsConfig {
+  email?: VerificationRateLimitsEmailConfig;
+  sms?: VerificationRateLimitsSMSConfig;
+}
+
+export interface VerificationRateLimitsEmailConfig {
+  trigger_cooldown?: DurationString;
+  max_failed_attempts_revoke_otp?: number;
+  trigger_per_user?: RateLimitConfig;
+}
+
+export interface VerificationRateLimitsSMSConfig {
+  trigger_cooldown?: DurationString;
+  max_failed_attempts_revoke_otp?: number;
+  trigger_per_user?: RateLimitConfig;
 }
 
 export interface MessagingConfig {
-  sms?: SMSConfig;
-  email?: EmailConfig;
+  rate_limits?: MessagingRateLimitsConfig;
 }
 
-export const smsResendCooldownList = [60, 120] as const;
-
-export type SMSResendCooldown = typeof smsResendCooldownList[number];
-
-// type alias of string in JSON schema
-export type DurationString = string;
-
-export interface SMSRateLimitPerPhoneConfig {
-  enabled?: boolean;
-  size?: number;
-  reset_period?: DurationString;
-}
-
-export interface SMSRatelimitConfig {
-  resend_cooldown_seconds?: SMSResendCooldown;
-  per_phone?: SMSRateLimitPerPhoneConfig;
-}
-
-export interface SMSConfig {
-  ratelimit?: SMSRatelimitConfig;
-}
-
-export const emailResendCooldownList = [60, 120] as const;
-
-export type EmailResendCooldown = typeof emailResendCooldownList[number];
-
-export interface EmailRatelimitConfig {
-  resend_cooldown_seconds?: EmailResendCooldown;
-}
-
-export interface EmailConfig {
-  ratelimit?: EmailRatelimitConfig;
+export interface MessagingRateLimitsConfig {
+  sms?: RateLimitConfig;
+  sms_per_ip?: RateLimitConfig;
+  sms_per_target?: RateLimitConfig;
+  email?: RateLimitConfig;
+  email_per_ip?: RateLimitConfig;
+  email_per_target?: RateLimitConfig;
 }
 
 // UIConfig
@@ -352,20 +375,6 @@ export interface PhoneInputConfig {
   allowlist?: string[];
   pinned_list?: string[];
   preselect_by_ip_disabled?: boolean;
-}
-
-export interface OTPFailedAttemptConfig {
-  enabled?: boolean;
-  size?: number;
-  reset_period?: DurationString;
-}
-
-export interface OTPRatelimitConfig {
-  failed_attempt?: OTPFailedAttemptConfig;
-}
-
-export interface OTPConfig {
-  ratelimit?: OTPRatelimitConfig;
 }
 
 export interface UIConfig {
@@ -386,7 +395,7 @@ export interface LocalizationConfig {
 // ForgotPasswordConfig
 export interface ForgotPasswordConfig {
   enabled?: boolean;
-  reset_code_expiry_seconds?: DurationSeconds;
+  code_valid_period?: DurationString;
 }
 
 export const applicationTypes = [
@@ -529,7 +538,6 @@ export interface PortalAPIAppConfig {
   authenticator?: AuthenticatorConfig;
   authentication?: AuthenticationConfig;
   verification?: VerificationConfig;
-  otp?: OTPConfig;
   messaging?: MessagingConfig;
   ui?: UIConfig;
   localization?: LocalizationConfig;

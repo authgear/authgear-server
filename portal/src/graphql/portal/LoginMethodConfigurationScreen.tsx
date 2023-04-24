@@ -31,7 +31,6 @@ import {
   LoginIDEmailConfig,
   LoginIDUsernameConfig,
   PhoneInputConfig,
-  VerificationConfig,
   AuthenticatorOOBSMSConfig,
   AuthenticatorPasswordConfig,
   AuthenticatorPhoneOTPMode,
@@ -42,11 +41,6 @@ import {
   authenticatorPhoneOTPModeList,
   authenticatorPhoneOTPSMSModeList,
   verificationCriteriaList,
-  SMSRatelimitConfig,
-  smsResendCooldownList,
-  EmailRatelimitConfig,
-  emailResendCooldownList,
-  OTPFailedAttemptConfig,
   authenticatorEmailOTPModeList,
   AuthenticatorEmailOTPMode,
   AuthenticatorOOBEmailConfig,
@@ -96,9 +90,15 @@ import { fixTagPickerStyles } from "../../bugs";
 import { useResourceForm } from "../../hook/useResourceForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { makeValidationErrorMatchUnknownKindParseRule } from "../../error/parse";
-import { parseIntegerAllowLeadingZeros } from "../../util/input";
+import {
+  ensureInteger,
+  ensurePositiveNumber,
+  parseNumber,
+  tryProduce,
+} from "../../util/input";
 import styles from "./LoginMethodConfigurationScreen.module.css";
 import ChoiceButton from "../../ChoiceButton";
+import { formatDuration, parseDuration } from "../../util/duration";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -119,6 +119,7 @@ const PIVOT_STYLES = {
 
 const DEFAULT_EMAIL_OTP_MODE: AuthenticatorEmailOTPMode = "code";
 const DEFAULT_PHONE_OTP_MODE: AuthenticatorPhoneOTPMode = "whatsapp_sms";
+const DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS = 5;
 
 const ERROR_RULES = [
   makeValidationErrorMatchUnknownKindParseRule(
@@ -410,16 +411,21 @@ interface ConfigFormState {
   loginIDEmailConfig: Required<LoginIDEmailConfig>;
   loginIDUsernameConfig: Required<LoginIDUsernameConfig>;
   phoneInputConfig: Required<PhoneInputConfig>;
-  verificationConfig: VerificationConfig;
-  smsRatelimitConfig: SMSRatelimitConfig;
-  emailRatelimitConfig: EmailRatelimitConfig;
-  otpFailedAttemptConfig: OTPFailedAttemptConfig;
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
   forgotPasswordConfig: ForgotPasswordConfig;
   passkeyChecked: boolean;
-  dailySMSSendLimit: string;
+
+  verificationClaims?: VerificationClaimsConfig;
+  verificationCriteria?: VerificationCriteria;
+
+  otpValidPeriodSeconds: number | undefined;
+  smsOTPCooldownPeriodSeconds: number | undefined;
+  emailOTPCooldownPeriodSeconds: number | undefined;
+  otpRevokeFailedAttemptsEnabled: boolean;
+  otpRevokeFailedAttempts: number | undefined;
+  dailySMSSendLimit: number | undefined;
 }
 
 interface FeatureConfigFormState {
@@ -608,11 +614,6 @@ function correctInitialFormState(state: ConfigFormState): void {
       }
     }
   }
-
-  // Provide default number of otp failed attempts if config is disabled
-  if (!state.otpFailedAttemptConfig.enabled) {
-    state.otpFailedAttemptConfig.size = 5;
-  }
 }
 
 // eslint-disable-next-line complexity
@@ -730,6 +731,21 @@ function setPrimaryAuthenticator(
   );
 }
 
+function getConsistentValue<T>(...values: T[]): T | undefined {
+  if (values.length === 0) {
+    return undefined;
+  }
+  let value: T | undefined = values[0];
+  for (const v of values) {
+    if (v !== value) {
+      value = undefined;
+      break;
+    }
+  }
+  return value;
+}
+
+// eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const identities = config.authentication?.identities ?? [];
   const primaryAuthenticators =
@@ -738,13 +754,57 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 
   const passkeyIndex =
     config.authentication?.primary_authenticators?.indexOf("passkey");
-  const smsRateLimitPerPhoneConfig =
-    config.messaging?.sms?.ratelimit?.per_phone;
-  const dailySMSSendLimit = smsRateLimitPerPhoneConfig?.enabled
-    ? smsRateLimitPerPhoneConfig.size?.toString(10) ?? ""
-    : "";
 
-  const state = {
+  const otpValidPeriod = getConsistentValue(
+    // TODO: make independent fields
+    // config.authenticator?.oob_otp?.email?.code_valid_period,
+    config.authenticator?.oob_otp?.sms?.code_valid_period,
+    config.verification?.code_valid_period
+  );
+  const otpValidPeriodSeconds = otpValidPeriod
+    ? parseDuration(otpValidPeriod)
+    : undefined;
+
+  const smsOTPCooldownPeriod = getConsistentValue(
+    config.authentication?.rate_limits?.oob_otp?.sms?.trigger_cooldown,
+    config.verification?.rate_limits?.sms?.trigger_cooldown
+  );
+  const smsOTPCooldownPeriodSeconds = smsOTPCooldownPeriod
+    ? parseDuration(smsOTPCooldownPeriod)
+    : undefined;
+
+  const emailOTPCooldownPeriod = getConsistentValue(
+    config.authentication?.rate_limits?.oob_otp?.email?.trigger_cooldown,
+    config.verification?.rate_limits?.email?.trigger_cooldown
+  );
+  const emailOTPCooldownPeriodSeconds = emailOTPCooldownPeriod
+    ? parseDuration(emailOTPCooldownPeriod)
+    : undefined;
+
+  const otpRevokeFailedAttemptsRaw = getConsistentValue(
+    config.authentication?.rate_limits?.oob_otp?.sms
+      ?.max_failed_attempts_revoke_otp,
+    config.verification?.rate_limits?.sms?.max_failed_attempts_revoke_otp,
+    config.authentication?.rate_limits?.oob_otp?.email
+      ?.max_failed_attempts_revoke_otp,
+    config.verification?.rate_limits?.email?.max_failed_attempts_revoke_otp
+  );
+  const otpRevokeFailedAttempts =
+    otpRevokeFailedAttemptsRaw ?? DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS;
+  const otpRevokeFailedAttemptsEnabled =
+    (otpRevokeFailedAttemptsRaw ?? 0) !== 0;
+
+  let dailySMSSendLimit: number | undefined;
+  const smsRateLimitPerTargetConfig =
+    config.messaging?.rate_limits?.sms_per_target ?? {};
+  if (smsRateLimitPerTargetConfig.enabled) {
+    const { burst, period } = smsRateLimitPerTargetConfig;
+    const secondsPerDay = 24 * 60 * 60;
+    const days = period ? parseDuration(period) / secondsPerDay : 1;
+    dailySMSSendLimit = (burst ?? 1) / days;
+  }
+
+  const state: ConfigFormState = {
     identitiesControl: controlListOf(
       (a, b) => a === b,
       IDENTITY_TYPES,
@@ -782,18 +842,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       preselect_by_ip_disabled: false,
       ...config.ui?.phone_input,
     },
-    verificationConfig: {
-      ...config.verification,
+    verificationClaims: {
+      ...config.verification?.claims,
     },
-    smsRatelimitConfig: {
-      ...config.messaging?.sms?.ratelimit,
-    },
-    emailRatelimitConfig: {
-      ...config.messaging?.email?.ratelimit,
-    },
-    otpFailedAttemptConfig: {
-      ...config.otp?.ratelimit?.failed_attempt,
-    },
+    verificationCriteria: config.verification?.criteria,
     authenticatorOOBEmailConfig: {
       email_otp_mode: DEFAULT_EMAIL_OTP_MODE,
       ...config.authenticator?.oob_otp?.email,
@@ -821,7 +873,12 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       ...config.forgot_password,
     },
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
-    dailySMSSendLimit: dailySMSSendLimit,
+    otpValidPeriodSeconds,
+    smsOTPCooldownPeriodSeconds,
+    emailOTPCooldownPeriodSeconds,
+    otpRevokeFailedAttemptsEnabled,
+    otpRevokeFailedAttempts,
+    dailySMSSendLimit,
   };
   correctInitialFormState(state);
   return state;
@@ -856,20 +913,24 @@ function constructConfig(
   // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
+    config.authentication.rate_limits ??= {};
+    config.authentication.rate_limits.oob_otp ??= {};
+    config.authentication.rate_limits.oob_otp.email ??= {};
+    config.authentication.rate_limits.oob_otp.sms ??= {};
     config.identity ??= {};
     config.identity.login_id ??= {};
     config.identity.login_id.types ??= {};
     config.ui ??= {};
     config.messaging ??= {};
-    config.messaging.sms ??= {};
-    config.messaging.sms.ratelimit ??= {};
-    config.messaging.email ??= {};
-    config.messaging.email.ratelimit ??= {};
-    config.otp ??= {};
-    config.otp.ratelimit ??= {};
-    config.otp.ratelimit.failed_attempt ??= {};
+    config.messaging.rate_limits ??= {};
+    config.messaging.rate_limits.sms_per_ip ??= {};
+    config.messaging.rate_limits.sms_per_target ??= {};
     config.authenticator ??= {};
     config.authenticator.oob_otp ??= {};
+    config.verification ??= {};
+    config.verification.rate_limits ??= {};
+    config.verification.rate_limits.email ??= {};
+    config.verification.rate_limits.sms ??= {};
 
     config.authentication.identities = controlListPreserve(
       (a, b) => a === b,
@@ -912,35 +973,62 @@ function constructConfig(
     config.ui.phone_input = currentState.phoneInputConfig;
     config.identity.login_id.types.username =
       currentState.loginIDUsernameConfig;
-    config.verification = currentState.verificationConfig;
-    config.messaging.sms.ratelimit = {
-      ...currentState.smsRatelimitConfig,
-      per_phone:
-        currentState.dailySMSSendLimit === ""
-          ? { enabled: false }
-          : {
-              enabled: true,
-              size: parseInt(currentState.dailySMSSendLimit, 10),
-              reset_period: "24h",
-            },
-    };
-    config.messaging.email.ratelimit = currentState.emailRatelimitConfig;
-    config.otp.ratelimit = {
-      failed_attempt:
-        currentState.otpFailedAttemptConfig.enabled &&
-        currentState.otpFailedAttemptConfig.size != null
-          ? {
-              enabled: true,
-              size: currentState.otpFailedAttemptConfig.size,
-              reset_period: "20m",
-            }
-          : { enabled: false },
-    };
+    config.verification.claims = currentState.verificationClaims;
+    config.verification.criteria = currentState.verificationCriteria;
+
     config.authenticator.oob_otp.email =
       currentState.authenticatorOOBEmailConfig;
     config.authenticator.oob_otp.sms = currentState.authenticatorOOBSMSConfig;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
     config.forgot_password = currentState.forgotPasswordConfig;
+
+    if (currentState.otpValidPeriodSeconds != null) {
+      const duration = formatDuration(currentState.otpValidPeriodSeconds);
+      // TODO: make independent fields
+      // config.authenticator.oob_otp.email.code_valid_period = duration;
+      config.authenticator.oob_otp.sms.code_valid_period = duration;
+      config.verification.code_valid_period = duration;
+    }
+
+    if (currentState.smsOTPCooldownPeriodSeconds != null) {
+      const duration = formatDuration(currentState.smsOTPCooldownPeriodSeconds);
+      config.authentication.rate_limits.oob_otp.sms.trigger_cooldown = duration;
+      config.verification.rate_limits.sms.trigger_cooldown = duration;
+    }
+
+    if (currentState.emailOTPCooldownPeriodSeconds != null) {
+      const duration = formatDuration(
+        currentState.emailOTPCooldownPeriodSeconds
+      );
+      config.authentication.rate_limits.oob_otp.email.trigger_cooldown =
+        duration;
+      config.verification.rate_limits.email.trigger_cooldown = duration;
+    }
+
+    let maxFailedAttemptsRevokeOTP: number | undefined;
+    if (currentState.otpRevokeFailedAttemptsEnabled === true) {
+      maxFailedAttemptsRevokeOTP =
+        currentState.otpRevokeFailedAttempts ??
+        DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS;
+    }
+    config.authentication.rate_limits.oob_otp.email.max_failed_attempts_revoke_otp =
+      maxFailedAttemptsRevokeOTP;
+    config.authentication.rate_limits.oob_otp.sms.max_failed_attempts_revoke_otp =
+      maxFailedAttemptsRevokeOTP;
+    config.verification.rate_limits.email.max_failed_attempts_revoke_otp =
+      maxFailedAttemptsRevokeOTP;
+    config.verification.rate_limits.sms.max_failed_attempts_revoke_otp =
+      maxFailedAttemptsRevokeOTP;
+
+    config.messaging.rate_limits.sms_per_target = {
+      ...(currentState.dailySMSSendLimit == null
+        ? { enabled: false }
+        : {
+            enabled: true,
+            period: "24h",
+            burst: currentState.dailySMSSendLimit,
+          }),
+    };
 
     clearEmptyObject(config);
   });
@@ -2065,62 +2153,68 @@ function onRenderCriteriaLabel() {
 
 function useVerificationOnChangeRequired(
   setState: FormModel["setState"],
-  key1: keyof VerificationClaimsConfig
+  key: keyof VerificationClaimsConfig
 ) {
   return useCallback(
-    (_, value) => {
+    (_: any, value: boolean | undefined) => {
       if (value == null) {
         return;
       }
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.verificationConfig.claims ??= {};
-          prev.verificationConfig.claims[key1] ??= {};
-          // @ts-expect-error
-          prev.verificationConfig.claims[key1].required = value;
+      setState((s) =>
+        produce(s, (s) => {
+          s.verificationClaims ??= {};
+          const config = s.verificationClaims[key] ?? {};
+          s.verificationClaims[key] = config;
+
+          config.required = value;
           if (value) {
-            // @ts-expect-error
-            prev.verificationConfig.claims[key1].enabled = true;
+            config.enabled = true;
           }
         })
       );
     },
-    [setState, key1]
+    [setState, key]
   );
 }
 
 function useVerificationOnChangeEnabled(
   setState: FormModel["setState"],
-  key1: keyof VerificationClaimsConfig
+  key: keyof VerificationClaimsConfig
 ) {
   return useCallback(
-    (_, value) => {
+    (_: any, value: boolean | undefined) => {
       if (value == null) {
         return;
       }
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.verificationConfig.claims ??= {};
-          prev.verificationConfig.claims[key1] ??= {};
-          // @ts-expect-error
-          prev.verificationConfig.claims[key1].enabled = value;
+      setState((s) =>
+        produce(s, (s) => {
+          s.verificationClaims ??= {};
+          const config = s.verificationClaims[key] ?? {};
+          s.verificationClaims[key] = config;
+
+          config.enabled = value;
         })
       );
     },
-    [setState, key1]
+    [setState, key]
   );
 }
 
 interface VerificationSettingsProps {
   showEmailSettings: boolean;
   showPhoneSettings: boolean;
-  verificationConfig: VerificationConfig;
-  smsRatelimitConfig: SMSRatelimitConfig;
-  emailRatelimitConfig: EmailRatelimitConfig;
-  otpFailedAttemptConfig: OTPFailedAttemptConfig;
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
   authenticatorOOBSMSConfig: AuthenticatorOOBSMSConfig;
-  dailySMSSendLimit: string;
+
+  verificationClaims: VerificationClaimsConfig | undefined;
+  verificationCriteria: VerificationCriteria | undefined;
+  otpValidPeriodSeconds: number | undefined;
+  smsOTPCooldownPeriodSeconds: number | undefined;
+  emailOTPCooldownPeriodSeconds: number | undefined;
+  otpRevokeFailedAttemptsEnabled: boolean;
+  otpRevokeFailedAttempts: number | undefined;
+  dailySMSSendLimit: number | undefined;
+
   setState: FormModel["setState"];
 }
 
@@ -2129,13 +2223,16 @@ function VerificationSettings(props: VerificationSettingsProps) {
   const {
     showEmailSettings,
     showPhoneSettings,
-    verificationConfig,
-    smsRatelimitConfig,
-    emailRatelimitConfig,
-    otpFailedAttemptConfig,
     setState,
     authenticatorOOBEmailConfig,
     authenticatorOOBSMSConfig,
+    verificationClaims,
+    verificationCriteria,
+    otpValidPeriodSeconds,
+    smsOTPCooldownPeriodSeconds,
+    emailOTPCooldownPeriodSeconds,
+    otpRevokeFailedAttemptsEnabled,
+    otpRevokeFailedAttempts,
     dailySMSSendLimit,
   } = props;
 
@@ -2143,10 +2240,12 @@ function VerificationSettings(props: VerificationSettingsProps) {
 
   const onChangeCodeExpirySeconds = useCallback(
     (_, value) => {
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.verificationConfig.code_expiry_seconds =
-            parseIntegerAllowLeadingZeros(value);
+      setState((s) =>
+        produce(s, (s) => {
+          s.otpValidPeriodSeconds = tryProduce(s.otpValidPeriodSeconds, () => {
+            const num = parseNumber(value);
+            return num == null ? undefined : ensurePositiveNumber(num);
+          });
         })
       );
     },
@@ -2154,10 +2253,12 @@ function VerificationSettings(props: VerificationSettingsProps) {
   );
 
   const onChangeOTPFailedAttemptEnabled = useCallback(
-    (_, value) => {
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.otpFailedAttemptConfig.enabled = value;
+    (_, value: boolean | undefined) => {
+      setState((s) =>
+        produce(s, (s) => {
+          if (value != null) {
+            s.otpRevokeFailedAttemptsEnabled = value;
+          }
         })
       );
     },
@@ -2165,63 +2266,58 @@ function VerificationSettings(props: VerificationSettingsProps) {
   );
 
   const onChangeOTPFailedAttemptSize = useCallback(
-    (_, value) => {
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.otpFailedAttemptConfig.size =
-            parseIntegerAllowLeadingZeros(value);
+    (_, value: string | undefined) => {
+      setState((s) =>
+        produce(s, (s) => {
+          s.otpRevokeFailedAttempts = tryProduce(
+            s.otpRevokeFailedAttempts,
+            () => {
+              const num = parseNumber(value);
+              return num == null
+                ? undefined
+                : ensureInteger(ensurePositiveNumber(num));
+            }
+          );
         })
       );
     },
     [setState]
   );
 
-  const emailResendCooldown = useMemo(
-    () =>
-      emailResendCooldownList.map((duration) => ({
-        key: duration,
-        text: renderToString(
-          "VerificationConfigurationScreen.verification.resend-cooldown.value.seconds",
-          { seconds: duration }
-        ),
-      })),
-    [renderToString]
-  );
   const onChangeEmailResendCooldown = useCallback(
-    (_, option) => {
-      const key = option.key;
-      if (key != null) {
-        setState((prev) =>
-          produce(prev, (prev) => {
-            prev.emailRatelimitConfig.resend_cooldown_seconds = key;
-          })
-        );
-      }
+    (_, value: string | undefined) => {
+      setState((s) =>
+        produce(s, (s) => {
+          s.emailOTPCooldownPeriodSeconds = tryProduce(
+            s.emailOTPCooldownPeriodSeconds,
+            () => {
+              const num = parseNumber(value);
+              return num == null
+                ? undefined
+                : ensureInteger(ensurePositiveNumber(num));
+            }
+          );
+        })
+      );
     },
     [setState]
   );
 
-  const phoneSMSResendCooldown = useMemo(
-    () =>
-      smsResendCooldownList.map((duration) => ({
-        key: duration,
-        text: renderToString(
-          "VerificationConfigurationScreen.verification.resend-cooldown.value.seconds",
-          { seconds: duration }
-        ),
-      })),
-    [renderToString]
-  );
   const onChangePhoneSMSResendCooldown = useCallback(
-    (_, option) => {
-      const key = option.key;
-      if (key != null) {
-        setState((prev) =>
-          produce(prev, (prev) => {
-            prev.smsRatelimitConfig.resend_cooldown_seconds = key;
-          })
-        );
-      }
+    (_, value: string | undefined) => {
+      setState((s) =>
+        produce(s, (s) => {
+          s.smsOTPCooldownPeriodSeconds = tryProduce(
+            s.smsOTPCooldownPeriodSeconds,
+            () => {
+              const num = parseNumber(value);
+              return num == null
+                ? undefined
+                : ensureInteger(ensurePositiveNumber(num));
+            }
+          );
+        })
+      );
     },
     [setState]
   );
@@ -2271,11 +2367,15 @@ function VerificationSettings(props: VerificationSettingsProps) {
   );
 
   const onChangeDailySMSLimit = useCallback(
-    (_, value) => {
-      setState((prev) =>
-        produce(prev, (prev) => {
-          prev.dailySMSSendLimit =
-            parseIntegerAllowLeadingZeros(value)?.toString(10) ?? "";
+    (_, value: string | undefined) => {
+      setState((s) =>
+        produce(s, (s) => {
+          s.dailySMSSendLimit = tryProduce(s.dailySMSSendLimit, () => {
+            const num = parseNumber(value);
+            return num == null
+              ? undefined
+              : ensureInteger(ensurePositiveNumber(num));
+          });
         })
       );
     },
@@ -2298,7 +2398,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
       if (key != null) {
         setState((prev) =>
           produce(prev, (prev) => {
-            prev.verificationConfig.criteria = key;
+            prev.verificationCriteria = key;
           })
         );
       }
@@ -2340,7 +2440,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
         label={renderToString(
           "VerificationConfigurationScreen.code-expiry-seconds.label"
         )}
-        value={verificationConfig.code_expiry_seconds?.toFixed(0) ?? ""}
+        value={otpValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeCodeExpirySeconds}
       />
       <div className={styles.otpFailedAttemptContainer}>
@@ -2352,15 +2452,15 @@ function VerificationSettings(props: VerificationSettingsProps) {
             "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
           )}
           onText={renderToString("Toggle.on")}
-          checked={otpFailedAttemptConfig.enabled ?? false}
+          checked={otpRevokeFailedAttemptsEnabled}
           onChange={onChangeOTPFailedAttemptEnabled}
         />
-        {otpFailedAttemptConfig.enabled ? (
+        {otpRevokeFailedAttemptsEnabled ? (
           <FormTextField
             parentJSONPointer="/otp/ratelimit/failed_attempt"
             fieldName="size"
             type="text"
-            value={otpFailedAttemptConfig.size?.toFixed(0) ?? ""}
+            value={otpRevokeFailedAttempts?.toFixed(0) ?? ""}
             onChange={onChangeOTPFailedAttemptSize}
           />
         ) : null}
@@ -2371,7 +2471,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
       {showEmailSettings && showPhoneSettings ? (
         <Dropdown
           options={criteriaOptions}
-          selectedKey={verificationConfig.criteria}
+          selectedKey={verificationCriteria}
           onChange={onChangeCriteria}
           onRenderLabel={onRenderCriteriaLabel}
         />
@@ -2384,7 +2484,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
           </WidgetSubtitle>
           <Toggle
             inlineLabel={true}
-            checked={verificationConfig.claims?.email?.required ?? true}
+            checked={verificationClaims?.email?.required ?? true}
             onChange={onChangeEmailRequired}
             label={renderToString(
               "VerificationConfigurationScreen.verification.email.required.label"
@@ -2392,19 +2492,19 @@ function VerificationSettings(props: VerificationSettingsProps) {
           />
           <Toggle
             inlineLabel={true}
-            disabled={verificationConfig.claims?.email?.required ?? true}
-            checked={verificationConfig.claims?.email?.enabled ?? true}
+            disabled={verificationClaims?.email?.required ?? true}
+            checked={verificationClaims?.email?.enabled ?? true}
             onChange={onChangeEmailEnabled}
             label={renderToString(
               "VerificationConfigurationScreen.verification.email.allowed.label"
             )}
           />
-          <Dropdown
+          <TextField
+            type="text"
             label={renderToString(
               "VerificationConfigurationScreen.verification.resend-cooldown.label"
             )}
-            options={emailResendCooldown}
-            selectedKey={emailRatelimitConfig.resend_cooldown_seconds}
+            value={emailOTPCooldownPeriodSeconds?.toFixed(0) ?? ""}
             onChange={onChangeEmailResendCooldown}
           />
           <Dropdown
@@ -2425,7 +2525,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
           </WidgetSubtitle>
           <Toggle
             inlineLabel={true}
-            checked={verificationConfig.claims?.phone_number?.required ?? true}
+            checked={verificationClaims?.phone_number?.required ?? true}
             onChange={onChangePhoneRequired}
             label={renderToString(
               "VerificationConfigurationScreen.verification.phone.required.label"
@@ -2433,19 +2533,19 @@ function VerificationSettings(props: VerificationSettingsProps) {
           />
           <Toggle
             inlineLabel={true}
-            disabled={verificationConfig.claims?.phone_number?.required ?? true}
-            checked={verificationConfig.claims?.phone_number?.enabled ?? true}
+            disabled={verificationClaims?.phone_number?.required ?? true}
+            checked={verificationClaims?.phone_number?.enabled ?? true}
             onChange={onChangePhoneEnabled}
             label={renderToString(
               "VerificationConfigurationScreen.verification.phone.allowed.label"
             )}
           />
-          <Dropdown
+          <TextField
+            type="text"
             label={renderToString(
               "VerificationConfigurationScreen.verification.resend-cooldown.label"
             )}
-            options={phoneSMSResendCooldown}
-            selectedKey={smsRatelimitConfig.resend_cooldown_seconds}
+            value={smsOTPCooldownPeriodSeconds?.toFixed(0) ?? ""}
             onChange={onChangePhoneSMSResendCooldown}
           />
           <Dropdown
@@ -2462,7 +2562,9 @@ function VerificationSettings(props: VerificationSettingsProps) {
               label={renderToString(
                 "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label"
               )}
-              value={dailySMSSendLimit}
+              value={
+                dailySMSSendLimit == null ? "" : dailySMSSendLimit.toString()
+              }
               onChange={onChangeDailySMSLimit}
             />
           ) : null}
@@ -2492,15 +2594,20 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       loginIDEmailConfig,
       loginIDUsernameConfig,
       phoneInputConfig,
-      verificationConfig,
-      smsRatelimitConfig,
-      emailRatelimitConfig,
-      otpFailedAttemptConfig,
       authenticatorOOBEmailConfig,
       authenticatorOOBSMSConfig,
       authenticatorPasswordConfig,
       forgotPasswordConfig,
       passkeyChecked,
+
+      verificationClaims,
+      verificationCriteria,
+
+      otpValidPeriodSeconds,
+      smsOTPCooldownPeriodSeconds,
+      emailOTPCooldownPeriodSeconds,
+      otpRevokeFailedAttemptsEnabled,
+      otpRevokeFailedAttempts,
       dailySMSSendLimit,
 
       phoneLoginIDDisabled,
@@ -2735,12 +2842,17 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 <VerificationSettings
                   showEmailSettings={showEmailSettings}
                   showPhoneSettings={showPhoneSettings}
-                  verificationConfig={verificationConfig}
-                  smsRatelimitConfig={smsRatelimitConfig}
-                  emailRatelimitConfig={emailRatelimitConfig}
-                  otpFailedAttemptConfig={otpFailedAttemptConfig}
                   authenticatorOOBEmailConfig={authenticatorOOBEmailConfig}
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
+                  verificationClaims={verificationClaims}
+                  verificationCriteria={verificationCriteria}
+                  otpValidPeriodSeconds={otpValidPeriodSeconds}
+                  smsOTPCooldownPeriodSeconds={smsOTPCooldownPeriodSeconds}
+                  emailOTPCooldownPeriodSeconds={emailOTPCooldownPeriodSeconds}
+                  otpRevokeFailedAttemptsEnabled={
+                    otpRevokeFailedAttemptsEnabled
+                  }
+                  otpRevokeFailedAttempts={otpRevokeFailedAttempts}
                   dailySMSSendLimit={dailySMSSendLimit}
                   setState={setState}
                 />
