@@ -62,6 +62,8 @@ function isAuditLogKind(s: string): s is AuditLogKind {
   return Object.values(AuditLogKind).includes(s as AuditLogKind);
 }
 
+const ALL = "ALL" as const;
+
 function RefreshButton(props: ICommandBarItemProps) {
   const tooltipStyle: Partial<ITooltipHostStyles> = {
     root: { display: "inline-block" },
@@ -127,9 +129,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [queryPage]);
 
   const [offset, setOffset] = useState(initialOffset);
-  const [stateSelectedKey, setSelectedKey] = useState(
-    queryActivityType ?? "ALL"
-  );
+  const [stateSelectedKey, setSelectedKey] = useState(queryActivityType ?? ALL);
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(queryOrderBy);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
@@ -220,7 +220,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [activityKind]);
 
   const selectedKey = useMemo(() => {
-    if (stateSelectedKey === "ALL") {
+    if (stateSelectedKey === ALL) {
       return stateSelectedKey;
     }
     if (
@@ -228,7 +228,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     ) {
       return stateSelectedKey;
     }
-    return "ALL";
+    return ALL;
   }, [availableActivityTypes, stateSelectedKey]);
 
   const { renderToString } = useContext(Context);
@@ -318,7 +318,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const activityTypeOptions = useMemo(() => {
     const options = [
       {
-        key: "ALL",
+        key: ALL as string,
         text: renderToString("AuditLogActivityType.ALL"),
       },
     ];
@@ -332,7 +332,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [availableActivityTypes, renderToString]);
 
   const activityTypes: AuditLogActivityType[] | null = useMemo(() => {
-    if (selectedKey === "ALL") {
+    if (selectedKey === ALL) {
       return availableActivityTypes;
     }
     return [selectedKey] as AuditLogActivityType[];
@@ -439,7 +439,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     const customDateRangeLabel = renderToString(
       "AuditLogScreen.date-range.custom"
     );
-    return [
+    const items: ICommandBarItemProps[] = [
       {
         key: "dateRange",
         text: isCustomDateRange ? customDateRangeLabel : allDateRangeLabel,
@@ -476,15 +476,36 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           }),
         },
       },
+      {
+        key: "clear",
+        text: renderToString("AuditLogScreen.clear-all-filters"),
+        iconProps: {
+          iconName: "",
+        },
+        onClick: () => {
+          setOffset(0);
+          setRangeFromImmediately(null);
+          setRangeToImmediately(null);
+          setSelectedKey(ALL);
+        },
+        buttonStyles: {
+          root: {
+            color: "rgba(89, 86, 83, 0.4)",
+          },
+        },
+      },
     ];
+    return items;
   }, [
     renderToString,
     isCustomDateRange,
     onClickAllDateRange,
     onClickCustomDateRange,
-    selectedKey,
     activityTypeOptions,
+    selectedKey,
     onChangeSelectedKey,
+    setRangeFromImmediately,
+    setRangeToImmediately,
   ]);
 
   const commandBarSecondaryItems: ICommandBarItemProps[] = useMemo(() => {
