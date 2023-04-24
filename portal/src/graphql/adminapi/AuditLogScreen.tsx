@@ -18,6 +18,8 @@ import {
   ITooltipProps,
   DirectionalHint,
   IContextualMenuItem,
+  Pivot,
+  PivotItem,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -26,7 +28,6 @@ import { DateTime } from "luxon";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import AuditLogList from "./AuditLogList";
 import CommandBarContainer from "../../CommandBarContainer";
-import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import DateRangeDialog from "../portal/DateRangeDialog";
 import { encodeOffsetToCursor } from "../../util/pagination";
@@ -53,11 +54,12 @@ const USER_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
   (activityType) => !ADMIN_ACTIVITY_TYPES.includes(activityType)
 );
 
-type AuditLogKind = "user" | "admin";
-const ALL_AUDIT_LOG_KIND: Array<AuditLogKind> = ["admin", "user"];
-
+enum AuditLogKind {
+  User = "user",
+  Admin = "admin",
+}
 function isAuditLogKind(s: string): s is AuditLogKind {
-  return ALL_AUDIT_LOG_KIND.includes(s as AuditLogKind);
+  return Object.values(AuditLogKind).includes(s as AuditLogKind);
 }
 
 function RefreshButton(props: ICommandBarItemProps) {
@@ -125,7 +127,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [queryPage]);
 
   const [offset, setOffset] = useState(initialOffset);
-  const [selectedKey, setSelectedKey] = useState(queryActivityType ?? "ALL");
+  const [stateSelectedKey, setSelectedKey] = useState(
+    queryActivityType ?? "ALL"
+  );
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(queryOrderBy);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(
@@ -138,7 +142,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (isAuditLogKind(queryActivityKind)) {
       return queryActivityKind;
     }
-    return "user";
+    return AuditLogKind.User;
   });
 
   const {
@@ -208,6 +212,24 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [rangeTo, lastUpdatedAt]);
 
   const isCustomDateRange = rangeFrom != null || rangeTo != null;
+
+  const availableActivityTypes = useMemo(() => {
+    return activityKind === "admin"
+      ? ADMIN_ACTIVITY_TYPES
+      : USER_ACTIVITY_TYPES;
+  }, [activityKind]);
+
+  const selectedKey = useMemo(() => {
+    if (stateSelectedKey === "ALL") {
+      return stateSelectedKey;
+    }
+    if (
+      availableActivityTypes.includes(stateSelectedKey as AuditLogActivityType)
+    ) {
+      return stateSelectedKey;
+    }
+    return "ALL";
+  }, [availableActivityTypes, stateSelectedKey]);
 
   const { renderToString } = useContext(Context);
 
@@ -292,12 +314,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     activityKind,
     queryActivityKind,
   ]);
-
-  const availableActivityTypes = useMemo(() => {
-    return activityKind === "admin"
-      ? ADMIN_ACTIVITY_TYPES
-      : USER_ACTIVITY_TYPES;
-  }, [activityKind]);
 
   const activityTypeOptions = useMemo(() => {
     const options = [
@@ -549,38 +565,51 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   return (
     <>
-      <CommandBarContainer
-        isLoading={loading}
-        messageBar={messageBar}
-        primaryItems={commandBarFarItems}
-        secondaryItems={commandBarSecondaryItems}
-        className={styles.root}
-      >
-        <ScreenContent className={styles.content} layout="list">
-          <div className={styles.widget}>
-            <NavBreadcrumb className="" items={items} />
-            {logRetrievalDays !== -1 ? (
-              <FeatureDisabledMessageBar
-                className={styles.messageBar}
-                messageID="FeatureConfig.audit-log.retrieval-days"
-                messageValues={{ logRetrievalDays: logRetrievalDays }}
-              />
-            ) : null}
-          </div>
-          <AuditLogList
-            className={styles.widget}
-            loading={loading}
-            auditLogs={data?.auditLogs ?? null}
-            searchParams={searchParams.toString()}
-            offset={offset}
-            pageSize={pageSize}
-            totalCount={data?.auditLogs?.totalCount ?? undefined}
-            onChangeOffset={onChangeOffset}
-            onToggleSortDirection={onToggleSortDirection}
-            sortDirection={sortDirection}
-          />
-        </ScreenContent>
-      </CommandBarContainer>
+      <div className={styles.root}>
+        <div className={styles.header}>
+          <NavBreadcrumb className="" items={items} />
+          {logRetrievalDays !== -1 ? (
+            <FeatureDisabledMessageBar
+              className={styles.messageBar}
+              messageID="FeatureConfig.audit-log.retrieval-days"
+              messageValues={{ logRetrievalDays: logRetrievalDays }}
+            />
+          ) : null}
+          <Pivot className={styles.pivot} selectedKey={activityKind}>
+            <PivotItem
+              headerText={renderToString("AuditLogScreen.acitity-kind.user")}
+              itemKey={AuditLogKind.User}
+            ></PivotItem>
+            <PivotItem
+              headerText={renderToString("AuditLogScreen.acitity-kind.admin")}
+              itemKey={AuditLogKind.Admin}
+            ></PivotItem>
+          </Pivot>
+        </div>
+        <div className={styles.listContainer}>
+          <CommandBarContainer
+            isLoading={loading}
+            messageBar={messageBar}
+            primaryItems={commandBarFarItems}
+            secondaryItems={commandBarSecondaryItems}
+            className={styles.commandBarContainerContent}
+            headerPosition="static"
+          >
+            <AuditLogList
+              className={styles.list}
+              loading={loading}
+              auditLogs={data?.auditLogs ?? null}
+              searchParams={searchParams.toString()}
+              offset={offset}
+              pageSize={pageSize}
+              totalCount={data?.auditLogs?.totalCount ?? undefined}
+              onChangeOffset={onChangeOffset}
+              onToggleSortDirection={onToggleSortDirection}
+              sortDirection={sortDirection}
+            />
+          </CommandBarContainer>
+        </div>
+      </div>
       <DateRangeDialog
         hidden={dateRangeDialogHidden}
         title={renderToString("AuditLogScreen.date-range.custom")}

@@ -952,6 +952,8 @@
   "AuditLogScreen.date-range.end-date": "End Date",
   "AuditLogScreen.refresh": "Refresh",
   "AuditLogScreen.last-update-at": "Refresh. Updated: {datetime}",
+  "AuditLogScreen.acitity-kind.user": "End-User Side",
+  "AuditLogScreen.acitity-kind.admin": "Admin Side",
 
   "AuditLogList.column.activity-type": "Activity Type",
   "AuditLogList.column.created-at": "Timestamp",
