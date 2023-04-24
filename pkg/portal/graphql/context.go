@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -138,6 +139,10 @@ type DenoService interface {
 	Check(ctx context.Context, snippet string) error
 }
 
+type AuditService interface {
+	Log(app *model.App, payload event.NonBlockingPayload) error
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -164,6 +169,7 @@ type Context struct {
 	SubscriptionService  SubscriptionService
 	NFTService           NFTService
 	DenoService          DenoService
+	AuditService         AuditService
 }
 
 func (c *Context) Logger() *log.Logger {

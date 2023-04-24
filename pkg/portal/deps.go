@@ -109,6 +109,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.SubscriptionService), new(*service.SubscriptionService)),
 	wire.Bind(new(graphql.NFTService), new(*service.NFTService)),
 	wire.Bind(new(graphql.DenoService), new(*hook.DenoClientImpl)),
+	wire.Bind(new(graphql.AuditService), new(*service.AuditService)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),

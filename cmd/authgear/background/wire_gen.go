@@ -240,10 +240,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	userAgentString := ProvideUserAgentString()
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}

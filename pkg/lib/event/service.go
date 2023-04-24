@@ -276,5 +276,5 @@ func (s *Service) resolveNonBlockingEvent(payload event.NonBlockingPayload) (*ev
 	if err != nil {
 		return nil, err
 	}
-	return newNonBlockingEvent(seq, payload, eventContext), nil
+	return NewNonBlockingEvent(seq, payload, eventContext), nil
 }

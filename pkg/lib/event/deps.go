@@ -17,7 +17,7 @@ import (
 var DependencySet = wire.NewSet(
 	NewLogger,
 	NewService,
-	wire.Struct(new(StoreImpl), "*"),
+	NewStoreImpl,
 	wire.Struct(new(ResolverImpl), "*"),
 	wire.Bind(new(Store), new(*StoreImpl)),
 	wire.Bind(new(Resolver), new(*ResolverImpl)),

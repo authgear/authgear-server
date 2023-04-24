@@ -22,7 +22,7 @@ func newBlockingEvent(seqNo int64, payload event.BlockingPayload, context event.
 	return event
 }
 
-func newNonBlockingEvent(seqNo int64, payload event.NonBlockingPayload, context event.Context) *event.Event {
+func NewNonBlockingEvent(seqNo int64, payload event.NonBlockingPayload, context event.Context) *event.Event {
 	event := newEvent(seqNo, payload, context)
 	event.Type = payload.NonBlockingEventType()
 	event.IsNonBlocking = true

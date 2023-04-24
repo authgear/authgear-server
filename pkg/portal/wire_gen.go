@@ -296,6 +296,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	nftService := &service.NFTService{
 		APIEndpoint: nftIndexerAPIEndpoint,
 	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	auditService := &service.AuditService{
+		Context:                   context,
+		RemoteIP:                  remoteIP,
+		UserAgentString:           userAgentString,
+		Clock:                     clock,
+		DBPool:                    pool,
+		DatabaseEnvironmentConfig: databaseEnvironmentConfig,
+		LoggerFactory:             logFactory,
+	}
 	graphqlContext := &graphql.Context{
 		Request:                 request,
 		GQLLogger:               logger,
@@ -316,6 +327,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SubscriptionService:     subscriptionService,
 		NFTService:              nftService,
 		DenoService:             denoClientImpl,
+		AuditService:            auditService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

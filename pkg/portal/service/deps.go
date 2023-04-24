@@ -15,6 +15,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SystemConfigProvider), "*"),
 	wire.Struct(new(SubscriptionService), "*"),
 	wire.Struct(new(NFTService), "*"),
+	wire.Struct(new(AuditService), "*"),
 	NewConfigServiceLogger,
 	NewAppServiceLogger,
 	NewKubernetesLogger,

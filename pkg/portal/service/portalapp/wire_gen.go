@@ -67,10 +67,7 @@ func NewPortalAppService(appProvider *deps.AppProvider, request *http.Request) P
 	databaseCredentials := deps2.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &user.Store{

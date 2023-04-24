@@ -21,3 +21,12 @@ func (s *StoreImpl) NextSequenceNumber() (seq int64, err error) {
 	err = row.Scan(&seq)
 	return
 }
+
+func NewStoreImpl(
+	sqlBuilder *appdb.SQLBuilder,
+	sqlExecutor *appdb.SQLExecutor) *StoreImpl {
+	return &StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+}
