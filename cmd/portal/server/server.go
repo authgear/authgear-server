@@ -6,8 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/portal"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -28,29 +26,11 @@ func ProvideCaptureTaskContext(config *config.Config, appCtx *config.AppContext)
 	}
 }
 
-func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
-	handle := p.AppDatabase
-	appContext := p.AppContext
-	config := appContext.Config
-	captureTaskContext := ProvideCaptureTaskContext(config, appContext)
-	inProcessQueue := &queue.InProcessQueue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       e,
-	}
-	return inProcessQueue
-}
-
 func (c *Controller) Start() {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		golog.Fatalf("failed to load server config: %s", err)
 	}
-
-	taskQueueFactory := deps.TaskQueueFactory(func(provider *deps.AppProvider) task.Queue {
-		// FIXME(tung): Put a correct executor here
-		return newInProcessQueue(provider, nil)
-	})
 
 	p, err := deps.NewRootProvider(
 		cfg.EnvironmentConfig,
@@ -72,7 +52,6 @@ func (c *Controller) Start() {
 		&cfg.Analytic,
 		&cfg.Stripe,
 		&cfg.GoogleTagManager,
-		taskQueueFactory,
 	)
 
 	if err != nil {

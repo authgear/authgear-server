@@ -1,7 +1,6 @@
 package deps
 
 import (
-	"context"
 	"net/http"
 
 	getsentry "github.com/getsentry/sentry-go"
@@ -9,13 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
@@ -25,8 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
-
-type TaskQueueFactory func(*AppProvider) task.Queue
 
 type RootProvider struct {
 	EnvironmentConfig      *config.EnvironmentConfig
@@ -55,7 +47,6 @@ type RootProvider struct {
 	AppBaseResources       *resource.Manager
 	FilesystemCache        *httputil.FilesystemCache
 	EmbeddedResources      *web.GlobalEmbeddedResourceManager
-	TaskQueueFactory       TaskQueueFactory
 }
 
 func NewRootProvider(
@@ -78,7 +69,6 @@ func NewRootProvider(
 	analyticConfig *config.AnalyticConfig,
 	stripeConfig *portalconfig.StripeConfig,
 	googleTagManagerConfig *portalconfig.GoogleTagManagerConfig,
-	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -144,7 +134,6 @@ func NewRootProvider(
 		),
 		FilesystemCache:   filesystemCache,
 		EmbeddedResources: embeddedResources,
-		TaskQueueFactory:  taskQueueFactory,
 	}, nil
 }
 
@@ -176,18 +165,4 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 		h := f(requestProvider)
 		h.ServeHTTP(w, r)
 	})
-}
-
-type AppProvider struct {
-	*RootProvider
-
-	Context            context.Context
-	LoggerFactory      *log.Factory
-	AppDatabase        *appdb.Handle
-	AuditReadDatabase  *auditdb.ReadHandle
-	AuditWriteDatabase *auditdb.WriteHandle
-	Redis              *appredis.Handle
-	AnalyticRedis      *analyticredis.Handle
-	AppContext         *config.AppContext
-	TaskQueue          task.Queue
 }
