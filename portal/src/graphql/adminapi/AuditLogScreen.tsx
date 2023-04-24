@@ -138,7 +138,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       : new Date()
   );
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
-  const [activityKind] = useState<AuditLogKind>(() => {
+  const [activityKind, setActivityKind] = useState<AuditLogKind>(() => {
     if (isAuditLogKind(queryActivityKind)) {
       return queryActivityKind;
     }
@@ -563,6 +563,19 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
   }, [sortDirection]);
 
+  const onTabChange = useCallback((item?: PivotItem) => {
+    if (item == null) {
+      return;
+    }
+    const { itemKey } = item.props;
+    if (!itemKey || !isAuditLogKind(itemKey)) {
+      return;
+    }
+    setActivityKind(itemKey);
+    // Reset pagination on tab change
+    setOffset(0);
+  }, []);
+
   return (
     <>
       <div className={styles.root}>
@@ -575,15 +588,19 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
               messageValues={{ logRetrievalDays: logRetrievalDays }}
             />
           ) : null}
-          <Pivot className={styles.pivot} selectedKey={activityKind}>
+          <Pivot
+            className={styles.pivot}
+            selectedKey={activityKind}
+            onLinkClick={onTabChange}
+          >
             <PivotItem
-              headerText={renderToString("AuditLogScreen.acitity-kind.user")}
               itemKey={AuditLogKind.User}
-            ></PivotItem>
+              headerText={renderToString("AuditLogScreen.acitity-kind.user")}
+            />
             <PivotItem
-              headerText={renderToString("AuditLogScreen.acitity-kind.admin")}
               itemKey={AuditLogKind.Admin}
-            ></PivotItem>
+              headerText={renderToString("AuditLogScreen.acitity-kind.admin")}
+            />
           </Pivot>
         </div>
         <div className={styles.listContainer}>
