@@ -1,0 +1,13 @@
+ {
+   "http": null,
+   "id": "test",
+   "localization": {
+     "supported_languages": [
+-      0: "en-US"
++      0: "zh-HK-Hant"
+     ]
+   }
++  "ui": {
++    "dark_theme_disabled": true
++  }
+ }

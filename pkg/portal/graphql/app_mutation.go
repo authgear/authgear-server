@@ -18,9 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-
-	"github.com/yudai/gojsondiff"
-	diffformatter "github.com/yudai/gojsondiff/formatter"
 )
 
 var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
@@ -306,7 +303,7 @@ var _ = registerMutationField(
 
 			newAppConfig := newApp.Context.Config.AppConfig
 
-			appConfigDiff, err := formatAppConfigDiff(originalAppConfig, newAppConfig)
+			appConfigDiff, err := config.DiffAppConfig(originalAppConfig, newAppConfig)
 			if err != nil {
 				return nil, err
 			}
@@ -564,37 +561,4 @@ func checkAppQuota(ctx *Context, userID string) error {
 	}
 
 	return nil
-}
-
-func formatAppConfigDiff(originalConfig *config.AppConfig, newConfig *config.AppConfig) (string, error) {
-	oBytes, err := json.Marshal(originalConfig)
-	if err != nil {
-		return "", err
-	}
-	nBytes, err := json.Marshal(newConfig)
-	if err != nil {
-		return "", err
-	}
-	diff, err := gojsondiff.New().Compare(oBytes, nBytes)
-	if err != nil {
-		return "", err
-	}
-	if !diff.Modified() {
-		return "", nil
-	}
-	config := diffformatter.AsciiFormatterConfig{
-		ShowArrayIndex: true,
-		Coloring:       false,
-	}
-	var oMap map[string]interface{}
-	err = json.Unmarshal(oBytes, &oMap)
-	if err != nil {
-		return "", err
-	}
-	formatter := diffformatter.NewAsciiFormatter(oMap, config)
-	formattedDiff, err := formatter.Format(diff)
-	if err != nil {
-		return "", err
-	}
-	return formattedDiff, nil
 }
