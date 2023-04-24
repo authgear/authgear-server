@@ -83,8 +83,7 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 		if err != nil {
 			return err
 		}
-		auditSink.ReceiveNonBlockingEvent(e)
-		return nil
+		return auditSink.ReceiveNonBlockingEvent(e)
 	})
 }
 
