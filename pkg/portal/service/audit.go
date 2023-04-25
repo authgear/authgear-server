@@ -38,6 +38,10 @@ type AuditService struct {
 }
 
 func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (err error) {
+	if s.AuditDatabase == nil || s.AuditDatabaseWriteExecutor == nil || s.AuditDatabaseSQLBuilder == nil {
+		return
+	}
+
 	cfg := app.Context.Config
 	loggerFactory := s.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
