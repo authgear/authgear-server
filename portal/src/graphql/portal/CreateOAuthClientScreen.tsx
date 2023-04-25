@@ -41,6 +41,7 @@ import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
+import { AppSecretKey } from "./globalTypes.generated";
 
 interface FormState {
   clients: OAuthClientConfig[];
@@ -325,10 +326,13 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     );
   };
 
+const NO_SECRETS: AppSecretKey[] = [];
+
 const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppSecretConfigForm({
     appID,
+    unmaskedSecrets: NO_SECRETS,
     constructFormState,
     constructConfig,
     constructInitialCurrentState,

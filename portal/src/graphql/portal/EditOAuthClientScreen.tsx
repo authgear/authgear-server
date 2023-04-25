@@ -52,6 +52,7 @@ import {
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { AppSecretKey } from "./globalTypes.generated";
 
 interface FormState {
   publicOrigin: string;
@@ -544,6 +545,8 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     );
   };
 
+const NO_SECRETS: AppSecretKey[] = [];
+
 const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
   const { appID, clientID } = useParams() as {
     appID: string;
@@ -552,6 +555,7 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
   const { renderToString } = useContext(Context);
   const form = useAppSecretConfigForm({
     appID,
+    unmaskedSecrets: NO_SECRETS,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,

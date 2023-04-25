@@ -7,6 +7,7 @@ import {
 } from "../types";
 import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
+import { AppSecretKey } from "../graphql/portal/globalTypes.generated";
 
 export interface AppSecretConfigFormModel<State> {
   isLoading: boolean;
@@ -41,6 +42,7 @@ export type InitialCurrentStateConstructor<State> = (state: State) => State;
 
 interface UseAppSecretConfigFormOptions<State> {
   appID: string;
+  unmaskedSecrets: AppSecretKey[];
   constructFormState: StateConstructor<State>;
   constructConfig: ConfigConstructor<State>;
   constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor<State>;
@@ -52,6 +54,7 @@ export function useAppSecretConfigForm<State>(
 ): AppSecretConfigFormModel<State> {
   const {
     appID,
+    unmaskedSecrets,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
@@ -65,7 +68,7 @@ export function useAppSecretConfigForm<State>(
     effectiveAppConfig,
     secretConfig,
     refetch: reload,
-  } = useAppAndSecretConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID, unmaskedSecrets);
   const {
     loading: isUpdating,
     error: updateError,

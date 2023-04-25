@@ -1,7 +1,7 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import {
   Dropdown,
   IDropdownOption,
@@ -61,6 +61,7 @@ import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { AppSecretKey } from "./globalTypes.generated";
 
 const CODE_EDITOR_OPTIONS = {
   minimap: {
@@ -661,6 +662,13 @@ interface HookConfigurationScreenContentProps {
 
 interface LocationState {
   isOAuthRedirect: boolean;
+}
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isOAuthRedirect != null
+  );
 }
 
 interface CodeEditorState {
@@ -1400,8 +1408,17 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
 
 const HookConfigurationScreen: React.VFC = function HookConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
+  const location = useLocation();
+  const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+    const { state } = location;
+    if (isLocationState(state) && state.isOAuthRedirect) {
+      return [AppSecretKey.WebhookSecret];
+    }
+    return [];
+  });
   const form = useAppSecretConfigForm({
     appID,
+    unmaskedSecrets,
     constructFormState: constructConfigFormState,
     constructConfig,
   });

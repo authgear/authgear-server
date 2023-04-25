@@ -45,6 +45,7 @@ import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import { AppSecretKey } from "./globalTypes.generated";
 
 type ProviderType = "sendgrid" | "custom";
 
@@ -644,10 +645,13 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
     );
   };
 
+const NO_SECRETS: AppSecretKey[] = [];
+
 const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppSecretConfigForm({
     appID,
+    unmaskedSecrets: NO_SECRETS,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
