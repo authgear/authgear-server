@@ -2,15 +2,15 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
@@ -21,18 +21,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
-type AuditStore interface {
-	NextSequenceNumber() (int64, error)
-}
-
 type AuditService struct {
-	Context                   context.Context
-	RemoteIP                  httputil.RemoteIP
-	UserAgentString           httputil.UserAgentString
-	Clock                     clock.Clock
-	DBPool                    *db.Pool
-	DatabaseEnvironmentConfig *config.DatabaseEnvironmentConfig
-	LoggerFactory             *log.Factory
+	Context         context.Context
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+
+	SQLBuilder  *globaldb.SQLBuilder
+	SQLExecutor *globaldb.SQLExecutor
+
+	AuditDatabase              *auditdb.WriteHandle
+	AuditDatabaseWriteExecutor *auditdb.WriteSQLExecutor
+	AuditDatabaseSQLBuilder    *auditdb.SQLBuilder
+	Clock                      clock.Clock
+	LoggerFactory              *log.Factory
 }
 
 func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (err error) {
@@ -43,55 +44,32 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 		sentry.NewLogHookFromContext(s.Context),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	auditDatabaseCredentials := cfg.SecretConfig.LookupData(
-		config.AuditDatabaseCredentialsKey).(*config.AuditDatabaseCredentials)
-	appDbCredentials := cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials)
-	appDatabase := appdb.NewHandle(
-		s.Context,
-		s.DBPool,
-		s.DatabaseEnvironmentConfig,
-		appDbCredentials,
-		loggerFactory,
-	)
-	appSQLBuilder := appdb.NewSQLBuilder(appDbCredentials)
-	appSQLExecutor := appdb.NewSQLExecutor(s.Context, appDatabase)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, cfg.AppConfig.ID)
-	auditWriteHandle := auditdb.NewWriteHandle(
-		s.Context,
-		s.DBPool,
-		s.DatabaseEnvironmentConfig,
-		auditDatabaseCredentials,
-		loggerFactory,
-	)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(s.Context, auditWriteHandle)
+	sqlBuilder := s.AuditDatabaseSQLBuilder.WithAppID(app.ID)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: s.AuditDatabaseWriteExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   audit.NewLogger(loggerFactory),
-		Database: auditWriteHandle,
+		Database: s.AuditDatabase,
 		Store:    writeStore,
 	}
 
-	return appDatabase.WithTx(func() error {
-		eventStore := libevent.NewStoreImpl(
-			appSQLBuilder,
-			appSQLExecutor,
-		)
-		e, err := s.resolveNonBlockingEvent(eventStore, payload)
-		if err != nil {
-			return err
-		}
-		return auditSink.ReceiveNonBlockingEvent(e)
-	})
+	e, err := s.resolveNonBlockingEvent(payload)
+	if err != nil {
+		return err
+	}
+	return auditSink.ReceiveNonBlockingEvent(e)
 }
 
-func (s *AuditService) nextSeq(store AuditStore) (seq int64, err error) {
-	seq, err = store.NextSequenceNumber()
+func (s *AuditService) nextSeq() (seq int64, err error) {
+	builder := s.SQLBuilder.
+		Select(fmt.Sprintf("nextval('%s')", s.SQLBuilder.TableName("_auth_event_sequence")))
+	row, err := s.SQLExecutor.QueryRowWith(builder)
 	if err != nil {
 		return
 	}
+	err = row.Scan(&seq)
 	return
 }
 
@@ -139,9 +117,9 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 	return *ctx
 }
 
-func (s *AuditService) resolveNonBlockingEvent(store AuditStore, payload event.NonBlockingPayload) (*event.Event, error) {
+func (s *AuditService) resolveNonBlockingEvent(payload event.NonBlockingPayload) (*event.Event, error) {
 	eventContext := s.makeContext(payload)
-	seq, err := s.nextSeq(store)
+	seq, err := s.nextSeq()
 	if err != nil {
 		return nil, err
 	}

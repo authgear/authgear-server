@@ -67,6 +67,7 @@ var DependencySet = wire.NewSet(
 	smtp.DependencySet,
 
 	auditdb.NewReadHandle,
+	auditdb.NewWriteHandle,
 	auditdb.DependencySet,
 	analytic.DependencySet,
 	configsource.DependencySet,
