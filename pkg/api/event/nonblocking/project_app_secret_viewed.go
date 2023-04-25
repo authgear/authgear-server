@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	ProjectAppSecretViewed event.Type = "project.app.secret.viewed"
+	ProjectAppSecretViewed event.Type = "project.app.secret.viewed" // nolint:gosec
 )
 
 type ProjectAppSecretViewedEventPayload struct {
