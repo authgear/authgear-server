@@ -75,22 +75,10 @@ func (s *AuditService) nextSeq() (seq int64, err error) {
 }
 
 func (s *AuditService) makeContext(payload event.Payload) event.Context {
-	portalSession := portalsession.GetValidSessionInfo(s.Context)
-	var userID *string
-
-	if portalSession != nil {
-		userID = &portalSession.UserID
-	}
-
-	if userID == nil {
-		uid := payload.UserID()
-		if uid != "" {
-			userID = &uid
-		}
-	}
 	var userIDStr string
-	if userID != nil {
-		userIDStr = *userID
+	portalSession := portalsession.GetValidSessionInfo(s.Context)
+	if portalSession != nil {
+		userIDStr = portalSession.UserID
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
@@ -112,8 +100,8 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 	}
 
 	ctx := &event.Context{
-		Timestamp:          s.Clock.NowUTC().Unix(),
-		UserID:             userID,
+		Timestamp: s.Clock.NowUTC().Unix(),
+		// We do not populate UserID because the event is not about UserID.
 		TriggeredBy:        triggeredBy,
 		AuditContext:       auditCtx,
 		PreferredLanguages: preferredLanguageTags,
