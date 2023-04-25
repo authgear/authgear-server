@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -99,7 +100,7 @@ type AuthorizationFacade interface {
 }
 
 type OAuthFacade interface {
-	CreateSession(clientID string, userID string) (protocol.TokenResponse, error)
+	CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error)
 }
 
 type SessionListingService interface {
@@ -112,6 +113,10 @@ type OTPCodeService interface {
 
 type ForgotPasswordService interface {
 	SendCode(loginID string) error
+}
+
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
 }
 
 type Logger struct{ *log.Logger }
@@ -142,6 +147,7 @@ type Context struct {
 	SessionListing      SessionListingService
 	OTPCode             OTPCodeService
 	ForgotPassword      ForgotPasswordService
+	Events              EventService
 }
 
 func (c *Context) Logger() *log.Logger {

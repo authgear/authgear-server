@@ -1,8 +1,10 @@
 package authenticator
 
-type Kind string
+import "github.com/authgear/authgear-server/pkg/api/model"
+
+type Kind = model.AuthenticatorKind
 
 const (
-	KindPrimary   Kind = "primary"
-	KindSecondary Kind = "secondary"
+	KindPrimary   Kind = model.AuthenticatorKindPrimary
+	KindSecondary Kind = model.AuthenticatorKindSecondary
 )

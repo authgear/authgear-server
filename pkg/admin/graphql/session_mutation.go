@@ -1,10 +1,12 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -59,6 +61,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationRevokeSessionExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				Session: *s.ToAPIModel(),
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -108,6 +122,17 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.SessionFacade.RevokeAll(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationRevokeAllSessionsExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -172,7 +197,19 @@ var _ = registerMutationField(
 
 			clientID := input["clientID"].(string)
 
-			resp, err := gqlCtx.OAuthFacade.CreateSession(clientID, userID)
+			s, resp, err := gqlCtx.OAuthFacade.CreateSession(clientID, userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationCreateSessionExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				Session: *s.ToAPIModel(),
+			})
 			if err != nil {
 				return nil, err
 			}

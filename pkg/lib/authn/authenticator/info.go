@@ -217,3 +217,13 @@ func (i *Info) IsDependentOf(iden *identity.Info) bool {
 func (i *Info) IsApplicableTo(iden *identity.Info) bool {
 	return KeepPrimaryAuthenticatorOfIdentity(iden).Keep(i)
 }
+
+func (i *Info) ToModel() model.Authenticator {
+	return model.Authenticator{
+		Meta:      i.GetMeta(),
+		UserID:    i.UserID,
+		Type:      i.Type,
+		IsDefault: i.IsDefault,
+		Kind:      model.AuthenticatorKind(i.Kind),
+	}
+}

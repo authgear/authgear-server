@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -43,7 +44,7 @@ type OAuthFacade struct {
 	Clock          clock.Clock
 }
 
-func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.TokenResponse, error) {
+func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error) {
 	scopes := []string{
 		"openid",
 		"offline_access",
@@ -57,16 +58,16 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.To
 
 	client, ok := f.Config.GetClient(clientID)
 	if !ok {
-		return nil, apierrors.NewInvalid("invalid client ID")
+		return nil, nil, apierrors.NewInvalid("invalid client ID")
 	}
 	if !client.IsFirstParty() {
-		return nil, apierrors.NewForbidden("cannot create session for non-first party client")
+		return nil, nil, apierrors.NewForbidden("cannot create session for non-first party client")
 	}
 
 	// Check user existence.
 	_, err := f.Users.GetRaw(userID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	authz, err := f.Authorizations.CheckAndGrant(
@@ -75,7 +76,7 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.To
 		scopes,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	offlineGrantOpts := handler.IssueOfflineGrantOptions{
@@ -88,7 +89,7 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.To
 	resp := protocol.TokenResponse{}
 	offlineGrant, err := f.Tokens.IssueOfflineGrant(client, offlineGrantOpts, resp)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = f.Tokens.IssueAccessGrant(
@@ -101,8 +102,8 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (protocol.To
 		resp,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return resp, nil
+	return offlineGrant, resp, nil
 }

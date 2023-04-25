@@ -1,10 +1,12 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -54,6 +56,18 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.AuthenticatorFacade.Remove(info)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationDeleteAuthenticatorExecutedEventPayload{
+				Authenticator: info.ToModel(),
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: info.UserID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}

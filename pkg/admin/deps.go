@@ -83,6 +83,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.SessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(graphql.OTPCodeService), new(*otp.Service)),
 	wire.Bind(new(graphql.ForgotPasswordService), new(*forgotpassword.Service)),
+	wire.Bind(new(graphql.EventService), new(*event.Service)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

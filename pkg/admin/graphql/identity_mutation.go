@@ -6,6 +6,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -55,6 +57,18 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.IdentityFacade.Remove(info)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationDeleteIdentityExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: info.UserID,
+					},
+				},
+				Identity: info.ToModel(),
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -127,6 +141,23 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			ref, err := gqlCtx.IdentityFacade.Create(userID, identityDef, password)
+			if err != nil {
+				return nil, err
+			}
+
+			info, err := gqlCtx.IdentityFacade.Get(ref.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationCreateIdentityExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				Identity: info.ToModel(),
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -205,6 +236,23 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			ref, err := gqlCtx.IdentityFacade.Update(identityID, userID, identityDef)
+			if err != nil {
+				return nil, err
+			}
+
+			info, err := gqlCtx.IdentityFacade.Get(ref.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationUpdateIdentityExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: ref.UserID,
+					},
+				},
+				Identity: info.ToModel(),
+			})
 			if err != nil {
 				return nil, err
 			}

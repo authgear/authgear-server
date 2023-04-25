@@ -21,6 +21,13 @@ const (
 	AuthenticatorOOBChannelEmail AuthenticatorOOBChannel = "email"
 )
 
+type AuthenticatorKind string
+
+const (
+	AuthenticatorKindPrimary   AuthenticatorKind = "primary"
+	AuthenticatorKindSecondary AuthenticatorKind = "secondary"
+)
+
 func GetOOBAuthenticatorType(channel AuthenticatorOOBChannel) (AuthenticatorType, error) {
 	switch channel {
 	case "sms":
@@ -30,4 +37,12 @@ func GetOOBAuthenticatorType(channel AuthenticatorOOBChannel) (AuthenticatorType
 	default:
 		return "", errors.New("invalid oob channel")
 	}
+}
+
+type Authenticator struct {
+	Meta
+	UserID    string            `json:"user_id"`
+	Type      AuthenticatorType `json:"type"`
+	IsDefault bool              `json:"is_default"`
+	Kind      AuthenticatorKind `json:"kind"`
 }

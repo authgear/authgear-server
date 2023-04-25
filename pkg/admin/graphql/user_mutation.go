@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -60,6 +61,17 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			userID, err := gqlCtx.UserFacade.Create(identityDef, password)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationCreateUserExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -123,6 +135,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationResetPasswordExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -158,6 +181,13 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.ForgotPassword.SendCode(loginID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{
+				LoginID: loginID,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -257,6 +287,14 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{
+				Target:  target,
+				Purpose: string(purpose),
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"code": code,
 			}).Value, nil
@@ -322,6 +360,15 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.VerificationFacade.SetVerified(userID, claimName, claimValue, isVerified)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationSetVerifiedStatusExecutedEventPayload{
+				ClaimName:  claimName,
+				ClaimValue: claimValue,
+				IsVerified: isVerified,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -393,6 +440,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationSetDisabledStatusExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				IsDisabled: isDisabled,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -446,6 +505,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationScheduleAccountDeletionExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -495,6 +565,17 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.UserFacade.UnscheduleDeletion(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -568,6 +649,17 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationUpdateUserExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -616,7 +708,21 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.UserFacade.Delete(userID)
+			userModelVal, err := gqlCtx.Users.Load(userID).Value()
+			userModel := *userModelVal.(*apimodel.User)
+
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.UserFacade.Delete(userModel.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
+				UserModel: userModel,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -674,6 +780,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(
+				&nonblocking.AdminAPIMutationScheduleAccountAnonymizationExecutedEventPayload{
+					UserRef: apimodel.UserRef{
+						Meta: apimodel.Meta{
+							ID: userID,
+						},
+					},
+				})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -727,6 +845,18 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.Events.DispatchEvent(
+				&nonblocking.AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload{
+					UserRef: apimodel.UserRef{
+						Meta: apimodel.Meta{
+							ID: userID,
+						},
+					},
+				})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
 			}).Value, nil
@@ -776,6 +906,17 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			err := gqlCtx.UserFacade.Anonymize(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEvent(&nonblocking.AdminAPIMutationAnonymizeUserExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+			})
 			if err != nil {
 				return nil, err
 			}
