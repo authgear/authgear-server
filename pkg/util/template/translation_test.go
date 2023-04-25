@@ -725,7 +725,7 @@ func TestTranslationResource(t *testing.T) {
 		})
 	})
 
-	Convey("TranslationJSON isAppSpecificKey", t, func() {
+	Convey("TranslationJSON IsAppSpecificKey", t, func() {
 		test := func(key string, result bool) {
 			actual := template.TranslationJSON.(interface{ IsAppSpecificKey(key string) bool }).IsAppSpecificKey(key)
 			So(actual, ShouldEqual, result)
@@ -733,12 +733,12 @@ func TestTranslationResource(t *testing.T) {
 
 		test("app.name", true)
 		test("email.default.sender", true)
-		test("email.welcome-email.sender", true)
-		test("email.welcome-email.reply-to", true)
+		test("email.verification.sender", true)
+		test("email.verification.reply-to", true)
 		test("sms.default.sender", true)
 
 		test("email.default.subject", false)
-		test("email.welcome-email.subject", false)
+		test("email.verification.subject", false)
 		test("settings-my-profile-title", false)
 		test("any-key", false)
 

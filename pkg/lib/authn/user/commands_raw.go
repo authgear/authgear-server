@@ -8,14 +8,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type WelcomeMessageProvider interface {
-	SendToIdentityInfos(infos []*identity.Info) error
-}
-
 type RawCommands struct {
-	Store                  store
-	Clock                  clock.Clock
-	WelcomeMessageProvider WelcomeMessageProvider
+	Store store
+	Clock clock.Clock
 }
 
 func (c *RawCommands) New(userID string) *User {
@@ -45,11 +40,6 @@ func (c *RawCommands) Create(userID string) (*User, error) {
 }
 
 func (c *RawCommands) AfterCreate(userModel *model.User, identities []*identity.Info) error {
-	err := c.WelcomeMessageProvider.SendToIdentityInfos(identities)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

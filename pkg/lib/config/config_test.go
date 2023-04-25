@@ -65,6 +65,9 @@ identity:
 				panic(err)
 			}
 
+			_, err = config.Parse(data)
+			So(err, ShouldBeNil)
+
 			var defaultCfg config.AppConfig
 			err = yaml.Unmarshal(data, &defaultCfg)
 			if err != nil {

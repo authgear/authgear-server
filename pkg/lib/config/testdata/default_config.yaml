@@ -1,16 +1,6 @@
 id: test
 http:
   public_origin: "http://test"
-database:
-  max_open_connection: 2
-  max_idle_connection: 2
-  max_connection_lifetime_seconds: 1800
-  idle_connection_timeout_seconds: 300
-redis:
-  max_open_connection: 10000
-  max_idle_connection: 2
-  idle_connection_timeout_seconds: 300
-  max_connection_lifetime_seconds: 900
 hook:
   sync_hook_timeout_seconds: 5
   sync_hook_total_timeout_seconds: 10
@@ -264,19 +254,12 @@ localization:
   fallback_language: en
   supported_languages: ["en"]
 messaging:
-  default_email_message:
-    sender: "no-reply@authgear.com"
-  default_sms_message: {}
   sms:
     ratelimit:
       per_phone:
         enabled: false
-        reset_period: ""
-        size: 0
       per_ip:
         enabled: false
-        reset_period: ""
-        size: 0
       resend_cooldown_seconds: 60
   email:
     ratelimit:
@@ -372,9 +355,7 @@ session:
   lifetime_seconds: 31449600
   idle_timeout_enabled: true
   idle_timeout_seconds: 2592000
-oauth:
-  access_token_lifetime_seconds: 1800
-  refresh_token_lifetime_seconds: 604800
+oauth: {}
 identity:
   login_id:
     types:
@@ -487,14 +468,11 @@ authenticator:
   oob_otp:
     sms:
       maximum: 99
-      message: {}
       phone_otp_mode: "whatsapp_sms"
       code_valid_period: 1h
     email:
       maximum: 99
       email_otp_mode: "code"
-      message:
-        subject: Email Verification Instruction
       code_valid_period: 1h
 user_profile:
   custom_attributes: {}
@@ -589,9 +567,6 @@ account_anonymization:
   grace_period_days: 30
 forgot_password:
   enabled: true
-  email_message:
-    subject: Reset password instruction
-  sms_message: {}
   reset_code_expiry_seconds: 1200
   code_valid_period: 20m0s
   rate_limits:
@@ -610,8 +585,6 @@ forgot_password:
         period: 1m
         burst: 60
 welcome_message:
-  email_message:
-    subject: Welcome!
   destination: first
 verification:
   claims:
@@ -624,11 +597,6 @@ verification:
   criteria: any
   code_valid_period: 1h0m0s
   code_expiry_seconds: 3600
-  sms:
-    message: {}
-  email:
-    message:
-      subject: Email Verification Instruction
   rate_limits:
     email:
       trigger_per_ip: {}
@@ -651,10 +619,8 @@ otp:
     failed_attempt:
       enabled: false
 web3:
-  siwe:
-    networks:
-  nft:
-    collections:
+  siwe: {}
+  nft: {}
 google_tag_manager: {}
 account_migration:
   hook:

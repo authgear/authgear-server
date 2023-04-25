@@ -50,7 +50,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
-	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	captcha2 "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -1632,18 +1631,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -4191,18 +4181,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -4995,18 +4976,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -5765,18 +5737,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -6642,18 +6605,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -7459,18 +7413,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -8275,18 +8220,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -9079,18 +9015,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -9876,18 +9803,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -10663,18 +10581,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -11453,18 +11362,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -12246,18 +12146,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -13041,18 +12932,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -13834,18 +13716,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -14623,18 +14496,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -15416,18 +15280,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -16210,18 +16065,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -17003,18 +16849,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -17796,18 +17633,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -18591,18 +18419,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -19384,18 +19203,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -20177,18 +19987,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -20975,18 +20776,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -21768,18 +21560,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -22584,18 +22367,9 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -23377,18 +23151,9 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -24179,18 +23944,9 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -24983,18 +24739,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -25776,18 +25523,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -26565,18 +26303,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -27359,18 +27088,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -28148,18 +27868,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -28947,18 +28658,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -29736,18 +29438,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -30527,18 +30220,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -31316,18 +31000,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -32137,18 +31812,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -32937,18 +32603,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -33750,18 +33407,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -34547,18 +34195,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -35337,18 +34976,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -36135,18 +35765,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -36925,18 +36546,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -37715,18 +37327,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -38505,18 +38108,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -39296,18 +38890,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -40105,18 +39690,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -40895,18 +40471,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -41685,18 +41252,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -42475,18 +42033,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -43265,18 +42814,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -44062,18 +43602,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -44853,18 +44384,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -45642,18 +45164,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -46446,18 +45959,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -47235,18 +46739,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -48024,18 +47519,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -48831,18 +48317,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -49584,18 +49061,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -50336,18 +49804,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -51135,18 +50594,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -51925,18 +51375,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -52273,57 +51714,18 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	manager := appContext.Resources
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
 	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	localizationConfig := appConfig.Localization
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	logger := ratelimit.NewLogger(factory)
-	appredisHandle := appProvider.Redis
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Logger:  logger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitsFeatureConfig,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	userAgentString := deps.ProvideUserAgentString(request)
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	logger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -52336,6 +51738,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -52384,10 +51787,38 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -52413,6 +51844,18 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -52662,6 +52105,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
@@ -52675,19 +52119,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -53016,58 +52448,18 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	manager := appContext.Resources
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
 	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	logger := ratelimit.NewLogger(factory)
-	appredisHandle := appProvider.Redis
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Logger:  logger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitsFeatureConfig,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	userAgentString := deps.ProvideUserAgentString(request)
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	logger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -53080,6 +52472,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -53128,10 +52521,39 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -53157,6 +52579,18 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -53406,6 +52840,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
@@ -53419,19 +52854,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -53731,58 +53154,18 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	manager := appContext.Resources
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
 	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	logger := ratelimit.NewLogger(factory)
-	appredisHandle := appProvider.Redis
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Logger:  logger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitsFeatureConfig,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	userAgentString := deps.ProvideUserAgentString(request)
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	logger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -53795,6 +53178,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -53843,10 +53227,39 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
 		Redis:   appredisHandle,
 		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
@@ -53872,6 +53285,18 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -54121,6 +53546,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
 	elasticsearchService := elasticsearch.Service{
 		AppID:     appID,
 		Client:    client,
@@ -54134,19 +53560,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -55696,18 +55110,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: userStore,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
@@ -56533,18 +55938,9 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
+		Store: store,
+		Clock: clockClock,
 	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,

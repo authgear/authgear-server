@@ -37,7 +37,6 @@ import (
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
-	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -106,7 +105,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
 		wire.Bind(new(messaging.EventService), new(*event.Service)),
-		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
 		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
 		wire.Bind(new(facade.EventService), new(*event.Service)),
@@ -259,11 +257,6 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		welcomemessage.DependencySet,
-		wire.Bind(new(user.WelcomeMessageProvider), new(*welcomemessage.Provider)),
-	),
-
-	wire.NewSet(
 		forgotpassword.DependencySet,
 		wire.Bind(new(interaction.ForgotPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(interaction.ResetPasswordService), new(*forgotpassword.Service)),
@@ -341,7 +334,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		translation.DependencySet,
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
-		wire.Bind(new(welcomemessage.TranslationService), new(*translation.Service)),
 		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
 	),
 
@@ -357,7 +349,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
-		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
 	),
