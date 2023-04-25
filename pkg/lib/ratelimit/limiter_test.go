@@ -25,49 +25,41 @@ func (s *storageMemory) WithConn(f func(ratelimit.StorageConn) error) error {
 	return f(s)
 }
 
-func (s *storageMemory) TakeToken(bucket ratelimit.Bucket, now time.Time, delta int) (int, error) {
-	data, ok := s.items[bucket.Key]
+func (s *storageMemory) TakeToken(spec ratelimit.BucketSpec, now time.Time, delta int) (int, error) {
+	data, ok := s.items[spec.Key()]
 	if ok {
 		data.tokenTaken += delta
-		return bucket.Size - data.tokenTaken, nil
+		return spec.Burst - data.tokenTaken, nil
 	}
 
 	data = &storageMemoryItem{
 		tokenTaken: 1,
-		resetTime:  now.Add(bucket.ResetPeriod),
+		resetTime:  now.Add(spec.Period),
 	}
-	s.items[bucket.Key] = data
-	return bucket.Size - data.tokenTaken, nil
+	s.items[spec.Key()] = data
+	return spec.Burst - data.tokenTaken, nil
 }
 
-func (s *storageMemory) CheckToken(bucket ratelimit.Bucket) (int, error) {
-	data, ok := s.items[bucket.Key]
-	if ok {
-		return bucket.Size - data.tokenTaken, nil
-	}
-	return bucket.Size, nil
-}
-
-func (s *storageMemory) GetResetTime(bucket ratelimit.Bucket, now time.Time) (time.Time, error) {
-	data, ok := s.items[bucket.Key]
+func (s *storageMemory) GetResetTime(spec ratelimit.BucketSpec, now time.Time) (time.Time, error) {
+	data, ok := s.items[spec.Key()]
 	if ok {
 		return data.resetTime, nil
 	}
 	return now, nil
 }
 
-func (s *storageMemory) Reset(bucket ratelimit.Bucket, now time.Time) error {
+func (s *storageMemory) Reset(spec ratelimit.BucketSpec, now time.Time) error {
 	data := &storageMemoryItem{
 		tokenTaken: 0,
-		resetTime:  now.Add(bucket.ResetPeriod),
+		resetTime:  now.Add(spec.Period),
 	}
-	s.items[bucket.Key] = data
+	s.items[spec.Key()] = data
 	return nil
 }
 
 func TestLimiter(t *testing.T) {
 	Convey("Limiter", t, func() {
-		b := ratelimit.Bucket{Key: "bucket", Size: 3, ResetPeriod: 5 * time.Second}
+		b := ratelimit.BucketSpec{Name: "BucketA", Enabled: true, Burst: 3, Period: 5 * time.Second}
 		c := clock.NewMockClock()
 		limiter := &ratelimit.Limiter{
 			Logger:  ratelimit.Logger{log.Null},
@@ -75,26 +67,26 @@ func TestLimiter(t *testing.T) {
 			Clock:   c,
 			Config:  &config.RateLimitsFeatureConfig{},
 		}
-		expectedErr := b.BucketError()
+		expectedErr := ratelimit.ErrRateLimited("BucketA")
 
 		Convey("TakeToken", func() {
 			var err error
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(1)
-
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
+			err = limiter.Allow(b)
+			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			c.AdvanceSeconds(1)
+
+			err = limiter.Allow(b)
 			So(err, ShouldBeError, expectedErr)
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
@@ -102,29 +94,29 @@ func TestLimiter(t *testing.T) {
 
 			// Reset
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
 			// Reset
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
@@ -138,122 +130,23 @@ func TestLimiter(t *testing.T) {
 
 			// Reset
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(1)
-
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeNil)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
+			So(err, ShouldBeNil)
+			c.AdvanceSeconds(1)
+
+			err = limiter.Allow(b)
 			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
 
-			err = limiter.TakeToken(b)
+			err = limiter.Allow(b)
 			So(err, ShouldBeError, expectedErr)
 			c.AdvanceSeconds(1)
-		})
-
-		Convey("CheckToken", func() {
-			var err error
-			var resetDuration time.Duration
-			var pass bool
-
-			_ = limiter.TakeToken(b)
-			_ = limiter.TakeToken(b)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 5*time.Second)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(1)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 4*time.Second)
-			So(pass, ShouldBeFalse)
-			So(err, ShouldBeNil)
-
-			c.AdvanceSeconds(4)
-
-			// Reset
-
-			pass, _, err = limiter.CheckToken(b)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 5*time.Second)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(1)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 4*time.Second)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(1)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 3*time.Second)
-			So(pass, ShouldBeFalse)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(3)
-
-			// Reset
-
-			pass, _, err = limiter.CheckToken(b)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			c.AdvanceSeconds(5)
-
-			// Reset
-
-			pass, _, err = limiter.CheckToken(b)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 5*time.Second)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 5*time.Second)
-			So(pass, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			c.AdvanceSeconds(1)
-
-			err = limiter.TakeToken(b)
-			So(err, ShouldBeNil)
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 4*time.Second)
-			So(pass, ShouldBeFalse)
-			So(err, ShouldBeNil)
-
-			c.AdvanceSeconds(1)
-
-			pass, resetDuration, err = limiter.CheckToken(b)
-			So(resetDuration, ShouldEqual, 3*time.Second)
-			So(pass, ShouldBeFalse)
-			So(err, ShouldBeNil)
 		})
 
 		Convey("Disabled", func() {
@@ -261,12 +154,8 @@ func TestLimiter(t *testing.T) {
 				Disabled: true,
 			}
 
-			for i := 0; i < 2*b.Size; i++ {
-				pass, _, err := limiter.CheckToken(b)
-				So(pass, ShouldBeTrue)
-				So(err, ShouldBeNil)
-
-				err = limiter.TakeToken(b)
+			for i := 0; i < 2*b.Burst; i++ {
+				err := limiter.Allow(b)
 				So(err, ShouldBeNil)
 			}
 		})

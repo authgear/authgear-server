@@ -24,113 +24,9 @@ type Limiter struct {
 	Config  *config.RateLimitsFeatureConfig
 }
 
-func (l *Limiter) isDisabled() bool {
-	return l.Config.Disabled
-}
-
-func (l *Limiter) TakeToken(bucket Bucket) error {
-	if l.isDisabled() {
-		return nil
-	}
-
-	return l.Storage.WithConn(func(conn StorageConn) error {
-		now := l.Clock.NowUTC()
-
-		// Check if we should refill the bucket.
-		resetTime, err := conn.GetResetTime(bucket, now)
-		if err != nil {
-			return err
-		}
-		if !now.Before(resetTime) {
-			// Refill bucket to full.
-			err = conn.Reset(bucket, now)
-			if err != nil {
-				return err
-			}
-		}
-
-		// Try to take one token.
-		tokens, err := conn.TakeToken(bucket, now, 1)
-		if err != nil {
-			return err
-		}
-
-		pass := tokens >= 0
-		l.Logger.
-			WithField("key", bucket.Key).
-			WithField("tokens", tokens).
-			WithField("pass", pass).
-			Debug("check rate limit")
-
-		if !pass {
-			// Exhausted tokens, rate limit the request.
-			return bucket.BucketError()
-		}
-
-		return nil
-	})
-}
-
-// CheckToken return resetDuration and pass based on the given bucket
-func (l *Limiter) CheckToken(bucket Bucket) (pass bool, resetDuration time.Duration, err error) {
-	if l.isDisabled() {
-		return true, time.Duration(0), nil
-	}
-
-	err = l.Storage.WithConn(func(conn StorageConn) error {
-		now := l.Clock.NowUTC()
-
-		resetTime, err := conn.GetResetTime(bucket, now)
-		if err != nil {
-			return err
-		}
-		if !now.Before(resetTime) {
-			// Exceed the reset time, bucket will be reset
-			pass = true
-			return nil
-		}
-
-		// Check the token
-		tokens, err := conn.CheckToken(bucket)
-		if err != nil {
-			return err
-		}
-
-		resetDuration = resetTime.Sub(now)
-		// We need at least 1 token to consume next time.
-		pass = tokens >= 1
-		return nil
-	})
-
-	return
-}
-
-// RequireToken requires the bucket to have at least one token
-func (l *Limiter) RequireToken(bucket Bucket) error {
-	pass, _, err := l.CheckToken(bucket)
-	if err != nil {
-		return err
-	}
-
-	if !pass {
-		return bucket.BucketError()
-	}
-
-	return nil
-}
-
-func (l *Limiter) ClearBucket(bucket Bucket) error {
-	return l.Storage.WithConn(func(conn StorageConn) error {
-		now := l.Clock.NowUTC()
-		return conn.Reset(bucket, now)
-	})
-}
-
 func (l *Limiter) Allow(spec BucketSpec) error {
-	if !spec.Enabled {
-		return nil
-	}
-	return l.TakeToken(spec.bucket())
+	r := l.Reserve(spec)
+	return r.Error()
 }
 
 func (l *Limiter) Reserve(spec BucketSpec) *Reservation {
@@ -138,11 +34,10 @@ func (l *Limiter) Reserve(spec BucketSpec) *Reservation {
 }
 
 func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
-	if l.isDisabled() || !spec.Enabled {
+	if l.Config.Disabled || !spec.Enabled {
 		return &Reservation{spec: spec, ok: true}
 	}
 
-	bucket := spec.bucket()
 	now := l.Clock.NowUTC()
 
 	pass := false
@@ -150,13 +45,13 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 	var timeToAct *time.Time
 	err := l.Storage.WithConn(func(conn StorageConn) error {
 		// Check if we should refill the bucket.
-		resetTime, err := conn.GetResetTime(bucket, now)
+		resetTime, err := conn.GetResetTime(spec, now)
 		if err != nil {
 			return err
 		}
 		if !now.Before(resetTime) {
 			// Refill bucket to full.
-			err = conn.Reset(bucket, now)
+			err = conn.Reset(spec, now)
 			if err != nil {
 				return err
 			}
@@ -164,7 +59,7 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 		}
 
 		// Try to take requested tokens.
-		tokens, err := conn.TakeToken(bucket, now, n)
+		tokens, err := conn.TakeToken(spec, now, n)
 		if err != nil {
 			return err
 		}
@@ -173,8 +68,8 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 		pass = tokens >= 0
 		timeToAct = &resetTime
 		l.Logger.
-			WithField("global", bucket.IsGlobal).
-			WithField("key", bucket.Key).
+			WithField("global", spec.IsGlobal).
+			WithField("key", spec.Key()).
 			WithField("tokens", tokens).
 			WithField("pass", pass).
 			Debug("check rate limit")
@@ -195,23 +90,22 @@ func (l *Limiter) Cancel(r *Reservation) {
 		return
 	}
 
-	bucket := r.spec.bucket()
 	now := l.Clock.NowUTC()
 
 	err := l.Storage.WithConn(func(conn StorageConn) error {
 		// Check if we should refill the bucket.
-		resetTime, err := conn.GetResetTime(bucket, now)
+		resetTime, err := conn.GetResetTime(r.spec, now)
 		if err != nil {
 			return err
 		}
 		if !now.Before(resetTime) {
 			// Refill bucket to full; no need further restore tokens
-			err = conn.Reset(bucket, now)
+			err = conn.Reset(r.spec, now)
 			return err
 		}
 
 		// Try to put all taken tokens.
-		_, err = conn.TakeToken(bucket, now, -r.tokenTaken)
+		_, err = conn.TakeToken(r.spec, now, -r.tokenTaken)
 		if err != nil {
 			return err
 		}
@@ -224,8 +118,8 @@ func (l *Limiter) Cancel(r *Reservation) {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
 		l.Logger.WithError(err).
-			WithField("global", bucket.IsGlobal).
-			WithField("key", bucket.Key).
+			WithField("global", r.spec.IsGlobal).
+			WithField("key", r.spec.Key()).
 			Warn("failed to cancel reservation")
 	}
 }

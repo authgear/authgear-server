@@ -182,9 +182,11 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       </a>
     </li>
     {{ else if eq .Error.reason "RateLimited" }}
-      {{ if eq .Error.info.bucket_name "AntiSpamSMSPerPhoneBucket" }}
+      {{ if eq .Error.info.bucket_name "MessagingSMSPerTarget" }}
       <li>{{ template "error-sms-send-limit-exceeded" }}</li>
-      {{ else if eq .Error.info.bucket_name "AntiSpamSMSPerIPBucket" }}
+      {{ else if eq .Error.info.bucket_name "MessagingSMSPerIP" }}
+      <li>{{ template "error-sms-send-limit-exceeded" }}</li>
+      {{ else if eq .Error.info.bucket_name "MessagingSMS" }}
       <li>{{ template "error-sms-send-limit-exceeded" }}</li>
       {{ else }}
       <li>{{ template "error-rate-limited" }}</li>

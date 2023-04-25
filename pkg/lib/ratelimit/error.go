@@ -6,21 +6,12 @@ import (
 
 const bucketNameKey = "bucket_name"
 
-// ErrUsageLimitExceeded is deprecated; see usage.ErrUsageLimitExceeded.
-var ErrUsageLimitExceeded = apierrors.ServiceUnavailable.WithReason("UsageLimitExceeded").
-	New("usage limit exceeded")
-
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
 
-func ErrTooManyRequestsFrom(bucket Bucket) error {
-	errMsg := "request rate limited"
-	if bucket.Name == "" {
-		return RateLimited.New(errMsg)
-	} else {
-		return RateLimited.NewWithInfo(errMsg, apierrors.Details{
-			bucketNameKey: bucket.Name,
-		})
-	}
+func ErrRateLimited(bucketName string) error {
+	return RateLimited.NewWithInfo("request rate limited", apierrors.Details{
+		bucketNameKey: bucketName,
+	})
 }
 
 func IsRateLimitErrorWithBucketName(err error, bucketName string) bool {
