@@ -190,6 +190,9 @@ enum AuditLogActivityType {
   IDENTITY_USERNAME_UPDATED
 
   """"""
+  PROJECT_APP_SECRET_VIEWED
+
+  """"""
   PROJECT_APP_UPDATED
 
   """"""
