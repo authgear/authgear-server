@@ -17,7 +17,7 @@ import (
 )
 
 type RateLimiter interface {
-	TakeToken(bucket ratelimit.Bucket) error
+	Allow(spec ratelimit.BucketSpec) error
 }
 
 func ConfigurePresignImagesUploadRoute(route httproute.Route) httproute.Route {
@@ -56,7 +56,7 @@ type PresignImagesUploadHandler struct {
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	userID := session.GetUserID(req.Context())
-	err := h.RateLimiter.TakeToken(AntiSpamPresignImagesUploadBucket(*userID))
+	err := h.RateLimiter.Allow(PresignImageUploadRequestBucketSpec(*userID))
 	if err != nil {
 		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return
