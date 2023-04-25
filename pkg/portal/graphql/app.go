@@ -9,6 +9,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
@@ -128,6 +129,27 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var secretKey = graphql.NewEnum(graphql.EnumConfig{
+	Name: "AppSecretKey",
+	Values: graphql.EnumValueConfigMap{
+		"OAUTH_SSO_PROVIDER_CLIENT_SECRETS": &graphql.EnumValueConfig{
+			Value: config.OAuthSSOProviderCredentialsKey,
+		},
+		"WEBHOOK_SECRET": &graphql.EnumValueConfig{
+			Value: config.WebhookKeyMaterialsKey,
+		},
+		"ADMIN_API_SECRETS": &graphql.EnumValueConfig{
+			Value: config.AdminAPIAuthKeyKey,
+		},
+		"SMTP_SECRET": &graphql.EnumValueConfig{
+			Value: config.SMTPServerCredentialsKey,
+		},
+		"OAUTH_CLIENT_SECRETS": &graphql.EnumValueConfig{
+			Value: config.OAuthClientCredentialsKey,
+		},
+	},
+})
+
 const typeApp = "App"
 
 var nodeApp = node(
@@ -198,11 +220,23 @@ var nodeApp = node(
 			},
 			"secretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(secretConfig),
+				Args: graphql.FieldConfigArgument{
+					"unmaskedSecrets": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(secretKey))),
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
+					var unmaskedSecrets []config.SecretKey = []config.SecretKey{}
+					if argUnmaskedSecrets, ok := p.Args["unmaskedSecrets"]; ok {
+						for _, secretKey := range argUnmaskedSecrets.([]interface{}) {
+							secretKey := secretKey.(config.SecretKey)
+							unmaskedSecrets = append(unmaskedSecrets, secretKey)
+						}
+					}
 					app := p.Source.(*model.App)
 					sessionInfo := session.GetValidSessionInfo(p.Context)
-					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo)
+					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, unmaskedSecrets)
 					if err != nil {
 						return nil, err
 					}

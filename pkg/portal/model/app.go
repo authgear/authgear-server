@@ -67,8 +67,12 @@ type SecretConfig struct {
 	OAuthClientSecrets            []OAuthClientSecret            `json:"oauthClientSecrets,omitempty"`
 }
 
-func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.Time) (*SecretConfig, error) {
+func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config.SecretKey, now time.Time) (*SecretConfig, error) {
 	out := &SecretConfig{}
+	var unmaskedSecretsSet map[config.SecretKey]interface{} = map[config.SecretKey]interface{}{}
+	for _, s := range unmaskedSecrets {
+		unmaskedSecretsSet[s] = s
+	}
 
 	if oauthSSOProviderCredentials, ok := secretConfig.LookupData(config.OAuthSSOProviderCredentialsKey).(*config.OAuthSSOProviderCredentials); ok {
 		for _, item := range oauthSSOProviderCredentials.Items {
@@ -76,6 +80,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.
 				Alias:        item.Alias,
 				ClientSecret: item.ClientSecret,
 			})
+			// TODO(tung): mask the secret if key is not in unmaskedSecrets
 		}
 	}
 
@@ -84,7 +89,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.
 			if jwkKey, ok := webhook.Set.Get(0); ok {
 				if sKey, ok := jwkKey.(jwk.SymmetricKey); ok {
 					var secret *string
-					if unmasked {
+					if _, exist := unmaskedSecretsSet[config.WebhookKeyMaterialsKey]; exist {
 						octets := sKey.Octets()
 						octetsStr := string(octets)
 						secret = &octetsStr
@@ -115,7 +120,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.
 				}
 
 				var privateKeyPEM *string
-				if unmasked {
+				if _, exist := unmaskedSecretsSet[config.AdminAPIAuthKeyKey]; exist {
 					privateKeyPEMBytes, err := jwkutil.PrivatePublicPEM(set)
 					if err != nil {
 						return nil, err
@@ -140,7 +145,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.
 			Port:     smtp.Port,
 			Username: smtp.Username,
 		}
-		if unmasked {
+		if _, exist := unmaskedSecretsSet[config.SMTPServerCredentialsKey]; exist {
 			smtpSecret.Password = &smtp.Password
 		}
 		out.SMTPSecret = smtpSecret
@@ -170,7 +175,8 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool, now time.
 					}
 
 					clientSecret := ""
-					if unmasked || newlyCreated {
+					_, unmask := unmaskedSecretsSet[config.SMTPServerCredentialsKey]
+					if unmask || newlyCreated {
 						clientSecret = string(bytes)
 					}
 

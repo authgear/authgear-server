@@ -174,7 +174,10 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 	return cfg, nil
 }
 
-func (s *AppService) LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo) (*model.SecretConfig, error) {
+func (s *AppService) LoadAppSecretConfig(
+	app *model.App,
+	sessionInfo *apimodel.SessionInfo,
+	unmaskedSecrets []config.SecretKey) (*model.SecretConfig, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
@@ -194,12 +197,14 @@ func (s *AppService) LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.S
 	now := s.Clock.NowUTC()
 	authenticatedAt := sessionInfo.AuthenticatedAt
 	elapsed := now.Sub(authenticatedAt)
-	var unmasked bool
+	var canBeUnmasked bool
 	if elapsed >= 0 && elapsed < 5*time.Minute || !sessionInfo.UserCanReauthenticate {
-		unmasked = true
+		canBeUnmasked = true
 	}
-
-	secretConfig, err := model.NewSecretConfig(cfg, unmasked, now)
+	if !canBeUnmasked {
+		unmaskedSecrets = []config.SecretKey{}
+	}
+	secretConfig, err := model.NewSecretConfig(cfg, unmaskedSecrets, now)
 	if err != nil {
 		return nil, err
 	}
