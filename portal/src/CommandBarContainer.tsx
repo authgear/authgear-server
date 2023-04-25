@@ -28,6 +28,7 @@ export interface CommandBarContainerProps {
   secondaryItems?: ICommandBarItemProps[];
   children?: React.ReactNode;
   hideCommandBar?: boolean;
+  headerPosition?: "static" | "sticky";
 }
 
 const CommandBarContainer: React.VFC<CommandBarContainerProps> =
@@ -39,11 +40,18 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
       secondaryItems,
       messageBar,
       hideCommandBar,
+      headerPosition = "sticky",
     } = props;
 
     return (
       <>
-        <div className={styles.header}>
+        <div
+          className={
+            headerPosition === "sticky"
+              ? styles.headerSticky
+              : styles.headerStatic
+          }
+        >
           {hideCommandBar === true ? null : (
             <CommandBar
               className={styles.commandBar}

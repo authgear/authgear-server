@@ -2,15 +2,32 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow-y: auto;
 }
 
-.content {
-  flex: 1 0 0;
+.header {
+  padding: 24px;
 }
 
-.widget {
-  grid-column: 1 / span 12;
-  @apply tablet:col-span-full;
+.pivot {
+  margin-top: 20px;
+}
+
+.listContainer {
+  flex: 1 1 0px;
+  display: flex;
+  flex-direction: column;
+}
+
+.commandBarContainerContent {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  padding-top: 16px;
+}
+
+.list {
+  flex: 1 0 0px;
 }
 
 .messageBar {
