@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
@@ -25,6 +25,7 @@ type AuditService struct {
 	Context         context.Context
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
+	Request         *http.Request
 
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
@@ -87,6 +88,10 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 			userID = &uid
 		}
 	}
+	var userIDStr string
+	if userID != nil {
+		userIDStr = *userID
+	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
 	// Initialize this to an empty slice so that it is always present in the JSON.
@@ -97,8 +102,14 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 	triggeredBy := payload.GetTriggeredBy()
 
 	uiParam := uiparam.GetUIParam(s.Context)
-	auditCtx := adminauthz.GetAdminAuthzAudit(s.Context)
 	clientID := uiParam.ClientID
+	// This audit context must be constructed here.
+	// We cannot use GetAdminAuthzAudit because that is for Admin API to audit context.
+	auditCtx := PortalAdminAPIAuthContext{
+		Usage:       UsageInternal,
+		ActorUserID: userIDStr,
+		HTTPReferer: s.Request.Header.Get("Referer"),
+	}
 
 	ctx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),

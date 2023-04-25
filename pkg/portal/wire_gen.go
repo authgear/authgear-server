@@ -302,6 +302,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context:                    context,
 		RemoteIP:                   remoteIP,
 		UserAgentString:            userAgentString,
+		Request:                    request,
 		SQLBuilder:                 sqlBuilder,
 		SQLExecutor:                sqlExecutor,
 		AuditDatabase:              writeHandle,
