@@ -732,6 +732,13 @@ function setPrimaryAuthenticator(
   );
 }
 
+function parseOptionalDuration(s: string | undefined) {
+  if (s == null || s === "") {
+    return undefined;
+  }
+  return parseDuration(s);
+}
+
 function getRateLimitDailyLimit(
   config: RateLimitConfig | undefined
 ): number | undefined {
@@ -768,37 +775,36 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const passkeyIndex =
     config.authentication?.primary_authenticators?.indexOf("passkey");
 
-  const forgotPasswordCodeValidPeriod =
-    config.forgot_password?.code_valid_period;
-  const forgotPasswordCodeValidPeriodSeconds = forgotPasswordCodeValidPeriod
-    ? parseDuration(forgotPasswordCodeValidPeriod)
-    : undefined;
+  const forgotPasswordCodeValidPeriodSeconds = parseOptionalDuration(
+    config.forgot_password?.code_valid_period
+  );
 
-  const otpValidPeriod = getConsistentValue(
+  const otpValidPeriodSeconds = getConsistentValue(
     // TODO: make independent fields
     // config.authenticator?.oob_otp?.email?.code_valid_period,
-    config.authenticator?.oob_otp?.sms?.code_valid_period,
-    config.verification?.code_valid_period
+    parseOptionalDuration(
+      config.authenticator?.oob_otp?.sms?.code_valid_period
+    ),
+    parseOptionalDuration(config.verification?.code_valid_period)
   );
-  const otpValidPeriodSeconds = otpValidPeriod
-    ? parseDuration(otpValidPeriod)
-    : undefined;
 
-  const smsOTPCooldownPeriod = getConsistentValue(
-    config.authentication?.rate_limits?.oob_otp?.sms?.trigger_cooldown,
-    config.verification?.rate_limits?.sms?.trigger_cooldown
+  const smsOTPCooldownPeriodSeconds = getConsistentValue(
+    parseOptionalDuration(
+      config.authentication?.rate_limits?.oob_otp?.sms?.trigger_cooldown
+    ),
+    parseOptionalDuration(
+      config.verification?.rate_limits?.sms?.trigger_cooldown
+    )
   );
-  const smsOTPCooldownPeriodSeconds = smsOTPCooldownPeriod
-    ? parseDuration(smsOTPCooldownPeriod)
-    : undefined;
 
-  const emailOTPCooldownPeriod = getConsistentValue(
-    config.authentication?.rate_limits?.oob_otp?.email?.trigger_cooldown,
-    config.verification?.rate_limits?.email?.trigger_cooldown
+  const emailOTPCooldownPeriodSeconds = getConsistentValue(
+    parseOptionalDuration(
+      config.authentication?.rate_limits?.oob_otp?.email?.trigger_cooldown
+    ),
+    parseOptionalDuration(
+      config.verification?.rate_limits?.email?.trigger_cooldown
+    )
   );
-  const emailOTPCooldownPeriodSeconds = emailOTPCooldownPeriod
-    ? parseDuration(emailOTPCooldownPeriod)
-    : undefined;
 
   const otpRevokeFailedAttemptsRaw = getConsistentValue(
     config.authentication?.rate_limits?.oob_otp?.sms
