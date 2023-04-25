@@ -23,7 +23,7 @@ func (e *ProjectCollaboratorDeletedEventPayload) UserID() string {
 }
 
 func (e *ProjectCollaboratorDeletedEventPayload) GetTriggeredBy() event.TriggeredByType {
-	return event.TriggeredByTypeUser
+	return event.TriggeredByPortal
 }
 
 func (e *ProjectCollaboratorDeletedEventPayload) FillContext(ctx *event.Context) {

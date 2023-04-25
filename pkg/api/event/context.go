@@ -15,9 +15,14 @@ const ContextSchema = `
 type TriggeredByType string
 
 const (
-	TriggeredByTypeUser     TriggeredByType = "user"
+	// TriggeredByTypeUser means the event originates from a end-user facing UI.
+	TriggeredByTypeUser TriggeredByType = "user"
+	// TriggeredByTypeAdminAPI means the event originates from the Admin API.
 	TriggeredByTypeAdminAPI TriggeredByType = "admin_api"
-	TriggeredBySystem       TriggeredByType = "system"
+	// TriggeredBySystem means the event originates from a background job.
+	TriggeredBySystem TriggeredByType = "system"
+	// TriggeredByPortal means the event originates from the management portal.
+	TriggeredByPortal TriggeredByType = "portal"
 )
 
 type Context struct {

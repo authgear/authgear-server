@@ -22,7 +22,7 @@ func (e *ProjectCollaboratorInvitationAcceptedEventPayload) UserID() string {
 }
 
 func (e *ProjectCollaboratorInvitationAcceptedEventPayload) GetTriggeredBy() event.TriggeredByType {
-	return event.TriggeredByTypeUser
+	return event.TriggeredByPortal
 }
 
 func (e *ProjectCollaboratorInvitationAcceptedEventPayload) FillContext(ctx *event.Context) {

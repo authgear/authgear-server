@@ -22,7 +22,7 @@ func (e *ProjectDomainCreatedEventPayload) UserID() string {
 }
 
 func (e *ProjectDomainCreatedEventPayload) GetTriggeredBy() event.TriggeredByType {
-	return event.TriggeredByTypeUser
+	return event.TriggeredByPortal
 }
 
 func (e *ProjectDomainCreatedEventPayload) FillContext(ctx *event.Context) {
