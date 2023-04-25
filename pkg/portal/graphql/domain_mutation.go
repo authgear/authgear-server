@@ -8,6 +8,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -86,6 +87,14 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainCreatedEventPayload{
+				Domain:   domainModel.Domain,
+				DomainID: domainModel.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			gqlCtx.Domains.Prime(domainModel.ID, domainModel)
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"domain": gqlCtx.Domains.Load(domainModel.ID),
@@ -128,6 +137,7 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			// Access Control: authenticated user.
+
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
 				return nil, AccessDenied.New("only authenticated users can delete domain")
@@ -181,6 +191,14 @@ var _ = registerMutationField(
 				if err != nil {
 					return nil, err
 				}
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainDeletedEventPayload{
+				Domain:   deletedDomain,
+				DomainID: domainID,
+			})
+			if err != nil {
+				return nil, err
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
@@ -291,12 +309,26 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			domain, err := gqlCtx.DomainService.VerifyDomain(appID, domainID)
 			if err != nil {
 				return nil, err
 			}
 
 			gqlCtx.Domains.Prime(domain.ID, domain)
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainVerifiedEventPayload{
+				Domain:   domain.Domain,
+				DomainID: domain.ID,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"domain": gqlCtx.Domains.Load(domain.ID),
 				"app":    gqlCtx.Apps.Load(appID),

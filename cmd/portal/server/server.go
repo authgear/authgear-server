@@ -42,6 +42,7 @@ func (c *Controller) Start() {
 		&cfg.Stripe,
 		&cfg.GoogleTagManager,
 	)
+
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)
 	}

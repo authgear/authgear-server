@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -76,6 +77,20 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorDeletedEventPayload{
+				CollaboratorID:     targetCollab.ID,
+				CollaboratorUserID: targetCollab.UserID,
+				CollaboratorRole:   string(targetCollab.Role),
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": gqlCtx.Apps.Load(appID),
 			}).Value, nil
@@ -134,6 +149,19 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.CollaboratorService.DeleteInvitation(invitation)
+			if err != nil {
+				return nil, err
+			}
+
+			app, err := gqlCtx.AppService.Get(invitation.AppID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationDeletedEventPayload{
+				InviteeEmail: invitation.InviteeEmail,
+				InvitedBy:    invitation.InvitedBy,
+			})
 			if err != nil {
 				return nil, err
 			}
@@ -233,6 +261,20 @@ var _ = registerMutationField(
 			}
 
 			gqlCtx.CollaboratorInvitations.Prime(invitation.ID, invitation)
+
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationCreatedEventPayload{
+				InviteeEmail: invitation.InviteeEmail,
+				InvitedBy:    invitation.InvitedBy,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app":                    gqlCtx.Apps.Load(appID),
 				"collaboratorInvitation": gqlCtx.CollaboratorInvitations.Load(invitation.ID),
@@ -281,6 +323,21 @@ var _ = registerMutationField(
 			}
 
 			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)
+			if err != nil {
+				return nil, err
+			}
+
+			appID := collaborator.AppID
+
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationAcceptedEventPayload{
+				CollaboratorUserID: collaborator.UserID,
+				CollaboratorRole:   string(collaborator.Role),
+			})
 			if err != nil {
 				return nil, err
 			}

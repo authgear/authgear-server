@@ -84,6 +84,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
+	request := p.Request
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
 	authgearConfig := rootProvider.AuthgearConfig
@@ -104,7 +105,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
@@ -294,7 +294,25 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	nftService := &service.NFTService{
 		APIEndpoint: nftIndexerAPIEndpoint,
 	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
+	writeHandle := auditdb.NewWriteHandle(context, pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	auditService := &service.AuditService{
+		Context:                    context,
+		RemoteIP:                   remoteIP,
+		UserAgentString:            userAgentString,
+		Request:                    request,
+		SQLBuilder:                 sqlBuilder,
+		SQLExecutor:                sqlExecutor,
+		AuditDatabase:              writeHandle,
+		AuditDatabaseWriteExecutor: writeSQLExecutor,
+		AuditDatabaseSQLBuilder:    auditdbSQLBuilder,
+		Clock:                      clock,
+		LoggerFactory:              logFactory,
+	}
 	graphqlContext := &graphql.Context{
+		Request:                 request,
 		GQLLogger:               logger,
 		Users:                   userLoader,
 		Apps:                    appLoader,
@@ -313,6 +331,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SubscriptionService:     subscriptionService,
 		NFTService:              nftService,
 		DenoService:             denoClientImpl,
+		AuditService:            auditService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

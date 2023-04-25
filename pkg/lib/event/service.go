@@ -215,6 +215,7 @@ func (s *Service) nextSeq() (seq int64, err error) {
 
 func (s *Service) makeContext(payload event.Payload) event.Context {
 	userID := session.GetUserID(s.Context)
+
 	if userID == nil {
 		uid := payload.UserID()
 		if uid != "" {
@@ -271,5 +272,5 @@ func (s *Service) resolveNonBlockingEvent(payload event.NonBlockingPayload) (*ev
 	if err != nil {
 		return nil, err
 	}
-	return newNonBlockingEvent(seq, payload, eventContext), nil
+	return NewNonBlockingEvent(seq, payload, eventContext), nil
 }

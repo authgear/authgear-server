@@ -10,6 +10,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
@@ -230,7 +232,10 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			originalAppConfig := app.Context.Config.AppConfig
+
 			var resourceUpdates []appresource.Update
+			var auditedUpdatePaths []string = []string{}
 			for _, f := range updates {
 				f := f.(map[string]interface{})
 				path := f["path"].(string)
@@ -253,6 +258,7 @@ var _ = registerMutationField(
 					Path: path,
 					Data: data,
 				})
+				auditedUpdatePaths = append(auditedUpdatePaths, path)
 			}
 
 			// Update authgear.yaml
@@ -286,6 +292,33 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.AppService.UpdateResources(app, resourceUpdates)
+			if err != nil {
+				return nil, err
+			}
+
+			newApp, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			newAppConfig := newApp.Context.Config.AppConfig
+
+			appConfigDiff, err := config.DiffAppConfig(originalAppConfig, newAppConfig)
+			if err != nil {
+				return nil, err
+			}
+			var updatedSecrets []string = []string{}
+			if secretUpdateInstructionsMap, ok := secretConfigUpdateInstructionsJSONValue.(map[string]interface{}); ok {
+				for k := range secretUpdateInstructionsMap {
+					updatedSecrets = append(updatedSecrets, k)
+				}
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppUpdatedEventPayload{
+				AppConfigDiff:    appConfigDiff,
+				UpdatedSecrets:   updatedSecrets,
+				UpdatedResources: auditedUpdatePaths,
+			})
 			if err != nil {
 				return nil, err
 			}
