@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   DetailsList,
   IColumn,
@@ -39,6 +39,7 @@ import DefaultButton from "../../DefaultButton";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
+import { AppSecretKey } from "./globalTypes.generated";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -383,7 +384,20 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
 const AdminAPIConfigurationScreen: React.VFC =
   function AdminAPIConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
-    const queryResult = useAppAndSecretConfigQuery(appID);
+    const location = useLocation();
+    const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+      const { state } = location;
+      if (
+        state != null &&
+        typeof state === "object" &&
+        (state as LocationState).keyID
+      ) {
+        return [AppSecretKey.AdminApiSecrets];
+      }
+      return [];
+    });
+
+    const queryResult = useAppAndSecretConfigQuery(appID, unmaskedSecrets);
 
     const { updateAppAndSecretConfig, loading, error } =
       useUpdateAppAndSecretConfigMutation(appID);
