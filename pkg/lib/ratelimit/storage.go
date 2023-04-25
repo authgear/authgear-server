@@ -7,8 +7,7 @@ type Storage interface {
 }
 
 type StorageConn interface {
-	TakeToken(bucket Bucket, now time.Time, delta int) (int, error)
-	CheckToken(bucket Bucket) (int, error)
-	GetResetTime(bucket Bucket, now time.Time) (time.Time, error)
-	Reset(bucket Bucket, now time.Time) error
+	TakeToken(spec BucketSpec, now time.Time, delta int) (int, error)
+	GetResetTime(spec BucketSpec, now time.Time) (time.Time, error)
+	Reset(spec BucketSpec, now time.Time) error
 }

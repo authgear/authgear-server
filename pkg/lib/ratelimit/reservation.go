@@ -2,8 +2,6 @@ package ratelimit
 
 import (
 	"time"
-
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 type Reservation struct {
@@ -20,9 +18,7 @@ func (r *Reservation) Error() error {
 		return r.err
 	}
 	if !r.ok {
-		return RateLimited.NewWithInfo("request rate limited", apierrors.Details{
-			bucketNameKey: r.spec.Name,
-		})
+		return ErrRateLimited(r.spec.Name)
 	}
 	return nil
 }

@@ -13,5 +13,5 @@ var ErrConsumedCode = InvalidOTPCode.NewWithCause("used otp code", apierrors.Str
 
 // FIXME: backward compat; should not use RateLimited
 var ErrTooManyAttempts = ratelimit.RateLimited.NewWithInfo("too many verify OTP attempts", apierrors.Details{
-	"bucket_name": ratelimit.TrackFailedOTPAttemptBucketName,
+	"bucket_name": "TrackFailedOTPAttemptBucket",
 })

@@ -22,7 +22,6 @@ type RateLimiter interface {
 	Cancel(r *ratelimit.Reservation)
 }
 
-// FIXME: hard usage limits
 type Limits struct {
 	Logger       Logger
 	RateLimiter  RateLimiter

@@ -20295,7 +20295,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
-		RateLimiter:               limiter,
 		FlashMessage:              flashMessage,
 		OTPCodeService:            otpService,
 		Clock:                     clockClock,
@@ -23461,7 +23460,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
-		RateLimiter:               limiter,
 		FlashMessage:              flashMessage,
 		Config:                    appConfig,
 	}
@@ -26607,7 +26605,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
-		RateLimiter:       limiter,
 		FlashMessage:      flashMessage,
 		OTPCodeService:    otpService,
 		Clock:             clockClock,
