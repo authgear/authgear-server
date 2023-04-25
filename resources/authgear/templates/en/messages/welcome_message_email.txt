@@ -1,3 +1,0 @@
-Welcome to {{ template "app.name" }}.
-
-Hello {{ .Email }}, thank you for signing up.

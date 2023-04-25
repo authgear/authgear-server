@@ -38,7 +38,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
-	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -186,66 +185,22 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	manager := p.BaseResources
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
 	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	httpProto := ProvideHTTPProto()
-	webAppCDNHost := environmentConfig.WebAppCDNHost
-	globalEmbeddedResourceManager := p.EmbeddedResources
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           ctx,
-		Config:            httpConfig,
-		Localization:      localizationConfig,
-		HTTPProto:         httpProto,
-		WebAppCDNHost:     webAppCDNHost,
-		Resources:         manager,
-		EmbeddedResources: globalEmbeddedResourceManager,
-	}
-	translationService := &translation.Service{
-		Context:        ctx,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	logger := ratelimit.NewLogger(factory)
-	redisPool := p.RedisPool
-	hub := p.RedisHub
-	redisEnvironmentConfig := &environmentConfig.RedisConfig
-	redisCredentials := deps.ProvideRedisCredentials(secretConfig)
-	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials, factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: configAppID,
-		Redis: appredisHandle,
-	}
-	featureConfig := configConfig.FeatureConfig
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Logger:  logger,
-		Storage: storageRedis,
-		Clock:   clockClock,
-		Config:  rateLimitsFeatureConfig,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	noopTaskQueue := NewNoopTaskQueue()
-	remoteIP := ProvideRemoteIP()
-	userAgentString := ProvideUserAgentString()
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
+	remoteIP := ProvideRemoteIP()
+	userAgentString := ProvideUserAgentString()
+	logger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := configConfig.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -256,6 +211,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	manager := p.BaseResources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
 		Config:    loginIDConfig,
 		Resources: manager,
@@ -304,6 +260,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	redisPool := p.RedisPool
+	hub := p.RedisHub
+	redisEnvironmentConfig := &environmentConfig.RedisConfig
+	redisCredentials := deps.ProvideRedisCredentials(secretConfig)
+	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials, factory)
 	store2 := &passkey2.Store{
 		Context: ctx,
 		Redis:   appredisHandle,
@@ -311,6 +272,34 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	request := NewDummyHTTPRequest()
 	trustProxy := environmentConfig.TrustProxy
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	httpProto := ProvideHTTPProto()
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := p.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           ctx,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        ctx,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
 	configService := &passkey2.ConfigService{
 		Request:            request,
 		TrustProxy:         trustProxy,
@@ -335,6 +324,18 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Redis:   appredisHandle,
 		AppID:   configAppID,
 		Clock:   clockClock,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: configAppID,
+		Redis: appredisHandle,
+	}
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
@@ -582,6 +583,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
+	noopTaskQueue := NewNoopTaskQueue()
 	elasticsearchService := elasticsearch.Service{
 		AppID:     configAppID,
 		Client:    client,
@@ -595,19 +597,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            noopTaskQueue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
+	eventService := event.NewService(ctx, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,

@@ -48,7 +48,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
-	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -523,7 +522,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:   loginidStore,
 		TaskQueue: queue,
 	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
+	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -610,18 +612,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: handle,
 	}
 	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,

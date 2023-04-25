@@ -9,5 +9,4 @@ const (
 	MessageTypeAuthenticatePrimaryOOB   MessageType = "authenticate-primary-oob"
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
 	MessageTypeForgotPassword           MessageType = "forgot-password"
-	MessageTypeWelcome                  MessageType = "welcome"
 )
