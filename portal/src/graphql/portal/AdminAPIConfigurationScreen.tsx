@@ -398,6 +398,7 @@ const AdminAPIConfigurationScreen: React.VFC =
     });
 
     const queryResult = useAppAndSecretConfigQuery(appID, unmaskedSecrets);
+    const { refetch: refetchAppAndSecret } = queryResult;
 
     const { updateAppAndSecretConfig, loading, error } =
       useUpdateAppAndSecretConfigMutation(appID);
@@ -415,7 +416,12 @@ const AdminAPIConfigurationScreen: React.VFC =
         },
       };
       await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
-    }, [queryResult.rawAppConfig, updateAppAndSecretConfig]);
+      await refetchAppAndSecret();
+    }, [
+      queryResult.rawAppConfig,
+      updateAppAndSecretConfig,
+      refetchAppAndSecret,
+    ]);
 
     const deleteKey = useCallback(
       async (deleteKeyID: string) => {
@@ -432,8 +438,9 @@ const AdminAPIConfigurationScreen: React.VFC =
           },
         };
         await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
+        await refetchAppAndSecret();
       },
-      [queryResult.rawAppConfig, updateAppAndSecretConfig]
+      [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]
     );
 
     if (queryResult.loading) {
