@@ -609,10 +609,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Service:  service5,
 		Database: handle,
 	}
-	sessionUserIDGetter := &session.SessionUserIDGetter{
-		Context: contextContext,
-	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink, sessionUserIDGetter)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,

@@ -23,7 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
-	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
@@ -178,9 +177,4 @@ var DependencySet = wire.NewSet(
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
-
-	wire.NewSet(
-		session.SessionUserIDGetterDependencySet,
-		wire.Bind(new(event.SessionUserIDGetter), new(*session.SessionUserIDGetter)),
-	),
 )

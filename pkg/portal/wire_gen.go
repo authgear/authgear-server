@@ -102,10 +102,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
-	context := deps.ProvideRequestContext(request)
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
@@ -222,7 +222,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfig: appConfig,
 	}
 	appService := &service.AppService{
-		Context:          context,
 		Logger:           appServiceLogger,
 		SQLBuilder:       sqlBuilder,
 		SQLExecutor:      sqlExecutor,

@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -46,7 +45,6 @@ type RootProvider struct {
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
 	FilesystemCache        *httputil.FilesystemCache
-	EmbeddedResources      *web.GlobalEmbeddedResourceManager
 }
 
 func NewRootProvider(
@@ -96,11 +94,6 @@ func NewRootProvider(
 
 	filesystemCache := httputil.NewFilesystemCache()
 
-	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
-	if err != nil {
-		return nil, err
-	}
-
 	return &RootProvider{
 		EnvironmentConfig:      cfg,
 		ConfigSourceConfig:     configSourceConfig,
@@ -132,8 +125,7 @@ func NewRootProvider(
 			appBuiltinResourceDirectory,
 			appCustomResourceDirectory,
 		),
-		FilesystemCache:   filesystemCache,
-		EmbeddedResources: embeddedResources,
+		FilesystemCache: filesystemCache,
 	}, nil
 }
 

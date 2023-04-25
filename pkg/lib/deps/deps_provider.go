@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -149,9 +148,4 @@ var BackgroundDependencySet = wire.NewSet(
 
 	clock.DependencySet,
 	globaldb.DependencySet,
-
-	wire.NewSet(
-		session.SessionUserIDGetterDependencySet,
-		wire.Bind(new(event.SessionUserIDGetter), new(*session.SessionUserIDGetter)),
-	),
 )

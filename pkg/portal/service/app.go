@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -77,7 +76,6 @@ type AppResourceManagerFactory interface {
 }
 
 type AppService struct {
-	Context     context.Context
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor

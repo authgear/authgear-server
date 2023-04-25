@@ -4,8 +4,6 @@ import (
 	"context"
 	golog "log"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/portal"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -15,15 +13,6 @@ import (
 
 type Controller struct {
 	logger *log.Logger
-}
-
-func ProvideCaptureTaskContext(config *config.Config, appCtx *config.AppContext) task.CaptureTaskContext {
-	return func() *task.Context {
-		return &task.Context{
-			Config:     config,
-			AppContext: appCtx,
-		}
-	}
 }
 
 func (c *Controller) Start() {
