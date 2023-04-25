@@ -9,6 +9,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -107,23 +108,33 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+type AppSecretKey string
+
+const (
+	AppSecretKeyOauthSSOProviderClientSecrets AppSecretKey = "oauthSSOProviderClientSecrets"
+	AppSecretKeyWebhookSecret                 AppSecretKey = "webhookSecret"
+	AppSecretKeyAdminAPISecrets               AppSecretKey = "adminAPISecrets"
+	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
+	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets"
+)
+
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
 	Fields: graphql.Fields{
-		"oauthSSOProviderClientSecrets": &graphql.Field{
+		string(AppSecretKeyOauthSSOProviderClientSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthSSOProviderClientSecret)),
 		},
-		"webhookSecret": &graphql.Field{
+		string(AppSecretKeyWebhookSecret): &graphql.Field{
 			Type: webhookSecret,
 		},
-		"adminAPISecrets": &graphql.Field{
+		string(AppSecretKeyAdminAPISecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(adminAPISecret)),
 		},
-		"smtpSecret": &graphql.Field{
+		string(AppSecretKeySmtpSecret): &graphql.Field{
 			Type: smtpSecret,
 		},
-		"oauthClientSecrets": &graphql.Field{
+		string(AppSecretKeyOauthClientSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretItem)),
 		},
 	},
@@ -133,22 +144,30 @@ var secretKey = graphql.NewEnum(graphql.EnumConfig{
 	Name: "AppSecretKey",
 	Values: graphql.EnumValueConfigMap{
 		"OAUTH_SSO_PROVIDER_CLIENT_SECRETS": &graphql.EnumValueConfig{
-			Value: config.OAuthSSOProviderCredentialsKey,
+			Value: AppSecretKeyOauthSSOProviderClientSecrets,
 		},
 		"WEBHOOK_SECRET": &graphql.EnumValueConfig{
-			Value: config.WebhookKeyMaterialsKey,
+			Value: AppSecretKeyWebhookSecret,
 		},
 		"ADMIN_API_SECRETS": &graphql.EnumValueConfig{
-			Value: config.AdminAPIAuthKeyKey,
+			Value: AppSecretKeyAdminAPISecrets,
 		},
 		"SMTP_SECRET": &graphql.EnumValueConfig{
-			Value: config.SMTPServerCredentialsKey,
+			Value: AppSecretKeySmtpSecret,
 		},
 		"OAUTH_CLIENT_SECRETS": &graphql.EnumValueConfig{
-			Value: config.OAuthClientCredentialsKey,
+			Value: AppSecretKeyOauthClientSecrets,
 		},
 	},
 })
+
+var secretKeyToConfigKeyMap map[AppSecretKey]config.SecretKey = map[AppSecretKey]config.SecretKey{
+	AppSecretKeyOauthSSOProviderClientSecrets: config.OAuthSSOProviderCredentialsKey,
+	AppSecretKeyWebhookSecret:                 config.WebhookKeyMaterialsKey,
+	AppSecretKeyAdminAPISecrets:               config.AdminAPIAuthKeyKey,
+	AppSecretKeySmtpSecret:                    config.SMTPServerCredentialsKey,
+	AppSecretKeyOauthClientSecrets:            config.OAuthClientCredentialsKey,
+}
 
 const typeApp = "App"
 
@@ -228,10 +247,13 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					var unmaskedSecrets []config.SecretKey = []config.SecretKey{}
+					var secretKeys []string = []string{}
 					if argUnmaskedSecrets, ok := p.Args["unmaskedSecrets"]; ok {
 						for _, secretKey := range argUnmaskedSecrets.([]interface{}) {
-							secretKey := secretKey.(config.SecretKey)
-							unmaskedSecrets = append(unmaskedSecrets, secretKey)
+							secretKey := secretKey.(AppSecretKey)
+							configSecretKey := secretKeyToConfigKeyMap[secretKey]
+							secretKeys = append(secretKeys, string(secretKey))
+							unmaskedSecrets = append(unmaskedSecrets, configSecretKey)
 						}
 					}
 					app := p.Source.(*model.App)
@@ -240,6 +262,16 @@ var nodeApp = node(
 					if err != nil {
 						return nil, err
 					}
+
+					if len(secretKeys) > 0 {
+						err = ctx.AuditService.Log(app, &nonblocking.ProjectAppSecretViewedEventPayload{
+							Secrets: secretKeys,
+						})
+						if err != nil {
+							return nil, err
+						}
+					}
+
 					return secretConfig, nil
 				},
 			},
