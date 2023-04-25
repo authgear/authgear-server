@@ -50,7 +50,6 @@ type LoginLinkOTPHandler struct {
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
-	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
 	Config                    *config.AppConfig
 }

@@ -56,7 +56,6 @@ type EnterOOBOTPHandler struct {
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
-	RateLimiter               RateLimiter
 	FlashMessage              FlashMessage
 	OTPCodeService            OTPCodeService
 	Clock                     clock.Clock

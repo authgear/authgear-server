@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -12,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -58,10 +56,6 @@ type VerifyIdentityViewModel struct {
 	Action                         string
 }
 
-type RateLimiter interface {
-	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
-}
-
 type FlashMessage interface {
 	Flash(rw http.ResponseWriter, messageType string)
 }
@@ -70,7 +64,6 @@ type VerifyIdentityHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
-	RateLimiter       RateLimiter
 	FlashMessage      FlashMessage
 	OTPCodeService    OTPCodeService
 	Clock             clock.Clock
