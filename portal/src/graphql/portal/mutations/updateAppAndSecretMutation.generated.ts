@@ -22,7 +22,7 @@ export const UpdateAppAndSecretConfigMutationDocument = gql`
       id
       effectiveAppConfig
       rawAppConfig
-      secretConfig {
+      secretConfig(unmaskedSecrets: []) {
         oauthSSOProviderClientSecrets {
           alias
           clientSecret

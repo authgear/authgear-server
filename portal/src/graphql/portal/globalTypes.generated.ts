@@ -83,6 +83,12 @@ export type AppResourcesArgs = {
 
 
 /** Authgear app */
+export type AppSecretConfigArgs = {
+  unmaskedSecrets: Array<AppSecretKey>;
+};
+
+
+/** Authgear app */
 export type AppSubscriptionUsageArgs = {
   date: Scalars['DateTime'];
 };
@@ -109,6 +115,14 @@ export type AppResourceUpdate = {
   /** Path of the resource file to update. */
   path: Scalars['String'];
 };
+
+export enum AppSecretKey {
+  AdminApiSecrets = 'ADMIN_API_SECRETS',
+  OauthClientSecrets = 'OAUTH_CLIENT_SECRETS',
+  OauthSsoProviderClientSecrets = 'OAUTH_SSO_PROVIDER_CLIENT_SECRETS',
+  SmtpSecret = 'SMTP_SECRET',
+  WebhookSecret = 'WEBHOOK_SECRET'
+}
 
 export type CancelFailedSubscriptionPayload = {
   __typename?: 'CancelFailedSubscriptionPayload';

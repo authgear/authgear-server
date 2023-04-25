@@ -79,7 +79,7 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
-  secretConfig: SecretConfig!
+  secretConfig(unmaskedSecrets: [AppSecretKey!]!): SecretConfig!
 
   """"""
   subscription: Subscription
@@ -128,6 +128,24 @@ input AppResourceUpdate {
 
   """Path of the resource file to update."""
   path: String!
+}
+
+""""""
+enum AppSecretKey {
+  """"""
+  ADMIN_API_SECRETS
+
+  """"""
+  OAUTH_CLIENT_SECRETS
+
+  """"""
+  OAUTH_SSO_PROVIDER_CLIENT_SECRETS
+
+  """"""
+  SMTP_SECRET
+
+  """"""
+  WEBHOOK_SECRET
 }
 
 """"""

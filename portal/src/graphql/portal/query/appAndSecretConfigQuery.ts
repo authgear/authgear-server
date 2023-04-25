@@ -7,7 +7,7 @@ import {
   AppAndSecretConfigQueryDocument,
 } from "./appAndSecretConfigQuery.generated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
-import { Collaborator } from "../globalTypes.generated";
+import { Collaborator, AppSecretKey } from "../globalTypes.generated";
 
 export interface AppAndSecretConfigQueryResult
   extends Pick<
@@ -23,15 +23,19 @@ export interface AppAndSecretConfigQueryResult
   viewer: Collaborator | null;
 }
 export const useAppAndSecretConfigQuery = (
-  appID: string
+  appID: string,
+  unmaskedSecrets: Array<AppSecretKey> = []
 ): AppAndSecretConfigQueryResult => {
-  const { data, loading, error, refetch } =
-    useQuery<AppAndSecretConfigQueryQuery>(AppAndSecretConfigQueryDocument, {
-      client,
-      variables: {
-        id: appID,
-      },
-    });
+  const { data, loading, error, refetch } = useQuery<
+    AppAndSecretConfigQueryQuery,
+    AppAndSecretConfigQueryQueryVariables
+  >(AppAndSecretConfigQueryDocument, {
+    client,
+    variables: {
+      id: appID,
+      unmaskedSecrets: unmaskedSecrets,
+    },
+  });
 
   const queryData = useMemo(() => {
     const appConfigNode = data?.node?.__typename === "App" ? data.node : null;

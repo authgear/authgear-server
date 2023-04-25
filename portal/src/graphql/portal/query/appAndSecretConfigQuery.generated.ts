@@ -7,6 +7,7 @@ export type AppAndSecretConfigFragment = { __typename?: 'App', id: string, effec
 
 export type AppAndSecretConfigQueryQueryVariables = Types.Exact<{
   id: Types.Scalars['ID'];
+  unmaskedSecrets: Array<Types.AppSecretKey> | Types.AppSecretKey;
 }>;
 
 
@@ -17,7 +18,7 @@ export const AppAndSecretConfigFragmentDoc = gql`
   id
   effectiveAppConfig
   rawAppConfig
-  secretConfig {
+  secretConfig(unmaskedSecrets: $unmaskedSecrets) {
     oauthSSOProviderClientSecrets {
       alias
       clientSecret
@@ -58,7 +59,7 @@ export const AppAndSecretConfigFragmentDoc = gql`
 }
     `;
 export const AppAndSecretConfigQueryDocument = gql`
-    query appAndSecretConfigQuery($id: ID!) {
+    query appAndSecretConfigQuery($id: ID!, $unmaskedSecrets: [AppSecretKey!]!) {
   node(id: $id) {
     __typename
     ...AppAndSecretConfig
@@ -79,6 +80,7 @@ export const AppAndSecretConfigQueryDocument = gql`
  * const { data, loading, error } = useAppAndSecretConfigQueryQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      unmaskedSecrets: // value for 'unmaskedSecrets'
  *   },
  * });
  */
