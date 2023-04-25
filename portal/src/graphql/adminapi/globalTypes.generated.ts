@@ -101,6 +101,7 @@ export enum AuditLogActivityType {
   IdentityUsernameAdded = 'IDENTITY_USERNAME_ADDED',
   IdentityUsernameRemoved = 'IDENTITY_USERNAME_REMOVED',
   IdentityUsernameUpdated = 'IDENTITY_USERNAME_UPDATED',
+  ProjectAppSecretViewed = 'PROJECT_APP_SECRET_VIEWED',
   ProjectAppUpdated = 'PROJECT_APP_UPDATED',
   ProjectBillingCheckoutCreated = 'PROJECT_BILLING_CHECKOUT_CREATED',
   ProjectBillingSubscriptionCancelled = 'PROJECT_BILLING_SUBSCRIPTION_CANCELLED',
