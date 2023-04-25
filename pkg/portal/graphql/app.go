@@ -111,11 +111,11 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 type AppSecretKey string
 
 const (
-	AppSecretKeyOauthSSOProviderClientSecrets AppSecretKey = "oauthSSOProviderClientSecrets"
+	AppSecretKeyOauthSSOProviderClientSecrets AppSecretKey = "oauthSSOProviderClientSecrets" // nolint:gosec
 	AppSecretKeyWebhookSecret                 AppSecretKey = "webhookSecret"
 	AppSecretKeyAdminAPISecrets               AppSecretKey = "adminAPISecrets"
 	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
-	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets"
+	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
