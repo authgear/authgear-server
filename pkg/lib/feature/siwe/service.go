@@ -56,14 +56,12 @@ type Service struct {
 }
 
 func (s *Service) rateLimitGenerateNonce() ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Enabled:   true,
-		Name:      "SIWENonce",
-		Arguments: []string{string(s.RemoteIP)},
-
-		Period: time.Minute,
-		Burst:  100,
-	}
+	enabled := true
+	return ratelimit.NewBucketSpec(&config.RateLimitConfig{
+		Enabled: &enabled,
+		Period:  config.DurationString(time.Minute.String()),
+		Burst:   100,
+	}, "SIWENonce", string(s.RemoteIP))
 }
 
 func (s *Service) rateLimitVerifyMessage() ratelimit.BucketSpec {

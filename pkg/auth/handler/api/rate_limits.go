@@ -1,16 +1,16 @@
 package api
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
 func PresignImageUploadRequestBucketSpec(userID string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Name:      "PresignImageUploadRequest",
-		Arguments: []string{userID},
-		Enabled:   true,
-		Period:    duration.PerHour,
-		Burst:     10,
-	}
+	enabled := true
+	return ratelimit.NewBucketSpec(&config.RateLimitConfig{
+		Enabled: &enabled,
+		Period:  config.DurationString(duration.PerHour.String()),
+		Burst:   10,
+	}, "PresignImageUploadRequest", userID)
 }

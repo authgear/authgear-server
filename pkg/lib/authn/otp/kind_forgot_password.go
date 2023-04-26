@@ -41,17 +41,14 @@ func (k kindForgotPassword) RateLimitTriggerPerUser(userID string) ratelimit.Buc
 }
 
 func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Name:      "ForgotPasswordCooldown",
-		Arguments: []string{target},
-
-		Enabled: true,
-		Period: selectByChannel(k.channel,
+	return ratelimit.NewCooldownSpec(
+		"ForgotPasswordCooldown",
+		selectByChannel(k.channel,
 			k.config.ForgotPassword.RateLimits.Email.TriggerCooldown,
 			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown,
 		).Duration(),
-		Burst: 1,
-	}
+		target,
+	)
 }
 
 func (k kindForgotPassword) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {

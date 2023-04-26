@@ -46,17 +46,14 @@ func (k kindVerification) RateLimitTriggerPerUser(userID string) ratelimit.Bucke
 }
 
 func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Name:      "VerificationCooldown",
-		Arguments: []string{target},
-
-		Enabled: true,
-		Period: selectByChannel(k.channel,
+	return ratelimit.NewCooldownSpec(
+		"VerificationCooldown",
+		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerCooldown,
 			k.config.Verification.RateLimits.SMS.TriggerCooldown,
 		).Duration(),
-		Burst: 1,
-	}
+		target,
+	)
 }
 
 func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {

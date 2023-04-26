@@ -36,6 +36,16 @@ func NewBucketSpec(config *config.RateLimitConfig, name string, args ...string) 
 	}
 }
 
+func NewCooldownSpec(name string, period time.Duration, args ...string) BucketSpec {
+	return BucketSpec{
+		Name:      name,
+		Arguments: args,
+		Enabled:   true,
+		Period:    period,
+		Burst:     1,
+	}
+}
+
 func NewGlobalBucketSpec(e config.RateLimitsEnvironmentConfigEntry, name string, args ...string) BucketSpec {
 	return BucketSpec{
 		Name:      name,

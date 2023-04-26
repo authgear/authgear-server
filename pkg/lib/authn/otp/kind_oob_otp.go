@@ -59,17 +59,14 @@ func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec 
 }
 
 func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Name:      "OOBOTPCooldown",
-		Arguments: []string{string(k.purpose), target},
-
-		Enabled: true,
-		Period: selectByChannel(k.channel,
+	return ratelimit.NewCooldownSpec(
+		"OOBOTPCooldown",
+		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerCooldown,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerCooldown,
 		).Duration(),
-		Burst: 1,
-	}
+		string(k.purpose), target,
+	)
 }
 
 func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
