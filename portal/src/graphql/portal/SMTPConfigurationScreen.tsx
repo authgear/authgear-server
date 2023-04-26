@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useState, useMemo } from "react";
 import cn from "classnames";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import produce from "immer";
 import {
   Text,
@@ -45,6 +45,19 @@ import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
+import { AppSecretKey } from "./globalTypes.generated";
+import { useLocationEffect } from "../../hook/useLocationEffect";
+
+interface LocationState {
+  isEdit: boolean;
+}
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isEdit != null
+  );
+}
 
 type ProviderType = "sendgrid" | "custom";
 
@@ -345,7 +358,11 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       e.preventDefault();
       e.stopPropagation();
 
-      startReauthentication().catch((e) => {
+      const state: LocationState = {
+        isEdit: true,
+      };
+
+      startReauthentication(state).catch((e) => {
         // Normally there should not be any error.
         console.error(e);
       });
@@ -646,8 +663,21 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
 
 const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
+  const location = useLocation();
+  const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+    const { state } = location;
+    if (isLocationState(state) && state.isEdit) {
+      return [AppSecretKey.SmtpSecret];
+    }
+    return [];
+  });
+  useLocationEffect<LocationState>(() => {
+    // Pop the location state if exist
+  });
+
   const form = useAppSecretConfigForm({
     appID,
+    unmaskedSecrets,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
