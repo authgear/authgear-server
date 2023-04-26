@@ -17,7 +17,6 @@ import {
   SecondaryAuthenticatorType,
   secondaryAuthenticatorTypes,
   PortalAPIFeatureConfig,
-  ForgotPasswordConfig,
   AuthenticatorPasswordConfig,
 } from "../../types";
 import { swap } from "../../OrderButtons";
@@ -42,6 +41,7 @@ import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./MFAConfigurationScreen.module.css";
 import PasswordSettings from "./PasswordSettings";
+import { formatDuration, parseDuration } from "../../util/duration";
 
 interface AuthenticatorTypeFormState<T> {
   isChecked: boolean;
@@ -69,7 +69,7 @@ interface ConfigFormState {
   primary: PrimaryAuthenticatorType[];
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 
-  forgotPasswordConfig: ForgotPasswordConfig;
+  forgotPasswordCodeValidPeriodSeconds: number | undefined;
   authenticatorPasswordConfig: AuthenticatorPasswordConfig;
 }
 
@@ -110,6 +110,12 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     }
   }
 
+  const forgotPasswordCodeValidPeriod =
+    config.forgot_password?.code_valid_period;
+  const forgotPasswordCodeValidPeriodSeconds = forgotPasswordCodeValidPeriod
+    ? parseDuration(forgotPasswordCodeValidPeriod)
+    : undefined;
+
   return {
     mfaMode:
       config.authentication?.secondary_authentication_mode ?? "if_exists",
@@ -139,9 +145,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         ...config.authenticator?.password?.policy,
       },
     },
-    forgotPasswordConfig: {
-      ...config.forgot_password,
-    },
+    forgotPasswordCodeValidPeriodSeconds,
   };
 }
 
@@ -162,6 +166,7 @@ function constructConfig(
     config.authentication.device_token ??= {};
     config.authentication.recovery_code ??= {};
     config.authenticator ??= {};
+    config.forgot_password ??= {};
 
     config.authentication.secondary_authenticators = filterEnabled(
       currentState.secondary
@@ -177,7 +182,12 @@ function constructConfig(
     config.authentication.recovery_code.list_enabled =
       currentState.recoveryCodeListEnabled;
     config.authenticator.password = currentState.authenticatorPasswordConfig;
-    config.forgot_password = currentState.forgotPasswordConfig;
+
+    if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
+      config.forgot_password.code_valid_period = formatDuration(
+        currentState.forgotPasswordCodeValidPeriodSeconds
+      );
+    }
 
     clearEmptyObject(config);
   });
@@ -236,7 +246,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
       primary,
       secondary,
       featureConfig,
-      forgotPasswordConfig,
+      forgotPasswordCodeValidPeriodSeconds,
       authenticatorPasswordConfig,
     } = state;
     const { renderToString } = useContext(Context);
@@ -420,7 +430,9 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           {showPasswordSettings ? (
             <PasswordSettings
               className={styles.widget}
-              forgotPasswordConfig={forgotPasswordConfig}
+              forgotPasswordCodeValidPeriodSeconds={
+                forgotPasswordCodeValidPeriodSeconds
+              }
               authenticatorPasswordConfig={authenticatorPasswordConfig}
               passwordPolicyFeatureConfig={
                 featureConfig?.authenticator?.password?.policy

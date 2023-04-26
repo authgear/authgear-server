@@ -433,12 +433,12 @@
 
   "SIWE.disable-first": "Your project has enabled Sign in with Ethereum. Disable it{ReactRouterLink, react, to{{href}} children{here}} beforing choosing other login methods.",
 
-  "VerificationConfigurationScreen.code-expiry-seconds.label": "Verification code valid duration (seconds)",
+  "VerificationConfigurationScreen.otp-valid-seconds.label": "6-digit OTP valid duration (seconds)",
   "VerificationConfigurationScreen.criteria.label": "{code, react, children{isVerified}} is true when ...",
   "VerificationConfigurationScreen.criteria.tooltip": "More info in the {DocLink, react, href{https://docs.authgear.com/integrate/user-profile#userinfo-endpoint} children{UserInfo endpoint}}",
   "VerificationConfigurationScreen.criteria.any": "At least one user's email/phone is verified",
   "VerificationConfigurationScreen.criteria.all": "All user's email/phone are verified",
-  "VerificationConfigurationScreen.otp-failed-attempt.label": "Number of attempts allowed for a verification code",
+  "VerificationConfigurationScreen.otp-failed-attempt.label": "Number of attempts allowed for 6-digit OTP",
   "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText": "Unlimited",
   "VerificationConfigurationScreen.otp-failed-attempt.description": "The code becomes invalid after a number of failed attempts, and the user must resend a new one.",
   "VerificationConfigurationScreen.verification.claims.email": "Email address verification",
@@ -448,10 +448,10 @@
   "VerificationConfigurationScreen.verification.email.verify-by.label": "Verify email by",
   "VerificationConfigurationScreen.verification.phone.required.label": "Phone verification is required to complete sign up",
   "VerificationConfigurationScreen.verification.phone.allowed.label": "Allow users to verify their phone number from the setting page",
-  "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily SMS limit per phone number (leave blank to turn off limit)",
+  "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily 6-digit OTP limit per phone number (leave blank to turn off limit)",
   "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
-  "VerificationConfigurationScreen.verification.resend-cooldown.label": "Cooldown duration before resending OTP",
-  "VerificationConfigurationScreen.verification.resend-cooldown.value.seconds": "{seconds} seconds",
+  "VerificationConfigurationScreen.verification.resend-cooldown.label": "Resend Cooldown Duration",
+  "VerificationConfigurationScreen.verification.daily-limit.label": "Daily 6-digit OTP limit per user (leave blank to turn off limit)",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
   "AnonymousUsersConfigurationScreen.description": "Enable or disable anonymous users. Anonymous users do not have identity. They can be promoted to normal users.",
