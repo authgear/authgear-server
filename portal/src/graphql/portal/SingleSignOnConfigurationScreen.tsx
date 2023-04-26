@@ -41,7 +41,6 @@ import {
   useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
-import { AppSecretKey } from "./globalTypes.generated";
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
@@ -347,14 +346,11 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
     );
   };
 
-const NO_SECRETS: AppSecretKey[] = [];
-
 const SingleSignOnConfigurationScreen: React.VFC =
   function SingleSignOnConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const config = useAppSecretConfigForm({
       appID,
-      unmaskedSecrets: NO_SECRETS,
       constructFormState,
       constructConfig,
       constructSecretUpdateInstruction,

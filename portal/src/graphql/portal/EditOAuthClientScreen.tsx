@@ -1,6 +1,11 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce, { createDraft } from "immer";
 import {
@@ -53,6 +58,8 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { AppSecretKey } from "./globalTypes.generated";
+import { startReauthentication } from "./Authenticated";
+import { useLocationEffect } from "../../hook/useLocationEffect";
 
 interface FormState {
   publicOrigin: string;
@@ -60,6 +67,18 @@ interface FormState {
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
+}
+
+interface LocationState {
+  isClientSecretRevealed: boolean;
+}
+
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isClientSecretRevealed != null
+  );
 }
 
 function constructFormState(
@@ -430,6 +449,16 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       [setState]
     );
 
+    const onRevealSecret = useCallback(() => {
+      const state: LocationState = {
+        isClientSecretRevealed: true,
+      };
+      startReauthentication(state).catch((e) => {
+        // Normally there should not be any error.
+        console.error(e);
+      });
+    }, []);
+
     if (client == null) {
       return (
         <Text>
@@ -451,6 +480,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             clientSecret={clientSecret}
             customUIEnabled={customUIEnabled}
             onClientConfigChange={onClientConfigChange}
+            onRevealSecret={onRevealSecret}
           />
         </div>
         <div className={styles.quickStartColumn}>
@@ -545,17 +575,27 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     );
   };
 
-const NO_SECRETS: AppSecretKey[] = [];
-
 const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
   const { appID, clientID } = useParams() as {
     appID: string;
     clientID: string;
   };
+  const location = useLocation();
+  const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+    const { state } = location;
+    if (isLocationState(state) && state.isClientSecretRevealed) {
+      return [AppSecretKey.OauthClientSecrets];
+    }
+    return [];
+  });
+  useLocationEffect<LocationState>(() => {
+    // Pop the location state if exist
+  });
+
   const { renderToString } = useContext(Context);
   const form = useAppSecretConfigForm({
     appID,
-    unmaskedSecrets: NO_SECRETS,
+    unmaskedSecrets,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,

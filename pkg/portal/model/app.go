@@ -175,7 +175,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 					}
 
 					clientSecret := ""
-					_, unmask := unmaskedSecretsSet[config.SMTPServerCredentialsKey]
+					_, unmask := unmaskedSecretsSet[config.OAuthClientCredentialsKey]
 					if unmask || newlyCreated {
 						clientSecret = string(bytes)
 					}

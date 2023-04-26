@@ -42,7 +42,7 @@ export type InitialCurrentStateConstructor<State> = (state: State) => State;
 
 interface UseAppSecretConfigFormOptions<State> {
   appID: string;
-  unmaskedSecrets: AppSecretKey[];
+  unmaskedSecrets?: AppSecretKey[];
   constructFormState: StateConstructor<State>;
   constructConfig: ConfigConstructor<State>;
   constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor<State>;
