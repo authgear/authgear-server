@@ -8,13 +8,13 @@ const bucketNameKey = "bucket_name"
 
 var RateLimited = apierrors.TooManyRequest.WithReason("RateLimited")
 
-func ErrRateLimited(bucketName string) error {
+func ErrRateLimited(bucketName BucketName) error {
 	return RateLimited.NewWithInfo("request rate limited", apierrors.Details{
 		bucketNameKey: bucketName,
 	})
 }
 
-func IsRateLimitErrorWithBucketName(err error, bucketName string) bool {
+func IsRateLimitErrorWithBucketName(err error, bucketName BucketName) bool {
 	if !apierrors.IsKind(err, RateLimited) {
 		return false
 	}

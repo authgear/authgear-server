@@ -7,6 +7,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+const (
+	VerifyPasswordPerIP        ratelimit.BucketName = "VerifyPasswordPerIP"
+	VerifyPasswordPerUserPerIP ratelimit.BucketName = "VerifyPasswordPerUserPerIP"
+	VerifyTOTPPerIP            ratelimit.BucketName = "VerifyTOTPPerIP"
+	VerifyTOTPPerUserPerIP     ratelimit.BucketName = "VerifyTOTPPerUserPerIP"
+	VerifyPasskeyPerIP         ratelimit.BucketName = "VerifyPasskeyPerIP"
+)
+
 type RateLimiter interface {
 	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
 	Cancel(r *ratelimit.Reservation)
@@ -47,8 +55,8 @@ func (l *RateLimits) specPerIP(authType model.AuthenticatorType) ratelimit.Bucke
 			config = l.Config.RateLimits.General.PerIP
 		}
 		return ratelimit.NewBucketSpec(
-			config, "VerifyPassword",
-			"ip", string(l.IP),
+			config, VerifyPasswordPerIP,
+			string(l.IP),
 		)
 
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
@@ -61,8 +69,8 @@ func (l *RateLimits) specPerIP(authType model.AuthenticatorType) ratelimit.Bucke
 			config = l.Config.RateLimits.General.PerIP
 		}
 		return ratelimit.NewBucketSpec(
-			config, "VerifyTOTP",
-			"ip", string(l.IP),
+			config, VerifyTOTPPerIP,
+			string(l.IP),
 		)
 
 	case model.AuthenticatorTypePasskey:
@@ -71,8 +79,8 @@ func (l *RateLimits) specPerIP(authType model.AuthenticatorType) ratelimit.Bucke
 			config = l.Config.RateLimits.General.PerIP
 		}
 		return ratelimit.NewBucketSpec(
-			config, "VerifyPasskey",
-			"ip", string(l.IP),
+			config, VerifyPasskeyPerIP,
+			string(l.IP),
 		)
 
 	default:
@@ -88,8 +96,8 @@ func (l *RateLimits) specPerUserPerIP(userID string, authType model.Authenticato
 			config = l.Config.RateLimits.General.PerUserPerIP
 		}
 		return ratelimit.NewBucketSpec(
-			config, "VerifyPassword",
-			"user", userID, "ip", string(l.IP),
+			config, VerifyPasswordPerUserPerIP,
+			userID, string(l.IP),
 		)
 
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
@@ -102,8 +110,8 @@ func (l *RateLimits) specPerUserPerIP(userID string, authType model.Authenticato
 			config = l.Config.RateLimits.General.PerUserPerIP
 		}
 		return ratelimit.NewBucketSpec(
-			config, "VerifyTOTP",
-			"user", userID, "ip", string(l.IP),
+			config, VerifyTOTPPerUserPerIP,
+			userID, string(l.IP),
 		)
 
 	case model.AuthenticatorTypePasskey:

@@ -12,6 +12,15 @@ const (
 	usageLimitSMS   usage.LimitName = "SMS"
 )
 
+const (
+	MessagingEmailPerIP     ratelimit.BucketName = "MessagingEmailPerIP"
+	MessagingEmailPerTarget ratelimit.BucketName = "MessagingEmailPerTarget"
+	MessagingEmail          ratelimit.BucketName = "MessagingEmail"
+	MessagingSMSPerIP       ratelimit.BucketName = "MessagingSMSPerIP"
+	MessagingSMSPerTarget   ratelimit.BucketName = "MessagingSMSPerTarget"
+	MessagingSMS            ratelimit.BucketName = "MessagingSMS"
+)
+
 type UsageLimiter interface {
 	Reserve(name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
 	Cancel(r *usage.Reservation)
@@ -38,7 +47,7 @@ func (l *Limits) check(
 	global config.RateLimitsEnvironmentConfigEntry,
 	feature *config.RateLimitConfig,
 	local *config.RateLimitConfig,
-	name string,
+	name ratelimit.BucketName,
 	args ...string,
 ) (re []*ratelimit.Reservation, err error) {
 	re = reservations
@@ -85,7 +94,7 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.EmailPerIP, l.FeatureConfig.RateLimits.EmailPerIP, l.Config.EmailPerIP,
-		"MessagingEmailPerIP", string(l.RemoteIP),
+		MessagingEmailPerIP, string(l.RemoteIP),
 	)
 	if err != nil {
 		return
@@ -93,7 +102,7 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.EmailPerTarget, l.FeatureConfig.RateLimits.EmailPerTarget, l.Config.EmailPerTarget,
-		"MessagingEmailPerTarget", email,
+		MessagingEmailPerTarget, email,
 	)
 	if err != nil {
 		return
@@ -101,7 +110,7 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.Email, l.FeatureConfig.RateLimits.Email, l.Config.Email,
-		"MessagingEmail",
+		MessagingEmail,
 	)
 	if err != nil {
 		return
@@ -131,7 +140,7 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.SMSPerIP, l.FeatureConfig.RateLimits.SMSPerIP, l.Config.SMSPerIP,
-		"MessagingSMSPerIP", string(l.RemoteIP),
+		MessagingSMSPerIP, string(l.RemoteIP),
 	)
 	if err != nil {
 		return
@@ -139,7 +148,7 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.SMSPerTarget, l.FeatureConfig.RateLimits.SMSPerTarget, l.Config.SMSPerTarget,
-		"MessagingSMSPerTarget", phoneNumber,
+		MessagingSMSPerTarget, phoneNumber,
 	)
 	if err != nil {
 		return
@@ -147,7 +156,7 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
-		"MessagingSMS",
+		MessagingSMS,
 	)
 	if err != nil {
 		return

@@ -7,8 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+type BucketName string
+
 type BucketSpec struct {
-	Name      string
+	Name      BucketName
 	Arguments []string
 	IsGlobal  bool
 
@@ -19,7 +21,7 @@ type BucketSpec struct {
 
 var BucketSpecDisabled = BucketSpec{Enabled: false}
 
-func NewBucketSpec(config *config.RateLimitConfig, name string, args ...string) BucketSpec {
+func NewBucketSpec(config *config.RateLimitConfig, name BucketName, args ...string) BucketSpec {
 	enabled := config.Enabled != nil && *config.Enabled
 	var duration time.Duration
 	if enabled {
@@ -36,7 +38,7 @@ func NewBucketSpec(config *config.RateLimitConfig, name string, args ...string) 
 	}
 }
 
-func NewCooldownSpec(name string, period time.Duration, args ...string) BucketSpec {
+func NewCooldownSpec(name BucketName, period time.Duration, args ...string) BucketSpec {
 	return BucketSpec{
 		Name:      name,
 		Arguments: args,
@@ -46,7 +48,7 @@ func NewCooldownSpec(name string, period time.Duration, args ...string) BucketSp
 	}
 }
 
-func NewGlobalBucketSpec(e config.RateLimitsEnvironmentConfigEntry, name string, args ...string) BucketSpec {
+func NewGlobalBucketSpec(e config.RateLimitsEnvironmentConfigEntry, name BucketName, args ...string) BucketSpec {
 	return BucketSpec{
 		Name:      name,
 		Arguments: args,
@@ -59,5 +61,5 @@ func NewGlobalBucketSpec(e config.RateLimitsEnvironmentConfigEntry, name string,
 }
 
 func (s BucketSpec) Key() string {
-	return strings.Join(append([]string{s.Name}, s.Arguments...), ":")
+	return strings.Join(append([]string{string(s.Name)}, s.Arguments...), ":")
 }

@@ -12,6 +12,21 @@ const PurposeOOBOTP Purpose = "oob-otp"
 
 const PurposeWhatsapp Purpose = "whatsapp"
 
+const (
+	OOBOTPTriggerEmailPerIP         ratelimit.BucketName = "OOBOTPTriggerEmailPerIP"
+	OOBOTPTriggerSMSPerIP           ratelimit.BucketName = "OOBOTPTriggerSMSPerIP"
+	OOBOTPTriggerEmailPerUser       ratelimit.BucketName = "OOBOTPTriggerEmailPerUser"
+	OOBOTPTriggerSMSPerUser         ratelimit.BucketName = "OOBOTPTriggerSMSPerUser"
+	OOBOTPCooldownEmail             ratelimit.BucketName = "OOBOTPCooldownEmail"
+	OOBOTPCooldownSMS               ratelimit.BucketName = "OOBOTPCooldownSMS"
+	OOBOTPValidateEmailPerIP        ratelimit.BucketName = "OOBOTPValidateEmailPerIP"
+	OOBOTPValidateSMSPerIP          ratelimit.BucketName = "OOBOTPValidateSMSPerIP"
+	OOBOTPValidateEmailPerUserPerIP ratelimit.BucketName = "OOBOTPValidateEmailPerUserPerIP"
+	OOBOTPValidateSMSPerUserPerIP   ratelimit.BucketName = "OOBOTPValidateSMSPerUserPerIP"
+	AuthenticatePerIP               ratelimit.BucketName = "AuthenticatePerIP"
+	AuthenticatePerUserPerIP        ratelimit.BucketName = "AuthenticatePerUserPerIP"
+)
+
 type kindOOBOTP struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
@@ -46,7 +61,11 @@ func (k kindOOBOTP) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP,
 		),
-		"OOBOTPTrigger", string(k.purpose), "ip", ip)
+		selectByChannel(k.channel,
+			OOBOTPTriggerEmailPerIP,
+			OOBOTPTriggerSMSPerIP,
+		),
+		string(k.purpose), ip)
 }
 
 func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
@@ -55,12 +74,19 @@ func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec 
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser,
 		),
-		"OOBOTPTrigger", string(k.purpose), "user", userID)
+		selectByChannel(k.channel,
+			OOBOTPTriggerEmailPerUser,
+			OOBOTPTriggerSMSPerUser,
+		),
+		string(k.purpose), userID)
 }
 
 func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
-		"OOBOTPCooldown",
+		selectByChannel(k.channel,
+			OOBOTPCooldownEmail,
+			OOBOTPCooldownSMS,
+		),
 		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerCooldown,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerCooldown,
@@ -75,9 +101,23 @@ func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
 		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP,
 	)
 	if config.Enabled == nil {
-		config = k.config.Authentication.RateLimits.General.PerIP
+		return ratelimit.NewBucketSpec(
+			k.config.Authentication.RateLimits.General.PerIP,
+			AuthenticatePerIP,
+			// purpose is omitted intentionally.
+			ip,
+		)
 	}
-	return ratelimit.NewBucketSpec(config, "OOBOTPValidateCode", string(k.purpose), "ip", ip)
+
+	return ratelimit.NewBucketSpec(
+		config,
+		selectByChannel(k.channel,
+			OOBOTPValidateEmailPerIP,
+			OOBOTPValidateSMSPerIP,
+		),
+		string(k.purpose),
+		ip,
+	)
 }
 
 func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
@@ -86,9 +126,25 @@ func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) rate
 		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP,
 	)
 	if config.Enabled == nil {
-		config = k.config.Authentication.RateLimits.General.PerUserPerIP
+		return ratelimit.NewBucketSpec(
+			k.config.Authentication.RateLimits.General.PerUserPerIP,
+			AuthenticatePerUserPerIP,
+			// purpose is omitted intentionally.
+			userID,
+			ip,
+		)
 	}
-	return ratelimit.NewBucketSpec(config, "OOBOTPValidateCode", string(k.purpose), "user", userID, "ip", ip)
+
+	return ratelimit.NewBucketSpec(
+		config,
+		selectByChannel(k.channel,
+			OOBOTPValidateEmailPerUserPerIP,
+			OOBOTPValidateSMSPerUserPerIP,
+		),
+		string(k.purpose),
+		userID,
+		ip,
+	)
 }
 
 func (k kindOOBOTP) RevocationMaxFailedAttempts() int {

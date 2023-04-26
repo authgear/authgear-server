@@ -10,6 +10,15 @@ import (
 
 const PurposeForgotPassword Purpose = "forgot-password"
 
+const (
+	ForgotPasswordTriggerEmailPerIP  ratelimit.BucketName = "ForgotPasswordTriggerEmailPerIP"
+	ForgotPasswordTriggerSMSPerIP    ratelimit.BucketName = "ForgotPasswordTriggerSMSPerIP"
+	ForgotPasswordCooldownEmail      ratelimit.BucketName = "ForgotPasswordCooldownEmail"
+	ForgotPasswordCooldownSMS        ratelimit.BucketName = "ForgotPasswordCooldownSMS"
+	ForgotPasswordValidateEmailPerIP ratelimit.BucketName = "ForgotPasswordValidateEmailPerIP"
+	ForgotPasswordValidateSMSPerIP   ratelimit.BucketName = "ForgotPasswordValidateSMSPerIP"
+)
+
 type kindForgotPassword struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
@@ -29,11 +38,18 @@ func (k kindForgotPassword) ValidPeriod() time.Duration {
 
 func (k kindForgotPassword) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
 	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
+		selectByChannel(
+			k.channel,
 			k.config.ForgotPassword.RateLimits.Email.TriggerPerIP,
 			k.config.ForgotPassword.RateLimits.SMS.TriggerPerIP,
 		),
-		"ForgotPasswordTrigger", "ip", ip)
+		selectByChannel(
+			k.channel,
+			ForgotPasswordTriggerEmailPerIP,
+			ForgotPasswordTriggerSMSPerIP,
+		),
+		ip,
+	)
 }
 
 func (k kindForgotPassword) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
@@ -42,22 +58,34 @@ func (k kindForgotPassword) RateLimitTriggerPerUser(userID string) ratelimit.Buc
 
 func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
 	return ratelimit.NewCooldownSpec(
-		"ForgotPasswordCooldown",
-		selectByChannel(k.channel,
-			k.config.ForgotPassword.RateLimits.Email.TriggerCooldown,
-			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown,
-		).Duration(),
+		selectByChannel(
+			k.channel,
+			ForgotPasswordCooldownEmail,
+			ForgotPasswordCooldownSMS,
+		),
+		selectByChannel(
+			k.channel,
+			k.config.ForgotPassword.RateLimits.Email.TriggerCooldown.Duration(),
+			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown.Duration(),
+		),
 		target,
 	)
 }
 
 func (k kindForgotPassword) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
 	return ratelimit.NewBucketSpec(
-		selectByChannel(k.channel,
+		selectByChannel(
+			k.channel,
 			k.config.ForgotPassword.RateLimits.Email.ValidatePerIP,
 			k.config.ForgotPassword.RateLimits.SMS.ValidatePerIP,
 		),
-		"ForgotPasswordValidateCode", "ip", ip)
+		selectByChannel(
+			k.channel,
+			ForgotPasswordValidateEmailPerIP,
+			ForgotPasswordValidateSMSPerIP,
+		),
+		ip,
+	)
 }
 
 func (k kindForgotPassword) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {

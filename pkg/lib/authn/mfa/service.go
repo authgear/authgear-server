@@ -11,6 +11,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+const (
+	VerifyDeviceTokenPerUserPerIP  ratelimit.BucketName = "VerifyDeviceTokenPerUserPerIP"
+	VerifyDeviceTokenPerIP         ratelimit.BucketName = "VerifyDeviceTokenPerIP"
+	VerifyRecoveryCodePerUserPerIP ratelimit.BucketName = "VerifyRecoveryCodePerUserPerIP"
+	VerifyRecoveryCodePerIP        ratelimit.BucketName = "VerifyRecoveryCodePerIP"
+)
+
 type StoreDeviceToken interface {
 	Get(userID string, token string) (*DeviceToken, error)
 	Create(token *DeviceToken) error
@@ -45,8 +52,9 @@ func (s *Service) GenerateDeviceToken() string {
 }
 
 func (s *Service) reserveRateLimit(
-	name string,
+	namePerUserPerIP ratelimit.BucketName,
 	perUserPerIP *config.RateLimitConfig,
+	namePerIP ratelimit.BucketName,
 	perIP *config.RateLimitConfig,
 	userID string,
 ) (rPerUserPerIP *ratelimit.Reservation, rPerIP *ratelimit.Reservation, err error) {
@@ -58,16 +66,16 @@ func (s *Service) reserveRateLimit(
 	}
 
 	rPerUserPerIP = s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
-		perUserPerIP, name,
-		"user", userID, "ip", string(s.IP),
+		perUserPerIP, namePerUserPerIP,
+		userID, string(s.IP),
 	))
 	if err = rPerUserPerIP.Error(); err != nil {
 		return
 	}
 
 	rPerIP = s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
-		perIP, name,
-		"ip", string(s.IP),
+		perIP, namePerIP,
+		string(s.IP),
 	))
 	if err = rPerIP.Error(); err != nil {
 		return
@@ -92,8 +100,10 @@ func (s *Service) CreateDeviceToken(userID string, token string) (*DeviceToken, 
 }
 
 func (s *Service) VerifyDeviceToken(userID string, token string) error {
-	perUserPerIP, perIP, err := s.reserveRateLimit("VerifyDeviceToken",
+	perUserPerIP, perIP, err := s.reserveRateLimit(
+		VerifyDeviceTokenPerUserPerIP,
 		s.Config.RateLimits.DeviceToken.PerUserPerIP,
+		VerifyDeviceTokenPerIP,
 		s.Config.RateLimits.DeviceToken.PerIP,
 		userID,
 	)
@@ -157,8 +167,10 @@ func (s *Service) ReplaceRecoveryCodes(userID string, codes []string) ([]*Recove
 }
 
 func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode, error) {
-	perUserPerIP, perIP, err := s.reserveRateLimit("VerifyRecoveryCode",
+	perUserPerIP, perIP, err := s.reserveRateLimit(
+		VerifyRecoveryCodePerUserPerIP,
 		s.Config.RateLimits.RecoveryCode.PerUserPerIP,
+		VerifyRecoveryCodePerIP,
 		s.Config.RateLimits.RecoveryCode.PerIP,
 		userID,
 	)
