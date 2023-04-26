@@ -10,6 +10,17 @@ import (
 
 const PurposeVerification Purpose = "verification"
 
+const (
+	VerificationTriggerEmailPerIP   ratelimit.BucketName = "VerificationTriggerEmailPerIP"
+	VerificationTriggerSMSPerIP     ratelimit.BucketName = "VerificationTriggerSMSPerIP"
+	VerificationTriggerEmailPerUser ratelimit.BucketName = "VerificationTriggerEmailPerUser"
+	VerificationTriggerSMSPerUser   ratelimit.BucketName = "VerificationTriggerSMSPerUser"
+	VerificationCooldownEmail       ratelimit.BucketName = "VerificationCooldownEmail"
+	VerificationCooldownSMS         ratelimit.BucketName = "VerificationCooldownSMS"
+	VerificationValidateEmailPerIP  ratelimit.BucketName = "VerificationValidateEmailPerIP"
+	VerificationValidateSMSPerIP    ratelimit.BucketName = "VerificationValidateSMSPerIP"
+)
+
 type kindVerification struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
@@ -33,7 +44,10 @@ func (k kindVerification) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec 
 			k.config.Verification.RateLimits.Email.TriggerPerIP,
 			k.config.Verification.RateLimits.SMS.TriggerPerIP,
 		),
-		"VerificationTrigger", "ip", ip)
+		selectByChannel(k.channel,
+			VerificationTriggerEmailPerIP,
+			VerificationTriggerSMSPerIP,
+		), ip)
 }
 
 func (k kindVerification) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec {
@@ -42,21 +56,24 @@ func (k kindVerification) RateLimitTriggerPerUser(userID string) ratelimit.Bucke
 			k.config.Verification.RateLimits.Email.TriggerPerUser,
 			k.config.Verification.RateLimits.SMS.TriggerPerUser,
 		),
-		"VerificationTrigger", "user", userID)
+		selectByChannel(k.channel,
+			VerificationTriggerEmailPerUser,
+			VerificationTriggerSMSPerUser,
+		), userID)
 }
 
 func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Name:      "VerificationCooldown",
-		Arguments: []string{target},
-
-		Enabled: true,
-		Period: selectByChannel(k.channel,
+	return ratelimit.NewCooldownSpec(
+		selectByChannel(k.channel,
+			VerificationCooldownEmail,
+			VerificationCooldownSMS,
+		),
+		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerCooldown,
 			k.config.Verification.RateLimits.SMS.TriggerCooldown,
 		).Duration(),
-		Burst: 1,
-	}
+		target,
+	)
 }
 
 func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
@@ -65,7 +82,10 @@ func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec
 			k.config.Verification.RateLimits.Email.ValidatePerIP,
 			k.config.Verification.RateLimits.SMS.ValidatePerIP,
 		),
-		"VerificationValidateCode", "ip", ip)
+		selectByChannel(k.channel,
+			VerificationValidateEmailPerIP,
+			VerificationValidateSMSPerIP,
+		), ip)
 }
 
 func (k kindVerification) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {

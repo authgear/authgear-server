@@ -27,6 +27,11 @@ import (
 // https://github.com/spruceid/siwe-go/blob/fc1b0374f4ffff68e3455839655e680be7e0f862/regex.go#L17
 const Alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+const (
+	SIWENoncePerIP  ratelimit.BucketName = "SIWENoncePerIP"
+	SIWEVerifyPerIP ratelimit.BucketName = "SIWEVerifyPerIP"
+)
+
 type NonceStore interface {
 	Create(nonce *Nonce) error
 	Get(nonce *Nonce) (*Nonce, error)
@@ -56,20 +61,18 @@ type Service struct {
 }
 
 func (s *Service) rateLimitGenerateNonce() ratelimit.BucketSpec {
-	return ratelimit.BucketSpec{
-		Enabled:   true,
-		Name:      "SIWENonce",
-		Arguments: []string{string(s.RemoteIP)},
-
-		Period: time.Minute,
-		Burst:  100,
-	}
+	enabled := true
+	return ratelimit.NewBucketSpec(&config.RateLimitConfig{
+		Enabled: &enabled,
+		Period:  config.DurationString(time.Minute.String()),
+		Burst:   100,
+	}, SIWENoncePerIP, string(s.RemoteIP))
 }
 
 func (s *Service) rateLimitVerifyMessage() ratelimit.BucketSpec {
 	return ratelimit.NewBucketSpec(
-		s.AuthenticationConfig.RateLimits.SIWE.PerIP, "SIWEVerify",
-		"ip", string(s.RemoteIP),
+		s.AuthenticationConfig.RateLimits.SIWE.PerIP, SIWEVerifyPerIP,
+		string(s.RemoteIP),
 	)
 }
 
