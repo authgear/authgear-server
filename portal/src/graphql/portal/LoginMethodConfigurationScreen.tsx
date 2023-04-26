@@ -420,7 +420,8 @@ interface ConfigFormState {
   verificationCriteria?: VerificationCriteria;
 
   forgotPasswordCodeValidPeriodSeconds: number | undefined;
-  otpValidPeriodSeconds: number | undefined;
+  emailOTPValidPeriodSeconds: number | undefined;
+  codeOTPValidPeriodSeconds: number | undefined;
   smsOTPCooldownPeriodSeconds: number | undefined;
   emailOTPCooldownPeriodSeconds: number | undefined;
   otpRevokeFailedAttemptsEnabled: boolean;
@@ -779,9 +780,10 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     config.forgot_password?.code_valid_period
   );
 
-  const otpValidPeriodSeconds = getConsistentValue(
-    // TODO: make independent fields
-    // config.authenticator?.oob_otp?.email?.code_valid_period,
+  const emailOTPValidPeriodSeconds = parseOptionalDuration(
+    config.authenticator?.oob_otp?.email?.code_valid_period
+  );
+  const codeOTPValidPeriodSeconds = getConsistentValue(
     parseOptionalDuration(
       config.authenticator?.oob_otp?.sms?.code_valid_period
     ),
@@ -901,7 +903,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     },
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
-    otpValidPeriodSeconds,
+    emailOTPValidPeriodSeconds,
+    codeOTPValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
     emailOTPCooldownPeriodSeconds,
     otpRevokeFailedAttemptsEnabled,
@@ -1017,10 +1020,22 @@ function constructConfig(
       );
     }
 
-    if (currentState.otpValidPeriodSeconds != null) {
-      const duration = formatDuration(currentState.otpValidPeriodSeconds);
-      // TODO: make independent fields
-      // config.authenticator.oob_otp.email.code_valid_period = duration;
+    const isEmailOTPLink =
+      currentState.authenticatorOOBEmailConfig.email_otp_mode === "login_link";
+    if (isEmailOTPLink) {
+      // Reset to default value.
+      config.authenticator.oob_otp.email.code_valid_period = undefined;
+    } else {
+      if (currentState.emailOTPCooldownPeriodSeconds != null) {
+        const duration = formatDuration(
+          currentState.emailOTPCooldownPeriodSeconds
+        );
+        config.authenticator.oob_otp.email.code_valid_period = duration;
+      }
+    }
+
+    if (currentState.codeOTPValidPeriodSeconds != null) {
+      const duration = formatDuration(currentState.codeOTPValidPeriodSeconds);
       config.authenticator.oob_otp.sms.code_valid_period = duration;
       config.verification.code_valid_period = duration;
     }
@@ -2263,7 +2278,8 @@ interface VerificationSettingsProps {
 
   verificationClaims: VerificationClaimsConfig | undefined;
   verificationCriteria: VerificationCriteria | undefined;
-  otpValidPeriodSeconds: number | undefined;
+  emailOTPValidPeriodSeconds: number | undefined;
+  codeOTPValidPeriodSeconds: number | undefined;
   smsOTPCooldownPeriodSeconds: number | undefined;
   emailOTPCooldownPeriodSeconds: number | undefined;
   otpRevokeFailedAttemptsEnabled: boolean;
@@ -2284,7 +2300,8 @@ function VerificationSettings(props: VerificationSettingsProps) {
     authenticatorOOBSMSConfig,
     verificationClaims,
     verificationCriteria,
-    otpValidPeriodSeconds,
+    emailOTPValidPeriodSeconds,
+    codeOTPValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
     emailOTPCooldownPeriodSeconds,
     otpRevokeFailedAttemptsEnabled,
@@ -2295,18 +2312,37 @@ function VerificationSettings(props: VerificationSettingsProps) {
 
   const { renderToString } = useContext(Context);
 
-  const onChangeCodeExpirySeconds = useCallback(
+  const isLoginLink =
+    authenticatorOOBEmailConfig.email_otp_mode === "login_link";
+
+  const otpValidPeriodSeconds = getConsistentValue(
+    codeOTPValidPeriodSeconds,
+    ...(isLoginLink ? [] : [emailOTPValidPeriodSeconds])
+  );
+  const onChangeOTPValidPeriodSeconds = useCallback(
     (_, value) => {
       setState((s) =>
         produce(s, (s) => {
-          s.otpValidPeriodSeconds = tryProduce(s.otpValidPeriodSeconds, () => {
-            const num = parseNumber(value);
-            return num == null ? undefined : ensurePositiveNumber(num);
-          });
+          s.codeOTPValidPeriodSeconds = tryProduce(
+            s.codeOTPValidPeriodSeconds,
+            () => {
+              const num = parseNumber(value);
+              return num == null ? undefined : ensurePositiveNumber(num);
+            }
+          );
+          if (!isLoginLink) {
+            s.emailOTPValidPeriodSeconds = tryProduce(
+              s.emailOTPValidPeriodSeconds,
+              () => {
+                const num = parseNumber(value);
+                return num == null ? undefined : ensurePositiveNumber(num);
+              }
+            );
+          }
         })
       );
     },
-    [setState]
+    [setState, isLoginLink]
   );
 
   const onChangeOTPFailedAttemptEnabled = useCallback(
@@ -2387,13 +2423,17 @@ function VerificationSettings(props: VerificationSettingsProps) {
       })),
     [renderToString]
   );
-  const onChangeSecondaryEmailOTPMode = useCallback(
+  const onChangeEmailOTPMode = useCallback(
     (_, option) => {
       const key = option.key as AuthenticatorEmailOTPMode | undefined;
       if (key != null) {
-        setState((prev) =>
-          produce(prev, (prev) => {
-            prev.authenticatorOOBEmailConfig.email_otp_mode = key;
+        setState((s) =>
+          produce(s, (s) => {
+            s.authenticatorOOBEmailConfig.email_otp_mode = key;
+            // Clear existing OTP valid period values to
+            // avoid unexpected valid periods when switching different OTP kinds.
+            s.codeOTPValidPeriodSeconds = undefined;
+            s.emailOTPValidPeriodSeconds = undefined;
           })
         );
       }
@@ -2514,10 +2554,10 @@ function VerificationSettings(props: VerificationSettingsProps) {
       <TextField
         type="text"
         label={renderToString(
-          "VerificationConfigurationScreen.code-expiry-seconds.label"
+          "VerificationConfigurationScreen.otp-valid-seconds.label"
         )}
         value={otpValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeCodeExpirySeconds}
+        onChange={onChangeOTPValidPeriodSeconds}
       />
       <div className={styles.otpFailedAttemptContainer}>
         <Toggle
@@ -2589,7 +2629,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
             )}
             options={emailOTPModes}
             selectedKey={authenticatorOOBEmailConfig.email_otp_mode}
-            onChange={onChangeSecondaryEmailOTPMode}
+            onChange={onChangeEmailOTPMode}
           />
           <TextField
             type="text"
@@ -2691,7 +2731,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationClaims,
       verificationCriteria,
 
-      otpValidPeriodSeconds,
+      emailOTPValidPeriodSeconds,
+      codeOTPValidPeriodSeconds,
       smsOTPCooldownPeriodSeconds,
       emailOTPCooldownPeriodSeconds,
       otpRevokeFailedAttemptsEnabled,
@@ -2935,7 +2976,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                   verificationClaims={verificationClaims}
                   verificationCriteria={verificationCriteria}
-                  otpValidPeriodSeconds={otpValidPeriodSeconds}
+                  emailOTPValidPeriodSeconds={emailOTPValidPeriodSeconds}
+                  codeOTPValidPeriodSeconds={codeOTPValidPeriodSeconds}
                   smsOTPCooldownPeriodSeconds={smsOTPCooldownPeriodSeconds}
                   emailOTPCooldownPeriodSeconds={emailOTPCooldownPeriodSeconds}
                   otpRevokeFailedAttemptsEnabled={
