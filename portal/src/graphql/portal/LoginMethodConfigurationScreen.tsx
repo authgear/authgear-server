@@ -404,6 +404,53 @@ function controlListSwap<T>(
   return newItems;
 }
 
+// authentication:
+//   rate_limits:
+//     oob_otp:
+//       email:
+//         # 5
+//         max_failed_attempts_revoke_otp: 0
+//         # 4.2
+//         trigger_cooldown: "1m"
+//       sms:
+//         # 5
+//         max_failed_attempts_revoke_otp: 0
+//         # 4.1
+//         trigger_cooldown: "1m"
+// authenticator:
+//   oob_otp:
+//     email:
+//       email_otp_mode: login_link
+//       # 3 or reset
+//       code_valid_period: 20m
+//     sms:
+//       phone_otp_mode: sms
+//       # 3
+//       code_valid_period: 5m
+// forgot_password:
+//   # 1
+//   code_valid_period: 20m
+// messaging:
+//   rate_limits:
+//     # 6
+//     sms_per_target: {}
+// verification:
+//   # 3
+//   code_valid_period: 5m
+//   rate_limits:
+//     email:
+//       # 4.2
+//       trigger_cooldown: 1m
+//       # 5
+//       max_failed_attempts_revoke_otp: 0
+//       # 7
+//       trigger_per_user: {}
+//     sms:
+//       # 4.1
+//       trigger_cooldown: 1m
+//       # 5
+//       max_failed_attempts_revoke_otp: 0
+
 interface ConfigFormState {
   identitiesControl: ControlList<IdentityType>;
   primaryAuthenticatorsControl: ControlList<PrimaryAuthenticatorType>;
@@ -419,15 +466,21 @@ interface ConfigFormState {
   verificationClaims?: VerificationClaimsConfig;
   verificationCriteria?: VerificationCriteria;
 
+  // 1
   forgotPasswordCodeValidPeriodSeconds: number | undefined;
-  emailOTPValidPeriodSeconds: number | undefined;
-  codeOTPValidPeriodSeconds: number | undefined;
+  // 3
+  sixDigitOTPValidPeriodSeconds: number | undefined;
+  // 4.1
   smsOTPCooldownPeriodSeconds: number | undefined;
+  // 4.2
   emailOTPCooldownPeriodSeconds: number | undefined;
-  otpRevokeFailedAttemptsEnabled: boolean;
-  otpRevokeFailedAttempts: number | undefined;
-  dailySMSSendLimit: number | undefined;
-  dailyVerificationLimit: number | undefined;
+  // 5
+  anyOTPRevokeFailedAttemptsEnabled: boolean;
+  anyOTPRevokeFailedAttempts: number | undefined;
+  // 6
+  smsDailySendLimit: number | undefined;
+  // 7
+  emailVerificationDailyLimit: number | undefined;
 }
 
 interface FeatureConfigFormState {
@@ -780,14 +833,22 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     config.forgot_password?.code_valid_period
   );
 
-  const emailOTPValidPeriodSeconds = parseOptionalDuration(
-    config.authenticator?.oob_otp?.email?.code_valid_period
-  );
-  const codeOTPValidPeriodSeconds = getConsistentValue(
+  const sixDigitOTPValidPeriodSecondsCandidates = [
     parseOptionalDuration(
       config.authenticator?.oob_otp?.sms?.code_valid_period
     ),
-    parseOptionalDuration(config.verification?.code_valid_period)
+    parseOptionalDuration(config.verification?.code_valid_period),
+  ];
+  if (config.authenticator?.oob_otp?.email?.email_otp_mode !== "login_link") {
+    sixDigitOTPValidPeriodSecondsCandidates.push(
+      parseOptionalDuration(
+        config.authenticator?.oob_otp?.email?.code_valid_period
+      )
+    );
+  }
+
+  const sixDigitOTPValidPeriodSeconds = getConsistentValue(
+    ...sixDigitOTPValidPeriodSecondsCandidates
   );
 
   const smsOTPCooldownPeriodSeconds = getConsistentValue(
@@ -808,7 +869,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     )
   );
 
-  const otpRevokeFailedAttemptsRaw = getConsistentValue(
+  const anyOTPRevokeFailedAttemptsRaw = getConsistentValue(
     config.authentication?.rate_limits?.oob_otp?.sms
       ?.max_failed_attempts_revoke_otp,
     config.verification?.rate_limits?.sms?.max_failed_attempts_revoke_otp,
@@ -816,24 +877,17 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       ?.max_failed_attempts_revoke_otp,
     config.verification?.rate_limits?.email?.max_failed_attempts_revoke_otp
   );
-  const otpRevokeFailedAttempts =
-    otpRevokeFailedAttemptsRaw ?? DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS;
-  const otpRevokeFailedAttemptsEnabled =
-    (otpRevokeFailedAttemptsRaw ?? 0) !== 0;
+  const anyOTPRevokeFailedAttempts =
+    anyOTPRevokeFailedAttemptsRaw ?? DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS;
+  const anyOTPRevokeFailedAttemptsEnabled =
+    (anyOTPRevokeFailedAttemptsRaw ?? 0) !== 0;
 
-  const dailySMSSendLimit = getRateLimitDailyLimit(
+  const smsDailySendLimit = getRateLimitDailyLimit(
     config.messaging?.rate_limits?.sms_per_target ?? {}
   );
 
-  const dailyEmailVerificationLimit = getRateLimitDailyLimit(
+  const emailVerificationDailyLimit = getRateLimitDailyLimit(
     config.verification?.rate_limits?.email?.trigger_per_user ?? {}
-  );
-  const dailySMSVerificationLimit = getRateLimitDailyLimit(
-    config.verification?.rate_limits?.sms?.trigger_per_user ?? {}
-  );
-  const dailyVerificationLimit = getConsistentValue(
-    dailyEmailVerificationLimit,
-    dailySMSVerificationLimit
   );
 
   const state: ConfigFormState = {
@@ -903,14 +957,13 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     },
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
-    emailOTPValidPeriodSeconds,
-    codeOTPValidPeriodSeconds,
+    sixDigitOTPValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
     emailOTPCooldownPeriodSeconds,
-    otpRevokeFailedAttemptsEnabled,
-    otpRevokeFailedAttempts,
-    dailySMSSendLimit,
-    dailyVerificationLimit,
+    anyOTPRevokeFailedAttemptsEnabled,
+    anyOTPRevokeFailedAttempts,
+    smsDailySendLimit,
+    emailVerificationDailyLimit,
   };
   correctInitialFormState(state);
   return state;
@@ -1022,28 +1075,32 @@ function constructConfig(
 
     const isEmailOTPLink =
       currentState.authenticatorOOBEmailConfig.email_otp_mode === "login_link";
-    if (isEmailOTPLink) {
-      // Reset to default value.
-      config.authenticator.oob_otp.email.code_valid_period = undefined;
-    } else {
-      if (currentState.emailOTPCooldownPeriodSeconds != null) {
-        const duration = formatDuration(
-          currentState.emailOTPCooldownPeriodSeconds
-        );
-        config.authenticator.oob_otp.email.code_valid_period = duration;
-      }
-    }
 
-    if (currentState.codeOTPValidPeriodSeconds != null) {
-      const duration = formatDuration(currentState.codeOTPValidPeriodSeconds);
+    if (currentState.sixDigitOTPValidPeriodSeconds != null) {
+      const duration = formatDuration(
+        currentState.sixDigitOTPValidPeriodSeconds
+      );
       config.authenticator.oob_otp.sms.code_valid_period = duration;
       config.verification.code_valid_period = duration;
+      if (isEmailOTPLink) {
+        config.authenticator.oob_otp.email.code_valid_period = undefined;
+      } else {
+        config.authenticator.oob_otp.email.code_valid_period = duration;
+      }
+    } else {
+      config.authenticator.oob_otp.sms.code_valid_period = undefined;
+      config.verification.code_valid_period = undefined;
+      config.authenticator.oob_otp.email.code_valid_period = undefined;
     }
 
     if (currentState.smsOTPCooldownPeriodSeconds != null) {
       const duration = formatDuration(currentState.smsOTPCooldownPeriodSeconds);
       config.authentication.rate_limits.oob_otp.sms.trigger_cooldown = duration;
       config.verification.rate_limits.sms.trigger_cooldown = duration;
+    } else {
+      config.authentication.rate_limits.oob_otp.sms.trigger_cooldown =
+        undefined;
+      config.verification.rate_limits.sms.trigger_cooldown = undefined;
     }
 
     if (currentState.emailOTPCooldownPeriodSeconds != null) {
@@ -1053,12 +1110,16 @@ function constructConfig(
       config.authentication.rate_limits.oob_otp.email.trigger_cooldown =
         duration;
       config.verification.rate_limits.email.trigger_cooldown = duration;
+    } else {
+      config.authentication.rate_limits.oob_otp.email.trigger_cooldown =
+        undefined;
+      config.verification.rate_limits.email.trigger_cooldown = undefined;
     }
 
     let maxFailedAttemptsRevokeOTP: number | undefined;
-    if (currentState.otpRevokeFailedAttemptsEnabled === true) {
+    if (currentState.anyOTPRevokeFailedAttemptsEnabled) {
       maxFailedAttemptsRevokeOTP =
-        currentState.otpRevokeFailedAttempts ??
+        currentState.anyOTPRevokeFailedAttempts ??
         DEFAULT_OTP_REVOKE_FAILED_ATTEMPTS;
     }
     config.authentication.rate_limits.oob_otp.email.max_failed_attempts_revoke_otp =
@@ -1071,32 +1132,24 @@ function constructConfig(
       maxFailedAttemptsRevokeOTP;
 
     config.messaging.rate_limits.sms_per_target = {
-      ...(currentState.dailySMSSendLimit == null
+      ...(currentState.smsDailySendLimit == null
         ? { enabled: false }
         : {
             enabled: true,
             period: "24h",
-            burst: currentState.dailySMSSendLimit,
+            burst: currentState.smsDailySendLimit,
           }),
     };
 
-    if (currentState.dailyVerificationLimit == null) {
+    if (currentState.emailVerificationDailyLimit == null) {
       config.verification.rate_limits.email.trigger_per_user = {
-        enabled: false,
-      };
-      config.verification.rate_limits.sms.trigger_per_user = {
         enabled: false,
       };
     } else {
       config.verification.rate_limits.email.trigger_per_user = {
         enabled: true,
         period: "24h",
-        burst: currentState.dailyVerificationLimit,
-      };
-      config.verification.rate_limits.sms.trigger_per_user = {
-        enabled: true,
-        period: "24h",
-        burst: currentState.dailyVerificationLimit,
+        burst: currentState.emailVerificationDailyLimit,
       };
     }
 
@@ -2278,15 +2331,13 @@ interface VerificationSettingsProps {
 
   verificationClaims: VerificationClaimsConfig | undefined;
   verificationCriteria: VerificationCriteria | undefined;
-  emailOTPValidPeriodSeconds: number | undefined;
-  codeOTPValidPeriodSeconds: number | undefined;
+  sixDigitOTPValidPeriodSeconds: number | undefined;
   smsOTPCooldownPeriodSeconds: number | undefined;
   emailOTPCooldownPeriodSeconds: number | undefined;
-  otpRevokeFailedAttemptsEnabled: boolean;
-  otpRevokeFailedAttempts: number | undefined;
-  dailySMSSendLimit: number | undefined;
-  dailyVerificationLimit: number | undefined;
-
+  anyOTPRevokeFailedAttemptsEnabled: boolean;
+  anyOTPRevokeFailedAttempts: number | undefined;
+  smsDailySendLimit: number | undefined;
+  emailVerificationDailyLimit: number | undefined;
   setState: FormModel["setState"];
 }
 
@@ -2300,49 +2351,32 @@ function VerificationSettings(props: VerificationSettingsProps) {
     authenticatorOOBSMSConfig,
     verificationClaims,
     verificationCriteria,
-    emailOTPValidPeriodSeconds,
-    codeOTPValidPeriodSeconds,
+    sixDigitOTPValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
     emailOTPCooldownPeriodSeconds,
-    otpRevokeFailedAttemptsEnabled,
-    otpRevokeFailedAttempts,
-    dailySMSSendLimit,
-    dailyVerificationLimit,
+    anyOTPRevokeFailedAttemptsEnabled,
+    anyOTPRevokeFailedAttempts,
+    smsDailySendLimit,
+    emailVerificationDailyLimit,
   } = props;
 
   const { renderToString } = useContext(Context);
 
-  const isLoginLink =
-    authenticatorOOBEmailConfig.email_otp_mode === "login_link";
-
-  const otpValidPeriodSeconds = getConsistentValue(
-    codeOTPValidPeriodSeconds,
-    ...(isLoginLink ? [] : [emailOTPValidPeriodSeconds])
-  );
   const onChangeOTPValidPeriodSeconds = useCallback(
     (_, value) => {
       setState((s) =>
         produce(s, (s) => {
-          s.codeOTPValidPeriodSeconds = tryProduce(
-            s.codeOTPValidPeriodSeconds,
+          s.sixDigitOTPValidPeriodSeconds = tryProduce(
+            s.sixDigitOTPValidPeriodSeconds,
             () => {
               const num = parseNumber(value);
               return num == null ? undefined : ensurePositiveNumber(num);
             }
           );
-          if (!isLoginLink) {
-            s.emailOTPValidPeriodSeconds = tryProduce(
-              s.emailOTPValidPeriodSeconds,
-              () => {
-                const num = parseNumber(value);
-                return num == null ? undefined : ensurePositiveNumber(num);
-              }
-            );
-          }
         })
       );
     },
-    [setState, isLoginLink]
+    [setState]
   );
 
   const onChangeOTPFailedAttemptEnabled = useCallback(
@@ -2350,7 +2384,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
       setState((s) =>
         produce(s, (s) => {
           if (value != null) {
-            s.otpRevokeFailedAttemptsEnabled = value;
+            s.anyOTPRevokeFailedAttemptsEnabled = value;
           }
         })
       );
@@ -2362,8 +2396,8 @@ function VerificationSettings(props: VerificationSettingsProps) {
     (_, value: string | undefined) => {
       setState((s) =>
         produce(s, (s) => {
-          s.otpRevokeFailedAttempts = tryProduce(
-            s.otpRevokeFailedAttempts,
+          s.anyOTPRevokeFailedAttempts = tryProduce(
+            s.anyOTPRevokeFailedAttempts,
             () => {
               const num = parseNumber(value);
               return num == null
@@ -2430,10 +2464,6 @@ function VerificationSettings(props: VerificationSettingsProps) {
         setState((s) =>
           produce(s, (s) => {
             s.authenticatorOOBEmailConfig.email_otp_mode = key;
-            // Clear existing OTP valid period values to
-            // avoid unexpected valid periods when switching different OTP kinds.
-            s.codeOTPValidPeriodSeconds = undefined;
-            s.emailOTPValidPeriodSeconds = undefined;
           })
         );
       }
@@ -2467,7 +2497,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
     (_, value: string | undefined) => {
       setState((s) =>
         produce(s, (s) => {
-          s.dailySMSSendLimit = tryProduce(s.dailySMSSendLimit, () => {
+          s.smsDailySendLimit = tryProduce(s.smsDailySendLimit, () => {
             const num = parseNumber(value);
             return num == null
               ? undefined
@@ -2483,8 +2513,8 @@ function VerificationSettings(props: VerificationSettingsProps) {
     (_, value: string | undefined) => {
       setState((s) =>
         produce(s, (s) => {
-          s.dailyVerificationLimit = tryProduce(
-            s.dailyVerificationLimit,
+          s.emailVerificationDailyLimit = tryProduce(
+            s.emailVerificationDailyLimit,
             () => {
               const num = parseNumber(value);
               return num == null
@@ -2556,7 +2586,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
         label={renderToString(
           "VerificationConfigurationScreen.otp-valid-seconds.label"
         )}
-        value={otpValidPeriodSeconds?.toFixed(0) ?? ""}
+        value={sixDigitOTPValidPeriodSeconds?.toFixed(0) ?? ""}
         onChange={onChangeOTPValidPeriodSeconds}
       />
       <div className={styles.otpFailedAttemptContainer}>
@@ -2568,15 +2598,15 @@ function VerificationSettings(props: VerificationSettingsProps) {
             "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
           )}
           onText={renderToString("Toggle.on")}
-          checked={otpRevokeFailedAttemptsEnabled}
+          checked={anyOTPRevokeFailedAttemptsEnabled}
           onChange={onChangeOTPFailedAttemptEnabled}
         />
-        {otpRevokeFailedAttemptsEnabled ? (
+        {anyOTPRevokeFailedAttemptsEnabled ? (
           <FormTextField
             parentJSONPointer="/otp/ratelimit/failed_attempt"
             fieldName="size"
             type="text"
-            value={otpRevokeFailedAttempts?.toFixed(0) ?? ""}
+            value={anyOTPRevokeFailedAttempts?.toFixed(0) ?? ""}
             onChange={onChangeOTPFailedAttemptSize}
           />
         ) : null}
@@ -2636,11 +2666,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
             label={renderToString(
               "VerificationConfigurationScreen.verification.daily-limit.label"
             )}
-            value={
-              dailyVerificationLimit == null
-                ? ""
-                : dailyVerificationLimit.toString()
-            }
+            value={emailVerificationDailyLimit?.toFixed(0) ?? ""}
             onChange={onChangeDailyVerificationLimit}
           />
         </>
@@ -2690,9 +2716,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
               label={renderToString(
                 "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label"
               )}
-              value={
-                dailySMSSendLimit == null ? "" : dailySMSSendLimit.toString()
-              }
+              value={smsDailySendLimit?.toFixed(0) ?? ""}
               onChange={onChangeDailySMSLimit}
             />
           ) : null}
@@ -2731,14 +2755,13 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       verificationClaims,
       verificationCriteria,
 
-      emailOTPValidPeriodSeconds,
-      codeOTPValidPeriodSeconds,
+      sixDigitOTPValidPeriodSeconds,
       smsOTPCooldownPeriodSeconds,
       emailOTPCooldownPeriodSeconds,
-      otpRevokeFailedAttemptsEnabled,
-      otpRevokeFailedAttempts,
-      dailySMSSendLimit,
-      dailyVerificationLimit,
+      anyOTPRevokeFailedAttemptsEnabled,
+      anyOTPRevokeFailedAttempts,
+      smsDailySendLimit,
+      emailVerificationDailyLimit,
 
       phoneLoginIDDisabled,
       passwordPolicyFeatureConfig,
@@ -2976,16 +2999,15 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                   authenticatorOOBSMSConfig={authenticatorOOBSMSConfig}
                   verificationClaims={verificationClaims}
                   verificationCriteria={verificationCriteria}
-                  emailOTPValidPeriodSeconds={emailOTPValidPeriodSeconds}
-                  codeOTPValidPeriodSeconds={codeOTPValidPeriodSeconds}
+                  sixDigitOTPValidPeriodSeconds={sixDigitOTPValidPeriodSeconds}
                   smsOTPCooldownPeriodSeconds={smsOTPCooldownPeriodSeconds}
                   emailOTPCooldownPeriodSeconds={emailOTPCooldownPeriodSeconds}
-                  otpRevokeFailedAttemptsEnabled={
-                    otpRevokeFailedAttemptsEnabled
+                  anyOTPRevokeFailedAttemptsEnabled={
+                    anyOTPRevokeFailedAttemptsEnabled
                   }
-                  otpRevokeFailedAttempts={otpRevokeFailedAttempts}
-                  dailySMSSendLimit={dailySMSSendLimit}
-                  dailyVerificationLimit={dailyVerificationLimit}
+                  anyOTPRevokeFailedAttempts={anyOTPRevokeFailedAttempts}
+                  smsDailySendLimit={smsDailySendLimit}
+                  emailVerificationDailyLimit={emailVerificationDailyLimit}
                   setState={setState}
                 />
               </PivotItem>
