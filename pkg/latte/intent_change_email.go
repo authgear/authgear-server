@@ -45,8 +45,6 @@ func (*IntentChangeEmail) CanReactTo(ctx context.Context, deps *workflow.Depende
 		return nil, nil
 	case 2:
 		return nil, nil
-	case 3:
-		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
@@ -95,11 +93,8 @@ func (i *IntentChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependen
 			Identity:     iden,
 			IsFromSignUp: false,
 		}), nil
-	case 3:
-		iden := i.newIdentityInfo(w)
-		return workflow.NewSubWorkflow(&IntentCreateOOBOTPAuthenticatorForLoginID{
-			Identity: iden,
-		}), nil
+		// We do not need to manually create a new authenticator because update identity will handle that
+		// This feature is added in https://github.com/authgear/2023C01-latte-customization/issues/212
 	}
 	return nil, workflow.ErrIncompatibleInput
 }
