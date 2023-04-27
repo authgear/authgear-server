@@ -46,7 +46,9 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 
 	if exactMatch == nil {
 		// Exact match not found; consume account enumeration rate limit.
-		reservation.Consume()
+		if reservation != nil {
+			reservation.Consume()
+		}
 
 		// Take the first one as other match.
 		if len(otherMatches) > 0 {
