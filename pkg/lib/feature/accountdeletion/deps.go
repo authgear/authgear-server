@@ -7,17 +7,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-func NewRunner(loggerFactory *log.Factory, runnable backgroundjob.Runnable) *backgroundjob.Runner {
+func NewRunner(loggerFactory *log.Factory, runnableFactory backgroundjob.RunnableFactory) *backgroundjob.Runner {
 	return backgroundjob.NewRunner(
 		loggerFactory.New("account-deletion-runner"),
-		runnable,
+		runnableFactory,
 	)
 }
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(Store), "*"),
-	wire.Struct(new(Runnable), "*"),
+	NewRunnableFactory,
 	NewRunner,
-	NewRunnableLogger,
-	wire.Bind(new(backgroundjob.Runnable), new(*Runnable)),
 )

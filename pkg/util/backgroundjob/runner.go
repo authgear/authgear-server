@@ -11,13 +11,15 @@ import (
 const DefaultAfterDuration = 5 * time.Minute
 
 type Runnable interface {
-	Run(ctx context.Context) error
+	Run() error
 }
 
+type RunnableFactory func(ctx context.Context) Runnable
+
 type Runner struct {
-	logger        *log.Logger
-	runnable      Runnable
-	afterDuration time.Duration
+	logger          *log.Logger
+	runnableFactory RunnableFactory
+	afterDuration   time.Duration
 	// shutdown is for breaking the loop.
 	shutdown chan struct{}
 	// shutdown blocks Stop until the loop has ended.
@@ -40,14 +42,14 @@ func (o afterDurationOption) apply(runner *Runner) {
 	runner.afterDuration = time.Duration(o)
 }
 
-func NewRunner(logger *log.Logger, runnable Runnable, opts ...RunnerOption) *Runner {
+func NewRunner(logger *log.Logger, runnableFactory RunnableFactory, opts ...RunnerOption) *Runner {
 	runner := &Runner{
-		logger:        logger,
-		runnable:      runnable,
-		afterDuration: DefaultAfterDuration,
-		shutdown:      make(chan struct{}),
-		shutdownDone:  make(chan struct{}),
-		shutdownCtx:   context.Background(),
+		logger:          logger,
+		runnableFactory: runnableFactory,
+		afterDuration:   DefaultAfterDuration,
+		shutdown:        make(chan struct{}),
+		shutdownDone:    make(chan struct{}),
+		shutdownCtx:     context.Background(),
 	}
 	for _, opt := range opts {
 		opt.apply(runner)
@@ -87,7 +89,7 @@ func (r *Runner) runRunnable() {
 		}
 	}()
 
-	err := r.runnable.Run(r.shutdownCtx)
+	err := r.runnableFactory(r.shutdownCtx).Run()
 	if err != nil {
 		r.logger.WithError(err).Errorf("runnable ended with error")
 	}
