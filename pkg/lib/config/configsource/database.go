@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net"
 	"net/http"
@@ -56,16 +57,52 @@ const (
 	ResolveAppIDTypePath   ResolveAppIDType = "path"
 )
 
+type DatabaseHandleFactory func() *globaldb.Handle
+type StoreFactory func(handle *globaldb.Handle) *Store
+
+func NewDatabaseHandleFactory(
+	ctx context.Context,
+	pool *db.Pool,
+	credentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
+	cfg *config.DatabaseEnvironmentConfig,
+	lf *log.Factory,
+) DatabaseHandleFactory {
+	factory := func() *globaldb.Handle {
+		return globaldb.NewHandle(
+			ctx,
+			pool,
+			credentials,
+			cfg,
+			lf,
+		)
+	}
+	return factory
+}
+
+func NewStoreFactory(
+	ctx context.Context,
+	sqlbuilder *globaldb.SQLBuilder,
+) StoreFactory {
+	factory := func(handle *globaldb.Handle) *Store {
+		sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+		return &Store{
+			SQLBuilder:  sqlbuilder,
+			SQLExecutor: sqlExecutor,
+		}
+	}
+	return factory
+}
+
 type Database struct {
-	Logger              DatabaseLogger
-	BaseResources       *resource.Manager
-	TrustProxy          config.TrustProxy
-	Config              *Config
-	Clock               clock.Clock
-	Store               *Store
-	Database            *globaldb.Handle
-	DatabaseCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig
-	DatabaseConfig      *config.DatabaseEnvironmentConfig
+	Logger                DatabaseLogger
+	BaseResources         *resource.Manager
+	TrustProxy            config.TrustProxy
+	Config                *Config
+	Clock                 clock.Clock
+	StoreFactory          StoreFactory
+	DatabaseHandleFactory DatabaseHandleFactory
+	DatabaseCredentials   *config.GlobalDatabaseCredentialsEnvironmentConfig
+	DatabaseConfig        *config.DatabaseEnvironmentConfig
 
 	ResolveAppIDType ResolveAppIDType
 
@@ -150,9 +187,11 @@ func (d *Database) resolveAppIDByDomain(r *http.Request) (string, error) {
 	}
 
 	var appID string
-	err := d.Database.WithTx(func() error {
+	dbHandle := d.DatabaseHandleFactory()
+	store := d.StoreFactory(dbHandle)
+	err := dbHandle.WithTx(func() error {
 		d.Logger.WithField("host", host).Debug("resolve appid from db")
-		aid, err := d.Store.GetAppIDByDomain(host)
+		aid, err := store.GetAppIDByDomain(host)
 		if err != nil {
 			return err
 		}
@@ -181,8 +220,10 @@ func (d *Database) ReloadApp(appID string) {
 }
 
 func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byte, planName string) error {
-	return d.Database.WithTx(func() error {
-		_, err := d.Store.GetDatabaseSourceByAppID(appID)
+	dbHandle := d.DatabaseHandleFactory()
+	store := d.StoreFactory(dbHandle)
+	return dbHandle.WithTx(func() error {
+		_, err := store.GetDatabaseSourceByAppID(appID)
 		if err != nil && !errors.Is(err, ErrAppNotFound) {
 			return err
 		} else if err == nil {
@@ -202,13 +243,15 @@ func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byt
 			CreatedAt: d.Clock.NowUTC(),
 			UpdatedAt: d.Clock.NowUTC(),
 		}
-		return d.Store.CreateDatabaseSource(dbSource)
+		return store.CreateDatabaseSource(dbSource)
 	})
 }
 
 func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.ResourceFile) error {
-	return d.Database.WithTx(func() error {
-		dbs, err := d.Store.GetDatabaseSourceByAppID(appID)
+	dbHandle := d.DatabaseHandleFactory()
+	store := d.StoreFactory(dbHandle)
+	return dbHandle.WithTx(func() error {
+		dbs, err := store.GetDatabaseSourceByAppID(appID)
 		if err != nil {
 			return err
 		}
@@ -231,7 +274,7 @@ func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.Resour
 
 		if updated {
 			dbs.UpdatedAt = d.Clock.NowUTC()
-			err = d.Store.UpdateDatabaseSource(dbs)
+			err = store.UpdateDatabaseSource(dbs)
 			if err != nil {
 				return err
 			}
@@ -319,9 +362,11 @@ func (a *dbApp) Load(d *Database) (*config.AppContext, error) {
 
 func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
 	var appCtx *config.AppContext
-	err := d.Database.WithTx(func() error {
+	dbHandle := d.DatabaseHandleFactory()
+	store := d.StoreFactory(dbHandle)
+	err := dbHandle.WithTx(func() error {
 		d.Logger.WithField("app_id", a.appID).Info("load app config from db")
-		data, err := d.Store.GetDatabaseSourceByAppID(a.appID)
+		data, err := store.GetDatabaseSourceByAppID(a.appID)
 		if err != nil {
 			return err
 		}
