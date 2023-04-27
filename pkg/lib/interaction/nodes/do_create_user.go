@@ -105,8 +105,9 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			if err != nil {
 				return err
 			}
-
-			reservation.Consume()
+			if reservation != nil {
+				reservation.Consume()
+			}
 
 			return nil
 		}),
