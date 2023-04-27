@@ -14,6 +14,9 @@ type Reservation struct {
 }
 
 func (r *Reservation) Error() error {
+	if r == nil {
+		return nil
+	}
 	if r.err != nil {
 		return r.err
 	}
@@ -24,6 +27,9 @@ func (r *Reservation) Error() error {
 }
 
 func (r *Reservation) DelayFrom(t time.Time) time.Duration {
+	if r == nil {
+		return 0
+	}
 	if r.timeToAct == nil {
 		return 0
 	}
@@ -35,5 +41,8 @@ func (r *Reservation) DelayFrom(t time.Time) time.Duration {
 }
 
 func (r *Reservation) Consume() {
+	if r == nil {
+		return
+	}
 	r.isConsumed = true
 }

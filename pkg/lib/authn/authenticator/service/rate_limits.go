@@ -26,6 +26,9 @@ type Reservation struct {
 }
 
 func (r *Reservation) Error() error {
+	if r == nil {
+		return nil
+	}
 	if err := r.perUserPerIP.Error(); err != nil {
 		return err
 	}
@@ -36,6 +39,9 @@ func (r *Reservation) Error() error {
 }
 
 func (r *Reservation) Consume() {
+	if r == nil {
+		return
+	}
 	r.perUserPerIP.Consume()
 	r.perIP.Consume()
 }
