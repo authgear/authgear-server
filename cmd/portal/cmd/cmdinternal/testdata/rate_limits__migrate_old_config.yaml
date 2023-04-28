@@ -1,0 +1,85 @@
+# input
+id: my-app
+authenticator:
+  password:
+    ratelimit:
+      failed_attempt:
+        size: 7
+        reset_period: 7m
+forgot_password:
+  reset_code_expiry_seconds: 121
+welcome_message:
+  destination: first
+verification:
+  code_expiry_seconds: 122
+otp:
+  ratelimit:
+    failed_attempt:
+      enabled: true
+      size: 11
+      reset_period: 2m
+messaging:
+  sms:
+    ratelimit:
+      per_phone:
+        enabled: true
+        size: 12
+        reset_period: 3m
+      per_ip:
+        enabled: true
+        size: 13
+        reset_period: 4m
+      resend_cooldown_seconds: 120
+  email:
+    ratelimit:
+      resend_cooldown_seconds: 120
+---
+# output
+id: my-app
+authentication:
+  rate_limits:
+    password:
+      per_user_per_ip:
+        enabled: true
+        period: 7m
+        burst: 7
+    oob_otp:
+      email:
+        trigger_cooldown: 2m0s
+        max_failed_attempts_revoke_otp: 11
+      sms:
+        trigger_cooldown: 2m0s
+        max_failed_attempts_revoke_otp: 11
+authenticator:
+  password: {}
+  oob_otp:
+    sms:
+      code_valid_period: 2m2s
+    email:
+      code_valid_period: 2m2s
+forgot_password:
+  code_valid_period: 2m1s
+  rate_limits:
+    email:
+      trigger_cooldown: 2m0s
+    sms:
+      trigger_cooldown: 2m0s
+verification:
+  code_valid_period: 2m2s
+  rate_limits:
+    email:
+      trigger_cooldown: 2m0s
+      max_failed_attempts_revoke_otp: 11
+    sms:
+      trigger_cooldown: 2m0s
+      max_failed_attempts_revoke_otp: 11
+messaging:
+  rate_limits:
+    sms_per_target:
+      enabled: true
+      period: 3m
+      burst: 12
+    sms_per_ip:
+      enabled: true
+      period: 4m
+      burst: 13
