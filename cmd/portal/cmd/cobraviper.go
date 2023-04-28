@@ -149,3 +149,9 @@ var ArgOutputDirectoryPath = &cobraviper.StringArgument{
 	Short:        "o",
 	Usage:        "File path of the output directory",
 }
+
+var ArgInputDirectoryPath = &cobraviper.StringArgument{
+	ArgumentName: "input-directory",
+	Short:        "i",
+	Usage:        "File path of the input directory",
+}
