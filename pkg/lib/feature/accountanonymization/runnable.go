@@ -26,13 +26,14 @@ func NewRunnableLogger(lf *log.Factory) RunnableLogger {
 }
 
 type Runnable struct {
+	Context            context.Context
 	Store              *Store
 	AppContextResolver AppContextResolver
 	UserServiceFactory UserServiceFactory
 	Logger             RunnableLogger
 }
 
-func (r *Runnable) Run(ctx context.Context) error {
+func (r *Runnable) Run() error {
 	appUsers, err := r.Store.ListAppUsers()
 	if err != nil {
 		return err
@@ -42,7 +43,7 @@ func (r *Runnable) Run(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		userService := r.UserServiceFactory.MakeUserService(ctx, appUser.AppID, appContext)
+		userService := r.UserServiceFactory.MakeUserService(r.Context, appUser.AppID, appContext)
 		err = userService.AnonymizeFromScheduledAnonymization(appUser.UserID)
 		if err != nil {
 			return err

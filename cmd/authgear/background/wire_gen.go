@@ -77,26 +77,22 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	clock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	storeFactory := configsource.NewStoreFactory(c, sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
-	store := &configsource.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
-		Logger:              databaseLogger,
-		BaseResources:       manager,
-		TrustProxy:          trustProxy,
-		Config:              config,
-		Clock:               clock,
-		Store:               store,
-		Database:            handle,
-		DatabaseCredentials: globalDatabaseCredentialsEnvironmentConfig,
-		DatabaseConfig:      databaseEnvironmentConfig,
-		ResolveAppIDType:    resolveAppIDType,
+		Logger:                databaseLogger,
+		BaseResources:         manager,
+		TrustProxy:            trustProxy,
+		Config:                config,
+		Clock:                 clock,
+		StoreFactory:          storeFactory,
+		DatabaseHandleFactory: databaseHandleFactory,
+		DatabaseCredentials:   globalDatabaseCredentialsEnvironmentConfig,
+		DatabaseConfig:        databaseEnvironmentConfig,
+		ResolveAppIDType:      resolveAppIDType,
 	}
 	controller := configsource.NewController(config, localFS, database)
 	return controller
@@ -112,27 +108,12 @@ func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context
 	environmentConfig := p.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	clockClock := _wireSystemClockValue
-	store := &accountanonymization.Store{
-		Handle:      handle,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
 	accountAnonymizationServiceFactory := &AccountAnonymizationServiceFactory{
 		BackgroundProvider: p,
 	}
-	runnableLogger := accountanonymization.NewRunnableLogger(factory)
-	runnable := &accountanonymization.Runnable{
-		Store:              store,
-		AppContextResolver: ctrl,
-		UserServiceFactory: accountAnonymizationServiceFactory,
-		Logger:             runnableLogger,
-	}
-	runner := accountanonymization.NewRunner(factory, runnable)
+	runnableFactory := accountanonymization.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory, clockClock, ctrl, accountAnonymizationServiceFactory)
+	runner := accountanonymization.NewRunner(factory, runnableFactory)
 	return runner
 }
 
@@ -142,27 +123,12 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 	environmentConfig := p.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	clockClock := _wireSystemClockValue
-	store := &accountdeletion.Store{
-		Handle:      handle,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
 	accountDeletionServiceFactory := &AccountDeletionServiceFactory{
 		BackgroundProvider: p,
 	}
-	runnableLogger := accountdeletion.NewRunnableLogger(factory)
-	runnable := &accountdeletion.Runnable{
-		Store:              store,
-		AppContextResolver: ctrl,
-		UserServiceFactory: accountDeletionServiceFactory,
-		Logger:             runnableLogger,
-	}
-	runner := accountdeletion.NewRunner(factory, runnable)
+	runnableFactory := accountdeletion.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory, clockClock, ctrl, accountDeletionServiceFactory)
+	runner := accountdeletion.NewRunner(factory, runnableFactory)
 	return runner
 }
 
