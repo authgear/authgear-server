@@ -12,7 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 )
 
-const fileMode fs.FileMode = 0600
+const dirFileMode fs.FileMode = 0700
+const fileFileMode fs.FileMode = 0600
 
 type UnpackOptions struct {
 	DataJSONPath        string
@@ -44,7 +45,7 @@ func Unpack(opts *UnpackOptions) (err error) {
 		return
 	}
 
-	err = os.MkdirAll(opts.OutputDirectoryPath, fileMode)
+	err = os.MkdirAll(opts.OutputDirectoryPath, dirFileMode)
 	if err != nil {
 		err = fmt.Errorf("failed to create output directory: %w", err)
 		return
@@ -76,13 +77,13 @@ func Unpack(opts *UnpackOptions) (err error) {
 
 		outputPath := filepath.Join(opts.OutputDirectoryPath, path)
 		outputParentPath := filepath.Dir(outputPath)
-		err = os.MkdirAll(outputParentPath, fileMode)
+		err = os.MkdirAll(outputParentPath, dirFileMode)
 		if err != nil {
 			err = fmt.Errorf("failed to create directory at `%v`: %w", outputParentPath, err)
 			return
 		}
 
-		err = os.WriteFile(outputPath, b, fileMode)
+		err = os.WriteFile(outputPath, b, fileFileMode)
 		if err != nil {
 			err = fmt.Errorf("failed to write `%v`: %w", outputPath, err)
 			return
