@@ -51,6 +51,45 @@ var cmdInternalSetupPortal = &cobra.Command{
 	},
 }
 
+var cmdInternalUnpack = &cobra.Command{
+	Use:   "unpack",
+	Short: "Unpack database configsource data JSON to a directory",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := portalcmd.GetBinder()
+		dataJSONPath, err := binder.GetRequiredString(cmd, portalcmd.ArgDataJSONFilePath)
+		if err != nil {
+			return err
+		}
+
+		outputDirectoryPath, err := binder.GetRequiredString(cmd, portalcmd.ArgOutputDirectoryPath)
+		if err != nil {
+			return err
+		}
+
+		return internal.Unpack(&internal.UnpackOptions{
+			DataJSONPath:        dataJSONPath,
+			OutputDirectoryPath: outputDirectoryPath,
+		})
+	},
+}
+
+var cmdInternalPack = &cobra.Command{
+	Use:   "pack",
+	Short: "Pack unpacked directory into database configsource data JSON",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := portalcmd.GetBinder()
+
+		inputDirectoryPath, err := binder.GetRequiredString(cmd, portalcmd.ArgInputDirectoryPath)
+		if err != nil {
+			return err
+		}
+
+		return internal.Pack(&internal.PackOptions{
+			InputDirectoryPath: inputDirectoryPath,
+		})
+	},
+}
+
 var cmdInternalBreakingChange = &cobra.Command{
 	Use:   "breaking-change",
 	Short: "Commands for dealing with breaking changes",
@@ -91,7 +130,10 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 func init() {
 	binder := portalcmd.GetBinder()
 	cmdInternal.AddCommand(cmdInternalSetupPortal)
+	cmdInternal.AddCommand(cmdInternalUnpack)
+	cmdInternal.AddCommand(cmdInternalPack)
 	cmdInternal.AddCommand(cmdInternalBreakingChange)
+
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateResources)
 
@@ -99,6 +141,11 @@ func init() {
 	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDatabaseSchema)
 	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDefaultAuthgearDomain)
 	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgCustomAuthgearDomain)
+
+	binder.BindString(cmdInternalUnpack.Flags(), portalcmd.ArgDataJSONFilePath)
+	binder.BindString(cmdInternalUnpack.Flags(), portalcmd.ArgOutputDirectoryPath)
+
+	binder.BindString(cmdInternalPack.Flags(), portalcmd.ArgInputDirectoryPath)
 
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseSchema)
