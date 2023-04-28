@@ -137,3 +137,15 @@ var ArgAnalyticGoogleSpreadsheetRange = &cobraviper.StringArgument{
 	ArgumentName: "google-spreadsheet-range",
 	Usage:        "The A1 notation of a range to search for a logical table of data.",
 }
+
+var ArgDataJSONFilePath = &cobraviper.StringArgument{
+	ArgumentName: "data-json-file",
+	Short:        "f",
+	Usage:        "File path of database configsource data JSON",
+}
+
+var ArgOutputDirectoryPath = &cobraviper.StringArgument{
+	ArgumentName: "output-directory",
+	Short:        "o",
+	Usage:        "File path of the output directory",
+}
