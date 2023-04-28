@@ -300,7 +300,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
-		Clock:   clockClock,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
