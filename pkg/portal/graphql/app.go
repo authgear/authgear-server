@@ -140,7 +140,7 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
-var secretKey = graphql.NewEnum(graphql.EnumConfig{
+var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 	Name: "AppSecretKey",
 	Values: graphql.EnumValueConfigMap{
 		"OAUTH_SSO_PROVIDER_CLIENT_SECRETS": &graphql.EnumValueConfig{
@@ -241,7 +241,7 @@ var nodeApp = node(
 				Type: graphql.NewNonNull(secretConfig),
 				Args: graphql.FieldConfigArgument{
 					"unmaskedSecrets": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(secretKey))),
+						Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(appSecretKey))),
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

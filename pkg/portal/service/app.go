@@ -20,11 +20,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -34,11 +36,15 @@ import (
 
 const DefaultTermsOfServiceLink string = "https://www.authgear.com/terms"
 const DefaultPrivacyPolicyLink string = "https://www.authgear.com/data-privacy"
+const SecretVisitTokenValidDuration = duration.Short
+const SecretVisitTokenVisibleSecrets string = "visible_secrets"
 
 var ErrAppIDReserved = apierrors.Forbidden.WithReason("AppIDReserved").
 	New("requested app ID is reserved")
 var ErrAppIDInvalid = apierrors.Invalid.WithReason("InvalidAppID").
 	New("invalid app ID")
+var ErrReauthRequrired = apierrors.Forbidden.WithReason("ReauthRequrired").
+	New("reauthentication required")
 
 type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
@@ -75,20 +81,33 @@ type AppResourceManagerFactory interface {
 	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
 
+type AppSecretVisitTokenStore interface {
+	CreateToken(
+		appID config.AppID,
+		userID string,
+		secrets []config.SecretKey,
+	) (*appsecret.AppSecretVisitToken, error)
+	GetTokenByID(
+		appID config.AppID,
+		tokenID string,
+	) (*appsecret.AppSecretVisitToken, error)
+}
+
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
-	AppConfig        *portalconfig.AppConfig
-	AppConfigs       AppConfigService
-	AppAuthz         AppAuthzService
-	AppAdminAPI      AppAdminAPIService
-	AppDomains       AppDomainService
-	Resources        ResourceManager
-	AppResMgrFactory AppResourceManagerFactory
-	Plan             AppPlanService
-	Clock            clock.Clock
+	AppConfig                *portalconfig.AppConfig
+	AppConfigs               AppConfigService
+	AppAuthz                 AppAuthzService
+	AppAdminAPI              AppAdminAPIService
+	AppDomains               AppDomainService
+	Resources                ResourceManager
+	AppResMgrFactory         AppResourceManagerFactory
+	Plan                     AppPlanService
+	Clock                    clock.Clock
+	AppSecretVisitTokenStore AppSecretVisitTokenStore
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
@@ -210,6 +229,30 @@ func (s *AppService) LoadAppSecretConfig(
 	}
 
 	return secretConfig, nil
+}
+
+func (s *AppService) GenerateSecretVisitToken(
+	app *model.App,
+	sessionInfo *apimodel.SessionInfo,
+	visitingSecrets []config.SecretKey,
+) (*appsecret.AppSecretVisitToken, error) {
+	now := s.Clock.NowUTC()
+	authenticatedAt := sessionInfo.AuthenticatedAt
+	elapsed := now.Sub(authenticatedAt)
+	if !(elapsed >= 0 && elapsed < 5*time.Minute || !sessionInfo.UserCanReauthenticate) {
+		return nil, ErrReauthRequrired
+	}
+
+	token, err := s.AppSecretVisitTokenStore.CreateToken(
+		app.Context.Config.AppConfig.ID,
+		sessionInfo.UserID,
+		visitingSecrets,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 func (s *AppService) Create(userID string, id string) error {

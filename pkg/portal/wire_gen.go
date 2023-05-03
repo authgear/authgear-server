@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
+	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -221,19 +222,25 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		PlanStore: store,
 		AppConfig: appConfig,
 	}
+	globalredisHandle := rootProvider.GlobalRedisHandle
+	appSecretVisitTokenStoreImpl := &appsecret.AppSecretVisitTokenStoreImpl{
+		Context: context,
+		Redis:   globalredisHandle,
+	}
 	appService := &service.AppService{
-		Logger:           appServiceLogger,
-		SQLBuilder:       sqlBuilder,
-		SQLExecutor:      sqlExecutor,
-		AppConfig:        appConfig,
-		AppConfigs:       configService,
-		AppAuthz:         authzService,
-		AppAdminAPI:      adminAPIService,
-		AppDomains:       domainService,
-		Resources:        manager,
-		AppResMgrFactory: managerFactory,
-		Plan:             planService,
-		Clock:            clock,
+		Logger:                   appServiceLogger,
+		SQLBuilder:               sqlBuilder,
+		SQLExecutor:              sqlExecutor,
+		AppConfig:                appConfig,
+		AppConfigs:               configService,
+		AppAuthz:                 authzService,
+		AppAdminAPI:              adminAPIService,
+		AppDomains:               domainService,
+		Resources:                manager,
+		AppResMgrFactory:         managerFactory,
+		Plan:                     planService,
+		Clock:                    clock,
+		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
@@ -260,7 +267,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	stripeConfig := rootProvider.StripeConfig
 	libstripeLogger := libstripe.NewLogger(logFactory)
 	api := libstripe.NewClientAPI(stripeConfig, libstripeLogger)
-	globalredisHandle := rootProvider.GlobalRedisHandle
 	stripeCache := libstripe.NewStripeCache()
 	libstripeService := &libstripe.Service{
 		ClientAPI:         api,

@@ -533,6 +533,88 @@ var _ = registerMutationField(
 	},
 )
 
+var generateAppSecretVisitTokenPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "GenerateAppSecretVisitTokenPayloadPayload",
+	Fields: graphql.Fields{
+		"token": &graphql.Field{
+			Type:        graphql.NewNonNull(graphql.String),
+			Description: "The generated token",
+		},
+	},
+})
+
+var generateAppSecretVisitTokenInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "GenerateAppSecretVisitTokenInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"id": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "ID of the app.",
+		},
+		"secrets": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(appSecretKey))),
+			Description: "Secrets to visit.",
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"generateAppSecretVisitToken",
+	&graphql.Field{
+		Description: "Generate a token for visiting app secrets",
+		Type:        graphql.NewNonNull(generateAppSecretVisitTokenPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(generateAppSecretVisitTokenInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenicated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can visit secrets")
+			}
+
+			input := p.Args["input"].(map[string]interface{})
+			appNodeID := input["id"].(string)
+			secretsRaw := input["secrets"].([]interface{})
+			var secrets []config.SecretKey = []config.SecretKey{}
+			for _, s := range secretsRaw {
+				appSecretKey := s.(AppSecretKey)
+				configSecretKey := secretKeyToConfigKeyMap[appSecretKey]
+				secrets = append(secrets, configSecretKey)
+			}
+
+			resolvedNodeID := relay.FromGlobalID(appNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+				return nil, apierrors.NewInvalid("invalid app ID")
+			}
+			appID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			// Access control: collaborator.
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
+			token, err := gqlCtx.AppService.GenerateSecretVisitToken(app, sessionInfo, secrets)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"token": token.TokenID,
+			}).Value, nil
+		},
+	},
+)
+
 func checkAppQuota(ctx *Context, userID string) error {
 	quota, err := ctx.AppService.GetMaxOwnedApps(userID)
 	if err != nil {
