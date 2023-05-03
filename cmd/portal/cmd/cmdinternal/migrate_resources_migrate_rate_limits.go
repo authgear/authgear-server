@@ -11,6 +11,7 @@ import (
 
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var cmdInternalMigrateRateLimits = &cobra.Command{
@@ -58,6 +59,11 @@ func migrateRateLimits(appID string, configSourceData map[string]string, DryRun 
 	migrated, err := yaml.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("failed marshal yaml: %w", err)
+	}
+
+	_, err = config.Parse(migrated)
+	if err != nil {
+		return fmt.Errorf("invalid config after migration: %w", err)
 	}
 
 	configSourceData["authgear.yaml"] = base64.StdEncoding.EncodeToString(migrated)
