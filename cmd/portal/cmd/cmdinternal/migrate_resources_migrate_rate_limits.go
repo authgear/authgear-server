@@ -3,7 +3,6 @@ package cmdinternal
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,15 +16,15 @@ import (
 var cmdInternalMigrateRateLimits = &cobra.Command{
 	Use:   "migrate-rate-limits",
 	Short: "Migrate rate limits config",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
-			log.Fatalf(err.Error())
+			return err
 		}
 		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
-			log.Fatalf(err.Error())
+			return err
 		}
 
 		internal.MigrateResources(&internal.MigrateResourcesOptions{
@@ -35,6 +34,7 @@ var cmdInternalMigrateRateLimits = &cobra.Command{
 			DryRun:                 &MigrateResourcesDryRun,
 		})
 
+		return nil
 	},
 }
 
