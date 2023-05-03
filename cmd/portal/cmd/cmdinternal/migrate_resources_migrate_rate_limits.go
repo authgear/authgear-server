@@ -109,7 +109,6 @@ func MigrateConfigRateLimits(config map[string]any) error {
 	if ok {
 		if enabled, ok := mapGet[bool](otpFailedAttempts, "enabled"); ok && enabled {
 			size, ok := mapGet[float64](otpFailedAttempts, "size")
-			fmt.Printf("%T\n", otpFailedAttempts["size"])
 			if !ok {
 				size = 5
 			}
