@@ -40,6 +40,7 @@ import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSec
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import { AppSecretKey } from "./globalTypes.generated";
+import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -381,6 +382,74 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     );
   };
 
+const EMPTY: AppSecretKey[] = [];
+
+const AdminAPIConfigurationScreen1: React.VFC<{
+  appID: string;
+  secretToken: string | null;
+}> = function AdminAPIConfigurationScreen1({ appID }) {
+  const queryResult = useAppAndSecretConfigQuery(appID, EMPTY);
+  const { refetch: refetchAppAndSecret } = queryResult;
+
+  const { updateAppAndSecretConfig, loading, error } =
+    useUpdateAppAndSecretConfigMutation(appID);
+  useLoading(loading);
+  useProvideError(error);
+
+  const generateKey = useCallback(async () => {
+    const appConfig = queryResult.rawAppConfig;
+    if (appConfig == null) {
+      return;
+    }
+    const generateKeyInstruction = {
+      adminAPIAuthKey: {
+        action: "generate",
+      },
+    };
+    await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
+    await refetchAppAndSecret();
+  }, [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]);
+
+  const deleteKey = useCallback(
+    async (deleteKeyID: string) => {
+      const appConfig = queryResult.rawAppConfig;
+      if (appConfig == null) {
+        return;
+      }
+      const deleteKeyInstruction = {
+        adminAPIAuthKey: {
+          action: "delete",
+          deleteData: {
+            keyID: deleteKeyID,
+          },
+        },
+      };
+      await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
+      await refetchAppAndSecret();
+    },
+    [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]
+  );
+
+  if (queryResult.loading) {
+    return <ShowLoading />;
+  }
+
+  if (queryResult.error) {
+    return (
+      <ShowError error={queryResult.error} onRetry={queryResult.refetch} />
+    );
+  }
+
+  return (
+    <AdminAPIConfigurationScreenContent
+      appID={appID}
+      queryResult={queryResult}
+      generateKey={generateKey}
+      deleteKey={deleteKey}
+    />
+  );
+};
+
 const AdminAPIConfigurationScreen: React.VFC =
   function AdminAPIConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
@@ -396,71 +465,20 @@ const AdminAPIConfigurationScreen: React.VFC =
       }
       return [];
     });
-
-    const queryResult = useAppAndSecretConfigQuery(appID, unmaskedSecrets);
-    const { refetch: refetchAppAndSecret } = queryResult;
-
-    const { updateAppAndSecretConfig, loading, error } =
-      useUpdateAppAndSecretConfigMutation(appID);
-    useLoading(loading);
-    useProvideError(error);
-
-    const generateKey = useCallback(async () => {
-      const appConfig = queryResult.rawAppConfig;
-      if (appConfig == null) {
-        return;
-      }
-      const generateKeyInstruction = {
-        adminAPIAuthKey: {
-          action: "generate",
-        },
-      };
-      await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
-      await refetchAppAndSecret();
-    }, [
-      queryResult.rawAppConfig,
-      updateAppAndSecretConfig,
-      refetchAppAndSecret,
-    ]);
-
-    const deleteKey = useCallback(
-      async (deleteKeyID: string) => {
-        const appConfig = queryResult.rawAppConfig;
-        if (appConfig == null) {
-          return;
-        }
-        const deleteKeyInstruction = {
-          adminAPIAuthKey: {
-            action: "delete",
-            deleteData: {
-              keyID: deleteKeyID,
-            },
-          },
-        };
-        await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
-        await refetchAppAndSecret();
-      },
-      [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]
+    const { token, loading, error, retry } = useAppSecretVisitToken(
+      appID,
+      unmaskedSecrets
     );
 
-    if (queryResult.loading) {
+    if (loading || token === undefined) {
       return <ShowLoading />;
     }
 
-    if (queryResult.error) {
-      return (
-        <ShowError error={queryResult.error} onRetry={queryResult.refetch} />
-      );
+    if (error) {
+      return <ShowError error={error} onRetry={retry} />;
     }
 
-    return (
-      <AdminAPIConfigurationScreenContent
-        appID={appID}
-        queryResult={queryResult}
-        generateKey={generateKey}
-        deleteKey={deleteKey}
-      />
-    );
+    return <AdminAPIConfigurationScreen1 appID={appID} secretToken={token} />;
   };
 
 export default AdminAPIConfigurationScreen;
