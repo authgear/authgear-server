@@ -3,10 +3,3 @@ id: my-app
 ---
 # output
 id: my-app
-authentication:
-  rate_limits:
-    password:
-      per_user_per_ip:
-        enabled: true
-        period: 1m
-        burst: 10

@@ -72,21 +72,22 @@ func migrateRateLimits(appID string, configSourceData map[string]string, DryRun 
 
 func MigrateConfigRateLimits(config map[string]any) error {
 	// Password failed attempts rate limit
-	passwordBurst := float64(10)
-	passwordPeriod := "1m"
 	if m, ok := mapGet[map[string]any](config, "authenticator", "password", "ratelimit", "failed_attempt"); ok {
+		passwordBurst := float64(10)
+		passwordPeriod := "1m"
 		if size, ok := mapGet[float64](m, "size"); ok {
 			passwordBurst = size
 		}
 		if resetPeriod, ok := mapGet[string](m, "reset_period"); ok {
 			passwordPeriod = resetPeriod
 		}
+
+		mapSetIfNotFound(config, map[string]any{
+			"enabled": true,
+			"period":  passwordPeriod,
+			"burst":   passwordBurst,
+		}, "authentication", "rate_limits", "password", "per_user_per_ip")
 	}
-	mapSetIfNotFound(config, map[string]any{
-		"enabled": true,
-		"period":  passwordPeriod,
-		"burst":   passwordBurst,
-	}, "authentication", "rate_limits", "password", "per_user_per_ip")
 
 	// Forgot password code valid period
 	forgotPasswordCodeExpirySeconds, ok := mapGet[float64](config, "forgot_password", "reset_code_expiry_seconds")
