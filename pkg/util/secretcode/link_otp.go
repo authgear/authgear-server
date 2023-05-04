@@ -1,6 +1,7 @@
 package secretcode
 
 import (
+	// nolint:gosec
 	"crypto/md5"
 	"crypto/subtle"
 	"fmt"
@@ -27,7 +28,7 @@ func (LinkOTPSecretCodeType) Generate() string {
 
 func (LinkOTPSecretCodeType) GenerateDeterministic(data string) string {
 	b := []byte(data)
-	hash := md5.Sum(b)
+	hash := md5.Sum(b) // nolint:gosec
 	return fmt.Sprintf("%x", hash)
 }
 
