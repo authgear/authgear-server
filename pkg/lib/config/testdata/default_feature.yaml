@@ -107,3 +107,9 @@ web3:
     maximum: 3
 admin_api:
   create_session_enabled: false
+test_mode:
+  fixed_oob_otp:
+    enabled: false
+    code: ""
+  deterministic_link_otp:
+    enabled: false

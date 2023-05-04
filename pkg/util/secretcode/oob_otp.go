@@ -23,6 +23,10 @@ func (OOBOTPSecretCodeType) Generate() string {
 	return code
 }
 
+func (OOBOTPSecretCodeType) GenerateFixed(fixedCode string) string {
+	return fixedCode
+}
+
 func (OOBOTPSecretCodeType) Compare(a, b string) bool {
 	formattedCode := strings.TrimSpace(a)
 	targetCode := strings.TrimSpace(b)

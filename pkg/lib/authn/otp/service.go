@@ -57,13 +57,14 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("otp")} }
 type Service struct {
 	Clock clock.Clock
 
-	AppID          config.AppID
-	RemoteIP       httputil.RemoteIP
-	CodeStore      CodeStore
-	LookupStore    LookupStore
-	AttemptTracker AttemptTracker
-	Logger         Logger
-	RateLimiter    RateLimiter
+	AppID                 config.AppID
+	TestModeFeatureConfig *config.TestModeFeatureConfig
+	RemoteIP              httputil.RemoteIP
+	CodeStore             CodeStore
+	LookupStore           LookupStore
+	AttemptTracker        AttemptTracker
+	Logger                Logger
+	RateLimiter           RateLimiter
 }
 
 func (s *Service) getCode(purpose Purpose, target string) (*Code, error) {
@@ -142,7 +143,7 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 		Target:   target,
 		Purpose:  kind.Purpose(),
 		Form:     form,
-		Code:     form.GenerateCode(),
+		Code:     form.GenerateCode(s.TestModeFeatureConfig, opts.UserID),
 		ExpireAt: s.Clock.NowUTC().Add(kind.ValidPeriod()),
 
 		UserID:       opts.UserID,

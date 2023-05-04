@@ -415,6 +415,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Store: oobStore,
 		Clock: clock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -432,14 +433,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -919,6 +921,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -936,14 +939,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,

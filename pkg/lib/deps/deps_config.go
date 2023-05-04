@@ -62,6 +62,7 @@ var configDeps = wire.NewSet(
 		"RateLimits",
 		"Messaging",
 		"AdminAPI",
+		"TestMode",
 	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,

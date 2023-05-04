@@ -379,6 +379,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -396,14 +397,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -867,6 +869,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -884,14 +887,15 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -1439,6 +1443,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1456,14 +1461,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -2197,6 +2203,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2214,14 +2221,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -2671,6 +2679,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2688,14 +2697,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -3027,6 +3037,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3044,14 +3055,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -3447,6 +3459,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3464,14 +3477,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -3989,6 +4003,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4006,14 +4021,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -4784,6 +4800,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4801,14 +4818,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -5545,6 +5563,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5562,14 +5581,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -6413,6 +6433,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6430,14 +6451,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -7221,6 +7243,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7238,14 +7261,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -8028,6 +8052,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8045,14 +8070,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -8823,6 +8849,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8840,14 +8867,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -9611,6 +9639,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9628,14 +9657,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -10389,6 +10419,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10406,14 +10437,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -11170,6 +11202,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11187,14 +11220,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -11954,6 +11988,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11971,14 +12006,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -12740,6 +12776,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12757,14 +12794,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -13524,6 +13562,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13541,14 +13580,15 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -14304,6 +14344,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14321,14 +14362,15 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -15088,6 +15130,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15105,14 +15148,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -15873,6 +15917,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15890,14 +15935,15 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -16657,6 +16703,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16674,14 +16721,15 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -17441,6 +17489,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17458,14 +17507,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -18227,6 +18277,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18244,14 +18295,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -19011,6 +19063,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19028,14 +19081,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -19795,6 +19849,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19812,14 +19867,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -20583,6 +20639,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20600,14 +20657,15 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -21367,6 +21425,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21384,14 +21443,15 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -22174,6 +22234,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22191,14 +22252,15 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -22685,6 +22747,8 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	featureConfig := config.FeatureConfig
+	testModeFeatureConfig := featureConfig.TestMode
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -22713,7 +22777,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: handle,
 	}
-	featureConfig := config.FeatureConfig
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -22722,14 +22785,15 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:  rateLimitsFeatureConfig,
 	}
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         logger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                logger,
+		RateLimiter:           limiter,
 	}
 	appdbHandle := appProvider.AppDatabase
 	serviceLogger := webapp2.NewServiceLogger(factory)
@@ -23473,6 +23537,8 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	featureConfig := config.FeatureConfig
+	testModeFeatureConfig := featureConfig.TestMode
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -23501,7 +23567,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: handle,
 	}
-	featureConfig := config.FeatureConfig
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -23510,14 +23575,15 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config:  rateLimitsFeatureConfig,
 	}
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         logger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                logger,
+		RateLimiter:           limiter,
 	}
 	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
 		Clock:       clockClock,
@@ -24545,6 +24611,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -24562,14 +24629,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -25329,6 +25397,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25346,14 +25415,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -26109,6 +26179,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26126,14 +26197,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -26893,6 +26965,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26910,14 +26983,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -27673,6 +27747,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27690,14 +27765,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -28463,6 +28539,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28480,14 +28557,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -29243,6 +29321,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29260,14 +29339,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -30025,6 +30105,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30042,14 +30123,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -30805,6 +30887,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30822,14 +30905,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -31617,6 +31701,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31634,14 +31719,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -32408,6 +32494,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32425,14 +32512,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -33212,6 +33300,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33229,14 +33318,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -34000,6 +34090,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34017,14 +34108,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -34781,6 +34873,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34798,14 +34891,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -35570,6 +35664,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35587,14 +35682,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -36351,6 +36447,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36368,14 +36465,15 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -37132,6 +37230,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37149,14 +37248,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -37913,6 +38013,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37930,14 +38031,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -38695,6 +38797,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38712,14 +38815,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -39495,6 +39599,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -39512,14 +39617,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -40276,6 +40382,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40293,14 +40400,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -41057,6 +41165,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41074,14 +41183,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -41838,6 +41948,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41855,14 +41966,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -42619,6 +42731,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42636,14 +42749,15 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -43407,6 +43521,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -43424,14 +43539,15 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -44189,6 +44305,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44206,14 +44323,15 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -44969,6 +45087,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44986,14 +45105,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -45764,6 +45884,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45781,14 +45902,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -46544,6 +46666,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46561,14 +46684,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -47324,6 +47448,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -47341,14 +47466,15 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -48122,6 +48248,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -48139,14 +48266,15 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -48866,6 +48994,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -48883,14 +49012,15 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -49609,6 +49739,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -49626,14 +49757,15 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -50399,6 +50531,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -50416,14 +50549,15 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -51180,6 +51314,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51197,14 +51332,15 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -51942,6 +52078,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51959,14 +52096,15 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -52677,6 +52815,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52694,14 +52833,15 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -53383,6 +53523,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -53400,14 +53541,15 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -54398,6 +54540,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -54415,14 +54558,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -54915,6 +55059,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -54932,14 +55077,15 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -55743,6 +55889,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -55760,14 +55907,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
