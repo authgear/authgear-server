@@ -1,0 +1,127 @@
+# input
+id: my-app
+authenticator:
+  password:
+    ratelimit:
+      failed_attempt:
+        size: 7
+        reset_period: 7m
+  oob_otp:
+    sms:
+      code_valid_period: 1m
+    email:
+      code_valid_period: 1m
+forgot_password:
+  reset_code_expiry_seconds: 121
+  code_valid_period: 1m
+  rate_limits:
+    email:
+      trigger_cooldown: 1m
+    sms:
+      trigger_cooldown: 1m
+welcome_message:
+  destination: first
+verification:
+  code_expiry_seconds: 122
+  code_valid_period: 1m
+  rate_limits:
+    email:
+      trigger_cooldown: 1m
+      max_failed_attempts_revoke_otp: 1
+    sms:
+      trigger_cooldown: 1m
+      max_failed_attempts_revoke_otp: 1
+otp:
+  ratelimit:
+    failed_attempt:
+      enabled: true
+      size: 11
+      reset_period: 2m
+messaging:
+  sms:
+    ratelimit:
+      per_phone:
+        enabled: true
+        size: 12
+        reset_period: 3m
+      per_ip:
+        enabled: true
+        size: 13
+        reset_period: 4m
+      resend_cooldown_seconds: 120
+  email:
+    ratelimit:
+      resend_cooldown_seconds: 120
+  rate_limits:
+    sms_per_target:
+      enabled: true
+      period: 1m
+      burst: 1
+    sms_per_ip:
+      enabled: true
+      period: 1m
+      burst: 1
+authentication:
+  rate_limits:
+    password:
+      per_user_per_ip:
+        enabled: true
+        period: 1m
+        burst: 1
+    oob_otp:
+      email:
+        trigger_cooldown: 1m
+        max_failed_attempts_revoke_otp: 1
+      sms:
+        trigger_cooldown: 1m
+        max_failed_attempts_revoke_otp: 1
+---
+# output
+id: my-app
+authentication:
+  rate_limits:
+    password:
+      per_user_per_ip:
+        enabled: true
+        period: 1m
+        burst: 1
+    oob_otp:
+      email:
+        trigger_cooldown: 1m
+        max_failed_attempts_revoke_otp: 1
+      sms:
+        trigger_cooldown: 1m
+        max_failed_attempts_revoke_otp: 1
+authenticator:
+  password: {}
+  oob_otp:
+    sms:
+      code_valid_period: 1m
+    email:
+      code_valid_period: 1m
+forgot_password:
+  code_valid_period: 1m
+  rate_limits:
+    email:
+      trigger_cooldown: 1m
+    sms:
+      trigger_cooldown: 1m
+verification:
+  code_valid_period: 1m
+  rate_limits:
+    email:
+      trigger_cooldown: 1m
+      max_failed_attempts_revoke_otp: 1
+    sms:
+      trigger_cooldown: 1m
+      max_failed_attempts_revoke_otp: 1
+messaging:
+  rate_limits:
+    sms_per_target:
+      enabled: true
+      period: 1m
+      burst: 1
+    sms_per_ip:
+      enabled: true
+      period: 1m
+      burst: 1

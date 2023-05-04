@@ -85,6 +85,7 @@ require (
 require (
 	github.com/twilio/twilio-go v1.3.1
 	github.com/yudai/gojsondiff v1.0.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -237,7 +238,6 @@ require (
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.21.3 // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211109043538-20434351676c // indirect
