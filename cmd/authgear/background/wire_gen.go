@@ -391,6 +391,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -408,14 +409,15 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          configAppID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 configAppID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,

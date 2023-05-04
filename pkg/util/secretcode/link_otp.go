@@ -1,7 +1,9 @@
 package secretcode
 
 import (
+	"crypto/md5"
 	"crypto/subtle"
+	"fmt"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -21,6 +23,12 @@ func (LinkOTPSecretCodeType) Length() int {
 func (LinkOTPSecretCodeType) Generate() string {
 	code := rand.StringWithAlphabet(linkOTPLength, base32.Alphabet, rand.SecureRand)
 	return code
+}
+
+func (LinkOTPSecretCodeType) GenerateDeterministic(data string) string {
+	b := []byte(data)
+	hash := md5.Sum(b)
+	return fmt.Sprintf("%x", hash)
 }
 
 func (LinkOTPSecretCodeType) Compare(a, b string) bool {

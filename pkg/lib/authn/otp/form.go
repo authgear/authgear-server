@@ -1,6 +1,9 @@
 package otp
 
-import "github.com/authgear/authgear-server/pkg/util/secretcode"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
+)
 
 type Form string
 
@@ -28,8 +31,23 @@ func (f Form) CodeLength() int {
 	return f.codeType().Length()
 }
 
-func (f Form) GenerateCode() string {
-	return f.codeType().Generate()
+func (f Form) GenerateCode(cfg *config.TestModeFeatureConfig, userID string) string {
+	codeType := f.codeType()
+	switch c := codeType.(type) {
+	case secretcode.OOBOTPSecretCodeType:
+		if cfg.FixedOOBOTP.Enabled {
+			return c.GenerateFixed(cfg.FixedOOBOTP.Code)
+		} else {
+			return c.Generate()
+		}
+	case secretcode.LinkOTPSecretCodeType:
+		if cfg.DeterministicLinkOTP.Enabled {
+			return c.GenerateDeterministic(userID)
+		} else {
+			return c.Generate()
+		}
+	}
+	panic("unknown otp form")
 }
 
 func (f Form) VerifyCode(input string, expected string) bool {
@@ -38,6 +56,5 @@ func (f Form) VerifyCode(input string, expected string) bool {
 
 type secretCode interface {
 	Length() int
-	Generate() string
 	Compare(string, string) bool
 }

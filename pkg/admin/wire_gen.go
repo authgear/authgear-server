@@ -407,6 +407,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store: oobStore,
 		Clock: clockClock,
 	}
+	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -424,14 +425,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	otpLogger := otp.NewLogger(factory)
 	otpService := &otp.Service{
-		Clock:          clockClock,
-		AppID:          appID,
-		RemoteIP:       remoteIP,
-		CodeStore:      codeStoreRedis,
-		LookupStore:    lookupStoreRedis,
-		AttemptTracker: attemptTrackerRedis,
-		Logger:         otpLogger,
-		RateLimiter:    limiter,
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
