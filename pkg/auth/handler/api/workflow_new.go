@@ -59,6 +59,7 @@ type WorkflowNewWorkflowService interface {
 type WorkflowNewCookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 }
 
 type WorkflowNewOAuthSessionService interface {
@@ -104,16 +105,32 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
+func (h *WorkflowNewHandler) getOrCreateUserAgentID(w http.ResponseWriter, r *http.Request) string {
+	var userAgentID string
+	userAgentIDCookie, err := h.Cookies.GetCookie(r, workflow.UserAgentIDCookieDef)
+	if err == nil {
+		userAgentID = userAgentIDCookie.Value
+	}
+	if userAgentID == "" {
+		userAgentID = workflow.NewUserAgentID()
+	}
+	cookie := h.Cookies.ValueCookie(workflow.UserAgentIDCookieDef, userAgentID)
+	httputil.UpdateCookie(w, cookie)
+	return userAgentID
+}
+
 func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, request WorkflowNewRequest) (*workflow.ServiceOutput, error) {
 	intent, err := workflow.InstantiateIntentFromPublicRegistry(request.Intent)
 	if err != nil {
 		return nil, err
 	}
 
+	userAgentID := h.getOrCreateUserAgentID(w, r)
+
 	var sessionOptionsFromCookie *workflow.SessionOptions
-	cookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
+	oauthCookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
 	if err == nil {
-		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(cookie)
+		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(oauthCookie)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the cookie if it invalid or expired
 			httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
@@ -133,6 +150,10 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromCookie.PartiallyMergeFrom(sessionOptionsFromQuery)
 
+	if *request.BindUserAgent {
+		sessionOptions.UserAgentID = userAgentID
+	}
+
 	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
 	if err != nil {
 		return nil, err
@@ -141,8 +162,8 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	return output, nil
 }
 
-func (h *WorkflowNewHandler) makeSessionOptionsFromCookie(cookie *http.Cookie) (*workflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(cookie.Value)
+func (h *WorkflowNewHandler) makeSessionOptionsFromCookie(oauthSessionCookie *http.Cookie) (*workflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(oauthSessionCookie.Value)
 	if err != nil {
 		return nil, err
 	}

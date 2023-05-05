@@ -16,6 +16,7 @@ type Session struct {
 	State                    string `json:"state,omitempty"`
 	XState                   string `json:"x_state,omitempty"`
 	UILocales                string `json:"ui_locales,omitempty"`
+	UserAgentID              string `json:"user_agent_id,omitempty"`
 }
 
 type SessionOutput struct {
@@ -31,6 +32,7 @@ type SessionOptions struct {
 	State                    string
 	XState                   string
 	UILocales                string
+	UserAgentID              string
 }
 
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
