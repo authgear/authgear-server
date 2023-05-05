@@ -176,7 +176,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 	return
 }
 
-func (s *Service) Get(workflowID string, instanceID string) (output *ServiceOutput, err error) {
+func (s *Service) Get(workflowID string, instanceID string, userAgentID string) (output *ServiceOutput, err error) {
 	w, err := s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -189,6 +189,11 @@ func (s *Service) Get(workflowID string, instanceID string) (output *ServiceOutp
 
 	session, err := s.Store.GetSession(w.WorkflowID)
 	if err != nil {
+		return
+	}
+
+	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
+		err = ErrUserAgentUnmatched
 		return
 	}
 
@@ -239,7 +244,7 @@ func (s *Service) Get(workflowID string, instanceID string) (output *ServiceOutp
 	return
 }
 
-func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID string, input Input) (output *ServiceOutput, err error) {
 	workflow, err := s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -254,6 +259,12 @@ func (s *Service) FeedInput(workflowID string, instanceID string, input Input) (
 	if err != nil {
 		return
 	}
+
+	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
+		err = ErrUserAgentUnmatched
+		return
+	}
+
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	// feedInput uses defer statement to manage savepoint.

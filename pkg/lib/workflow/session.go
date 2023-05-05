@@ -71,6 +71,7 @@ func NewSession(opts *SessionOptions) *Session {
 		State:                    opts.State,
 		XState:                   opts.XState,
 		UILocales:                opts.UILocales,
+		UserAgentID:              opts.UserAgentID,
 	}
 }
 

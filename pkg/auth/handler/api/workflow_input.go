@@ -41,14 +41,20 @@ type WorkflowInputRequest struct {
 }
 
 type WorkflowInputWorkflowService interface {
-	Get(workflowID string, instanceID string) (*workflow.ServiceOutput, error)
-	FeedInput(workflowID string, instanceID string, input workflow.Input) (*workflow.ServiceOutput, error)
+	Get(workflowID string, instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
+	FeedInput(workflowID string, instanceID string, userAgentID string, input workflow.Input) (*workflow.ServiceOutput, error)
+}
+
+type WorkflowInputCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 }
 
 type WorkflowInputHandler struct {
 	Database  *appdb.Handle
 	JSON      JSONResponseWriter
 	Workflows WorkflowInputWorkflowService
+	Cookies   WorkflowNewCookieManager
 }
 
 func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -64,13 +70,15 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+
 	var output *workflow.ServiceOutput
 	err = h.Database.WithTx(func() error {
-		output, err = h.handle(w, r, workflowID, instanceID, request)
+		output, err = h.handle(w, r, workflowID, instanceID, userAgentID, request)
 		return err
 	})
 	if err != nil {
-		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, err)
+		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -96,6 +104,7 @@ func (h *WorkflowInputHandler) handle(
 	r *http.Request,
 	workflowID string,
 	instanceID string,
+	userAgentID string,
 	request WorkflowInputRequest,
 ) (*workflow.ServiceOutput, error) {
 	input, err := workflow.InstantiateInputFromPublicRegistry(request.Input)
@@ -103,7 +112,7 @@ func (h *WorkflowInputHandler) handle(
 		return nil, err
 	}
 
-	output, err := h.Workflows.FeedInput(workflowID, instanceID, input)
+	output, err := h.Workflows.FeedInput(workflowID, instanceID, userAgentID, input)
 	if err != nil && errors.Is(err, workflow.ErrNoChange) {
 		err = workflow.ErrInvalidInputKind
 	}
@@ -114,11 +123,16 @@ func (h *WorkflowInputHandler) handle(
 	return output, nil
 }
 
-func (h *WorkflowInputHandler) prepareErrorResponse(workflowID string, instanceID string, workflowErr error) (*api.Response, error) {
+func (h *WorkflowInputHandler) prepareErrorResponse(
+	workflowID string,
+	instanceID string,
+	userAgentID string,
+	workflowErr error,
+) (*api.Response, error) {
 	var output *workflow.ServiceOutput
 	var err error
 	err = h.Database.ReadOnly(func() error {
-		output, err = h.Workflows.Get(workflowID, instanceID)
+		output, err = h.Workflows.Get(workflowID, instanceID, userAgentID)
 		if err != nil {
 			return err
 		}

@@ -35,3 +35,5 @@ var ErrUnknownIntent = apierrors.BadRequest.WithReason("WorkflowUnknownIntent").
 var ErrUnknownInput = apierrors.BadRequest.WithReason("WorkflowUnknownInput").New("unknown input")
 
 var ErrInvalidInputKind = apierrors.BadRequest.WithReason("WorkflowInvalidInputKind").New("invalid input kind")
+
+var ErrUserAgentUnmatched = apierrors.Forbidden.WithReason("UserAgentUnmatched").New("workflow cannot be used in other user agent")
