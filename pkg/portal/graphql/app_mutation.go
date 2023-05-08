@@ -577,9 +577,11 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["id"].(string)
 			secretsRaw := input["secrets"].([]interface{})
+			var appSecretKeys []string = []string{}
 			var secrets []config.SecretKey = []config.SecretKey{}
 			for _, s := range secretsRaw {
 				appSecretKey := s.(AppSecretKey)
+				appSecretKeys = append(appSecretKeys, string(appSecretKey))
 				configSecretKey := secretKeyToConfigKeyMap[appSecretKey]
 				secrets = append(secrets, configSecretKey)
 			}
@@ -604,6 +606,13 @@ var _ = registerMutationField(
 			}
 
 			token, err := gqlCtx.AppService.GenerateSecretVisitToken(app, sessionInfo, secrets)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppSecretViewedEventPayload{
+				Secrets: appSecretKeys,
+			})
 			if err != nil {
 				return nil, err
 			}
