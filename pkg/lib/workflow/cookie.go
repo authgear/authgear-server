@@ -12,13 +12,11 @@ type CookieGetter interface {
 }
 
 func NewUserAgentIDCookieDef() *httputil.CookieDef {
-	maxAge := int(Lifetime.Seconds())
 	def := &httputil.CookieDef{
 		NameSuffix:        "workflow_ua_id",
 		Path:              "/",
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteNoneMode,
-		MaxAge:            &maxAge,
 	}
 	return def
 }
