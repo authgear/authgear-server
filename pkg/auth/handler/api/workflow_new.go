@@ -33,14 +33,23 @@ var WorkflowNewRequestSchema = validation.NewSimpleSchema(`
 					"data": { "type": "object" }
 				},
 				"required": ["kind", "data"]
-			}
+			},
+			"bind_user_agent": { "type": "boolean" }
 		},
 		"required": ["intent"]
 	}
 `)
 
 type WorkflowNewRequest struct {
-	Intent workflow.IntentJSON `json:"intent"`
+	Intent        workflow.IntentJSON `json:"intent"`
+	BindUserAgent *bool               `json:"bind_user_agent"`
+}
+
+func (c *WorkflowNewRequest) SetDefaults() {
+	if c.BindUserAgent == nil {
+		defaultBindUserAgent := true
+		c.BindUserAgent = &defaultBindUserAgent
+	}
 }
 
 type WorkflowNewWorkflowService interface {
