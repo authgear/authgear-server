@@ -166,7 +166,7 @@ func TestService(t *testing.T) {
 				savepoint.EXPECT().Rollback().Times(1).Return(nil),
 			)
 
-			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, &inputLoginID{
+			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, "", &inputLoginID{
 				LoginID: "user@example.com",
 			})
 			So(err, ShouldBeNil)
@@ -458,6 +458,7 @@ func TestServiceContext(t *testing.T) {
 			output, err = service.FeedInput(
 				output.Session.WorkflowID,
 				output.Workflow.InstanceID,
+				"",
 				&inputServiceContext{},
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)

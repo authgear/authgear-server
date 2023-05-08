@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureWorkflowGetRoute(route httproute.Route) httproute.Route {
@@ -16,23 +17,31 @@ func ConfigureWorkflowGetRoute(route httproute.Route) httproute.Route {
 }
 
 type WorkflowGetWorkflowService interface {
-	Get(workflowID string, instanceID string) (*workflow.ServiceOutput, error)
+	Get(workflowID string, instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
+}
+
+type WorkflowGetCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 }
 
 type WorkflowGetHandler struct {
 	Database  *appdb.Handle
 	JSON      JSONResponseWriter
 	Workflows WorkflowGetWorkflowService
+	Cookies   WorkflowGetCookieManager
 }
 
 func (h *WorkflowGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	workflowID := httproute.GetParam(r, "workflowid")
 	instanceID := httproute.GetParam(r, "instanceid")
 
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+
 	var output *workflow.ServiceOutput
 	var err error
 	err = h.Database.WithTx(func() error {
-		output, err = h.Workflows.Get(workflowID, instanceID)
+		output, err = h.Workflows.Get(workflowID, instanceID, userAgentID)
 		if err != nil {
 			return err
 		}

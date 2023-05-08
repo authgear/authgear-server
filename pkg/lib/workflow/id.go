@@ -21,3 +21,7 @@ func newWorkflowID() string {
 func newInstanceID() string {
 	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
 }
+
+func NewUserAgentID() string {
+	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
+}

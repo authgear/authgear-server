@@ -53258,6 +53258,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Database:  handle,
 		JSON:      jsonResponseWriter,
 		Workflows: workflowService,
+		Cookies:   cookieManager,
 	}
 	return workflowGetHandler
 }
@@ -53966,6 +53967,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Database:  handle,
 		JSON:      jsonResponseWriter,
 		Workflows: workflowService,
+		Cookies:   cookieManager,
 	}
 	return workflowInputHandler
 }

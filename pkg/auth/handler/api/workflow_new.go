@@ -59,6 +59,7 @@ type WorkflowNewWorkflowService interface {
 type WorkflowNewCookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 }
 
 type WorkflowNewOAuthSessionService interface {
@@ -110,10 +111,12 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 		return nil, err
 	}
 
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
+
 	var sessionOptionsFromCookie *workflow.SessionOptions
-	cookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
+	oauthCookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
 	if err == nil {
-		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(cookie)
+		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(oauthCookie)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the cookie if it invalid or expired
 			httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
@@ -133,6 +136,10 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromCookie.PartiallyMergeFrom(sessionOptionsFromQuery)
 
+	if *request.BindUserAgent {
+		sessionOptions.UserAgentID = userAgentID
+	}
+
 	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
 	if err != nil {
 		return nil, err
@@ -141,8 +148,8 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	return output, nil
 }
 
-func (h *WorkflowNewHandler) makeSessionOptionsFromCookie(cookie *http.Cookie) (*workflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(cookie.Value)
+func (h *WorkflowNewHandler) makeSessionOptionsFromCookie(oauthSessionCookie *http.Cookie) (*workflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(oauthSessionCookie.Value)
 	if err != nil {
 		return nil, err
 	}
