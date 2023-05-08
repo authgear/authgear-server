@@ -105,27 +105,13 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowNewHandler) getOrCreateUserAgentID(w http.ResponseWriter, r *http.Request) string {
-	var userAgentID string
-	userAgentIDCookie, err := h.Cookies.GetCookie(r, workflow.UserAgentIDCookieDef)
-	if err == nil {
-		userAgentID = userAgentIDCookie.Value
-	}
-	if userAgentID == "" {
-		userAgentID = workflow.NewUserAgentID()
-	}
-	cookie := h.Cookies.ValueCookie(workflow.UserAgentIDCookieDef, userAgentID)
-	httputil.UpdateCookie(w, cookie)
-	return userAgentID
-}
-
 func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, request WorkflowNewRequest) (*workflow.ServiceOutput, error) {
 	intent, err := workflow.InstantiateIntentFromPublicRegistry(request.Intent)
 	if err != nil {
 		return nil, err
 	}
 
-	userAgentID := h.getOrCreateUserAgentID(w, r)
+	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
 	var sessionOptionsFromCookie *workflow.SessionOptions
 	oauthCookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
