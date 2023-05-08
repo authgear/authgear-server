@@ -156,20 +156,22 @@ export function useAppSecretConfigForm<State>(
 
     try {
       await updateConfig(newConfig[0], secretUpdateInstruction);
+      await reload();
       setCurrentState(null);
     } finally {
     }
   }, [
+    rawAppConfig,
+    currentState,
     isDirty,
     isUpdating,
     constructConfig,
-    constructSecretUpdateInstruction,
-    rawAppConfig,
     secrets,
-    effectiveConfig,
     initialState,
-    currentState,
+    effectiveConfig,
+    constructSecretUpdateInstruction,
     updateConfig,
+    reload,
   ]);
 
   const state = currentState ?? initialState;
