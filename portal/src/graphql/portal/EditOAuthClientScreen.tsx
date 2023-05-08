@@ -552,6 +552,7 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
   const { renderToString } = useContext(Context);
   const form = useAppSecretConfigForm({
     appID,
+    secretVisitToken: null,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,

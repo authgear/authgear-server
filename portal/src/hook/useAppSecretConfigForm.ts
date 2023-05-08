@@ -41,6 +41,7 @@ export type InitialCurrentStateConstructor<State> = (state: State) => State;
 
 interface UseAppSecretConfigFormOptions<State> {
   appID: string;
+  secretVisitToken: string | null;
   constructFormState: StateConstructor<State>;
   constructConfig: ConfigConstructor<State>;
   constructSecretUpdateInstruction?: SecretUpdateInstructionConstructor<State>;
@@ -52,6 +53,7 @@ export function useAppSecretConfigForm<State>(
 ): AppSecretConfigFormModel<State> {
   const {
     appID,
+    secretVisitToken,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
@@ -65,7 +67,7 @@ export function useAppSecretConfigForm<State>(
     effectiveAppConfig,
     secretConfig,
     refetch: reload,
-  } = useAppAndSecretConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID, secretVisitToken);
   const {
     loading: isUpdating,
     error: updateError,

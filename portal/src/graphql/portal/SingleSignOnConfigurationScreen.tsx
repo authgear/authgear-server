@@ -351,6 +351,7 @@ const SingleSignOnConfigurationScreen: React.VFC =
     const { appID } = useParams() as { appID: string };
     const config = useAppSecretConfigForm({
       appID,
+      secretVisitToken: null,
       constructFormState,
       constructConfig,
       constructSecretUpdateInstruction,

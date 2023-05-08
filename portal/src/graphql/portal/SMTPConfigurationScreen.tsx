@@ -648,6 +648,7 @@ const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppSecretConfigForm({
     appID,
+    secretVisitToken: null,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
