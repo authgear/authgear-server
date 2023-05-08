@@ -382,13 +382,11 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     );
   };
 
-const EMPTY: AppSecretKey[] = [];
-
 const AdminAPIConfigurationScreen1: React.VFC<{
   appID: string;
   secretToken: string | null;
-}> = function AdminAPIConfigurationScreen1({ appID }) {
-  const queryResult = useAppAndSecretConfigQuery(appID, EMPTY);
+}> = function AdminAPIConfigurationScreen1({ appID, secretToken }) {
+  const queryResult = useAppAndSecretConfigQuery(appID, secretToken);
   const { refetch: refetchAppAndSecret } = queryResult;
 
   const { updateAppAndSecretConfig, loading, error } =

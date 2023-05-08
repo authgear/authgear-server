@@ -79,7 +79,7 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
-  secretConfig(unmaskedSecrets: [AppSecretKey!]!): SecretConfig!
+  secretConfig(token: String): SecretConfig!
 
   """"""
   subscription: Subscription

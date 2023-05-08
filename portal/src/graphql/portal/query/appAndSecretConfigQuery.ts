@@ -7,7 +7,7 @@ import {
   AppAndSecretConfigQueryDocument,
 } from "./appAndSecretConfigQuery.generated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../../types";
-import { Collaborator, AppSecretKey } from "../globalTypes.generated";
+import { Collaborator } from "../globalTypes.generated";
 
 export interface AppAndSecretConfigQueryResult
   extends Pick<
@@ -24,7 +24,7 @@ export interface AppAndSecretConfigQueryResult
 }
 export const useAppAndSecretConfigQuery = (
   appID: string,
-  unmaskedSecrets: Array<AppSecretKey> = []
+  token: string | null = null
 ): AppAndSecretConfigQueryResult => {
   const { data, loading, error, refetch } = useQuery<
     AppAndSecretConfigQueryQuery,
@@ -33,7 +33,7 @@ export const useAppAndSecretConfigQuery = (
     client,
     variables: {
       id: appID,
-      unmaskedSecrets: unmaskedSecrets,
+      token: token,
     },
   });
 

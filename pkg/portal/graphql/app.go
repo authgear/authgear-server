@@ -9,7 +9,6 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -240,36 +239,23 @@ var nodeApp = node(
 			"secretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(secretConfig),
 				Args: graphql.FieldConfigArgument{
-					"unmaskedSecrets": &graphql.ArgumentConfig{
-						Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(appSecretKey))),
+					"token": &graphql.ArgumentConfig{
+						Type: graphql.String,
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
-					var unmaskedSecrets []config.SecretKey = []config.SecretKey{}
-					var secretKeys []string = []string{}
-					if argUnmaskedSecrets, ok := p.Args["unmaskedSecrets"]; ok {
-						for _, secretKey := range argUnmaskedSecrets.([]interface{}) {
-							secretKey := secretKey.(AppSecretKey)
-							configSecretKey := secretKeyToConfigKeyMap[secretKey]
-							secretKeys = append(secretKeys, string(secretKey))
-							unmaskedSecrets = append(unmaskedSecrets, configSecretKey)
+					var token string
+					if tokenRaw, ok := p.Args["token"]; ok {
+						if t, ok := tokenRaw.(string); ok {
+							token = t
 						}
 					}
 					app := p.Source.(*model.App)
 					sessionInfo := session.GetValidSessionInfo(p.Context)
-					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, unmaskedSecrets)
+					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
 					if err != nil {
 						return nil, err
-					}
-
-					if len(secretKeys) > 0 {
-						err = ctx.AuditService.Log(app, &nonblocking.ProjectAppSecretViewedEventPayload{
-							Secrets: secretKeys,
-						})
-						if err != nil {
-							return nil, err
-						}
 					}
 
 					return secretConfig, nil

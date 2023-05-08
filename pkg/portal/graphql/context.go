@@ -48,7 +48,7 @@ type AppService interface {
 	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
-	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, unmaskedSecrets []config.SecretKey) (*model.SecretConfig, error)
+	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, error)
 	GenerateSecretVisitToken(
 		app *model.App,
 		sessionInfo *apimodel.SessionInfo,

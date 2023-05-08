@@ -84,7 +84,7 @@ export type AppResourcesArgs = {
 
 /** Authgear app */
 export type AppSecretConfigArgs = {
-  unmaskedSecrets: Array<AppSecretKey>;
+  token?: InputMaybe<Scalars['String']>;
 };
 
 

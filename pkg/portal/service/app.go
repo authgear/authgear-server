@@ -196,7 +196,8 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 func (s *AppService) LoadAppSecretConfig(
 	app *model.App,
 	sessionInfo *apimodel.SessionInfo,
-	unmaskedSecrets []config.SecretKey) (*model.SecretConfig, error) {
+	token string) (*model.SecretConfig, error) {
+	var unmaskedSecrets []config.SecretKey = []config.SecretKey{}
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
@@ -220,8 +221,14 @@ func (s *AppService) LoadAppSecretConfig(
 	if elapsed >= 0 && elapsed < 5*time.Minute || !sessionInfo.UserCanReauthenticate {
 		canBeUnmasked = true
 	}
-	if !canBeUnmasked {
-		unmaskedSecrets = []config.SecretKey{}
+	if canBeUnmasked && token != "" {
+		tokenModel, err := s.AppSecretVisitTokenStore.GetTokenByID(app.Context.Config.AppConfig.ID, token)
+		if err != nil && !errors.Is(err, appsecret.ErrTokenNotFound) {
+			return nil, err
+		}
+		if tokenModel != nil {
+			unmaskedSecrets = tokenModel.Secrets
+		}
 	}
 	secretConfig, err := model.NewSecretConfig(cfg, unmaskedSecrets, now)
 	if err != nil {
