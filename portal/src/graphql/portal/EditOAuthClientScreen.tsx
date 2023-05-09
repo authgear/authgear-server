@@ -701,33 +701,36 @@ const EditOAuthClientScreen1: React.VFC<{
   );
 };
 
+const SECRETS = [AppSecretKey.OauthClientSecrets];
+
 const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
   const { appID, clientID } = useParams() as {
     appID: string;
     clientID: string;
   };
   const location = useLocation();
-  const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+  const [shouldRefreshToken] = useState<boolean>(() => {
     const { state } = location;
     if (isLocationState(state) && state.isClientSecretRevealed) {
-      return [AppSecretKey.OauthClientSecrets];
+      return true;
     }
-    return [];
+    return false;
   });
   useLocationEffect<LocationState>(() => {
     // Pop the location state if exist
   });
   const { token, loading, error, retry } = useAppSecretVisitToken(
     appID,
-    unmaskedSecrets
+    SECRETS,
+    shouldRefreshToken
   );
-
-  if (loading || token === undefined) {
-    return <ShowLoading />;
-  }
 
   if (error) {
     return <ShowError error={error} onRetry={retry} />;
+  }
+
+  if (loading || token === undefined) {
+    return <ShowLoading />;
   }
 
   return (

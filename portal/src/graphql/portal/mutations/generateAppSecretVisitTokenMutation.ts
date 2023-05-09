@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { useMutation } from "@apollo/client";
 
 import { client } from "../../portal/apollo";
@@ -37,15 +37,44 @@ export function useGenerateAppSecretVisitTokenMutation(appID: string): {
   return { generateAppSecretVisitToken, error, loading };
 }
 
+class SecretVisitTokenStore {
+  private store: Storage;
+  private appID: string;
+  constructor(store: Storage, appID: string) {
+    this.store = store;
+    this.appID = appID;
+  }
+
+  private formatTokenKey(secrets: AppSecretKey[]): string {
+    return `app.secrettoken.${this.appID}.${secrets.sort(undefined).join("+")}`;
+  }
+
+  public get(secrets: AppSecretKey[]): string | null {
+    const key = this.formatTokenKey(secrets);
+    return this.store.getItem(key);
+  }
+
+  public set(secrets: AppSecretKey[], token: string): void {
+    const key = this.formatTokenKey(secrets);
+    this.store.setItem(key, token);
+  }
+}
+
 export function useAppSecretVisitToken(
   appID: string,
-  secrets: AppSecretKey[]
+  secrets: AppSecretKey[],
+  refresh: boolean
 ): {
   token: string | null | undefined;
   loading: boolean;
   error: unknown;
   retry: () => void;
 } {
+  const store = useMemo(
+    () => new SecretVisitTokenStore(window.sessionStorage, appID),
+    [appID]
+  );
+
   const [token, setToken] = useState<string | null | undefined>(undefined);
   const [retryCounter, setRetryCounter] = useState(0);
   const { generateAppSecretVisitToken, loading, error } =
@@ -60,17 +89,34 @@ export function useAppSecretVisitToken(
       setToken(null);
       return cleanupFn;
     }
-    setToken(undefined);
+    const cachedToken = store.get(secrets);
+    if (cachedToken && !refresh) {
+      setToken(cachedToken);
+      return cleanupFn;
+    }
+    if (!refresh) {
+      setToken(null);
+      return cleanupFn;
+    }
     generateAppSecretVisitToken(secrets)
       .then((token) => {
-        if (isMounted) {
-          setToken(token);
+        if (!isMounted) {
+          return;
         }
+        if (token != null) {
+          store.set(secrets, token);
+        }
+        setToken(token);
       })
-      .catch((e) => console.error("Failed to generate secret visit token", e));
+      .catch((e) => {
+        if (!isMounted) {
+          return;
+        }
+        console.error("Failed to generate secret visit token", e);
+      });
 
     return cleanupFn;
-  }, [generateAppSecretVisitToken, secrets, retryCounter]);
+  }, [generateAppSecretVisitToken, secrets, retryCounter, store, refresh]);
 
   const retry = useCallback(() => {
     setRetryCounter((prev) => (prev + 1) % 100000);

@@ -58,6 +58,17 @@ interface Item {
 
 interface LocationState {
   keyID: string;
+  shouldRefreshSecretToken: boolean;
+}
+
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    typeof (raw as Partial<LocationState>).keyID === "string" &&
+    typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
+      "boolean"
+  );
 }
 
 const messageBarStyles = {
@@ -144,6 +155,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
 
         const state: LocationState = {
           keyID,
+          shouldRefreshSecretToken: true,
         };
 
         startReauthentication(state).catch((e) => {
@@ -448,32 +460,31 @@ const AdminAPIConfigurationScreen1: React.VFC<{
   );
 };
 
+const SECRETS = [AppSecretKey.AdminApiSecrets];
+
 const AdminAPIConfigurationScreen: React.VFC =
   function AdminAPIConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
     const location = useLocation();
-    const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+    const [shouldRefreshToken] = useState<boolean>(() => {
       const { state } = location;
-      if (
-        state != null &&
-        typeof state === "object" &&
-        (state as LocationState).keyID
-      ) {
-        return [AppSecretKey.AdminApiSecrets];
+      if (isLocationState(state)) {
+        return state.shouldRefreshSecretToken;
       }
-      return [];
+      return false;
     });
     const { token, loading, error, retry } = useAppSecretVisitToken(
       appID,
-      unmaskedSecrets
+      SECRETS,
+      shouldRefreshToken
     );
-
-    if (loading || token === undefined) {
-      return <ShowLoading />;
-    }
 
     if (error) {
       return <ShowError error={error} onRetry={retry} />;
+    }
+
+    if (loading || token === undefined) {
+      return <ShowLoading />;
     }
 
     return <AdminAPIConfigurationScreen1 appID={appID} secretToken={token} />;

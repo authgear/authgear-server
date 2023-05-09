@@ -1419,7 +1419,7 @@ const HookConfigurationScreen1: React.VFC<{
   });
   const featureConfig = useAppFeatureConfigQuery(appID);
 
-  if (form.isLoading || featureConfig.loading) {
+  if (featureConfig.loading) {
     return <ShowLoading />;
   }
 
@@ -1446,27 +1446,30 @@ const HookConfigurationScreen1: React.VFC<{
   );
 };
 
+const SECRETS = [AppSecretKey.WebhookSecret];
+
 const HookConfigurationScreen: React.VFC = function HookConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const location = useLocation();
-  const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+  const [shouldRefreshToken] = useState<boolean>(() => {
     const { state } = location;
     if (isLocationState(state) && state.isOAuthRedirect) {
-      return [AppSecretKey.WebhookSecret];
+      return true;
     }
-    return [];
+    return false;
   });
-  const { token, loading, error, retry } = useAppSecretVisitToken(
+  const { token, error, retry } = useAppSecretVisitToken(
     appID,
-    unmaskedSecrets
+    SECRETS,
+    shouldRefreshToken
   );
-
-  if (loading || token === undefined) {
-    return <ShowLoading />;
-  }
 
   if (error) {
     return <ShowError error={error} onRetry={retry} />;
+  }
+
+  if (token === undefined) {
+    return <ShowLoading />;
   }
 
   return <HookConfigurationScreen1 appID={appID} secretToken={token} />;

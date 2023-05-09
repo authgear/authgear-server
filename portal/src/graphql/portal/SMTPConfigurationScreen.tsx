@@ -694,30 +694,33 @@ const SMTPConfigurationScreen1: React.VFC<{
   );
 };
 
+const SECRETS = [AppSecretKey.SmtpSecret];
+
 const SMTPConfigurationScreen: React.VFC = function SMTPConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const location = useLocation();
-  const [unmaskedSecrets] = useState<AppSecretKey[]>(() => {
+  const [shouldRefreshToken] = useState<boolean>(() => {
     const { state } = location;
     if (isLocationState(state) && state.isEdit) {
-      return [AppSecretKey.SmtpSecret];
+      return true;
     }
-    return [];
+    return false;
   });
   useLocationEffect<LocationState>(() => {
     // Pop the location state if exist
   });
   const { token, loading, error, retry } = useAppSecretVisitToken(
     appID,
-    unmaskedSecrets
+    SECRETS,
+    shouldRefreshToken
   );
-
-  if (loading || token === undefined) {
-    return <ShowLoading />;
-  }
 
   if (error) {
     return <ShowError error={error} onRetry={retry} />;
+  }
+
+  if (loading || token === undefined) {
+    return <ShowLoading />;
   }
 
   return <SMTPConfigurationScreen1 appID={appID} secretToken={token} />;
