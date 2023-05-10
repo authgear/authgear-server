@@ -36,6 +36,17 @@ function checkPasswordLowercase(value: string, el: HTMLElement) {
   }
 }
 
+function checkPasswordAlphabet(value: string, el: HTMLElement) {
+  if (el == null) {
+    return;
+  }
+  if (/[a-zA-Z]/.test(value)) {
+    el.classList.add("good-txt");
+  } else {
+    el.classList.add("error-txt");
+  }
+}
+
 function checkPasswordDigit(value: string, el: HTMLElement) {
   if (el == null) {
     return;
@@ -100,6 +111,7 @@ export class PasswordPolicyController extends Controller {
     "length",
     "uppercase",
     "lowercase",
+    "alphabet",
     "digit",
     "symbol",
     "strength",
@@ -119,6 +131,9 @@ export class PasswordPolicyController extends Controller {
 
   declare hasLowercaseTarget: boolean;
   declare lowercaseTarget: HTMLElement;
+
+  declare hasAlphabetTarget: boolean;
+  declare alphabetTarget: HTMLElement;
 
   declare hasDigitTarget: boolean;
   declare digitTarget: HTMLElement;
@@ -145,6 +160,9 @@ export class PasswordPolicyController extends Controller {
     }
     if (this.hasLowercaseTarget) {
       checkPasswordLowercase(value, this.lowercaseTarget);
+    }
+    if (this.hasAlphabetTarget) {
+      checkPasswordAlphabet(value, this.alphabetTarget);
     }
     if (this.hasDigitTarget) {
       checkPasswordDigit(value, this.digitTarget);
