@@ -39,6 +39,7 @@ function renderGuessableLevelNames(
   };
 }
 
+// eslint-disable-next-line complexity
 function makePasswordPolicyData(
   passwordPolicy: PasswordPolicyConfig,
   guessableLevelNames: GuessableLevelNames
