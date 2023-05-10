@@ -10,6 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 )
 
+func ProvideTestModeEmailSuppressed() config.TestModeEmailSuppressed {
+	return config.TestModeEmailSuppressed(false)
+}
+
 func ProvideSMTPServerCredentials(c *portalconfig.SMTPConfig) *config.SMTPServerCredentials {
 	return &config.SMTPServerCredentials{
 		Host:     c.Host,
@@ -25,6 +29,7 @@ var TaskDependencySet = wire.NewSet(
 
 	tasks.DependencySet,
 	mail.DependencySet,
+	ProvideTestModeEmailSuppressed,
 	wire.Bind(new(tasks.MailSender), new(*mail.Sender)),
 
 	task.DependencySet,

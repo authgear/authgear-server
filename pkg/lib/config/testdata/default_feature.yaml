@@ -113,3 +113,7 @@ test_mode:
     code: ""
   deterministic_link_otp:
     enabled: false
+  sms:
+    suppressed: false
+  email:
+    suppressed: false

@@ -66,6 +66,8 @@ var configDeps = wire.NewSet(
 	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,
+	ProvideTestModeEmailSuppressed,
+	ProvideTestModeSMSSuppressed,
 	secretDeps,
 )
 
@@ -75,6 +77,14 @@ func ProvideDefaultLanguageTag(c *config.Config) template.DefaultLanguageTag {
 
 func ProvideSupportedLanguageTags(c *config.Config) template.SupportedLanguageTags {
 	return template.SupportedLanguageTags(c.AppConfig.Localization.SupportedLanguages)
+}
+
+func ProvideTestModeEmailSuppressed(c *config.TestModeFeatureConfig) config.TestModeEmailSuppressed {
+	return config.TestModeEmailSuppressed(c.Email.Suppressed)
+}
+
+func ProvideTestModeSMSSuppressed(c *config.TestModeFeatureConfig) config.TestModeSMSSuppressed {
+	return config.TestModeSMSSuppressed(c.SMS.Suppressed)
 }
 
 var secretDeps = wire.NewSet(
