@@ -1,11 +1,12 @@
 .root {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .listWrapper {
-  flex: 1 0 0%;
-  min-height: 0;
+  flex: 1 1 0px;
+  min-height: 0px;
   overflow-y: auto;
 }
 

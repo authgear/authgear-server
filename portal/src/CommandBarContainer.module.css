@@ -20,7 +20,8 @@
 }
 
 .content {
-  flex: 1 0 0;
+  flex: 1 1 0px;
+  flex-basis: 0px;
   min-height: 0;
   overflow: auto;
 }

@@ -1,10 +1,10 @@
 package graphqlutil
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 )
 
-const MaxPageSize uint64 = 20
+const MaxPageSize uint64 = 100
 
 type Cursor string
 
