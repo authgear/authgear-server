@@ -522,7 +522,7 @@
   "PasswordPolicyConfigurationScreen.require-lowercase.label": "Requires at least 1 lowercase character (a-z)",
   "PasswordPolicyConfigurationScreen.require-uppercase.label": "Requires at least 1 uppercase character (A-Z)",
   "PasswordPolicyConfigurationScreen.require-alphabet.label": "Requires at least 1 alphabetic character (a-z,A-Z)",
-  "PasswordPolicyConfigurationScreen.require-symbol.label": "Requires at least 1 special character",
+  "PasswordPolicyConfigurationScreen.require-symbol.label": "Require at least 1 non-alphanumeric character (e.g. ~`!@#$%^&*()-_=+['{']'}'|;:''\",<.>/?)",
   "PasswordPolicyConfigurationScreen.min-guessable-level.label": "Min. password strength level",
   "PasswordPolicyConfigurationScreen.min-guessable-level.0": "N/A",
   "PasswordPolicyConfigurationScreen.min-guessable-level.1": "Extremely guessable",
