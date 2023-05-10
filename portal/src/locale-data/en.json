@@ -952,8 +952,8 @@
   "AuditLogScreen.date-range.end-date": "End Date",
   "AuditLogScreen.refresh": "Refresh",
   "AuditLogScreen.last-update-at": "Refresh. Updated: {datetime}",
-  "AuditLogScreen.acitity-kind.user": "End-User Side",
-  "AuditLogScreen.acitity-kind.admin": "Admin Side",
+  "AuditLogScreen.acitity-kind.user": "Users Activities",
+  "AuditLogScreen.acitity-kind.admin": "Admin API & Portal",
   "AuditLogScreen.clear-all-filters": "Clear all filters",
 
   "AuditLogList.column.activity-type": "Activity Type",
