@@ -946,6 +946,7 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         min_length: 8,
         uppercase_required: false,
         lowercase_required: false,
+        alphabet_required: false,
         digit_required: false,
         symbol_required: false,
         minimum_guessable_level: 0 as const,

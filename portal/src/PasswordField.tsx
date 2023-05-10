@@ -63,6 +63,12 @@ function makePasswordPolicyData(
       messageId: "PasswordField.uppercase-required",
     });
   }
+  if (passwordPolicy.alphabet_required === true) {
+    policyData.push({
+      key: "alphabet_required",
+      messageId: "PasswordField.alphabet-required",
+    });
+  }
   if (passwordPolicy.digit_required === true) {
     policyData.push({
       key: "digit_required",

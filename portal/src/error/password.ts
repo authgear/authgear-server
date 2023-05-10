@@ -38,6 +38,9 @@ export function checkPasswordPolicy(
   if (passwordPolicy.uppercase_required === true) {
     isPolicySatisfied.uppercase_required = /[A-Z]/.test(password);
   }
+  if (passwordPolicy.alphabet_required === true) {
+    isPolicySatisfied.alphabet_required = /[a-zA-Z]/.test(password);
+  }
   if (passwordPolicy.digit_required === true) {
     isPolicySatisfied.digit_required = /\d/.test(password);
   }
