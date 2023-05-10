@@ -313,7 +313,7 @@ func (pc *Checker) PasswordRules() string {
 		builder.WriteString("required: lower; ")
 	}
 	if pc.PwAlphabetRequired {
-		builder.WriteString("required: alphabet; ")
+		builder.WriteString("required: [abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]; ")
 	}
 	if pc.PwDigitRequired {
 		builder.WriteString("required: digit; ")
