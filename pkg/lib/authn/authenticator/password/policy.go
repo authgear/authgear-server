@@ -15,6 +15,8 @@ const (
 	PasswordUppercaseRequired PolicyName = "PasswordUppercaseRequired"
 	// PasswordLowercaseRequired means the password does not contain ASCII lowercase character
 	PasswordLowercaseRequired PolicyName = "PasswordLowercaseRequired"
+	// PasswordAlphabetRequired means the password does not contain ASCII alphabet character
+	PasswordAlphabetRequired PolicyName = "PasswordAlphabetRequired"
 	// PasswordDigitRequired means the password does not contain ASCII digit character
 	PasswordDigitRequired PolicyName = "PasswordDigitRequired"
 	// PasswordSymbolRequired means the password does not contain ASCII non-alphanumeric character

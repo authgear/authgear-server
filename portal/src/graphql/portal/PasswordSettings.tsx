@@ -151,6 +151,10 @@ export default function PasswordSettings<T extends State>(
     setState,
     "uppercase_required"
   );
+  const onChangeAlphabetRequired = usePasswordCheckboxOnChange(
+    setState,
+    "alphabet_required"
+  );
   const onChangeSymbolRequired = usePasswordCheckboxOnChange(
     setState,
     "symbol_required"
@@ -286,6 +290,13 @@ export default function PasswordSettings<T extends State>(
         )}
         checked={authenticatorPasswordConfig.policy?.uppercase_required}
         onChange={onChangeUppercaseRequired}
+      />
+      <Checkbox
+        label={renderToString(
+          "PasswordPolicyConfigurationScreen.require-alphabet.label"
+        )}
+        checked={authenticatorPasswordConfig.policy?.alphabet_required}
+        onChange={onChangeAlphabetRequired}
       />
       <Checkbox
         label={renderToString(

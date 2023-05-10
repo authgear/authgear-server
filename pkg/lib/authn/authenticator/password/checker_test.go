@@ -29,6 +29,11 @@ func TestPasswordCheckingFuncs(t *testing.T) {
 		So(checkPasswordLowercase("a"), ShouldEqual, true)
 		So(checkPasswordLowercase("z"), ShouldEqual, true)
 	})
+	Convey("check password alphabet", t, func() {
+		So(checkPasswordAlphabet("A"), ShouldEqual, true)
+		So(checkPasswordAlphabet("a"), ShouldEqual, true)
+		So(checkPasswordAlphabet("1"), ShouldEqual, false)
+	})
 	Convey("check password digit", t, func() {
 		So(checkPasswordDigit("a"), ShouldEqual, false)
 		So(checkPasswordDigit("0"), ShouldEqual, true)
@@ -167,6 +172,27 @@ func TestValidateNewPassword(t *testing.T) {
 				"causes": [
 					{
 						"Name": "PasswordLowercaseRequired"
+					}
+				]
+			}
+		}
+		`)
+	})
+	Convey("validate alphabet password", t, func() {
+		password := "123"
+		pc := &Checker{
+			PwAlphabetRequired: true,
+		}
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordAlphabetRequired"
 					}
 				]
 			}

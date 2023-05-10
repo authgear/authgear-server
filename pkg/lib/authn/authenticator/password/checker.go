@@ -59,6 +59,15 @@ func checkPasswordLowercase(password string) bool {
 	return false
 }
 
+func checkPasswordAlphabet(password string) bool {
+	for _, r := range password {
+		if isLowerRune(r) || isUpperRune(r) {
+			return true
+		}
+	}
+	return false
+}
+
 func checkPasswordDigit(password string) bool {
 	for _, r := range password {
 		if isDigitRune(r) {
@@ -114,6 +123,7 @@ type Checker struct {
 	PwMinLength            int
 	PwUppercaseRequired    bool
 	PwLowercaseRequired    bool
+	PwAlphabetRequired     bool
 	PwDigitRequired        bool
 	PwSymbolRequired       bool
 	PwMinGuessableLevel    int
@@ -153,6 +163,13 @@ func (pc *Checker) checkPasswordUppercase(password string) *Policy {
 func (pc *Checker) checkPasswordLowercase(password string) *Policy {
 	if pc.PwLowercaseRequired && !checkPasswordLowercase(password) {
 		return &Policy{Name: PasswordLowercaseRequired}
+	}
+	return nil
+}
+
+func (pc *Checker) checkPasswordAlphabet(password string) *Policy {
+	if pc.PwAlphabetRequired && !checkPasswordAlphabet(password) {
+		return &Policy{Name: PasswordAlphabetRequired}
 	}
 	return nil
 }
@@ -231,8 +248,7 @@ func (pc *Checker) checkPasswordHistory(password, authID string) (*Policy, error
 	return nil, nil
 }
 
-// ValidateNewPassword should be used when the user changes their password.
-func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) error {
+func (pc *Checker) checkCommonPolicies(plainPassword string) []apierrors.Cause {
 	var violations []apierrors.Cause
 	check := func(v *Policy) {
 		if v != nil {
@@ -243,16 +259,28 @@ func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) erro
 	check(pc.checkPasswordLength(plainPassword))
 	check(pc.checkPasswordUppercase(plainPassword))
 	check(pc.checkPasswordLowercase(plainPassword))
+	check(pc.checkPasswordAlphabet(plainPassword))
 	check(pc.checkPasswordDigit(plainPassword))
 	check(pc.checkPasswordSymbol(plainPassword))
 	check(pc.checkPasswordExcludedKeywords(plainPassword))
 	check(pc.checkPasswordGuessableLevel(plainPassword))
 
+	return violations
+}
+
+// ValidateNewPassword should be used when the user changes their password.
+func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) error {
+	var violations []apierrors.Cause
+
+	violations = pc.checkCommonPolicies(plainPassword)
+
 	p, err := pc.checkPasswordHistory(plainPassword, userID)
 	if err != nil {
 		return err
 	}
-	check(p)
+	if p != nil {
+		violations = append(violations, p)
+	}
 
 	if len(violations) == 0 {
 		return nil
@@ -263,20 +291,7 @@ func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) erro
 
 // ValidateCurrentPassword should be used when the user authenticates.
 func (pc *Checker) ValidateCurrentPassword(plainPassword string) error {
-	var violations []apierrors.Cause
-	check := func(v *Policy) {
-		if v != nil {
-			violations = append(violations, *v)
-		}
-	}
-
-	check(pc.checkPasswordLength(plainPassword))
-	check(pc.checkPasswordUppercase(plainPassword))
-	check(pc.checkPasswordLowercase(plainPassword))
-	check(pc.checkPasswordDigit(plainPassword))
-	check(pc.checkPasswordSymbol(plainPassword))
-	check(pc.checkPasswordExcludedKeywords(plainPassword))
-	check(pc.checkPasswordGuessableLevel(plainPassword))
+	var violations []apierrors.Cause = pc.checkCommonPolicies(plainPassword)
 
 	if len(violations) == 0 {
 		return nil
@@ -296,6 +311,9 @@ func (pc *Checker) PasswordRules() string {
 	}
 	if pc.PwLowercaseRequired {
 		builder.WriteString("required: lower; ")
+	}
+	if pc.PwAlphabetRequired {
+		builder.WriteString("required: [abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]; ")
 	}
 	if pc.PwDigitRequired {
 		builder.WriteString("required: digit; ")
@@ -320,6 +338,9 @@ func (pc *Checker) PasswordPolicy() (out []Policy) {
 	}
 	if pc.PwDigitRequired {
 		out = append(out, Policy{Name: PasswordDigitRequired})
+	}
+	if pc.PwAlphabetRequired {
+		out = append(out, Policy{Name: PasswordAlphabetRequired})
 	}
 	if pc.PwSymbolRequired {
 		out = append(out, Policy{Name: PasswordSymbolRequired})

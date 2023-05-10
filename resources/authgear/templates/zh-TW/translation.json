@@ -243,6 +243,7 @@
   "password-policy-minimum-length": "最少 {length, plural, other{# 位}}",
   "password-policy-uppercase": "請輸入最少一個大寫英文字母",
   "password-policy-lowercase": "請輸入最少一個小寫英文字母",
+  "password-policy-alphabet": "請輸入最少一個英文字母",
   "password-policy-digit": "請輸入最少一個數字",
   "password-policy-symbol": "請輸入最少一個符號",
   "password-policy-banned-words": "請勿使用禁用詞",
@@ -405,7 +406,7 @@
   "setup-phone-otp-instead": "改為使用手機作雙重驗證",
   "verify-phone-otp-instead": "改為通過手機驗證 {target}",
   "setup-login-link-otp-instead": "改為設置登錄鏈接兩步驗證",
-   "verify-login-link-otp-instead": "改為通過登錄鏈接驗證 {target}",
+  "verify-login-link-otp-instead": "改為通過登錄鏈接驗證 {target}",
 
   "phone-otp-verify-with-sms-instead": "改為通過短信接收一次性密碼",
   "phone-otp-verify-with-whatsapp-instead": "改為通過 WhatsApp 驗證",

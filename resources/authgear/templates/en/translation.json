@@ -243,6 +243,7 @@
   "password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",
   "password-policy-uppercase": "At least 1 uppercase character",
   "password-policy-lowercase": "At least 1 lowercase character",
+  "password-policy-alphabet": "At least 1 alphabetic character",
   "password-policy-digit": "At least 1 digit",
   "password-policy-symbol": "At least 1 symbol",
   "password-policy-banned-words": "NO banned words",

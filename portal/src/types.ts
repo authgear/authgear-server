@@ -186,6 +186,7 @@ export interface PasswordPolicyConfig {
   min_length?: number;
   uppercase_required?: boolean;
   lowercase_required?: boolean;
+  alphabet_required?: boolean;
   digit_required?: boolean;
   symbol_required?: boolean;
   minimum_guessable_level?: PasswordPolicyGuessableLevel;
