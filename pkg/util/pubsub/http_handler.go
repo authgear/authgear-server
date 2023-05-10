@@ -78,6 +78,9 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	wsConn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: insecureSkipVerify,
+		// WKWebView is known to be buggy with compression since iOS 15.
+		// See https://developer.apple.com/forums/thread/685403
+		CompressionMode: websocket.CompressionDisabled,
 	})
 	if err != nil {
 		logger.WithError(err).Debug("failed to accept websocket connection")
