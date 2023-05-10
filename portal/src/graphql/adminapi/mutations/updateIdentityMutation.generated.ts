@@ -10,7 +10,7 @@ export type UpdateIdentityMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateIdentityMutationMutation = { __typename?: 'Mutation', updateIdentity: { __typename?: 'UpdateIdentityPayload', user: { __typename?: 'User', id: string, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string } | null } | null> | null } | null }, identity: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } } };
+export type UpdateIdentityMutationMutation = { __typename?: 'Mutation', updateIdentity: { __typename?: 'UpdateIdentityPayload', user: { __typename?: 'User', id: string, standardAttributes: any, customAttributes: any, web3: any, endUserAccountID?: string | null, updatedAt: any, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, verifiedClaims: Array<{ __typename?: 'Claim', name: string, value: string }> }, identity: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } } };
 
 
 export const UpdateIdentityMutationDocument = gql`
@@ -24,6 +24,12 @@ export const UpdateIdentityMutationDocument = gql`
         edges {
           node {
             id
+            type
+            kind
+            isDefault
+            claims
+            createdAt
+            updatedAt
           }
         }
       }
@@ -31,9 +37,22 @@ export const UpdateIdentityMutationDocument = gql`
         edges {
           node {
             id
+            type
+            claims
+            createdAt
+            updatedAt
           }
         }
       }
+      verifiedClaims {
+        name
+        value
+      }
+      standardAttributes
+      customAttributes
+      web3
+      endUserAccountID
+      updatedAt
     }
     identity {
       id
