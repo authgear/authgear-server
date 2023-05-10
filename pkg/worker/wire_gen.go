@@ -42,14 +42,19 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	secretConfig := config.SecretConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	featureConfig := config.FeatureConfig
+	testModeFeatureConfig := featureConfig.TestMode
+	testModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
 	sender := &mail.Sender{
-		Logger:       logger,
-		DevMode:      devMode,
-		GomailDialer: dialer,
+		Logger:                  logger,
+		DevMode:                 devMode,
+		GomailDialer:            dialer,
+		TestModeEmailSuppressed: testModeEmailSuppressed,
 	}
 	smsLogger := sms.NewLogger(factory)
 	appConfig := config.AppConfig
 	messagingConfig := appConfig.Messaging
+	testModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
 	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
 	twilioClient := sms.NewTwilioClient(twilioCredentials)
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
@@ -80,12 +85,13 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	}
 	customClient := sms.NewCustomClient(customSMSProviderConfig, smsDenoHook, smsWebHook)
 	client := &sms.Client{
-		Logger:          smsLogger,
-		DevMode:         devMode,
-		MessagingConfig: messagingConfig,
-		TwilioClient:    twilioClient,
-		NexmoClient:     nexmoClient,
-		CustomClient:    customClient,
+		Logger:                smsLogger,
+		DevMode:               devMode,
+		MessagingConfig:       messagingConfig,
+		TestModeSMSSuppressed: testModeSMSSuppressed,
+		TwilioClient:          twilioClient,
+		NexmoClient:           nexmoClient,
+		CustomClient:          customClient,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
