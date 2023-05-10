@@ -693,7 +693,9 @@ const ResourcesConfigurationContent: React.VFC<ResourcesConfigurationContentProp
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="LocalizationConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={styles.widget}>
+        {/* Code editors might incorrectly fire change events when changing language
+            Set key to selectedLanguage to ensure code editors always remount */}
+        <Widget className={styles.widget} key={state.selectedLanguage}>
           <WidgetTitle>
             <FormattedMessage id="LocalizationConfigurationScreen.template-content-title" />
           </WidgetTitle>
