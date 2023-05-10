@@ -50,6 +50,7 @@ var _ = Schema.Add("PasswordPolicyConfig", `
 		"min_length": { "type": "integer", "minimum": 1 },
 		"uppercase_required": { "type": "boolean" },
 		"lowercase_required": { "type": "boolean" },
+		"alphabet_required": { "type": "boolean" },
 		"digit_required": { "type": "boolean" },
 		"symbol_required": { "type": "boolean" },
 		"minimum_guessable_level": { "type": "integer" },
@@ -64,6 +65,7 @@ type PasswordPolicyConfig struct {
 	MinLength             *int         `json:"min_length,omitempty"`
 	UppercaseRequired     bool         `json:"uppercase_required,omitempty"`
 	LowercaseRequired     bool         `json:"lowercase_required,omitempty"`
+	AlphabetRequired      bool         `json:"alphabet_required,omitempty"`
 	DigitRequired         bool         `json:"digit_required,omitempty"`
 	SymbolRequired        bool         `json:"symbol_required,omitempty"`
 	MinimumGuessableLevel int          `json:"minimum_guessable_level,omitempty"`

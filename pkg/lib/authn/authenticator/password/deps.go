@@ -17,6 +17,7 @@ func ProvideChecker(
 	checker.PwMinLength = *cfg.Policy.MinLength
 	checker.PwUppercaseRequired = cfg.Policy.UppercaseRequired
 	checker.PwLowercaseRequired = cfg.Policy.LowercaseRequired
+	checker.PwAlphabetRequired = cfg.Policy.AlphabetRequired
 	checker.PwDigitRequired = cfg.Policy.DigitRequired
 	checker.PwSymbolRequired = cfg.Policy.SymbolRequired
 
