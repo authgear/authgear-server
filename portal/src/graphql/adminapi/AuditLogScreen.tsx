@@ -43,7 +43,7 @@ import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery"
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
 import CommandBarButton from "../../CommandBarButton";
 
-const pageSize = 10;
+const pageSize = 100;
 
 const ALL_ACTIVITY_TYPES = Object.values(AuditLogActivityType);
 const ADMIN_ACTIVITY_TYPES = ALL_ACTIVITY_TYPES.filter(
