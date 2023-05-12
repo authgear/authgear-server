@@ -324,7 +324,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
-		Clock:   clock,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
@@ -809,7 +808,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
-		Clock:   clockClock,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)

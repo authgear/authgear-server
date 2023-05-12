@@ -1,10 +1,7 @@
 package ratelimit
 
 import (
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -20,7 +17,6 @@ func NewLogger(lf *log.Factory) Logger {
 type Limiter struct {
 	Logger  Logger
 	Storage Storage
-	Clock   clock.Clock
 	Config  *config.RateLimitsFeatureConfig
 }
 
@@ -38,50 +34,28 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 		return &Reservation{spec: spec, ok: true}
 	}
 
-	now := l.Clock.NowUTC()
-
-	pass := false
-	tokenTaken := 0
-	var timeToAct *time.Time
-	err := l.Storage.WithConn(func(conn StorageConn) error {
-		// Check if we should refill the bucket.
-		resetTime, err := conn.GetResetTime(spec, now)
-		if err != nil {
-			return err
+	ok, timeToAct, err := l.Storage.Update(spec, n)
+	if err != nil {
+		return &Reservation{
+			spec: spec,
+			ok:   false,
+			err:  err,
 		}
-		if !now.Before(resetTime) {
-			// Refill bucket to full.
-			err = conn.Reset(spec, now)
-			if err != nil {
-				return err
-			}
-			resetTime = now
-		}
+	}
 
-		// Try to take requested tokens.
-		tokens, err := conn.TakeToken(spec, now, n)
-		if err != nil {
-			return err
-		}
-		tokenTaken = n
-
-		pass = tokens >= 0
-		timeToAct = &resetTime
-		l.Logger.
-			WithField("global", spec.IsGlobal).
-			WithField("key", spec.Key()).
-			WithField("tokens", tokens).
-			WithField("pass", pass).
-			Debug("check rate limit")
-		return nil
-	})
+	l.Logger.
+		WithField("global", spec.IsGlobal).
+		WithField("key", spec.Key()).
+		WithField("ok", ok).
+		WithField("timeToAct", timeToAct).
+		Debug("check rate limit")
 
 	return &Reservation{
 		spec:       spec,
-		ok:         pass,
+		ok:         ok,
 		err:        err,
-		tokenTaken: tokenTaken,
-		timeToAct:  timeToAct,
+		tokenTaken: n,
+		timeToAct:  &timeToAct,
 	}
 }
 
@@ -90,30 +64,7 @@ func (l *Limiter) Cancel(r *Reservation) {
 		return
 	}
 
-	now := l.Clock.NowUTC()
-
-	err := l.Storage.WithConn(func(conn StorageConn) error {
-		// Check if we should refill the bucket.
-		resetTime, err := conn.GetResetTime(r.spec, now)
-		if err != nil {
-			return err
-		}
-		if !now.Before(resetTime) {
-			// Refill bucket to full; no need further restore tokens
-			err = conn.Reset(r.spec, now)
-			return err
-		}
-
-		// Try to put all taken tokens.
-		_, err = conn.TakeToken(r.spec, now, -r.tokenTaken)
-		if err != nil {
-			return err
-		}
-
-		r.tokenTaken = 0
-		return nil
-	})
-
+	_, _, err := l.Storage.Update(r.spec, -r.tokenTaken)
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
