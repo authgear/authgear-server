@@ -83,6 +83,12 @@ export type AppResourcesArgs = {
 
 
 /** Authgear app */
+export type AppSecretConfigArgs = {
+  token?: InputMaybe<Scalars['String']>;
+};
+
+
+/** Authgear app */
 export type AppSubscriptionUsageArgs = {
   date: Scalars['DateTime'];
 };
@@ -109,6 +115,14 @@ export type AppResourceUpdate = {
   /** Path of the resource file to update. */
   path: Scalars['String'];
 };
+
+export enum AppSecretKey {
+  AdminApiSecrets = 'ADMIN_API_SECRETS',
+  OauthClientSecrets = 'OAUTH_CLIENT_SECRETS',
+  OauthSsoProviderClientSecrets = 'OAUTH_SSO_PROVIDER_CLIENT_SECRETS',
+  SmtpSecret = 'SMTP_SECRET',
+  WebhookSecret = 'WEBHOOK_SECRET'
+}
 
 export type CancelFailedSubscriptionPayload = {
   __typename?: 'CancelFailedSubscriptionPayload';
@@ -249,6 +263,19 @@ export type Domain = {
   verificationDNSRecord: Scalars['String'];
 };
 
+export type GenerateAppSecretVisitTokenInput = {
+  /** ID of the app. */
+  id: Scalars['ID'];
+  /** Secrets to visit. */
+  secrets: Array<AppSecretKey>;
+};
+
+export type GenerateAppSecretVisitTokenPayloadPayload = {
+  __typename?: 'GenerateAppSecretVisitTokenPayloadPayload';
+  /** The generated token */
+  token: Scalars['String'];
+};
+
 export type GenerateStripeCustomerPortalSessionInput = {
   /** Target app ID. */
   appID: Scalars['ID'];
@@ -281,6 +308,8 @@ export type Mutation = {
   deleteCollaboratorInvitation: DeleteCollaboratorInvitationPayload;
   /** Delete domain of target app */
   deleteDomain: DeleteDomainPayload;
+  /** Generate a token for visiting app secrets */
+  generateAppSecretVisitToken: GenerateAppSecretVisitTokenPayloadPayload;
   /** Generate Stripe customer portal session */
   generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
   /** Preview update subscription */
@@ -353,6 +382,11 @@ export type MutationDeleteCollaboratorInvitationArgs = {
 
 export type MutationDeleteDomainArgs = {
   input: DeleteDomainInput;
+};
+
+
+export type MutationGenerateAppSecretVisitTokenArgs = {
+  input: GenerateAppSecretVisitTokenInput;
 };
 
 

@@ -23,15 +23,19 @@ export interface AppAndSecretConfigQueryResult
   viewer: Collaborator | null;
 }
 export const useAppAndSecretConfigQuery = (
-  appID: string
+  appID: string,
+  token: string | null = null
 ): AppAndSecretConfigQueryResult => {
-  const { data, loading, error, refetch } =
-    useQuery<AppAndSecretConfigQueryQuery>(AppAndSecretConfigQueryDocument, {
-      client,
-      variables: {
-        id: appID,
-      },
-    });
+  const { data, loading, error, refetch } = useQuery<
+    AppAndSecretConfigQueryQuery,
+    AppAndSecretConfigQueryQueryVariables
+  >(AppAndSecretConfigQueryDocument, {
+    client,
+    variables: {
+      id: appID,
+      token: token,
+    },
+  });
 
   const queryData = useMemo(() => {
     const appConfigNode = data?.node?.__typename === "App" ? data.node : null;

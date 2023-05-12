@@ -9,6 +9,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
@@ -106,27 +107,66 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+type AppSecretKey string
+
+const (
+	AppSecretKeyOauthSSOProviderClientSecrets AppSecretKey = "oauthSSOProviderClientSecrets" // nolint:gosec
+	AppSecretKeyWebhookSecret                 AppSecretKey = "webhookSecret"
+	AppSecretKeyAdminAPISecrets               AppSecretKey = "adminAPISecrets"
+	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
+	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
+)
+
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
 	Fields: graphql.Fields{
-		"oauthSSOProviderClientSecrets": &graphql.Field{
+		string(AppSecretKeyOauthSSOProviderClientSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthSSOProviderClientSecret)),
 		},
-		"webhookSecret": &graphql.Field{
+		string(AppSecretKeyWebhookSecret): &graphql.Field{
 			Type: webhookSecret,
 		},
-		"adminAPISecrets": &graphql.Field{
+		string(AppSecretKeyAdminAPISecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(adminAPISecret)),
 		},
-		"smtpSecret": &graphql.Field{
+		string(AppSecretKeySmtpSecret): &graphql.Field{
 			Type: smtpSecret,
 		},
-		"oauthClientSecrets": &graphql.Field{
+		string(AppSecretKeyOauthClientSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretItem)),
 		},
 	},
 })
+
+var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
+	Name: "AppSecretKey",
+	Values: graphql.EnumValueConfigMap{
+		"OAUTH_SSO_PROVIDER_CLIENT_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeyOauthSSOProviderClientSecrets,
+		},
+		"WEBHOOK_SECRET": &graphql.EnumValueConfig{
+			Value: AppSecretKeyWebhookSecret,
+		},
+		"ADMIN_API_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeyAdminAPISecrets,
+		},
+		"SMTP_SECRET": &graphql.EnumValueConfig{
+			Value: AppSecretKeySmtpSecret,
+		},
+		"OAUTH_CLIENT_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeyOauthClientSecrets,
+		},
+	},
+})
+
+var secretKeyToConfigKeyMap map[AppSecretKey]config.SecretKey = map[AppSecretKey]config.SecretKey{
+	AppSecretKeyOauthSSOProviderClientSecrets: config.OAuthSSOProviderCredentialsKey,
+	AppSecretKeyWebhookSecret:                 config.WebhookKeyMaterialsKey,
+	AppSecretKeyAdminAPISecrets:               config.AdminAPIAuthKeyKey,
+	AppSecretKeySmtpSecret:                    config.SMTPServerCredentialsKey,
+	AppSecretKeyOauthClientSecrets:            config.OAuthClientCredentialsKey,
+}
 
 const typeApp = "App"
 
@@ -198,14 +238,26 @@ var nodeApp = node(
 			},
 			"secretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(secretConfig),
+				Args: graphql.FieldConfigArgument{
+					"token": &graphql.ArgumentConfig{
+						Type: graphql.String,
+					},
+				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
+					var token string
+					if tokenRaw, ok := p.Args["token"]; ok {
+						if t, ok := tokenRaw.(string); ok {
+							token = t
+						}
+					}
 					app := p.Source.(*model.App)
 					sessionInfo := session.GetValidSessionInfo(p.Context)
-					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo)
+					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
 					if err != nil {
 						return nil, err
 					}
+
 					return secretConfig, nil
 				},
 			},

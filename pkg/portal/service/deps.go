@@ -1,10 +1,12 @@
 package service
 
 import (
+	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/google/wire"
 )
 
 var DependencySet = wire.NewSet(
+	appsecret.DependencySet,
 	wire.Struct(new(AppService), "*"),
 	wire.Struct(new(AdminAPIService), "*"),
 	wire.Struct(new(AuthzService), "*"),
@@ -28,4 +30,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(AuthzConfigService), new(*ConfigService)),
 	wire.Bind(new(AuthzCollaboratorService), new(*CollaboratorService)),
 	wire.Bind(new(DomainConfigService), new(*ConfigService)),
+	wire.Bind(new(AppSecretVisitTokenStore), new(*appsecret.AppSecretVisitTokenStoreImpl)),
 )

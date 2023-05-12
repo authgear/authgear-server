@@ -212,6 +212,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"PROJECT_APP_UPDATED": &graphql.EnumValueConfig{
 			Value: "project.app.updated",
 		},
+		"PROJECT_APP_SECRET_VIEWED": &graphql.EnumValueConfig{
+			Value: "project.app.secret.viewed",
+		},
 		"PROJECT_BILLING_CHECKOUT_CREATED": &graphql.EnumValueConfig{
 			Value: "project.billing.checkout.created",
 		},

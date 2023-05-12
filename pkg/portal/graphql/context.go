@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
@@ -47,7 +48,12 @@ type AppService interface {
 	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
-	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo) (*model.SecretConfig, error)
+	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, error)
+	GenerateSecretVisitToken(
+		app *model.App,
+		sessionInfo *apimodel.SessionInfo,
+		visitingSecrets []config.SecretKey,
+	) (*appsecret.AppSecretVisitToken, error)
 }
 
 type DomainService interface {

@@ -329,6 +329,7 @@ const CreateOAuthClientScreen: React.VFC = function CreateOAuthClientScreen() {
   const { appID } = useParams() as { appID: string };
   const form = useAppSecretConfigForm({
     appID,
+    secretVisitToken: null,
     constructFormState,
     constructConfig,
     constructInitialCurrentState,

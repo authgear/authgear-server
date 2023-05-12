@@ -1,7 +1,7 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import {
   Dropdown,
   IDropdownOption,
@@ -61,6 +61,8 @@ import ActionButton from "../../ActionButton";
 import CodeEditor from "../../CodeEditor";
 import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { AppSecretKey } from "./globalTypes.generated";
+import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 
 const CODE_EDITOR_OPTIONS = {
   minimap: {
@@ -661,6 +663,13 @@ interface HookConfigurationScreenContentProps {
 
 interface LocationState {
   isOAuthRedirect: boolean;
+}
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isOAuthRedirect != null
+  );
 }
 
 interface CodeEditorState {
@@ -1398,16 +1407,19 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     );
   };
 
-const HookConfigurationScreen: React.VFC = function HookConfigurationScreen() {
-  const { appID } = useParams() as { appID: string };
+const HookConfigurationScreen1: React.VFC<{
+  appID: string;
+  secretToken: string | null;
+}> = function HookConfigurationScreen1({ appID, secretToken }) {
   const form = useAppSecretConfigForm({
     appID,
+    secretVisitToken: secretToken,
     constructFormState: constructConfigFormState,
     constructConfig,
   });
   const featureConfig = useAppFeatureConfigQuery(appID);
 
-  if (form.isLoading || featureConfig.loading) {
+  if (featureConfig.loading) {
     return <ShowLoading />;
   }
 
@@ -1432,6 +1444,35 @@ const HookConfigurationScreen: React.VFC = function HookConfigurationScreen() {
       hookFeatureConfig={featureConfig.effectiveFeatureConfig?.hook}
     />
   );
+};
+
+const SECRETS = [AppSecretKey.WebhookSecret];
+
+const HookConfigurationScreen: React.VFC = function HookConfigurationScreen() {
+  const { appID } = useParams() as { appID: string };
+  const location = useLocation();
+  const [shouldRefreshToken] = useState<boolean>(() => {
+    const { state } = location;
+    if (isLocationState(state) && state.isOAuthRedirect) {
+      return true;
+    }
+    return false;
+  });
+  const { token, error, retry } = useAppSecretVisitToken(
+    appID,
+    SECRETS,
+    shouldRefreshToken
+  );
+
+  if (error) {
+    return <ShowError error={error} onRetry={retry} />;
+  }
+
+  if (token === undefined) {
+    return <ShowLoading />;
+  }
+
+  return <HookConfigurationScreen1 appID={appID} secretToken={token} />;
 };
 
 export default HookConfigurationScreen;

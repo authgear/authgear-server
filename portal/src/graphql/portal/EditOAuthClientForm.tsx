@@ -17,7 +17,6 @@ import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useParams } from "react-router-dom";
 import TextField from "../../TextField";
 import TextFieldWithButton from "../../TextFieldWithButton";
-import { startReauthentication } from "./Authenticated";
 
 const MASKED_SECRET = "***************";
 
@@ -28,6 +27,7 @@ interface EditOAuthClientFormProps {
   clientSecret?: string;
   customUIEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
+  onRevealSecret: () => void;
 }
 
 export function getApplicationTypeMessageID(key?: string): string {
@@ -81,6 +81,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       publicOrigin,
       customUIEnabled,
       onClientConfigChange,
+      onRevealSecret,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -209,13 +210,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       },
       [onClientConfigChange, clientConfig]
     );
-
-    const onClickReveal = useCallback(() => {
-      startReauthentication().catch((e) => {
-        // Normally there should not be any error.
-        console.error(e);
-      });
-    }, []);
 
     const { onChange: onPolicyURIChange } = useTextField((value) => {
       onClientConfigChange(
@@ -422,7 +416,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 value={MASKED_SECRET}
                 readOnly={true}
                 buttonText={renderToString("reveal")}
-                onButtonClick={onClickReveal}
+                onButtonClick={onRevealSecret}
               />
             )
           ) : null}

@@ -1,6 +1,11 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import deepEqual from "deep-equal";
 import produce, { createDraft } from "immer";
 import {
@@ -52,6 +57,10 @@ import {
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { AppSecretKey } from "./globalTypes.generated";
+import { startReauthentication } from "./Authenticated";
+import { useLocationEffect } from "../../hook/useLocationEffect";
+import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 
 interface FormState {
   publicOrigin: string;
@@ -59,6 +68,18 @@ interface FormState {
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
+}
+
+interface LocationState {
+  isClientSecretRevealed: boolean;
+}
+
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isClientSecretRevealed != null
+  );
 }
 
 function constructFormState(
@@ -429,6 +450,16 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       [setState]
     );
 
+    const onRevealSecret = useCallback(() => {
+      const state: LocationState = {
+        isClientSecretRevealed: true,
+      };
+      startReauthentication(state).catch((e) => {
+        // Normally there should not be any error.
+        console.error(e);
+      });
+    }, []);
+
     if (client == null) {
       return (
         <Text>
@@ -450,6 +481,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             clientSecret={clientSecret}
             customUIEnabled={customUIEnabled}
             onClientConfigChange={onClientConfigChange}
+            onRevealSecret={onRevealSecret}
           />
         </div>
         <div className={styles.quickStartColumn}>
@@ -544,14 +576,15 @@ const OAuthQuickStartScreenContent: React.VFC<OAuthQuickStartScreenContentProps>
     );
   };
 
-const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
-  const { appID, clientID } = useParams() as {
-    appID: string;
-    clientID: string;
-  };
+const EditOAuthClientScreen1: React.VFC<{
+  appID: string;
+  clientID: string;
+  secretToken: string | null;
+}> = function EditOAuthClientScreen1({ appID, clientID, secretToken }) {
   const { renderToString } = useContext(Context);
   const form = useAppSecretConfigForm({
     appID,
+    secretVisitToken: secretToken,
     constructFormState,
     constructConfig,
     constructSecretUpdateInstruction,
@@ -665,6 +698,47 @@ const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
         </DialogFooter>
       </Dialog>
     </FormContainer>
+  );
+};
+
+const SECRETS = [AppSecretKey.OauthClientSecrets];
+
+const EditOAuthClientScreen: React.VFC = function EditOAuthClientScreen() {
+  const { appID, clientID } = useParams() as {
+    appID: string;
+    clientID: string;
+  };
+  const location = useLocation();
+  const [shouldRefreshToken] = useState<boolean>(() => {
+    const { state } = location;
+    if (isLocationState(state) && state.isClientSecretRevealed) {
+      return true;
+    }
+    return false;
+  });
+  useLocationEffect<LocationState>(() => {
+    // Pop the location state if exist
+  });
+  const { token, loading, error, retry } = useAppSecretVisitToken(
+    appID,
+    SECRETS,
+    shouldRefreshToken
+  );
+
+  if (error) {
+    return <ShowError error={error} onRetry={retry} />;
+  }
+
+  if (loading || token === undefined) {
+    return <ShowLoading />;
+  }
+
+  return (
+    <EditOAuthClientScreen1
+      appID={appID}
+      clientID={clientID}
+      secretToken={token}
+    />
   );
 };
 

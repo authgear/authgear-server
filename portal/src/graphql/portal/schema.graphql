@@ -79,7 +79,7 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
-  secretConfig: SecretConfig!
+  secretConfig(token: String): SecretConfig!
 
   """"""
   subscription: Subscription
@@ -128,6 +128,24 @@ input AppResourceUpdate {
 
   """Path of the resource file to update."""
   path: String!
+}
+
+""""""
+enum AppSecretKey {
+  """"""
+  ADMIN_API_SECRETS
+
+  """"""
+  OAUTH_CLIENT_SECRETS
+
+  """"""
+  OAUTH_SSO_PROVIDER_CLIENT_SECRETS
+
+  """"""
+  SMTP_SECRET
+
+  """"""
+  WEBHOOK_SECRET
 }
 
 """"""
@@ -347,6 +365,21 @@ The `FeatureConfig` scalar type represents an feature config JSON object
 scalar FeatureConfig
 
 """"""
+input GenerateAppSecretVisitTokenInput {
+  """ID of the app."""
+  id: ID!
+
+  """Secrets to visit."""
+  secrets: [AppSecretKey!]!
+}
+
+""""""
+type GenerateAppSecretVisitTokenPayloadPayload {
+  """The generated token"""
+  token: String!
+}
+
+""""""
 input GenerateStripeCustomerPortalSessionInput {
   """Target app ID."""
   appID: ID!
@@ -389,6 +422,9 @@ type Mutation {
 
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
+
+  """Generate a token for visiting app secrets"""
+  generateAppSecretVisitToken(input: GenerateAppSecretVisitTokenInput!): GenerateAppSecretVisitTokenPayloadPayload!
 
   """Generate Stripe customer portal session"""
   generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!

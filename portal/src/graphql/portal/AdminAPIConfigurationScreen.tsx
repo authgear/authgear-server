@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   DetailsList,
   IColumn,
@@ -39,6 +39,8 @@ import DefaultButton from "../../DefaultButton";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
+import { AppSecretKey } from "./globalTypes.generated";
+import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -56,6 +58,17 @@ interface Item {
 
 interface LocationState {
   keyID: string;
+  shouldRefreshSecretToken: boolean;
+}
+
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    typeof (raw as Partial<LocationState>).keyID === "string" &&
+    typeof (raw as Partial<LocationState>).shouldRefreshSecretToken ===
+      "boolean"
+  );
 }
 
 const messageBarStyles = {
@@ -142,6 +155,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
 
         const state: LocationState = {
           keyID,
+          shouldRefreshSecretToken: true,
         };
 
         startReauthentication(state).catch((e) => {
@@ -380,66 +394,100 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
     );
   };
 
-const AdminAPIConfigurationScreen: React.VFC =
-  function AdminAPIConfigurationScreen() {
-    const { appID } = useParams() as { appID: string };
-    const queryResult = useAppAndSecretConfigQuery(appID);
+const AdminAPIConfigurationScreen1: React.VFC<{
+  appID: string;
+  secretToken: string | null;
+}> = function AdminAPIConfigurationScreen1({ appID, secretToken }) {
+  const queryResult = useAppAndSecretConfigQuery(appID, secretToken);
+  const { refetch: refetchAppAndSecret } = queryResult;
 
-    const { updateAppAndSecretConfig, loading, error } =
-      useUpdateAppAndSecretConfigMutation(appID);
-    useLoading(loading);
-    useProvideError(error);
+  const { updateAppAndSecretConfig, loading, error } =
+    useUpdateAppAndSecretConfigMutation(appID);
+  useLoading(loading);
+  useProvideError(error);
 
-    const generateKey = useCallback(async () => {
+  const generateKey = useCallback(async () => {
+    const appConfig = queryResult.rawAppConfig;
+    if (appConfig == null) {
+      return;
+    }
+    const generateKeyInstruction = {
+      adminAPIAuthKey: {
+        action: "generate",
+      },
+    };
+    await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
+    await refetchAppAndSecret();
+  }, [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]);
+
+  const deleteKey = useCallback(
+    async (deleteKeyID: string) => {
       const appConfig = queryResult.rawAppConfig;
       if (appConfig == null) {
         return;
       }
-      const generateKeyInstruction = {
+      const deleteKeyInstruction = {
         adminAPIAuthKey: {
-          action: "generate",
+          action: "delete",
+          deleteData: {
+            keyID: deleteKeyID,
+          },
         },
       };
-      await updateAppAndSecretConfig(appConfig, generateKeyInstruction);
-    }, [queryResult.rawAppConfig, updateAppAndSecretConfig]);
+      await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
+      await refetchAppAndSecret();
+    },
+    [queryResult.rawAppConfig, updateAppAndSecretConfig, refetchAppAndSecret]
+  );
 
-    const deleteKey = useCallback(
-      async (deleteKeyID: string) => {
-        const appConfig = queryResult.rawAppConfig;
-        if (appConfig == null) {
-          return;
-        }
-        const deleteKeyInstruction = {
-          adminAPIAuthKey: {
-            action: "delete",
-            deleteData: {
-              keyID: deleteKeyID,
-            },
-          },
-        };
-        await updateAppAndSecretConfig(appConfig, deleteKeyInstruction);
-      },
-      [queryResult.rawAppConfig, updateAppAndSecretConfig]
+  if (queryResult.loading) {
+    return <ShowLoading />;
+  }
+
+  if (queryResult.error) {
+    return (
+      <ShowError error={queryResult.error} onRetry={queryResult.refetch} />
+    );
+  }
+
+  return (
+    <AdminAPIConfigurationScreenContent
+      appID={appID}
+      queryResult={queryResult}
+      generateKey={generateKey}
+      deleteKey={deleteKey}
+    />
+  );
+};
+
+const SECRETS = [AppSecretKey.AdminApiSecrets];
+
+const AdminAPIConfigurationScreen: React.VFC =
+  function AdminAPIConfigurationScreen() {
+    const { appID } = useParams() as { appID: string };
+    const location = useLocation();
+    const [shouldRefreshToken] = useState<boolean>(() => {
+      const { state } = location;
+      if (isLocationState(state)) {
+        return state.shouldRefreshSecretToken;
+      }
+      return false;
+    });
+    const { token, loading, error, retry } = useAppSecretVisitToken(
+      appID,
+      SECRETS,
+      shouldRefreshToken
     );
 
-    if (queryResult.loading) {
+    if (error) {
+      return <ShowError error={error} onRetry={retry} />;
+    }
+
+    if (loading || token === undefined) {
       return <ShowLoading />;
     }
 
-    if (queryResult.error) {
-      return (
-        <ShowError error={queryResult.error} onRetry={queryResult.refetch} />
-      );
-    }
-
-    return (
-      <AdminAPIConfigurationScreenContent
-        appID={appID}
-        queryResult={queryResult}
-        generateKey={generateKey}
-        deleteKey={deleteKey}
-      />
-    );
+    return <AdminAPIConfigurationScreen1 appID={appID} secretToken={token} />;
   };
 
 export default AdminAPIConfigurationScreen;

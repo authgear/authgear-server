@@ -1042,6 +1042,7 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_IDENTITY_EXECUTED": "Admin API Mutaion: Update identity",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_USER_EXECUTED": "Admin API Mutaion: Update user",
   "AuditLogActivityType.PROJECT_APP_UPDATED": "Project: Configuration updated",
+  "AuditLogActivityType.PROJECT_APP_SECRET_VIEWED": "Project: Secret viewed",
   "AuditLogActivityType.PROJECT_BILLING_CHECKOUT_CREATED": "Project: Billing checkout crreated",
   "AuditLogActivityType.PROJECT_BILLING_SUBSCRIPTION_CANCELLED": "Project: Billing subscription cancelled",
   "AuditLogActivityType.PROJECT_BILLING_SUBSCRIPTION_STATUS_UPDATED": "Project: Billing subscription status updated",
