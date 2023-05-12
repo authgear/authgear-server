@@ -21,6 +21,7 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
   instance: IntlTelInputInstance | null;
 
   static contextType = SystemConfigContext;
+  // eslint-disable-next-line react/static-property-placement
   declare context: React.ContextType<typeof SystemConfigContext>;
 
   constructor(props: PhoneTextFieldProps) {
