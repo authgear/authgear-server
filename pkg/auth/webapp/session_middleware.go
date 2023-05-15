@@ -76,28 +76,35 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Session) {
+	// When oauth session is not found, we fall back gracefully
+	// with a zero value of SessionOptions
+	sessionOptions := SessionOptions{}
+
 	entry, err := m.OAuthSessions.Get(cookie.Value)
-	if err != nil {
+	if err != nil && !errors.Is(err, oauthsession.ErrNotFound) {
 		panic(err)
 	}
-	req := entry.T.AuthorizationRequest
+	// err == nil || err == oauthsession.ErrNotFound
 
-	uiInfo, err := m.UIInfoResolver.ResolveForUI(req)
-	if err != nil {
-		panic(err)
+	if entry != nil {
+		req := entry.T.AuthorizationRequest
+		uiInfo, err := m.UIInfoResolver.ResolveForUI(req)
+		if err != nil {
+			panic(err)
+		}
+		sessionOptions = SessionOptions{
+			RedirectURI:                uiInfo.RedirectURI,
+			Prompt:                     uiInfo.Prompt,
+			UserIDHint:                 uiInfo.UserIDHint,
+			CanUseIntentReauthenticate: uiInfo.CanUseIntentReauthenticate,
+			Page:                       uiInfo.Page,
+			SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
+			OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
+			LoginHint:                  uiInfo.LoginHint,
+			FromAuthzEndpoint:          true,
+		}
 	}
 
-	sessionOptions := SessionOptions{
-		RedirectURI:                uiInfo.RedirectURI,
-		Prompt:                     uiInfo.Prompt,
-		UserIDHint:                 uiInfo.UserIDHint,
-		CanUseIntentReauthenticate: uiInfo.CanUseIntentReauthenticate,
-		Page:                       uiInfo.Page,
-		SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
-		OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
-		LoginHint:                  uiInfo.LoginHint,
-		FromAuthzEndpoint:          true,
-	}
 	session := NewSession(sessionOptions)
 
 	// We do not need to redirect here so redirectURI is unimportant.
