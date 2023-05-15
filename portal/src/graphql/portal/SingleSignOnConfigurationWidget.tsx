@@ -433,9 +433,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 : TEXT_FIELD_STYLE
             }
             multiline={isSecretFieldTextArea}
-            value={secret.clientSecret}
+            value={secret.clientSecret ?? "***************"}
             onChange={onClientSecretChange}
-            disabled={noneditable}
+            disabled={noneditable || secret.clientSecret == null}
           />
         ) : null}
         {visibleFields.has("tenant") ? (

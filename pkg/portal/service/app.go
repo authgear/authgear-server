@@ -213,15 +213,8 @@ func (s *AppService) LoadAppSecretConfig(
 		return nil, err
 	}
 
-	// Return unmasked secret if the authentication is within 5 minutes.
 	now := s.Clock.NowUTC()
-	authenticatedAt := sessionInfo.AuthenticatedAt
-	elapsed := now.Sub(authenticatedAt)
-	var canBeUnmasked bool
-	if elapsed >= 0 && elapsed < 5*time.Minute || !sessionInfo.UserCanReauthenticate {
-		canBeUnmasked = true
-	}
-	if canBeUnmasked && token != "" {
+	if token != "" {
 		tokenModel, err := s.AppSecretVisitTokenStore.GetTokenByID(app.Context.Config.AppConfig.ID, token)
 		if err != nil && !errors.Is(err, appsecret.ErrTokenNotFound) {
 			return nil, err
