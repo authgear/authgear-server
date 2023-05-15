@@ -21,6 +21,7 @@ query AuditLogListQuery(
   $pageSize: Int!
   $cursor: String
   $activityTypes: [AuditLogActivityType!]
+  $userIDs: [ID!]
   $rangeFrom: DateTime
   $rangeTo: DateTime
   $sortDirection: SortDirection
@@ -29,6 +30,7 @@ query AuditLogListQuery(
     first: $pageSize
     after: $cursor
     activityTypes: $activityTypes
+    userIDs: $userIDs
     rangeFrom: $rangeFrom
     rangeTo: $rangeTo
     sortDirection: $sortDirection

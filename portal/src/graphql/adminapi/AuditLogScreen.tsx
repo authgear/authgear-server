@@ -20,6 +20,7 @@ import {
   IContextualMenuItem,
   Pivot,
   PivotItem,
+  SearchBox,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -42,6 +43,9 @@ import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
 import CommandBarButton from "../../CommandBarButton";
+import { useDebounced } from "../../hook/useDebounced";
+import { toTypedID } from "../../util/graphql";
+import { NodeType } from "./node";
 
 const pageSize = 100;
 
@@ -117,6 +121,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const queryActivityType = searchParams.get("activity_type");
   const queryLastUpdatedAt = searchParams.get("last_updated_at");
   const queryActivityKind = searchParams.get("kind") ?? "";
+  const queryUserID = searchParams.get("user_id") ?? "";
 
   const initialOffset = useMemo(() => {
     if (queryPage != null) {
@@ -144,6 +149,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
     return AuditLogKind.User;
   });
+  const [searchUserID, setSearchUserID] = useState<string>(queryUserID);
 
   const {
     committedValue: rangeFrom,
@@ -231,6 +237,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return ALL;
   }, [availableActivityTypes, stateSelectedKey]);
 
+  const [debounedSearchUserID] = useDebounced(searchUserID, 300);
+
   const { renderToString } = useContext(Context);
 
   // When the page is refreshed, and it is on the first page,
@@ -262,6 +270,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     const newQueryActivityType = selectedKey;
     const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
     const newActivityKind = activityKind;
+    const newUserID = debounedSearchUserID;
 
     params["from"] = newQueryFrom;
     params["to"] = newQueryTo;
@@ -270,6 +279,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     params["activity_type"] = newQueryActivityType;
     params["last_updated_at"] = newQueryLastUpdatedAt;
     params["kind"] = newActivityKind;
+    params["user_id"] = newUserID;
 
     let callSet = false;
     if (newQueryFrom !== queryFrom) {
@@ -293,6 +303,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (newActivityKind !== queryActivityKind) {
       callSet = true;
     }
+    if (newUserID !== queryUserID) {
+      callSet = true;
+    }
 
     if (callSet) {
       setSearchParams(params);
@@ -313,6 +326,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setSearchParams,
     activityKind,
     queryActivityKind,
+    debounedSearchUserID,
+    queryUserID,
   ]);
 
   const activityTypeOptions = useMemo(() => {
@@ -353,6 +368,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setOffset(offset);
   }, []);
 
+  const userNodeIDs = useMemo(() => {
+    return debounedSearchUserID
+      ? [toTypedID(NodeType.User, debounedSearchUserID)]
+      : null;
+  }, [debounedSearchUserID]);
+
   const {
     data: currentData,
     previousData,
@@ -366,6 +387,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         pageSize,
         cursor,
         activityTypes,
+        userIDs: userNodeIDs,
         rangeFrom: queryRangeFrom,
         rangeTo: queryRangeTo,
         sortDirection,
@@ -434,6 +456,20 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [setLastUpdatedAt, setOffset]
   );
 
+  const onChangeSearchUserID = useCallback(
+    (e?: React.ChangeEvent<HTMLInputElement>) => {
+      if (e === undefined) {
+        return;
+      }
+      setSearchUserID(e.currentTarget.value);
+    },
+    []
+  );
+
+  const onClearSearchUserID = useCallback(() => {
+    setSearchUserID("");
+  }, []);
+
   const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     const allDateRangeLabel = renderToString("AuditLogScreen.date-range.all");
     const customDateRangeLabel = renderToString(
@@ -477,6 +513,22 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         },
       },
       {
+        key: "search",
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRender: () => {
+          return (
+            <SearchBox
+              placeholder={renderToString("AuditLogScreen.search-by-user-id")}
+              className={styles.searchBox}
+              underlined={true}
+              value={searchUserID}
+              onChange={onChangeSearchUserID}
+              onClear={onClearSearchUserID}
+            />
+          );
+        },
+      },
+      {
         key: "clear",
         text: renderToString("AuditLogScreen.clear-all-filters"),
         iconProps: {
@@ -487,6 +539,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           setRangeFromImmediately(null);
           setRangeToImmediately(null);
           setSelectedKey(ALL);
+          setSearchUserID("");
         },
         buttonStyles: {
           root: {
@@ -504,6 +557,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     activityTypeOptions,
     selectedKey,
     onChangeSelectedKey,
+    searchUserID,
+    onChangeSearchUserID,
+    onClearSearchUserID,
     setRangeFromImmediately,
     setRangeToImmediately,
   ]);
