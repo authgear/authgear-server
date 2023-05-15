@@ -11,6 +11,7 @@ export type AuditLogListQueryQueryVariables = Types.Exact<{
   pageSize: Types.Scalars['Int'];
   cursor?: Types.InputMaybe<Types.Scalars['String']>;
   activityTypes?: Types.InputMaybe<Array<Types.AuditLogActivityType> | Types.AuditLogActivityType>;
+  userIDs?: Types.InputMaybe<Array<Types.Scalars['ID']> | Types.Scalars['ID']>;
   rangeFrom?: Types.InputMaybe<Types.Scalars['DateTime']>;
   rangeTo?: Types.InputMaybe<Types.Scalars['DateTime']>;
   sortDirection?: Types.InputMaybe<Types.SortDirection>;
@@ -41,11 +42,12 @@ export const AuditLogListFragmentDoc = gql`
 }
     ${AuditLogEdgesNodeFragmentDoc}`;
 export const AuditLogListQueryDocument = gql`
-    query AuditLogListQuery($pageSize: Int!, $cursor: String, $activityTypes: [AuditLogActivityType!], $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection) {
+    query AuditLogListQuery($pageSize: Int!, $cursor: String, $activityTypes: [AuditLogActivityType!], $userIDs: [ID!], $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection) {
   auditLogs(
     first: $pageSize
     after: $cursor
     activityTypes: $activityTypes
+    userIDs: $userIDs
     rangeFrom: $rangeFrom
     rangeTo: $rangeTo
     sortDirection: $sortDirection
@@ -70,6 +72,7 @@ export const AuditLogListQueryDocument = gql`
  *      pageSize: // value for 'pageSize'
  *      cursor: // value for 'cursor'
  *      activityTypes: // value for 'activityTypes'
+ *      userIDs: // value for 'userIDs'
  *      rangeFrom: // value for 'rangeFrom'
  *      rangeTo: // value for 'rangeTo'
  *      sortDirection: // value for 'sortDirection'

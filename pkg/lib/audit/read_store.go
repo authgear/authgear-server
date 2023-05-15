@@ -17,6 +17,7 @@ type QueryPageOptions struct {
 	RangeFrom     *time.Time
 	RangeTo       *time.Time
 	ActivityTypes []string
+	UserIDs       []string
 	SortDirection model.SortDirection
 }
 
@@ -31,6 +32,10 @@ func (o QueryPageOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
 
 	if len(o.ActivityTypes) > 0 {
 		q = q.Where("activity_type = ANY (?)", pq.Array(o.ActivityTypes))
+	}
+
+	if len(o.UserIDs) > 0 {
+		q = q.Where("user_id = ANY (?)", pq.Array(o.UserIDs))
 	}
 
 	return q

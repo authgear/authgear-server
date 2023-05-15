@@ -6,6 +6,7 @@ import {
   UserQueryDocument,
   UserQueryNodeFragment,
 } from "./userQuery.generated";
+import { NodeType } from "../node";
 
 interface UserQueryResult
   extends Pick<
@@ -26,7 +27,7 @@ export function useUserQuery(userID: string): UserQueryResult {
   });
 
   const user = useMemo(() => {
-    return data?.node?.__typename === "User" ? data.node : null;
+    return data?.node?.__typename === NodeType.User ? data.node : null;
   }, [data]);
 
   return { user, loading, error, refetch };
