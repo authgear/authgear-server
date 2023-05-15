@@ -12,6 +12,12 @@ mutation updateIdentityMutation(
         edges {
           node {
             id
+            type
+            kind
+            isDefault
+            claims
+            createdAt
+            updatedAt
           }
         }
       }
@@ -19,9 +25,22 @@ mutation updateIdentityMutation(
         edges {
           node {
             id
+            type
+            claims
+            createdAt
+            updatedAt
           }
         }
       }
+      verifiedClaims {
+        name
+        value
+      }
+      standardAttributes
+      customAttributes
+      web3
+      endUserAccountID
+      updatedAt
     }
     identity {
       id
