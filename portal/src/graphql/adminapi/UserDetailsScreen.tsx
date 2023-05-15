@@ -48,6 +48,7 @@ import {
 } from "../../types";
 import { jsonPointerToString, parseJSONPointer } from "../../util/jsonpointer";
 import { formatDatetime } from "../../util/formatDatetime";
+import { extractRawID } from "../../util/graphql";
 
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
@@ -331,6 +332,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           isAnonymized={data.isAnonymized}
           profileImageURL={data.standardAttributes.picture}
           profileImageEditable={profileImageEditable}
+          rawUserID={extractRawID(data.id)}
           formattedName={data.formattedName ?? undefined}
           endUserAccountIdentifier={data.endUserAccountID ?? undefined}
           createdAtISO={data.createdAt ?? null}
@@ -350,6 +352,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         isAnonymized={data?.isAnonymized ?? false}
         profileImageURL={data?.standardAttributes.picture}
         profileImageEditable={profileImageEditable}
+        rawUserID={data?.id != null ? extractRawID(data.id) : ""}
         formattedName={data?.formattedName ?? undefined}
         endUserAccountIdentifier={data?.endUserAccountID ?? undefined}
         createdAtISO={data?.createdAt ?? null}
