@@ -6,6 +6,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -106,6 +107,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"activityTypes": &graphql.ArgumentConfig{
 					Type: graphql.NewList(graphql.NewNonNull(auditLogActivityType)),
 				},
+				"userIDs": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
+				},
 				"sortDirection": &graphql.ArgumentConfig{
 					Type: sortDirection,
 				},
@@ -136,11 +140,25 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					}
 				}
 
+				var userIDs []string
+				if arr, ok := p.Args["userIDs"].([]interface{}); ok {
+					for _, v := range arr {
+						if s, ok := v.(string); ok {
+							resolvedNodeID := relay.FromGlobalID(s)
+							if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+								return nil, apierrors.NewInvalid("invalid user IDs")
+							}
+							userIDs = append(userIDs, resolvedNodeID.ID)
+						}
+					}
+				}
+
 				queryOptions := audit.QueryPageOptions{
 					RangeFrom:     rangeFrom,
 					RangeTo:       rangeTo,
 					ActivityTypes: activityTypes,
 					SortDirection: sortDirection,
+					UserIDs:       userIDs,
 				}
 
 				refs, result, err := gqlCtx.AuditLogFacade.QueryPage(queryOptions, pageArgs)
