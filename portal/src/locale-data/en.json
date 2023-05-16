@@ -485,8 +485,7 @@
   "BiometricConfigurationScreen.list-enabled.label": "Show biometric logins list in setting page",
 
   "SingleSignOnConfigurationScreen.title": "Social / Enterprise Login",
-  "SingleSignOnConfigurationScreen.show-secrets": "Show All Client Secrets",
-  "SingleSignOnConfigurationScreen.hide-secrets": "Mask All Client Secrets",
+  "SingleSignOnConfigurationScreen.edit": "Edit",
   "SingleSignOnConfigurationScreen.description": "Add social or enterprise identity providers to enable frictionless sign-in for your users. Read the {DocLink, react, href{} children{integration guide}} if you need help.",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",

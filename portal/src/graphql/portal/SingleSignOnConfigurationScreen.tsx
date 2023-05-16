@@ -203,7 +203,7 @@ interface OAuthClientItemProps {
   form: AppSecretConfigFormModel<FormState>;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
   limitReached: boolean;
-  isSecretRevealed: boolean;
+  isEditable: boolean;
 }
 
 const OAuthClientItem: React.VFC<OAuthClientItemProps> =
@@ -213,7 +213,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
       form,
       oauthSSOFeatureConfig,
       limitReached,
-      isSecretRevealed,
+      isEditable,
     } = props;
     const {
       state: { providers, isEnabled },
@@ -229,7 +229,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
         providerType
       ] as OAuthSSOProviderFeatureConfig | null;
       return providerConfig?.disabled ?? false;
-    }, [oauthSSOFeatureConfig, providerType]);
+    }, [oauthSSOFeatureConfig?.providers, providerType]);
 
     const provider = useMemo<SSOProviderFormState>(
       () =>
@@ -334,7 +334,7 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
         onChange={onChange}
         disabled={disabled}
         limitReached={limitReached}
-        isSecretRevealed={isSecretRevealed}
+        isEditable={isEditable}
       />
     );
   };
@@ -356,50 +356,34 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       Object.values(state.isEnabled).filter(Boolean).length >=
       oauthClientsMaximum;
 
-    const isSecretExist =
-      state.providers.filter(
-        (p) =>
-          p.secret.originalAlias != null && p.secret.newClientSecret != null
-      ).length !== 0;
+    const isEditing = useMemo(
+      () =>
+        state.providers.filter(
+          (p) =>
+            p.secret.originalAlias != null && p.secret.newClientSecret != null
+        ).length !== 0,
+      [state.providers]
+    );
 
-    const [isSecretRevealed, setIsSecretRevealed] =
-      useState<boolean>(isSecretExist);
+    const onRevealSecrets = useCallback(() => {
+      const locationState: LocationState = {
+        isRevealSecrets: true,
+      };
 
-    const isSecretReallyRevealed = useMemo(() => {
-      if (!isSecretExist) return false;
-      return isSecretRevealed;
-    }, [isSecretExist, isSecretRevealed]);
-
-    const onToggleRevealSecrets = useCallback(() => {
-      if (!isSecretReallyRevealed) {
-        if (isSecretExist) {
-          setIsSecretRevealed(true);
-          return;
-        }
-        const locationState: LocationState = {
-          isRevealSecrets: true,
-        };
-
-        startReauthentication(locationState).catch((e) => {
-          // Normally there should not be any error.
-          console.error(e);
-        });
-      } else {
-        setIsSecretRevealed(false);
-      }
-    }, [isSecretExist, isSecretReallyRevealed]);
+      startReauthentication(locationState).catch((e) => {
+        // Normally there should not be any error.
+        console.error(e);
+      });
+    }, []);
 
     return (
       <ScreenContent className={styles.screenContent}>
         <div className={styles.widget}>
           <ActionButton
-            iconProps={{ iconName: isSecretReallyRevealed ? "hide" : "redeye" }}
-            text={renderToString(
-              isSecretReallyRevealed
-                ? "SingleSignOnConfigurationScreen.hide-secrets"
-                : "SingleSignOnConfigurationScreen.show-secrets"
-            )}
-            onClick={onToggleRevealSecrets}
+            iconProps={{ iconName: "Edit" }}
+            text={renderToString("SingleSignOnConfigurationScreen.edit")}
+            onClick={onRevealSecrets}
+            disabled={isEditing}
           />
         </div>
         <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
@@ -410,7 +394,7 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
               form={props.form}
               oauthSSOFeatureConfig={oauthSSOFeatureConfig}
               limitReached={limitReached}
-              isSecretRevealed={isSecretReallyRevealed}
+              isEditable={isEditing}
             />
           ))}
           <MessageBar

@@ -49,7 +49,7 @@ interface SingleSignOnConfigurationWidgetProps {
 
   disabled: boolean;
   limitReached: boolean;
-  isSecretRevealed: boolean;
+  isEditable: boolean;
 }
 
 type WidgetTextFieldKey =
@@ -252,9 +252,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       config,
       secret,
       onChange,
-      disabled,
+      disabled: featureDisabled,
       limitReached,
-      isSecretRevealed,
+      isEditable,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -373,7 +373,22 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       return !isEnabled && limitReached;
     }, [limitReached, isEnabled]);
 
-    const noneditable = !isEnabled || disabled || disabledByLimitReached;
+    const noneditable =
+      !isEnabled || featureDisabled || disabledByLimitReached || !isEditable;
+
+    const masking = isEnabled ? "***************" : "";
+
+    const canToggle = useMemo(() => {
+      if (!isEditable) {
+        // Not in edit mode, no toggle possible.
+        return false;
+      }
+      // Can only turn off if limit reached or feature disabled
+      if (featureDisabled || disabledByLimitReached) {
+        return isEnabled;
+      }
+      return true;
+    }, [featureDisabled, disabledByLimitReached, isEditable, isEnabled]);
 
     return (
       <Widget
@@ -388,9 +403,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           checked={isEnabled}
           onChange={onIsEnabledChange}
           messageID={messageID}
-          disabled={Boolean(!isEnabled && (disabled || disabledByLimitReached))}
+          disabled={!canToggle}
         />
-        {disabled ? (
+        {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
         {visibleFields.has("alias") ? (
@@ -436,14 +451,12 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             }
             multiline={isSecretFieldTextArea}
             value={
-              !isSecretRevealed || secret.newClientSecret == null
-                ? "***************"
+              noneditable || secret.newClientSecret == null
+                ? masking
                 : secret.newClientSecret
             }
             onChange={onClientSecretChange}
-            disabled={
-              noneditable || secret.newClientSecret == null || !isSecretRevealed
-            }
+            disabled={noneditable || secret.newClientSecret == null}
           />
         ) : null}
         {visibleFields.has("tenant") ? (
