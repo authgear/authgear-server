@@ -124,7 +124,8 @@ func (i *OAuthSSOProviderCredentialsUpdateInstruction) set(currentConfig *Secret
 		} else {
 			// This is an update of exist secret
 			var originalItem *OAuthSSOProviderCredentialsItem = nil
-			for _, existingItem := range existingCredentialItems {
+			for _, it := range existingCredentialItems {
+				existingItem := it
 				if existingItem.Alias == *dataItem.OriginalAlias {
 					originalItem = &existingItem
 					break
