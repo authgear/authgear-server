@@ -14,5 +14,5 @@
 
 /* Increase specificity to override the original class */
 .screenContent.screenContent {
-  padding-top: 0px;
+  padding-top: 0;
 }
