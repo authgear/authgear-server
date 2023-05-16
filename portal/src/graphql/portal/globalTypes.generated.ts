@@ -484,8 +484,9 @@ export type OAuthSsoProviderClientSecret = {
 };
 
 export type OAuthSsoProviderClientSecretInput = {
-  alias: Scalars['String'];
-  clientSecret: Scalars['String'];
+  newAlias: Scalars['String'];
+  newClientSecret?: InputMaybe<Scalars['String']>;
+  originalAlias?: InputMaybe<Scalars['String']>;
 };
 
 export type OAuthSsoProviderClientSecretsUpdateInstructionsInput = {

@@ -32,6 +32,7 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
+  SSOProviderFormSecretViewModel,
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.css";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -44,7 +45,7 @@ import {
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
-  secret: OAuthSSOProviderClientSecret;
+  secret: SSOProviderFormSecretViewModel;
 }
 
 interface FormState {
@@ -65,12 +66,21 @@ function constructFormState(
 
   const providers: SSOProviderFormState[] = [];
   for (const config of providerList) {
+    const existingSecret = secretMap.get(config.alias);
+    const secretViewModel: SSOProviderFormSecretViewModel = existingSecret
+      ? {
+          originalAlias: existingSecret.alias,
+          newAlias: existingSecret.alias,
+          newClientSecret: existingSecret.clientSecret ?? null,
+        }
+      : {
+          originalAlias: config.alias,
+          newAlias: config.alias,
+          newClientSecret: "",
+        };
     providers.push({
       config,
-      secret: secretMap.get(config.alias) ?? {
-        alias: config.alias,
-        clientSecret: "",
-      },
+      secret: secretViewModel,
     });
   }
 
@@ -114,7 +124,10 @@ function constructConfig(
     const clientSecrets: OAuthSSOProviderClientSecret[] = [];
     for (const p of providers) {
       configs.push(p.config);
-      clientSecrets.push(p.secret);
+      clientSecrets.push({
+        alias: p.secret.newAlias,
+        clientSecret: p.secret.newClientSecret,
+      });
     }
 
     config.identity ??= {};
@@ -148,19 +161,13 @@ function constructConfig(
 
 function constructSecretUpdateInstruction(
   _config: PortalAPIAppConfig,
-  secretConfig: PortalAPISecretConfig,
-  _currentState: FormState
+  _secretConfig: PortalAPISecretConfig,
+  currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
   return {
     oauthSSOProviderClientSecrets: {
       action: "set",
-      data:
-        secretConfig.oauthSSOProviderClientSecrets?.map((s) => {
-          return {
-            alias: s.alias,
-            clientSecret: s.clientSecret,
-          };
-        }) ?? [],
+      data: currentState.providers.map((p) => p.secret),
     },
   };
 }
@@ -210,8 +217,9 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
             ...(appType && { app_type: appType }),
           },
           secret: {
-            alias: defaultAlias(providerType, appType),
-            clientSecret: "",
+            originalAlias: null,
+            newAlias: defaultAlias(providerType, appType),
+            newClientSecret: "",
           },
         },
       [providers, providerType, appType]
@@ -254,16 +262,33 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
     );
 
     const onChange = useCallback(
-      (config: OAuthSSOProviderConfig, secret: OAuthSSOProviderClientSecret) =>
+      (
+        config: OAuthSSOProviderConfig,
+        secret: SSOProviderFormSecretViewModel
+      ) =>
         setState((state) =>
           produce(state, (state) => {
-            const index = state.providers.findIndex((p) =>
+            const existingIdx = state.providers.findIndex((p) =>
               isOAuthSSOProvider(p.config, providerType, appType)
             );
-            if (index === -1) {
-              state.providers.push({ config, secret });
-            } else if (index >= 0) {
-              state.providers[index] = { config, secret };
+            if (existingIdx === -1) {
+              state.providers.push({
+                config,
+                secret: {
+                  originalAlias: null,
+                  newAlias: secret.newAlias,
+                  newClientSecret: secret.newClientSecret,
+                },
+              });
+            } else {
+              state.providers[existingIdx] = {
+                config,
+                secret: {
+                  originalAlias: secret.originalAlias,
+                  newAlias: secret.newAlias,
+                  newClientSecret: secret.newClientSecret,
+                },
+              };
             }
           })
         ),

@@ -526,10 +526,13 @@ type OAuthSSOProviderClientSecret {
 """"""
 input OAuthSSOProviderClientSecretInput {
   """"""
-  alias: String!
+  newAlias: String!
 
   """"""
-  clientSecret: String!
+  newClientSecret: String
+
+  """"""
+  originalAlias: String
 }
 
 """"""

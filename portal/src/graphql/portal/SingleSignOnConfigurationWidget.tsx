@@ -7,11 +7,11 @@ import Widget from "../../Widget";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
-  OAuthSSOProviderClientSecret,
   OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
   OAuthSSOProviderType,
   OAuthSSOWeChatAppType,
+  SSOProviderFormSecretViewModel,
 } from "../../types";
 
 import styles from "./SingleSignOnConfigurationWidget.module.css";
@@ -41,10 +41,10 @@ interface SingleSignOnConfigurationWidgetProps {
   onIsEnabledChange: (value: boolean) => void;
 
   config: OAuthSSOProviderConfig;
-  secret: OAuthSSOProviderClientSecret;
+  secret: SSOProviderFormSecretViewModel;
   onChange: (
     config: OAuthSSOProviderConfig,
-    secret: OAuthSSOProviderClientSecret
+    secret: SSOProviderFormSecretViewModel
   ) => void;
 
   disabled: boolean;
@@ -282,7 +282,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       (_, value?: string) =>
         onChange(
           { ...config, alias: value ?? "" },
-          { ...secret, alias: value ?? "" }
+          { ...secret, newAlias: value ?? "" }
         ),
       [onChange, config, secret]
     );
@@ -323,7 +323,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const onClientSecretChange = useCallback(
       (_, value?: string) =>
-        onChange(config, { ...secret, clientSecret: value ?? "" }),
+        onChange(config, { ...secret, newClientSecret: value ?? "" }),
       [onChange, config, secret]
     );
     const onAccountIDChange = useCallback(
@@ -433,9 +433,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 : TEXT_FIELD_STYLE
             }
             multiline={isSecretFieldTextArea}
-            value={secret.clientSecret ?? "***************"}
+            value={secret.newClientSecret ?? "***************"}
             onChange={onClientSecretChange}
-            disabled={noneditable || secret.clientSecret == null}
+            disabled={noneditable || secret.newClientSecret == null}
           />
         ) : null}
         {visibleFields.has("tenant") ? (
