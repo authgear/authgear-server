@@ -66,8 +66,7 @@ func TestSecretConfigUpdateInstruction(t *testing.T) {
 			Convey(testCase.Name, func() {
 				var err error
 
-				var currentSecretConfig *config.SecretConfig
-				err = yaml.Unmarshal([]byte(testCase.CurrentSecretConfigYAML), &currentSecretConfig)
+				currentSecretConfig, err := config.ParseSecret([]byte(testCase.CurrentSecretConfigYAML))
 				So(err, ShouldBeNil)
 
 				var updateInstruction *config.SecretConfigUpdateInstruction
