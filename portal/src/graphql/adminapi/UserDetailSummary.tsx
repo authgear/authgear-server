@@ -24,6 +24,7 @@ interface UserDetailSummaryProps {
   className?: string;
   isAnonymous: boolean;
   isAnonymized: boolean;
+  rawUserID: string;
   formattedName?: string;
   endUserAccountIdentifier: string | undefined;
   profileImageURL: string | undefined;
@@ -37,6 +38,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
     const {
       isAnonymous,
       isAnonymized,
+      rawUserID,
       formattedName,
       endUserAccountIdentifier,
       profileImageURL,
@@ -78,6 +80,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
               <FormattedMessage id="UsersList.anonymized-user" />
             </Text>
           ) : null}
+          <Text variant="medium">{rawUserID}</Text>
           {endUserAccountIdentifier &&
           shouldRenderExplorerURL(endUserAccountIdentifier) ? (
             <ExternalLink href={explorerAddress(endUserAccountIdentifier)}>
