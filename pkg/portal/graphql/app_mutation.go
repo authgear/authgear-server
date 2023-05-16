@@ -38,11 +38,14 @@ var appResourceUpdate = graphql.NewInputObject(graphql.InputObjectConfig{
 var oauthSSOProviderClientSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "OAuthSSOProviderClientSecretInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"alias": &graphql.InputObjectFieldConfig{
+		"originalAlias": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+		"newAlias": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
-		"clientSecret": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+		"newClientSecret": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
 		},
 	},
 })

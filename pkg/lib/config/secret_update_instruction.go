@@ -69,8 +69,9 @@ type SecretConfigUpdateInstructionInterface interface {
 }
 
 type OAuthSSOProviderCredentialsUpdateInstructionDataItem struct {
-	Alias        string `json:"alias,omitempty"`
-	ClientSecret string `json:"clientSecret,omitempty"`
+	OriginalAlias   *string `json:"originalAlias,omitempty"`
+	NewAlias        string  `json:"newAlias,omitempty"`
+	NewClientSecret *string `json:"newClientSecret,omitempty"`
 }
 
 type OAuthSSOProviderCredentialsUpdateInstruction struct {
@@ -93,7 +94,7 @@ func (i *OAuthSSOProviderCredentialsUpdateInstruction) set(currentConfig *Secret
 		out.Secrets = append(out.Secrets, item)
 	}
 
-	idx, _, found := out.LookupDataWithIndex(OAuthSSOProviderCredentialsKey)
+	idx, secretData, found := out.LookupDataWithIndex(OAuthSSOProviderCredentialsKey)
 	if len(i.Data) == 0 {
 		// remove the secret item
 		if found {
@@ -102,16 +103,54 @@ func (i *OAuthSSOProviderCredentialsUpdateInstruction) set(currentConfig *Secret
 		return out, nil
 	}
 
-	credentials := &OAuthSSOProviderCredentials{}
-	for _, i := range i.Data {
-		credentials.Items = append(credentials.Items, OAuthSSOProviderCredentialsItem{
-			Alias:        i.Alias,
-			ClientSecret: i.ClientSecret,
-		})
+	existingCredentialItems := []OAuthSSOProviderCredentialsItem{}
+	if found {
+		existingCredentialItems = secretData.(*OAuthSSOProviderCredentials).Items
+	}
+
+	newCredentialItems := []OAuthSSOProviderCredentialsItem{}
+
+	for _, dataItem := range i.Data {
+		if dataItem.OriginalAlias == nil {
+			// This is a new secret
+			if dataItem.NewClientSecret == nil {
+				// New secret cannot have null client secret, return error
+				return nil, fmt.Errorf("missing client secret for new item")
+			}
+			newCredentialItems = append(newCredentialItems, OAuthSSOProviderCredentialsItem{
+				Alias:        dataItem.NewAlias,
+				ClientSecret: *dataItem.NewClientSecret,
+			})
+		} else {
+			// This is an update of exist secret
+			var originalItem *OAuthSSOProviderCredentialsItem = nil
+			for _, existingItem := range existingCredentialItems {
+				if existingItem.Alias == *dataItem.OriginalAlias {
+					originalItem = &existingItem
+					break
+				}
+			}
+			if originalItem == nil {
+				// Cannot find the original item, return error
+				return nil, fmt.Errorf("original client secret item not found")
+			}
+			newClientSecret := originalItem.ClientSecret
+			if dataItem.NewClientSecret != nil {
+				newClientSecret = *dataItem.NewClientSecret
+			}
+			newCredentialItems = append(newCredentialItems, OAuthSSOProviderCredentialsItem{
+				Alias:        dataItem.NewAlias,
+				ClientSecret: newClientSecret,
+			})
+		}
+	}
+
+	newCredentials := &OAuthSSOProviderCredentials{
+		Items: newCredentialItems,
 	}
 
 	var data []byte
-	data, err := json.Marshal(credentials)
+	data, err := json.Marshal(newCredentials)
 	if err != nil {
 		return nil, err
 	}
