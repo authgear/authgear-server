@@ -49,6 +49,7 @@ interface SingleSignOnConfigurationWidgetProps {
 
   disabled: boolean;
   limitReached: boolean;
+  isSecretRevealed: boolean;
 }
 
 type WidgetTextFieldKey =
@@ -253,6 +254,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       onChange,
       disabled,
       limitReached,
+      isSecretRevealed,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -433,9 +435,15 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 : TEXT_FIELD_STYLE
             }
             multiline={isSecretFieldTextArea}
-            value={secret.newClientSecret ?? "***************"}
+            value={
+              !isSecretRevealed || secret.newClientSecret == null
+                ? "***************"
+                : secret.newClientSecret
+            }
             onChange={onClientSecretChange}
-            disabled={noneditable || secret.newClientSecret == null}
+            disabled={
+              noneditable || secret.newClientSecret == null || !isSecretRevealed
+            }
           />
         ) : null}
         {visibleFields.has("tenant") ? (

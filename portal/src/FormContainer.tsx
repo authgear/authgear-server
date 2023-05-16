@@ -40,6 +40,9 @@ export interface FormContainerProps {
   afterSave?: () => void;
   children?: React.ReactNode;
   hideCommandBar?: boolean;
+  renderHeaderContent?: (
+    defaultHeaderContent: React.ReactNode
+  ) => React.ReactNode;
 }
 
 const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
@@ -65,6 +68,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
     beforeSave = async () => Promise.resolve(),
     afterSave,
     hideCommandBar,
+    renderHeaderContent,
   } = props;
 
   const contextError = useConsumeError();
@@ -167,6 +171,7 @@ const FormContainer: React.VFC<FormContainerProps> = function FormContainer(
       fallbackErrorMessageID={fallbackErrorMessageID}
     >
       <CommandBarContainer
+        renderHeaderContent={renderHeaderContent}
         hideCommandBar={hideCommandBar}
         isLoading={isUpdating}
         primaryItems={items}

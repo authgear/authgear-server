@@ -1,8 +1,11 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import {
+  Context as IntlContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -42,6 +45,22 @@ import {
   useAuthgearGTMEventBase,
   useGTMDispatch,
 } from "../../GTMProvider";
+import { useLocationEffect } from "../../hook/useLocationEffect";
+import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
+import { AppSecretKey } from "./globalTypes.generated";
+import ActionButton from "../../ActionButton";
+import { startReauthentication } from "./Authenticated";
+
+interface LocationState {
+  isRevealSecrets: boolean;
+}
+function isLocationState(raw: unknown): raw is LocationState {
+  return (
+    raw != null &&
+    typeof raw === "object" &&
+    (raw as Partial<LocationState>).isRevealSecrets != null
+  );
+}
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
@@ -184,12 +203,18 @@ interface OAuthClientItemProps {
   form: AppSecretConfigFormModel<FormState>;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
   limitReached: boolean;
+  isSecretRevealed: boolean;
 }
 
 const OAuthClientItem: React.VFC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
-    const { providerItemKey, form, oauthSSOFeatureConfig, limitReached } =
-      props;
+    const {
+      providerItemKey,
+      form,
+      oauthSSOFeatureConfig,
+      limitReached,
+      isSecretRevealed,
+    } = props;
     const {
       state: { providers, isEnabled },
       setState,
@@ -309,55 +334,83 @@ const OAuthClientItem: React.VFC<OAuthClientItemProps> =
         onChange={onChange}
         disabled={disabled}
         limitReached={limitReached}
+        isSecretRevealed={isSecretRevealed}
       />
     );
   };
 
 interface SingleSignOnConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
+  oauthClientsMaximum: number;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
 }
 
 const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationContentProps> =
   function SingleSignOnConfigurationContent(props) {
-    const { oauthSSOFeatureConfig } = props;
+    const { oauthSSOFeatureConfig, oauthClientsMaximum } = props;
     const { state } = props.form;
 
-    const oauthClientsMaximum = useMemo(
-      () => oauthSSOFeatureConfig?.maximum_providers ?? 99,
-      [oauthSSOFeatureConfig?.maximum_providers]
-    );
+    const { renderToString } = useContext(IntlContext);
 
     const limitReached =
       Object.values(state.isEnabled).filter(Boolean).length >=
       oauthClientsMaximum;
 
+    const isSecretExist =
+      state.providers.filter(
+        (p) =>
+          p.secret.originalAlias != null && p.secret.newClientSecret != null
+      ).length !== 0;
+
+    const [isSecretRevealed, setIsSecretRevealed] =
+      useState<boolean>(isSecretExist);
+
+    const isSecretReallyRevealed = useMemo(() => {
+      if (!isSecretExist) return false;
+      return isSecretRevealed;
+    }, [isSecretExist, isSecretRevealed]);
+
+    const onToggleRevealSecrets = useCallback(() => {
+      if (!isSecretReallyRevealed) {
+        if (isSecretExist) {
+          setIsSecretRevealed(true);
+          return;
+        }
+        const locationState: LocationState = {
+          isRevealSecrets: true,
+        };
+
+        startReauthentication(locationState).catch((e) => {
+          // Normally there should not be any error.
+          console.error(e);
+        });
+      } else {
+        setIsSecretRevealed(false);
+      }
+    }, [isSecretExist, isSecretReallyRevealed]);
+
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-        </ScreenTitle>
+      <ScreenContent className={styles.screenContent}>
+        <div className={styles.widget}>
+          <ActionButton
+            iconProps={{ iconName: isSecretReallyRevealed ? "hide" : "redeye" }}
+            text={renderToString(
+              isSecretReallyRevealed
+                ? "SingleSignOnConfigurationScreen.hide-secrets"
+                : "SingleSignOnConfigurationScreen.show-secrets"
+            )}
+            onClick={onToggleRevealSecrets}
+          />
+        </div>
         <ShowOnlyIfSIWEIsDisabled className={styles.widget}>
-          <ScreenDescription className={styles.widget}>
-            <Text className={styles.description} block={true}>
-              <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
-            </Text>
-            {oauthClientsMaximum < 99 ? (
-              <FeatureDisabledMessageBar
-                messageID="FeatureConfig.sso.maximum"
-                messageValues={{
-                  maximum: oauthClientsMaximum,
-                }}
-              />
-            ) : null}
-          </ScreenDescription>
           {oauthSSOProviderItemKeys.map((providerItemKey) => (
             <OAuthClientItem
               key={providerItemKey}
               providerItemKey={providerItemKey}
               form={props.form}
-              oauthSSOFeatureConfig={props.oauthSSOFeatureConfig}
+              oauthSSOFeatureConfig={oauthSSOFeatureConfig}
               limitReached={limitReached}
+              isSecretRevealed={isSecretReallyRevealed}
             />
           ))}
           <MessageBar
@@ -371,78 +424,149 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
     );
   };
 
-const SingleSignOnConfigurationScreen: React.VFC =
-  function SingleSignOnConfigurationScreen() {
-    const { appID } = useParams() as { appID: string };
-    const config = useAppSecretConfigForm({
-      appID,
-      secretVisitToken: null,
-      constructFormState,
-      constructConfig,
-      constructSecretUpdateInstruction,
-    });
+const SingleSignOnConfigurationScreen1: React.VFC<{
+  appID: string;
+  secretVisitToken: string | null;
+}> = function SingleSignOnConfigurationScreen1({ appID, secretVisitToken }) {
+  const config = useAppSecretConfigForm({
+    appID,
+    secretVisitToken,
+    constructFormState,
+    constructConfig,
+    constructSecretUpdateInstruction,
+  });
 
-    const featureConfig = useAppFeatureConfigQuery(appID);
+  const featureConfig = useAppFeatureConfigQuery(appID);
 
-    const sendDataToGTM = useGTMDispatch();
-    const gtmEventBase = useAuthgearGTMEventBase();
-    const save = useCallback(async () => {
-      // compare if there is any newly added providers
-      // then send the gtm event
-      const initialProvidersKey = config.state.initialProvidersKey;
-      const currentProvidersKey = config.state.providers
-        .map((p) =>
-          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
-        )
-        .filter((key) => config.state.isEnabled[key]);
-      const addedProviders = currentProvidersKey.filter(
-        (t) => !initialProvidersKey.includes(t)
-      );
-
-      await config.save();
-      if (addedProviders.length > 0) {
-        const event: AuthgearGTMEvent = {
-          ...gtmEventBase,
-          event: AuthgearGTMEventType.AddedSSOProviders,
-          event_data: {
-            providers: addedProviders,
-          },
-        };
-        sendDataToGTM(event);
-      }
-    }, [config, gtmEventBase, sendDataToGTM]);
-
-    const form: AppSecretConfigFormModel<FormState> = {
-      ...config,
-      save,
-    };
-
-    if (form.isLoading || featureConfig.loading) {
-      return <ShowLoading />;
-    }
-
-    if (form.loadError ?? featureConfig.error) {
-      return (
-        <ShowError
-          error={form.loadError ?? featureConfig.error}
-          onRetry={() => {
-            form.reload();
-            featureConfig.refetch().finally(() => {});
-          }}
-        />
-      );
-    }
-
-    return (
-      <FormContainer form={form}>
-        <SingleSignOnConfigurationContent
-          form={form}
-          oauthSSOFeatureConfig={
-            featureConfig.effectiveFeatureConfig?.identity?.oauth
-          }
-        />
-      </FormContainer>
+  const sendDataToGTM = useGTMDispatch();
+  const gtmEventBase = useAuthgearGTMEventBase();
+  const save = useCallback(async () => {
+    // compare if there is any newly added providers
+    // then send the gtm event
+    const initialProvidersKey = config.state.initialProvidersKey;
+    const currentProvidersKey = config.state.providers
+      .map((p) =>
+        createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
+      )
+      .filter((key) => config.state.isEnabled[key]);
+    const addedProviders = currentProvidersKey.filter(
+      (t) => !initialProvidersKey.includes(t)
     );
+
+    await config.save();
+    if (addedProviders.length > 0) {
+      const event: AuthgearGTMEvent = {
+        ...gtmEventBase,
+        event: AuthgearGTMEventType.AddedSSOProviders,
+        event_data: {
+          providers: addedProviders,
+        },
+      };
+      sendDataToGTM(event);
+    }
+  }, [config, gtmEventBase, sendDataToGTM]);
+
+  const form: AppSecretConfigFormModel<FormState> = {
+    ...config,
+    save,
   };
+
+  const oauthClientsMaximum = useMemo(
+    () =>
+      featureConfig.effectiveFeatureConfig?.identity?.oauth
+        ?.maximum_providers ?? 99,
+    [featureConfig.effectiveFeatureConfig?.identity?.oauth?.maximum_providers]
+  );
+
+  const renderHeaderContent = useCallback(
+    (defaultHeader: React.ReactNode) => {
+      return (
+        <>
+          <div className={styles.headerContent}>
+            <ScreenTitle>
+              <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+            </ScreenTitle>
+            <ScreenDescription>
+              <Text className={styles.description} block={true}>
+                <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
+              </Text>
+              {oauthClientsMaximum < 99 ? (
+                <FeatureDisabledMessageBar
+                  messageID="FeatureConfig.sso.maximum"
+                  messageValues={{
+                    maximum: oauthClientsMaximum,
+                  }}
+                />
+              ) : null}
+            </ScreenDescription>
+          </div>
+          {defaultHeader}
+        </>
+      );
+    },
+    [oauthClientsMaximum]
+  );
+
+  if (form.isLoading || featureConfig.loading) {
+    return <ShowLoading />;
+  }
+
+  if (form.loadError ?? featureConfig.error) {
+    return (
+      <ShowError
+        error={form.loadError ?? featureConfig.error}
+        onRetry={() => {
+          form.reload();
+          featureConfig.refetch().finally(() => {});
+        }}
+      />
+    );
+  }
+
+  return (
+    <FormContainer form={form} renderHeaderContent={renderHeaderContent}>
+      <SingleSignOnConfigurationContent
+        form={form}
+        oauthSSOFeatureConfig={
+          featureConfig.effectiveFeatureConfig?.identity?.oauth
+        }
+        oauthClientsMaximum={oauthClientsMaximum}
+      />
+    </FormContainer>
+  );
+};
+
+const SECRETS = [AppSecretKey.OauthSsoProviderClientSecrets];
+
+const SingleSignOnConfigurationScreen: React.VFC = () => {
+  const { appID } = useParams() as { appID: string };
+  const state = useLocationEffect(() => {
+    // Pop the state
+  });
+  const [shouldRefreshToken] = useState<boolean>(() => {
+    if (isLocationState(state) && state.isRevealSecrets) {
+      return true;
+    }
+    return false;
+  });
+
+  const { token, error, loading, retry } = useAppSecretVisitToken(
+    appID,
+    SECRETS,
+    shouldRefreshToken
+  );
+
+  if (error) {
+    return <ShowError error={error} onRetry={retry} />;
+  }
+
+  if (token === undefined || loading) {
+    return <ShowLoading />;
+  }
+
+  return (
+    <SingleSignOnConfigurationScreen1 appID={appID} secretVisitToken={token} />
+  );
+};
 
 export default SingleSignOnConfigurationScreen;

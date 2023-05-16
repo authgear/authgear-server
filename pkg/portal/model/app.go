@@ -78,7 +78,8 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 		for _, item := range oauthSSOProviderCredentials.Items {
 			var clientSecret *string = nil
 			if _, exist := unmaskedSecretsSet[config.OAuthSSOProviderCredentialsKey]; exist {
-				clientSecret = &item.ClientSecret
+				s := item.ClientSecret
+				clientSecret = &s
 			}
 			out.OAuthSSOProviderClientSecrets = append(out.OAuthSSOProviderClientSecrets, OAuthSSOProviderClientSecret{
 				Alias:        item.Alias,

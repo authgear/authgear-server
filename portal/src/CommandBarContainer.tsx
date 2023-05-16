@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   CommandBar,
   ICommandBarItemProps,
@@ -29,6 +29,9 @@ export interface CommandBarContainerProps {
   children?: React.ReactNode;
   hideCommandBar?: boolean;
   headerPosition?: "static" | "sticky";
+  renderHeaderContent?: (
+    defaultHeaderContent: React.ReactNode
+  ) => React.ReactNode;
 }
 
 const CommandBarContainer: React.VFC<CommandBarContainerProps> =
@@ -41,17 +44,12 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
       messageBar,
       hideCommandBar,
       headerPosition = "sticky",
+      renderHeaderContent,
     } = props;
 
-    return (
-      <>
-        <div
-          className={
-            headerPosition === "sticky"
-              ? styles.headerSticky
-              : styles.headerStatic
-          }
-        >
+    const defaultHeaderContent = useMemo(() => {
+      return (
+        <>
           {hideCommandBar === true ? null : (
             <CommandBar
               className={styles.commandBar}
@@ -65,6 +63,22 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
             styles={progressIndicatorStyles}
             className={!isLoading ? styles.hidden : ""}
           />
+        </>
+      );
+    }, [hideCommandBar, isLoading, messageBar, primaryItems, secondaryItems]);
+
+    return (
+      <>
+        <div
+          className={
+            headerPosition === "sticky"
+              ? styles.headerSticky
+              : styles.headerStatic
+          }
+        >
+          {renderHeaderContent
+            ? renderHeaderContent(defaultHeaderContent)
+            : defaultHeaderContent}
         </div>
         <div className={cn(styles.content, className)}>{props.children}</div>
       </>
