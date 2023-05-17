@@ -520,7 +520,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
             <SearchBox
               placeholder={renderToString("AuditLogScreen.search-by-user-id")}
               className={styles.searchBox}
-              underlined={true}
               value={searchUserID}
               onChange={onChangeSearchUserID}
               onClear={onClearSearchUserID}
