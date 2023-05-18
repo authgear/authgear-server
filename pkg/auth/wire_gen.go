@@ -75,7 +75,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -1581,24 +1580,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -1616,7 +1597,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2340,24 +2321,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -2375,7 +2338,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -3592,24 +3555,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -3627,7 +3572,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	manager2 := &session.Manager{
 		IDPSessions:         manager,
 		AccessTokenSessions: sessionManager,
@@ -4136,24 +4081,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -4171,7 +4098,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4931,24 +4858,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -4966,7 +4875,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5693,24 +5602,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -5728,7 +5619,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6561,24 +6452,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -6596,7 +6469,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7370,24 +7243,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -7405,7 +7260,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8178,24 +8033,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -8213,7 +8050,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8974,24 +8811,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -9009,7 +8828,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9763,24 +9582,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -9798,7 +9599,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10542,24 +10343,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -10577,7 +10360,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11324,24 +11107,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -11359,7 +11124,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12109,24 +11874,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -12144,7 +11891,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12896,24 +12643,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -12931,7 +12660,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13681,24 +13410,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -13716,7 +13427,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14462,24 +14173,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -14497,7 +14190,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15247,24 +14940,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -15282,7 +14957,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16033,24 +15708,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -16068,7 +15725,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16818,24 +16475,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -16853,7 +16492,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17603,24 +17242,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -17638,7 +17259,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18390,24 +18011,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -18425,7 +18028,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19175,24 +18778,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -19210,7 +18795,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19960,24 +19545,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -19995,7 +19562,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20749,24 +20316,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -20784,7 +20333,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21534,24 +21083,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -21569,7 +21100,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22342,24 +21873,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -22377,7 +21890,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -23127,24 +22640,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -23162,7 +22657,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -23920,24 +23415,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -23955,7 +23432,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -24716,24 +24193,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -24751,7 +24210,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25501,24 +24960,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -25536,7 +24977,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26282,24 +25723,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -26317,7 +25740,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27067,24 +26490,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -27102,7 +26507,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27848,24 +27253,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -27883,7 +27270,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -28639,24 +28026,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -28674,7 +28043,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -29420,24 +28789,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -29455,7 +28806,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30203,24 +29554,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -30238,7 +29571,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -30984,24 +30317,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -31019,7 +30334,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -31797,24 +31112,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -31832,7 +31129,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -32589,24 +31886,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -32624,7 +31903,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -33394,24 +32673,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -33429,7 +32690,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34183,24 +33444,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -34218,7 +33461,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -34965,24 +34208,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -35000,7 +34225,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -35755,24 +34980,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -35790,7 +34997,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -36537,24 +35744,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -36572,7 +35761,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -37319,24 +36508,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -37354,7 +36525,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38101,24 +37272,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -38136,7 +37289,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -38884,24 +38037,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -38919,7 +38054,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -39685,24 +38820,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -39720,7 +38837,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -40467,24 +39584,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -40502,7 +39601,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -41249,24 +40348,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -41284,7 +40365,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42031,24 +41112,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -42066,7 +41129,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -42813,24 +41876,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -42848,7 +41893,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -43602,24 +42647,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -43637,7 +42664,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -44385,24 +43412,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -44420,7 +43429,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45166,24 +44175,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -45201,7 +44192,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -45962,24 +44953,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -45997,7 +44970,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -46743,24 +45716,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -46778,7 +45733,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -47524,24 +46479,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -47559,7 +46496,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -48323,24 +47260,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -48358,7 +47277,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -49068,24 +47987,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -49103,7 +48004,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -49812,24 +48713,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -49847,7 +48730,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -50603,24 +49486,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -50638,7 +49503,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -51385,24 +50250,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -51420,7 +50267,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -52148,24 +50995,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -52183,7 +51012,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -52884,24 +51713,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -52919,7 +51730,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -53592,24 +52403,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -53627,7 +52420,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -54617,24 +53410,6 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -54652,7 +53427,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clockClock,
@@ -55127,24 +53902,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -55162,7 +53919,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -55956,24 +54713,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -55991,7 +54730,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
