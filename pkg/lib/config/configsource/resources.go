@@ -407,8 +407,8 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearSecretYAML)
 	}
 
-	var original config.SecretConfig
-	err := yaml.Unmarshal(resrc.Data, &original)
+	var original *config.SecretConfig
+	original, err := config.ParseSecret(resrc.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
@@ -431,7 +431,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		GenerateClientSecretOctetKeyFunc: secrets.GenerateOctetKey,
 		GenerateAdminAPIAuthKeyFunc:      secrets.GenerateRSAKey,
 	}
-	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, &original)
+	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, original)
 	if err != nil {
 		return nil, err
 	}

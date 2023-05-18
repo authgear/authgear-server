@@ -1,3 +1,5 @@
+import { OAuthSsoProviderClientSecretInput } from "./graphql/portal/globalTypes.generated";
+
 // type aliases in JSON schema
 export type DurationString = string;
 export type DurationSeconds = number;
@@ -555,7 +557,7 @@ export interface PortalAPIAppConfig {
 
 export interface OAuthSSOProviderClientSecret {
   alias: string;
-  clientSecret: string;
+  clientSecret?: string | null;
 }
 
 export interface WebhookSecret {
@@ -595,9 +597,13 @@ export interface PortalAPISecretConfig {
   oauthClientSecrets?: OAuthClientSecret[] | null;
 }
 
-export interface OAuthSSOProviderClientSecretUpdateInstructionDataItem {
-  alias: string;
-  clientSecret: string;
+export interface OAuthSSOProviderClientSecretUpdateInstructionDataItem
+  extends OAuthSsoProviderClientSecretInput {}
+
+export interface SSOProviderFormSecretViewModel {
+  originalAlias: string | null;
+  newAlias: string;
+  newClientSecret: string | null;
 }
 
 export interface OAuthSSOProviderClientSecretUpdateInstruction {

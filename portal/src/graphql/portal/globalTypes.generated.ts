@@ -480,12 +480,13 @@ export type OAuthClientSecretsUpdateInstructionsInput = {
 export type OAuthSsoProviderClientSecret = {
   __typename?: 'OAuthSSOProviderClientSecret';
   alias: Scalars['String'];
-  clientSecret: Scalars['String'];
+  clientSecret?: Maybe<Scalars['String']>;
 };
 
 export type OAuthSsoProviderClientSecretInput = {
-  alias: Scalars['String'];
-  clientSecret: Scalars['String'];
+  newAlias: Scalars['String'];
+  newClientSecret?: InputMaybe<Scalars['String']>;
+  originalAlias?: InputMaybe<Scalars['String']>;
 };
 
 export type OAuthSsoProviderClientSecretsUpdateInstructionsInput = {

@@ -30,8 +30,8 @@ type WebhookSecret struct {
 }
 
 type OAuthSSOProviderClientSecret struct {
-	Alias        string `json:"alias,omitempty"`
-	ClientSecret string `json:"clientSecret,omitempty"`
+	Alias        string  `json:"alias,omitempty"`
+	ClientSecret *string `json:"clientSecret,omitempty"`
 }
 
 type AdminAPISecret struct {
@@ -76,11 +76,15 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 
 	if oauthSSOProviderCredentials, ok := secretConfig.LookupData(config.OAuthSSOProviderCredentialsKey).(*config.OAuthSSOProviderCredentials); ok {
 		for _, item := range oauthSSOProviderCredentials.Items {
+			var clientSecret *string = nil
+			if _, exist := unmaskedSecretsSet[config.OAuthSSOProviderCredentialsKey]; exist {
+				s := item.ClientSecret
+				clientSecret = &s
+			}
 			out.OAuthSSOProviderClientSecrets = append(out.OAuthSSOProviderClientSecrets, OAuthSSOProviderClientSecret{
 				Alias:        item.Alias,
-				ClientSecret: item.ClientSecret,
+				ClientSecret: clientSecret,
 			})
-			// TODO(tung): mask the secret if key is not in unmaskedSecrets
 		}
 	}
 

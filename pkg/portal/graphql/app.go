@@ -25,7 +25,7 @@ var oauthSSOProviderClientSecret = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"clientSecret": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.String),
+			Type: graphql.String,
 		},
 	},
 })

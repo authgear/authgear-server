@@ -69,11 +69,12 @@ export function useAppSecretConfigForm<State>(
     refetch: reload,
   } = useAppAndSecretConfigQuery(appID, secretVisitToken);
   const {
-    loading: isUpdating,
     error: updateError,
     updateAppAndSecretConfig: updateConfig,
     resetError,
   } = useUpdateAppAndSecretConfigMutation(appID);
+
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const effectiveConfig = useMemo(
     () => effectiveAppConfig ?? { id: appID },
@@ -154,11 +155,13 @@ export function useAppSecretConfigForm<State>(
         )
       : undefined;
 
+    setIsUpdating(true);
     try {
       await updateConfig(newConfig[0], secretUpdateInstruction);
       await reload();
       setCurrentState(null);
     } finally {
+      setIsUpdating(false);
     }
   }, [
     rawAppConfig,

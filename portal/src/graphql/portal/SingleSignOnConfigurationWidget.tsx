@@ -7,11 +7,11 @@ import Widget from "../../Widget";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
-  OAuthSSOProviderClientSecret,
   OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
   OAuthSSOProviderType,
   OAuthSSOWeChatAppType,
+  SSOProviderFormSecretViewModel,
 } from "../../types";
 
 import styles from "./SingleSignOnConfigurationWidget.module.css";
@@ -41,14 +41,15 @@ interface SingleSignOnConfigurationWidgetProps {
   onIsEnabledChange: (value: boolean) => void;
 
   config: OAuthSSOProviderConfig;
-  secret: OAuthSSOProviderClientSecret;
+  secret: SSOProviderFormSecretViewModel;
   onChange: (
     config: OAuthSSOProviderConfig,
-    secret: OAuthSSOProviderClientSecret
+    secret: SSOProviderFormSecretViewModel
   ) => void;
 
   disabled: boolean;
   limitReached: boolean;
+  isEditable: boolean;
 }
 
 type WidgetTextFieldKey =
@@ -251,8 +252,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       config,
       secret,
       onChange,
-      disabled,
+      disabled: featureDisabled,
       limitReached,
+      isEditable,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -282,7 +284,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       (_, value?: string) =>
         onChange(
           { ...config, alias: value ?? "" },
-          { ...secret, alias: value ?? "" }
+          { ...secret, newAlias: value ?? "" }
         ),
       [onChange, config, secret]
     );
@@ -323,7 +325,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
 
     const onClientSecretChange = useCallback(
       (_, value?: string) =>
-        onChange(config, { ...secret, clientSecret: value ?? "" }),
+        onChange(config, { ...secret, newClientSecret: value ?? "" }),
       [onChange, config, secret]
     );
     const onAccountIDChange = useCallback(
@@ -371,7 +373,22 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       return !isEnabled && limitReached;
     }, [limitReached, isEnabled]);
 
-    const noneditable = !isEnabled || disabled || disabledByLimitReached;
+    const noneditable =
+      !isEnabled || featureDisabled || disabledByLimitReached || !isEditable;
+
+    const masking = isEnabled ? "***************" : "";
+
+    const canToggle = useMemo(() => {
+      if (!isEditable) {
+        // Not in edit mode, no toggle possible.
+        return false;
+      }
+      // Can only turn off if limit reached or feature disabled
+      if (featureDisabled || disabledByLimitReached) {
+        return isEnabled;
+      }
+      return true;
+    }, [featureDisabled, disabledByLimitReached, isEditable, isEnabled]);
 
     return (
       <Widget
@@ -386,9 +403,9 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           checked={isEnabled}
           onChange={onIsEnabledChange}
           messageID={messageID}
-          disabled={Boolean(!isEnabled && (disabled || disabledByLimitReached))}
+          disabled={!canToggle}
         />
-        {disabled ? (
+        {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
         {visibleFields.has("alias") ? (
@@ -433,9 +450,13 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
                 : TEXT_FIELD_STYLE
             }
             multiline={isSecretFieldTextArea}
-            value={secret.clientSecret}
+            value={
+              noneditable || secret.newClientSecret == null
+                ? masking
+                : secret.newClientSecret
+            }
             onChange={onClientSecretChange}
-            disabled={noneditable}
+            disabled={noneditable || secret.newClientSecret == null}
           />
         ) : null}
         {visibleFields.has("tenant") ? (
