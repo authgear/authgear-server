@@ -69,7 +69,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -580,24 +579,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	globaldbSQLBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.DatabasePool
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	globaldbHandle := globaldb.NewHandle(contextContext, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	globaldbSQLExecutor := globaldb.NewSQLExecutor(contextContext, globaldbHandle)
-	tutorialStoreImpl := &tutorial.StoreImpl{
-		SQLBuilder:  globaldbSQLBuilder,
-		SQLExecutor: globaldbSQLExecutor,
-	}
-	tutorialService := &tutorial.Service{
-		Store: tutorialStoreImpl,
-	}
-	tutorialSink := &tutorial.Sink{
-		AppID:        appID,
-		Service:      tutorialService,
-		GlobalHandle: globaldbHandle,
-	}
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	service5 := elasticsearch.Service{
 		AppID:     appID,
@@ -612,7 +593,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Service:  service5,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, tutorialSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
