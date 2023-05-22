@@ -110,7 +110,7 @@ func (s *Store) List(userID string) ([]*identity.LoginID, error) {
 
 func (s *Store) ListByClaim(name string, value string) ([]*identity.LoginID, error) {
 	q := s.selectQuery().
-		Where("(l.claims #>> ?) = ?", pq.Array([]string{name}), value)
+		Where("(l.claims ->> ?) = ?", name, value)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {

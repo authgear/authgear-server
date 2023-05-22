@@ -129,7 +129,7 @@ func (s *Store) List(userID string) ([]*identity.OAuth, error) {
 
 func (s *Store) ListByClaim(name string, value string) ([]*identity.OAuth, error) {
 	q := s.selectQuery().
-		Where("(o.claims #>> ?) = ?", pq.Array([]string{name}), value)
+		Where("(o.claims ->> ?) = ?", name, value)
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
