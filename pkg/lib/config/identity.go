@@ -398,7 +398,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"alias": { "type": "string" },
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
 		"modify_disabled": { "type": "boolean" },
-		"client_id": { "type": "string" },
+		"client_id": { "type": "string", "minLength": 1 },
 		"claims": { "$ref": "#/$defs/OAuthClaimsConfig" },
 		"tenant": { "type": "string" },
 		"policy": { "type": "string" },
@@ -450,7 +450,7 @@ type OAuthSSOProviderConfig struct {
 	Alias          string               `json:"alias,omitempty"`
 	Type           OAuthSSOProviderType `json:"type,omitempty"`
 	ModifyDisabled *bool                `json:"modify_disabled,omitempty"`
-	ClientID       string               `json:"client_id,omitempty"`
+	ClientID       string               `json:"client_id"`
 	Claims         *OAuthClaimsConfig   `json:"claims,omitempty"`
 
 	// Tenant is specific to `azureadv2` and `azureadb2c`
