@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -49,18 +48,17 @@ type Store interface {
 	DeleteWorkflow(workflow *Workflow) error
 }
 
-type Savepoint interface {
-	Begin() error
-	Rollback() error
-	Commit() error
+type ServiceDatabase interface {
+	WithTx(do func() error) (err error)
+	ReadOnly(do func() error) (err error)
 }
 
 type Service struct {
 	ContextDoNotUseDirectly context.Context
 	Deps                    *Dependencies
 	Logger                  ServiceLogger
-	Savepoint               Savepoint
 	Store                   Store
+	Database                ServiceDatabase
 }
 
 func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
@@ -72,10 +70,14 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
-	// createNewWorkflow uses defer statement to manage savepoint.
-	workflow, workflowOutput, action, err := s.createNewWorkflow(ctx, session, intent)
+	var workflow *Workflow
+	var workflowOutput *WorkflowOutput
+	var action *WorkflowAction
+	err = s.Database.ReadOnly(func() error {
+		workflow, workflowOutput, action, err = s.createNewWorkflow(ctx, session, intent)
+		return err
+	})
 	isEOF := errors.Is(err, ErrEOF)
-	// At this point, no savepoint is active.
 	if err != nil && !isEOF {
 		return
 	}
@@ -84,7 +86,10 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 
 	var cookies []*http.Cookie
 	if isEOF {
-		cookies, err = s.finishWorkflow(ctx, workflow)
+		err = s.Database.WithTx(func() error {
+			cookies, err = s.finishWorkflow(ctx, workflow)
+			return err
+		})
 		if err != nil {
 			return
 		}
@@ -115,25 +120,6 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 }
 
 func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
-	// The first thing we need to do is to create a database savepoint.
-	err = s.Savepoint.Begin()
-	if err != nil {
-		return
-	}
-
-	// We always rollback.
-	defer func() {
-		rollbackErr := s.Savepoint.Rollback()
-		if rollbackErr != nil {
-			if err == nil {
-				err = rollbackErr
-			} else {
-				err = errorutil.WithSecondaryError(err, rollbackErr)
-			}
-			return
-		}
-	}()
-
 	workflow = NewWorkflow(session.WorkflowID, intent)
 
 	// A new workflow does not have any nodes.
@@ -199,23 +185,14 @@ func (s *Service) Get(workflowID string, instanceID string, userAgentID string) 
 
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
-	err = s.Savepoint.Begin()
-	if err != nil {
-		return
-	}
+	err = s.Database.ReadOnly(func() error {
+		output, err = s.get(ctx, session, w)
+		return err
+	})
+	return
+}
 
-	defer func() {
-		rollbackErr := s.Savepoint.Rollback()
-		if rollbackErr != nil {
-			if err == nil {
-				err = rollbackErr
-			} else {
-				err = errorutil.WithSecondaryError(err, rollbackErr)
-			}
-			return
-		}
-	}()
-
+func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (output *ServiceOutput, err error) {
 	// Apply the run-effects.
 	err = w.ApplyRunEffects(ctx, s.Deps)
 	if err != nil {
@@ -267,10 +244,13 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
-	// feedInput uses defer statement to manage savepoint.
-	workflow, workflowOutput, action, err := s.feedInput(ctx, session, instanceID, input)
+	var workflowOutput *WorkflowOutput
+	var action *WorkflowAction
+	err = s.Database.ReadOnly(func() error {
+		workflow, workflowOutput, action, err = s.feedInput(ctx, session, instanceID, input)
+		return err
+	})
 	isEOF := errors.Is(err, ErrEOF)
-	// At this point, no savepoint is active.
 	if err != nil && !isEOF {
 		return
 	}
@@ -279,7 +259,10 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 
 	var cookies []*http.Cookie
 	if isEOF {
-		cookies, err = s.finishWorkflow(ctx, workflow)
+		err = s.Database.WithTx(func() error {
+			cookies, err = s.finishWorkflow(ctx, workflow)
+			return err
+		})
 		if err != nil {
 			return
 		}
@@ -310,25 +293,6 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 }
 
 func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
-	// The first thing we need to do is to create a database savepoint.
-	err = s.Savepoint.Begin()
-	if err != nil {
-		return
-	}
-
-	// We always rollback.
-	defer func() {
-		rollbackErr := s.Savepoint.Rollback()
-		if rollbackErr != nil {
-			if err == nil {
-				err = rollbackErr
-			} else {
-				err = errorutil.WithSecondaryError(err, rollbackErr)
-			}
-			return
-		}
-	}()
-
 	workflow, err = s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -373,35 +337,6 @@ func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cooki
 	// When the workflow is finished, we have the following things to do:
 	// 1. Apply all effects.
 	// 2. Collect cookies.
-
-	// The first thing we need to do is to create a database savepoint.
-	err = s.Savepoint.Begin()
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			rollbackErr := s.Savepoint.Rollback()
-			if rollbackErr != nil {
-				s.Logger.WithError(rollbackErr).Error("workflow failed to rollback")
-			}
-			panic(r)
-		} else if err != nil {
-			rollbackErr := s.Savepoint.Rollback()
-			if rollbackErr != nil {
-				if err == nil {
-					err = rollbackErr
-				} else {
-					err = errorutil.WithSecondaryError(err, rollbackErr)
-				}
-				return
-			}
-		} else {
-			err = s.Savepoint.Commit()
-		}
-	}()
-
 	err = workflow.ApplyAllEffects(ctx, s.Deps)
 	if err != nil {
 		return

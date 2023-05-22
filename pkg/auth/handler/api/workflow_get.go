@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -26,7 +25,6 @@ type WorkflowGetCookieManager interface {
 }
 
 type WorkflowGetHandler struct {
-	Database  *appdb.Handle
 	JSON      JSONResponseWriter
 	Workflows WorkflowGetWorkflowService
 	Cookies   WorkflowGetCookieManager
@@ -38,16 +36,7 @@ func (h *WorkflowGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
-	var output *workflow.ServiceOutput
-	var err error
-	err = h.Database.WithTx(func() error {
-		output, err = h.Workflows.Get(workflowID, instanceID, userAgentID)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return

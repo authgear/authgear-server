@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -51,7 +50,6 @@ type WorkflowInputCookieManager interface {
 }
 
 type WorkflowInputHandler struct {
-	Database  *appdb.Handle
 	JSON      JSONResponseWriter
 	Workflows WorkflowInputWorkflowService
 	Cookies   WorkflowNewCookieManager
@@ -72,11 +70,7 @@ func (h *WorkflowInputHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
-	var output *workflow.ServiceOutput
-	err = h.Database.WithTx(func() error {
-		output, err = h.handle(w, r, workflowID, instanceID, userAgentID, request)
-		return err
-	})
+	output, err := h.handle(w, r, workflowID, instanceID, userAgentID, request)
 	if err != nil {
 		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
@@ -129,15 +123,7 @@ func (h *WorkflowInputHandler) prepareErrorResponse(
 	userAgentID string,
 	workflowErr error,
 ) (*api.Response, error) {
-	var output *workflow.ServiceOutput
-	var err error
-	err = h.Database.ReadOnly(func() error {
-		output, err = h.Workflows.Get(workflowID, instanceID, userAgentID)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
 	if err != nil {
 		return nil, err
 	}

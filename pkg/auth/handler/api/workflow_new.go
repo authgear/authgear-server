@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -71,7 +70,6 @@ type WorkflowNewUIInfoResolver interface {
 }
 
 type WorkflowNewHandler struct {
-	Database       *appdb.Handle
 	JSON           JSONResponseWriter
 	Cookies        WorkflowNewCookieManager
 	Workflows      WorkflowNewWorkflowService
@@ -88,11 +86,7 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var output *workflow.ServiceOutput
-	err = h.Database.WithTx(func() error {
-		output, err = h.handle(w, r, request)
-		return err
-	})
+	output, err := h.handle(w, r, request)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
