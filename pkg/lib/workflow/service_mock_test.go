@@ -119,67 +119,53 @@ func (mr *MockStoreMockRecorder) GetWorkflowByInstanceID(instanceID interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflowByInstanceID", reflect.TypeOf((*MockStore)(nil).GetWorkflowByInstanceID), instanceID)
 }
 
-// MockSavepoint is a mock of Savepoint interface.
-type MockSavepoint struct {
+// MockServiceDatabase is a mock of ServiceDatabase interface.
+type MockServiceDatabase struct {
 	ctrl     *gomock.Controller
-	recorder *MockSavepointMockRecorder
+	recorder *MockServiceDatabaseMockRecorder
 }
 
-// MockSavepointMockRecorder is the mock recorder for MockSavepoint.
-type MockSavepointMockRecorder struct {
-	mock *MockSavepoint
+// MockServiceDatabaseMockRecorder is the mock recorder for MockServiceDatabase.
+type MockServiceDatabaseMockRecorder struct {
+	mock *MockServiceDatabase
 }
 
-// NewMockSavepoint creates a new mock instance.
-func NewMockSavepoint(ctrl *gomock.Controller) *MockSavepoint {
-	mock := &MockSavepoint{ctrl: ctrl}
-	mock.recorder = &MockSavepointMockRecorder{mock}
+// NewMockServiceDatabase creates a new mock instance.
+func NewMockServiceDatabase(ctrl *gomock.Controller) *MockServiceDatabase {
+	mock := &MockServiceDatabase{ctrl: ctrl}
+	mock.recorder = &MockServiceDatabaseMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSavepoint) EXPECT() *MockSavepointMockRecorder {
+func (m *MockServiceDatabase) EXPECT() *MockServiceDatabaseMockRecorder {
 	return m.recorder
 }
 
-// Begin mocks base method.
-func (m *MockSavepoint) Begin() error {
+// ReadOnly mocks base method.
+func (m *MockServiceDatabase) ReadOnly(do func() error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Begin")
+	ret := m.ctrl.Call(m, "ReadOnly", do)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Begin indicates an expected call of Begin.
-func (mr *MockSavepointMockRecorder) Begin() *gomock.Call {
+// ReadOnly indicates an expected call of ReadOnly.
+func (mr *MockServiceDatabaseMockRecorder) ReadOnly(do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Begin", reflect.TypeOf((*MockSavepoint)(nil).Begin))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockServiceDatabase)(nil).ReadOnly), do)
 }
 
-// Commit mocks base method.
-func (m *MockSavepoint) Commit() error {
+// WithTx mocks base method.
+func (m *MockServiceDatabase) WithTx(do func() error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Commit")
+	ret := m.ctrl.Call(m, "WithTx", do)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Commit indicates an expected call of Commit.
-func (mr *MockSavepointMockRecorder) Commit() *gomock.Call {
+// WithTx indicates an expected call of WithTx.
+func (mr *MockServiceDatabaseMockRecorder) WithTx(do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Commit", reflect.TypeOf((*MockSavepoint)(nil).Commit))
-}
-
-// Rollback mocks base method.
-func (m *MockSavepoint) Rollback() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Rollback")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Rollback indicates an expected call of Rollback.
-func (mr *MockSavepointMockRecorder) Rollback() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rollback", reflect.TypeOf((*MockSavepoint)(nil).Rollback))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockServiceDatabase)(nil).WithTx), do)
 }

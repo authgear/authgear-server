@@ -50595,7 +50595,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 
 func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -50618,6 +50617,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -51264,15 +51264,12 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		WorkflowEvents:           eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
-	savePointImpl := &workflow.SavePointImpl{
-		SQLExecutor: sqlExecutor,
-	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
 		Deps:                    dependencies,
 		Logger:                  serviceLogger,
-		Savepoint:               savePointImpl,
 		Store:                   workflowStoreImpl,
+		Database:                handle,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
@@ -51302,7 +51299,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 	}
 	workflowNewHandler := &api.WorkflowNewHandler{
-		Database:       handle,
 		JSON:           jsonResponseWriter,
 		Cookies:        cookieManager,
 		Workflows:      workflowService,
@@ -51314,7 +51310,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 
 func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -51335,6 +51330,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -51983,18 +51979,14 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		WorkflowEvents:           eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
-	savePointImpl := &workflow.SavePointImpl{
-		SQLExecutor: sqlExecutor,
-	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
 		Deps:                    dependencies,
 		Logger:                  serviceLogger,
-		Savepoint:               savePointImpl,
 		Store:                   workflowStoreImpl,
+		Database:                handle,
 	}
 	workflowGetHandler := &api.WorkflowGetHandler{
-		Database:  handle,
 		JSON:      jsonResponseWriter,
 		Workflows: workflowService,
 		Cookies:   cookieManager,
@@ -52004,7 +51996,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 
 func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -52025,6 +52016,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -52673,18 +52665,14 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		WorkflowEvents:           eventStoreImpl,
 	}
 	serviceLogger := workflow.NewServiceLogger(factory)
-	savePointImpl := &workflow.SavePointImpl{
-		SQLExecutor: sqlExecutor,
-	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
 		Deps:                    dependencies,
 		Logger:                  serviceLogger,
-		Savepoint:               savePointImpl,
 		Store:                   workflowStoreImpl,
+		Database:                handle,
 	}
 	workflowInputHandler := &api.WorkflowInputHandler{
-		Database:  handle,
 		JSON:      jsonResponseWriter,
 		Workflows: workflowService,
 		Cookies:   cookieManager,
