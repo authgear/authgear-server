@@ -166,9 +166,9 @@ func (h *HookHandle) beginTx() (*sqlx.Tx, error) {
 		return nil, err
 	}
 
-	tx, err := db.BeginTxx(h.Context, &sql.TxOptions{
-		Isolation: sql.LevelRepeatableRead,
-	})
+	// Pass a nil TxOptions to use default isolation level.
+	var txOptions *sql.TxOptions
+	tx, err := db.BeginTxx(h.Context, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
