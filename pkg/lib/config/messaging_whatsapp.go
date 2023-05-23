@@ -97,14 +97,26 @@ var _ = Schema.Add("WhatsappConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"enabled": { "type": "boolean" },
 		"api_type": { "$ref": "#/$defs/WhatsappAPIType" },
 		"api_endpoint": { "type": "string", "minLength": 1 },
 		"templates": { "$ref": "#/$defs/WhatsappTemplatesConfig" }
 	},
-	"required": ["api_type", "templates"],
 	"allOf": [
 		{
-			"if": { "properties": { "api_type": { "const": "on-premises" } } },
+			"if": {
+				"properties": { "enabled": { "enum": [true] } },
+        "required": ["enabled"]
+			},
+			"then": {
+				"required": ["api_type", "templates"]
+			}
+		},
+		{
+			"if": {
+        "properties": { "api_type": { "const": "on-premises" } },
+        "required": ["api_type"]
+      },
 			"then": {
 				"required": ["api_endpoint"]
 			}
@@ -114,7 +126,13 @@ var _ = Schema.Add("WhatsappConfig", `
 `)
 
 type WhatsappConfig struct {
-	APIType     WhatsappAPIType          `json:"api_type"`
-	APIEndpoint *string                  `json:"api_endpoint,omitempty"`
-	Templates   *WhatsappTemplatesConfig `json:"templates"`
+	Enabled     bool                     `json:"enabled"`
+	APIType     WhatsappAPIType          `json:"api_type,omitempty"`
+	APIEndpoint string                   `json:"api_endpoint,omitempty"`
+	Templates   *WhatsappTemplatesConfig `json:"templates,omitempty"`
+}
+
+func (c *WhatsappConfig) SetDefaults() {
+	c.Enabled = false
+	c.Templates = nil
 }
