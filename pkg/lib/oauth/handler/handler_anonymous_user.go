@@ -321,6 +321,9 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 	}
 
 	identities, err := h.AnonymousIdentities.List(userID)
+	if err != nil {
+		return
+	}
 	if len(identities) != 1 {
 		panic(fmt.Errorf("api: expected has 1 anonymous identity for anonymous user, got %d", len(identities)))
 	}
