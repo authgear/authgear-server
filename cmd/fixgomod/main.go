@@ -2,7 +2,7 @@ package main
 
 import (
 	// nolint: typecheck
-	"github.com/btcsuite/btcd"
+	_ "github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
 func main() {
