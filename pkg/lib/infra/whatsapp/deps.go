@@ -6,4 +6,6 @@ import (
 
 var DependencySet = wire.NewSet(
 	NewWhatsappOnPremisesClient,
+	wire.Struct(new(TokenStore), "*"),
+	wire.Struct(new(Client), "*"),
 )

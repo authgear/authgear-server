@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,33 +12,80 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type WhatsappOnPremisesClient struct {
-	HTTPClient *http.Client
-	Endpoint   *url.URL
+type OnPremisesClient struct {
+	HTTPClient  *http.Client
+	Endpoint    *url.URL
+	Credentials *config.WhatsappOnPremisesCredentials
+	TokenStore  *TokenStore
 }
 
 func NewWhatsappOnPremisesClient(
-	config *config.WhatsappConfig) *WhatsappOnPremisesClient {
-	if !config.Enabled || config.APIEndpoint == "" {
+	config *config.WhatsappConfig,
+	credentials *config.WhatsappOnPremisesCredentials,
+	tokenStore *TokenStore) *OnPremisesClient {
+	if !config.Enabled || config.APIEndpoint == "" || credentials == nil {
 		return nil
 	}
 	endpoint, err := url.Parse(config.APIEndpoint)
 	if err != nil {
 		panic(err)
 	}
-	return &WhatsappOnPremisesClient{
-		HTTPClient: http.DefaultClient,
-		Endpoint:   endpoint,
+	return &OnPremisesClient{
+		HTTPClient:  http.DefaultClient,
+		Endpoint:    endpoint,
+		Credentials: credentials,
+		TokenStore:  tokenStore,
 	}
 }
 
-func (c *WhatsappOnPremisesClient) SendTemplate(
+func (c *OnPremisesClient) SendTemplate(
+	to string,
+	templateName string,
+	templateLanguage string,
+	templateComponents []TemplateComponent) error {
+	token, err := c.TokenStore.Get(c.Credentials.Namespace, c.Credentials.Username)
+	if err != nil {
+		return err
+	}
+	refreshToken := func() error {
+		token, err = c.login()
+		if err != nil {
+			return err
+		}
+		return c.TokenStore.Set(token)
+	}
+	if token == nil {
+		err := refreshToken()
+		if err != nil {
+			return err
+		}
+	}
+	var send func(retryOnUnauthorized bool) error
+	send = func(retryOnUnauthorized bool) error {
+		err = c.sendTemplate(token.Token, to, templateName, templateLanguage, templateComponents)
+		if err != nil {
+			if retryOnUnauthorized && errors.Is(err, ErrUnauthorized) {
+				err := refreshToken()
+				if err != nil {
+					return err
+				}
+				return send(false)
+			} else {
+				return err
+			}
+		}
+		return nil
+	}
+	return send(true)
+}
+
+func (c *OnPremisesClient) sendTemplate(
 	authToken string,
 	to string,
 	templateName string,
 	templateLanguage string,
-	templateComponents []TemplateComponent,
-	namespace string) error {
+	templateComponents []TemplateComponent) error {
+	url := c.Endpoint.JoinPath("/v1/messages")
 	body := &SendTemplateRequest{
 		RecipientType: "individual",
 		To:            to,
@@ -49,7 +97,7 @@ func (c *WhatsappOnPremisesClient) SendTemplate(
 				Code:   templateLanguage,
 			},
 			Components: templateComponents,
-			Namespace:  &namespace,
+			Namespace:  &c.Credentials.Namespace,
 		},
 	}
 
@@ -57,8 +105,6 @@ func (c *WhatsappOnPremisesClient) SendTemplate(
 	if err != nil {
 		return err
 	}
-
-	url := c.Endpoint.JoinPath("/v1/messages")
 
 	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer(jsonBody))
 	if err != nil {
@@ -73,6 +119,10 @@ func (c *WhatsappOnPremisesClient) SendTemplate(
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == 401 {
+		return ErrUnauthorized
+	}
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return ErrUnexpectedStatus
 	}
@@ -80,16 +130,13 @@ func (c *WhatsappOnPremisesClient) SendTemplate(
 	return nil
 }
 
-func (c *WhatsappOnPremisesClient) Login(
-	username string,
-	password string,
-) (*LoginResponseUser, error) {
+func (c *OnPremisesClient) login() (*UserToken, error) {
 	url := c.Endpoint.JoinPath("/v1/users/login")
 	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth(username, password)
+	req.SetBasicAuth(c.Credentials.Username, c.Credentials.Password)
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -113,5 +160,10 @@ func (c *WhatsappOnPremisesClient) Login(
 		return nil, ErrUnexpectedLoginResponse
 	}
 
-	return &loginResponse.Users[0], nil
+	return &UserToken{
+		Namespace: c.Credentials.Namespace,
+		Username:  c.Credentials.Username,
+		Token:     loginResponse.Users[0].Token,
+		ExpireAt:  loginResponse.Users[0].ExpiresAfter,
+	}, nil
 }

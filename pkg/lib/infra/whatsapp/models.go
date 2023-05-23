@@ -46,3 +46,10 @@ type LoginResponseUser struct {
 	Token        string    `json:"token"`
 	ExpiresAfter time.Time `json:"expires_after"`
 }
+
+type UserToken struct {
+	Namespace string    `json:"namespace"`
+	Username  string    `json:"username"`
+	Token     string    `json:"token"`
+	ExpireAt  time.Time `json:"expire_at"`
+}
