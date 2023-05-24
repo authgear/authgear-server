@@ -827,12 +827,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:       tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
+		Context:         contextContext,
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
 		WhatsappSender:  whatsappClient,
 		WhatsappConfig:  whatsappConfig,
+		TemplateEngine:  engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,

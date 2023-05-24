@@ -66,21 +66,19 @@ var _ = Schema.Add("WhatsappTemplateConfig", `
 				"type": "string",
 				"minLength": 1
 			}
+		},
+		"components": {
+			"$ref": "#/$defs/WhatsappTemplateComponentConfig"
 		}
 	},
 	"required": ["name", "type", "languages"],
 	"allOf": [
 		{
 			"if": {
-				"properties": { "type": { "enum": ["util"] } },
+				"properties": { "type": { "const": "util" } },
         "required": ["type"]
 			},
 			"then": {
-				"properties": {
-					"components": {
-						"$ref": "#/$defs/WhatsappTemplateComponentConfig"
-					}
-				},
 				"required": ["components"]
 			}
 		}

@@ -1,6 +1,8 @@
 package whatsapp
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -8,6 +10,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type EventService interface {
@@ -30,12 +34,28 @@ type WhatsappSender interface {
 }
 
 type Provider struct {
+	Context         context.Context
 	Config          *config.AppConfig
 	WATICredentials *config.WATICredentials
 	Events          EventService
 	OTPCodeService  OTPCodeService
 	WhatsappSender  WhatsappSender
 	WhatsappConfig  *config.WhatsappConfig
+	TemplateEngine  *template.Engine
+}
+
+type templateData struct {
+	Code string
+}
+
+func (p *Provider) resolveTemplateLanguage(supportedLanguages []string) string {
+	if len(supportedLanguages) < 1 {
+		panic("whatsapp: template has no supported language")
+	}
+	preferredLanguageTags := intl.GetPreferredLanguageTags(p.Context)
+	supportedLanguageTags := intl.Supported(supportedLanguages, intl.Fallback(supportedLanguages[0]))
+	idx, _ := intl.Match(preferredLanguageTags, supportedLanguageTags)
+	return supportedLanguageTags[idx]
 }
 
 func (p *Provider) GetServerWhatsappPhone() string {
@@ -88,50 +108,62 @@ func (p *Provider) makeAuthenticationTemplateComponent(code string) []whatsapp.T
 	return component
 }
 
-func (p *Provider) makeUtilTemplateComponent(code string) []whatsapp.TemplateComponent {
+func (p *Provider) makeUtilTemplateComponent(code string, language string) ([]whatsapp.TemplateComponent, error) {
 	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
-	template := p.WhatsappConfig.Templates.OTP
+	tpl := p.WhatsappConfig.Templates.OTP
 
-	if template.Components.Header != nil {
+	data := make(map[string]any)
+	template.Embed(data, templateData{
+		Code: code,
+	})
+
+	if tpl.Components.Header != nil {
 		header := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeHeader)
 
-		for _, p := range template.Components.Header.Parameters {
-			// FIXME: Format it with template engine
-			param := whatsapp.NewTemplateComponentTextParameter(p)
-			header.Parameters = append(header.Parameters, *param)
+		for _, param := range tpl.Components.Header.Parameters {
+			text, err := p.TemplateEngine.RenderString(param, []string{language}, data)
+			if err != nil {
+				return nil, err
+			}
+			paramObj := whatsapp.NewTemplateComponentTextParameter(text)
+			header.Parameters = append(header.Parameters, *paramObj)
 		}
 
 		component = append(component, *header)
 	}
 
-	if template.Components.Body != nil {
+	if tpl.Components.Body != nil {
 		body := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeBody)
 
-		for _, p := range template.Components.Body.Parameters {
-			// FIXME: Format it with template engine
-			text := p
-			if p == "{{ .Code }}" {
-				text = code
+		for _, param := range tpl.Components.Body.Parameters {
+			text, err := p.TemplateEngine.RenderString(param, []string{language}, data)
+			if err != nil {
+				return nil, err
 			}
-			param := whatsapp.NewTemplateComponentTextParameter(text)
-			body.Parameters = append(body.Parameters, *param)
+			paramObj := whatsapp.NewTemplateComponentTextParameter(text)
+			body.Parameters = append(body.Parameters, *paramObj)
 		}
 
 		component = append(component, *body)
 	}
 
-	return component
+	return component, nil
 }
 
 func (p *Provider) SendCode(phone string, code string) error {
 	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
 	template := p.WhatsappConfig.Templates.OTP
+	language := p.resolveTemplateLanguage(template.Languages)
 
 	switch template.Type {
 	case config.WhatsappTemplateTypeAuthentication:
 		component = p.makeAuthenticationTemplateComponent(code)
 	case config.WhatsappTemplateTypeUtil:
-		component = p.makeUtilTemplateComponent(code)
+		c, err := p.makeUtilTemplateComponent(code, language)
+		if err != nil {
+			return err
+		}
+		component = c
 	default:
 		panic("whatsapp: unknown template type")
 	}
@@ -139,8 +171,7 @@ func (p *Provider) SendCode(phone string, code string) error {
 	return p.WhatsappSender.SendTemplate(
 		phone,
 		p.WhatsappConfig.Templates.OTP.Name,
-		// FIXME: Select a suitable language from user language
-		"en",
+		language,
 		component,
 	)
 }

@@ -150,6 +150,25 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 	}
 	t = t.Lookup(desc.Name)
 
+	return e.renderTextTemplate(t, preferredLanguages, data)
+}
+
+func (e *Engine) RenderString(strTemplate string, preferredLanguages []string, data interface{}) (string, error) {
+	t := texttemplate.New("")
+	t.Funcs(DefaultFuncMap)
+
+	t, err := t.Parse(strTemplate)
+	if err != nil {
+		return "", err
+	}
+
+	return e.renderTextTemplate(t, preferredLanguages, data)
+}
+
+func (e *Engine) renderTextTemplate(
+	t *texttemplate.Template,
+	preferredLanguages []string,
+	data interface{}) (string, error) {
 	// Include translations.
 	translations, err := e.Resolver.ResolveTranslations(preferredLanguages)
 	if err != nil {
