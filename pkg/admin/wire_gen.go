@@ -21,7 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
+	whatsapp2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -54,6 +54,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -812,11 +813,26 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,

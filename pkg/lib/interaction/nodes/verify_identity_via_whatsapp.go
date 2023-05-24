@@ -39,6 +39,10 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 	if err != nil {
 		return nil, err
 	}
+	err = ctx.WhatsappCodeProvider.SendCode(phone, code)
+	if err != nil {
+		return nil, err
+	}
 
 	node := &NodeVerifyIdentityViaWhatsapp{
 		Identity:        e.Identity,

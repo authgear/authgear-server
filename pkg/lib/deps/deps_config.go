@@ -42,6 +42,7 @@ var configDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.MessagingConfig),
 		"SMS",
 		"Email",
+		"Whatsapp",
 		"RateLimits",
 	),
 	wire.FieldsOf(new(*config.AuthenticatorConfig),
@@ -106,6 +107,7 @@ var secretDeps = wire.NewSet(
 	ProvideWATICredentials,
 	ProvideOAuthClientCredentials,
 	ProvideCaptchaCloudflareCredentials,
+	ProvideWhatsappOnPremisesCredentials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -194,5 +196,10 @@ func ProvideOAuthClientCredentials(c *config.SecretConfig) *config.OAuthClientCr
 
 func ProvideCaptchaCloudflareCredentials(c *config.SecretConfig) *config.CaptchaCloudflareCredentials {
 	s, _ := c.LookupData(config.CaptchaCloudflareCredentialsKey).(*config.CaptchaCloudflareCredentials)
+	return s
+}
+
+func ProvideWhatsappOnPremisesCredentials(c *config.SecretConfig) *config.WhatsappOnPremisesCredentials {
+	s, _ := c.LookupData(config.WhatsappOnPremisesCredentialsKey).(*config.WhatsappOnPremisesCredentials)
 	return s
 }

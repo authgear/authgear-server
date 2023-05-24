@@ -17,6 +17,10 @@ type WhatsappTemplatesConfig struct {
 	OTP WhatsappTemplateConfig `json:"otp"`
 }
 
+func (c *WhatsappTemplatesConfig) IsNullable() bool {
+	return true
+}
+
 var _ = Schema.Add("WhatsappTemplatesConfig", `
 {
 	"type": "object",
@@ -88,7 +92,8 @@ var _ = Schema.Add("WhatsappTemplateComponentParameter", `
 			"type": "array",
 			"items": { "type": "string", "minLength": 1 }
 		}
-	}
+	},
+	"required": ["parameters"]
 }
 `)
 
@@ -132,7 +137,6 @@ type WhatsappConfig struct {
 	Templates   *WhatsappTemplatesConfig `json:"templates,omitempty"`
 }
 
-func (c *WhatsappConfig) SetDefaults() {
-	c.Enabled = false
-	c.Templates = nil
+func (c *WhatsappConfig) NullableFields() []string {
+	return []string{"Templates"}
 }

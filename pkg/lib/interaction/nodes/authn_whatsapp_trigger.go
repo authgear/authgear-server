@@ -62,6 +62,10 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 	if err != nil {
 		return nil, err
 	}
+	err = ctx.WhatsappCodeProvider.SendCode(phone, code)
+	if err != nil {
+		return nil, err
+	}
 
 	return &NodeAuthenticationWhatsappTrigger{
 		Stage:              e.Stage,

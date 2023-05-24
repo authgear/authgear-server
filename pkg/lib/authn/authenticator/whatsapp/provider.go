@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
@@ -19,11 +20,22 @@ type OTPCodeService interface {
 	InspectWhatsappOTP(kind otp.Kind, target string) (string, error)
 }
 
+type WhatsappSender interface {
+	SendTemplate(
+		to string,
+		templateName string,
+		templateLanguage string,
+		templateComponents []whatsapp.TemplateComponent,
+	) error
+}
+
 type Provider struct {
 	Config          *config.AppConfig
 	WATICredentials *config.WATICredentials
 	Events          EventService
 	OTPCodeService  OTPCodeService
+	WhatsappSender  WhatsappSender
+	WhatsappConfig  *config.WhatsappConfig
 }
 
 func (p *Provider) GetServerWhatsappPhone() string {
@@ -57,6 +69,47 @@ func (p *Provider) GenerateCode(phone string, webSessionID string) (string, erro
 	}
 
 	return code, nil
+}
+
+func (p *Provider) SendCode(phone string, code string) error {
+	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
+	template := p.WhatsappConfig.Templates.OTP
+
+	if template.Components.Header != nil {
+		header := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeHeader)
+
+		for _, p := range template.Components.Header.Parameters {
+			// FIXME: Format it with template engine
+			param := whatsapp.NewTemplateComponentTextParameter(p)
+			header.Parameters = append(header.Parameters, *param)
+		}
+
+		component = append(component, *header)
+	}
+
+	if template.Components.Body != nil {
+		body := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeBody)
+
+		for _, p := range template.Components.Body.Parameters {
+			// FIXME: Format it with template engine
+			text := p
+			if p == "{{ .Code }}" {
+				text = code
+			}
+			param := whatsapp.NewTemplateComponentTextParameter(text)
+			body.Parameters = append(body.Parameters, *param)
+		}
+
+		component = append(component, *body)
+	}
+
+	return p.WhatsappSender.SendTemplate(
+		phone,
+		p.WhatsappConfig.Templates.OTP.Name,
+		// FIXME: Select a suitable language from user language
+		"en",
+		component,
+	)
 }
 
 func (p *Provider) VerifyCode(phone string, consume bool) error {

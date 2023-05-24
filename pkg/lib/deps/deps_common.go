@@ -1,6 +1,7 @@
 package deps
 
 import (
+	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -329,6 +330,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(forgotpassword.OTPSender), new(*otp.MessageSender)),
+	),
+
+	wire.NewSet(
+		infrawhatsapp.DependencySet,
+		wire.Bind(new(whatsapp.WhatsappSender), new(*infrawhatsapp.Client)),
 	),
 
 	wire.NewSet(

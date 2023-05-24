@@ -23,7 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
+	whatsapp2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -57,6 +57,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
@@ -1762,11 +1763,26 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -4263,11 +4279,26 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -5083,11 +5114,26 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -5827,11 +5873,26 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -6675,11 +6736,26 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -7466,11 +7542,26 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -8256,11 +8347,26 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -9034,11 +9140,26 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -9805,11 +9926,26 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -10566,11 +10702,26 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -11330,11 +11481,26 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -12097,11 +12263,26 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -12866,11 +13047,26 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -13633,11 +13829,26 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -14396,11 +14607,26 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -15163,11 +15389,26 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -15931,11 +16172,26 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -16698,11 +16954,26 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -17465,11 +17736,26 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -18234,11 +18520,26 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -19001,11 +19302,26 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -19768,11 +20084,26 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -20539,11 +20870,26 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -21306,11 +21652,26 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -22096,11 +22457,26 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -22863,11 +23239,26 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -23638,11 +24029,26 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -24416,11 +24822,26 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -25183,11 +25604,26 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -25946,11 +26382,26 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -26713,11 +27164,26 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -27476,11 +27942,26 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -28249,11 +28730,26 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -29012,11 +29508,26 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -29777,11 +30288,26 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -30540,11 +31066,26 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -31335,11 +31876,26 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -32109,11 +32665,26 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -32896,11 +33467,26 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -33667,11 +34253,26 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -34431,11 +35032,26 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -35203,11 +35819,26 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -35967,11 +36598,26 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -36731,11 +37377,26 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -37495,11 +38156,26 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -38260,11 +38936,26 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -39043,11 +39734,26 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -39807,11 +40513,26 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -40571,11 +41292,26 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -41335,11 +42071,26 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -42099,11 +42850,26 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -42870,11 +43636,26 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -43635,11 +44416,26 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -44398,11 +45194,26 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -45176,11 +45987,26 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -45939,11 +46765,26 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -46702,11 +47543,26 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -47483,11 +48339,26 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -48210,11 +49081,26 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -48936,11 +49822,26 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -49709,11 +50610,26 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -50473,11 +51389,26 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -54828,11 +55759,26 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Events:              eventService,
 	}
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	whatsappProvider := &whatsapp.Provider{
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappClient := &whatsapp.Client{
+		Config:           whatsappConfig,
+		OnPremisesClient: onPremisesClient,
+		TokenStore:       tokenStore,
+	}
+	whatsappProvider := &whatsapp2.Provider{
 		Config:          appConfig,
 		WATICredentials: watiCredentials,
 		Events:          eventService,
 		OTPCodeService:  otpService,
+		WhatsappSender:  whatsappClient,
+		WhatsappConfig:  whatsappConfig,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,

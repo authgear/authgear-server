@@ -1,6 +1,10 @@
 package whatsapp
 
-import "time"
+import (
+	"encoding/json"
+	"strings"
+	"time"
+)
 
 type SendTemplateRequest struct {
 	RecipientType string    `json:"recipient_type"`
@@ -33,9 +37,29 @@ type TemplateComponent struct {
 	Parameters []TemplateComponentParameter `json:"parameters"`
 }
 
+func NewTemplateComponent(t TemplateComponentType) *TemplateComponent {
+	return &TemplateComponent{
+		Type:       t,
+		Parameters: []TemplateComponentParameter{},
+	}
+}
+
+type TemplateComponentParameterType string
+
+const (
+	TemplateComponentParameterTypeText TemplateComponentParameterType = "text"
+)
+
 type TemplateComponentParameter struct {
-	Type string `json:"type"`
-	Text string `json:"text"`
+	Type TemplateComponentParameterType `json:"type"`
+	Text string                         `json:"text"`
+}
+
+func NewTemplateComponentTextParameter(text string) *TemplateComponentParameter {
+	return &TemplateComponentParameter{
+		Type: TemplateComponentParameterTypeText,
+		Text: text,
+	}
 }
 
 type LoginResponse struct {
@@ -43,8 +67,8 @@ type LoginResponse struct {
 }
 
 type LoginResponseUser struct {
-	Token        string    `json:"token"`
-	ExpiresAfter time.Time `json:"expires_after"`
+	Token        string                       `json:"token"`
+	ExpiresAfter LoginResponseUserExpiresTime `json:"expires_after"`
 }
 
 type UserToken struct {
@@ -52,4 +76,21 @@ type UserToken struct {
 	Username  string    `json:"username"`
 	Token     string    `json:"token"`
 	ExpireAt  time.Time `json:"expire_at"`
+}
+
+type LoginResponseUserExpiresTime time.Time
+
+// Implement Marshaler and Unmarshaler interface
+func (j *LoginResponseUserExpiresTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	t, err := time.Parse("2006-01-02 15:04:05-07:00", string(s))
+	if err != nil {
+		return err
+	}
+	*j = LoginResponseUserExpiresTime(t)
+	return nil
+}
+
+func (j LoginResponseUserExpiresTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(time.Time(j))
 }

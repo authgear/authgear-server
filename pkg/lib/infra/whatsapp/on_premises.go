@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -124,7 +125,7 @@ func (c *OnPremisesClient) sendTemplate(
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return ErrUnexpectedStatus
+		return fmt.Errorf("whatsapp: unexpected response status %d", resp.StatusCode)
 	}
 
 	return nil
@@ -145,7 +146,7 @@ func (c *OnPremisesClient) login() (*UserToken, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, ErrUnexpectedStatus
+		return nil, fmt.Errorf("whatsapp: unexpected response status %d", resp.StatusCode)
 	}
 
 	loginHTTPResponseBytes, err := io.ReadAll(resp.Body)
@@ -164,6 +165,6 @@ func (c *OnPremisesClient) login() (*UserToken, error) {
 		Namespace: c.Credentials.Namespace,
 		Username:  c.Credentials.Username,
 		Token:     loginResponse.Users[0].Token,
-		ExpireAt:  loginResponse.Users[0].ExpiresAfter,
+		ExpireAt:  time.Time(loginResponse.Users[0].ExpiresAfter),
 	}, nil
 }
