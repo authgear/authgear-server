@@ -32,8 +32,23 @@ var _ = Schema.Add("WhatsappTemplatesConfig", `
 }
 `)
 
+type WhatsappTemplateType string
+
+const (
+	WhatsappTemplateTypeAuthentication WhatsappTemplateType = "authentication"
+	WhatsappTemplateTypeUtil           WhatsappTemplateType = "util"
+)
+
+var _ = Schema.Add("WhatsappTemplateType", `
+{
+	"type": "string",
+	"enum": ["authentication", "util"]
+}
+`)
+
 type WhatsappTemplateConfig struct {
 	Name       string                           `json:"name"`
+	Type       WhatsappTemplateType             `json:"type"`
 	Languages  []string                         `json:"languages"`
 	Components *WhatsappTemplateComponentConfig `json:"components"`
 }
@@ -44,18 +59,32 @@ var _ = Schema.Add("WhatsappTemplateConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
+		"type": { "$ref": "#/$defs/WhatsappTemplateType" },
 		"languages": {
 			"type": "array",
 			"items": {
 				"type": "string",
 				"minLength": 1
 			}
-		},
-		"components": {
-			"$ref": "#/$defs/WhatsappTemplateComponentConfig"
 		}
 	},
-	"required": ["name", "languages", "components"]
+	"required": ["name", "type", "languages"],
+	"allOf": [
+		{
+			"if": {
+				"properties": { "type": { "enum": ["util"] } },
+        "required": ["type"]
+			},
+			"then": {
+				"properties": {
+					"components": {
+						"$ref": "#/$defs/WhatsappTemplateComponentConfig"
+					}
+				},
+				"required": ["components"]
+			}
+		}
+	]
 }
 `)
 

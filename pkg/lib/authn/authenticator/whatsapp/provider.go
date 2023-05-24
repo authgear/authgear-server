@@ -71,7 +71,24 @@ func (p *Provider) GenerateCode(phone string, webSessionID string) (string, erro
 	return code, nil
 }
 
-func (p *Provider) SendCode(phone string, code string) error {
+func (p *Provider) makeAuthenticationTemplateComponent(code string) []whatsapp.TemplateComponent {
+
+	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
+
+	body := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeBody)
+	bodyParam := whatsapp.NewTemplateComponentTextParameter(code)
+	body.Parameters = append(body.Parameters, *bodyParam)
+	component = append(component, *body)
+
+	button := whatsapp.NewTemplateButtonComponent(whatsapp.TemplateComponentSubTypeURL, 0)
+	buttonParam := whatsapp.NewTemplateComponentTextParameter(code)
+	button.Parameters = append(button.Parameters, *buttonParam)
+	component = append(component, *button)
+
+	return component
+}
+
+func (p *Provider) makeUtilTemplateComponent(code string) []whatsapp.TemplateComponent {
 	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
 	template := p.WhatsappConfig.Templates.OTP
 
@@ -101,6 +118,22 @@ func (p *Provider) SendCode(phone string, code string) error {
 		}
 
 		component = append(component, *body)
+	}
+
+	return component
+}
+
+func (p *Provider) SendCode(phone string, code string) error {
+	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
+	template := p.WhatsappConfig.Templates.OTP
+
+	switch template.Type {
+	case config.WhatsappTemplateTypeAuthentication:
+		component = p.makeAuthenticationTemplateComponent(code)
+	case config.WhatsappTemplateTypeUtil:
+		component = p.makeUtilTemplateComponent(code)
+	default:
+		panic("whatsapp: unknown template type")
 	}
 
 	return p.WhatsappSender.SendTemplate(

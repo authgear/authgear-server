@@ -30,16 +30,34 @@ type TemplateComponentType string
 const (
 	TemplateComponentTypeHeader TemplateComponentType = "header"
 	TemplateComponentTypeBody   TemplateComponentType = "body"
+	TemplateComponentTypeButton TemplateComponentType = "button"
+)
+
+type TemplateComponentSubType string
+
+const (
+	TemplateComponentSubTypeURL TemplateComponentSubType = "url"
 )
 
 type TemplateComponent struct {
 	Type       TemplateComponentType        `json:"type"`
+	SubType    *TemplateComponentSubType    `json:"sub_type,omitempty"`
+	Index      *int                         `json:"index,omitempty"`
 	Parameters []TemplateComponentParameter `json:"parameters"`
 }
 
-func NewTemplateComponent(t TemplateComponentType) *TemplateComponent {
+func NewTemplateComponent(typ TemplateComponentType) *TemplateComponent {
 	return &TemplateComponent{
-		Type:       t,
+		Type:       typ,
+		Parameters: []TemplateComponentParameter{},
+	}
+}
+
+func NewTemplateButtonComponent(subtyp TemplateComponentSubType, index int) *TemplateComponent {
+	return &TemplateComponent{
+		Type:       TemplateComponentTypeButton,
+		SubType:    &subtyp,
+		Index:      &index,
 		Parameters: []TemplateComponentParameter{},
 	}
 }
