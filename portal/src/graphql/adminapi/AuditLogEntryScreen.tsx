@@ -55,19 +55,19 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
 const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const { logID, appID } = useParams() as { logID: string; appID: string };
   const location = useLocation();
-  const state = location.state as { searchParams?: string };
+  const state = location.state as { searchParams?: string } | undefined;
 
   const { renderToString, locale } = useContext(Context);
 
   const navBreadcrumbItems = useMemo(() => {
     return [
       {
-        to: `/project/${appID}/audit-log?${state.searchParams ?? ""}`,
+        to: `/project/${appID}/audit-log?${state?.searchParams ?? ""}`,
         label: <FormattedMessage id="AuditLogScreen.title" />,
       },
       { to: ".", label: <FormattedMessage id="AuditLogEntryScreen.title" /> },
     ];
-  }, [appID, state.searchParams]);
+  }, [appID, state?.searchParams]);
 
   const { data, loading, error, refetch } = useQuery<
     AuditLogEntryQueryQuery,
