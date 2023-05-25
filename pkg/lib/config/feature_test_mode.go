@@ -8,6 +8,7 @@ var _ = FeatureConfigSchema.Add("TestModeFeatureConfig", `
 		"fixed_oob_otp": { "$ref": "#/$defs/TestModeFixedOOBOTPConfig" },
 		"deterministic_link_otp": { "$ref": "#/$defs/TestModeDeterministicLinkOTPConfig" },
 		"sms": { "$ref": "#/$defs/TestModeSMSFeatureConfig" },
+		"whatsapp": { "$ref": "#/$defs/TestModeWhatsappFeatureConfig" },
 		"email": { "$ref": "#/$defs/TestModeEmailFeatureConfig" }
 	}
 }
@@ -46,6 +47,16 @@ var _ = FeatureConfigSchema.Add("TestModeSMSFeatureConfig", `
 }
 `)
 
+var _ = FeatureConfigSchema.Add("TestModeWhatsappFeatureConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"suppressed": { "type": "boolean" }
+	}
+}
+`)
+
 var _ = FeatureConfigSchema.Add("TestModeEmailFeatureConfig", `
 {
 	"type": "object",
@@ -60,6 +71,7 @@ type TestModeFeatureConfig struct {
 	FixedOOBOTP          *TestModeFixedOOBOTPFeatureConfig          `json:"fixed_oob_otp,omitempty"`
 	DeterministicLinkOTP *TestModeDeterministicLinkOTPFeatureConfig `json:"deterministic_link_otp,omitempty"`
 	SMS                  *TestModeSMSFeatureConfig                  `json:"sms,omitempty"`
+	Whatsapp             *TestModeWhatsappFeatureConfig             `json:"whatsapp,omitempty"`
 	Email                *TestModeEmailFeatureConfig                `json:"email,omitempty"`
 }
 
@@ -77,5 +89,9 @@ type TestModeSMSFeatureConfig struct {
 }
 
 type TestModeEmailFeatureConfig struct {
+	Suppressed bool `json:"suppressed"`
+}
+
+type TestModeWhatsappFeatureConfig struct {
 	Suppressed bool `json:"suppressed"`
 }

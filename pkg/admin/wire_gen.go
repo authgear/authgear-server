@@ -813,6 +813,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	watiCredentials := deps.ProvideWATICredentials(secretConfig)
+	clientLogger := whatsapp.NewClientLogger(factory)
+	devMode := environmentConfig.DevMode
+	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	whatsappConfig := messagingConfig.Whatsapp
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
@@ -822,9 +825,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappClient := &whatsapp.Client{
-		Config:           whatsappConfig,
-		OnPremisesClient: onPremisesClient,
-		TokenStore:       tokenStore,
+		Logger:                     clientLogger,
+		DevMode:                    devMode,
+		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
+		Config:                     whatsappConfig,
+		OnPremisesClient:           onPremisesClient,
+		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
 		Context:         contextContext,

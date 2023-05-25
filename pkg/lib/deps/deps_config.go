@@ -69,6 +69,7 @@ var configDeps = wire.NewSet(
 	ProvideSupportedLanguageTags,
 	ProvideTestModeEmailSuppressed,
 	ProvideTestModeSMSSuppressed,
+	ProvideTestModeWhatsappSuppressed,
 	secretDeps,
 )
 
@@ -86,6 +87,10 @@ func ProvideTestModeEmailSuppressed(c *config.TestModeFeatureConfig) config.Test
 
 func ProvideTestModeSMSSuppressed(c *config.TestModeFeatureConfig) config.TestModeSMSSuppressed {
 	return config.TestModeSMSSuppressed(c.SMS.Suppressed)
+}
+
+func ProvideTestModeWhatsappSuppressed(c *config.TestModeFeatureConfig) config.TestModeWhatsappSuppressed {
+	return config.TestModeWhatsappSuppressed(c.Whatsapp.Suppressed)
 }
 
 var secretDeps = wire.NewSet(
