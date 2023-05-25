@@ -35,14 +35,13 @@ type WhatsappSender interface {
 }
 
 type Provider struct {
-	Context         context.Context
-	Config          *config.AppConfig
-	WATICredentials *config.WATICredentials
-	Events          EventService
-	OTPCodeService  OTPCodeService
-	WhatsappSender  WhatsappSender
-	WhatsappConfig  *config.WhatsappConfig
-	TemplateEngine  *template.Engine
+	Context        context.Context
+	Config         *config.AppConfig
+	Events         EventService
+	OTPCodeService OTPCodeService
+	WhatsappSender WhatsappSender
+	WhatsappConfig *config.WhatsappConfig
+	TemplateEngine *template.Engine
 }
 
 type templateData struct {
@@ -63,14 +62,6 @@ func (p *Provider) resolveTemplateLanguage(supportedLanguages []string) string {
 	supportedLanguageTags := intl.Supported(supportedLanguages, intl.Fallback(supportedLanguages[0]))
 	idx, _ := intl.Match(preferredLanguageTags, supportedLanguageTags)
 	return supportedLanguageTags[idx]
-}
-
-func (p *Provider) GetServerWhatsappPhone() string {
-	// return the phone from different config when more whatsapp api provider is supported
-	if p.WATICredentials != nil {
-		return p.WATICredentials.WhatsappPhoneNumber
-	}
-	return ""
 }
 
 func (p *Provider) getOTPKind() otp.Kind {

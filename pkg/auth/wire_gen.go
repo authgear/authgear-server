@@ -1762,7 +1762,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -1783,14 +1782,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -4286,7 +4284,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -4307,14 +4304,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -5129,7 +5125,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -5150,14 +5145,13 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -5896,7 +5890,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -5917,14 +5910,13 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -6767,7 +6759,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -6788,14 +6779,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -7581,7 +7571,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -7602,14 +7591,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -8394,7 +8382,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -8415,14 +8402,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -9195,7 +9181,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -9216,14 +9201,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -9989,7 +9973,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -10010,14 +9993,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -10773,7 +10755,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -10794,14 +10775,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -11560,7 +11540,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -11581,14 +11560,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -12350,7 +12328,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -12371,14 +12348,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -13142,7 +13118,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -13163,14 +13138,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -13932,7 +13906,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -13953,14 +13926,13 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -14718,7 +14690,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -14739,14 +14710,13 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -15508,7 +15478,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -15529,14 +15498,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -16299,7 +16267,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -16320,14 +16287,13 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -17089,7 +17055,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -17110,14 +17075,13 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -17879,7 +17843,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -17900,14 +17863,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -18671,7 +18633,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -18692,14 +18653,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -19461,7 +19421,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -19482,14 +19441,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -20251,7 +20209,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -20272,14 +20229,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -21045,7 +21001,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -21066,14 +21021,13 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -21835,7 +21789,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -21856,14 +21809,13 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -22628,7 +22580,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -22649,14 +22600,13 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -23418,7 +23368,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -23439,14 +23388,13 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -24216,7 +24164,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -24237,14 +24184,13 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -25017,7 +24963,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -25038,14 +24983,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -25807,7 +25751,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -25828,14 +25771,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -26593,7 +26535,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -26614,14 +26555,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -27383,7 +27323,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -27404,14 +27343,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -28169,7 +28107,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -28190,14 +28127,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -28965,7 +28901,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -28986,14 +28921,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -29751,7 +29685,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -29772,14 +29705,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -30539,7 +30471,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -30560,14 +30491,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -31325,7 +31255,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -31346,14 +31275,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -32143,7 +32071,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -32164,14 +32091,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -32940,7 +32866,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -32961,14 +32886,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -33750,7 +33674,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -33771,14 +33694,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -34544,7 +34466,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -34565,14 +34486,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -35331,7 +35251,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -35352,14 +35271,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -36126,7 +36044,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -36147,14 +36064,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -36913,7 +36829,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -36934,14 +36849,13 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -37700,7 +37614,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -37721,14 +37634,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -38487,7 +38399,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -38508,14 +38419,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -39275,7 +39185,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -39296,14 +39205,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -40081,7 +39989,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -40102,14 +40009,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -40868,7 +40774,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -40889,14 +40794,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -41655,7 +41559,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -41676,14 +41579,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -42442,7 +42344,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -42463,14 +42364,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -43229,7 +43129,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -43250,14 +43149,13 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -44023,7 +43921,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -44044,14 +43941,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -44811,7 +44707,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -44832,14 +44727,13 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -45597,7 +45491,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -45618,14 +45511,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -46398,7 +46290,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -46419,14 +46310,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -47184,7 +47074,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -47205,14 +47094,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -47970,7 +47858,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -47991,14 +47878,13 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -48774,7 +48660,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -48795,14 +48680,13 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -49524,7 +49408,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -49545,14 +49428,13 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -50273,7 +50155,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -50294,14 +50175,13 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -51069,7 +50949,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -51090,14 +50969,13 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -51856,7 +51734,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -51877,14 +51754,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -56234,7 +56110,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
 	clientLogger := whatsapp.NewClientLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
@@ -56255,14 +56130,13 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TokenStore:                 tokenStore,
 	}
 	whatsappProvider := &whatsapp2.Provider{
-		Context:         contextContext,
-		Config:          appConfig,
-		WATICredentials: watiCredentials,
-		Events:          eventService,
-		OTPCodeService:  otpService,
-		WhatsappSender:  whatsappClient,
-		WhatsappConfig:  whatsappConfig,
-		TemplateEngine:  engine,
+		Context:        contextContext,
+		Config:         appConfig,
+		Events:         eventService,
+		OTPCodeService: otpService,
+		WhatsappSender: whatsappClient,
+		WhatsappConfig: whatsappConfig,
+		TemplateEngine: engine,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
