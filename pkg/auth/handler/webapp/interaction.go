@@ -314,9 +314,10 @@ func (i *InputResetPassword) GetNewPassword() string { return i.Password }
 
 type InputVerifyWhatsappOTP struct {
 	DeviceToken bool
+	WhatsappOTP string
 }
 
-func (i *InputVerifyWhatsappOTP) VerifyWhatsappOTP()      {}
+func (i *InputVerifyWhatsappOTP) GetWhatsappOTP() string  { return i.WhatsappOTP }
 func (i *InputVerifyWhatsappOTP) CreateDeviceToken() bool { return i.DeviceToken }
 
 var _ nodes.InputCreateAuthenticatorWhatsappOTP = &InputVerifyWhatsappOTP{}

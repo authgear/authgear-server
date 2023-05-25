@@ -94,7 +94,7 @@ func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([
 }
 
 type InputVerifyIdentityViaWhatsappCheckCode interface {
-	VerifyWhatsappOTP()
+	GetWhatsappOTP() string
 }
 
 type EdgeVerifyIdentityViaWhatsappCheckCode struct {
@@ -112,7 +112,9 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	}
 
 	phone := e.Identity.LoginID.LoginID
-	err := ctx.WhatsappCodeProvider.VerifyCode(phone, true)
+	userID := e.Identity.UserID
+	code := input.GetWhatsappOTP()
+	err := ctx.WhatsappCodeProvider.VerifyCode(phone, code, userID)
 	if err != nil {
 		return nil, err
 	}

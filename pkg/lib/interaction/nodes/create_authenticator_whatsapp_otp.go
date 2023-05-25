@@ -11,7 +11,7 @@ func init() {
 }
 
 type InputCreateAuthenticatorWhatsappOTP interface {
-	VerifyWhatsappOTP()
+	GetWhatsappOTP() string
 }
 
 type EdgeCreateAuthenticatorWhatsappOTP struct {
@@ -25,7 +25,9 @@ func (e *EdgeCreateAuthenticatorWhatsappOTP) Instantiate(ctx *interaction.Contex
 		return nil, interaction.ErrIncompatibleInput
 	}
 	phone := e.Authenticator.OOBOTP.Phone
-	err := ctx.WhatsappCodeProvider.VerifyCode(phone, true)
+	userID := e.Authenticator.UserID
+	code := input.GetWhatsappOTP()
+	err := ctx.WhatsappCodeProvider.VerifyCode(phone, code, userID)
 	if err != nil {
 		return nil, err
 	}

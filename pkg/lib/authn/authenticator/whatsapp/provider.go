@@ -176,23 +176,23 @@ func (p *Provider) SendCode(phone string, code string) error {
 	)
 }
 
-func (p *Provider) VerifyCode(phone string, consume bool) error {
+func (p *Provider) VerifyCode(phone string, code string, userID string) error {
 	err := p.OTPCodeService.VerifyOTP(
 		otp.KindWhatsapp(p.Config),
 		phone,
-		"",
-		&otp.VerifyOptions{SkipConsume: !consume, UseSubmittedCode: true},
+		code,
+		&otp.VerifyOptions{
+			UserID: userID,
+		},
 	)
 	if err != nil {
 		return err
 	}
 
-	if consume {
-		if err := p.Events.DispatchEvent(&nonblocking.WhatsappOTPVerifiedEventPayload{
-			Phone: phone,
-		}); err != nil {
-			return err
-		}
+	if err := p.Events.DispatchEvent(&nonblocking.WhatsappOTPVerifiedEventPayload{
+		Phone: phone,
+	}); err != nil {
+		return err
 	}
 
 	return nil

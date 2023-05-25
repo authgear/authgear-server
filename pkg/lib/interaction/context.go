@@ -67,7 +67,7 @@ type OTPSender interface {
 type WhatsappCodeProvider interface {
 	GenerateCode(phone string, webSessionID string) (string, error)
 	SendCode(phone string, code string) error
-	VerifyCode(phone string, consume bool) error
+	VerifyCode(phone string, code string, userID string) error
 }
 
 type AnonymousIdentityProvider interface {
