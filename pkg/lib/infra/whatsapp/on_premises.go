@@ -150,6 +150,9 @@ func (c *OnPremisesClient) login() (*UserToken, error) {
 	}
 
 	loginHTTPResponseBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	var loginResponse LoginResponse
 	err = json.Unmarshal(loginHTTPResponseBytes, &loginResponse)
