@@ -57,7 +57,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 	}
 	targetInfo := e.Authenticators[idx]
 	phone := targetInfo.OOBOTP.Phone
-	result, err := NewSendWhatsappCode(ctx, phone).Do()
+	result, err := NewSendWhatsappCode(ctx, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}

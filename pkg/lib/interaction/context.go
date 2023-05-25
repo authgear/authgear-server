@@ -66,7 +66,7 @@ type OTPSender interface {
 }
 
 type WhatsappCodeProvider interface {
-	GenerateCode(phone string, webSessionID string) (*whatsapp.WhatsappCode, error)
+	GenerateCode(phone string, webSessionID string, useExistingOnRateLimited bool) (*whatsapp.WhatsappCode, error)
 	SendCode(phone string, code string) error
 	VerifyCode(phone string, code string, userID string) error
 }

@@ -18,7 +18,7 @@ func (e *EdgeWhatsappOTPResendCode) Instantiate(ctx *interaction.Context, graph 
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := NewSendWhatsappCode(ctx, e.Target).Do()
+	_, err := NewSendWhatsappCode(ctx, e.Target, true).Do()
 	if err != nil {
 		return nil, err
 	}

@@ -10,18 +10,22 @@ type SendWhatsappCodeResult struct {
 }
 
 type SendWhatsappCode struct {
-	Context *interaction.Context
-	Target  string
+	Context  *interaction.Context
+	Target   string
+	IsResend bool
 }
 
 func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
-	code, err := s.Context.WhatsappCodeProvider.GenerateCode(s.Target, s.Context.WebSessionID)
+	code, err := s.Context.WhatsappCodeProvider.GenerateCode(s.Target, s.Context.WebSessionID, !s.IsResend)
 	if err != nil {
 		return nil, err
 	}
-	err = s.Context.WhatsappCodeProvider.SendCode(s.Target, code.Code)
-	if err != nil {
-		return nil, err
+
+	if code.IsNew {
+		err = s.Context.WhatsappCodeProvider.SendCode(s.Target, code.Code)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &SendWhatsappCodeResult{
@@ -30,9 +34,10 @@ func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
 	}, nil
 }
 
-func NewSendWhatsappCode(ctx *interaction.Context, target string) *SendWhatsappCode {
+func NewSendWhatsappCode(ctx *interaction.Context, target string, isResend bool) *SendWhatsappCode {
 	return &SendWhatsappCode{
-		Context: ctx,
-		Target:  target,
+		Context:  ctx,
+		Target:   target,
+		IsResend: isResend,
 	}
 }

@@ -33,7 +33,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 
 	phone := e.Identity.LoginID.LoginID
 
-	result, err := NewSendWhatsappCode(ctx, phone).Do()
+	result, err := NewSendWhatsappCode(ctx, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}

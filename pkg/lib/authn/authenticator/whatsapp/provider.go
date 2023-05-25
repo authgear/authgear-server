@@ -52,6 +52,7 @@ type templateData struct {
 type WhatsappCode struct {
 	Code       string
 	CodeLength int
+	IsNew      bool
 }
 
 func (p *Provider) resolveTemplateLanguage(supportedLanguages []string) string {
@@ -85,7 +86,7 @@ func (p *Provider) InspectCodeState(phone string) (*otp.State, error) {
 	return p.OTPCodeService.InspectState(kind, phone)
 }
 
-func (p *Provider) GenerateCode(phone string, webSessionID string) (*WhatsappCode, error) {
+func (p *Provider) GenerateCode(phone string, webSessionID string, useExistingOnRateLimited bool) (*WhatsappCode, error) {
 	kind := p.getOTPKind()
 	form := p.getOTPForm()
 	code, err := p.OTPCodeService.GenerateOTP(
@@ -94,7 +95,7 @@ func (p *Provider) GenerateCode(phone string, webSessionID string) (*WhatsappCod
 		form,
 		&otp.GenerateOptions{WebSessionID: webSessionID},
 	)
-	if apierrors.IsKind(err, ratelimit.RateLimited) {
+	if apierrors.IsKind(err, ratelimit.RateLimited) && useExistingOnRateLimited {
 		// Ignore rate limits; return current OTP
 		code, serr := p.OTPCodeService.InspectCode(kind.Purpose(), phone)
 		if apierrors.IsKind(serr, otp.InvalidOTPCode) {
@@ -106,6 +107,7 @@ func (p *Provider) GenerateCode(phone string, webSessionID string) (*WhatsappCod
 		return &WhatsappCode{
 			Code:       code.Code,
 			CodeLength: form.CodeLength(),
+			IsNew:      false,
 		}, nil
 	} else if err != nil {
 		return nil, err
@@ -114,6 +116,7 @@ func (p *Provider) GenerateCode(phone string, webSessionID string) (*WhatsappCod
 	return &WhatsappCode{
 		Code:       code,
 		CodeLength: form.CodeLength(),
+		IsNew:      true,
 	}, nil
 }
 
