@@ -21837,6 +21837,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AlternativeStepsViewModel: alternativeStepsViewModeler,
 		Renderer:                  responseRenderer,
 		WhatsappCodeProvider:      whatsappProvider,
+		FlashMessage:              flashMessage,
 	}
 	return whatsappOTPHandler
 }

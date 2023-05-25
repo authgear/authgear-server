@@ -99,11 +99,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, ctx.WebSessionID)
-	if err != nil {
-		return nil, err
-	}
-	err = ctx.WhatsappCodeProvider.SendCode(phone, code.Code)
+	result, err := NewSendWhatsappCode(ctx, phone).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +107,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 	return &NodeCreateAuthenticatorWhatsappOTPSetup{
 		Stage:             e.Stage,
 		Authenticator:     info,
-		WhatsappOTPLength: code.CodeLength,
+		WhatsappOTPLength: result.CodeLength,
 		Phone:             phone,
 	}, nil
 }
@@ -153,6 +149,9 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetEffects() ([]interaction.Ef
 
 func (n *NodeCreateAuthenticatorWhatsappOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
+		&EdgeWhatsappOTPResendCode{
+			Target: n.Phone,
+		},
 		&EdgeCreateAuthenticatorWhatsappOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}
 	return edges, nil

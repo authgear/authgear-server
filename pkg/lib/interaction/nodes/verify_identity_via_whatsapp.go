@@ -33,12 +33,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 
 	phone := e.Identity.LoginID.LoginID
 
-	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, ctx.WebSessionID)
-
-	if err != nil {
-		return nil, err
-	}
-	err = ctx.WhatsappCodeProvider.SendCode(phone, code.Code)
+	result, err := NewSendWhatsappCode(ctx, phone).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +41,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 	node := &NodeVerifyIdentityViaWhatsapp{
 		Identity:          e.Identity,
 		RequestedByUser:   e.RequestedByUser,
-		WhatsappOTPLength: code.CodeLength,
+		WhatsappOTPLength: result.CodeLength,
 		Phone:             phone,
 	}
 	return node, nil
@@ -79,6 +74,9 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetEffects() ([]interaction.Effect, erro
 
 func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
+		&EdgeWhatsappOTPResendCode{
+			Target: n.Phone,
+		},
 		&EdgeVerifyIdentityViaWhatsappCheckCode{Identity: n.Identity},
 	}
 

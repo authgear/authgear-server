@@ -51,6 +51,7 @@ type WhatsappOTPHandler struct {
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
 	WhatsappCodeProvider      WhatsappCodeProvider
+	FlashMessage              FlashMessage
 }
 
 func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -158,6 +159,22 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("resend", func() error {
+		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+			input = &InputResendCode{}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		if !result.IsInteractionErr {
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})
