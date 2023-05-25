@@ -64,6 +64,36 @@ func TestWorkflowV2RequestSchema(t *testing.T) {
 			},
 		})
 		test(`{
+			"action": "batch_input",
+			"workflow_id": "workflow_id",
+			"instance_id": "instance_id",
+			"batch_input": [
+				{
+					"kind": "kind",
+					"data": {}
+				},
+				{
+					"kind": "kind",
+					"data": {}
+				}
+			]
+		}`, WorkflowV2Request{
+			Action:        "batch_input",
+			WorkflowID:    "workflow_id",
+			InstanceID:    "instance_id",
+			BindUserAgent: &boolTrue,
+			BatchInput: []*workflow.InputJSON{
+				{
+					Kind: "kind",
+					Data: json.RawMessage([]byte("{}")),
+				},
+				{
+					Kind: "kind",
+					Data: json.RawMessage([]byte("{}")),
+				},
+			},
+		})
+		test(`{
 			"action": "get",
 			"workflow_id": "workflow_id",
 			"instance_id": "instance_id"
