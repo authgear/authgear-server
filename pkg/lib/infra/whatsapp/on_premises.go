@@ -21,13 +21,13 @@ type OnPremisesClient struct {
 }
 
 func NewWhatsappOnPremisesClient(
-	config *config.WhatsappConfig,
+	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappOnPremisesCredentials,
 	tokenStore *TokenStore) *OnPremisesClient {
-	if !config.Enabled || config.APIEndpoint == "" || credentials == nil {
+	if cfg.APIType != config.WhatsappAPITypeOnPremises || cfg.APIEndpoint == "" || credentials == nil {
 		return nil
 	}
-	endpoint, err := url.Parse(config.APIEndpoint)
+	endpoint, err := url.Parse(cfg.APIEndpoint)
 	if err != nil {
 		panic(err)
 	}

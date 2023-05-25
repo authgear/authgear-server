@@ -129,7 +129,6 @@ var _ = Schema.Add("WhatsappConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"enabled": { "type": "boolean" },
 		"api_type": { "$ref": "#/$defs/WhatsappAPIType" },
 		"api_endpoint": { "type": "string", "minLength": 1 },
 		"templates": { "$ref": "#/$defs/WhatsappTemplatesConfig" }
@@ -137,20 +136,11 @@ var _ = Schema.Add("WhatsappConfig", `
 	"allOf": [
 		{
 			"if": {
-				"properties": { "enabled": { "enum": [true] } },
-        "required": ["enabled"]
-			},
-			"then": {
-				"required": ["api_type", "templates"]
-			}
-		},
-		{
-			"if": {
         "properties": { "api_type": { "const": "on-premises" } },
         "required": ["api_type"]
       },
 			"then": {
-				"required": ["api_endpoint"]
+				"required": ["api_endpoint", "templates"]
 			}
 		}
 	]
@@ -158,7 +148,6 @@ var _ = Schema.Add("WhatsappConfig", `
 `)
 
 type WhatsappConfig struct {
-	Enabled     bool                     `json:"enabled"`
 	APIType     WhatsappAPIType          `json:"api_type,omitempty"`
 	APIEndpoint string                   `json:"api_endpoint,omitempty"`
 	Templates   *WhatsappTemplatesConfig `json:"templates,omitempty"`
