@@ -29,13 +29,13 @@ var graphiqlTemplate = htmltemplate.Must(htmltemplate.New("graphiql").Parse(`<!D
 		crossorigin
 		src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js"
 	></script>
-	<link rel="stylesheet" href="https://unpkg.com/graphiql@2.0.13/graphiql.min.css" />
+	<link rel="stylesheet" href="https://unpkg.com/graphiql@2.4.4/graphiql.min.css" />
 </head>
 <body>
 	<div id="root">Loading...</div>
 	<script
 		crossorigin
-		src="https://unpkg.com/graphiql@2.0.13/graphiql.min.js"
+		src="https://unpkg.com/graphiql@2.4.4/graphiql.min.js"
 	></script>
 	<script>
 		ReactDOM.render(
