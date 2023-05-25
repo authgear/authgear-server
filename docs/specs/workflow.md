@@ -155,9 +155,9 @@ As a special case, the node can return ErrSameNode to perform an immediate side 
 
 As a special case, the node can return ErrUpdateNode to update the node instead of adding a new node.
 
-## HTTP API
+## HTTP API v1
 
-The HTTP API is intended to be used by a web frontend to drive a workflow.
+The HTTP API v1 is intended to be used by a web frontend to drive a workflow.
 
 In a typical case, Authgear redirects to the frontend.
 Based on the path, the frontend creates a suitable workflow.
@@ -276,7 +276,7 @@ Subscribe to workflow events.
 Clients should not send any messages to server.
 Server would send following messages through WebSocket:
 
-### Refresh
+#### Refresh
 
 Indicates out-of-band data (e.g. OTP code) of the workflow has changed.
 Clients should re-fetch the current instance of workflow to get the latest state.
@@ -331,6 +331,81 @@ The frontend can include necessary information in the redirect URI to make the r
 The Intent for account migration allows the developer to create a workflow for migrating an account.
 
 [![](https://mermaid.ink/img/pako:eNqdkltLw0AQhf_KsM9V3_NQKK1gES9YxQfjw7iZNEuT3bg7ayml_92JSXohUMVAIJk558x-u7tV2mWkEhXoM5LVNDO49FilFuSp0bPRpkbLMIlcLAn9sDONgV31Mh92bpxbAQaYkXVwBa_0UUil1fWui_G4j05g6gmZwFgmy3dGVsI00dpFCVs7v8pLt27tvUfsfVICT8TR270S5rORZAVGAZOfM4MfvdNEGXBBB_vacAHPD7fX94OZDZm4MIRWAOxa2i-DcIBsSnv11MlSfNQMb-8mE0DDm8sOclGTBrSZtFCmNE2N7PxJP_euOl5Pl36g6Pj_Fz9g_MvuNJUg5vD7qZw7iGNxiBWdTGrUzatGqiJfocnkvm5_qkp0FaUqkc-Mcowlpyq1O5EKp1tsrFaJ7DmNVKwzAe2ut0pyLAPtvgFMVAp7?type=png)](https://mermaid.live/edit#pako:eNqdkltLw0AQhf_KsM9V3_NQKK1gES9YxQfjw7iZNEuT3bg7ayml_92JSXohUMVAIJk558x-u7tV2mWkEhXoM5LVNDO49FilFuSp0bPRpkbLMIlcLAn9sDONgV31Mh92bpxbAQaYkXVwBa_0UUil1fWui_G4j05g6gmZwFgmy3dGVsI00dpFCVs7v8pLt27tvUfsfVICT8TR270S5rORZAVGAZOfM4MfvdNEGXBBB_vacAHPD7fX94OZDZm4MIRWAOxa2i-DcIBsSnv11MlSfNQMb-8mE0DDm8sOclGTBrSZtFCmNE2N7PxJP_euOl5Pl36g6Pj_Fz9g_MvuNJUg5vD7qZw7iGNxiBWdTGrUzatGqiJfocnkvm5_qkp0FaUqkc-Mcowlpyq1O5EKp1tsrFaJ7DmNVKwzAe2ut0pyLAPtvgFMVAp7)
+
+## HTTP API v2
+
+HTTP API v1 puts variable in path, and accept query parameters.
+This causes Access-Control-Max-Age to has no actual effect.
+
+### POST /api/v2/workflows
+
+Create a new workflow by specifying an intent.
+
+Please read the [user agent binding section](#user-agent-binding) for details of the `bind_user_agent` flag.
+
+Request body
+
+```json
+{
+  "action": "create",
+  "url_query": "",
+  "intent": {
+    "kind": "{intent_kind}",
+    "data": {}
+  },
+  "bind_user_agent": true
+}
+```
+
+Feed an input to the workflow to drive it.
+
+Request body
+
+```json
+{
+  "action": "input",
+  "workflow_id": "",
+  "instance_id": "",
+  "input": {
+    "kind": "{input_kind}",
+    "data": {}
+  }
+}
+```
+
+Feed more than 1 input to the workflow.
+
+Request body
+
+```json
+{
+  "action": "batch_input",
+  "workflow_id": "",
+  "instance_id": "",
+  "batch_input": [
+    {
+      "kind": "{input_kind}",
+      "data": {}
+    },
+    {
+      "kind": "{input_kind}",
+      "data": {}
+    }
+  ]
+}
+```
+
+Retrieve a workflow by the instance ID
+
+Request body
+
+```json
+{
+  "action": "get",
+  "workflow_id": "",
+  "instance_id": ""
+}
+```
 
 #### Configuration in `authgear.yaml`
 
