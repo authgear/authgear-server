@@ -117,3 +117,5 @@ test_mode:
     suppressed: false
   email:
     suppressed: false
+  whatsapp:
+    suppressed: false
