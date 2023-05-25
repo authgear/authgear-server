@@ -3,7 +3,10 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
-<h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "whatsapp-otp-page-title" }}</h1>
+<h1 class="m-0 primary-txt text-center text-xl font-bold">
+	<div class="whatsapp-icon w-6 h-6 inline-block align-sub" ></div>
+	{{ template "whatsapp-otp-page-title" }}
+</h1>
 
 {{ if $.WhatsappOTPTarget }}
 <div class="text-sm break-words primary-txt text-center">{{ template "whatsapp-otp-description" (dict "length" $.WhatsappOTPCodeLength "target" $.WhatsappOTPTarget) }}</div>
