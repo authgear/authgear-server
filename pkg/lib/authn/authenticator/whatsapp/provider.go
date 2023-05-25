@@ -21,7 +21,8 @@ type EventService interface {
 type OTPCodeService interface {
 	GenerateOTP(kind otp.Kind, target string, form otp.Form, opts *otp.GenerateOptions) (string, error)
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
-	InspectWhatsappOTP(kind otp.Kind, target string) (string, error)
+	InspectState(kind otp.Kind, target string) (*otp.State, error)
+	InspectCode(purpose otp.Purpose, target string) (*otp.Code, error)
 }
 
 type WhatsappSender interface {
@@ -48,6 +49,11 @@ type templateData struct {
 	Code string
 }
 
+type WhatsappCode struct {
+	Code       string
+	CodeLength int
+}
+
 func (p *Provider) resolveTemplateLanguage(supportedLanguages []string) string {
 	if len(supportedLanguages) < 1 {
 		panic("whatsapp: template has no supported language")
@@ -66,29 +72,49 @@ func (p *Provider) GetServerWhatsappPhone() string {
 	return ""
 }
 
-func (p *Provider) GenerateCode(phone string, webSessionID string) (string, error) {
-	kind := otp.KindWhatsapp(p.Config)
+func (p *Provider) getOTPKind() otp.Kind {
+	return otp.KindWhatsapp(p.Config)
+}
+
+func (p *Provider) getOTPForm() otp.Form {
+	return otp.FormCode
+}
+
+func (p *Provider) InspectCodeState(phone string) (*otp.State, error) {
+	kind := p.getOTPKind()
+	return p.OTPCodeService.InspectState(kind, phone)
+}
+
+func (p *Provider) GenerateCode(phone string, webSessionID string) (*WhatsappCode, error) {
+	kind := p.getOTPKind()
+	form := p.getOTPForm()
 	code, err := p.OTPCodeService.GenerateOTP(
 		kind,
 		phone,
-		otp.FormCode,
+		form,
 		&otp.GenerateOptions{WebSessionID: webSessionID},
 	)
 	if apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore rate limits; return current OTP
-		code, serr := p.OTPCodeService.InspectWhatsappOTP(kind, phone)
+		code, serr := p.OTPCodeService.InspectCode(kind.Purpose(), phone)
 		if apierrors.IsKind(serr, otp.InvalidOTPCode) {
 			// Current OTP is invalidated; return original rate limit error
-			return "", err
+			return nil, err
 		} else if serr != nil {
-			return "", serr
+			return nil, serr
 		}
-		return code, nil
+		return &WhatsappCode{
+			Code:       code.Code,
+			CodeLength: form.CodeLength(),
+		}, nil
 	} else if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return code, nil
+	return &WhatsappCode{
+		Code:       code,
+		CodeLength: form.CodeLength(),
+	}, nil
 }
 
 func (p *Provider) makeAuthenticationTemplateComponent(code string) []whatsapp.TemplateComponent {

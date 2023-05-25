@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -39,37 +38,30 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 	if err != nil {
 		return nil, err
 	}
-	err = ctx.WhatsappCodeProvider.SendCode(phone, code)
+	err = ctx.WhatsappCodeProvider.SendCode(phone, code.Code)
 	if err != nil {
 		return nil, err
 	}
 
 	node := &NodeVerifyIdentityViaWhatsapp{
-		Identity:        e.Identity,
-		RequestedByUser: e.RequestedByUser,
-		WhatsappOTP:     code,
-		Phone:           phone,
-		PhoneOTPMode:    ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
+		Identity:          e.Identity,
+		RequestedByUser:   e.RequestedByUser,
+		WhatsappOTPLength: code.CodeLength,
+		Phone:             phone,
 	}
 	return node, nil
 }
 
 type NodeVerifyIdentityViaWhatsapp struct {
-	Identity        *identity.Info                   `json:"identity"`
-	RequestedByUser bool                             `json:"requested_by_user"`
-	WhatsappOTP     string                           `json:"whatsapp_otp"`
-	Phone           string                           `json:"phone"`
-	PhoneOTPMode    config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
+	Identity          *identity.Info `json:"identity"`
+	RequestedByUser   bool           `json:"requested_by_user"`
+	WhatsappOTPLength int            `json:"whatsapp_otp_length"`
+	Phone             string         `json:"phone"`
 }
 
-// GetPhoneOTPMode implements WhatsappOTPNode.
-func (n *NodeVerifyIdentityViaWhatsapp) GetPhoneOTPMode() config.AuthenticatorPhoneOTPMode {
-	return n.PhoneOTPMode
-}
-
-// GetWhatsappOTP implements WhatsappOTPNode.
-func (n *NodeVerifyIdentityViaWhatsapp) GetWhatsappOTP() string {
-	return n.WhatsappOTP
+// GetWhatsappOTPLength implements WhatsappOTPNode.
+func (n *NodeVerifyIdentityViaWhatsapp) GetWhatsappOTPLength() int {
+	return n.WhatsappOTPLength
 }
 
 // GetPhone implements WhatsappOTPNode.

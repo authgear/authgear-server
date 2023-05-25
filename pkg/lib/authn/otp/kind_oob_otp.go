@@ -38,7 +38,7 @@ func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel)
 }
 
 // KindWhatsapp is for Whatsapp OTP code;
-// it uses different purpose than OOB-OTP, since it is shown to user rather than received from user.
+// it uses different purpose than OOB-OTP, since we want to separate the code of whatsapp & oob-otp.
 // Reusing same purpose leads to OTP for whatsapp usable for SMS OTP.
 func KindWhatsapp(config *config.AppConfig) Kind {
 	return kindOOBOTP{config: config, channel: model.AuthenticatorOOBChannelSMS, purpose: PurposeWhatsapp}

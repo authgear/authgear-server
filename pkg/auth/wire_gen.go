@@ -21056,6 +21056,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
+	clockClock := _wireSystemClockValue
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
@@ -21090,7 +21091,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
-	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	redisLogger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
@@ -21831,6 +21831,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationConfig: authenticationConfig,
 	}
 	whatsappOTPHandler := &webapp.WhatsappOTPHandler{
+		Clock:                     clockClock,
 		ControllerFactory:         controllerFactory,
 		BaseViewModel:             baseViewModeler,
 		AlternativeStepsViewModel: alternativeStepsViewModeler,

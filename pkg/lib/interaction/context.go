@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
@@ -65,7 +66,7 @@ type OTPSender interface {
 }
 
 type WhatsappCodeProvider interface {
-	GenerateCode(phone string, webSessionID string) (string, error)
+	GenerateCode(phone string, webSessionID string) (*whatsapp.WhatsappCode, error)
 	SendCode(phone string, code string) error
 	VerifyCode(phone string, code string, userID string) error
 }

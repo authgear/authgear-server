@@ -4,7 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -62,7 +61,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 	if err != nil {
 		return nil, err
 	}
-	err = ctx.WhatsappCodeProvider.SendCode(phone, code)
+	err = ctx.WhatsappCodeProvider.SendCode(phone, code.Code)
 	if err != nil {
 		return nil, err
 	}
@@ -72,30 +71,23 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 		Authenticator:      targetInfo,
 		Authenticators:     e.Authenticators,
 		AuthenticatorIndex: idx,
-		WhatsappOTP:        code,
+		WhatsappOTPLength:  code.CodeLength,
 		Phone:              phone,
-		PhoneOTPMode:       ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 	}, nil
 }
 
 type NodeAuthenticationWhatsappTrigger struct {
-	Stage              authn.AuthenticationStage        `json:"stage"`
-	Authenticator      *authenticator.Info              `json:"authenticator"`
-	Authenticators     []*authenticator.Info            `json:"authenticators"`
-	AuthenticatorIndex int                              `json:"authenticator_index"`
-	WhatsappOTP        string                           `json:"whatsapp_otp"`
-	Phone              string                           `json:"phone"`
-	PhoneOTPMode       config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
-}
-
-// GetPhoneOTPMode implements WhatsappOTPNode.
-func (n *NodeAuthenticationWhatsappTrigger) GetPhoneOTPMode() config.AuthenticatorPhoneOTPMode {
-	return n.PhoneOTPMode
+	Stage              authn.AuthenticationStage `json:"stage"`
+	Authenticator      *authenticator.Info       `json:"authenticator"`
+	Authenticators     []*authenticator.Info     `json:"authenticators"`
+	AuthenticatorIndex int                       `json:"authenticator_index"`
+	WhatsappOTPLength  int                       `json:"whatsapp_otp_length"`
+	Phone              string                    `json:"phone"`
 }
 
 // GetWhatsappOTP implements WhatsappOTPNode.
-func (n *NodeAuthenticationWhatsappTrigger) GetWhatsappOTP() string {
-	return n.WhatsappOTP
+func (n *NodeAuthenticationWhatsappTrigger) GetWhatsappOTPLength() int {
+	return n.WhatsappOTPLength
 }
 
 // GetPhone implements WhatsappOTPNode.
