@@ -21986,28 +21986,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	return whatsappOTPHandler
 }
 
-func newWhatsappWATICallbackHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	whatsappWATICallbackHandlerLogger := webapp.NewWhatsappWATICallbackHandlerLogger(factory)
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	secretConfig := config.SecretConfig
-	watiCredentials := deps.ProvideWATICredentials(secretConfig)
-	clockClock := _wireSystemClockValue
-	handle := appProvider.Redis
-	globalSessionServiceFactory := &webapp.GlobalSessionServiceFactory{
-		Clock:       clockClock,
-		RedisHandle: handle,
-	}
-	whatsappWATICallbackHandler := &webapp.WhatsappWATICallbackHandler{
-		Logger:                      whatsappWATICallbackHandlerLogger,
-		WATICredentials:             watiCredentials,
-		GlobalSessionServiceFactory: globalSessionServiceFactory,
-	}
-	return whatsappWATICallbackHandler
-}
-
 func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
