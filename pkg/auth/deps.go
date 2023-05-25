@@ -75,6 +75,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowGetCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerapi.WorkflowNewOAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(handlerapi.WorkflowNewUIInfoResolver), new(*oidc.UIInfoResolver)),
+	wire.Bind(new(handlerapi.WorkflowV2CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerapi.WorkflowV2OAuthSessionService), new(*oauthsession.StoreRedis)),
+	wire.Bind(new(handlerapi.WorkflowV2UIInfoResolver), new(*oidc.UIInfoResolver)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
@@ -128,6 +131,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowNewWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
+	wire.Bind(new(handlerapi.WorkflowV2WorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 

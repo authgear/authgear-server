@@ -354,6 +354,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureWorkflowGetRoute(workflowRoute), p.Handler(newAPIWorkflowGetHandler))
 	router.Add(apihandler.ConfigureWorkflowInputRoute(workflowRoute), p.Handler(newAPIWorkflowInputHandler))
 	router.Add(apihandler.ConfigureWorkflowWebsocketRoute(workflowRoute), p.Handler(newAPIWorkflowWebsocketHandler))
+	router.Add(apihandler.ConfigureWorkflowV2Route(workflowRoute), p.Handler(newAPIWorkflowV2Handler))
 
 	router.NotFound(webappPageRoute, p.Handler(newWebAppNotFoundHandler))
 

@@ -16,4 +16,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(WorkflowGetHandler), "*"),
 	wire.Struct(new(WorkflowInputHandler), "*"),
 	wire.Struct(new(WorkflowWebsocketHandler), "*"),
+	wire.Struct(new(WorkflowV2Handler), "*"),
 )
