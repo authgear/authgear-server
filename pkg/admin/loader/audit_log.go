@@ -2,6 +2,7 @@ package loader
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -12,12 +13,14 @@ type AuditLogQuery interface {
 type AuditLogLoader struct {
 	*graphqlutil.DataLoader `wire:"-"`
 
-	Query AuditLogQuery
+	AuditDatabase *auditdb.ReadHandle
+	Query         AuditLogQuery
 }
 
-func NewAuditLogLoader(query AuditLogQuery) *AuditLogLoader {
+func NewAuditLogLoader(query AuditLogQuery, handle *auditdb.ReadHandle) *AuditLogLoader {
 	l := &AuditLogLoader{
-		Query: query,
+		Query:         query,
+		AuditDatabase: handle,
 	}
 	l.DataLoader = graphqlutil.NewDataLoader(l.LoadFunc)
 	return l
@@ -30,8 +33,12 @@ func (l *AuditLogLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 		ids[i] = key.(string)
 	}
 
+	var entities []*audit.Log
 	// Get entities.
-	entities, err := l.Query.GetByIDs(ids)
+	err := l.AuditDatabase.ReadOnly(func() (err error) {
+		entities, err = l.Query.GetByIDs(ids)
+		return
+	})
 	if err != nil {
 		return nil, err
 	}

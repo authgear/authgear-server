@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -18,6 +19,7 @@ type AuditLogQuery interface {
 type AuditLogFacade struct {
 	AuditLogQuery         AuditLogQuery
 	Clock                 clock.Clock
+	AuditDatabase         *auditdb.ReadHandle
 	AuditLogFeatureConfig *config.AuditLogFeatureConfig
 }
 
@@ -31,12 +33,26 @@ func (f *AuditLogFacade) QueryPage(opts audit.QueryPageOptions, pageArgs graphql
 		}
 	}
 
-	refs, err := f.AuditLogQuery.QueryPage(opts, pageArgs)
+	var refs []model.PageItemRef
+	var count uint64
+	var err error
+
+	err = f.AuditDatabase.ReadOnly(func() error {
+		refs, err = f.AuditLogQuery.QueryPage(opts, pageArgs)
+		if err != nil {
+			return err
+		}
+		count, err = f.AuditLogQuery.Count(opts)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
-		return f.AuditLogQuery.Count(opts)
+		return count, nil
 	})), nil
 }
