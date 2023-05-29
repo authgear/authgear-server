@@ -10,7 +10,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -28,7 +27,6 @@ var errRollback = errors.New("rollback transaction")
 type GraphQLHandler struct {
 	GraphQLContext *graphql.Context
 	AppDatabase    *appdb.Handle
-	AuditDatabase  *auditdb.ReadHandle
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -46,36 +44,27 @@ func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	invoke := func(f func() error) error {
-		return f()
-	}
-	if h.AuditDatabase != nil {
-		invoke = h.AuditDatabase.ReadOnly
-	}
-
-	err := invoke(func() error {
-		return h.AppDatabase.WithTx(func() error {
-			doRollback := false
-			graphqlHandler := handler.New(&handler.Config{
-				Schema:     graphql.Schema,
-				Pretty:     false,
-				GraphiQL:   false,
-				Playground: false,
-				ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
-					if result.HasErrors() {
-						doRollback = true
-					}
-				},
-			})
-
-			ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
-			graphqlHandler.ContextHandler(ctx, rw, r)
-
-			if doRollback {
-				return errRollback
-			}
-			return nil
+	err := h.AppDatabase.WithTx(func() error {
+		doRollback := false
+		graphqlHandler := handler.New(&handler.Config{
+			Schema:     graphql.Schema,
+			Pretty:     false,
+			GraphiQL:   false,
+			Playground: false,
+			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
+				if result.HasErrors() {
+					doRollback = true
+				}
+			},
 		})
+
+		ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
+		graphqlHandler.ContextHandler(ctx, rw, r)
+
+		if doRollback {
+			return errRollback
+		}
+		return nil
 	})
 
 	if err != nil && !errors.Is(err, errRollback) {

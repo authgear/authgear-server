@@ -510,7 +510,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: readHandle,
 		Store:    readStore,
 	}
-	auditLogLoader := loader.NewAuditLogLoader(query)
+	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
@@ -876,6 +876,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	auditLogFacade := &facade2.AuditLogFacade{
 		AuditLogQuery:         query,
 		Clock:                 clockClock,
+		AuditDatabase:         readHandle,
 		AuditLogFeatureConfig: auditLogFeatureConfig,
 	}
 	facadeIdentityFacade := &facade2.IdentityFacade{
@@ -984,7 +985,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
 		AppDatabase:    handle,
-		AuditDatabase:  readHandle,
 	}
 	return graphQLHandler
 }
