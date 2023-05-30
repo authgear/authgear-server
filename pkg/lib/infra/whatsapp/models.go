@@ -90,10 +90,10 @@ type LoginResponseUser struct {
 }
 
 type UserToken struct {
-	Namespace string    `json:"namespace"`
-	Username  string    `json:"username"`
-	Token     string    `json:"token"`
-	ExpireAt  time.Time `json:"expire_at"`
+	Endpoint string    `json:"endpoint"`
+	Username string    `json:"username"`
+	Token    string    `json:"token"`
+	ExpireAt time.Time `json:"expire_at"`
 }
 
 type LoginResponseUserExpiresTime time.Time

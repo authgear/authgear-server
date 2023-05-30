@@ -44,7 +44,7 @@ func (c *OnPremisesClient) SendTemplate(
 	templateName string,
 	templateLanguage string,
 	templateComponents []TemplateComponent) error {
-	token, err := c.TokenStore.Get(c.Credentials.Namespace, c.Credentials.Username)
+	token, err := c.TokenStore.Get(c.Credentials.APIEndpoint, c.Credentials.Username)
 	if err != nil {
 		return err
 	}
@@ -165,9 +165,9 @@ func (c *OnPremisesClient) login() (*UserToken, error) {
 	}
 
 	return &UserToken{
-		Namespace: c.Credentials.Namespace,
-		Username:  c.Credentials.Username,
-		Token:     loginResponse.Users[0].Token,
-		ExpireAt:  time.Time(loginResponse.Users[0].ExpiresAfter),
+		Endpoint: c.Credentials.APIEndpoint,
+		Username: c.Credentials.Username,
+		Token:    loginResponse.Users[0].Token,
+		ExpireAt: time.Time(loginResponse.Users[0].ExpiresAfter),
 	}, nil
 }

@@ -27,7 +27,7 @@ func (s *TokenStore) Set(token *UserToken) error {
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
-		key := redisTokenKey(s.AppID, token.Namespace, token.Username)
+		key := redisTokenKey(s.AppID, token.Endpoint, token.Username)
 		ttl := token.ExpireAt.Sub(s.Clock.NowUTC())
 
 		_, err := conn.SetEX(ctx, key, data, ttl).Result()
@@ -39,9 +39,9 @@ func (s *TokenStore) Set(token *UserToken) error {
 	})
 }
 
-func (s *TokenStore) Get(namespace string, username string) (*UserToken, error) {
+func (s *TokenStore) Get(endpoint string, username string) (*UserToken, error) {
 	ctx := context.Background()
-	key := redisTokenKey(s.AppID, namespace, username)
+	key := redisTokenKey(s.AppID, endpoint, username)
 	var token *UserToken
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := conn.Get(ctx, key).Bytes()
@@ -61,6 +61,6 @@ func (s *TokenStore) Get(namespace string, username string) (*UserToken, error) 
 	return token, err
 }
 
-func redisTokenKey(appID config.AppID, namespace string, username string) string {
-	return fmt.Sprintf("app:%s:whatsapp-on-prem-token:%s:%s", appID, namespace, username)
+func redisTokenKey(appID config.AppID, endpoint string, username string) string {
+	return fmt.Sprintf("app:%s:whatsapp-on-prem-token:%s:%s", appID, endpoint, username)
 }
