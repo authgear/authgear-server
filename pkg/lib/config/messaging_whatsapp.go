@@ -32,6 +32,17 @@ var _ = Schema.Add("WhatsappTemplatesConfig", `
 }
 `)
 
+var _ = Schema.Add("WhatsappOnPremTemplatesConfig", `
+{
+	"allOf": [
+		{ "$ref": "#/$defs/WhatsappTemplatesConfig" }
+	],
+	"properties": {
+		"otp": { "$ref": "#/$defs/WhatsappOnPremTemplateConfig" }
+	}
+}
+`)
+
 type WhatsappTemplateType string
 
 const (
@@ -96,6 +107,18 @@ var _ = Schema.Add("WhatsappTemplateConfig", `
 }
 `)
 
+var _ = Schema.Add("WhatsappOnPremTemplateConfig", `
+{
+	"type": "object",
+	"allOf": [
+		{ "$ref": "#/$defs/WhatsappTemplateConfig" },
+		{
+			"required": ["namespace"]
+		}
+	]
+}
+`)
+
 type WhatsappTemplateComponentParameter struct {
 	Parameters []string `json:"parameters,omitempty"`
 }
@@ -129,6 +152,9 @@ var _ = Schema.Add("WhatsappConfig", `
         "required": ["api_type"]
       },
 			"then": {
+        "properties": {
+					"templates": { "$ref": "#/$defs/WhatsappOnPremTemplatesConfig" }
+				},
 				"required": ["templates"]
 			}
 		}
