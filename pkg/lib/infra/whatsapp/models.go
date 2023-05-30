@@ -1,8 +1,6 @@
 package whatsapp
 
 import (
-	"encoding/json"
-	"strings"
 	"time"
 )
 
@@ -99,9 +97,8 @@ type UserToken struct {
 type LoginResponseUserExpiresTime time.Time
 
 // Implement Marshaler and Unmarshaler interface
-func (j *LoginResponseUserExpiresTime) UnmarshalJSON(b []byte) error {
-	s := strings.Trim(string(b), "\"")
-	t, err := time.Parse("2006-01-02 15:04:05-07:00", string(s))
+func (j *LoginResponseUserExpiresTime) UnmarshalText(textb []byte) error {
+	t, err := time.Parse("2006-01-02 15:04:05-07:00", string(textb))
 	if err != nil {
 		return err
 	}
@@ -109,6 +106,6 @@ func (j *LoginResponseUserExpiresTime) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (j LoginResponseUserExpiresTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(time.Time(j))
+func (j LoginResponseUserExpiresTime) MarshalText() ([]byte, error) {
+	return time.Time(j).MarshalText()
 }
