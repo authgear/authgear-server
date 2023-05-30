@@ -136,9 +136,5 @@ var _ = Schema.Add("WhatsappConfig", `
 
 type WhatsappConfig struct {
 	APIType   WhatsappAPIType          `json:"api_type,omitempty"`
-	Templates *WhatsappTemplatesConfig `json:"templates,omitempty"`
-}
-
-func (c *WhatsappConfig) NullableFields() []string {
-	return []string{"Templates"}
+	Templates *WhatsappTemplatesConfig `json:"templates,omitempty" nullable:"true"`
 }

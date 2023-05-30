@@ -28,16 +28,7 @@ func setFieldDefaults(value interface{}) {
 			for j := 0; j < numField; j++ {
 				field := v.Field(j)
 				ft := t.Field(j)
-				isNullable := false
-				if n, ok := v.Addr().Interface().(nullablefields); ok {
-					nullables := n.NullableFields()
-					fieldName := ft.Name
-					for _, name := range nullables {
-						if fieldName == name {
-							isNullable = true
-						}
-					}
-				}
+				isNullable := ft.Tag.Get("nullable") == "true"
 				if !isNullable {
 					set(ft.Type, field)
 				}
