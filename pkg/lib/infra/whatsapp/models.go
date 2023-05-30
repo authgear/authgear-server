@@ -96,9 +96,13 @@ type UserToken struct {
 
 type LoginResponseUserExpiresTime time.Time
 
+const (
+	LoginResponseUserExpiresTimeLayout = "2006-01-02 15:04:05-07:00"
+)
+
 // Implement Marshaler and Unmarshaler interface
 func (j *LoginResponseUserExpiresTime) UnmarshalText(textb []byte) error {
-	t, err := time.Parse("2006-01-02 15:04:05-07:00", string(textb))
+	t, err := time.Parse(LoginResponseUserExpiresTimeLayout, string(textb))
 	if err != nil {
 		return err
 	}
@@ -107,5 +111,5 @@ func (j *LoginResponseUserExpiresTime) UnmarshalText(textb []byte) error {
 }
 
 func (j LoginResponseUserExpiresTime) MarshalText() ([]byte, error) {
-	return time.Time(j).MarshalText()
+	return []byte(time.Time(j).Format(LoginResponseUserExpiresTimeLayout)), nil
 }
