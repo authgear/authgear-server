@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"context"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -112,12 +113,24 @@ func (p *Provider) GenerateCode(phone string, webSessionID string, useExistingOn
 	}, nil
 }
 
-func (p *Provider) makeAuthenticationTemplateComponent(code string) []whatsapp.TemplateComponent {
+func (p *Provider) makeAuthenticationTemplateComponent(code string, language string) ([]whatsapp.TemplateComponent, error) {
 
 	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
 
+	data := make(map[string]any)
+	template.Embed(data, templateData{
+		Code: code,
+	})
+
+	text, err := p.TemplateEngine.Render(otp.TemplateWhatsappOTPCodeTXT, []string{language}, data)
+	if err != nil {
+		return nil, err
+	}
+	// The text cannot include any newline characters
+	text = strings.ReplaceAll(text, "\n", "")
+
 	body := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeBody)
-	bodyParam := whatsapp.NewTemplateComponentTextParameter(code)
+	bodyParam := whatsapp.NewTemplateComponentTextParameter(text)
 	body.Parameters = append(body.Parameters, *bodyParam)
 	component = append(component, *body)
 
@@ -126,7 +139,7 @@ func (p *Provider) makeAuthenticationTemplateComponent(code string) []whatsapp.T
 	button.Parameters = append(button.Parameters, *buttonParam)
 	component = append(component, *button)
 
-	return component
+	return component, nil
 }
 
 func (p *Provider) SendCode(phone string, code string) error {
@@ -136,7 +149,11 @@ func (p *Provider) SendCode(phone string, code string) error {
 
 	switch template.Type {
 	case config.WhatsappTemplateTypeAuthentication:
-		component = p.makeAuthenticationTemplateComponent(code)
+		c, err := p.makeAuthenticationTemplateComponent(code, language)
+		if err != nil {
+			return err
+		}
+		component = c
 	default:
 		panic("whatsapp: unknown template type")
 	}

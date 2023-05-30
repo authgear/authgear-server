@@ -63,6 +63,8 @@ var (
 	TemplateMessageForgotPasswordSMSTXT    = template.RegisterPlainText("messages/forgot_password_sms.txt")
 	TemplateMessageForgotPasswordEmailTXT  = template.RegisterPlainText("messages/forgot_password_email.txt")
 	TemplateMessageForgotPasswordEmailHTML = template.RegisterHTML("messages/forgot_password_email.html")
+
+	TemplateWhatsappOTPCodeTXT = template.RegisterPlainText("messages/whatsapp_otp_code.txt")
 )
 
 var (
