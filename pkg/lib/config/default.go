@@ -8,10 +8,6 @@ type defaulter interface {
 	SetDefaults()
 }
 
-type nullablefields interface {
-	NullableFields() []string
-}
-
 func setFieldDefaults(value interface{}) {
 	var set func(t reflect.Type, v reflect.Value)
 
