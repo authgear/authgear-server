@@ -94,7 +94,6 @@ var _ = Schema.Add("WhatsappConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"api_type": { "$ref": "#/$defs/WhatsappAPIType" },
-		"api_endpoint": { "type": "string", "minLength": 1 },
 		"templates": { "$ref": "#/$defs/WhatsappTemplatesConfig" }
 	},
 	"allOf": [
@@ -104,7 +103,7 @@ var _ = Schema.Add("WhatsappConfig", `
         "required": ["api_type"]
       },
 			"then": {
-				"required": ["api_endpoint", "templates"]
+				"required": ["templates"]
 			}
 		}
 	]
@@ -112,9 +111,8 @@ var _ = Schema.Add("WhatsappConfig", `
 `)
 
 type WhatsappConfig struct {
-	APIType     WhatsappAPIType          `json:"api_type,omitempty"`
-	APIEndpoint string                   `json:"api_endpoint,omitempty"`
-	Templates   *WhatsappTemplatesConfig `json:"templates,omitempty"`
+	APIType   WhatsappAPIType          `json:"api_type,omitempty"`
+	Templates *WhatsappTemplatesConfig `json:"templates,omitempty"`
 }
 
 func (c *WhatsappConfig) NullableFields() []string {

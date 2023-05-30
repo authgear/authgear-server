@@ -24,10 +24,10 @@ func NewWhatsappOnPremisesClient(
 	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappOnPremisesCredentials,
 	tokenStore *TokenStore) *OnPremisesClient {
-	if cfg.APIType != config.WhatsappAPITypeOnPremises || cfg.APIEndpoint == "" || credentials == nil {
+	if cfg.APIType != config.WhatsappAPITypeOnPremises || credentials == nil {
 		return nil
 	}
-	endpoint, err := url.Parse(cfg.APIEndpoint)
+	endpoint, err := url.Parse(credentials.APIEndpoint)
 	if err != nil {
 		panic(err)
 	}
