@@ -49,7 +49,18 @@ var WorkflowV2RequestSchema = validation.NewSimpleSchema(`
 							},
 							"required": ["kind", "data"]
 						},
-						"bind_user_agent": { "type": "boolean" }
+						"bind_user_agent": { "type": "boolean" },
+						"batch_input": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"kind": { "type": "string" },
+									"data": { "type": "object" }
+								},
+								"required": ["kind", "data"]
+							}
+						}
 					},
 					"required": ["intent"]
 				}
@@ -147,7 +158,7 @@ type WorkflowV2Request struct {
 	// Input
 	Input *workflow.InputJSON `json:"input,omitempty"`
 
-	// BatchInput
+	// BatchInput, or Create
 	BatchInput []*workflow.InputJSON `json:"batch_input,omitempty"`
 }
 
@@ -202,6 +213,29 @@ func (h *WorkflowV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.JSON.WriteResponse(w, &api.Response{Error: err})
 			return
 		}
+
+		if len(request.BatchInput) > 0 {
+			workflowID := output.Workflow.WorkflowID
+			instanceID := output.Workflow.InstanceID
+			userAgentID := output.Session.UserAgentID
+
+			output, err = h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+			if err != nil {
+				apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+				if apiRespErr != nil {
+					// failed to get the workflow when preparing the error response
+					h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
+					return
+				}
+				h.JSON.WriteResponse(w, apiResp)
+				return
+			}
+		}
+
+		for _, c := range output.Cookies {
+			httputil.UpdateCookie(w, c)
+		}
+
 		result := WorkflowResponse{
 			Action:   output.Action,
 			Workflow: output.WorkflowOutput,
