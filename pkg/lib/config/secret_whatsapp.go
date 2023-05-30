@@ -21,6 +21,7 @@ type WhatsappOnPremisesCredentials struct {
 
 func (c *WhatsappOnPremisesCredentials) SensitiveStrings() []string {
 	return []string{
+		c.Username,
 		c.Password,
 	}
 }
