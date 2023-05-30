@@ -128,48 +128,6 @@ func (p *Provider) makeAuthenticationTemplateComponent(code string) []whatsapp.T
 	return component
 }
 
-func (p *Provider) makeUtilTemplateComponent(code string, language string) ([]whatsapp.TemplateComponent, error) {
-	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
-	tpl := p.WhatsappConfig.Templates.OTP
-
-	data := make(map[string]any)
-	template.Embed(data, templateData{
-		Code: code,
-	})
-
-	if tpl.Components.Header != nil {
-		header := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeHeader)
-
-		for _, param := range tpl.Components.Header.Parameters {
-			text, err := p.TemplateEngine.RenderString(param, []string{language}, data)
-			if err != nil {
-				return nil, err
-			}
-			paramObj := whatsapp.NewTemplateComponentTextParameter(text)
-			header.Parameters = append(header.Parameters, *paramObj)
-		}
-
-		component = append(component, *header)
-	}
-
-	if tpl.Components.Body != nil {
-		body := whatsapp.NewTemplateComponent(whatsapp.TemplateComponentTypeBody)
-
-		for _, param := range tpl.Components.Body.Parameters {
-			text, err := p.TemplateEngine.RenderString(param, []string{language}, data)
-			if err != nil {
-				return nil, err
-			}
-			paramObj := whatsapp.NewTemplateComponentTextParameter(text)
-			body.Parameters = append(body.Parameters, *paramObj)
-		}
-
-		component = append(component, *body)
-	}
-
-	return component, nil
-}
-
 func (p *Provider) SendCode(phone string, code string) error {
 	var component []whatsapp.TemplateComponent = []whatsapp.TemplateComponent{}
 	template := p.WhatsappConfig.Templates.OTP
@@ -178,12 +136,6 @@ func (p *Provider) SendCode(phone string, code string) error {
 	switch template.Type {
 	case config.WhatsappTemplateTypeAuthentication:
 		component = p.makeAuthenticationTemplateComponent(code)
-	case config.WhatsappTemplateTypeUtil:
-		c, err := p.makeUtilTemplateComponent(code, language)
-		if err != nil {
-			return err
-		}
-		component = c
 	default:
 		panic("whatsapp: unknown template type")
 	}
