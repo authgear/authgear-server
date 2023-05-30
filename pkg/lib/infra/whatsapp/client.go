@@ -26,14 +26,16 @@ func (c *Client) logMessage(
 	to string,
 	templateName string,
 	templateLanguage string,
-	templateComponents []TemplateComponent) *logrus.Entry {
+	templateComponents []TemplateComponent,
+	namespace string) *logrus.Entry {
 	data, _ := json.MarshalIndent(templateComponents, "", "  ")
 
 	return c.Logger.
 		WithField("recipient", to).
 		WithField("template_name", templateName).
 		WithField("language", templateLanguage).
-		WithField("components", string(data))
+		WithField("components", string(data)).
+		WithField("namespace", namespace)
 }
 
 func (c *Client) SendTemplate(
@@ -41,15 +43,16 @@ func (c *Client) SendTemplate(
 	templateName string,
 	templateLanguage string,
 	templateComponents []TemplateComponent,
+	namespace string,
 ) error {
 	if c.TestModeWhatsappSuppressed {
-		c.logMessage(to, templateName, templateLanguage, templateComponents).
+		c.logMessage(to, templateName, templateLanguage, templateComponents, namespace).
 			Warn("sending whatsapp is suppressed in test mode")
 		return nil
 	}
 
 	if c.DevMode {
-		c.logMessage(to, templateName, templateLanguage, templateComponents).
+		c.logMessage(to, templateName, templateLanguage, templateComponents, namespace).
 			Warn("skip sending whatsapp in development mode")
 		return nil
 	}
@@ -59,7 +62,7 @@ func (c *Client) SendTemplate(
 		if c.OnPremisesClient == nil {
 			return ErrNoAvailableClient
 		}
-		return c.OnPremisesClient.SendTemplate(to, templateName, templateLanguage, templateComponents)
+		return c.OnPremisesClient.SendTemplate(to, templateName, templateLanguage, templateComponents, namespace)
 	default:
 		return fmt.Errorf("whatsapp: unknown api type")
 	}

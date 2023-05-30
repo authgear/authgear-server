@@ -72,6 +72,7 @@ var _ = Schema.Add("WhatsappTemplateType", `
 type WhatsappTemplateConfig struct {
 	Name      string               `json:"name"`
 	Type      WhatsappTemplateType `json:"type"`
+	Namespace string               `json:"namespace,omitempty"`
 	Languages []string             `json:"languages"`
 }
 
@@ -82,6 +83,7 @@ var _ = Schema.Add("WhatsappTemplateConfig", `
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
 		"type": { "$ref": "#/$defs/WhatsappTemplateType" },
+		"namespace": { "type": "string", "minLength": 1 },
 		"languages": {
 			"type": "array",
 			"items": {

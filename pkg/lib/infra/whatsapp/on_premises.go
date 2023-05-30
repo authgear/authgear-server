@@ -43,7 +43,8 @@ func (c *OnPremisesClient) SendTemplate(
 	to string,
 	templateName string,
 	templateLanguage string,
-	templateComponents []TemplateComponent) error {
+	templateComponents []TemplateComponent,
+	namespace string) error {
 	token, err := c.TokenStore.Get(c.Credentials.APIEndpoint, c.Credentials.Username)
 	if err != nil {
 		return err
@@ -63,7 +64,7 @@ func (c *OnPremisesClient) SendTemplate(
 	}
 	var send func(retryOnUnauthorized bool) error
 	send = func(retryOnUnauthorized bool) error {
-		err = c.sendTemplate(token.Token, to, templateName, templateLanguage, templateComponents)
+		err = c.sendTemplate(token.Token, to, templateName, templateLanguage, templateComponents, namespace)
 		if err != nil {
 			if retryOnUnauthorized && errors.Is(err, ErrUnauthorized) {
 				err := refreshToken()
@@ -85,7 +86,8 @@ func (c *OnPremisesClient) sendTemplate(
 	to string,
 	templateName string,
 	templateLanguage string,
-	templateComponents []TemplateComponent) error {
+	templateComponents []TemplateComponent,
+	namespace string) error {
 	url := c.Endpoint.JoinPath("/v1/messages")
 	body := &SendTemplateRequest{
 		RecipientType: "individual",
@@ -98,7 +100,7 @@ func (c *OnPremisesClient) sendTemplate(
 				Code:   templateLanguage,
 			},
 			Components: templateComponents,
-			Namespace:  &c.Credentials.Namespace,
+			Namespace:  &namespace,
 		},
 	}
 

@@ -31,6 +31,7 @@ type WhatsappSender interface {
 		templateName string,
 		templateLanguage string,
 		templateComponents []whatsapp.TemplateComponent,
+		namespace string,
 	) error
 }
 
@@ -145,6 +146,7 @@ func (p *Provider) SendCode(phone string, code string) error {
 		p.WhatsappConfig.Templates.OTP.Name,
 		language,
 		component,
+		template.Namespace,
 	)
 }
 
