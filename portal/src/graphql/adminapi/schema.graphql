@@ -275,6 +275,9 @@ enum AuditLogActivityType {
 
   """"""
   WHATSAPP_OTP_VERIFIED
+
+  """"""
+  WHATSAPP_SENT
 }
 
 """A connection to a list of items."""

@@ -17,9 +17,7 @@ type WhatsappMessage struct {
 }
 
 func (m *WhatsappMessage) Send() error {
-	// FIXME: Update event type
-	err := m.events.DispatchEvent(&nonblocking.SMSSentEventPayload{
-		Sender:    "",
+	err := m.events.DispatchEvent(&nonblocking.WhatsappSentEventPayload{
 		Recipient: m.Options.To,
 		Type:      m.Type,
 	})
