@@ -11,14 +11,18 @@ import (
 const PurposeVerification Purpose = "verification"
 
 const (
-	VerificationTriggerEmailPerIP   ratelimit.BucketName = "VerificationTriggerEmailPerIP"
-	VerificationTriggerSMSPerIP     ratelimit.BucketName = "VerificationTriggerSMSPerIP"
-	VerificationTriggerEmailPerUser ratelimit.BucketName = "VerificationTriggerEmailPerUser"
-	VerificationTriggerSMSPerUser   ratelimit.BucketName = "VerificationTriggerSMSPerUser"
-	VerificationCooldownEmail       ratelimit.BucketName = "VerificationCooldownEmail"
-	VerificationCooldownSMS         ratelimit.BucketName = "VerificationCooldownSMS"
-	VerificationValidateEmailPerIP  ratelimit.BucketName = "VerificationValidateEmailPerIP"
-	VerificationValidateSMSPerIP    ratelimit.BucketName = "VerificationValidateSMSPerIP"
+	VerificationTriggerEmailPerIP      ratelimit.BucketName = "VerificationTriggerEmailPerIP"
+	VerificationTriggerSMSPerIP        ratelimit.BucketName = "VerificationTriggerSMSPerIP"
+	VerificationTriggerWhatsappPerIP   ratelimit.BucketName = "VerificationTriggerWhatsappPerIP"
+	VerificationTriggerEmailPerUser    ratelimit.BucketName = "VerificationTriggerEmailPerUser"
+	VerificationTriggerSMSPerUser      ratelimit.BucketName = "VerificationTriggerSMSPerUser"
+	VerificationTriggerWhatsappPerUser ratelimit.BucketName = "VerificationTriggerWhatsappPerUser"
+	VerificationCooldownEmail          ratelimit.BucketName = "VerificationCooldownEmail"
+	VerificationCooldownSMS            ratelimit.BucketName = "VerificationCooldownSMS"
+	VerificationCooldownWhatsapp       ratelimit.BucketName = "VerificationCooldownWhatsapp"
+	VerificationValidateEmailPerIP     ratelimit.BucketName = "VerificationValidateEmailPerIP"
+	VerificationValidateSMSPerIP       ratelimit.BucketName = "VerificationValidateSMSPerIP"
+	VerificationValidateWhatsappPerIP  ratelimit.BucketName = "VerificationValidateWhatsappPerIP"
 )
 
 type kindVerification struct {
@@ -45,10 +49,12 @@ func (k kindVerification) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec 
 		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerPerIP,
 			k.config.Verification.RateLimits.SMS.TriggerPerIP,
+			k.config.Verification.RateLimits.SMS.TriggerPerIP,
 		),
 		selectByChannel(k.channel,
 			VerificationTriggerEmailPerIP,
 			VerificationTriggerSMSPerIP,
+			VerificationTriggerWhatsappPerIP,
 		), ip)
 }
 
@@ -57,10 +63,12 @@ func (k kindVerification) RateLimitTriggerPerUser(userID string) ratelimit.Bucke
 		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerPerUser,
 			k.config.Verification.RateLimits.SMS.TriggerPerUser,
+			k.config.Verification.RateLimits.SMS.TriggerPerUser,
 		),
 		selectByChannel(k.channel,
 			VerificationTriggerEmailPerUser,
 			VerificationTriggerSMSPerUser,
+			VerificationTriggerWhatsappPerUser,
 		), userID)
 }
 
@@ -69,9 +77,11 @@ func (k kindVerification) RateLimitTriggerCooldown(target string) ratelimit.Buck
 		selectByChannel(k.channel,
 			VerificationCooldownEmail,
 			VerificationCooldownSMS,
+			VerificationCooldownWhatsapp,
 		),
 		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.TriggerCooldown,
+			k.config.Verification.RateLimits.SMS.TriggerCooldown,
 			k.config.Verification.RateLimits.SMS.TriggerCooldown,
 		).Duration(),
 		target,
@@ -83,10 +93,12 @@ func (k kindVerification) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec
 		selectByChannel(k.channel,
 			k.config.Verification.RateLimits.Email.ValidatePerIP,
 			k.config.Verification.RateLimits.SMS.ValidatePerIP,
+			k.config.Verification.RateLimits.SMS.ValidatePerIP,
 		),
 		selectByChannel(k.channel,
 			VerificationValidateEmailPerIP,
 			VerificationValidateSMSPerIP,
+			VerificationValidateWhatsappPerIP,
 		), ip)
 }
 
@@ -97,6 +109,7 @@ func (k kindVerification) RateLimitValidatePerUserPerIP(userID string, ip string
 func (k kindVerification) RevocationMaxFailedAttempts() int {
 	return selectByChannel(k.channel,
 		k.config.Verification.RateLimits.Email.MaxFailedAttemptsRevokeOTP,
+		k.config.Verification.RateLimits.SMS.MaxFailedAttemptsRevokeOTP,
 		k.config.Verification.RateLimits.SMS.MaxFailedAttemptsRevokeOTP,
 	)
 }

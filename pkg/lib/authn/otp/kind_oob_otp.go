@@ -11,18 +11,23 @@ import (
 const PurposeOOBOTP Purpose = "oob-otp"
 
 const (
-	OOBOTPTriggerEmailPerIP         ratelimit.BucketName = "OOBOTPTriggerEmailPerIP"
-	OOBOTPTriggerSMSPerIP           ratelimit.BucketName = "OOBOTPTriggerSMSPerIP"
-	OOBOTPTriggerEmailPerUser       ratelimit.BucketName = "OOBOTPTriggerEmailPerUser"
-	OOBOTPTriggerSMSPerUser         ratelimit.BucketName = "OOBOTPTriggerSMSPerUser"
-	OOBOTPCooldownEmail             ratelimit.BucketName = "OOBOTPCooldownEmail"
-	OOBOTPCooldownSMS               ratelimit.BucketName = "OOBOTPCooldownSMS"
-	OOBOTPValidateEmailPerIP        ratelimit.BucketName = "OOBOTPValidateEmailPerIP"
-	OOBOTPValidateSMSPerIP          ratelimit.BucketName = "OOBOTPValidateSMSPerIP"
-	OOBOTPValidateEmailPerUserPerIP ratelimit.BucketName = "OOBOTPValidateEmailPerUserPerIP"
-	OOBOTPValidateSMSPerUserPerIP   ratelimit.BucketName = "OOBOTPValidateSMSPerUserPerIP"
-	AuthenticatePerIP               ratelimit.BucketName = "AuthenticatePerIP"
-	AuthenticatePerUserPerIP        ratelimit.BucketName = "AuthenticatePerUserPerIP"
+	OOBOTPTriggerEmailPerIP            ratelimit.BucketName = "OOBOTPTriggerEmailPerIP"
+	OOBOTPTriggerSMSPerIP              ratelimit.BucketName = "OOBOTPTriggerSMSPerIP"
+	OOBOTPTriggerWhatsappPerIP         ratelimit.BucketName = "OOBOTPTriggerWhatsappPerIP"
+	OOBOTPTriggerEmailPerUser          ratelimit.BucketName = "OOBOTPTriggerEmailPerUser"
+	OOBOTPTriggerSMSPerUser            ratelimit.BucketName = "OOBOTPTriggerSMSPerUser"
+	OOBOTPTriggerWhatsappPerUser       ratelimit.BucketName = "OOBOTPTriggerWhatsappPerUser"
+	OOBOTPCooldownEmail                ratelimit.BucketName = "OOBOTPCooldownEmail"
+	OOBOTPCooldownSMS                  ratelimit.BucketName = "OOBOTPCooldownSMS"
+	OOBOTPCooldownWhatsapp             ratelimit.BucketName = "OOBOTPCooldownWhatsapp"
+	OOBOTPValidateEmailPerIP           ratelimit.BucketName = "OOBOTPValidateEmailPerIP"
+	OOBOTPValidateSMSPerIP             ratelimit.BucketName = "OOBOTPValidateSMSPerIP"
+	OOBOTPValidateWhatsappPerIP        ratelimit.BucketName = "OOBOTPValidateWhatsappPerIP"
+	OOBOTPValidateEmailPerUserPerIP    ratelimit.BucketName = "OOBOTPValidateEmailPerUserPerIP"
+	OOBOTPValidateSMSPerUserPerIP      ratelimit.BucketName = "OOBOTPValidateSMSPerUserPerIP"
+	OOBOTPValidateWhatsappPerUserPerIP ratelimit.BucketName = "OOBOTPValidateWhatsappPerUserPerIP"
+	AuthenticatePerIP                  ratelimit.BucketName = "AuthenticatePerIP"
+	AuthenticatePerUserPerIP           ratelimit.BucketName = "AuthenticatePerUserPerIP"
 )
 
 type kindOOBOTP struct {
@@ -45,6 +50,7 @@ func (k kindOOBOTP) ValidPeriod() time.Duration {
 	return selectByChannel(k.channel,
 		k.config.Authenticator.OOB.Email.CodeValidPeriod,
 		k.config.Authenticator.OOB.SMS.CodeValidPeriod,
+		k.config.Authenticator.OOB.SMS.CodeValidPeriod,
 	).Duration()
 }
 
@@ -53,10 +59,12 @@ func (k kindOOBOTP) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
 		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerIP,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP,
+			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerIP,
 		),
 		selectByChannel(k.channel,
 			OOBOTPTriggerEmailPerIP,
 			OOBOTPTriggerSMSPerIP,
+			OOBOTPTriggerWhatsappPerIP,
 		),
 		string(k.purpose), ip)
 }
@@ -66,10 +74,12 @@ func (k kindOOBOTP) RateLimitTriggerPerUser(userID string) ratelimit.BucketSpec 
 		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerPerUser,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser,
+			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerPerUser,
 		),
 		selectByChannel(k.channel,
 			OOBOTPTriggerEmailPerUser,
 			OOBOTPTriggerSMSPerUser,
+			OOBOTPTriggerWhatsappPerUser,
 		),
 		string(k.purpose), userID)
 }
@@ -79,9 +89,11 @@ func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
 		selectByChannel(k.channel,
 			OOBOTPCooldownEmail,
 			OOBOTPCooldownSMS,
+			OOBOTPCooldownWhatsapp,
 		),
 		selectByChannel(k.channel,
 			k.config.Authentication.RateLimits.OOBOTP.Email.TriggerCooldown,
+			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerCooldown,
 			k.config.Authentication.RateLimits.OOBOTP.SMS.TriggerCooldown,
 		).Duration(),
 		string(k.purpose), target,
@@ -91,6 +103,7 @@ func (k kindOOBOTP) RateLimitTriggerCooldown(target string) ratelimit.BucketSpec
 func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
 	config := selectByChannel(k.channel,
 		k.config.Authentication.RateLimits.OOBOTP.Email.ValidatePerIP,
+		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP,
 		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerIP,
 	)
 	if config.Enabled == nil {
@@ -107,6 +120,7 @@ func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
 		selectByChannel(k.channel,
 			OOBOTPValidateEmailPerIP,
 			OOBOTPValidateSMSPerIP,
+			OOBOTPValidateWhatsappPerIP,
 		),
 		string(k.purpose),
 		ip,
@@ -116,6 +130,7 @@ func (k kindOOBOTP) RateLimitValidatePerIP(ip string) ratelimit.BucketSpec {
 func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec {
 	config := selectByChannel(k.channel,
 		k.config.Authentication.RateLimits.OOBOTP.Email.ValidatePerUserPerIP,
+		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP,
 		k.config.Authentication.RateLimits.OOBOTP.SMS.ValidatePerUserPerIP,
 	)
 	if config.Enabled == nil {
@@ -133,6 +148,7 @@ func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) rate
 		selectByChannel(k.channel,
 			OOBOTPValidateEmailPerUserPerIP,
 			OOBOTPValidateSMSPerUserPerIP,
+			OOBOTPValidateWhatsappPerUserPerIP,
 		),
 		string(k.purpose),
 		userID,
@@ -143,6 +159,7 @@ func (k kindOOBOTP) RateLimitValidatePerUserPerIP(userID string, ip string) rate
 func (k kindOOBOTP) RevocationMaxFailedAttempts() int {
 	return selectByChannel(k.channel,
 		k.config.Authentication.RateLimits.OOBOTP.Email.MaxFailedAttemptsRevokeOTP,
+		k.config.Authentication.RateLimits.OOBOTP.SMS.MaxFailedAttemptsRevokeOTP,
 		k.config.Authentication.RateLimits.OOBOTP.SMS.MaxFailedAttemptsRevokeOTP,
 	)
 }
