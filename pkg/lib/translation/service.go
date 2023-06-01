@@ -215,11 +215,11 @@ func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessag
 	}, nil
 }
 
-func (s *Service) WhatsappMessageData(langauge string, msg *MessageSpec, args interface{}) (*WhatsappMessageData, error) {
+func (s *Service) WhatsappMessageData(language string, msg *MessageSpec, args interface{}) (*WhatsappMessageData, error) {
 	data := map[string]interface{}{}
 	template.Embed(data, args)
 
-	body, err := s.renderTemplateInLanguage([]string{langauge}, msg.WhatsappTemplate, data)
+	body, err := s.renderTemplateInLanguage([]string{language}, msg.WhatsappTemplate, data)
 	if err != nil {
 		return nil, err
 	}
