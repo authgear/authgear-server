@@ -17,8 +17,9 @@ const (
 type AuthenticatorOOBChannel string
 
 const (
-	AuthenticatorOOBChannelSMS   AuthenticatorOOBChannel = "sms"
-	AuthenticatorOOBChannelEmail AuthenticatorOOBChannel = "email"
+	AuthenticatorOOBChannelSMS      AuthenticatorOOBChannel = "sms"
+	AuthenticatorOOBChannelEmail    AuthenticatorOOBChannel = "email"
+	AuthenticatorOOBChannelWhatsapp AuthenticatorOOBChannel = "whatsapp"
 )
 
 type AuthenticatorKind string

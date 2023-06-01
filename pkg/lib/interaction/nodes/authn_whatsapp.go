@@ -1,8 +1,10 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -28,7 +30,14 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 	phone := e.Authenticator.OOBOTP.Phone
 	userID := e.Authenticator.UserID
 	code := input.GetWhatsappOTP()
-	err := ctx.WhatsappCodeProvider.VerifyCode(phone, code, userID)
+	err := ctx.OTPCodeService.VerifyOTP(
+		otp.KindOOBOTP(ctx.Config, model.AuthenticatorOOBChannelWhatsapp),
+		phone,
+		code,
+		&otp.VerifyOptions{
+			UserID: userID,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ const (
 	MessageTypeAuthenticatePrimaryOOB   MessageType = "authenticate-primary-oob"
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
 	MessageTypeForgotPassword           MessageType = "forgot-password"
+	MessageTypeWhatsappCode             MessageType = "whatsapp-code"
 )
 
 type messageTemplateContext struct {
@@ -123,5 +124,9 @@ var (
 		TXTEmailTemplate:  TemplateMessageForgotPasswordEmailTXT,
 		HTMLEmailTemplate: TemplateMessageForgotPasswordEmailHTML,
 		SMSTemplate:       TemplateMessageForgotPasswordSMSTXT,
+	}
+	messageWhatsappCode = &translation.MessageSpec{
+		Name:             "whatsapp-code",
+		WhatsappTemplate: TemplateWhatsappOTPCodeTXT,
 	}
 )

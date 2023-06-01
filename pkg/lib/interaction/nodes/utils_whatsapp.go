@@ -1,43 +1,77 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
 type SendWhatsappCodeResult struct {
 	Target     string
 	CodeLength int
+	Kind       otp.Kind
 }
 
 type SendWhatsappCode struct {
-	Context  *interaction.Context
-	Target   string
-	IsResend bool
+	KindFactory func(config *config.AppConfig, channel model.AuthenticatorOOBChannel) otp.Kind
+	Context     *interaction.Context
+	Target      string
+	IsResend    bool
 }
 
 func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
-	code, err := s.Context.WhatsappCodeProvider.GenerateCode(s.Target, s.Context.WebSessionID, !s.IsResend)
+	channel := model.AuthenticatorOOBChannelWhatsapp
+	form := otp.FormCode
+
+	kind := s.KindFactory(s.Context.Config, channel)
+	result := &SendWhatsappCodeResult{
+		Target:     s.Target,
+		CodeLength: form.CodeLength(),
+		Kind:       kind,
+	}
+
+	msg, err := s.Context.OTPSender.Prepare(channel, s.Target, form, otp.MessageTypeWhatsappCode)
+	if !s.IsResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer msg.Close()
+
+	code, err := s.Context.OTPCodeService.GenerateOTP(
+		kind,
+		s.Target,
+		form,
+		&otp.GenerateOptions{WebSessionID: s.Context.WebSessionID},
+	)
+	if !s.IsResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	err = s.Context.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return nil, err
 	}
 
-	if code.IsNew {
-		err = s.Context.WhatsappCodeProvider.SendCode(s.Target, code.Code)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &SendWhatsappCodeResult{
-		Target:     s.Target,
-		CodeLength: code.CodeLength,
-	}, nil
+	return result, nil
 }
 
-func NewSendWhatsappCode(ctx *interaction.Context, target string, isResend bool) *SendWhatsappCode {
+func NewSendWhatsappCode(
+	ctx *interaction.Context,
+	kindFactory func(config *config.AppConfig, channel model.AuthenticatorOOBChannel) otp.Kind,
+	target string,
+	isResend bool) *SendWhatsappCode {
 	return &SendWhatsappCode{
-		Context:  ctx,
-		Target:   target,
-		IsResend: isResend,
+		Context:     ctx,
+		KindFactory: kindFactory,
+		Target:      target,
+		IsResend:    isResend,
 	}
 }

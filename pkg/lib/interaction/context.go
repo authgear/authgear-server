@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
@@ -63,12 +62,6 @@ type OTPCodeService interface {
 type OTPSender interface {
 	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
-}
-
-type WhatsappCodeProvider interface {
-	GenerateCode(phone string, webSessionID string, useExistingOnRateLimited bool) (*whatsapp.WhatsappCode, error)
-	SendCode(phone string, code string) error
-	VerifyCode(phone string, code string, userID string) error
 }
 
 type AnonymousIdentityProvider interface {
@@ -232,7 +225,6 @@ type Context struct {
 	SessionManager            SessionManager
 	SessionCookie             session.CookieDef
 	MFADeviceTokenCookie      mfa.CookieDef
-	WhatsappCodeProvider      WhatsappCodeProvider
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"

@@ -5,8 +5,8 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	NewClientLogger,
+	NewServiceLogger,
 	NewWhatsappOnPremisesClient,
 	wire.Struct(new(TokenStore), "*"),
-	wire.Struct(new(Client), "*"),
+	wire.Struct(new(Service), "*"),
 )

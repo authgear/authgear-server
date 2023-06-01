@@ -28,6 +28,8 @@ func KindForgotPassword(config *config.AppConfig, channel model.AuthenticatorOOB
 	return kindForgotPassword{config: config, channel: channel}
 }
 
+var _ KindFactory = KindForgotPassword
+
 func (k kindForgotPassword) Purpose() Purpose {
 	return PurposeForgotPassword
 }

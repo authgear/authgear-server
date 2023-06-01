@@ -4,6 +4,23 @@ import (
 	"time"
 )
 
+type PreparedOTPTemplate struct {
+	TemplateName string
+	TemplateType string
+	Language     string
+	Components   []TemplateComponent
+	Namespace    string
+}
+
+type SendTemplateOptions struct {
+	TemplateName string
+	To           string
+	TemplateType string
+	Language     string
+	Components   []TemplateComponent
+	Namespace    string
+}
+
 type SendTemplateRequest struct {
 	RecipientType string    `json:"recipient_type"`
 	To            string    `json:"to"`

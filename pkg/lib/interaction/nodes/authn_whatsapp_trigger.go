@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -57,7 +58,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 	}
 	targetInfo := e.Authenticators[idx]
 	phone := targetInfo.OOBOTP.Phone
-	result, err := NewSendWhatsappCode(ctx, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTP, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +92,11 @@ func (n *NodeAuthenticationWhatsappTrigger) GetPhone() string {
 	return n.Phone
 }
 
+// GetOTPKindFactory implements WhatsappOTPNode.
+func (n *NodeAuthenticationWhatsappTrigger) GetOTPKindFactory() otp.KindFactory {
+	return otp.KindOOBOTP
+}
+
 // GetSelectedPhoneNumberForPhoneOTPAuthentication implements AuthenticationPhoneOTPTriggerNode
 func (n *NodeAuthenticationWhatsappTrigger) GetSelectedPhoneNumberForPhoneOTPAuthentication() string {
 	return n.Phone
@@ -112,7 +118,8 @@ func (n *NodeAuthenticationWhatsappTrigger) GetEffects() ([]interaction.Effect, 
 func (n *NodeAuthenticationWhatsappTrigger) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
-			Target: n.Phone,
+			Target:         n.Phone,
+			OTPKindFactory: n.GetOTPKindFactory(),
 		},
 		&EdgeAuthenticationWhatsapp{Stage: n.Stage, Authenticator: n.Authenticator},
 	}

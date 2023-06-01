@@ -30,6 +30,8 @@ func KindVerification(config *config.AppConfig, channel model.AuthenticatorOOBCh
 	return kindVerification{config: config, channel: channel}
 }
 
+var _ KindFactory = KindVerification
+
 func (k kindVerification) Purpose() Purpose {
 	return PurposeVerification
 }

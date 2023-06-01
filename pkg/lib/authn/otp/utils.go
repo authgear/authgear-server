@@ -10,6 +10,8 @@ func selectByChannel[T any](channel model.AuthenticatorOOBChannel, email T, sms 
 		return email
 	case model.AuthenticatorOOBChannelSMS:
 		return sms
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return sms
 	}
 	panic("invalid channel: " + channel)
 }

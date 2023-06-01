@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -33,7 +34,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 
 	phone := e.Identity.LoginID.LoginID
 
-	result, err := NewSendWhatsappCode(ctx, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindVerification, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +65,11 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetPhone() string {
 	return n.Phone
 }
 
+// GetOTPKindFactory implements WhatsappOTPNode.
+func (n *NodeVerifyIdentityViaWhatsapp) GetOTPKindFactory() otp.KindFactory {
+	return otp.KindVerification
+}
+
 func (n *NodeVerifyIdentityViaWhatsapp) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
@@ -75,7 +81,8 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetEffects() ([]interaction.Effect, erro
 func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
-			Target: n.Phone,
+			Target:         n.Phone,
+			OTPKindFactory: n.GetOTPKindFactory(),
 		},
 		&EdgeVerifyIdentityViaWhatsappCheckCode{Identity: n.Identity},
 	}
@@ -104,7 +111,14 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	phone := e.Identity.LoginID.LoginID
 	userID := e.Identity.UserID
 	code := input.GetWhatsappOTP()
-	err := ctx.WhatsappCodeProvider.VerifyCode(phone, code, userID)
+	err := ctx.OTPCodeService.VerifyOTP(
+		otp.KindVerification(ctx.Config, model.AuthenticatorOOBChannelWhatsapp),
+		phone,
+		code,
+		&otp.VerifyOptions{
+			UserID: userID,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

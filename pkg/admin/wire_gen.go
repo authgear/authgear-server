@@ -21,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
-	whatsapp2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -757,15 +756,37 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
+	serviceLogger := whatsapp.NewServiceLogger(factory)
+	devMode := environmentConfig.DevMode
+	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappService := &whatsapp.Service{
+		Context:                    contextContext,
+		Logger:                     serviceLogger,
+		DevMode:                    devMode,
+		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
+		Config:                     whatsappConfig,
+		OnPremisesClient:           onPremisesClient,
+		TokenStore:                 tokenStore,
+	}
 	sender := &messaging.Sender{
 		Limits:    limits,
 		TaskQueue: queue,
 		Events:    eventService,
+		Whatsapp:  whatsappService,
 	}
 	messageSender := &otp.MessageSender{
-		Translation: translationService,
-		Endpoints:   endpointsEndpoints,
-		Sender:      sender,
+		Translation:     translationService,
+		Endpoints:       endpointsEndpoints,
+		Sender:          sender,
+		WhatsappService: whatsappService,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -812,34 +833,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	clientLogger := whatsapp.NewClientLogger(factory)
-	devMode := environmentConfig.DevMode
-	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
-	whatsappConfig := messagingConfig.Whatsapp
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
-	whatsappClient := &whatsapp.Client{
-		Logger:                     clientLogger,
-		DevMode:                    devMode,
-		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
-		Config:                     whatsappConfig,
-		OnPremisesClient:           onPremisesClient,
-		TokenStore:                 tokenStore,
-	}
-	whatsappProvider := &whatsapp2.Provider{
-		Context:        contextContext,
-		Config:         appConfig,
-		Events:         eventService,
-		OTPCodeService: otpService,
-		WhatsappSender: whatsappClient,
-		WhatsappConfig: whatsappConfig,
-		TemplateEngine: engine,
-	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
 		RemoteIP:                        remoteIP,
@@ -874,7 +867,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SessionManager:                  manager2,
 		SessionCookie:                   cookieDef,
 		MFADeviceTokenCookie:            mfaCookieDef,
-		WhatsappCodeProvider:            whatsappProvider,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: appredisHandle,

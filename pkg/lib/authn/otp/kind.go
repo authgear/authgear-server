@@ -3,6 +3,8 @@ package otp
 import (
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
@@ -19,3 +21,5 @@ type Kind interface {
 	RateLimitValidatePerUserPerIP(userID string, ip string) ratelimit.BucketSpec
 	RevocationMaxFailedAttempts() int
 }
+
+type KindFactory func(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind

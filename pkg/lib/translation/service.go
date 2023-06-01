@@ -53,12 +53,17 @@ func (s *Service) appMetadata(data map[string]interface{}) error {
 }
 
 func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (string, error) {
+	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+
+	return s.renderTemplateInLanguage(preferredLanguageTags, tpl, args)
+}
+
+func (s *Service) renderTemplateInLanguage(preferredLanguages []string, tpl template.Resource, args interface{}) (string, error) {
 	data := make(map[string]interface{})
 	template.Embed(data, args)
 	data["StaticAssetURL"] = s.StaticAssets.StaticAssetURL
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
-	out, err := s.TemplateEngine.Render(tpl, preferredLanguageTags, data)
+	out, err := s.TemplateEngine.Render(tpl, preferredLanguages, data)
 	if err != nil {
 		return "", err
 	}
@@ -207,6 +212,20 @@ func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessag
 	return &SMSMessageData{
 		Sender: sender,
 		Body:   body,
+	}, nil
+}
+
+func (s *Service) WhatsappMessageData(langauge string, msg *MessageSpec, args interface{}) (*WhatsappMessageData, error) {
+	data := map[string]interface{}{}
+	template.Embed(data, args)
+
+	body, err := s.renderTemplateInLanguage([]string{langauge}, msg.WhatsappTemplate, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WhatsappMessageData{
+		Body: body,
 	}, nil
 }
 

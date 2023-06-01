@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -9,7 +10,8 @@ type InputWhatsappOTPResendCode interface {
 }
 
 type EdgeWhatsappOTPResendCode struct {
-	Target string
+	Target         string
+	OTPKindFactory otp.KindFactory
 }
 
 func (e *EdgeWhatsappOTPResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -18,7 +20,7 @@ func (e *EdgeWhatsappOTPResendCode) Instantiate(ctx *interaction.Context, graph 
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := NewSendWhatsappCode(ctx, e.Target, true).Do()
+	_, err := NewSendWhatsappCode(ctx, e.OTPKindFactory, e.Target, true).Do()
 	if err != nil {
 		return nil, err
 	}

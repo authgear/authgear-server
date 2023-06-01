@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -99,7 +100,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	result, err := NewSendWhatsappCode(ctx, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTP, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -129,6 +130,11 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetPhone() string {
 	return n.Phone
 }
 
+// GetOTPKindFactory implements WhatsappOTPNode.
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetOTPKindFactory() otp.KindFactory {
+	return otp.KindOOBOTP
+}
+
 // GetCreateAuthenticatorStage implements CreateAuthenticatorPhoneOTPNode
 func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetCreateAuthenticatorStage() authn.AuthenticationStage {
 	return n.Stage
@@ -150,7 +156,8 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetEffects() ([]interaction.Ef
 func (n *NodeCreateAuthenticatorWhatsappOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
-			Target: n.Phone,
+			Target:         n.Phone,
+			OTPKindFactory: n.GetOTPKindFactory(),
 		},
 		&EdgeCreateAuthenticatorWhatsappOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}

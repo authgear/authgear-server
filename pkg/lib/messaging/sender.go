@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -23,6 +24,7 @@ type Sender struct {
 	Limits    Limits
 	TaskQueue task.Queue
 	Events    EventService
+	Whatsapp  *whatsapp.Service
 }
 
 func (s *Sender) PrepareEmail(email string, msgType nonblocking.MessageType) (*EmailMessage, error) {
@@ -52,5 +54,21 @@ func (s *Sender) PrepareSMS(phoneNumber string, msgType nonblocking.MessageType)
 		events:      s.Events,
 		SendOptions: sms.SendOptions{To: phoneNumber},
 		Type:        msgType,
+	}, nil
+}
+
+func (s *Sender) PrepareWhatsapp(phoneNumber string, msgType nonblocking.MessageType) (*WhatsappMessage, error) {
+	// FIXME: Should use a separated limit
+	msg, err := s.Limits.checkSMS(phoneNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WhatsappMessage{
+		message:   *msg,
+		taskQueue: s.TaskQueue,
+		events:    s.Events,
+		Options:   whatsapp.SendTemplateOptions{To: phoneNumber},
+		Type:      msgType,
 	}, nil
 }

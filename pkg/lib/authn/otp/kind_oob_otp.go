@@ -10,8 +10,6 @@ import (
 
 const PurposeOOBOTP Purpose = "oob-otp"
 
-const PurposeWhatsapp Purpose = "whatsapp"
-
 const (
 	OOBOTPTriggerEmailPerIP         ratelimit.BucketName = "OOBOTPTriggerEmailPerIP"
 	OOBOTPTriggerSMSPerIP           ratelimit.BucketName = "OOBOTPTriggerSMSPerIP"
@@ -37,12 +35,7 @@ func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel)
 	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP}
 }
 
-// KindWhatsapp is for Whatsapp OTP code;
-// it uses different purpose than OOB-OTP, since we want to separate the code of whatsapp & oob-otp.
-// Reusing same purpose leads to OTP for whatsapp usable for SMS OTP.
-func KindWhatsapp(config *config.AppConfig) Kind {
-	return kindOOBOTP{config: config, channel: model.AuthenticatorOOBChannelSMS, purpose: PurposeWhatsapp}
-}
+var _ KindFactory = KindOOBOTP
 
 func (k kindOOBOTP) Purpose() Purpose {
 	return k.purpose

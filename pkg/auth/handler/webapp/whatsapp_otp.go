@@ -3,9 +3,11 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -27,6 +29,7 @@ func ConfigureWhatsappOTPRoute(route httproute.Route) httproute.Route {
 type WhatsappOTPNode interface {
 	GetWhatsappOTPLength() int
 	GetPhone() string
+	GetOTPKindFactory() otp.KindFactory
 }
 
 type WhatsappOTPAuthnNode interface {
@@ -40,17 +43,14 @@ type WhatsappOTPViewModel struct {
 	FailedAttemptRateLimitExceeded bool
 }
 
-type WhatsappCodeProvider interface {
-	InspectCodeState(phone string) (*otp.State, error)
-}
-
 type WhatsappOTPHandler struct {
+	Config                    *config.AppConfig
 	Clock                     clock.Clock
 	ControllerFactory         ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
 	AlternativeStepsViewModel *viewmodels.AlternativeStepsViewModeler
 	Renderer                  Renderer
-	WhatsappCodeProvider      WhatsappCodeProvider
+	OTPCodeService            OTPCodeService
 	FlashMessage              FlashMessage
 }
 
@@ -61,9 +61,11 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	var n WhatsappOTPNode
 	if graph.FindLastNode(&n) {
 		target := n.GetPhone()
+		channel := model.AuthenticatorOOBChannelWhatsapp
+		otpkind := n.GetOTPKindFactory()(h.Config, channel)
 		whatsappViewModel.WhatsappOTPTarget = phone.Mask(target)
 		whatsappViewModel.WhatsappOTPCodeLength = n.GetWhatsappOTPLength()
-		state, err := h.WhatsappCodeProvider.InspectCodeState(target)
+		state, err := h.OTPCodeService.InspectState(otpkind, target)
 		if err != nil {
 			return nil, err
 		}

@@ -12,3 +12,7 @@ type SMSMessageData struct {
 	Sender string
 	Body   string
 }
+
+type WhatsappMessageData struct {
+	Body string
+}

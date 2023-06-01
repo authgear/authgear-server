@@ -14,6 +14,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/worker/tasks"
 )
 
@@ -93,14 +95,41 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		NexmoClient:           nexmoClient,
 		CustomClient:          customClient,
 	}
+	serviceLogger := whatsapp.NewServiceLogger(factory)
+	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	handle := appProvider.Redis
+	appID := appConfig.ID
+	clock := _wireSystemClockValue
+	tokenStore := &whatsapp.TokenStore{
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	service := &whatsapp.Service{
+		Context:                    context,
+		Logger:                     serviceLogger,
+		DevMode:                    devMode,
+		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
+		Config:                     whatsappConfig,
+		OnPremisesClient:           onPremisesClient,
+		TokenStore:                 tokenStore,
+	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
-		EmailSender: sender,
-		SMSClient:   client,
-		Logger:      sendMessagesLogger,
+		EmailSender:    sender,
+		SMSClient:      client,
+		WhatsappSender: service,
+		Logger:         sendMessagesLogger,
 	}
 	return sendMessagesTask
 }
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
 
 func newReindexUserTask(p *deps.TaskProvider) task.Task {
 	appProvider := p.AppProvider
