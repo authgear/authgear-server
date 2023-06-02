@@ -279,18 +279,8 @@ func (s *Service) LookupCode(purpose Purpose, code string) (target string, err e
 	return s.LookupStore.Get(purpose, code)
 }
 
-// InspectWhatsappOTP is deprecated. Whatsapp OTP is to be revamped.
-func (s *Service) InspectWhatsappOTP(kind Kind, target string) (string, error) {
-	code, err := s.getCode(kind.Purpose(), target)
-	if err != nil {
-		return "", err
-	}
-
-	if code != nil && code.Purpose != kind.Purpose() {
-		return "", ErrCodeNotFound
-	}
-
-	return code.Code, nil
+func (s *Service) InspectCode(purpose Purpose, target string) (*Code, error) {
+	return s.getCode(purpose, target)
 }
 
 func (s *Service) InspectState(kind Kind, target string) (*State, error) {

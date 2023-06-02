@@ -8,6 +8,7 @@ var _ = Schema.Add("MessagingConfig", `
 		"sms_provider": { "$ref": "#/$defs/SMSProvider" },
 		"sms": { "$ref": "#/$defs/SMSConfig" },
 		"email": { "$ref": "#/$defs/EmailConfig" },
+		"whatsapp": { "$ref": "#/$defs/WhatsappConfig" },
 		"rate_limits": { "$ref": "#/$defs/MessagingRateLimitsConfig" }
 	}
 }
@@ -17,6 +18,7 @@ type MessagingConfig struct {
 	SMSProvider SMSProvider                `json:"sms_provider,omitempty"`
 	SMS         *SMSConfig                 `json:"sms,omitempty"`
 	Email       *EmailConfig               `json:"email,omitempty"`
+	Whatsapp    *WhatsappConfig            `json:"whatsapp,omitempty"`
 	RateLimits  *MessagingRateLimitsConfig `json:"rate_limits,omitempty"`
 }
 

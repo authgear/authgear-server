@@ -8,6 +8,7 @@ const (
 	WhatsappOTPVerified event.Type = "whatsapp.otp.verified"
 )
 
+// Deprecated. Do not use this event.
 type WhatsappOTPVerifiedEventPayload struct {
 	Phone string `json:"phone"`
 }

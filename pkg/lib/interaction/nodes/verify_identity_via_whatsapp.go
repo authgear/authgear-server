@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -34,43 +34,40 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 
 	phone := e.Identity.LoginID.LoginID
 
-	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, ctx.WebSessionID)
-
+	result, err := NewSendWhatsappCode(ctx, otp.KindVerification, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}
 
 	node := &NodeVerifyIdentityViaWhatsapp{
-		Identity:        e.Identity,
-		RequestedByUser: e.RequestedByUser,
-		WhatsappOTP:     code,
-		Phone:           phone,
-		PhoneOTPMode:    ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
+		Identity:          e.Identity,
+		RequestedByUser:   e.RequestedByUser,
+		WhatsappOTPLength: result.CodeLength,
+		Phone:             phone,
 	}
 	return node, nil
 }
 
 type NodeVerifyIdentityViaWhatsapp struct {
-	Identity        *identity.Info                   `json:"identity"`
-	RequestedByUser bool                             `json:"requested_by_user"`
-	WhatsappOTP     string                           `json:"whatsapp_otp"`
-	Phone           string                           `json:"phone"`
-	PhoneOTPMode    config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
+	Identity          *identity.Info `json:"identity"`
+	RequestedByUser   bool           `json:"requested_by_user"`
+	WhatsappOTPLength int            `json:"whatsapp_otp_length"`
+	Phone             string         `json:"phone"`
 }
 
-// GetPhoneOTPMode implements WhatsappOTPNode.
-func (n *NodeVerifyIdentityViaWhatsapp) GetPhoneOTPMode() config.AuthenticatorPhoneOTPMode {
-	return n.PhoneOTPMode
-}
-
-// GetWhatsappOTP implements WhatsappOTPNode.
-func (n *NodeVerifyIdentityViaWhatsapp) GetWhatsappOTP() string {
-	return n.WhatsappOTP
+// GetWhatsappOTPLength implements WhatsappOTPNode.
+func (n *NodeVerifyIdentityViaWhatsapp) GetWhatsappOTPLength() int {
+	return n.WhatsappOTPLength
 }
 
 // GetPhone implements WhatsappOTPNode.
 func (n *NodeVerifyIdentityViaWhatsapp) GetPhone() string {
 	return n.Phone
+}
+
+// GetOTPKindFactory implements WhatsappOTPNode.
+func (n *NodeVerifyIdentityViaWhatsapp) GetOTPKindFactory() otp.KindFactory {
+	return otp.KindVerification
 }
 
 func (n *NodeVerifyIdentityViaWhatsapp) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -83,6 +80,10 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetEffects() ([]interaction.Effect, erro
 
 func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
+		&EdgeWhatsappOTPResendCode{
+			Target:         n.Phone,
+			OTPKindFactory: n.GetOTPKindFactory(),
+		},
 		&EdgeVerifyIdentityViaWhatsappCheckCode{Identity: n.Identity},
 	}
 
@@ -90,7 +91,7 @@ func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([
 }
 
 type InputVerifyIdentityViaWhatsappCheckCode interface {
-	VerifyWhatsappOTP()
+	GetWhatsappOTP() string
 }
 
 type EdgeVerifyIdentityViaWhatsappCheckCode struct {
@@ -108,7 +109,16 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	}
 
 	phone := e.Identity.LoginID.LoginID
-	err := ctx.WhatsappCodeProvider.VerifyCode(phone, true)
+	userID := e.Identity.UserID
+	code := input.GetWhatsappOTP()
+	err := ctx.OTPCodeService.VerifyOTP(
+		otp.KindVerification(ctx.Config, model.AuthenticatorOOBChannelWhatsapp),
+		phone,
+		code,
+		&otp.VerifyOptions{
+			UserID: userID,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

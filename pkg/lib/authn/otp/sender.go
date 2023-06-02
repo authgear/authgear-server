@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -24,19 +25,27 @@ type EndpointsProvider interface {
 type TranslationService interface {
 	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
 	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
+	WhatsappMessageData(language string, msg *translation.MessageSpec, args interface{}) (*translation.WhatsappMessageData, error)
 }
 
 type Sender interface {
 	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
 	PrepareSMS(phoneNumber string, msgType nonblocking.MessageType) (*messaging.SMSMessage, error)
+	PrepareWhatsapp(phoneNumber string, msgType nonblocking.MessageType) (*messaging.WhatsappMessage, error)
+}
+
+type WhatsappService interface {
+	ResolveOTPTemplateLanguage() (string, error)
+	PrepareOTPTemplate(language string, text string, code string) (*whatsapp.PreparedOTPTemplate, error)
 }
 
 type PreparedMessage struct {
-	email   *messaging.EmailMessage
-	sms     *messaging.SMSMessage
-	spec    *translation.MessageSpec
-	form    Form
-	msgType nonblocking.MessageType
+	email    *messaging.EmailMessage
+	sms      *messaging.SMSMessage
+	whatsapp *messaging.WhatsappMessage
+	spec     *translation.MessageSpec
+	form     Form
+	msgType  nonblocking.MessageType
 }
 
 func (m *PreparedMessage) Close() {
@@ -46,12 +55,16 @@ func (m *PreparedMessage) Close() {
 	if m.sms != nil {
 		m.sms.Close()
 	}
+	if m.whatsapp != nil {
+		m.whatsapp.Close()
+	}
 }
 
 type MessageSender struct {
-	Translation TranslationService
-	Endpoints   EndpointsProvider
-	Sender      Sender
+	Translation     TranslationService
+	Endpoints       EndpointsProvider
+	Sender          Sender
+	WhatsappService WhatsappService
 }
 
 func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (any, error) {
@@ -147,6 +160,9 @@ func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.
 	case MessageTypeForgotPassword:
 		spec = messageForgotPassword
 		msgType = nonblocking.MessageTypeForgotPassword
+	case MessageTypeWhatsappCode:
+		spec = messageWhatsappCode
+		msgType = nonblocking.MessageTypeWhatsappCode
 	default:
 		panic("otp: unknown message type: " + msgType)
 	}
@@ -160,6 +176,8 @@ func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target st
 		return s.prepareEmail(target, form, typ)
 	case model.AuthenticatorOOBChannelSMS:
 		return s.prepareSMS(target, form, typ)
+	case model.AuthenticatorOOBChannelWhatsapp:
+		return s.prepareWhatsapp(target, form, typ)
 	default:
 		panic("otp: unknown channel: " + channel)
 	}
@@ -197,12 +215,31 @@ func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ MessageTyp
 	}, nil
 }
 
+func (s *MessageSender) prepareWhatsapp(phoneNumber string, form Form, typ MessageType) (*PreparedMessage, error) {
+	spec, msgType := s.selectMessage(form, typ)
+
+	msg, err := s.Sender.PrepareWhatsapp(phoneNumber, msgType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PreparedMessage{
+		whatsapp: msg,
+		spec:     spec,
+		form:     form,
+		msgType:  msgType,
+	}, nil
+}
+
 func (s *MessageSender) Send(msg *PreparedMessage, opts SendOptions) error {
 	if msg.email != nil {
 		return s.sendEmail(msg, opts)
 	}
 	if msg.sms != nil {
 		return s.sendSMS(msg, opts)
+	}
+	if msg.whatsapp != nil {
+		return s.sendWhatsapp(msg, opts)
 	}
 	return nil
 }
@@ -242,4 +279,34 @@ func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
 	msg.sms.Body = data.Body
 
 	return msg.sms.Send()
+}
+
+func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) error {
+	ctx, err := s.setupTemplateContext(msg, opts)
+	if err != nil {
+		return err
+	}
+
+	language, err := s.WhatsappService.ResolveOTPTemplateLanguage()
+	if err != nil {
+		return err
+	}
+
+	data, err := s.Translation.WhatsappMessageData(language, msg.spec, ctx)
+	if err != nil {
+		return err
+	}
+
+	prepared, err := s.WhatsappService.PrepareOTPTemplate(language, data.Body, opts.OTP)
+	if err != nil {
+		return err
+	}
+
+	msg.whatsapp.Options.TemplateName = prepared.TemplateName
+	msg.whatsapp.Options.TemplateType = prepared.TemplateType
+	msg.whatsapp.Options.Language = prepared.Language
+	msg.whatsapp.Options.Components = prepared.Components
+	msg.whatsapp.Options.Namespace = prepared.Namespace
+
+	return msg.whatsapp.Send()
 }

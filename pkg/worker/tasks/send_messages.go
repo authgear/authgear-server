@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -25,6 +26,10 @@ type SMSClient interface {
 	Send(opts sms.SendOptions) error
 }
 
+type WhatsappSender interface {
+	SendTemplate(opts *whatsapp.SendTemplateOptions) error
+}
+
 type SendMessagesLogger struct{ *log.Logger }
 
 func NewSendMessagesLogger(lf *log.Factory) SendMessagesLogger {
@@ -32,9 +37,10 @@ func NewSendMessagesLogger(lf *log.Factory) SendMessagesLogger {
 }
 
 type SendMessagesTask struct {
-	EmailSender MailSender
-	SMSClient   SMSClient
-	Logger      SendMessagesLogger
+	EmailSender    MailSender
+	SMSClient      SMSClient
+	WhatsappSender WhatsappSender
+	Logger         SendMessagesLogger
 }
 
 func (t *SendMessagesTask) Run(ctx context.Context, param task.Param) (err error) {
@@ -55,6 +61,16 @@ func (t *SendMessagesTask) Run(ctx context.Context, param task.Param) (err error
 			t.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(smsMessage.To),
 			}).Error("failed to send SMS")
+		}
+	}
+
+	for _, whatsappMessage := range taskParam.WhatsappMessages {
+		m := whatsappMessage
+		err := t.WhatsappSender.SendTemplate(&m)
+		if err != nil {
+			t.Logger.WithError(err).WithFields(logrus.Fields{
+				"phone": phone.Mask(m.To),
+			}).Error("failed to send Whatsapp")
 		}
 	}
 

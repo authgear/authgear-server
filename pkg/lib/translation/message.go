@@ -7,6 +7,7 @@ type MessageSpec struct {
 	TXTEmailTemplate  *template.PlainText
 	HTMLEmailTemplate *template.HTML
 	SMSTemplate       *template.PlainText
+	WhatsappTemplate  *template.PlainText
 }
 
 func RegisterMessage(msg *MessageSpec) *MessageSpec {

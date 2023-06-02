@@ -64,11 +64,6 @@ type OTPSender interface {
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
-type WhatsappCodeProvider interface {
-	GenerateCode(phone string, webSessionID string) (string, error)
-	VerifyCode(phone string, consume bool) error
-}
-
 type AnonymousIdentityProvider interface {
 	Get(userID string, id string) (*identity.Anonymous, error)
 	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
@@ -230,7 +225,6 @@ type Context struct {
 	SessionManager            SessionManager
 	SessionCookie             session.CookieDef
 	MFADeviceTokenCookie      mfa.CookieDef
-	WhatsappCodeProvider      WhatsappCodeProvider
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"

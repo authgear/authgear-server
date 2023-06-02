@@ -14,6 +14,7 @@ const (
 	MessageTypeAuthenticatePrimaryOOB   MessageType = "authenticate-primary-oob"
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
 	MessageTypeForgotPassword           MessageType = "forgot-password"
+	MessageTypeWhatsappCode             MessageType = "whatsapp-code"
 )
 
 type messageTemplateContext struct {
@@ -63,6 +64,8 @@ var (
 	TemplateMessageForgotPasswordSMSTXT    = template.RegisterPlainText("messages/forgot_password_sms.txt")
 	TemplateMessageForgotPasswordEmailTXT  = template.RegisterPlainText("messages/forgot_password_email.txt")
 	TemplateMessageForgotPasswordEmailHTML = template.RegisterHTML("messages/forgot_password_email.html")
+
+	TemplateWhatsappOTPCodeTXT = template.RegisterPlainText("messages/whatsapp_otp_code.txt")
 )
 
 var (
@@ -121,5 +124,9 @@ var (
 		TXTEmailTemplate:  TemplateMessageForgotPasswordEmailTXT,
 		HTMLEmailTemplate: TemplateMessageForgotPasswordEmailHTML,
 		SMSTemplate:       TemplateMessageForgotPasswordSMSTXT,
+	}
+	messageWhatsappCode = &translation.MessageSpec{
+		Name:             "whatsapp-code",
+		WhatsappTemplate: TemplateWhatsappOTPCodeTXT,
 	}
 )

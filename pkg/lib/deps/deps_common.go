@@ -1,6 +1,7 @@
 package deps
 
 import (
+	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -12,7 +13,6 @@ import (
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -108,7 +108,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
 		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
 		wire.Bind(new(facade.EventService), new(*event.Service)),
-		wire.Bind(new(whatsapp.EventService), new(*event.Service)),
 		wire.Bind(new(oauthhandler.EventService), new(*event.Service)),
 		wire.Bind(new(oauth.EventService), new(*event.Service)),
 	),
@@ -160,9 +159,6 @@ var CommonDependencySet = wire.NewSet(
 
 		wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(user.AuthenticatorService), new(*authenticatorservice.Service)),
-
-		whatsapp.DependencySet,
-		wire.Bind(new(interaction.WhatsappCodeProvider), new(*whatsapp.Provider)),
 	),
 
 	wire.NewSet(
@@ -323,12 +319,16 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(workflow.OTPCodeService), new(*otp.Service)),
-		wire.Bind(new(whatsapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(forgotpassword.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(forgotpassword.OTPSender), new(*otp.MessageSender)),
+	),
+
+	wire.NewSet(
+		infrawhatsapp.DependencySet,
+		wire.Bind(new(otp.WhatsappService), new(*infrawhatsapp.Service)),
 	),
 
 	wire.NewSet(

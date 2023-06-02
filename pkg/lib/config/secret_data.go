@@ -438,6 +438,7 @@ var _ = SecretConfigSchema.Add("WATICredentials", `
 }
 `)
 
+// WATICredentials is deprecated, don't use it
 type WATICredentials struct {
 	WhatsappPhoneNumber string `json:"whatsapp_phone_number,omitempty"`
 	WebhookAuth         string `json:"webhook_auth,omitempty"`

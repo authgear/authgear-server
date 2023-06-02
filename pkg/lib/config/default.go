@@ -1,6 +1,8 @@
 package config
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type defaulter interface {
 	SetDefaults()
@@ -8,6 +10,7 @@ type defaulter interface {
 
 func setFieldDefaults(value interface{}) {
 	var set func(t reflect.Type, v reflect.Value)
+
 	set = func(t reflect.Type, v reflect.Value) {
 		switch t.Kind() {
 		case reflect.Slice:
@@ -21,7 +24,10 @@ func setFieldDefaults(value interface{}) {
 			for j := 0; j < numField; j++ {
 				field := v.Field(j)
 				ft := t.Field(j)
-				set(ft.Type, field)
+				isNullable := ft.Tag.Get("nullable") == "true"
+				if !isNullable {
+					set(ft.Type, field)
+				}
 			}
 		case reflect.Ptr:
 			ele := v.Elem()

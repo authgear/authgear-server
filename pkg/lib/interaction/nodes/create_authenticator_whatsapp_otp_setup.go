@@ -4,7 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -100,41 +100,39 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	code, err := ctx.WhatsappCodeProvider.GenerateCode(phone, ctx.WebSessionID)
+	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTP, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}
 
 	return &NodeCreateAuthenticatorWhatsappOTPSetup{
-		Stage:         e.Stage,
-		Authenticator: info,
-		WhatsappOTP:   code,
-		Phone:         phone,
-		PhoneOTPMode:  ctx.Config.Authenticator.OOB.SMS.PhoneOTPMode,
+		Stage:             e.Stage,
+		Authenticator:     info,
+		WhatsappOTPLength: result.CodeLength,
+		Phone:             phone,
 	}, nil
 }
 
 type NodeCreateAuthenticatorWhatsappOTPSetup struct {
-	Stage         authn.AuthenticationStage        `json:"stage"`
-	Authenticator *authenticator.Info              `json:"authenticator"`
-	WhatsappOTP   string                           `json:"whatsapp_otp"`
-	Phone         string                           `json:"phone"`
-	PhoneOTPMode  config.AuthenticatorPhoneOTPMode `json:"phone_otp_mode"`
+	Stage             authn.AuthenticationStage `json:"stage"`
+	Authenticator     *authenticator.Info       `json:"authenticator"`
+	WhatsappOTPLength int                       `json:"whatsapp_otp_length"`
+	Phone             string                    `json:"phone"`
 }
 
-// GetPhoneOTPMode implements WhatsappOTPNode.
-func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetPhoneOTPMode() config.AuthenticatorPhoneOTPMode {
-	return n.PhoneOTPMode
-}
-
-// GetWhatsappOTP implements WhatsappOTPNode.
-func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetWhatsappOTP() string {
-	return n.WhatsappOTP
+// GetWhatsappOTPLength implements WhatsappOTPNode.
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetWhatsappOTPLength() int {
+	return n.WhatsappOTPLength
 }
 
 // GetPhone implements WhatsappOTPNode.
 func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetPhone() string {
 	return n.Phone
+}
+
+// GetOTPKindFactory implements WhatsappOTPNode.
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetOTPKindFactory() otp.KindFactory {
+	return otp.KindOOBOTP
 }
 
 // GetCreateAuthenticatorStage implements CreateAuthenticatorPhoneOTPNode
@@ -157,6 +155,10 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetEffects() ([]interaction.Ef
 
 func (n *NodeCreateAuthenticatorWhatsappOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
+		&EdgeWhatsappOTPResendCode{
+			Target:         n.Phone,
+			OTPKindFactory: n.GetOTPKindFactory(),
+		},
 		&EdgeCreateAuthenticatorWhatsappOTP{Stage: n.Stage, Authenticator: n.Authenticator},
 	}
 	return edges, nil

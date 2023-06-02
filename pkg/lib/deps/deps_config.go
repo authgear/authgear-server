@@ -42,6 +42,7 @@ var configDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.MessagingConfig),
 		"SMS",
 		"Email",
+		"Whatsapp",
 		"RateLimits",
 	),
 	wire.FieldsOf(new(*config.AuthenticatorConfig),
@@ -68,6 +69,7 @@ var configDeps = wire.NewSet(
 	ProvideSupportedLanguageTags,
 	ProvideTestModeEmailSuppressed,
 	ProvideTestModeSMSSuppressed,
+	ProvideTestModeWhatsappSuppressed,
 	secretDeps,
 )
 
@@ -85,6 +87,10 @@ func ProvideTestModeEmailSuppressed(c *config.TestModeFeatureConfig) config.Test
 
 func ProvideTestModeSMSSuppressed(c *config.TestModeFeatureConfig) config.TestModeSMSSuppressed {
 	return config.TestModeSMSSuppressed(c.SMS.Suppressed)
+}
+
+func ProvideTestModeWhatsappSuppressed(c *config.TestModeFeatureConfig) config.TestModeWhatsappSuppressed {
+	return config.TestModeWhatsappSuppressed(c.Whatsapp.Suppressed)
 }
 
 var secretDeps = wire.NewSet(
@@ -106,6 +112,7 @@ var secretDeps = wire.NewSet(
 	ProvideWATICredentials,
 	ProvideOAuthClientCredentials,
 	ProvideCaptchaCloudflareCredentials,
+	ProvideWhatsappOnPremisesCredentials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -194,5 +201,10 @@ func ProvideOAuthClientCredentials(c *config.SecretConfig) *config.OAuthClientCr
 
 func ProvideCaptchaCloudflareCredentials(c *config.SecretConfig) *config.CaptchaCloudflareCredentials {
 	s, _ := c.LookupData(config.CaptchaCloudflareCredentialsKey).(*config.CaptchaCloudflareCredentials)
+	return s
+}
+
+func ProvideWhatsappOnPremisesCredentials(c *config.SecretConfig) *config.WhatsappOnPremisesCredentials {
+	s, _ := c.LookupData(config.WhatsappOnPremisesCredentialsKey).(*config.WhatsappOnPremisesCredentials)
 	return s
 }

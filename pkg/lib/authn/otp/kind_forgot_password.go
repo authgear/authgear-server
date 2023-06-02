@@ -28,6 +28,8 @@ func KindForgotPassword(config *config.AppConfig, channel model.AuthenticatorOOB
 	return kindForgotPassword{config: config, channel: channel}
 }
 
+var _ KindFactory = KindForgotPassword
+
 func (k kindForgotPassword) Purpose() Purpose {
 	return PurposeForgotPassword
 }
@@ -42,10 +44,12 @@ func (k kindForgotPassword) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpe
 			k.channel,
 			k.config.ForgotPassword.RateLimits.Email.TriggerPerIP,
 			k.config.ForgotPassword.RateLimits.SMS.TriggerPerIP,
+			k.config.ForgotPassword.RateLimits.SMS.TriggerPerIP,
 		),
 		selectByChannel(
 			k.channel,
 			ForgotPasswordTriggerEmailPerIP,
+			ForgotPasswordTriggerSMSPerIP,
 			ForgotPasswordTriggerSMSPerIP,
 		),
 		ip,
@@ -62,10 +66,12 @@ func (k kindForgotPassword) RateLimitTriggerCooldown(target string) ratelimit.Bu
 			k.channel,
 			ForgotPasswordCooldownEmail,
 			ForgotPasswordCooldownSMS,
+			ForgotPasswordCooldownSMS,
 		),
 		selectByChannel(
 			k.channel,
 			k.config.ForgotPassword.RateLimits.Email.TriggerCooldown.Duration(),
+			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown.Duration(),
 			k.config.ForgotPassword.RateLimits.SMS.TriggerCooldown.Duration(),
 		),
 		target,
@@ -78,10 +84,12 @@ func (k kindForgotPassword) RateLimitValidatePerIP(ip string) ratelimit.BucketSp
 			k.channel,
 			k.config.ForgotPassword.RateLimits.Email.ValidatePerIP,
 			k.config.ForgotPassword.RateLimits.SMS.ValidatePerIP,
+			k.config.ForgotPassword.RateLimits.SMS.ValidatePerIP,
 		),
 		selectByChannel(
 			k.channel,
 			ForgotPasswordValidateEmailPerIP,
+			ForgotPasswordValidateSMSPerIP,
 			ForgotPasswordValidateSMSPerIP,
 		),
 		ip,
