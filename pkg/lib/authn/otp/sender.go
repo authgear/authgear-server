@@ -35,7 +35,7 @@ type Sender interface {
 }
 
 type WhatsappService interface {
-	ResolveOTPTemplateLanguage() string
+	ResolveOTPTemplateLanguage() (string, error)
 	PrepareOTPTemplate(language string, text string, code string) (*whatsapp.PreparedOTPTemplate, error)
 }
 
@@ -287,7 +287,10 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) err
 		return err
 	}
 
-	language := s.WhatsappService.ResolveOTPTemplateLanguage()
+	language, err := s.WhatsappService.ResolveOTPTemplateLanguage()
+	if err != nil {
+		return err
+	}
 
 	data, err := s.Translation.WhatsappMessageData(language, msg.spec, ctx)
 	if err != nil {

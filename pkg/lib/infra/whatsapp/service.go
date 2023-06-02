@@ -70,12 +70,21 @@ func (s *Service) makeAuthenticationTemplateComponents(text string, code string)
 	return component, nil
 }
 
-func (s *Service) ResolveOTPTemplateLanguage() string {
+func (s *Service) ResolveOTPTemplateLanguage() (lang string, err error) {
+	if s.Config.Templates == nil {
+		err = ErrNoAvailableClient
+		return
+	}
 	template := s.Config.Templates.OTP
-	return s.resolveTemplateLanguage(template.Languages)
+	lang = s.resolveTemplateLanguage(template.Languages)
+	return
 }
 
 func (s *Service) PrepareOTPTemplate(language string, text string, code string) (*PreparedOTPTemplate, error) {
+	if s.Config.Templates == nil {
+		return nil, ErrNoAvailableClient
+	}
+
 	var component []TemplateComponent = []TemplateComponent{}
 	template := s.Config.Templates.OTP
 
