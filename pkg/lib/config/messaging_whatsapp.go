@@ -17,10 +17,6 @@ type WhatsappTemplatesConfig struct {
 	OTP WhatsappTemplateConfig `json:"otp"`
 }
 
-func (c *WhatsappTemplatesConfig) IsNullable() bool {
-	return true
-}
-
 var _ = Schema.Add("WhatsappTemplatesConfig", `
 {
 	"type": "object",
