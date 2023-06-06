@@ -1,4 +1,4 @@
-# Account Locking
+# Account Lockout
 
 ## Abstract
 
@@ -14,7 +14,7 @@ authentication:
     max_attempts: 6 # Maximum attempts to login before the account was locked
     history_duration: "10m" # The duration of login histories participated in  max_attempts
     minimum_duration: "1m" # The initial lockout duration of the account
-    maximum_duration: "5m" # The maximum lockout duraction of the account after multipled by backoff_factor
+    maximum_duration: "5m" # The maximum lockout duration of the account after multipled by backoff_factor
     backoff_factor: 2 # The factor to be multiplied to calculate lockout duration in subsequent login failures
 ```
 
