@@ -70,23 +70,34 @@ func (s *Service) makeAuthenticationTemplateComponents(text string, code string)
 	return component, nil
 }
 
-func (s *Service) ResolveOTPTemplateLanguage() (lang string, err error) {
-	if s.Config.Templates == nil {
-		err = ErrNoAvailableClient
-		return
+func (s *Service) getOTPTemplate() (*config.WhatsappTemplateConfig, error) {
+	switch s.Config.APIType {
+	case config.WhatsappAPITypeOnPremises:
+		if s.OnPremisesClient == nil {
+			return nil, ErrNoAvailableClient
+		}
+		return s.OnPremisesClient.GetOTPTemplate(), nil
+	default:
+		return nil, fmt.Errorf("whatsapp: unknown api type")
 	}
-	template := s.Config.Templates.OTP
+}
+
+func (s *Service) ResolveOTPTemplateLanguage() (lang string, err error) {
+	template, err := s.getOTPTemplate()
+	if err != nil {
+		return "", err
+	}
 	lang = s.resolveTemplateLanguage(template.Languages)
 	return
 }
 
 func (s *Service) PrepareOTPTemplate(language string, text string, code string) (*PreparedOTPTemplate, error) {
-	if s.Config.Templates == nil {
-		return nil, ErrNoAvailableClient
+	template, err := s.getOTPTemplate()
+	if err != nil {
+		return nil, err
 	}
 
 	var component []TemplateComponent = []TemplateComponent{}
-	template := s.Config.Templates.OTP
 
 	switch template.Type {
 	case config.WhatsappTemplateTypeAuthentication:
