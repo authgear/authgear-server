@@ -12,8 +12,9 @@ import (
 )
 
 type testEntry struct {
-	time     string
-	attempts int
+	time        string
+	attempts    int
+	contributor string
 
 	expectedIsSucess    bool
 	expectedLockedUntil *time.Time
@@ -25,6 +26,7 @@ type testConfig struct {
 	minDuration     string
 	maxDuration     string
 	backoffFactor   float64
+	isGlobal        bool
 	entries         []testEntry
 }
 
@@ -47,6 +49,7 @@ func TestMakeAttempt(t *testing.T) {
 			minDuration, _ := time.ParseDuration(cfg.minDuration)
 			maxDuration, _ := time.ParseDuration(cfg.maxDuration)
 			backoffFactor := cfg.backoffFactor
+			isGlobal := cfg.isGlobal
 
 			now := time.Unix(epoch, 0)
 			for _, e := range cfg.entries {
@@ -57,7 +60,7 @@ func TestMakeAttempt(t *testing.T) {
 				now = newNow
 
 				result, err := makeAttempt(ctx, conn, testKey,
-					historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, e.attempts)
+					historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, isGlobal, e.contributor, e.attempts)
 				So(err, ShouldBeNil)
 				So(result.IsSuccess, ShouldEqual, e.expectedIsSucess)
 				So(result.LockedUntil, ShouldResemble, e.expectedLockedUntil)
@@ -72,27 +75,67 @@ func TestMakeAttempt(t *testing.T) {
 			minDuration:     "10s",
 			maxDuration:     "50s",
 			backoffFactor:   2,
+			isGlobal:        true,
 			entries: []testEntry{
-				{time: "0s", attempts: 0, expectedIsSucess: true, expectedLockedUntil: nil},
-				{time: "1s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
-				{time: "2s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
+				{time: "0s", contributor: "127.0.0.1", attempts: 0, expectedIsSucess: true, expectedLockedUntil: nil},
+				{time: "1s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
+				{time: "2s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
 				// The third attempt is still success
-				{time: "3s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
+				{time: "3s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
 				// The forth attempt is failed
-				{time: "4s", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
+				{time: "4s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
 				// Lock again with min duration * 2
-				{time: "13s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 13 + 20)},
-				{time: "14s", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 13 + 20)},
+				{time: "13s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 13 + 20)},
+				{time: "14s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 13 + 20)},
 				// Lock again with min duration * 2 * 2
-				{time: "33s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 33 + 40)},
-				{time: "34s", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 33 + 40)},
+				{time: "33s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 33 + 40)},
+				{time: "34s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 33 + 40)},
 				// Lock again with min duration * 2 * 2 * 2, capped at max duration
-				{time: "73s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 73 + 50)},
-				{time: "74s", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 73 + 50)},
+				{time: "73s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 73 + 50)},
+				{time: "74s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 73 + 50)},
 				// Resets after history duration passed
-				{time: "373s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
-				{time: "373s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
-				{time: "373s", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 373 + 10)},
+				{time: "373s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
+				{time: "373s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
+				{time: "373s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 373 + 10)},
+			},
+		})
+
+		test("makeAttempt global lock", &testConfig{
+			historyDuration: "300s",
+			maxAttempts:     3,
+			minDuration:     "10s",
+			maxDuration:     "50s",
+			backoffFactor:   2,
+			isGlobal:        true,
+			entries: []testEntry{
+				{time: "1s", contributor: "127.0.0.1", attempts: 3, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
+				// attempt of the same contributor is failed
+				{time: "2s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
+				// attempt of the other contributor is failed
+				{time: "2s", contributor: "127.0.0.2", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
+			},
+		})
+
+		test("makeAttempt contributor lock", &testConfig{
+			historyDuration: "300s",
+			maxAttempts:     3,
+			minDuration:     "10s",
+			maxDuration:     "50s",
+			backoffFactor:   2,
+			isGlobal:        false,
+			entries: []testEntry{
+				{time: "1s", contributor: "127.0.0.1", attempts: 3, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
+				// attempt of the same contributor is failed
+				{time: "2s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
+				// attempt of the other contributor is success
+				{time: "2s", contributor: "127.0.0.2", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
+
+				// contributor specific lock locked after 3 attempts
+				{time: "5s", contributor: "127.0.0.2", attempts: 2, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 5 + 10)},
+				{time: "5s", contributor: "127.0.0.2", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 5 + 10)},
+
+				// lock of 127.0.0.1 is not affected
+				{time: "5s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
 			},
 		})
 	})

@@ -21,6 +21,7 @@ type BucketSpec struct {
 	MinimumDuration time.Duration
 	MaximumDuration time.Duration
 	BackoffFactor   float64
+	IsGlobal        bool
 }
 
 func NewBucketSpec(
@@ -30,6 +31,7 @@ func NewBucketSpec(
 	minimumDuration time.Duration,
 	maximumDuration time.Duration,
 	backoffFactor float64,
+	isGlobal bool,
 	args ...string) BucketSpec {
 	enabled := maxAttempts > 0
 
@@ -49,6 +51,7 @@ func NewBucketSpec(
 		MinimumDuration: minimumDuration,
 		MaximumDuration: maximumDuration,
 		BackoffFactor:   backoffFactor,
+		IsGlobal:        isGlobal,
 	}
 }
 

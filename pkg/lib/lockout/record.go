@@ -26,45 +26,76 @@ local max_attempts = tonumber(ARGV[2])
 local min_duration = tonumber(ARGV[3])
 local max_duration = tonumber(ARGV[4])
 local backoff_factor = tonumber(ARGV[5])
-local new_attempts = tonumber(ARGV[6])
+local is_global = ARGV[6] == "1"
+local contributor = ARGV[7]
+local new_attempts = tonumber(ARGV[8])
 
-
+local lock_key = string.format("%s:%s", record_key, is_global and "global" or contributor)
 
 local now = redis.call("TIME")
 local now_timestamp = tonumber(now[1])
 
-local record = { attempts=0 }
+local global_total = 0
+local contributor_total = 0
+local locked_until_epoch = nil
 
-local function read_existing_record ()
-	local existing_record = redis.pcall("GET", record_key)
-	if existing_record and (not existing_record["err"]) then
-		record = cjson.decode(existing_record)
+local global_total_key = "total"
+
+local function read_existing_lock ()
+	local existing_lock = redis.pcall("GET", lock_key)
+	if existing_lock and (not existing_lock["err"]) then
+		locked_until_epoch = tonumber(existing_lock)
 	end
 end
 
-local read_success = pcall(read_existing_record)
+local function read_existing_global_total ()
+	local existing_total = redis.pcall("HGET", record_key, global_total_key)
+	if existing_total and (not existing_total["err"]) then
+		global_total = tonumber(existing_total)
+	end
+end
 
-local is_blocked = not (record.locked_until_epoch == nil) and (record.locked_until_epoch > now_timestamp)
+local function read_existing_contributor_total ()
+	local existing_total = redis.pcall("HGET", record_key, contributor)
+	if existing_total and (not existing_total["err"]) then
+		contributor_total = tonumber(existing_total)
+	end
+end
+
+pcall(read_existing_lock)
+pcall(read_existing_global_total)
+pcall(read_existing_contributor_total)
+
+local is_blocked = not (locked_until_epoch == nil) and (locked_until_epoch > now_timestamp)
 local is_success = (not is_blocked) and 1 or 0
 
 if new_attempts < 1 or is_blocked then
-	return {is_success, record.locked_until_epoch}
+	return {is_success, locked_until_epoch}
 end
 
-record.attempts = record.attempts + new_attempts
+global_total = global_total + new_attempts
+contributor_total = contributor_total + new_attempts
 
-if record.attempts >= max_attempts then
-	local exponent = record.attempts - max_attempts
+local total = is_global and global_total or contributor_total
+
+if total >= max_attempts then
+	local exponent = total - max_attempts
 	local lock_duration = min_duration * math.pow(backoff_factor, exponent)
 	lock_duration = math.min(lock_duration, max_duration)
-	record.locked_until_epoch = now_timestamp + lock_duration
+	locked_until_epoch = now_timestamp + lock_duration
 end
 
 local expire_at = now_timestamp + history_duration
 
-redis.call("SET", record_key, cjson.encode(record), "EXAT", expire_at)
+redis.call("HSET", record_key, global_total_key, global_total)
+redis.call("HSET", record_key, contributor, contributor_total)
+redis.call("EXPIREAT", record_key, expire_at)
 
-return {is_success, record.locked_until_epoch}
+if locked_until_epoch then
+	redis.call("SET", lock_key, locked_until_epoch, "EXAT", locked_until_epoch)
+end
+
+return {is_success, locked_until_epoch}
 `)
 
 func makeAttempt(
@@ -75,7 +106,13 @@ func makeAttempt(
 	minDuration time.Duration,
 	maxDuration time.Duration,
 	backoffFactor float64,
+	isGlobal bool,
+	contributor string,
 	attempts int) (r *attemptResult, err error) {
+	isGlobalStr := "0"
+	if isGlobal {
+		isGlobalStr = "1"
+	}
 	result, err := makeAttemptLuaScript.Run(ctx, conn,
 		[]string{key},
 		int(historyDuration.Seconds()),
@@ -83,6 +120,8 @@ func makeAttempt(
 		int(minDuration.Seconds()),
 		int(maxDuration.Seconds()),
 		backoffFactor,
+		isGlobalStr,
+		contributor,
 		attempts,
 	).Slice()
 	if err != nil {

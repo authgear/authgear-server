@@ -17,15 +17,15 @@ type Service struct {
 	Storage Storage
 }
 
-func (l *Service) MakeAttempt(spec BucketSpec, attempts int) (lockedUntil *time.Time, err error) {
+func (s *Service) MakeAttempt(spec BucketSpec, contributor string, attempts int) (lockedUntil *time.Time, err error) {
 	if !spec.Enabled {
 		return nil, nil
 	}
 
-	logger := l.Logger.
+	logger := s.Logger.
 		WithField("key", spec.Key())
 
-	isSuccess, lockedUntil, err := l.Storage.Update(spec, attempts)
+	isSuccess, lockedUntil, err := s.Storage.Update(spec, contributor, attempts)
 	if err != nil {
 		return nil, err
 	}
@@ -41,4 +41,8 @@ func (l *Service) MakeAttempt(spec BucketSpec, attempts int) (lockedUntil *time.
 	logger.Debug("make attempt success")
 
 	return lockedUntil, nil
+}
+
+func (s *Service) ClearAttempts(spec BucketSpec, contributor string) error {
+	return s.Storage.Clear(spec, contributor)
 }
