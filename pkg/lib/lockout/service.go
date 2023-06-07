@@ -1,6 +1,10 @@
 package lockout
 
-import "github.com/authgear/authgear-server/pkg/util/log"
+import (
+	"time"
+
+	"github.com/authgear/authgear-server/pkg/util/log"
+)
 
 type Logger struct{ *log.Logger }
 
@@ -13,26 +17,28 @@ type Service struct {
 	Storage Storage
 }
 
-func (l *Service) MakeAttempt(spec BucketSpec, attempts int) error {
+func (l *Service) MakeAttempt(spec BucketSpec, attempts int) (lockedUntil *time.Time, err error) {
 	if !spec.Enabled {
-		return nil
+		return nil, nil
 	}
 
 	logger := l.Logger.
 		WithField("key", spec.Key())
 
-	lockedUntil, err := l.Storage.Update(spec, attempts)
+	isSuccess, lockedUntil, err := l.Storage.Update(spec, attempts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if lockedUntil != nil {
-		logger.
-			WithField("lockedUntil", *lockedUntil).Debug("locked out")
-		return NewErrLocked(spec.Name, *lockedUntil)
+		logger = logger.
+			WithField("lockedUntil", *lockedUntil)
+	}
+	if !isSuccess {
+		logger.Debug("make attempt failed")
+		return lockedUntil, NewErrLocked(spec.Name, *lockedUntil)
 	}
 
-	logger.
-		Debug("checked not locked out")
+	logger.Debug("make attempt success")
 
-	return nil
+	return lockedUntil, nil
 }

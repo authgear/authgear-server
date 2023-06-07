@@ -5,6 +5,6 @@ import (
 )
 
 type Storage interface {
-	Update(spec BucketSpec, delta int) (lockedUntil *time.Time, err error)
+	Update(spec BucketSpec, delta int) (isSuccess bool, lockedUntil *time.Time, err error)
 	Clear(spec BucketSpec) error
 }
