@@ -1,5 +1,38 @@
 package config
 
+type AuthenticationLockoutType string
+
+const (
+	AuthenticationLockoutTypePerUser      AuthenticationLockoutType = "per_user"
+	AuthenticationLockoutTypePerUserPerIP AuthenticationLockoutType = "per_user_per_ip"
+)
+
+var _ = Schema.Add("AuthenticationLockoutType", `
+{
+	"type": "string",
+	"enum": ["per_user", "per_user_per_ip"]
+}
+`)
+
+var _ = Schema.Add("AuthenticationLockoutMethodConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"enabled": {
+			"type": "boolean"
+		}
+	},
+	"required": [
+		"enabled"
+	]
+}
+`)
+
+type AuthenticationLockoutMethodConfig struct {
+	Enabled bool `json:"enabled"`
+}
+
 var _ = Schema.Add("AuthenticationLockoutConfig", `
 {
 	"type": "object",
@@ -19,16 +52,57 @@ var _ = Schema.Add("AuthenticationLockoutConfig", `
 		},
 		"backoff_factor": {
 			"type": "number"
+		},
+		"lockout_type": {
+			"$ref": "#/$defs/AuthenticationLockoutType"
+		},
+		"password": {
+			"$ref": "#/$defs/AuthenticationLockoutMethodConfig"
+		},
+		"totp": {
+			"$ref": "#/$defs/AuthenticationLockoutMethodConfig"
+		},
+		"oob_otp": {
+			"$ref": "#/$defs/AuthenticationLockoutMethodConfig"
+		},
+		"recovery_code": {
+			"$ref": "#/$defs/AuthenticationLockoutMethodConfig"
 		}
 	},
-	"required": ["max_attempts", "history_duration", "minimum_duration", "maximum_duration", "backoff_factor"]
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"max_attempts": {
+						"type": "integer",
+						"minimum": 1
+					}
+				},
+				"required": ["max_attempts"]
+			},
+			"then": {
+				"required": [
+					"history_duration",
+					"minimum_duration",
+					"maximum_duration",
+					"backoff_factor",
+					"lockout_type"
+				]
+			}
+		}
+	]
 }
 `)
 
 type AuthenticationLockoutConfig struct {
-	MaxAttempts     int            `json:"max_attempts,omitempty"`
-	HistoryDuration DurationString `json:"history_duration,omitempty"`
-	MinimumDuration DurationString `json:"minimum_duration,omitempty"`
-	MaximumDuration DurationString `json:"maximum_duration,omitempty"`
-	BackoffFactor   float64        `json:"backoff_factor,omitempty"`
+	MaxAttempts     int                                `json:"max_attempts,omitempty"`
+	HistoryDuration DurationString                     `json:"history_duration,omitempty"`
+	MinimumDuration DurationString                     `json:"minimum_duration,omitempty"`
+	MaximumDuration DurationString                     `json:"maximum_duration,omitempty"`
+	BackoffFactor   float64                            `json:"backoff_factor,omitempty"`
+	LockoutType     AuthenticationLockoutType          `json:"lockout_type,omitempty"`
+	Password        *AuthenticationLockoutMethodConfig `json:"password,omitempty"`
+	Totp            *AuthenticationLockoutMethodConfig `json:"totp,omitempty"`
+	OOBOTP          *AuthenticationLockoutMethodConfig `json:"oob_otp,omitempty"`
+	RecoveryCode    *AuthenticationLockoutMethodConfig `json:"recovery_code,omitempty"`
 }
