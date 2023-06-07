@@ -264,7 +264,8 @@ messaging:
   email:
     ratelimit:
       resend_cooldown_seconds: 60
-  whatsapp: {}
+  whatsapp:
+    api_type: on-premises
   rate_limits:
     sms: {}
     sms_per_ip:
