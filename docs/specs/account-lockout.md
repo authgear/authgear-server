@@ -6,7 +6,7 @@ In order to increase resistance to brute forcing, we will lock the account for a
 
 ## Configuration
 
-Account locking can be configured as follow:
+Account lockout can be configured as follow:
 
 ```yaml
 authentication:
@@ -41,7 +41,7 @@ We designed the feature based on the following references:
 
 - [Azure AD smart lockout](https://learn.microsoft.com/en-us/azure/active-directory/authentication/howto-password-smart-lockout#how-smart-lockout-works)
 
-  - The account locks again after each subsequent failed sign-in attempt, for one minute at first and longer in subsequent attempts. We referenced such behavior in authgear account locking.
+  - The account locks again after each subsequent failed sign-in attempt, for one minute at first and longer in subsequent attempts. We referenced such behavior in authgear account lockout.
 
 - iOS
 
