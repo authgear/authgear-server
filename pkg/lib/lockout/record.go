@@ -7,17 +7,16 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 )
 
-type record struct {
-	Attempts         int  `json:"attempts"`
-	LockedUntilEpoch *int `json:"locked_until_epoch,omitempty"`
-}
-
 type attemptResult struct {
 	IsSuccess   bool
 	LockedUntil *time.Time
 }
 
-var makeAttemptLuaScript = goredis.NewScript(`
+var constants = `
+local GLOBAL_TOTAL_KEY = "total"
+`
+
+var makeAttemptsLuaScript = goredis.NewScript(constants + `
 redis.replicate_commands()
 
 local record_key = KEYS[1]
@@ -39,7 +38,6 @@ local global_total = 0
 local contributor_total = 0
 local locked_until_epoch = nil
 
-local global_total_key = "total"
 
 local function read_existing_lock ()
 	local existing_lock = redis.pcall("GET", lock_key)
@@ -49,7 +47,7 @@ local function read_existing_lock ()
 end
 
 local function read_existing_global_total ()
-	local existing_total = redis.pcall("HGET", record_key, global_total_key)
+	local existing_total = redis.pcall("HGET", record_key, GLOBAL_TOTAL_KEY)
 	if existing_total and (not existing_total["err"]) then
 		global_total = tonumber(existing_total)
 	end
@@ -87,7 +85,7 @@ end
 
 local expire_at = now_timestamp + history_duration
 
-redis.call("HSET", record_key, global_total_key, global_total)
+redis.call("HSET", record_key, GLOBAL_TOTAL_KEY, global_total)
 redis.call("HSET", record_key, contributor, contributor_total)
 redis.call("EXPIREAT", record_key, expire_at)
 
@@ -98,7 +96,42 @@ end
 return {is_success, locked_until_epoch}
 `)
 
-func makeAttempt(
+var clearAttemptsLuaScript = goredis.NewScript(constants + `
+redis.replicate_commands()
+
+local record_key = KEYS[1]
+local contributor = ARGV[1]
+
+local global_total = 0
+local contributor_total = 0
+
+local function read_existing_global_total ()
+	local existing_total = redis.pcall("HGET", record_key, GLOBAL_TOTAL_KEY)
+	if existing_total and (not existing_total["err"]) then
+		global_total = tonumber(existing_total)
+	end
+end
+
+local function read_existing_contributor_total ()
+	local existing_total = redis.pcall("HGET", record_key, contributor)
+	if existing_total and (not existing_total["err"]) then
+		contributor_total = tonumber(existing_total)
+	end
+end
+
+pcall(read_existing_global_total)
+pcall(read_existing_contributor_total)
+
+global_total = math.max(global_total - contributor_total, 0)
+
+
+redis.call("HSET", record_key, GLOBAL_TOTAL_KEY, global_total)
+redis.call("HDEL", record_key, contributor)
+
+return 1
+`)
+
+func makeAttempts(
 	ctx context.Context, conn *goredis.Conn,
 	key string,
 	historyDuration time.Duration,
@@ -113,7 +146,7 @@ func makeAttempt(
 	if isGlobal {
 		isGlobalStr = "1"
 	}
-	result, err := makeAttemptLuaScript.Run(ctx, conn,
+	result, err := makeAttemptsLuaScript.Run(ctx, conn,
 		[]string{key},
 		int(historyDuration.Seconds()),
 		maxAttempts,
@@ -140,4 +173,15 @@ func makeAttempt(
 		IsSuccess:   isSuccess,
 		LockedUntil: lockedUntil,
 	}, nil
+}
+
+func clearAttempts(
+	ctx context.Context, conn *goredis.Conn,
+	key string,
+	contributor string) error {
+	_, err := clearAttemptsLuaScript.Run(ctx, conn,
+		[]string{key},
+		contributor,
+	).Bool()
+	return err
 }

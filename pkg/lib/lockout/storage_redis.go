@@ -20,7 +20,7 @@ var _ Storage = &StorageRedis{}
 
 func (s StorageRedis) Update(spec BucketSpec, contributor string, delta int) (isSuccess bool, lockedUntil *time.Time, err error) {
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
-		r, err := makeAttempt(context.Background(), conn,
+		r, err := makeAttempts(context.Background(), conn,
 			redisRecordKey(s.AppID, spec),
 			spec.HistoryDuration,
 			spec.MaxAttempts,
@@ -43,8 +43,10 @@ func (s StorageRedis) Update(spec BucketSpec, contributor string, delta int) (is
 
 func (s StorageRedis) Clear(spec BucketSpec, contributor string) (err error) {
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
-		// TODO(tung): TO BE IMPLEMENTED
-		return err
+		return clearAttempts(context.Background(), conn,
+			redisRecordKey(s.AppID, spec),
+			contributor,
+		)
 	})
 	return err
 }

@@ -18,6 +18,8 @@ type testEntry struct {
 
 	expectedIsSucess    bool
 	expectedLockedUntil *time.Time
+
+	fn func(ctx context.Context, conn *goredis.Conn)
 }
 
 type testConfig struct {
@@ -33,7 +35,7 @@ type testConfig struct {
 const testKey = "lockouttest"
 const epoch = 1257894000
 
-func TestMakeAttempt(t *testing.T) {
+func TestLockout(t *testing.T) {
 	s := miniredis.RunT(t)
 
 	test := func(name string, cfg *testConfig) {
@@ -53,13 +55,18 @@ func TestMakeAttempt(t *testing.T) {
 
 			now := time.Unix(epoch, 0)
 			for _, e := range cfg.entries {
+				if e.fn != nil {
+					e.fn(ctx, conn)
+					continue
+				}
+
 				t, _ := time.ParseDuration(e.time)
 				newNow := time.Unix(epoch, 0).Add(t)
 				s.SetTime(newNow)
 				s.FastForward(newNow.Sub(now))
 				now = newNow
 
-				result, err := makeAttempt(ctx, conn, testKey,
+				result, err := makeAttempts(ctx, conn, testKey,
 					historyDuration, maxAttempts, minDuration, maxDuration, backoffFactor, isGlobal, e.contributor, e.attempts)
 				So(err, ShouldBeNil)
 				So(result.IsSuccess, ShouldEqual, e.expectedIsSucess)
@@ -69,7 +76,7 @@ func TestMakeAttempt(t *testing.T) {
 	}
 
 	Convey("Lockout", t, func() {
-		test("makeAttempt", &testConfig{
+		test("makeAttempts", &testConfig{
 			historyDuration: "300s",
 			maxAttempts:     3,
 			minDuration:     "10s",
@@ -84,6 +91,8 @@ func TestMakeAttempt(t *testing.T) {
 				{time: "3s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
 				// The forth attempt is failed
 				{time: "4s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
+				// 0 Attempts should also fail
+				{time: "4s", contributor: "127.0.0.1", attempts: 0, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
 				// Lock again with min duration * 2
 				{time: "13s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 13 + 20)},
 				{time: "14s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 13 + 20)},
@@ -100,7 +109,7 @@ func TestMakeAttempt(t *testing.T) {
 			},
 		})
 
-		test("makeAttempt global lock", &testConfig{
+		test("makeAttempts global lock", &testConfig{
 			historyDuration: "300s",
 			maxAttempts:     3,
 			minDuration:     "10s",
@@ -116,7 +125,7 @@ func TestMakeAttempt(t *testing.T) {
 			},
 		})
 
-		test("makeAttempt contributor lock", &testConfig{
+		test("makeAttempts contributor lock", &testConfig{
 			historyDuration: "300s",
 			maxAttempts:     3,
 			minDuration:     "10s",
@@ -136,6 +145,48 @@ func TestMakeAttempt(t *testing.T) {
 
 				// lock of 127.0.0.1 is not affected
 				{time: "5s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 1 + 10)},
+			},
+		})
+
+		test("clearAttempts global lock", &testConfig{
+			historyDuration: "300s",
+			maxAttempts:     3,
+			minDuration:     "10s",
+			maxDuration:     "50s",
+			backoffFactor:   2,
+			isGlobal:        true,
+			entries: []testEntry{
+				{time: "0s", contributor: "127.0.0.1", attempts: 4, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
+				{time: "0s", fn: func(ctx context.Context, conn *goredis.Conn) {
+					clearAttempts(ctx, conn, testKey, "127.0.0.1")
+				}},
+				// Clear attempts should not affect existing lock
+				{time: "1s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
+				// The lock time should reset on next lock
+				{time: "20s", contributor: "127.0.0.1", attempts: 3, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 20 + 10)},
+			},
+		})
+
+		test("clearAttempts contributor lock", &testConfig{
+			historyDuration: "300s",
+			maxAttempts:     3,
+			minDuration:     "10s",
+			maxDuration:     "50s",
+			backoffFactor:   2,
+			isGlobal:        false,
+			entries: []testEntry{
+				{time: "0s", contributor: "127.0.0.1", attempts: 4, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
+				{time: "0s", contributor: "127.0.0.2", attempts: 5, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 40)},
+				{time: "0s", fn: func(ctx context.Context, conn *goredis.Conn) {
+					clearAttempts(ctx, conn, testKey, "127.0.0.1")
+				}},
+				// Clear attempts should not affect existing lock
+				{time: "1s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
+				{time: "1s", contributor: "127.0.0.2", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 0 + 40)},
+				// The lock time of 127.0.0.1 should reset on next lock
+				{time: "20s", contributor: "127.0.0.1", attempts: 3, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 20 + 10)},
+				// The lock time of 127.0.0.2 should not reset on next lock
+				{time: "40s", contributor: "127.0.0.2", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 40 + 50)},
 			},
 		})
 	})
