@@ -181,7 +181,7 @@ func (i *IntentLogin) getVerifiedAuthenticators(w *workflow.Workflow) ([]*authen
 	if err != nil {
 		return nil, err
 	}
-	return []*authenticator.Info{}, nil
+	return result, nil
 }
 
 func (i *IntentLogin) GetAMR(w *workflow.Workflow) []string {
