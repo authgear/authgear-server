@@ -29,7 +29,7 @@ local is_global = ARGV[6] == "1"
 local contributor = ARGV[7]
 local new_attempts = tonumber(ARGV[8])
 
-local lock_key = string.format("%s:%s", record_key, is_global and "global" or contributor)
+local lock_key = string.format("%s:lock:%s", record_key, is_global and "global" or contributor)
 
 local now = redis.call("TIME")
 local now_timestamp = tonumber(now[1])
