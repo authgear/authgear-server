@@ -13,12 +13,12 @@ type LockoutProvider interface {
 type Lockout struct {
 	Config   *config.AuthenticationLockoutConfig
 	RemoteIP httputil.RemoteIP
-	provider LockoutProvider
+	Provider LockoutProvider
 }
 
 func (l *Lockout) Check(userID string) error {
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
-	_, err := l.provider.MakeAttempts(bucket, string(l.RemoteIP), 0)
+	_, err := l.Provider.MakeAttempts(bucket, string(l.RemoteIP), 0)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (l *Lockout) MakeRecoveryCodeAttempt(userID string, attempts int) error {
 		return nil
 	}
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
-	r, err := l.provider.MakeAttempts(bucket, string(l.RemoteIP), attempts)
+	r, err := l.Provider.MakeAttempts(bucket, string(l.RemoteIP), attempts)
 	if err != nil {
 		return err
 	}

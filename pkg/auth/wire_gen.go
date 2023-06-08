@@ -424,7 +424,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -929,7 +929,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -1518,7 +1518,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -1659,7 +1659,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -1812,11 +1812,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -1866,7 +1861,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -2301,7 +2295,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -2774,7 +2768,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3147,7 +3141,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -3584,7 +3578,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -4125,7 +4119,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -4266,7 +4260,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -4419,11 +4413,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -4473,7 +4462,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -4944,7 +4932,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -5085,7 +5073,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -5281,11 +5269,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -5335,7 +5318,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -5730,7 +5712,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -5871,7 +5853,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -6067,11 +6049,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -6121,7 +6098,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -6622,7 +6598,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -6763,7 +6739,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -6958,11 +6934,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -7011,7 +6982,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -7455,7 +7425,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -7596,7 +7566,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -7791,11 +7761,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -7844,7 +7809,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -8287,7 +8251,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -8428,7 +8392,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -8623,11 +8587,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -8676,7 +8635,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -9107,7 +9065,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -9248,7 +9206,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -9443,11 +9401,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -9496,7 +9449,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -9920,7 +9872,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -10061,7 +10013,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -10256,11 +10208,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -10309,7 +10256,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -10723,7 +10669,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -10864,7 +10810,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -11059,11 +11005,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11112,7 +11053,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -11529,7 +11469,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -11670,7 +11610,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -11865,11 +11805,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -11918,7 +11853,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -12338,7 +12272,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -12479,7 +12413,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -12674,11 +12608,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -12727,7 +12656,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -13149,7 +13077,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -13290,7 +13218,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -13485,11 +13413,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -13538,7 +13461,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -13958,7 +13880,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -14099,7 +14021,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -14294,11 +14216,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -14347,7 +14264,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -14763,7 +14679,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -14904,7 +14820,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -15099,11 +15015,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15152,7 +15063,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -15572,7 +15482,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -15713,7 +15623,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -15908,11 +15818,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -15961,7 +15866,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -16382,7 +16286,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -16523,7 +16427,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -16718,11 +16622,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -16771,7 +16670,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -17191,7 +17089,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -17332,7 +17230,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -17527,11 +17425,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -17580,7 +17473,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -18000,7 +17892,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -18141,7 +18033,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -18336,11 +18228,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -18389,7 +18276,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -18811,7 +18697,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -18952,7 +18838,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -19147,11 +19033,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -19200,7 +19081,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -19620,7 +19500,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -19761,7 +19641,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -19956,11 +19836,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -20009,7 +19884,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -20429,7 +20303,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -20570,7 +20444,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -20765,11 +20639,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -20818,7 +20687,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -21242,7 +21110,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -21383,7 +21251,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -21578,11 +21446,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -21631,7 +21494,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -22051,7 +21913,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -22192,7 +22054,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -22387,11 +22249,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -22440,7 +22297,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -22864,7 +22720,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -23005,7 +22861,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -23200,11 +23056,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -23253,7 +23104,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -23673,7 +23523,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -23814,7 +23664,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -24009,11 +23859,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24062,7 +23907,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -24490,7 +24334,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -24631,7 +24475,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -24826,11 +24670,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -24879,7 +24718,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -25310,7 +25148,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -25451,7 +25289,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -25646,11 +25484,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -25699,7 +25532,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -26119,7 +25951,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -26260,7 +26092,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -26455,11 +26287,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -26508,7 +26335,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -26924,7 +26750,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -27065,7 +26891,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -27260,11 +27086,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -27313,7 +27134,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -27733,7 +27553,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -27874,7 +27694,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -28069,11 +27889,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -28122,7 +27937,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -28538,7 +28352,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -28679,7 +28493,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -28874,11 +28688,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -28927,7 +28736,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -29353,7 +29161,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -29494,7 +29302,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -29689,11 +29497,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -29742,7 +29545,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -30158,7 +29960,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -30299,7 +30101,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -30494,11 +30296,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -30547,7 +30344,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -30965,7 +30761,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -31106,7 +30902,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -31301,11 +31097,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -31354,7 +31145,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -31770,7 +31560,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -31911,7 +31701,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -32106,11 +31896,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -32159,7 +31944,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -32607,7 +32391,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -32748,7 +32532,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -32943,11 +32727,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -32996,7 +32775,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -33423,7 +33201,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -33564,7 +33342,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -33759,11 +33537,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -33812,7 +33585,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -34252,7 +34024,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -34393,7 +34165,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -34588,11 +34360,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -34641,7 +34408,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -35065,7 +34831,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -35206,7 +34972,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -35401,11 +35167,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -35454,7 +35215,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -35871,7 +35631,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -36012,7 +35772,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -36207,11 +35967,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -36260,7 +36015,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -36685,7 +36439,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -36826,7 +36580,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -37021,11 +36775,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37074,7 +36823,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -37491,7 +37239,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -37632,7 +37380,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -37827,11 +37575,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -37880,7 +37623,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -38297,7 +38039,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -38438,7 +38180,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -38633,11 +38375,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -38686,7 +38423,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -39103,7 +38839,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -39244,7 +38980,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -39439,11 +39175,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -39492,7 +39223,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -39910,7 +39640,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -40051,7 +39781,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -40246,11 +39976,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -40299,7 +40024,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -40735,7 +40459,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -40876,7 +40600,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -41071,11 +40795,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -41124,7 +40843,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -41541,7 +41259,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -41682,7 +41400,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -41877,11 +41595,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -41930,7 +41643,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -42347,7 +42059,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -42488,7 +42200,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -42683,11 +42395,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -42736,7 +42443,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -43153,7 +42859,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -43294,7 +43000,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -43489,11 +43195,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -43542,7 +43243,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -43959,7 +43659,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -44100,7 +43800,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -44295,11 +43995,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -44348,7 +44043,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -44772,7 +44466,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -44913,7 +44607,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -45108,11 +44802,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -45161,7 +44850,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -45579,7 +45267,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -45720,7 +45408,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -45915,11 +45603,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -45968,7 +45651,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -46384,7 +46066,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -46525,7 +46207,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -46720,11 +46402,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -46773,7 +46450,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -47204,7 +46880,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -47345,7 +47021,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -47540,11 +47216,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -47593,7 +47264,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -48009,7 +47679,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -48150,7 +47820,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -48345,11 +48015,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -48398,7 +48063,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -48814,7 +48478,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -48955,7 +48619,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -49150,11 +48814,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -49203,7 +48862,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -49637,7 +49295,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -49778,7 +49436,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -49973,11 +49631,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -50026,7 +49679,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -50406,7 +50058,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -50547,7 +50199,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -50742,11 +50394,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -50795,7 +50442,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -51174,7 +50820,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -51315,7 +50961,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -51510,11 +51156,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -51563,7 +51204,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -51989,7 +51629,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -52130,7 +51770,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -52325,11 +51965,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -52378,7 +52013,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -52795,7 +52429,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -52936,7 +52570,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -53131,11 +52765,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -53184,7 +52813,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -53582,7 +53210,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -53737,7 +53365,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -54340,7 +53968,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -54495,7 +54123,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -55070,7 +54698,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -55225,7 +54853,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -55836,7 +55464,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -55991,7 +55619,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -56868,7 +56496,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -57384,7 +57012,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -57525,7 +57153,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
@@ -57720,11 +57348,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
-	lockout2 := &service2.Lockout{
-		Config:   authenticationLockoutConfig,
-		RemoteIP: remoteIP,
-		provider: lockoutService,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -57773,7 +57396,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
-		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,
@@ -58237,7 +57859,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -58378,7 +58000,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,

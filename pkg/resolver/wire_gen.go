@@ -460,7 +460,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -963,7 +963,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          serviceStore,

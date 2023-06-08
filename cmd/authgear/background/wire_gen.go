@@ -436,7 +436,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	serviceLockout := service2.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
 		Store:          store3,
@@ -591,7 +591,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	mfaLockout := mfa.Lockout{
 		Config:   authenticationLockoutConfig,
 		RemoteIP: remoteIP,
-		provider: lockoutService,
+		Provider: lockoutService,
 	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
