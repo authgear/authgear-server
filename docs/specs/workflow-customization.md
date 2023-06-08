@@ -25,7 +25,6 @@
     + [Use case example 3: Google](#use-case-example-3-google)
     + [Use case example 4: The Club](#use-case-example-4-the-club)
 - [Default UI](#default-ui)
-  * [`login_flows` in Default UI](#login_flows-in-default-ui)
   * [`signup_login_flows` in Default UI](#signup_login_flows-in-default-ui)
 - [Custom UI](#custom-ui)
 - [Appendix](#appendix)
@@ -344,7 +343,9 @@ Detailed annotated configuration example:
 login_flows:
 # Sign in with a phone number and OTP via SMS.
 - name: phone_otp
-  primary_authentication:
+  steps:
+  - name: phone_otp
+    type: identification_method
     one_of:
     - identification_method:
         name: phone
@@ -352,7 +353,9 @@ login_flows:
       - name: primary_sms_code
 # Sign in with a phone number and a password
 - name: phone_password
-  primary_authentication:
+  steps:
+  - name: phone_password
+    type: identification_method
     one_of:
     - identification_method:
         name: phone
@@ -360,7 +363,9 @@ login_flows:
       - name: primary_password
 # Sign in with a phone number, or an email address, with a password
 - name: phone_email_password
-  primary_authentication:
+  steps:
+  - name: phone_email_password
+    type: identification_method
     one_of:
     - identification_method:
         name: phone
@@ -372,14 +377,17 @@ login_flows:
       - name: primary_password
 # Sign in with an email address, a password and a TOTP
 - name: email_password_totp
-  primary_authentication:
+  steps:
+  - name: email_password
+    type: identification_method
     one_of:
     - identification_method:
         name: email
       authentication_methods:
       - name: primary_password
-  secondary_authentications:
-  - one_of:
+  - name: totp
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: secondary_totp
 ```
@@ -504,14 +512,17 @@ signup_flows:
 
 login_flows:
 - name: default_login_flow
-  primary_authentication:
+  steps:
+  - name: first_factor
+    type: identification_method
     one_of:
     - identification_method:
         name: phone
       authentication_methods:
       - name: primary_sms_code
-  secondary_authentications:
-  - one_of:
+  - name: second_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: primary_email_login_link
     - authentication_method:
@@ -608,7 +619,9 @@ signup_flows:
 
 login_flows:
 - name: default_login_flow
-  primary_authentication:
+  steps:
+  - name: first_factor
+    type: identification_method
     one_of:
     - identification_method:
         name: phone
@@ -676,14 +689,17 @@ signup_flows:
 
 login_flows:
 - name: default_login_flow
-  primary_authentication:
+  steps:
+  - name: first_factor
+    type: identification_method
     one_of:
     - identification_method:
         name: email
       authentication_methods:
       - name: primary_password
-  secondary_authentications:
-  - one_of:
+  - name: second_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: secondary_totp
     - authentication_method:
@@ -723,7 +739,9 @@ authentication_methods:
 
 login_flows:
 - name: default_login_flow
-  primary_authentication:
+  steps:
+  - name: first_factor
+    type: identification_method
     one_of:
     - identification_method:
         name: email
@@ -747,17 +765,6 @@ login_flows:
 The configuration is declarative. It only specifies what identity or authenticator to create. But the exact execution is unspecified in the configuration. In this section, we specify how Default UI execute flows according to the configuration.
 
 Each `signup_flow`, `login_flow`, and `signup_login_flow` will be executed with a [Workflow](./workflow.md#workflow).
-
-### `login_flows` in Default UI
-
-Default UI executes login flow in the following order:
-
-- Perform `primary_authentication`.
-  - Identify the User with one of the `identification_method`.
-  - Authenticate the User with one of the `authentication_methods`.
-  - The used authenticator cannot be used again in `secondary_authentications`.
-- Perform `secondary_authentication` one by one.
-  - The used authenticator in each `secondary_authentication` cannot be used again in subsequent `secondary_authentications`.
 
 ### `signup_login_flows` in Default UI
 
@@ -1040,63 +1047,93 @@ Custom UI and Default UI share the same Workflow. If Custom UI wants to collect 
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "primary_authentication", "secondary_authentications"],
+        "required": ["name", "steps"],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
-          "primary_authentication": {
-            "type": "object",
-            "properties": {
-              "one_of": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "identification_method": {
-                      "type": "object",
-                      "required": ["name"],
-                      "properties": {
-                        "name": { "type": "string", "minLength": 1 }
-                      }
-                    },
-                    "authentication_methods": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": ["name"],
-                        "properties": {
-                          "name": { "type": "string", "minLength": 1 }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "secondary_authentications": {
+          "steps": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["one_of"],
+              "required": ["name", "type"],
               "properties": {
-                "one_of": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": ["authentication_method"],
-                    "properties": {
-                      "authentication_method": {
+                "name": { "type": "string", "minLength": 1 },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "identification_method",
+                    "authentication_method"
+                  ]
+                }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                      "type": { "const": "identification_method" }
+                  }
+                },
+                "then": {
+                  "required": ["one_of"],
+                  "properties": {
+                    "one_of": {
+                      "type": "array",
+                      "items": {
                         "type": "object",
-                        "required": ["name"],
+                        "required": ["identification_method"],
                         "properties": {
-                          "name": { "type": "string", "minLength": 1 }
+                          "identification_method": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                              "name": { "type": "string", "minLength": 1 }
+                            }
+                          },
+                          "authentication_methods": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": ["name"],
+                              "properties": {
+                                "name": { "type": "string", "minLength": 1 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "type": { "const": "authentication_method" }
+                  }
+                },
+                "then": {
+                  "required": ["one_of"],
+                  "properties": {
+                    "one_of": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["authentication_method"],
+                        "properties": {
+                          "authentication_method": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                              "name": { "type": "string", "minLength": 1 }
+                            }
+                          }
                         }
                       }
                     }
                   }
                 }
               }
-            }
+            ]
           }
         }
       }
