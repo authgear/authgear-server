@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -14,16 +13,8 @@ type EdgeDoResetLockoutAttempts struct {
 
 func (e *EdgeDoResetLockoutAttempts) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	n := &NodeDoResetLockoutAttempts{}
-	userID := ""
 	authenticators := graph.GetUsedAuthenticators()
-	types := []model.AuthenticatorType{}
-	for _, a := range authenticators {
-		userID = a.UserID
-		types = append(types, a.Type)
-	}
-	if len(types) > 0 && userID != "" {
-		ctx.Lockout.ClearAttempts(userID, types)
-	}
+	ctx.Authenticators.ClearLockoutAttempts(authenticators)
 
 	return n, nil
 }

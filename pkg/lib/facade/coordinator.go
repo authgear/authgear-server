@@ -46,6 +46,7 @@ type AuthenticatorService interface {
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error)
 	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
+	ClearLockoutAttempts(authenticators []*authenticator.Info) error
 }
 
 type VerificationService interface {
@@ -935,4 +936,8 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 	}
 
 	return nil
+}
+
+func (c *Coordinator) AuthenticatorClearLockoutAttempts(authenticators []*authenticator.Info) error {
+	return c.Authenticators.ClearLockoutAttempts(authenticators)
 }

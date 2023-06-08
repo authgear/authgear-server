@@ -18,6 +18,10 @@ func init() {
 	workflow.RegisterPrivateIntent(&IntentLogin{})
 }
 
+type VerifiedAuthenticatorGetter interface {
+	GetVerifiedAuthenticator() (*authenticator.Info, bool)
+}
+
 var IntentLoginSchema = validation.NewSimpleSchema(`{}`)
 
 type IntentLogin struct {
@@ -93,6 +97,14 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 			}
 		}
 	case 2:
+		authenticators, err := i.getVerifiedAuthenticators(w)
+		if err != nil {
+			return nil, err
+		}
+		err = deps.Authenticators.ClearLockoutAttempts(authenticators)
+		if err != nil {
+			return nil, err
+		}
 		return workflow.NewSubWorkflow(&IntentCreateSession{
 			UserID:       i.userID(),
 			CreateReason: session.CreateReasonLogin,
@@ -147,6 +159,26 @@ func (i *IntentLogin) getAuthenticator(deps *workflow.Dependencies, filters ...a
 	}
 
 	return ais[0], nil
+}
+
+func (i *IntentLogin) getVerifiedAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, error) {
+	result := []*authenticator.Info{}
+	w.Traverse(workflow.WorkflowTraverser{
+		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
+			if n, ok := nodeSimple.(VerifiedAuthenticatorGetter); ok {
+				info, ok := n.GetVerifiedAuthenticator()
+				if ok && info != nil {
+					result = append(result, info)
+				}
+			}
+
+			return nil
+		},
+		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
+			return nil
+		},
+	})
+	return []*authenticator.Info{}, nil
 }
 
 func (i *IntentLogin) GetAMR(w *workflow.Workflow) []string {
