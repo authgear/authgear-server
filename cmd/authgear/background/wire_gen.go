@@ -588,6 +588,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -595,6 +600,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,

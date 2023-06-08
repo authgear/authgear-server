@@ -9,4 +9,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(StoreRecoveryCodePQ), "*"),
 	wire.Bind(new(StoreRecoveryCode), new(*StoreRecoveryCodePQ)),
 	wire.Struct(new(Service), "*"),
+	wire.Struct(new(Lockout), "*"),
 )

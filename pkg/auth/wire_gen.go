@@ -1656,6 +1656,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -1663,6 +1668,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -4251,6 +4257,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -4258,6 +4269,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -5058,6 +5070,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -5065,6 +5082,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -5832,6 +5850,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -5839,6 +5862,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -6712,6 +6736,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -6719,6 +6748,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -7533,6 +7563,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -7540,6 +7575,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -8353,6 +8389,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -8360,6 +8401,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -9161,6 +9203,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -9168,6 +9215,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -9962,6 +10010,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -9969,6 +10022,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -10753,6 +10807,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -10760,6 +10819,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -11547,6 +11607,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -11554,6 +11619,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -12344,6 +12410,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -12351,6 +12422,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -13143,6 +13215,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -13150,6 +13227,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -13940,6 +14018,11 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -13947,6 +14030,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -14733,6 +14817,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -14740,6 +14829,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -15530,6 +15620,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -15537,6 +15632,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -16328,6 +16424,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -16335,6 +16436,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -17125,6 +17227,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -17132,6 +17239,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -17922,6 +18030,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -17929,6 +18042,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -18721,6 +18835,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -18728,6 +18847,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -19518,6 +19638,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -19525,6 +19650,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -20315,6 +20441,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -20322,6 +20453,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -21116,6 +21248,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -21123,6 +21260,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -21913,6 +22051,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -21920,6 +22063,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -22714,6 +22858,11 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -22721,6 +22870,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -23511,6 +23661,11 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -23518,6 +23673,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -24316,6 +24472,11 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -24323,6 +24484,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -25124,6 +25286,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -25131,6 +25298,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -25921,6 +26089,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -25928,6 +26101,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -26714,6 +26888,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -26721,6 +26900,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -27511,6 +27691,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -27518,6 +27703,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -28304,6 +28490,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -28311,6 +28502,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -29107,6 +29299,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -29114,6 +29311,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -29900,6 +30098,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -29907,6 +30110,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -30695,6 +30899,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -30702,6 +30911,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -31488,6 +31698,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -31495,6 +31710,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -32313,6 +32529,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -32320,6 +32541,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -33117,6 +33339,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -33124,6 +33351,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -33934,6 +34162,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -33941,6 +34174,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -34735,6 +34969,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -34742,6 +34981,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -35529,6 +35769,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -35536,6 +35781,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -36331,6 +36577,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -36338,6 +36589,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -37125,6 +37377,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -37132,6 +37389,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -37919,6 +38177,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -37926,6 +38189,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -38713,6 +38977,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -38720,6 +38989,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -39508,6 +39778,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -39515,6 +39790,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -40321,6 +40597,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -40328,6 +40609,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -41115,6 +41397,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -41122,6 +41409,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -41909,6 +42197,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -41916,6 +42209,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -42703,6 +42997,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -42710,6 +43009,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -43497,6 +43797,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -43504,6 +43809,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -44298,6 +44604,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -44305,6 +44616,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -45093,6 +45405,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -45100,6 +45417,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -45886,6 +46204,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -45893,6 +46216,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -46694,6 +47018,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -46701,6 +47030,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -47487,6 +47817,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -47494,6 +47829,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -48280,6 +48616,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -48287,6 +48628,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -49091,6 +49433,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -49098,6 +49445,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -49848,6 +50196,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -49855,6 +50208,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -50604,6 +50958,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -50611,6 +50970,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -51407,6 +51767,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -51414,6 +51779,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -52201,6 +52567,11 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -52208,6 +52579,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -52990,6 +53362,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -52997,6 +53374,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -53742,6 +54120,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -53749,6 +54132,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -54466,6 +54850,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -54473,6 +54862,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -55226,6 +55616,11 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -55233,6 +55628,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -56754,6 +57150,11 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -56761,6 +57162,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: userStore,
@@ -57595,6 +57997,11 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -57602,6 +58009,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,

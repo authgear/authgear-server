@@ -357,6 +357,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		lockout.DependencySet,
 		wire.Bind(new(authenticatorservice.LockoutProvider), new(*lockout.Service)),
+		wire.Bind(new(mfa.LockoutProvider), new(*lockout.Service)),
 	),
 
 	wire.NewSet(

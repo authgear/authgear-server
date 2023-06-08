@@ -634,6 +634,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	mfaService := &mfa.Service{
 		IP:            remoteIP,
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -641,6 +646,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:         clockClock,
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,

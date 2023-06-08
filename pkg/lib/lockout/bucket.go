@@ -3,6 +3,8 @@ package lockout
 import (
 	"strings"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type BucketName string
@@ -57,4 +59,18 @@ func NewBucketSpec(
 
 func (s BucketSpec) Key() string {
 	return strings.Join(append([]string{string(s.Name)}, s.Arguments...), ":")
+}
+
+func NewAccountAuthenticationBucket(cfg *config.AuthenticationLockoutConfig, userID string) BucketSpec {
+	isGlobal := cfg.LockoutType == config.AuthenticationLockoutTypePerUser
+	return NewBucketSpec(
+		BucketNameAccountAuthentication,
+		cfg.MaxAttempts,
+		cfg.HistoryDuration.Duration(),
+		cfg.MinimumDuration.Duration(),
+		cfg.MaximumDuration.Duration(),
+		cfg.BackoffFactor,
+		isGlobal,
+		userID,
+	)
 }

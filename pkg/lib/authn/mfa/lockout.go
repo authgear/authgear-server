@@ -1,7 +1,6 @@
-package service
+package mfa
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -26,22 +25,8 @@ func (l *Lockout) Check(userID string) error {
 	return nil
 }
 
-func (l *Lockout) MakeAttempt(userID string, attempts int, authenticatorType model.AuthenticatorType) error {
-	switch authenticatorType {
-	case model.AuthenticatorTypePassword:
-		if !l.Config.Password.Enabled {
-			return nil
-		}
-	case model.AuthenticatorTypeTOTP:
-		if !l.Config.Totp.Enabled {
-			return nil
-		}
-	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		if !l.Config.OOBOTP.Enabled {
-			return nil
-		}
-	default:
-		// Not supported
+func (l *Lockout) MakeRecoveryCodeAttempt(userID string, attempts int) error {
+	if !l.Config.RecoveryCode.Enabled {
 		return nil
 	}
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
