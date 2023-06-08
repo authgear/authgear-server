@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -422,6 +423,21 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Config:      authenticationConfig,
 		RateLimiter: limiter,
 	}
+	authenticationLockoutConfig := authenticationConfig.Lockout
+	lockoutLogger := lockout.NewLogger(factory)
+	lockoutStorageRedis := &lockout.StorageRedis{
+		AppID: configAppID,
+		Redis: appredisHandle,
+	}
+	lockoutService := &lockout.Service{
+		Logger:  lockoutLogger,
+		Storage: lockoutStorageRedis,
+	}
+	serviceLockout := service2.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	service3 := &service2.Service{
 		Store:          store3,
 		Config:         appConfig,
@@ -431,6 +447,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		OOBOTP:         oobProvider,
 		OTPCodeService: otpService,
 		RateLimits:     rateLimits,
+		Lockout:        serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile

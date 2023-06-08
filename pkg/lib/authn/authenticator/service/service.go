@@ -74,6 +74,7 @@ type Service struct {
 	OOBOTP         OOBOTPAuthenticatorProvider
 	OTPCodeService OTPCodeService
 	RateLimits     RateLimits
+	Lockout        Lockout
 }
 
 func (s *Service) Get(id string) (*authenticator.Info, error) {
@@ -446,6 +447,12 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		return
 	}
 
+	// Check if it is already locked
+	err = s.Lockout.Check(info.UserID)
+	if err != nil {
+		return
+	}
+
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
 		plainPassword := spec.Password.PlainPassword
@@ -453,6 +460,11 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
 			r.Consume()
+			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			if lockErr != nil {
+				err = lockErr
+				return
+			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -464,6 +476,11 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
 			r.Consume()
+			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			if lockErr != nil {
+				err = lockErr
+				return
+			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -475,6 +492,11 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
 			r.Consume()
+			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			if lockErr != nil {
+				err = lockErr
+				return
+			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -498,6 +520,11 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			r.Consume()
+			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			if lockErr != nil {
+				err = lockErr
+				return
+			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		} else if err != nil {

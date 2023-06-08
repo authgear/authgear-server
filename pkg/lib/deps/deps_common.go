@@ -2,6 +2,7 @@ package deps
 
 import (
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -351,6 +352,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
+	),
+
+	wire.NewSet(
+		lockout.DependencySet,
+		wire.Bind(new(authenticatorservice.LockoutProvider), new(*lockout.Service)),
 	),
 
 	wire.NewSet(
