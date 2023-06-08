@@ -460,7 +460,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
 			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
 			if lockErr != nil {
 				err = lockErr
 				return
@@ -476,7 +476,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
 			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
 			if lockErr != nil {
 				err = lockErr
 				return
@@ -492,7 +492,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
 			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
 			if lockErr != nil {
 				err = lockErr
 				return
@@ -520,7 +520,7 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, 1, info.Type)
+			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
 			if lockErr != nil {
 				err = lockErr
 				return

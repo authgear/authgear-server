@@ -8,7 +8,8 @@ import (
 )
 
 type LockoutProvider interface {
-	MakeAttempt(spec lockout.BucketSpec, contributor string, attempts int) (result *lockout.MakeAttemptResult, err error)
+	MakeAttempts(spec lockout.BucketSpec, contributor string, attempts int) (result *lockout.MakeAttemptResult, err error)
+	ClearAttempts(spec lockout.BucketSpec, contributor string) error
 }
 
 type Lockout struct {
@@ -19,37 +20,62 @@ type Lockout struct {
 
 func (l *Lockout) Check(userID string) error {
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
-	_, err := l.provider.MakeAttempt(bucket, string(l.RemoteIP), 0)
+	_, err := l.provider.MakeAttempts(bucket, string(l.RemoteIP), 0)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (l *Lockout) MakeAttempt(userID string, attempts int, authenticatorType model.AuthenticatorType) error {
+func (l *Lockout) checkIsParticipant(authenticatorType model.AuthenticatorType) bool {
 	switch authenticatorType {
 	case model.AuthenticatorTypePassword:
-		if !l.Config.Password.Enabled {
-			return nil
+		if l.Config.Password.Enabled {
+			return true
 		}
 	case model.AuthenticatorTypeTOTP:
-		if !l.Config.Totp.Enabled {
-			return nil
+		if l.Config.Totp.Enabled {
+			return true
 		}
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		if !l.Config.OOBOTP.Enabled {
-			return nil
+		if l.Config.OOBOTP.Enabled {
+			return true
 		}
 	default:
 		// Not supported
+		return false
+	}
+	return false
+}
+
+func (l *Lockout) MakeAttempt(userID string, authenticatorType model.AuthenticatorType) error {
+	if !l.checkIsParticipant(authenticatorType) {
 		return nil
 	}
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
-	r, err := l.provider.MakeAttempt(bucket, string(l.RemoteIP), attempts)
+	r, err := l.provider.MakeAttempts(bucket, string(l.RemoteIP), 1)
 	if err != nil {
 		return err
 	}
 	err = r.ErrorIfLocked()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *Lockout) ClearAttempts(userID string, authenticatorTypes []model.AuthenticatorType) error {
+	isParticipant := false
+	for _, t := range authenticatorTypes {
+		if l.checkIsParticipant(t) {
+			isParticipant = true
+		}
+	}
+	if !isParticipant {
+		return nil
+	}
+	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
+	err := l.provider.ClearAttempts(bucket, string(l.RemoteIP))
 	if err != nil {
 		return err
 	}

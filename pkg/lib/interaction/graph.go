@@ -229,6 +229,21 @@ func (g *Graph) GetUserAuthenticator(stage authn.AuthenticationStage) (*authenti
 	return nil, false
 }
 
+func (g *Graph) GetUsedAuthenticators() []*authenticator.Info {
+	result := []*authenticator.Info{}
+	for i := len(g.Nodes) - 1; i >= 0; i-- {
+		if n, ok := g.Nodes[i].(interface {
+			UsedAuthenticator() (*authenticator.Info, bool)
+		}); ok {
+			ai, ok := n.UsedAuthenticator()
+			if ok {
+				result = append(result, ai)
+			}
+		}
+	}
+	return result
+}
+
 func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 	var authenticators []*authenticator.Info
 	for _, node := range g.Nodes {

@@ -834,6 +834,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 	}
+	lockout2 := &service2.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		provider: lockoutService,
+	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
@@ -879,6 +884,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
+		Lockout:                         lockout2,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,

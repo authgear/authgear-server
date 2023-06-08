@@ -76,3 +76,10 @@ func (n *NodeDoUseAuthenticator) UserAuthenticator(stage authn.AuthenticationSta
 	}
 	return nil, false
 }
+
+func (n *NodeDoUseAuthenticator) UsedAuthenticator() (*authenticator.Info, bool) {
+	if n.Authenticator != nil {
+		return n.Authenticator, true
+	}
+	return nil, false
+}

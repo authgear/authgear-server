@@ -15,7 +15,7 @@ type Service struct {
 	Storage Storage
 }
 
-func (s *Service) MakeAttempt(spec BucketSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
+func (s *Service) MakeAttempts(spec BucketSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
 	if !spec.Enabled {
 		return nil, nil
 	}

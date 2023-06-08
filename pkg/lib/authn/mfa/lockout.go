@@ -7,7 +7,7 @@ import (
 )
 
 type LockoutProvider interface {
-	MakeAttempt(spec lockout.BucketSpec, contributor string, attempts int) (result *lockout.MakeAttemptResult, err error)
+	MakeAttempts(spec lockout.BucketSpec, contributor string, attempts int) (result *lockout.MakeAttemptResult, err error)
 }
 
 type Lockout struct {
@@ -18,7 +18,7 @@ type Lockout struct {
 
 func (l *Lockout) Check(userID string) error {
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
-	_, err := l.provider.MakeAttempt(bucket, string(l.RemoteIP), 0)
+	_, err := l.provider.MakeAttempts(bucket, string(l.RemoteIP), 0)
 	if err != nil {
 		return err
 	}
@@ -30,7 +30,7 @@ func (l *Lockout) MakeRecoveryCodeAttempt(userID string, attempts int) error {
 		return nil
 	}
 	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
-	r, err := l.provider.MakeAttempt(bucket, string(l.RemoteIP), attempts)
+	r, err := l.provider.MakeAttempts(bucket, string(l.RemoteIP), attempts)
 	if err != nil {
 		return err
 	}

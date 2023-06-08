@@ -184,6 +184,10 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
+type Lockout interface {
+	ClearAttempts(userID string, authenticatorTypes []model.AuthenticatorType) error
+}
+
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
@@ -212,6 +216,7 @@ type Context struct {
 	LoginIDNormalizerFactory        LoginIDNormalizerFactory
 	Verification                    VerificationService
 	RateLimiter                     RateLimiter
+	Lockout                         Lockout
 
 	Nonces NonceService
 
