@@ -159,7 +159,8 @@ func TestLockout(t *testing.T) {
 			entries: []testEntry{
 				{time: "0s", contributor: "127.0.0.1", attempts: 4, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
 				{time: "0s", fn: func(ctx context.Context, conn *goredis.Conn) {
-					clearAttempts(ctx, conn, testKey, "127.0.0.1")
+					err := clearAttempts(ctx, conn, testKey, "127.0.0.1")
+					So(err, ShouldBeNil)
 				}},
 				// Clear attempts should not affect existing lock
 				{time: "1s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
@@ -179,7 +180,8 @@ func TestLockout(t *testing.T) {
 				{time: "0s", contributor: "127.0.0.1", attempts: 4, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
 				{time: "0s", contributor: "127.0.0.2", attempts: 5, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 40)},
 				{time: "0s", fn: func(ctx context.Context, conn *goredis.Conn) {
-					clearAttempts(ctx, conn, testKey, "127.0.0.1")
+					err := clearAttempts(ctx, conn, testKey, "127.0.0.1")
+					So(err, ShouldBeNil)
 				}},
 				// Clear attempts should not affect existing lock
 				{time: "1s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},

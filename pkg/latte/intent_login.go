@@ -163,7 +163,7 @@ func (i *IntentLogin) getAuthenticator(deps *workflow.Dependencies, filters ...a
 
 func (i *IntentLogin) getVerifiedAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, error) {
 	result := []*authenticator.Info{}
-	w.Traverse(workflow.WorkflowTraverser{
+	err := w.Traverse(workflow.WorkflowTraverser{
 		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
 			if n, ok := nodeSimple.(VerifiedAuthenticatorGetter); ok {
 				info, ok := n.GetVerifiedAuthenticator()
@@ -178,6 +178,9 @@ func (i *IntentLogin) getVerifiedAuthenticators(w *workflow.Workflow) ([]*authen
 			return nil
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
 	return []*authenticator.Info{}, nil
 }
 

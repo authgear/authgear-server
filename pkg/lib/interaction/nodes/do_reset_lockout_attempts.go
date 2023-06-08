@@ -14,7 +14,10 @@ type EdgeDoResetLockoutAttempts struct {
 func (e *EdgeDoResetLockoutAttempts) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	n := &NodeDoResetLockoutAttempts{}
 	authenticators := graph.GetUsedAuthenticators()
-	ctx.Authenticators.ClearLockoutAttempts(authenticators)
+	err := ctx.Authenticators.ClearLockoutAttempts(authenticators)
+	if err != nil {
+		return nil, err
+	}
 
 	return n, nil
 }
