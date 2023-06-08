@@ -27,9 +27,11 @@ Applications which are able to share authentication session are expected to be s
         - Reuse the device grant id from the provided `device_secret`.
         - A new `device_secret` was generated which shares the same device grant id.
       - The device grant id will be included in the generated `refresh_token`.
+      - The lifetime of the device grant is the longest lifetime of its associated offline grants, therefore it will be extended when new refresh tokens are generated.
       - Mark refresh token's `device_sso_enabled` to `true`.
       - Include `device_secret` in the token response.
       - Include `ds_hash` in `id_token` in the token response. `ds_hash` is the hash of `device_secret`.
+      - `x_suppress_idp_session_cookie` will be implied as `true`, because device sso cannot be used together with browser sso. If user specifies `x_sso_enabled=true` at the same time, it will be an error.
   - If `grant_type=urn:authgear:params:oauth:grant-type:id-token`:
     - Include `device_secret` in the token response if the scopes include `device_sso`. Generate one if one was not provided by client.
 
@@ -41,9 +43,16 @@ Applications which are able to share authentication session are expected to be s
       - Revoke all refresh tokens associated with the same device grant id
 
 - Configuration
+
   - `x_device_sso_group` was added to `oauth.clients`
   - When `x_device_sso_group` is not empty, the client can participate in device SSO.
   - Only clients with the same value in `x_device_sso_group` can share authentication session.
+
+- Session listing
+  - Combining Sessions
+    - Both the settings page, admin API and Portal combine sessions in the same way
+    - Refresh tokens associated to the same device grant id will be combined into a single entry. Since revoking one of them will also revoke the others. The entry will be shown as a single entry without grouping.
+    - The sessions that cannot be combined will be listed separately without grouping. (Refresh tokens with `device_sso_enabled=false`)
 
 ### Web
 
