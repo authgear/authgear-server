@@ -87,8 +87,9 @@ func TestLockout(t *testing.T) {
 				{time: "0s", contributor: "127.0.0.1", attempts: 0, expectedIsSucess: true, expectedLockedUntil: nil},
 				{time: "1s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
 				{time: "2s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: nil},
-				// The third attempt is still success
-				{time: "0s", contributor: "127.0.0.1", attempts: 0, expectedIsSucess: true, expectedLockedUntil: nil},
+				// Checking with 0 attempts should be success without locking
+				{time: "3s", contributor: "127.0.0.1", attempts: 0, expectedIsSucess: true, expectedLockedUntil: nil},
+				// The third attempt is still success, but lock was created
 				{time: "3s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
 				// The forth attempt is failed
 				{time: "4s", contributor: "127.0.0.1", attempts: 1, expectedIsSucess: false, expectedLockedUntil: makeUnixTime(epoch + 3 + 10)},
