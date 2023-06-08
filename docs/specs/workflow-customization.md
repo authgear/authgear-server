@@ -182,6 +182,8 @@ identification_methods:
 - name: oauth
   identity:
     type: "oauth"
+    oauth:
+      aliases: ["google", "apple"]
 # Identify the User by a Anonymous Identity
 - name: anonymous
   identity:
@@ -756,11 +758,11 @@ Custom UI and Default UI share the same Workflow. If Custom UI wants to collect 
                 "type": "string",
                 "enum": [
                   "login_id",
-                "oauth",
-                "anonymous",
-                "biometric",
-                "passkey",
-                "siwe"
+                  "oauth",
+                  "anonymous",
+                  "biometric",
+                  "passkey",
+                  "siwe"
                 ]
               },
               "login_id": {
@@ -770,9 +772,20 @@ Custom UI and Default UI share the same Workflow. If Custom UI wants to collect 
                     "type": "string",
                     "enum": [
                       "email",
-                    "phone",
-                    "username"
+                      "phone",
+                      "username"
                     ]
+                  }
+                }
+              },
+              "oauth" {
+                "type": "object",
+                "properties": {
+                  "aliases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               }
