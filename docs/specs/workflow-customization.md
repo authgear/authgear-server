@@ -25,7 +25,6 @@
     + [Use case example 3: Google](#use-case-example-3-google)
     + [Use case example 4: The Club](#use-case-example-4-the-club)
 - [Default UI](#default-ui)
-  * [`signup_flows` in Default UI](#signup_flows-in-default-ui)
   * [`login_flows` in Default UI](#login_flows-in-default-ui)
   * [`signup_login_flows` in Default UI](#signup_login_flows-in-default-ui)
 - [Custom UI](#custom-ui)
@@ -281,66 +280,56 @@ Detailed annotated configuration example:
 
 ```yaml
 signup_flows:
-# Sign up with a phone number, receive OTP with the phone number to sign in.
-- name: phone_otp
-  identification_methods:
-    all_of:
-    - name: phone
-      verification:
-        required: true
+- name: default_flow
+  steps:
+  # Sign up with either a phone number or an email address.
+  # The phone number or the email address can receive OTP to sign in.
+  - name: setup_phone_or_email
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: phone
       authentication_methods:
       - name: primary_sms_code
-# Sign up with a phone number, must set up a password
-- name: phone_password
-  identification_methods:
-    all_of:
-    - name: phone
-      verification:
-        required: true
-  authentication_methods:
-    all_of:
-    - name: primary_password
-# Sign up with a phone number and an email address, must set up a password
-- name: phone_email_password
-  identification_methods:
-    all_of:
-    - name: phone
-      verification:
-        required: true
-    - name: email
-      verification:
-        required: true
-  authentication_methods:
-    all_of:
-    - name: primary_password
-# Sign up with an email address, must set up a primary password, and a secondary TOTP.
-- name: email_password_totp
-  identification_methods:
-    all_of:
-    - name: email
-      verification:
-        required: true
-  authentication_methods:
-    all_of:
-    - name: primary_password
-    - name: secondary_totp
-# Sign up with an email address, must set up a primary password, fill in given name and family name.
-- name: email_password_user_profile
-  identification_methods:
-    all_of:
-    - name: email
-      verification:
-        required: true
-  authentication_methods:
-    all_of:
-    - name: primary_password
-  user_profile:
-    standard_attributes:
+    - identification_method:
+        name: email
+      authentication_methods:
+      - name: primary_email_code
+  # Set up a primary password.
+  - name: setup_password
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        name: primary_password
+  # Verify the phone number or the email address
+  # If this step is not specified, the phone number or the email address is unverified.
+  - name: verify_phone_or_email
+    type: verification
+    step:
+      name: setup_phone_or_email
+  # Set up another phone number for 2FA.
+  - name: setup_phone_2fa
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        name: secondary_sms_code
+  # Verify the phone number in the previous step.
+  - name: verify_phone_2fa
+    type: verification
+    step:
+      name: setup_phone_2fa
+  # Collect given name and family name.
+  - name: fill_in_names
+    type: user_profile
+    user_profile:
     - pointer: /given_name
       required: true
     - pointer: /family_name
       required: true
-    custom_attributes:
+  # Collect custom attributes.
+  - name: fill_custom_attributes
+    type: user_profile
+    user_profile:
     - pointer: /x_age
       required: true
 ```
@@ -488,21 +477,30 @@ authentication_methods:
 
 signup_flows:
 - name: default_signup_flow
-  identification_methods:
-    all_of:
-    - name: phone
-      verification:
-        required: true
+  steps:
+  - name: setup_phone
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: phone
       authentication_methods:
       - name: primary_sms_code
-    - name: email
-      verification:
-        required: false
+  - name: verify_phone
+    type: verification
+    step:
+      name: setup_phone
+  - name: setup_email
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: email
       authentication_methods:
       - name: primary_email_login_link
-  authentication_methods:
-    all_of:
-    - name: primary_password
+  - name: setup_password
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        name: primary_password
 
 login_flows:
 - name: default_login_flow
@@ -549,22 +547,64 @@ authentication_methods:
   type: password
 
 signup_flows:
-- name: default_signup_flow
-  identification_methods:
-    all_of:
-    - name: phone
-      verification:
-        required: true
+- name: phone_first
+  steps:
+  - name: setup_phone
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: phone
       authentication_methods:
       - name: primary_sms_code
-    - name: email
-      verification:
-        required: true
+  - name: verify_phone
+    type: verification
+    step:
+      name: setup_phone
+  - name: setup_email
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: email
       authentication_methods:
       - name: primary_email_code
-  authentication_methods:
-    all_of:
-    - name: primary_password
+  - name: verify_email
+    type: verification
+    step:
+      name: setup_email
+  - name: setup_password
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        name: primary_password
+- name: email_first
+  steps:
+  - name: setup_email
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: email
+      authentication_methods:
+      - name: primary_email_code
+  - name: verify_email
+    type: verification
+    step:
+      name: setup_email
+  - name: setup_phone
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: phone
+      authentication_methods:
+      - name: primary_sms_code
+  - name: verify_phone
+    type: verification
+    step:
+      name: setup_phone
+  - name: setup_password
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        name: primary_password
 
 login_flows:
 - name: default_login_flow
@@ -590,12 +630,12 @@ signup_login_flows:
       login_flow:
         name: default_login_flow
       signup_flow:
-        name: default_signup_flow
+        name: phone_first
     - name: email
       login_flow:
         name: default_login_flow
       signup_flow:
-        name: default_signup_flow
+        name: email_first
 ```
 
 #### Use case example 3: Google
@@ -622,14 +662,17 @@ authentication_methods:
 
 signup_flows:
 - name: default_signup_flow
-  identification_methods:
-    all_of:
-    - name: email
-      verification:
-        required: false
-  authentication_methods:
-    all_of:
-    - name: primary_password
+  steps:
+  - name: setup_email
+    type: identification_method
+    one_of:
+    - identification_method:
+        name: email
+  - name: setup_password
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        name: primary_password
 
 login_flows:
 - name: default_login_flow
@@ -704,16 +747,6 @@ login_flows:
 The configuration is declarative. It only specifies what identity or authenticator to create. But the exact execution is unspecified in the configuration. In this section, we specify how Default UI execute flows according to the configuration.
 
 Each `signup_flow`, `login_flow`, and `signup_login_flow` will be executed with a [Workflow](./workflow.md#workflow).
-
-### `signup_flows` in Default UI
-
-Default UI executes signup flow in the following order:
-
-- Create the identity in `identification_methods` one by one.
-  - For each identity, if verification is required, verify the identity.
-  - For each identity, create the associated authenticator.
-- Create the authenticator in `authentication_methods` one by one.
-- Display a form to collect `standard_attributes` and `custom_attributes`.
 
 ### `login_flows` in Default UI
 
@@ -859,85 +892,139 @@ Custom UI and Default UI share the same Workflow. If Custom UI wants to collect 
       "type": "array",
       "items": {
         "type": "object",
+        "required": ["name", "steps"],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
-          "identification_methods": {
-            "type": "object",
-            "required": ["all_of"],
-            "properties": {
-              "all_of": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string", "minLength": 1 },
-                    "verification": {
-                      "type": "object",
-                      "properties": {
-                        "required": { "type": "boolean" }
-                      }
-                    },
-                    "authentication_methods": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": { "type": "string", "minLength": 1 }
-                        },
-                        "required": ["name"]
-                      }
-                    }
-                  },
-                  "required": ["name"]
-                }
-              }
-            }
-          },
-          "authentication_methods": {
-            "type": "object",
-            "required": ["all_of"],
-            "properties": {
-              "all_of": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["name"],
-                  "properties": {
-                    "name": { "type": "string", "minLength": 1 }
-                  }
-                }
-              }
-            }
-          },
-          "user_profile": {
-            "type": "object",
-            "properties": {
-              "standard_attributes": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["pointer", "required"],
-                  "properties": {
-                    "pointer": { "type": "string" }
-                    "required": { "type": "boolean" }
-                  }
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "identification_method",
+                    "authentication_method",
+                    "verification",
+                    "user_profile"
+                  ]
                 }
               },
-              "custom_attributes": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["pointer", "required"],
-                  "properties": {
-                    "pointer": { "type": "string" }
-                    "required": { "type": "boolean" }
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "type": { "const": "identification_method" }
+                    }
+                  },
+                  "then": {
+                    "required": ["one_of"],
+                    "properties": {
+                      "one_of": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["identification_method"],
+                          "properties": {
+                            "identification_method": {
+                              "type": "object",
+                              "required": ["name"],
+                              "properties": {
+                                "name": { "type": "string", "minLength": 1 }
+                              }
+                            },
+                            "authentication_methods": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": ["name"],
+                                "properties": {
+                                  "name": { "type": "string", "minLength": 1 }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": { "const": "authentication_method" }
+                    }
+                  },
+                  "then": {
+                    "required": ["one_of"],
+                    "properties": {
+                      "one_of": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["authentication_method"],
+                          "properties": {
+                            "authentication_method": {
+                              "type": "object",
+                              "required": ["name"],
+                              "properties": {
+                                "name": { "type": "string", "minLength": 1 }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": { "const": "verification" }
+                    }
+                  },
+                  "then": {
+                    "required": ["step"],
+                    "properties": {
+                      "step": {
+                        "type": "object",
+                        "required": ["name"],
+                        "properties": {
+                          "name": { "type": "string", "minLength": 1 }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "type": { "const": "user_profile" }
+                    }
+                  },
+                  "then": {
+                    "required": ["user_profile"],
+                    "properties": {
+                      "user_profile": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["pointer", "required"],
+                          "properties": {
+                            "pointer": { "type": "string" },
+                            "required": { "type": "boolean" }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
-              }
+              ]
             }
           }
-        },
-        "required": ["name", "identification_methods", "authentication_methods"]
+        }
       }
     }
   }
