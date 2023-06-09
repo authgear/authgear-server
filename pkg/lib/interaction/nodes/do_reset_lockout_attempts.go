@@ -13,11 +13,6 @@ type EdgeDoResetLockoutAttempts struct {
 
 func (e *EdgeDoResetLockoutAttempts) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	n := &NodeDoResetLockoutAttempts{}
-	authenticators := graph.GetUsedAuthenticators()
-	err := ctx.Authenticators.ClearLockoutAttempts(authenticators)
-	if err != nil {
-		return nil, err
-	}
 
 	return n, nil
 }
@@ -30,7 +25,14 @@ func (n *NodeDoResetLockoutAttempts) Prepare(ctx *interaction.Context, graph *in
 }
 
 func (n *NodeDoResetLockoutAttempts) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
+	return []interaction.Effect{
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			authenticators := graph.GetUsedAuthenticators()
+			err := ctx.Authenticators.ClearLockoutAttempts(authenticators)
+
+			return err
+		}),
+	}, nil
 }
 
 func (n *NodeDoResetLockoutAttempts) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

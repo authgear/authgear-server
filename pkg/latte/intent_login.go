@@ -97,14 +97,6 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 			}
 		}
 	case 2:
-		authenticators, err := i.getVerifiedAuthenticators(w)
-		if err != nil {
-			return nil, err
-		}
-		err = deps.Authenticators.ClearLockoutAttempts(authenticators)
-		if err != nil {
-			return nil, err
-		}
 		return workflow.NewSubWorkflow(&IntentCreateSession{
 			UserID:       i.userID(),
 			CreateReason: session.CreateReasonLogin,
@@ -139,6 +131,17 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 				return err
 			}
 
+			return nil
+		}),
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			authenticators, err := i.getVerifiedAuthenticators(w)
+			if err != nil {
+				return err
+			}
+			err = deps.Authenticators.ClearLockoutAttempts(authenticators)
+			if err != nil {
+				return err
+			}
 			return nil
 		}),
 	}, nil
