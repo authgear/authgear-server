@@ -39,7 +39,7 @@ func (s *Service) MakeAttempts(spec BucketSpec, contributor string, attempts int
 
 	if !isSuccess {
 		logger.Debug("make attempt failed")
-		return result, NewErrLocked(spec.Name, *lockedUntil)
+		return result, result.ErrorIfLocked()
 	}
 
 	logger.Debug("make attempt success")
