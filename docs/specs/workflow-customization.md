@@ -426,15 +426,19 @@ Detailed annotated configuration example:
 reauth_flows:
 # Re-authenticate with primary password.
 - name: reauth_password
-  authentications:
-  - one_of:
+  steps:
+  - name: password
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: primary_password
 
 # Re-authenticate with any 2nd factor, assuming that 2FA is required in signup flow.
 - name: reauth_2fa
-  authentications:
-  - one_of:
+  steps:
+  - name: second_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: secondary_totp
     - authentication_method:
@@ -442,11 +446,15 @@ reauth_flows:
 
 # Re-authenticate with the 1st factor AND the 2nd factor.
 - name: reauth_full
-  authentications:
-  - one_of:
+  steps:
+  - name: first_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: primary_password
-  - one_of:
+  - name: second_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
         name: secondary_totp
     - authentication_method:
@@ -1208,32 +1216,47 @@ login_flows:
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "authentications"],
+        "required": ["name", "steps"],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
-          "authentications": {
+          "steps": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["one_of"],
+              "required": ["name", "type"],
               "properties": {
-                "one_of": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "required": ["authentication_method"],
+                "name": { "type": "string", "minLength": 1 },
+                "type": { "type": "string", "enum": ["authentication_method"] }
+              },
+              "allOf": [
+                {
+                  "if": {
                     "properties": {
-                      "authentication_method": {
-                        "type": "object",
-                        "required": ["name"],
-                        "properties": {
-                          "name": { "type": "string", "minLength": 1 }
+                      "type": { "const": "authentication_method" }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "one_of": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["authentication_method"],
+                          "properties": {
+                            "authentication_method": {
+                              "type": "object",
+                              "required": ["name"],
+                              "properties": {
+                                "name": { "type": "string", "minLength": 1 }
+                              }
+                            }
+                          }
                         }
                       }
                     }
                   }
                 }
-              }
+              ]
             }
           }
         }
