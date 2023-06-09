@@ -24,9 +24,6 @@
     + [Use case example 2: Uber](#use-case-example-2-uber)
     + [Use case example 3: Google](#use-case-example-3-google)
     + [Use case example 4: The Club](#use-case-example-4-the-club)
-- [Default UI](#default-ui)
-  * [`signup_login_flows` in Default UI](#signup_login_flows-in-default-ui)
-- [Custom UI](#custom-ui)
 - [Appendix](#appendix)
   * [JSON Schema of `identification_methods`](#json-schema-of-identification_methods)
   * [JSON Schema of `authentication_methods`](#json-schema-of-authentication_methods)
@@ -400,18 +397,19 @@ Detailed annotated configuration example:
 
 ```yaml
 signup_login_flows:
-# Identify the User by a phone number or an email address
-# Depending on whether the phone number or the email address is registered,
-# execute the signup flow or the login flow.
 - name: default_signup_login_flow
-  identification_methods:
+  steps:
+  - name: step
+    type: identification_method
     one_of:
-    - name: phone
+    - identification_method:
+        name: phone
       signup_flow:
         name: default_signup_flow
       login_flow:
         name: default_login_flow
-    - name: email
+    - identification_method:
+        name: email
       signup_flow:
         name: default_signup_flow
       login_flow:
@@ -637,14 +635,18 @@ login_flows:
 
 signup_login_flows:
 - name: default_signup_login_flow
-  identification_methods:
+  steps:
+  - name: step
+    type: identification_method
     one_of:
-    - name: phone
+    - identification_method:
+        name: phone
       login_flow:
         name: default_login_flow
       signup_flow:
         name: phone_first
-    - name: email
+    - identification_method:
+        name: email
       login_flow:
         name: default_login_flow
       signup_flow:
@@ -759,24 +761,6 @@ login_flows:
       - name: primary_password
       - name: primary_sms_code
 ```
-
-## Default UI
-
-The configuration is declarative. It only specifies what identity or authenticator to create. But the exact execution is unspecified in the configuration. In this section, we specify how Default UI execute flows according to the configuration.
-
-Each `signup_flow`, `login_flow`, and `signup_login_flow` will be executed with a [Workflow](./workflow.md#workflow).
-
-### `signup_login_flows` in Default UI
-
-Default UI executes signup login flow in the following order:
-
-- Identify the User with one of the `identification_method`.
-- If the User is identified, execute the login flow.
-- Otherwise, execute the signup flow.
-
-## Custom UI
-
-Custom UI and Default UI share the same Workflow. If Custom UI wants to collect user profile first, it can first collect the user profile, and store it temporarily. After finishing create the identification methods and authentication methods, provide the user profile to the Workflow.
 
 ## Appendix
 
@@ -1151,38 +1135,62 @@ Custom UI and Default UI share the same Workflow. If Custom UI wants to collect 
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "identification_methods"],
+        "required": ["name", "steps"],
         "properties": {
           "name": { "type": "string", "minLength": 1 },
-          "identification_methods": {
+          "steps": {
             "type": "object",
-            "required": ["one_of"],
+            "required": ["name", "type"],
             "properties": {
-              "one_of": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": ["name", "login_flow", "signup_flow"],
+              "name": { "type": "string", "minLength": 1 },
+              "type": {
+                "type": { "type": "string", "enum": ["identification_method"] }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
                   "properties": {
-                    "name": { "type": "string", "minLength": 1 },
-                    "login_flow": {
-                      "type": "object",
-                      "required": ["name"],
-                      "properties": {
-                        "name": { "type": "string", "minLength": 1 }
-                      }
-                    },
-                    "signup_flow": {
-                      "type": "object",
-                      "required": ["name"],
-                      "properties": {
-                        "name": { "type": "string", "minLength": 1 }
+                    "type": { "const": "identification_method" }
+                  }
+                },
+                "then": {
+                  "required": ["one_of"],
+                  "properties": {
+                    "one_of": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["identification_method", "signup_flow", "login_flow"],
+                        "properties": {
+                          "identification_method": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                              "name": { "type": "string", "minLength": 1 }
+                            }
+                          },
+                          "signup_flow": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                              "name": { "type": "string", "minLength": 1 }
+                            }
+                          },
+                          "login_flow": {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                              "name": { "type": "string", "minLength": 1 }
+                            }
+                          }
+                        }
                       }
                     }
                   }
                 }
               }
-            }
+            ]
           }
         }
       }
