@@ -12,28 +12,73 @@ Account lockout can be configured as follow:
 authentication:
   lockout:
     max_attempts: 6 # Maximum attempts to login before the account was locked
-    history_duration: "10m" # The duration of login histories participated in  max_attempts
+    history_duration: "1h" # The duration of recorded attempts persist after the last update
     minimum_duration: "1m" # The initial lockout duration of the account
     maximum_duration: "5m" # The maximum lockout duration of the account after multipled by backoff_factor
     backoff_factor: 2 # The factor to be multiplied to calculate lockout duration in subsequent login failures
+    lockout_type: "per_user" # "per_user" or "per_user_per_ip", read "Algorithm" section for details
+    # The followings define which authenticator types participate in account lockout.
+    # If enabled is true, fail attempts of that authenticator type will be counted,
+    # and contribute to the lockout time.
+    password:
+      enabled: true
+    totp:
+      enabled: true
+    oob_otp:
+      enabled: true
+    recovery_code:
+      enabled: true
 ```
 
 ## Algorithm
 
-We define `lastLoginAt` as the last login attempt timestamp.
+### Failed attempts
 
-When an user failed an login attemmpt:
+We record each failed authentication attempts, with the IP address that made the attempt.
 
-- If `lastLoginAt < (NOW - history_duration)`:
-  - the account is not locked.
-  - Set `accumulatedLoginFailure` to 1
-- Else:
-  - Increment `accumulatedLoginFailure`.
-  - If `accumulatedLoginFailure > max_attempts`:
-    - Lock the account. The lockout duration is calculated by:
-      ```
-      min(minimum_duration * backoff_factor^(accumulatedLoginFailure - max_attempts - 1), maximum_duration)
-      ```
+When calculating the total failed attempts:
+
+- If `lockout_type` is `per_user`, attempts from all IP address will be accounted.
+- If `lockout_type` is `per_user_per_ip`, only attempts from the actor's IP address will be accounted.
+
+Once the user successfully passed the authentication process using an authenticator participated in lockout, the number of attempts associated with the actor's IP address will be reset to 0.
+
+Here are some examples:
+
+Case 1, assumes:
+
+- `lockout_type` is `per_user`
+- only `password` is enabled in lockout
+- `max_attempts` is `3`
+
+1. Actor A with IP address 127.0.0.1 has made 2 failed password attempts. Now the total attempt count is 2.
+2. Actor B with IP address 127.0.0.2 has made 1 failed password attempts. Now the total attempt count is 3. The user is locked.
+3. Actor A passed the authentication process with a correct password after the lockout period. Now the attempts made by Actor A was set to 0. Therefore now the total attempts is 1.
+4. Actor B with IP address 127.0.0.2 has made 1 failed password attempts. Now the total attempt count is 2. The user is not locked.
+
+Case 2, assumes:
+
+- `lockout_type` is `per_user_per_ip`
+- only `password` is enabled in lockout
+- `max_attempts` is `3`
+
+1. Actor A with IP address 127.0.0.1 has made 2 failed password attempts. Now the total attempt count of 127.0.0.1 is 2.
+2. Actor B with IP address 127.0.0.2 has made 1 failed password attempts. Now the total attempt count of 127.0.0.2 is 1. The user is not locked.
+3. Actor A with IP address 127.0.0.1 has made 1 failed password attempts. Now the total attempt count of 127.0.0.1 is 3. The user is locked in the perspective of A.
+4. Actor B with IP address 127.0.0.2 has made 1 failed password attempts. Now the total attempt count of 127.0.0.2 is 2. The user is not locked in the perspective of B.
+5. Actor B with IP address 127.0.0.2 has made 1 failed password attempts. Now the total attempt count of 127.0.0.2 is 3. The user is locked in the perspective of B.
+6. Actor A passed the authentication process with a correct password after the lockout period. Now the attempts made by Actor A was set to 0. However, the user is still locked in the perspective of B.
+7. Actor B with IP address 127.0.0.2 has made 1 failed password attempts after the lockout period. Now the total attempt count of 127.0.0.2 is 4. The user is locked again and the lockout duraction will be increased according to `backoff_factor`.
+
+### Lockout duration
+
+The locking duration is calculated by the following equation:
+
+```
+min(minimum_duration * backoff_factor^(failedAttemps - max_attempts), maximum_duration)
+```
+
+Once the user was locked, the locking period will not be updated. Any attempts, no matter success or failures, within the locked period will not affect the lock. The server will reject any user input in the authentication process during the locked period.
 
 ## References
 
