@@ -77,6 +77,7 @@
   "error-deactivated-user": "你已停用你的帳戶。",
   "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+  "error-account-locked": "你的帳號已被鎖定。請於{h, plural, =0{} other{# 小時}} {m, plural, =0{} other{# 分鐘}} {s, plural, =0{} other{# 秒}}後再試。",
 
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",

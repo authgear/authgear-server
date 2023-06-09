@@ -191,6 +191,13 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ else }}
       <li>{{ template "error-rate-limited" }}</li>
       {{ end }}
+    {{ else if eq .Error.reason "AccountLockout" }}
+    {{ $untilDuration := durationUntil (ensureTime .Error.info.until) }}
+    <li>{{ template "error-account-locked" (dict
+      "h" $untilDuration.Hours
+      "m" $untilDuration.Minutes
+      "s" $untilDuration.Seconds
+    )}}</li>
     {{ else if eq .Error.reason "UsageLimitExceeded" }}
     <li>{{ template "error-usage-limit-exceeded" }}</li>
     {{ else if eq .Error.reason "SMSNotSupported" }}
