@@ -3,13 +3,13 @@ package lockout
 import "time"
 
 type MakeAttemptResult struct {
-	spec        BucketSpec
+	spec        LockoutSpec
 	LockedUntil *time.Time
 }
 
 func (m *MakeAttemptResult) ErrorIfLocked() error {
 	if m.LockedUntil != nil {
-		return NewErrLocked(m.spec.Name, *m.LockedUntil)
+		return NewErrLocked(*m.LockedUntil)
 	}
 	return nil
 }

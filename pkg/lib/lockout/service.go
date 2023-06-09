@@ -15,7 +15,7 @@ type Service struct {
 	Storage Storage
 }
 
-func (s *Service) MakeAttempts(spec BucketSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
+func (s *Service) MakeAttempts(spec LockoutSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
 	if !spec.Enabled {
 		return nil, nil
 	}
@@ -47,6 +47,6 @@ func (s *Service) MakeAttempts(spec BucketSpec, contributor string, attempts int
 	return result, nil
 }
 
-func (s *Service) ClearAttempts(spec BucketSpec, contributor string) error {
+func (s *Service) ClearAttempts(spec LockoutSpec, contributor string) error {
 	return s.Storage.Clear(spec, contributor)
 }

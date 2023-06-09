@@ -7,14 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type BucketName string
-
-const (
-	BucketNameAccountAuthentication BucketName = "AccountAuthentication"
-)
-
-type BucketSpec struct {
-	Name      BucketName
+type LockoutSpec struct {
+	Name      string
 	Arguments []string
 
 	Enabled         bool
@@ -26,24 +20,24 @@ type BucketSpec struct {
 	IsGlobal        bool
 }
 
-func NewBucketSpec(
-	name BucketName,
+func newLockoutSpec(
+	name string,
 	maxAttempts int,
 	historyDuration time.Duration,
 	minimumDuration time.Duration,
 	maximumDuration time.Duration,
 	backoffFactor float64,
 	isGlobal bool,
-	args ...string) BucketSpec {
+	args ...string) LockoutSpec {
 	enabled := maxAttempts > 0
 
 	if !enabled {
-		return BucketSpec{
+		return LockoutSpec{
 			Enabled: false,
 		}
 	}
 
-	return BucketSpec{
+	return LockoutSpec{
 		Name:      name,
 		Arguments: args,
 
@@ -57,14 +51,14 @@ func NewBucketSpec(
 	}
 }
 
-func (s BucketSpec) Key() string {
+func (s LockoutSpec) Key() string {
 	return strings.Join(append([]string{string(s.Name)}, s.Arguments...), ":")
 }
 
-func NewAccountAuthenticationBucket(cfg *config.AuthenticationLockoutConfig, userID string) BucketSpec {
+func NewAccountAuthenticationSpec(cfg *config.AuthenticationLockoutConfig, userID string) LockoutSpec {
 	isGlobal := cfg.LockoutType == config.AuthenticationLockoutTypePerUser
-	return NewBucketSpec(
-		BucketNameAccountAuthentication,
+	return newLockoutSpec(
+		"AccountAuthentication",
 		cfg.MaxAttempts,
 		cfg.HistoryDuration.Duration(),
 		cfg.MinimumDuration.Duration(),

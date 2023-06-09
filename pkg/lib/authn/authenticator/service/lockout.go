@@ -8,8 +8,8 @@ import (
 )
 
 type LockoutProvider interface {
-	MakeAttempts(spec lockout.BucketSpec, contributor string, attempts int) (result *lockout.MakeAttemptResult, err error)
-	ClearAttempts(spec lockout.BucketSpec, contributor string) error
+	MakeAttempts(spec lockout.LockoutSpec, contributor string, attempts int) (result *lockout.MakeAttemptResult, err error)
+	ClearAttempts(spec lockout.LockoutSpec, contributor string) error
 }
 
 type Lockout struct {
@@ -19,7 +19,7 @@ type Lockout struct {
 }
 
 func (l *Lockout) Check(userID string) error {
-	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
+	bucket := lockout.NewAccountAuthenticationSpec(l.Config, userID)
 	_, err := l.Provider.MakeAttempts(bucket, string(l.RemoteIP), 0)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func (l *Lockout) MakeAttempt(userID string, authenticatorType model.Authenticat
 	if !l.checkIsParticipant(authenticatorType) {
 		return nil
 	}
-	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
+	bucket := lockout.NewAccountAuthenticationSpec(l.Config, userID)
 	r, err := l.Provider.MakeAttempts(bucket, string(l.RemoteIP), 1)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (l *Lockout) ClearAttempts(userID string, authenticatorTypes []model.Authen
 	if !isParticipant {
 		return nil
 	}
-	bucket := lockout.NewAccountAuthenticationBucket(l.Config, userID)
+	bucket := lockout.NewAccountAuthenticationSpec(l.Config, userID)
 	err := l.Provider.ClearAttempts(bucket, string(l.RemoteIP))
 	if err != nil {
 		return err

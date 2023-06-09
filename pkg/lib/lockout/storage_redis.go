@@ -18,7 +18,7 @@ type StorageRedis struct {
 
 var _ Storage = &StorageRedis{}
 
-func (s StorageRedis) Update(spec BucketSpec, contributor string, delta int) (isSuccess bool, lockedUntil *time.Time, err error) {
+func (s StorageRedis) Update(spec LockoutSpec, contributor string, delta int) (isSuccess bool, lockedUntil *time.Time, err error) {
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
 		r, err := makeAttempts(context.Background(), conn,
 			redisRecordKey(s.AppID, spec),
@@ -41,7 +41,7 @@ func (s StorageRedis) Update(spec BucketSpec, contributor string, delta int) (is
 	return isSuccess, lockedUntil, err
 }
 
-func (s StorageRedis) Clear(spec BucketSpec, contributor string) (err error) {
+func (s StorageRedis) Clear(spec LockoutSpec, contributor string) (err error) {
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return clearAttempts(context.Background(), conn,
 			redisRecordKey(s.AppID, spec),
@@ -51,6 +51,6 @@ func (s StorageRedis) Clear(spec BucketSpec, contributor string) (err error) {
 	return err
 }
 
-func redisRecordKey(appID config.AppID, spec BucketSpec) string {
+func redisRecordKey(appID config.AppID, spec LockoutSpec) string {
 	return fmt.Sprintf("app:%s:lockout:%s", appID, spec.Key())
 }
