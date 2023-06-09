@@ -16,6 +16,7 @@ func MakeTemplateFuncMap() map[string]interface{} {
 	templateFuncMap[messageformat.TemplateRuntimeFuncName] = messageformat.TemplateRuntimeFunc
 	templateFuncMap["rfc3339"] = RFC3339
 	templateFuncMap["ensureTime"] = EnsureTime
+	templateFuncMap["durationUntil"] = DurationUntil
 	templateFuncMap["isNil"] = IsNil
 	templateFuncMap["showAttributeValue"] = ShowAttributeValue
 	return templateFuncMap
@@ -52,6 +53,27 @@ func EnsureTime(anyValue interface{}) interface{} {
 		return t
 	default:
 		return anyValue
+	}
+}
+
+func DurationUntil(rawt interface{}) DisplayedDuration {
+	var t time.Time
+	switch dt := rawt.(type) {
+	case *time.Time:
+		t = *dt
+	case time.Time:
+		t = dt
+	default:
+		panic("DurationUntil: invalid input")
+	}
+	until := time.Until(t)
+	hours := int(until.Hours())
+	mins := int(until.Minutes()) - hours*60
+	secs := int(until.Seconds()) - hours*60*60 - mins*60
+	return DisplayedDuration{
+		Hours:   hours,
+		Minutes: mins,
+		Seconds: secs,
 	}
 }
 

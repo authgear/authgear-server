@@ -22,6 +22,7 @@ type LockoutSpec struct {
 
 func newLockoutSpec(
 	name string,
+	enabled bool,
 	maxAttempts int,
 	historyDuration time.Duration,
 	minimumDuration time.Duration,
@@ -29,19 +30,12 @@ func newLockoutSpec(
 	backoffFactor float64,
 	isGlobal bool,
 	args ...string) LockoutSpec {
-	enabled := maxAttempts > 0
-
-	if !enabled {
-		return LockoutSpec{
-			Enabled: false,
-		}
-	}
 
 	return LockoutSpec{
 		Name:      name,
 		Arguments: args,
 
-		Enabled:         true,
+		Enabled:         enabled,
 		MaxAttempts:     maxAttempts,
 		HistoryDuration: historyDuration,
 		MinimumDuration: minimumDuration,
@@ -51,14 +45,23 @@ func newLockoutSpec(
 	}
 }
 
+func newDisabledLockoutSpec() LockoutSpec {
+	return LockoutSpec{Enabled: false}
+}
+
 func (s LockoutSpec) Key() string {
 	return strings.Join(append([]string{string(s.Name)}, s.Arguments...), ":")
 }
 
 func NewAccountAuthenticationSpec(cfg *config.AuthenticationLockoutConfig, userID string) LockoutSpec {
 	isGlobal := cfg.LockoutType == config.AuthenticationLockoutTypePerUser
+	isEnabled := cfg.MaxAttempts > 0
+	if !isEnabled {
+		return newDisabledLockoutSpec()
+	}
 	return newLockoutSpec(
 		"AccountAuthentication",
+		isEnabled,
 		cfg.MaxAttempts,
 		cfg.HistoryDuration.Duration(),
 		cfg.MinimumDuration.Duration(),
