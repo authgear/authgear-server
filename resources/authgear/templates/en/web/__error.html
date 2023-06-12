@@ -192,11 +192,10 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       <li>{{ template "error-rate-limited" }}</li>
       {{ end }}
     {{ else if eq .Error.reason "AccountLockout" }}
-    {{ $untilDuration := durationUntil (ensureTime .Error.info.until) }}
-    <li>{{ template "error-account-locked" (dict
-      "h" $untilDuration.Hours
-      "m" $untilDuration.Minutes
-      "s" $untilDuration.Seconds
+    {{ $until := (ensureTime .Error.info.until) }}
+    <li data-controller="format-date-relative">{{ template "error-account-locked" (dict
+      "rfc3339" (rfc3339 $until)
+      "datetime" $until
     )}}</li>
     {{ else if eq .Error.reason "UsageLimitExceeded" }}
     <li>{{ template "error-usage-limit-exceeded" }}</li>
