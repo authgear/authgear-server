@@ -43,3 +43,7 @@ func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error
 func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
 	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec)
 }
+
+func (a AuthenticatorFacade) ClearLockoutAttempts(authenticators []*authenticator.Info) error {
+	return a.Coordinator.AuthenticatorClearLockoutAttempts(authenticators)
+}

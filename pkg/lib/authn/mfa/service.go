@@ -45,6 +45,7 @@ type Service struct {
 	Clock         clock.Clock
 	Config        *config.AuthenticationConfig
 	RateLimiter   RateLimiter
+	Lockout       Lockout
 }
 
 func (s *Service) GenerateDeviceToken() string {
@@ -181,6 +182,11 @@ func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode,
 		return nil, err
 	}
 
+	err = s.Lockout.Check(userID)
+	if err != nil {
+		return nil, err
+	}
+
 	code, err = secretcode.RecoveryCode.FormatForComparison(code)
 	if err != nil {
 		return nil, ErrRecoveryCodeNotFound
@@ -190,13 +196,17 @@ func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode,
 	if errors.Is(err, ErrRecoveryCodeNotFound) {
 		perUserPerIP.Consume()
 		perIP.Consume()
+		aerr := s.Lockout.MakeRecoveryCodeAttempt(userID, 1)
+		if aerr != nil {
+			return nil, aerr
+		}
 		return nil, err
 	} else if err != nil {
 		return nil, err
 	}
 
 	if rc.Consumed {
-		// Do not consume the rate limit tokens here,
+		// Do not consume the rate limit tokens and record the attempt here,
 		// since trying a used recovery code is rare and usually mistakes of real user.
 		return nil, ErrRecoveryCodeConsumed
 	}

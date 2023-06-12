@@ -272,12 +272,17 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 
 		case authn.AuthenticationStageSecondary:
 			return []interaction.Edge{
-				&nodes.EdgeValidateUser{},
+				&nodes.EdgeDoResetLockoutAttempts{},
 			}, nil
 
 		default:
 			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
 		}
+
+	case *nodes.NodeDoResetLockoutAttempts:
+		return []interaction.Edge{
+			&nodes.EdgeValidateUser{},
+		}, nil
 
 	case *nodes.NodeValidateUser:
 		if node.Error != nil {

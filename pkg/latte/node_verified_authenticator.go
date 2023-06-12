@@ -18,6 +18,7 @@ type NodeVerifiedAuthenticator struct {
 }
 
 func (n *NodeVerifiedAuthenticator) Kind() string {
+	// FIXME: It should be NodeVerifiedAuthenticator
 	return "latte.NodeAuthenticateOOBOTPPhoneEnd"
 }
 
@@ -59,4 +60,13 @@ func (n *NodeVerifiedAuthenticator) OutputData(ctx context.Context, deps *workfl
 
 func (n *NodeVerifiedAuthenticator) GetAMR() []string {
 	return n.Authenticator.AMR()
+}
+
+var _ VerifiedAuthenticatorGetter = &NodeVerifiedAuthenticator{}
+
+func (n *NodeVerifiedAuthenticator) GetVerifiedAuthenticator() (*authenticator.Info, bool) {
+	if n.Authenticator != nil {
+		return n.Authenticator, true
+	}
+	return nil, false
 }

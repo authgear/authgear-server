@@ -353,6 +353,15 @@ authentication:
         enabled: true
         period: 1m
         burst: 10
+  lockout:
+    password:
+      enabled: false
+    totp:
+      enabled: false
+    oob_otp:
+      enabled: false
+    recovery_code:
+      enabled: false
 session:
   lifetime_seconds: 31449600
   idle_timeout_enabled: true
