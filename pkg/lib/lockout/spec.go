@@ -55,18 +55,17 @@ func (s LockoutSpec) Key() string {
 
 func NewAccountAuthenticationSpec(cfg *config.AuthenticationLockoutConfig, userID string) LockoutSpec {
 	isGlobal := cfg.LockoutType == config.AuthenticationLockoutTypePerUser
-	isEnabled := cfg.MaxAttempts > 0
-	if !isEnabled {
+	if !cfg.IsEnabled() {
 		return newDisabledLockoutSpec()
 	}
 	return newLockoutSpec(
 		"AccountAuthentication",
-		isEnabled,
+		cfg.IsEnabled(),
 		cfg.MaxAttempts,
 		cfg.HistoryDuration.Duration(),
 		cfg.MinimumDuration.Duration(),
 		cfg.MaximumDuration.Duration(),
-		cfg.BackoffFactor,
+		*cfg.BackoffFactor,
 		isGlobal,
 		userID,
 	)

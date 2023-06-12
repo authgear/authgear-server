@@ -39,7 +39,8 @@ var _ = Schema.Add("AuthenticationLockoutConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"max_attempts": {
-			"type": "integer"
+			"type": "integer",
+			"minimum": 0
 		},
 		"history_duration": {
 			"$ref": "#/$defs/DurationString"
@@ -51,7 +52,8 @@ var _ = Schema.Add("AuthenticationLockoutConfig", `
 			"$ref": "#/$defs/DurationString"
 		},
 		"backoff_factor": {
-			"type": "number"
+			"type": "number",
+			"minimum": 1
 		},
 		"lockout_type": {
 			"$ref": "#/$defs/AuthenticationLockoutType"
@@ -85,7 +87,6 @@ var _ = Schema.Add("AuthenticationLockoutConfig", `
 					"history_duration",
 					"minimum_duration",
 					"maximum_duration",
-					"backoff_factor",
 					"lockout_type"
 				]
 			}
@@ -99,10 +100,21 @@ type AuthenticationLockoutConfig struct {
 	HistoryDuration DurationString                     `json:"history_duration,omitempty"`
 	MinimumDuration DurationString                     `json:"minimum_duration,omitempty"`
 	MaximumDuration DurationString                     `json:"maximum_duration,omitempty"`
-	BackoffFactor   float64                            `json:"backoff_factor,omitempty"`
+	BackoffFactor   *float64                           `json:"backoff_factor,omitempty"`
 	LockoutType     AuthenticationLockoutType          `json:"lockout_type,omitempty"`
 	Password        *AuthenticationLockoutMethodConfig `json:"password,omitempty"`
 	Totp            *AuthenticationLockoutMethodConfig `json:"totp,omitempty"`
 	OOBOTP          *AuthenticationLockoutMethodConfig `json:"oob_otp,omitempty"`
 	RecoveryCode    *AuthenticationLockoutMethodConfig `json:"recovery_code,omitempty"`
+}
+
+func (c *AuthenticationLockoutConfig) IsEnabled() bool {
+	return c != nil && c.MaxAttempts > 0
+}
+
+func (c *AuthenticationLockoutConfig) SetDefaults() {
+	if c.IsEnabled() {
+		one := 1.0
+		c.BackoffFactor = &one
+	}
 }
