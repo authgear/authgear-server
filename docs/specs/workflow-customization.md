@@ -14,16 +14,27 @@
   * [What is a login flow](#what-is-a-login-flow)
   * [What is a reauth flow](#what-is-a-reauth-flow)
   * [Design of the configuration](#design-of-the-configuration)
-    + [`identification_methods`](#identification_methods)
-    + [`authentication_methods`](#authentication_methods)
-    + [`signup_flows`](#signup_flows)
-    + [`login_flows`](#login_flows)
-    + [`signup_login_flows`](#signup_login_flows)
-    + [`reauth_flows`](#reauth_flows)
+    + [Design overview](#design-overview)
+    + [Object: IdentificationMethod](#object-identificationmethod)
+    + [Object: AuthenticationMethod](#object-authenticationmethod)
+    + [Object: Flow](#object-flow)
+    + [Object: Step](#object-step)
+    + [Object: SignupFlow](#object-signupflow)
+    + [Object: LoginFlow](#object-loginflow)
+    + [Object: SignupLoginFlow](#object-signuploginflow)
+    + [Object: ReauthFlow](#object-reauthflow)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
     + [Use case example 3: Google](#use-case-example-3-google)
     + [Use case example 4: The Club](#use-case-example-4-the-club)
+    + [Use case example 5: Comprehensive example](#use-case-example-5-comprehensive-example)
+- [Expressions](#expressions)
+  * [Literals](#literals)
+  * [Operators](#operators)
+  * [Functions](#functions)
+    + [contains](#contains)
+    + [fromJSON](#fromjson)
+  * [Contexts](#contexts)
 - [Appendix](#appendix)
   * [JSON Schema of `identification_methods`](#json-schema-of-identification_methods)
   * [JSON Schema of `authentication_methods`](#json-schema-of-authentication_methods)
@@ -147,175 +158,197 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 
 ### Design of the configuration
 
-#### `identification_methods`
+#### Design overview
 
-The developer defines all identification methods they allow with `identification_methods`. The `name` property is used in later configuration to refer to the identification method.
+The configuration is a small DSL with a simple expression language.
+Every object must have an `id`. The namespace in which the `id` is in varies by object.
 
-Detailed annotated configuration example:
+#### Object: IdentificationMethod
+
+We define available IdentificationMethods under `identification_methods`.
+The `id` is in the global namespace.
+
+Example:
 
 ```yaml
 identification_methods:
 # Identify the User by a Email Login ID Identity
-- name: email
+- id: email
   identity:
     type: "login_id"
     login_id:
       type: "email"
 # Identify the User by a Phone Login ID Identity
-- name: phone
+- id: phone
   identity:
     type: "login_id"
     login_id:
       type: "phone"
 # Identify the User by a Username Login ID Identity
-- name: username
+- id: username
   identity:
     type: "login_id"
     login_id:
       type: "username"
 # Identify the User by a OAuth Identity
-- name: oauth
+- id: oauth
   identity:
     type: "oauth"
     oauth:
       aliases: ["google", "apple"]
 # Identify the User by a Anonymous Identity
-- name: anonymous
+- id: anonymous
   identity:
     type: "anonymous"
 # Identify the User by a Biometric Identity
-- name: biometric
+- id: biometric
   identity:
     type: "biometric"
 # Identify the User by a Passkey Identity
-- name: passkey
+- id: passkey
   identity:
     type: "passkey"
 # Identify the User by a Sign-in with Ethereum Identity
-- name: siwe
+- id: siwe
   identity:
     type: "siwe"
 ```
 
-#### `authentication_methods`
+#### Object: AuthenticationMethod
 
-The developer defines all authentication methods they allow with `authentication_methods`. The `name` property is used in later configuration to refer to the authentication method.
+We define available AuthenticationMethods under `authentication_methods`.
+The `id` is in the global namespace.
 
-Detailed annotated configuration example:
+Example:
 
 ```yaml
 authentication_methods:
 # Authenticate with a password
-- name: primary_password
+- id: primary_password
   kind: primary
   type: password
 # Authenticate with a 6-digit code delivered via email
-- name: primary_email_code
+- id: primary_email_code
   kind: primary
   type: oob_otp_email
   email_otp_mode: "code"
 # Authenticate with a link delivered via email
-- name: primary_email_login_link
+- id: primary_email_login_link
   kind: primary
   type: oob_otp_email
   email_otp_mode: "login_link"
 # Authenticate with a 6-digit code delivered via SMS
-- name: primary_sms_code
+- id: primary_sms_code
   kind: primary
   type: oob_otp_sms
   phone_otp_mode: "sms"
 # Authenticate with a 6-digit code delivered via Whatsapp
-- name: primary_whatsapp
+- id: primary_whatsapp
   kind: primary
   type: oob_otp_sms
   phone_otp_mode: "whatsapp"
 
 # 2FA with an additional password
-- name: secondary_password
+- id: secondary_password
   kind: secondary
   type: password
 # 2FA with a 6-digit code delivered via email
-- name: secondary_email_code
+- id: secondary_email_code
   kind: secondary
   type: oob_otp_email
   email_otp_mode: "code"
 # 2FA with a link delivered via email
-- name: secondary_email_login_link
+- id: secondary_email_login_link
   kind: secondary
   type: oob_otp_email
   email_otp_mode: "login_link"
 # 2FA with a 6-digit code delivered via SMS
-- name: secondary_sms_code
+- id: secondary_sms_code
   kind: secondary
   type: oob_otp_sms
   phone_otp_mode: "sms"
 # 2FA with a 6-digit code delivered via Whatsapp
-- name: secondary_whatsapp
+- id: secondary_whatsapp
   kind: secondary
   type: oob_otp_sms
   phone_otp_mode: "whatsapp"
 # 2FA with a time-based 6-digit code
-- name: secondary_totp
+- id: secondary_totp
   kind: secondary
   type: totp
 # 2FA with 10-letter one-time-use recovery code
-- name: secondary_recovery_code
+- id: secondary_recovery_code
   kind: secondary
   type: recovery_code
 # Skip 2FA on trusted device
-- name: secondary_device_token
+- id: secondary_device_token
   kind: secondary
   type: device_token
 ```
 
-#### `signup_flows`
+#### Object: Flow
 
-The developer defines signup flows under `signup_flows`. The `name` property is used to refer to the signup flow.
+A Flow has one or more Steps.
+The `id` is in the global namespace.
 
-Detailed annotated configuration example:
+#### Object: Step
+
+A Step is associated with one Flow.
+The `id` is the namespace of the Flow.
+So Steps in different Flows can share the same `id`.
+
+A Step is executed conditionally if it has a `if`.
+The value is an [Expression](#expressions).
+
+#### Object: SignupFlow
+
+A SignupFlow is a Flow.
+
+Example:
 
 ```yaml
 signup_flows:
-- name: default_flow
+- id: default_flow
   steps:
   # Sign up with either a phone number or an email address.
   # The phone number or the email address can receive OTP to sign in.
-  - name: setup_phone_or_email
+  - id: setup_identity
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
+        id: phone
       authentication_methods:
-      - name: primary_sms_code
+      - id: primary_sms_code
     - identification_method:
-        name: email
+        id: email
       authentication_methods:
-      - name: primary_email_code
+      - id: primary_email_code
   # Set up a primary password.
-  - name: setup_password
+  - id: setup_password
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
+        id: primary_password
   # Verify the phone number or the email address
   # If this step is not specified, the phone number or the email address is unverified.
-  - name: verify_phone_or_email
+  - id: verify_identity
     type: verification
+    if: contains(fromJSON('["phone", "email"]'), steps.setup_identity.identification_method.id)
     step:
-      name: setup_phone_or_email
+      id: setup_identity
   # Set up another phone number for 2FA.
-  - name: setup_phone_2fa
+  - id: setup_phone_2fa
     type: authentication_method
     one_of:
     - authentication_method:
-        name: secondary_sms_code
+        id: secondary_sms_code
   # Verify the phone number in the previous step.
-  - name: verify_phone_2fa
+  - id: verify_phone_2fa
     type: verification
     step:
-      name: setup_phone_2fa
+      id: setup_phone_2fa
   # Collect given name and family name.
-  - name: fill_in_names
+  - id: fill_in_names
     type: user_profile
     user_profile:
     - pointer: /given_name
@@ -323,424 +356,451 @@ signup_flows:
     - pointer: /family_name
       required: true
   # Collect custom attributes.
-  - name: fill_custom_attributes
+  - id: fill_custom_attributes
     type: user_profile
     user_profile:
     - pointer: /x_age
       required: true
 ```
 
-#### `login_flows`
+#### Object: LoginFlow
 
-The developer defines login flows under `login_flows`. The `name` property is used to refer to the login flow.
+A LoginFlow is a Flow.
 
-Detailed annotated configuration example:
+Example:
 
 ```yaml
 login_flows:
 # Sign in with a phone number and OTP via SMS.
-- name: phone_otp
+- id: phone_otp
   steps:
-  - name: phone_otp
+  - id: identify
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
-      authentication_methods:
-      - name: primary_sms_code
-# Sign in with a phone number and a password
-- name: phone_password
-  steps:
-  - name: phone_password
-    type: identification_method
-    one_of:
-    - identification_method:
-        name: phone
-      authentication_methods:
-      - name: primary_password
-# Sign in with a phone number, or an email address, with a password
-- name: phone_email_password
-  steps:
-  - name: phone_email_password
-    type: identification_method
-    one_of:
-    - identification_method:
-        name: phone
-      authentication_methods:
-      - name: primary_password
-    - identification_method:
-        name: email
-      authentication_methods:
-      - name: primary_password
-# Sign in with an email address, a password and a TOTP
-- name: email_password_totp
-  steps:
-  - name: email_password
-    type: identification_method
-    one_of:
-    - identification_method:
-        name: email
-      authentication_methods:
-      - name: primary_password
-  - name: totp
+        id: phone
+  - id: authenticate
     type: authentication_method
     one_of:
     - authentication_method:
-        name: secondary_totp
-```
-
-#### `signup_login_flows`
-
-The developer defines combined signup login flows under `signup_login_flows`. The `name` property is used to refer to the flow.
-
-Detailed annotated configuration example:
-
-```yaml
-signup_login_flows:
-- name: default_signup_login_flow
+        id: primary_sms_code
+# Sign in with a phone number and a password
+- id: phone_password
   steps:
-  - name: step
+  - id: identify
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
-      signup_flow:
-        name: default_signup_flow
-      login_flow:
-        name: default_login_flow
+        id: phone
+  - id: authenticate
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        id: primary_password
+# Sign in with a phone number, or an email address, with a password
+- id: phone_email_password
+  steps:
+  - id: identify
+    type: identification_method
+    one_of:
     - identification_method:
-        name: email
-      signup_flow:
-        name: default_signup_flow
-      login_flow:
-        name: default_login_flow
+        id: phone
+    - identification_method:
+        id: email
+  - id: authenticate
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        id: primary_password
+# Sign in with an email address, a password and a TOTP
+- id: email_password_totp
+  steps:
+  - id: identify
+    type: identification_method
+    one_of:
+    - identification_method:
+        id: email
+  - id: first_factor
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        id: primary_password
+  - id: second_factor
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        id: secondary_totp
 ```
 
-#### `reauth_flows`
+#### Object: SignupLoginFlow
 
-The developer defines reauth flows under `reauth_flows`. The `name` property is used to refer to the flow.
+A SignupLoginFlow is a Flow.
 
-Detailed annotated configuration example:
+Example:
+
+```yaml
+signup_login_flows:
+- id: default_signup_login_flow
+  steps:
+  - id: step
+    type: identification_method
+    one_of:
+    - identification_method:
+        id: phone
+      signup_flow:
+        id: default_signup_flow
+      login_flow:
+        id: default_login_flow
+    - identification_method:
+        id: email
+      signup_flow:
+        id: default_signup_flow
+      login_flow:
+        id: default_login_flow
+```
+
+#### Object: ReauthFlow
+
+A ReauthFlow is a Flow.
+
+Example:
 
 ```yaml
 reauth_flows:
 # Re-authenticate with primary password.
-- name: reauth_password
+- id: reauth_password
   steps:
-  - name: password
+  - id: password
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
+        id: primary_password
 
 # Re-authenticate with any 2nd factor, assuming that 2FA is required in signup flow.
-- name: reauth_2fa
+- id: reauth_2fa
   steps:
-  - name: second_factor
+  - id: second_factor
     type: authentication_method
     one_of:
     - authentication_method:
-        name: secondary_totp
+        id: secondary_totp
     - authentication_method:
-        name: secondary_sms_code
+        id: secondary_sms_code
 
 # Re-authenticate with the 1st factor AND the 2nd factor.
-- name: reauth_full
+- id: reauth_full
   steps:
-  - name: first_factor
+  - id: first_factor
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
-  - name: second_factor
+        id: primary_password
+  - id: second_factor
     type: authentication_method
     one_of:
     - authentication_method:
-        name: secondary_totp
+        id: secondary_totp
     - authentication_method:
-        name: secondary_sms_code
+        id: secondary_sms_code
 ```
 
 #### Use case example 1: Latte
 
 ```yaml
 identification_methods:
-- name: phone
+- id: phone
   identity:
     type: "login_id"
     login_id:
       type: "phone"
-- name: email
+- id: email
   identity:
     type: "login_id"
     login_id:
       type: "email"
 
 authentication_methods:
-- name: primary_sms_code
+- id: primary_sms_code
   kind: primary
   type: oob_otp_sms
   phone_otp_mode: "sms"
-- name: primary_email_login_link
+- id: primary_email_login_link
   kind: primary
   type: oob_otp_email
   email_otp_mode: "login_link"
-- name: primary_password
+- id: primary_password
   kind: primary
   type: password
 
 signup_flows:
-- name: default_signup_flow
+- id: default_signup_flow
   steps:
-  - name: setup_phone
+  - id: setup_phone
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
+        id: phone
       authentication_methods:
-      - name: primary_sms_code
-  - name: verify_phone
+      - id: primary_sms_code
+  - id: verify_phone
     type: verification
     step:
-      name: setup_phone
-  - name: setup_email
+      id: setup_phone
+  - id: setup_email
     type: identification_method
     one_of:
     - identification_method:
-        name: email
+        id: email
       authentication_methods:
-      - name: primary_email_login_link
-  - name: setup_password
+      - id: primary_email_login_link
+  - id: setup_password
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
+        id: primary_password
 
 login_flows:
-- name: default_login_flow
+- id: default_login_flow
   steps:
-  - name: first_factor
+  - id: identify
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
-      authentication_methods:
-      - name: primary_sms_code
-  - name: second_factor
+        id: phone
+  - id: first_factor
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_email_login_link
+        id: primary_sms_code
+  - id: second_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
-        name: primary_password
+        id: primary_email_login_link
+    - authentication_method:
+        id: primary_password
 ```
 
 #### Use case example 2: Uber
 
 ```yaml
 identification_methods:
-- name: phone
+- id: phone
   identity:
     type: "login_id"
     login_id:
       type: "phone"
-- name: email
+- id: email
   identity:
     type: "login_id"
     login_id:
       type: "email"
 
 authentication_methods:
-- name: primary_sms_code
+- id: primary_sms_code
   kind: primary
   type: oob_otp_sms
   phone_otp_mode: "sms"
-- name: primary_email_code
+- id: primary_email_code
   kind: primary
   type: oob_otp_email
   email_otp_mode: "code"
-- name: primary_password
+- id: primary_password
   kind: primary
   type: password
 
 signup_flows:
-- name: phone_first
+- id: phone_first
   steps:
-  - name: setup_phone
+  - id: setup_phone
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
+        id: phone
       authentication_methods:
-      - name: primary_sms_code
-  - name: verify_phone
+      - id: primary_sms_code
+  - id: verify_phone
     type: verification
     step:
-      name: setup_phone
-  - name: setup_email
+      id: setup_phone
+  - id: setup_email
     type: identification_method
     one_of:
     - identification_method:
-        name: email
+        id: email
       authentication_methods:
-      - name: primary_email_code
-  - name: verify_email
+      - id: primary_email_code
+  - id: verify_email
     type: verification
     step:
-      name: setup_email
-  - name: setup_password
+      id: setup_email
+  - id: setup_password
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
-- name: email_first
+        id: primary_password
+- id: email_first
   steps:
-  - name: setup_email
+  - id: setup_email
     type: identification_method
     one_of:
     - identification_method:
-        name: email
+        id: email
       authentication_methods:
-      - name: primary_email_code
-  - name: verify_email
+      - id: primary_email_code
+  - id: verify_email
     type: verification
     step:
-      name: setup_email
-  - name: setup_phone
+      id: setup_email
+  - id: setup_phone
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
+        id: phone
       authentication_methods:
-      - name: primary_sms_code
-  - name: verify_phone
+      - id: primary_sms_code
+  - id: verify_phone
     type: verification
     step:
-      name: setup_phone
-  - name: setup_password
+      id: setup_phone
+  - id: setup_password
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
+        id: primary_password
 
 login_flows:
-- name: default_login_flow
+- id: default_login_flow
   steps:
-  - name: first_factor
+  - id: identify
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
-      authentication_methods:
-      - name: primary_sms_code
-      - name: primary_password
+        id: phone
     - identification_method:
-        name: email
-      authentication_methods:
-      - name: primary_email_code
-      - name: primary_sms_code
-      - name: primary_password
+        id: email
+  - id: authenticate_phone
+    type: authentication_method
+    if: steps.identify.identification_method.id == "phone"
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+    - authentication_method:
+        id: primary_password
+  - id: authenticate_email
+    type: authentication_method
+    if: steps.identify.identification_method.id == "email"
+    one_of:
+    - authentication_method:
+        id: primary_email_code
+    - authentication_method:
+        id: primary_sms_code
+    - authentication_method:
+        id: primary_password
 
 signup_login_flows:
-- name: default_signup_login_flow
+- id: default_signup_login_flow
   steps:
-  - name: step
+  - id: step
     type: identification_method
     one_of:
     - identification_method:
-        name: phone
+        id: phone
       login_flow:
-        name: default_login_flow
+        id: default_login_flow
       signup_flow:
-        name: phone_first
+        id: phone_first
     - identification_method:
-        name: email
+        id: email
       login_flow:
-        name: default_login_flow
+        id: default_login_flow
       signup_flow:
-        name: email_first
+        id: email_first
 ```
 
 #### Use case example 3: Google
 
 ```yaml
 identification_methods:
-- name: email
+- id: email
   identity:
     type: "login_id"
     login_id:
       type: "email"
 
 authentication_methods:
-- name: primary_password
+- id: primary_password
   kind: primary
   type: password
-- name: secondary_sms_code
+- id: secondary_sms_code
   kind: secondary
   type: oob_otp_sms
   phone_otp_mode: "sms"
-- name: secondary_totp
+- id: secondary_totp
   kind: secondary
   type: totp
 
 signup_flows:
-- name: default_signup_flow
+- id: default_signup_flow
   steps:
-  - name: setup_email
+  - id: setup_email
     type: identification_method
     one_of:
     - identification_method:
-        name: email
-  - name: setup_password
+        id: email
+  - id: setup_password
     type: authentication_method
     one_of:
     - authentication_method:
-        name: primary_password
+        id: primary_password
 
 login_flows:
-- name: default_login_flow
+- id: default_login_flow
   steps:
-  - name: first_factor
+  - id: identify
     type: identification_method
     one_of:
     - identification_method:
-        name: email
-      authentication_methods:
-      - name: primary_password
-  - name: second_factor
+        id: email
+  - id: first_factor
     type: authentication_method
     one_of:
     - authentication_method:
-        name: secondary_totp
+        id: primary_password
+  - id: second_factor
+    type: authentication_method
+    one_of:
     - authentication_method:
-        name: secondary_sms_code
+        id: secondary_totp
+    - authentication_method:
+        id: secondary_sms_code
 ```
 
 #### Use case example 4: The Club
 
 ```yaml
 identification_methods:
-- name: email
+- id: email
   identity:
     type: "login_id"
     login_id:
       type: "email"
-- name: phone
+- id: phone
   identity:
     type: "login_id"
     login_id:
       type: "phone"
-- name: username
+- id: username
   identity:
     type: "username"
     login_id:
       type: "username"
 
 authentication_methods:
-- name: primary_password
+- id: primary_password
   kind: primary
   type: password
-- name: primary_sms_code
+- id: primary_sms_code
   kind: primary
   type: oob_otp_sms
   phone_otp_mode: "sms"
@@ -748,27 +808,186 @@ authentication_methods:
 # signup_flows is omitted here because the exact signup flow is unknown.
 
 login_flows:
-- name: default_login_flow
+- id: default_login_flow
   steps:
-  - name: first_factor
+  - id: identify
     type: identification_method
     one_of:
     - identification_method:
-        name: email
-      authentication_methods:
-      - name: primary_password
-      - name: primary_sms_code
+        id: email
     - identification_method:
-        name: phone
-      authentication_methods:
-      - name: primary_password
-      - name: primary_sms_code
+        id: phone
     - identification_method:
-        name: username
-      authentication_methods:
-      - name: primary_password
-      - name: primary_sms_code
+        id: username
+  - id: first_factor
+    type: authentication_method
+    one_of:
+    - authentication_method:
+        id: primary_password
+    - authentication_method:
+        id: primary_sms_code
 ```
+
+#### Use case example 5: Comprehensive example
+
+```yaml
+identification_methods:
+- id: email
+  identity:
+    type: "login_id"
+    login_id:
+      type: "email"
+- id: oauth
+  identity:
+    type: "oauth"
+    oauth:
+      aliases: ["google"]
+- id: passkey
+  identity:
+    type: "passkey"
+
+authentication_methods:
+- id: primary_password
+  kind: primary
+  type: password
+- id: primary_passkey
+  kind: primary
+  type: passkey
+- id: primary_email_code
+  kind: primary
+  type: oob_otp_email
+  email_otp_mode: "code"
+- id: secondary_totp
+  kind: secondary
+  type: totp
+- id: recovery_code
+  kind: secondary
+  type: recovery_code
+- id: device_token
+  kind: secondary
+  type: device_token
+
+signup_flows:
+# The end user sign up with OAuth without password or 2FA.
+# Or the end user sign up with verified email with password and 2FA.
+- id: default_signup_flow
+  steps:
+  - id: setup_identity
+    type: identification_method
+    one_of:
+    - identification_method:
+        id: email
+        authentication_methods:
+        - id: primary_email_code
+    - identification_method:
+        id: oauth
+  - id: verify_identity
+    type: verification
+    if: steps.setup_identity.identification_method.id == "email"
+    step:
+      id: setup_identity
+  - id: setup_first_factor
+    type: authentication_method
+    if: steps.setup_identity.identification_method.id == "email"
+    one_of:
+    - authentication_method:
+        id: primary_password
+  - id: setup_second_factor
+    type: authentication_method
+    if: steps.setup_first_factor.authentication_method != null
+    one_of:
+    - authentication_method:
+        id: secondary_totp
+
+login_flows:
+# The end user can sign in with OAuth.
+# The end user can sign in with passkey directly.
+# The end user can sign in with email with OTP, password, or passkey, and with 2FA.
+- id: default_login_flow
+  steps:
+  - id: identify
+    type: identification_method
+    one_of:
+    - identification_method:
+        id: email
+    - identification_method:
+        id: oauth
+    - identification_method:
+        id: passkey
+  - id: first_factor
+    type: authentication_method
+    if: steps.identify.identification_method.id == "email"
+    one_of:
+    - authentication_method:
+        id: primary_password
+    - authentication_method:
+        id: primary_email_code
+    - authentication_method:
+        id: primary_passkey
+  - id: second_factor
+    type: authentication_method
+    if: steps.first_factor.authentication_method != null && setup.first_factor.authentication_method.id != "primary_passkey"
+    one_of:
+    - authentication_method:
+        id: secondary_totp
+    - authentication_method:
+        id: recovery_code
+    - authentication_method:
+        id: device_token
+```
+
+## Expressions
+
+Expressions are used to determine whether a Step should run.
+
+### Literals
+
+|Data Type|Literal|
+|---|---|
+|`boolean`|`true` or `false`|
+|`null`|`null`|
+|`number`|[A JSON number](https://datatracker.ietf.org/doc/html/rfc8259#section-6)|
+|`string`|[A JSON string](https://datatracker.ietf.org/doc/html/rfc8259#section-7)|
+
+### Operators
+
+|Operator|Meaning|
+|---|---|
+|`( )`|Grouping|
+|`.`|Property access|
+|`!`|Logical negation|
+|`==`|Equal|
+|`!=`|Not equal|
+|`&&`|And|
+|`||`|Or|
+
+### Functions
+
+The following built-in functions can be used in expressions.
+
+#### contains
+
+`contains(array, item)`
+
+`contains` returns `true` if `item` is an element of `array`.
+
+#### fromJSON
+
+`fromJSON(jsonString)`
+
+`fromJSON` returns a value represented by `jsonString`.
+
+### Contexts
+
+The only place an expression can appear is in the `if` of a Step.
+The context of that place is described as follows.
+
+|Expression|Type|Description|
+|---|---|---|
+|`steps`|`object`|The `steps` object|
+|`steps.<id>`|`object`|The `step` object|
+|`steps.<id>.identification_method.id`|`string`|The `id` of the selected `identification_method` in the step|
+|`steps.<id>.authentication_method.id`|`string`|The `id` of the selected `authentication_method` in the step|
 
 ## Appendix
 
@@ -782,7 +1001,7 @@ login_flows:
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "minLength": 1 },
           "identity": {
             "type": "object",
             "properties": {
@@ -825,7 +1044,7 @@ login_flows:
             "required": ["type"]
           }
         },
-        "required": ["name", "identity"]
+        "required": ["id", "identity"]
       }
     }
   }
@@ -842,7 +1061,7 @@ login_flows:
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "minLength": 1 },
           "kind": {
             "type": "string",
             "enum": ["primary", "secondary"]
@@ -875,7 +1094,7 @@ login_flows:
             ]
           }
         },
-        "required": ["name", "kind", "type"]
+        "required": ["id", "kind", "type"]
       }
     }
   }
@@ -891,16 +1110,17 @@ login_flows:
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "steps"],
+        "required": ["id", "steps"],
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "minLength": 1 },
           "steps": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["name", "type"],
+              "required": ["id", "type"],
               "properties": {
-                "name": { "type": "string", "minLength": 1 },
+                "id": { "type": "string", "minLength": 1 },
+                "if": { "type": "string", "format": "x_expression"} },
                 "type": {
                   "type": "string",
                   "enum": [
@@ -929,18 +1149,18 @@ login_flows:
                           "properties": {
                             "identification_method": {
                               "type": "object",
-                              "required": ["name"],
+                              "required": ["id"],
                               "properties": {
-                                "name": { "type": "string", "minLength": 1 }
+                                "id": { "type": "string", "minLength": 1 }
                               }
                             },
                             "authentication_methods": {
                               "type": "array",
                               "items": {
                                 "type": "object",
-                                "required": ["name"],
+                                "required": ["id"],
                                 "properties": {
-                                  "name": { "type": "string", "minLength": 1 }
+                                  "id": { "type": "string", "minLength": 1 }
                                 }
                               }
                             }
@@ -967,9 +1187,9 @@ login_flows:
                           "properties": {
                             "authentication_method": {
                               "type": "object",
-                              "required": ["name"],
+                              "required": ["id"],
                               "properties": {
-                                "name": { "type": "string", "minLength": 1 }
+                                "id": { "type": "string", "minLength": 1 }
                               }
                             }
                           }
@@ -989,9 +1209,9 @@ login_flows:
                     "properties": {
                       "step": {
                         "type": "object",
-                        "required": ["name"],
+                        "required": ["id"],
                         "properties": {
-                          "name": { "type": "string", "minLength": 1 }
+                          "id": { "type": "string", "minLength": 1 }
                         }
                       }
                     }
@@ -1039,16 +1259,17 @@ login_flows:
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "steps"],
+        "required": ["id", "steps"],
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "minLength": 1 },
           "steps": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["name", "type"],
+              "required": ["id", "type"],
               "properties": {
-                "name": { "type": "string", "minLength": 1 },
+                "id": { "type": "string", "minLength": 1 },
+                "if": { "type": "string", "format": "x_expression"} },
                 "type": {
                   "type": "string",
                   "enum": [
@@ -1076,18 +1297,18 @@ login_flows:
                         "properties": {
                           "identification_method": {
                             "type": "object",
-                            "required": ["name"],
+                            "required": ["id"],
                             "properties": {
-                              "name": { "type": "string", "minLength": 1 }
+                              "id": { "type": "string", "minLength": 1 }
                             }
                           },
                           "authentication_methods": {
                             "type": "array",
                             "items": {
                               "type": "object",
-                              "required": ["name"],
+                              "required": ["id"],
                               "properties": {
-                                "name": { "type": "string", "minLength": 1 }
+                                "id": { "type": "string", "minLength": 1 }
                               }
                             }
                           }
@@ -1114,9 +1335,9 @@ login_flows:
                         "properties": {
                           "authentication_method": {
                             "type": "object",
-                            "required": ["name"],
+                            "required": ["id"],
                             "properties": {
-                              "name": { "type": "string", "minLength": 1 }
+                              "id": { "type": "string", "minLength": 1 }
                             }
                           }
                         }
@@ -1143,14 +1364,15 @@ login_flows:
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "steps"],
+        "required": ["id", "steps"],
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "minLength": 1 },
           "steps": {
             "type": "object",
-            "required": ["name", "type"],
+            "required": ["id", "type"],
             "properties": {
-              "name": { "type": "string", "minLength": 1 },
+              "id": { "type": "string", "minLength": 1 },
+              "if": { "type": "string", "format": "x_expression"} },
               "type": {
                 "type": { "type": "string", "enum": ["identification_method"] }
               }
@@ -1173,23 +1395,23 @@ login_flows:
                         "properties": {
                           "identification_method": {
                             "type": "object",
-                            "required": ["name"],
+                            "required": ["id"],
                             "properties": {
-                              "name": { "type": "string", "minLength": 1 }
+                              "id": { "type": "string", "minLength": 1 }
                             }
                           },
                           "signup_flow": {
                             "type": "object",
-                            "required": ["name"],
+                            "required": ["id"],
                             "properties": {
-                              "name": { "type": "string", "minLength": 1 }
+                              "id": { "type": "string", "minLength": 1 }
                             }
                           },
                           "login_flow": {
                             "type": "object",
-                            "required": ["name"],
+                            "required": ["id"],
                             "properties": {
-                              "name": { "type": "string", "minLength": 1 }
+                              "id": { "type": "string", "minLength": 1 }
                             }
                           }
                         }
@@ -1216,16 +1438,17 @@ login_flows:
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "steps"],
+        "required": ["id", "steps"],
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "minLength": 1 },
           "steps": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["name", "type"],
+              "required": ["id", "type"],
               "properties": {
-                "name": { "type": "string", "minLength": 1 },
+                "id": { "type": "string", "minLength": 1 },
+                "if": { "type": "string", "format": "x_expression"} },
                 "type": { "type": "string", "enum": ["authentication_method"] }
               },
               "allOf": [
@@ -1245,9 +1468,9 @@ login_flows:
                           "properties": {
                             "authentication_method": {
                               "type": "object",
-                              "required": ["name"],
+                              "required": ["id"],
                               "properties": {
-                                "name": { "type": "string", "minLength": 1 }
+                                "id": { "type": "string", "minLength": 1 }
                               }
                             }
                           }
