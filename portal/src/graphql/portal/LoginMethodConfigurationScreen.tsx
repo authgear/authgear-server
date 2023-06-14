@@ -1084,7 +1084,7 @@ function constructConfig(
       config.authenticator.oob_otp.sms.code_valid_period = duration;
       config.verification.code_valid_period = duration;
       if (isEmailOTPLink) {
-        config.authenticator.oob_otp.email.code_valid_period = undefined;
+        // Currently portal doesn't support setting code_valid_period of login link
       } else {
         config.authenticator.oob_otp.email.code_valid_period = duration;
       }
