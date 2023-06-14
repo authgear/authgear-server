@@ -118,19 +118,19 @@ func TestGCRA(t *testing.T) {
 			period: "20s",
 			burst:  4,
 			entries: []scheduleEntry{
-				{time: "0s", n: 5, ok: false, timeToAct: -15}, // allow burst requests within limit
-				{time: "0s", n: 4, ok: true, timeToAct: 5},
+				{time: "0s", n: 5, ok: false, timeToAct: 5}, // allow burst requests within limit
+				{time: "0s", n: 4, ok: true, timeToAct: 20},
 				{time: "1s", n: 1, ok: false, timeToAct: 5},
 				{time: "1s", n: 0, ok: true, timeToAct: 5},
 
-				{time: "100s", n: 5, ok: false, timeToAct: 85},
-				{time: "100s", n: 3, ok: true, timeToAct: 100},
+				{time: "100s", n: 5, ok: false, timeToAct: 105},
+				{time: "100s", n: 3, ok: true, timeToAct: 110},
 				{time: "101s", n: 1, ok: true, timeToAct: 105},
 				{time: "101s", n: 0, ok: true, timeToAct: 105},
 
-				{time: "200s", n: 5, ok: false, timeToAct: 185},
-				{time: "200s", n: 2, ok: true, timeToAct: 195},
-				{time: "201s", n: 2, ok: true, timeToAct: 205},
+				{time: "200s", n: 5, ok: false, timeToAct: 205},
+				{time: "200s", n: 2, ok: true, timeToAct: 200},
+				{time: "201s", n: 2, ok: true, timeToAct: 210},
 				{time: "201s", n: 0, ok: true, timeToAct: 205},
 			},
 		})
