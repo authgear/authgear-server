@@ -295,7 +295,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 	// Inspect rate limit state by reserving no tokens.
 	reservation := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
 	now := s.Clock.NowUTC()
-	canResendAt := now.Add(reservation.DelayFrom(now))
+	canResendAt := reservation.GetTimeToAct()
 	s.RateLimiter.Cancel(reservation)
 
 	state := &State{

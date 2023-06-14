@@ -26,15 +26,11 @@ func (r *Reservation) Error() error {
 	return nil
 }
 
-func (r *Reservation) DelayFrom(t time.Time) time.Duration {
-	if r == nil {
-		return 0
+func (r *Reservation) GetTimeToAct() time.Time {
+	if r == nil || r.timeToAct == nil {
+		return time.Unix(0, 0)
 	}
-	if r.timeToAct == nil {
-		return 0
-	}
-	delay := r.timeToAct.Sub(t)
-	return delay
+	return *r.timeToAct
 }
 
 func (r *Reservation) Consume() {
