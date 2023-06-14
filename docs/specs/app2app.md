@@ -111,6 +111,14 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
 #### Android SDK
 
+The following field will be added to `AuthenticateOptions`:
+
+- `app2appOptions: App2AppOptions?`
+  - App2app options. If `null`, this app cannot authenticate other apps through app2app.
+  - `App2AppOptions` contains the following fields:
+    - `userAuthenticationRequired: Boolean`: Whether the user has to pass an authentiction process during the app2app flow. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationRequired(boolean)>) for details.
+    - `userAuthenticationTypes: Int?`: Type of user authentication can be used. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationParameters(int,%20int)>) for details.
+
 The following methods will be added in android sdk to support the app2app flow:
 
 - `startApp2AppAuthentication(authorizeUri: String, redirectUri: String)`
@@ -187,13 +195,20 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
    - Extract `code` from the url and use it to perform the code exchange.
 
-#### iOS SDK
+#### iOS
+
+The following parameters will be added to `authenticate()` method:
+
+- `app2appOptions: App2AppOptions?`
+  - app2app options. If `null`, this app cannot authenticate other apps through app2app.
+  - `App2AppOptions` contains the following fields:
+    - `userAuthenticationFlags: SecAccessControlCreateFlags?`: The authentication the user must perform on authenticating another app through app2app flow. Read [this doc](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags) for possible values. Internally, it was used to set the [access control flags](https://developer.apple.com/documentation/security/1394452-secaccesscontrolcreatewithflags) of the device key.
 
 The following methods will be added in android sdk to support the app2app flow:
 
 - `startApp2AppAuthentication(authorizeUri: String, redirectUri: String)`
   - This method should be called to trigger a new app2app authentication through another client through `authorizeUri`, and receive the result through `redirectUri`.
-- `handleApp2AppAuthenticationRequest(uri: URL)`
+- `handleApp2AppAuthenticationRequest(uri: URL, )`
   - This method should be called by the app which receive and handles the app2app authentication universal link. `uri` should be the URL of the universal link received.
 - `handleApp2AppAuthenticationResult(uri: URL)`
   - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URL of the universal link received.
