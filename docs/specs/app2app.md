@@ -212,3 +212,8 @@ The following methods will be added in android sdk to support the app2app flow:
   - This method should be called by the app which receive and handles the app2app authentication universal link. `uri` should be the URL of the universal link received.
 - `handleApp2AppAuthenticationResult(uri: URL)`
   - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URL of the universal link received.
+
+## Related Readings
+
+- [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.7.1.1)
+  - A flow allowing cross device authentication. However as the use case is a bit different from the app2app flow, we decided to implement the app2app flow instead of the CIBA flow.
