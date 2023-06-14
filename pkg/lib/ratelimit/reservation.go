@@ -34,9 +34,6 @@ func (r *Reservation) DelayFrom(t time.Time) time.Duration {
 		return 0
 	}
 	delay := r.timeToAct.Sub(t)
-	if delay < 0 {
-		return 0
-	}
 	return delay
 }
 
