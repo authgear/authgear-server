@@ -41,8 +41,8 @@ An app can start the authentication flow by opening a link to another app, inste
         x_app2app_insecure_device_key_binding_enabled: false
   ```
 
-  - `enabled`: boolean. Whether the client is able to handle app2app authentication requests from other clients.
-  - `allow_insecure_device_key_binding`: boolean. Default `false`. If `true`, refresh tokens of this client without a bound device key can be bound to a new device key during refreshing the tokens. This option is for allowing existing logged in users to use app2app without requiring them to re-login. However this also allows sessions without a bound device key to be bound with any key and participate in app2app authentication which might be a security concern.
+  - `x_app2app_enabled`: boolean. Whether the client is able to handle app2app authentication requests from other clients.
+  - `x_app2app_insecure_device_key_binding_enabled`: boolean. Default `false`. If `true`, refresh tokens of this client without a bound device key can be bound to a new device key during refreshing the tokens. This option is for allowing existing logged in users to use app2app without requiring them to re-login. However this also allows sessions without a bound device key to be bound with any key and participate in app2app authentication which might be a security concern.
 
 - Token Endpoint
 
