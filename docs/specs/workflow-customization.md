@@ -304,6 +304,9 @@ So Steps in different Flows can share the same `id`.
 A Step is executed conditionally if it has a `if`.
 The value is an [Expression](#expressions).
 
+The `id` of a Flow can be omitted if the developer need not reference it in a later step.
+An `id` will be randomly generated in such case.
+
 #### Object: SignupFlow
 
 A SignupFlow is a Flow.
@@ -328,40 +331,34 @@ signup_flows:
       authentication_methods:
       - id: primary_email_code
   # Set up a primary password.
-  - id: setup_password
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
   # Verify the phone number or the email address
   # If this step is not specified, the phone number or the email address is unverified.
-  - id: verify_identity
-    type: verification
+  - type: verification
     if: contains(fromJSON('["phone", "email"]'), steps.setup_identity.identification_method.id)
     step:
       id: setup_identity
   # Set up another phone number for 2FA.
-  - id: setup_phone_2fa
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: secondary_sms_code
   # Verify the phone number in the previous step.
-  - id: verify_phone_2fa
-    type: verification
+  - type: verification
     step:
       id: setup_phone_2fa
   # Collect given name and family name.
-  - id: fill_in_names
-    type: user_profile
+  - type: user_profile
     user_profile:
     - pointer: /given_name
       required: true
     - pointer: /family_name
       required: true
   # Collect custom attributes.
-  - id: fill_custom_attributes
-    type: user_profile
+  - type: user_profile
     user_profile:
     - pointer: /x_age
       required: true
@@ -539,26 +536,22 @@ authentication_methods:
 signup_flows:
 - id: default_signup_flow
   steps:
-  - id: setup_phone
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: phone
       authentication_methods:
       - id: primary_sms_code
-  - id: verify_phone
-    type: verification
+  - type: verification
     step:
       id: setup_phone
-  - id: setup_email
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: email
       authentication_methods:
       - id: primary_email_login_link
-  - id: setup_password
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
@@ -566,18 +559,15 @@ signup_flows:
 login_flows:
 - id: default_login_flow
   steps:
-  - id: identify
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: phone
-  - id: first_factor
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_sms_code
-  - id: second_factor
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_email_login_link
@@ -616,59 +606,49 @@ authentication_methods:
 signup_flows:
 - id: phone_first
   steps:
-  - id: setup_phone
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: phone
       authentication_methods:
       - id: primary_sms_code
-  - id: verify_phone
-    type: verification
+  - type: verification
     step:
       id: setup_phone
-  - id: setup_email
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: email
       authentication_methods:
       - id: primary_email_code
-  - id: verify_email
-    type: verification
+  - type: verification
     step:
       id: setup_email
-  - id: setup_password
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
 - id: email_first
   steps:
-  - id: setup_email
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: email
       authentication_methods:
       - id: primary_email_code
-  - id: verify_email
-    type: verification
+  - type: verification
     step:
       id: setup_email
-  - id: setup_phone
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: phone
       authentication_methods:
       - id: primary_sms_code
-  - id: verify_phone
-    type: verification
+  - type: verification
     step:
       id: setup_phone
-  - id: setup_password
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
@@ -683,16 +663,14 @@ login_flows:
         id: phone
     - identification_method:
         id: email
-  - id: authenticate_phone
-    type: authentication_method
+  - type: authentication_method
     if: steps.identify.identification_method.id == "phone"
     one_of:
     - authentication_method:
         id: primary_sms_code
     - authentication_method:
         id: primary_password
-  - id: authenticate_email
-    type: authentication_method
+  - type: authentication_method
     if: steps.identify.identification_method.id == "email"
     one_of:
     - authentication_method:
@@ -747,13 +725,11 @@ authentication_methods:
 signup_flows:
 - id: default_signup_flow
   steps:
-  - id: setup_email
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: email
-  - id: setup_password
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
@@ -761,18 +737,15 @@ signup_flows:
 login_flows:
 - id: default_login_flow
   steps:
-  - id: identify
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: email
-  - id: first_factor
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
-  - id: second_factor
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: secondary_totp
@@ -814,8 +787,7 @@ authentication_methods:
 login_flows:
 - id: default_login_flow
   steps:
-  - id: identify
-    type: identification_method
+  - type: identification_method
     one_of:
     - identification_method:
         id: email
@@ -823,8 +795,7 @@ login_flows:
         id: phone
     - identification_method:
         id: username
-  - id: first_factor
-    type: authentication_method
+  - type: authentication_method
     one_of:
     - authentication_method:
         id: primary_password
@@ -885,8 +856,7 @@ signup_flows:
         - id: primary_email_code
     - identification_method:
         id: oauth
-  - id: verify_identity
-    type: verification
+  - type: verification
     if: steps.setup_identity.identification_method.id == "email"
     step:
       id: setup_identity
@@ -896,8 +866,7 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_password
-  - id: setup_second_factor
-    type: authentication_method
+  - type: authentication_method
     if: steps.setup_first_factor.authentication_method != null
     one_of:
     - authentication_method:
@@ -928,8 +897,7 @@ login_flows:
         id: primary_email_code
     - authentication_method:
         id: primary_passkey
-  - id: second_factor
-    type: authentication_method
+  - type: authentication_method
     if: steps.first_factor.authentication_method != null && setup.first_factor.authentication_method.id != "primary_passkey"
     one_of:
     - authentication_method:
@@ -1121,7 +1089,7 @@ The context of that place is described as follows.
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["id", "type"],
+              "required": ["type"],
               "properties": {
                 "id": { "type": "string", "minLength": 1 },
                 "if": { "type": "string", "format": "x_expression"} },
@@ -1270,7 +1238,7 @@ The context of that place is described as follows.
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["id", "type"],
+              "required": ["type"],
               "properties": {
                 "id": { "type": "string", "minLength": 1 },
                 "if": { "type": "string", "format": "x_expression"} },
@@ -1373,7 +1341,7 @@ The context of that place is described as follows.
           "id": { "type": "string", "minLength": 1 },
           "steps": {
             "type": "object",
-            "required": ["id", "type"],
+            "required": ["type"],
             "properties": {
               "id": { "type": "string", "minLength": 1 },
               "if": { "type": "string", "format": "x_expression"} },
@@ -1449,7 +1417,7 @@ The context of that place is described as follows.
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["id", "type"],
+              "required": ["type"],
               "properties": {
                 "id": { "type": "string", "minLength": 1 },
                 "if": { "type": "string", "format": "x_expression"} },
