@@ -163,6 +163,10 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 The configuration is a small DSL with a simple expression language.
 Every object must have an `id`. The namespace in which the `id` is in varies by object.
 
+The configuration maps to a user flow as performed by a end-user.
+A user flow consists of one or more screens, and the configuration consists of one or more steps.
+Screens are not nested, so steps are organized linearly, and not nested as well.
+
 #### Object: IdentificationMethod
 
 We define available IdentificationMethods under `identification_methods`.
