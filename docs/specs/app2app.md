@@ -212,8 +212,8 @@ The following parameters will be added to constuctor of `Authgear`:
 - `app2appOptions: App2AppOptions?`
   - app2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
-    - `accessContraints: BiometricAccessConstraint?`: The authentication the user must perform on authenticating another app through app2app flow.
-    - `authenticatePolicy: BiometricLAPolicy?`: The authentication policy used for app2app flow.
+    - `accessContraints`: [`BiometricAccessConstraint?`](https://github.com/authgear/authgear-sdk-ios/blob/master/Sources/Biometric.swift#L6): The authentication the user must perform on authenticating another app through app2app flow.
+    - `authenticatePolicy`: [`BiometricLAPolicy?`](https://github.com/authgear/authgear-sdk-ios/blob/master/Sources/Biometric.swift#L23): The authentication policy used for app2app flow.
 
 The following methods will be added in android sdk to support the app2app flow:
 
