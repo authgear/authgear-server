@@ -1,5 +1,14 @@
 # App-to-App authentication
 
+- [Abstract](#abstract)
+- [Implementation details](#implementation-details)
+  - [Server-side](#server-side)
+  - [Android](#android)
+    - [Android SDK](#android-sdk)
+  - [iOS](#ios)
+    - [iOS SDK](#ios-sdk)
+- [Related Readings](#related-readings)
+
 ## Abstract
 
 App2app is a mechanism to allow authenticating through another app, which is installed in the same device.
