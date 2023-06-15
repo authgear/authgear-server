@@ -21,12 +21,30 @@ An app can start the authentication flow by opening a link to another app, inste
 
 ### Server-side
 
-- Authorization Endpoint
+- Configuration
 
-  - A new parameter `device_key` is supported. This value can be specified by the client to enable app2app login. If specified, it should be a public key of a key pair, which the private key should be stored in a secure storage in the device. Such as the Android keystore or the iOS keychain.
-    - Multiple key types such as RS256 and NIST P-256 are supported.
+  - A app2app section will be added to the client configs.
+
+  ```yaml
+  oauth:
+    clients:
+      - client_id: CLIENT_ID
+        # ...Other configs
+        x_app2app:
+          enabled: true
+          allow_insecure_device_key_binding: false
+  ```
+
+  - `enabled`: boolean. Whether the client is able to handle app2app authentication requests from other clients.
+  - `allow_insecure_device_key_binding`: boolean. Default `false`. If `true`, refresh tokens of this client without a binded `device_key` can be binded to a new `device_key` during refreshing the tokens. This option is for allowing existing logged in users to use app2app without requiring them to re-login. However this also allows sessions without a binded `device_key` to be binded with any key and participate in app2app authentication which might be a security concern.
 
 - Token Endpoint
+
+  - For `grant_type=authorization_code`, a new parameter `device_key` is supported. This value can be specified by the client to enable app2app login. If specified, it should be a base64 encoded jwk of public key of a key pair, which the private key should be stored in a secure storage in the device. Such as the Android keystore or the iOS keychain. `device_key` will be ignored if `x_app2app.enabled` of the client configuration is not `true`.
+
+    - Multiple key types such as RS256 and NIST P-256 are supported.
+
+  - For `grant_type=refresh_token`, a new parameter `device_key` is supported if `x_app2app.allow_insecure_device_key_binding` is `true`. The provided `device_key` will be binded to the provided refresh token, if the refresh token isn't already binded to a `device_key`. If the refresh token was already binded to a `device_key` which doesn't match the one provided in this parameter, an error will be returned.
 
   - A new grant_type `urn:authgear:params:oauth:grant-type:app2app` is supported. When using such grant_type, The following must be provided in the request:
     - `refresh_token`: a valid refresh token.
@@ -34,7 +52,7 @@ An app can start the authentication flow by opening a link to another app, inste
     - `app2app_client_id`: the authenticating client id.
     - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key binded with the provided refresh token (using the `device_key` parameter during authentication).
     - `app2app_redirect_uri`: the redirect uri used to return the result used by the app. The server is reponsible to check the provided uri is in the whitelist of at least one of the configured client redirect uri.
-  - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authentication_code` and obtain a new set of refresh token and access tokens.
+  - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authorization_code` and obtain a new set of refresh token and access tokens.
 
 ### Android
 

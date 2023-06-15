@@ -221,7 +221,7 @@ To mitigate replay attacks, provide a `nonce` in the authentication request. Aut
 
 ### grant_type
 
-- `authentication_code`
+- `authorization_code`
 - `refresh_token`
 - `urn:authgear:params:oauth:grant-type:anonymous-request`
 - `urn:authgear:params:oauth:grant-type:biometric-request`
