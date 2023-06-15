@@ -13,15 +13,15 @@ var gcraLuaScript = goredis.NewScript(`
 redis.replicate_commands()
 
 local rate_limit_key = KEYS[1]
-local period = ARGV[1]
-local burst = ARGV[2]
-local n = ARGV[3]
+local period = tonumber(ARGV[1])
+local burst = tonumber(ARGV[2])
+local n = tonumber(ARGV[3])
 
 local now = redis.call("TIME")
 local now_timestamp = now[1] * 1000 + math.floor(now[2] / 1000)
 
 local emission_interval = math.floor(period / burst)
-local tolerance = emission_interval * (burst - 1)
+local tolerance = burst
 
 local tat = redis.pcall("GET", rate_limit_key)
 if not tat then          -- key not found
@@ -32,18 +32,18 @@ else
 	tat = tonumber(tat)
 end
 
-local elapsed = emission_interval * (n - 1)
-local new_tat = math.max(tat, now_timestamp) + elapsed
+local increment = emission_interval * n
+local new_tat = math.max(tat, now_timestamp) + increment
+local dvt = emission_interval * tolerance
 
-local time_to_act = new_tat - tolerance
-local is_conforming = now_timestamp >= time_to_act
+local allow_at = new_tat - dvt
+local is_conforming = now_timestamp >= allow_at
+local time_to_act = allow_at
 if is_conforming then
-	new_tat = new_tat + emission_interval
 	redis.call("SET", rate_limit_key, new_tat, "PXAT", new_tat)
-	tat = new_tat
+	time_to_act = allow_at + math.max(1, n) * emission_interval
 end
 
-time_to_act = tat - tolerance
 return {is_conforming and 1 or 0, time_to_act}
 `)
 
