@@ -1460,3 +1460,111 @@ The context of that place is described as follows.
   }
 }
 ```
+
+### Alternative design if Expressions were not used
+
+Here we show how would the configuration looks like if expressions were not used.
+We take the [Use case example 5](#use-case-example-5-comprehensive-example) and rewrite it.
+
+```yaml
+identification_methods:
+- id: email
+  identity:
+    type: "login_id"
+    login_id:
+      type: "email"
+- id: oauth
+  identity:
+    type: "oauth"
+    oauth:
+      aliases: ["google"]
+- id: passkey
+  identity:
+    type: "passkey"
+
+authentication_methods:
+- id: primary_password
+  kind: primary
+  type: password
+- id: primary_passkey
+  kind: primary
+  type: passkey
+- id: primary_email_code
+  kind: primary
+  type: oob_otp_email
+  email_otp_mode: "code"
+- id: secondary_totp
+  kind: secondary
+  type: totp
+- id: recovery_code
+  kind: secondary
+  type: recovery_code
+- id: device_token
+  kind: secondary
+  type: device_token
+
+signup_flows:
+- id: default_signup_flow
+  steps:
+  - type: identification_method
+    one_of:
+    - identification_method:
+        id: email
+        authentication_methods:
+        - id: primary_email_code
+        steps:
+        - type: verification
+        - type: authentication_method
+          one_of:
+          - authentication_method:
+              id: primary_password
+              steps:
+              - type: authentication_method
+                one_of:
+                - authentication_method:
+                    id: secondary_totp
+    - identification_method:
+        id: oauth
+
+login_flows:
+- id: default_login_flow
+  steps:
+  - type: identification_method
+    one_of:
+    - identification_method:
+        id: email
+        steps:
+        - type: authentication_method
+          one_of:
+          - authentication_method:
+              id: primary_password
+              steps:
+              - type: authentication_method
+                one_of:
+                - authentication_method:
+                    id: secondary_totp
+                - authentication_method:
+                    id: recovery_code
+                - authentication_method:
+                    id: device_token
+          - authentication_method:
+              id: primary_email_code
+              steps:
+              - type: authentication_method
+                one_of:
+                - authentication_method:
+                    id: secondary_totp
+                - authentication_method:
+                    id: recovery_code
+                - authentication_method:
+                    id: device_token
+          - authentication_method:
+              id: primary_passkey
+    - identification_method:
+        id: oauth
+    - identification_method:
+        id: passkey
+```
+
+We can see that the steps are executed in a depth-first search fashion.
+There are also duplicates when two branches share the same steps.
