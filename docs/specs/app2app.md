@@ -23,7 +23,7 @@ An app can start the authentication flow by opening a link to another app, inste
     - `refresh_token`: a valid refresh token.
     - `client_id`: current client id.
     - `app2app_client_id`: the authenticating client id.
-    - `challenge`: a signature of a challenge token obtained from the `/oauth2/challenge` api, signed with the private key binded with the provided refresh token (using the `device_key` parameter during authentication).
+    - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key binded with the provided refresh token (using the `device_key` parameter during authentication).
     - `app2app_redirect_uri`: the redirect uri used to return the result used by the app. The server is reponsible to check the provided uri is in the whitelist of at least one of the configured client redirect uri.
   - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authentication_code` and obtain a new set of refresh token and access tokens.
 
@@ -39,7 +39,7 @@ sequenceDiagram
 
 
     rect rgb(191, 223, 255)
-    note right of B: authgear.startApp2AppAuthentication(authorizeUri: String, redirectUri: String)
+    note right of B: authgear.startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)
     B ->> O: Intent (authorizeUri)
     end
 
@@ -71,8 +71,7 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
 - App B
 
-  - The configured `x_redirect_uris` is `["appb://redirect"]`
-  - The package name is `com.example.appb`
+  - The `redirect_uris` includes `https://b.example.com/redirect`
   - The client id is `client_b`
   - App A is able to handle applinks in domain `https://b.example.com/` with a properly setup [.well-known/assetlinks.json](https://developer.android.com/training/app-links/verify-android-applinks) file.
 
@@ -92,14 +91,14 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
 2. App A handles the intent.
 
-   - Returns an error if App A doesn't have an valid session.
+   - If App A is not authenticated, it can call `authenticate()` to obtain a valid session before performing the following steps.
    - Find out the package name of the app which will handle the `redirect_uri`.
    - Verify the signature of the above app by using the `.well-known/assetlinks.json` file, from the domain of the `redirect_uri`. In this example it is `https://b.example.com/.well-known/assetlinks.json`.
    - Call the token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:app2app`.
      - `refresh_token` should be the refresh token of the existing session of App A.
      - `client_id` should be the client id of this app.
      - `app2app_client_id` should be obtained from the intent uri, which is the authorizing app.
-     - `challenge` should be generated with a private key stored in the android keystore, created on the app first authenticated with the server. Refer to the Server-side section for details.
+     - `jwt`: Refer to the Server-side section for details.
      - `app2app_redirect_uri` should be the redirect uri provided. The server will validate if it is a valid redirect uri.
    - Create an intent with the redirect uri, with the following parameters appended to the uri:
      - `code`: The new authorization code.
@@ -111,20 +110,21 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
 #### Android SDK
 
-The following field will be added to `AuthenticateOptions`:
+The following parameter will be added to constructor of `Authgear`:
 
 - `app2appOptions: App2AppOptions?`
   - App2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
     - `userAuthenticationRequired: Boolean`: Whether the user has to pass an authentiction process during the app2app flow. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationRequired(boolean)>) for details.
-    - `userAuthenticationTypes: Int?`: Type of user authentication can be used. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationParameters(int,%20int)>) for details.
+    - `allowedAuthenticators: Int?`: Type of user authenticators can be used. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationParameters(int,%20int)>) for details.
 
 The following methods will be added in android sdk to support the app2app flow:
 
-- `startApp2AppAuthentication(authorizeUri: String, redirectUri: String)`
-  - This method should be called to trigger a new app2app authorization through another client through `authorizeUri`, and receive the result through `redirectUri`.
+- `startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)`
+  - This method should be called to trigger a new app2app authorization through another client through `authorizationEndpoint`, and receive the result through `redirectURI`.
 - `handleApp2AppAuthenticationRequest(uri: Uri)`
   - This method should be called by the app which receive and handles the app2app authentication intent. `uri` should be the URI of the intent.
+  - This method must be called when then sdk session state is `AUTHENTICATED`, and the current session supported app2app authentication by providing a `device_key`, else an error will be thrown.
 - `handleApp2AppAuthenticationResult(uri: Uri)`
   - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URI of the intent.
 
@@ -138,7 +138,7 @@ sequenceDiagram
     participant A as App A
     participant S as Authgear Server
 
-    B ->> O: authgear.startApp2AppAuthentication(authorizeUri: String, redirectUri: String)
+    B ->> O: authgear.startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)
     O ->> A: Universal link (authorizeUri)
     rect rgb(191, 223, 255)
     note right of A: authgear.handleApp2AppAuthenticationRequest(uri: URL)
@@ -166,6 +166,7 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
 - App B
 
+  - The `redirect_uris` includes `https://b.example.com/redirect`
   - The app is assiociated with the domain `https://b.example.com/` and therefore able to handle universal links to the domain.
   - The client id is `client_b`
 
@@ -179,12 +180,12 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
 2. App A handles the universal link.
 
-   - Returns an error if App A doesn't have an valid session.
+   - If App A is not authenticated, it can call `authenticate()` to obtain a valid session before performing the following steps.
    - Call the token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:app2app`.
      - `refresh_token` should be the refresh token of the existing session of App A.
      - `client_id` should be the client id of this app.
      - `app2app_client_id` should be obtained from the intent uri, which is the authorizing app.
-     - `challenge` should be generated with a private key stored in the android keystore, created on the app first authenticated with the server. Refer to the Server-side section for details.
+     - `jwt`: Refer to the Server-side section for details.
      - `app2app_redirect_uri` should be the redirect uri provided. The server will validate if it is a valid redirect uri.
    - Open the redirect uri as a universal link, with the following parameters appended:
      - `code`: The new authorization code.
@@ -202,14 +203,16 @@ The following parameters will be added to `authenticate()` method:
 - `app2appOptions: App2AppOptions?`
   - app2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
-    - `userAuthenticationFlags: SecAccessControlCreateFlags?`: The authentication the user must perform on authenticating another app through app2app flow. Read [this doc](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags) for possible values. Internally, it was used to set the [access control flags](https://developer.apple.com/documentation/security/1394452-secaccesscontrolcreatewithflags) of the device key.
+    - `accessContraints: BiometricAccessConstraint?`: The authentication the user must perform on authenticating another app through app2app flow.
+    - `authenticatePolicy: BiometricLAPolicy?`: The authentication policy used for app2app flow.
 
 The following methods will be added in android sdk to support the app2app flow:
 
-- `startApp2AppAuthentication(authorizeUri: String, redirectUri: String)`
-  - This method should be called to trigger a new app2app authentication through another client through `authorizeUri`, and receive the result through `redirectUri`.
-- `handleApp2AppAuthenticationRequest(uri: URL, )`
+- `startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)`
+  - This method should be called to trigger a new app2app authorization through another client through `authorizationEndpoint`, and receive the result through `redirectURI`.
+- `handleApp2AppAuthenticationRequest(uri: URL)`
   - This method should be called by the app which receive and handles the app2app authentication universal link. `uri` should be the URL of the universal link received.
+  - This method must be called when then sdk session state is `AUTHENTICATED`, and the current session supported app2app authentication by providing a `device_key`, else an error will be thrown.
 - `handleApp2AppAuthenticationResult(uri: URL)`
   - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URL of the universal link received.
 
