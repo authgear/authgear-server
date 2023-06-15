@@ -196,9 +196,9 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
    - Extract `code` from the url and use it to perform the code exchange.
 
-#### iOS
+#### iOS SDK
 
-The following parameters will be added to `authenticate()` method:
+The following parameters will be added to constuctor of `Authgear`:
 
 - `app2appOptions: App2AppOptions?`
   - app2app options. If `null`, this app cannot authenticate other apps through app2app.
