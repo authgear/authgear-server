@@ -1,5 +1,15 @@
 # App-to-App authentication
 
+- [Abstract](#abstract)
+- [Implementation details](#implementation-details)
+  - [Terminology](#terminology)
+  - [Server-side](#server-side)
+  - [Android](#android)
+    - [Android SDK](#android-sdk)
+  - [iOS](#ios)
+    - [iOS SDK](#ios-sdk)
+- [Related Readings](#related-readings)
+
 ## Abstract
 
 App2app is a mechanism to allow authenticating through another app, which is installed in the same device.
@@ -10,22 +20,43 @@ An app can start the authentication flow by opening a link to another app, inste
 
 ## Implementation details
 
+### Terminology
+
+- Device key
+  - A key pair which the private key should be stored in a secure storage in the device, generated per device for the use the app2app authentication.
+  - Multiple key types such as RS256 and NIST P-256 are supported.
+
 ### Server-side
 
-- Authorization Endpoint
+- Configuration
 
-  - A new parameter `device_key` is supported. This value can be specified by the client to enable app2app login. If specified, it should be a public key of a key pair, which the private key should be stored in a secure storage in the device. Such as the Android keystore or the iOS keychain.
-    - Multiple key types such as RS256 and NIST P-256 are supported.
+  - A app2app section will be added to the client configs.
+
+  ```yaml
+  oauth:
+    clients:
+      - client_id: CLIENT_ID
+        # ...Other configs
+        x_app2app_enabled: true
+        x_app2app_insecure_device_key_binding_enabled: false
+  ```
+
+  - `x_app2app_enabled`: boolean. Whether the client is able to handle app2app authentication requests from other clients.
+  - `x_app2app_insecure_device_key_binding_enabled`: boolean. Default `false`. If `true`, refresh tokens of this client without a bound device key can be bound to a new device key during refreshing the tokens. This option is for allowing existing logged in users to use app2app without requiring them to re-login. However this also allows sessions without a bound device key to be bound with any key and participate in app2app authentication which might be a security concern.
 
 - Token Endpoint
+
+  - For `grant_type=authorization_code`, a new parameter `x_app2app_device_key_jwt` is supported. This value can be specified by the client to enable app2app login. If specified, it should be a jwt signed by the private key of the device key, and containing the public key of that key pair in header, with a `challenge` obtained from server in payload. `x_app2app_device_key_jwt` will be ignored if `x_app2app_enabled` of the client configuration is not `true`.
+
+  - For `grant_type=refresh_token`, a new parameter `x_app2app_device_key_jwt` is supported if `x_app2app_insecure_device_key_binding_enabled` is `true`. The provided public key in the jwt will be bound to the provided refresh token if the refresh token isn't already bound to another device key. If the refresh token was already bound to another device key which doesn't match the one provided in this parameter, an error will be returned.
 
   - A new grant_type `urn:authgear:params:oauth:grant-type:app2app` is supported. When using such grant_type, The following must be provided in the request:
     - `refresh_token`: a valid refresh token.
     - `client_id`: current client id.
     - `app2app_client_id`: the authenticating client id.
-    - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key binded with the provided refresh token (using the `device_key` parameter during authentication).
+    - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key of the device key bound to the refresh token.
     - `app2app_redirect_uri`: the redirect uri used to return the result used by the app. The server is reponsible to check the provided uri is in the whitelist of at least one of the configured client redirect uri.
-  - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authentication_code` and obtain a new set of refresh token and access tokens.
+  - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authorization_code` and obtain a new set of refresh token and access tokens.
 
 ### Android
 
@@ -196,15 +227,15 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
 
    - Extract `code` from the url and use it to perform the code exchange.
 
-#### iOS
+#### iOS SDK
 
-The following parameters will be added to `authenticate()` method:
+The following parameters will be added to constuctor of `Authgear`:
 
 - `app2appOptions: App2AppOptions?`
   - app2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
-    - `accessContraints: BiometricAccessConstraint?`: The authentication the user must perform on authenticating another app through app2app flow.
-    - `authenticatePolicy: BiometricLAPolicy?`: The authentication policy used for app2app flow.
+    - `accessContraints`: [`BiometricAccessConstraint?`](https://github.com/authgear/authgear-sdk-ios/blob/master/Sources/Biometric.swift#L6): The authentication the user must perform on authenticating another app through app2app flow.
+    - `authenticatePolicy`: [`BiometricLAPolicy?`](https://github.com/authgear/authgear-sdk-ios/blob/master/Sources/Biometric.swift#L23): The authentication policy used for app2app flow.
 
 The following methods will be added in android sdk to support the app2app flow:
 
