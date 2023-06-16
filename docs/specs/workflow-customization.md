@@ -178,44 +178,36 @@ Example:
 identification_methods:
 # Identify the User by a Email Login ID Identity
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 # Identify the User by a Phone Login ID Identity
 - id: phone
-  identity:
-    type: "login_id"
-    login_id:
-      type: "phone"
+  type: "login_id"
+  login_id:
+    type: "phone"
 # Identify the User by a Username Login ID Identity
 - id: username
-  identity:
-    type: "login_id"
-    login_id:
-      type: "username"
+  type: "login_id"
+  login_id:
+    type: "username"
 # Identify the User by a OAuth Identity
 - id: oauth
-  identity:
-    type: "oauth"
-    oauth:
-      aliases: ["google", "apple"]
+  type: "oauth"
+  oauth:
+    aliases: ["google", "apple"]
 # Identify the User by a Anonymous Identity
 - id: anonymous
-  identity:
-    type: "anonymous"
+  type: "anonymous"
 # Identify the User by a Biometric Identity
 - id: biometric
-  identity:
-    type: "biometric"
+  type: "biometric"
 # Identify the User by a Passkey Identity
 - id: passkey
-  identity:
-    type: "passkey"
+  type: "passkey"
 # Identify the User by a Sign-in with Ethereum Identity
 - id: siwe
-  identity:
-    type: "siwe"
+  type: "siwe"
 ```
 
 #### Object: AuthenticationMethod
@@ -510,15 +502,13 @@ reauth_flows:
 ```yaml
 identification_methods:
 - id: phone
-  identity:
-    type: "login_id"
-    login_id:
-      type: "phone"
+  type: "login_id"
+  login_id:
+    type: "phone"
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 
 authentication_methods:
 - id: primary_sms_code
@@ -580,15 +570,13 @@ login_flows:
 ```yaml
 identification_methods:
 - id: phone
-  identity:
-    type: "login_id"
-    login_id:
-      type: "phone"
+  type: "login_id"
+  login_id:
+    type: "phone"
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 
 authentication_methods:
 - id: primary_sms_code
@@ -705,10 +693,9 @@ signup_login_flows:
 ```yaml
 identification_methods:
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 
 authentication_methods:
 - id: primary_password
@@ -758,20 +745,17 @@ login_flows:
 ```yaml
 identification_methods:
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 - id: phone
-  identity:
-    type: "login_id"
-    login_id:
-      type: "phone"
+  type: "login_id"
+  login_id:
+    type: "phone"
 - id: username
-  identity:
+  type: "username"
+  login_id:
     type: "username"
-    login_id:
-      type: "username"
 
 authentication_methods:
 - id: primary_password
@@ -808,18 +792,15 @@ login_flows:
 ```yaml
 identification_methods:
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 - id: oauth
-  identity:
-    type: "oauth"
-    oauth:
-      aliases: ["google"]
+  type: "oauth"
+  oauth:
+    aliases: ["google"]
 - id: passkey
-  identity:
-    type: "passkey"
+  type: "passkey"
 
 authentication_methods:
 - id: primary_password
@@ -974,49 +955,43 @@ The context of that place is described as follows.
         "type": "object",
         "properties": {
           "id": { "type": "string", "minLength": 1 },
-          "identity": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "login_id",
+              "oauth",
+              "anonymous",
+              "biometric",
+              "passkey",
+              "siwe"
+            ]
+          },
+          "login_id": {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
                 "enum": [
-                  "login_id",
-                  "oauth",
-                  "anonymous",
-                  "biometric",
-                  "passkey",
-                  "siwe"
+                  "email",
+                  "phone",
+                  "username"
                 ]
-              },
-              "login_id": {
-                "type": "object",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "email",
-                      "phone",
-                      "username"
-                    ]
-                  }
-                }
-              },
-              "oauth" {
-                "type": "object",
-                "properties": {
-                  "aliases": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
+              }
+            }
+          },
+          "oauth" {
+            "type": "object",
+            "properties": {
+              "aliases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
                 }
               }
-            },
-            "required": ["type"]
+            }
           }
         },
-        "required": ["id", "identity"]
+        "required": ["id", "type"]
       }
     }
   }
@@ -1469,18 +1444,15 @@ We take the [Use case example 5](#use-case-example-5-comprehensive-example) and 
 ```yaml
 identification_methods:
 - id: email
-  identity:
-    type: "login_id"
-    login_id:
-      type: "email"
+  type: "login_id"
+  login_id:
+    type: "email"
 - id: oauth
-  identity:
-    type: "oauth"
-    oauth:
-      aliases: ["google"]
+  type: "oauth"
+  oauth:
+    aliases: ["google"]
 - id: passkey
-  identity:
-    type: "passkey"
+  type: "passkey"
 
 authentication_methods:
 - id: primary_password
