@@ -34,7 +34,7 @@ export const SubscriptionEnterprisePlan: React.VFC<SubscriptionEnterprisePlanPro
           </CardTagline>
         }
         basePriceTag={
-          <BasePriceTag>
+          <BasePriceTag showAsterisk={false}>
             <FormattedMessage
               id={"SubscriptionPlanCard.plan.price.enterprise"}
             />

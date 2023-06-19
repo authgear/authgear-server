@@ -372,14 +372,20 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
         />
       }
       planDetailsTitle={
-        <PlanDetailsTitle>
-          <FormattedMessage
-            id="SubscriptionPlanCard.plan.features.title"
-            values={{
-              previousPlan: previousPlanName ?? "-",
-            }}
-          />
-        </PlanDetailsTitle>
+        previousPlanName ? (
+          <PlanDetailsTitle>
+            <FormattedMessage
+              id="SubscriptionPlanCard.plan.features.title"
+              values={{
+                previousPlan: (
+                  <FormattedMessage
+                    id={`SubscriptionScreen.plan-name.${previousPlanName}`}
+                  />
+                ),
+              }}
+            />
+          </PlanDetailsTitle>
+        ) : null
       }
       planDetailsLines={<PlanDetailsLines planName={name} />}
     />
@@ -630,6 +636,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     setEnterpriseDialogHidden(false);
   }, []);
 
+  const onClickEnterprisePlanContactUs = useCallback(() => {
+    setEnterpriseDialogHidden(false);
+  }, []);
+
   const onClickCancel = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -834,6 +844,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                   <SubscriptionEnterprisePlan
                     key={paidPlanName}
                     previousPlanName={previousPlan(paidPlanName)}
+                    onClickContactUs={onClickEnterprisePlanContactUs}
                   />
                 );
               }

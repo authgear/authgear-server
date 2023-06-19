@@ -112,14 +112,17 @@ function BasePriceSection(props: BasePriceSectionProps) {
 
 export interface BasePriceTagProps {
   children?: React.ReactNode;
+  showAsterisk?: boolean;
 }
 
 export function BasePriceTag(props: BasePriceTagProps): React.ReactElement {
-  const { children } = props;
+  const { children, showAsterisk = true } = props;
   return (
     <Text block={true} variant="xLarge" className={styles.basePriceTag}>
       {children}
-      <span className={styles.basePriceTagRemarks}>*</span>
+      {showAsterisk ? (
+        <span className={styles.basePriceTagRemarks}>*</span>
+      ) : null}
     </Text>
   );
 }
