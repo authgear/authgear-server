@@ -27,7 +27,8 @@
     + [Use case example 2: Uber](#use-case-example-2-uber)
     + [Use case example 3: Google](#use-case-example-3-google)
     + [Use case example 4: The Club](#use-case-example-4-the-club)
-    + [Use case example 5: Comprehensive example](#use-case-example-5-comprehensive-example)
+    + [Use case example 5: Manulife MPF](#use-case-example-5-manulife-mpf)
+    + [Use case example 6: Comprehensive example](#use-case-example-6-comprehensive-example)
 - [Expressions](#expressions)
   * [Literals](#literals)
   * [Operators](#operators)
@@ -42,6 +43,7 @@
   * [JSON schema of `login_flows`](#json-schema-of-login_flows)
   * [JSON Schema of `signup_login_flows`](#json-schema-of-signup_login_flows)
   * [JSON Schema of `reauth_flows`](#json-schema-of-reauth_flows)
+  * [Alternative design if Expressions were not used](#alternative-design-if-expressions-were-not-used)
 
 ## Goals
 
@@ -828,7 +830,58 @@ login_flows:
         id: primary_sms_code
 ```
 
-#### Use case example 5: Comprehensive example
+#### Use case example 5: Manulife MPF
+
+```yaml
+identification_methods:
+- id: username
+  type: "login_id"
+  login_id:
+    type: "username"
+- id: phone
+  type: "login_id"
+  login_id:
+    type: "phone"
+- id: email
+  type: "login_id"
+  login_id:
+    type: "email"
+
+authentication_methods:
+- id: primary_password
+  kind: primary
+  type: password
+- id: primary_sms_code
+  kind: primary
+  type: oob_otp_sms
+  phone_otp_mode: "sms"
+- id: primary_email_code
+  kind: primary
+  type: oob_otp_email
+  email_otp_mode: "code"
+
+# signup_flows are omitted because it does not have public signup.
+
+login_flows:
+- id: default_login_flow
+  steps:
+  - type: identify
+    one_of:
+    - identification_method:
+        id: username
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_password
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+    - authentication_method:
+        id: primary_email_code
+```
+
+#### Use case example 6: Comprehensive example
 
 ```yaml
 identification_methods:
