@@ -310,18 +310,29 @@ signup_flows:
 - id: default_flow
   steps:
   # Sign up with either a phone number or an email address.
-  # The phone number or the email address can receive OTP to sign in.
   - id: setup_identity
     type: identify
     one_of:
     - identification_method:
         id: phone
-      authentication_methods:
-      - id: primary_sms_code
     - identification_method:
         id: email
-      authentication_methods:
-      - id: primary_email_code
+  # Set up a phone OTP authenticator for the phone number
+  - type: authenticate
+    if: steps.setup_identity.identification_method.id == "phone"
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+      step:
+        id: setup_identity
+  # Set up an email OTP authenticator for the email address.
+  - type: authenticate
+    if: steps.setup_identity.identification_method.id == "email"
+    one_of:
+    - authentication_method:
+        id: primary_email_code
+      step:
+        id: setup_identity
   # Set up a primary password.
   - type: authenticate
     one_of:
@@ -527,20 +538,30 @@ signup_flows:
 - id: default_signup_flow
   steps:
   - type: identify
+    id: setup_phone
     one_of:
     - identification_method:
         id: phone
-      authentication_methods:
-      - id: primary_sms_code
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+      step:
+        id: setup_phone
   - type: verify
     step:
       id: setup_phone
   - type: identify
+    id: setup_email
     one_of:
     - identification_method:
         id: email
-      authentication_methods:
-      - id: primary_email_login_link
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_email_login_link
+      step:
+        id: setup_email
   - type: authenticate
     one_of:
     - authentication_method:
@@ -595,20 +616,30 @@ signup_flows:
 - id: phone_first
   steps:
   - type: identify
+    id: setup_phone
     one_of:
     - identification_method:
         id: phone
-      authentication_methods:
-      - id: primary_sms_code
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+      step:
+        id: setup_phone
   - type: verify
     step:
       id: setup_phone
   - type: identify
+    id: setup_email
     one_of:
     - identification_method:
         id: email
-      authentication_methods:
-      - id: primary_email_code
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_email_code
+      step:
+        id: setup_email
   - type: verify
     step:
       id: setup_email
@@ -619,20 +650,30 @@ signup_flows:
 - id: email_first
   steps:
   - type: identify
+    id: setup_email
     one_of:
     - identification_method:
         id: email
-      authentication_methods:
-      - id: primary_email_code
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_email_code
+      step:
+        id: setup_email
   - type: verify
     step:
       id: setup_email
   - type: identify
+    id: setup_phone
     one_of:
     - identification_method:
         id: phone
-      authentication_methods:
-      - id: primary_sms_code
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+      step:
+        id: setup_phone
   - type: verify
     step:
       id: setup_phone
@@ -833,10 +874,15 @@ signup_flows:
     one_of:
     - identification_method:
         id: email
-        authentication_methods:
-        - id: primary_email_code
     - identification_method:
         id: oauth
+  - type: authenticate
+    if: steps.setup_identity.identification_method.id == "email"
+    one_of:
+    - authentication_method:
+        id: primary_email_code
+      step:
+        id: setup_identity
   - type: verify
     if: steps.setup_identity.identification_method.id == "email"
     step:
@@ -1100,16 +1146,6 @@ The context of that place is described as follows.
                               "properties": {
                                 "id": { "type": "string", "minLength": 1 }
                               }
-                            },
-                            "authentication_methods": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "required": ["id"],
-                                "properties": {
-                                  "id": { "type": "string", "minLength": 1 }
-                                }
-                              }
                             }
                           }
                         }
@@ -1133,6 +1169,13 @@ The context of that place is described as follows.
                           "required": ["authentication_method"],
                           "properties": {
                             "authentication_method": {
+                              "type": "object",
+                              "required": ["id"],
+                              "properties": {
+                                "id": { "type": "string", "minLength": 1 }
+                              }
+                            },
+                            "step": {
                               "type": "object",
                               "required": ["id"],
                               "properties": {
@@ -1247,16 +1290,6 @@ The context of that place is described as follows.
                             "required": ["id"],
                             "properties": {
                               "id": { "type": "string", "minLength": 1 }
-                            }
-                          },
-                          "authentication_methods": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "required": ["id"],
-                              "properties": {
-                                "id": { "type": "string", "minLength": 1 }
-                              }
                             }
                           }
                         }
