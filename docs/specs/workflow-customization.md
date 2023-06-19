@@ -323,7 +323,7 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_sms_code
-      step:
+      target_step:
         id: setup_identity
   # Set up an email OTP authenticator for the email address.
   - type: authenticate
@@ -331,7 +331,7 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_email_code
-      step:
+      target_step:
         id: setup_identity
   # Set up a primary password.
   - type: authenticate
@@ -342,7 +342,7 @@ signup_flows:
   # If this step is not specified, the phone number or the email address is unverified.
   - type: verify
     if: contains(fromJSON('["phone", "email"]'), steps.setup_identity.identification_method.id)
-    step:
+    target_step:
       id: setup_identity
   # Set up another phone number for 2FA.
   - type: authenticate
@@ -351,7 +351,7 @@ signup_flows:
         id: secondary_sms_code
   # Verify the phone number in the previous step.
   - type: verify
-    step:
+    target_step:
       id: setup_phone_2fa
   # Collect given name and family name.
   - type: user_profile
@@ -546,10 +546,10 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_sms_code
-      step:
+      target_step:
         id: setup_phone
   - type: verify
-    step:
+    target_step:
       id: setup_phone
   - type: identify
     id: setup_email
@@ -560,7 +560,7 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_email_login_link
-      step:
+      target_step:
         id: setup_email
   - type: authenticate
     one_of:
@@ -624,10 +624,10 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_sms_code
-      step:
+      target_step:
         id: setup_phone
   - type: verify
-    step:
+    target_step:
       id: setup_phone
   - type: identify
     id: setup_email
@@ -638,10 +638,10 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_email_code
-      step:
+      target_step:
         id: setup_email
   - type: verify
-    step:
+    target_step:
       id: setup_email
   - type: authenticate
     one_of:
@@ -658,10 +658,10 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_email_code
-      step:
+      target_step:
         id: setup_email
   - type: verify
-    step:
+    target_step:
       id: setup_email
   - type: identify
     id: setup_phone
@@ -672,10 +672,10 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_sms_code
-      step:
+      target_step:
         id: setup_phone
   - type: verify
-    step:
+    target_step:
       id: setup_phone
   - type: authenticate
     one_of:
@@ -881,11 +881,11 @@ signup_flows:
     one_of:
     - authentication_method:
         id: primary_email_code
-      step:
+      target_step:
         id: setup_identity
   - type: verify
     if: steps.setup_identity.identification_method.id == "email"
-    step:
+    target_step:
       id: setup_identity
   - id: setup_first_factor
     type: authenticate
@@ -1175,7 +1175,7 @@ The context of that place is described as follows.
                                 "id": { "type": "string", "minLength": 1 }
                               }
                             },
-                            "step": {
+                            "target_step": {
                               "type": "object",
                               "required": ["id"],
                               "properties": {
@@ -1195,9 +1195,9 @@ The context of that place is described as follows.
                     }
                   },
                   "then": {
-                    "required": ["step"],
+                    "required": ["target_step"],
                     "properties": {
-                      "step": {
+                      "target_step": {
                         "type": "object",
                         "required": ["id"],
                         "properties": {
