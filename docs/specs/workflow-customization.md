@@ -43,7 +43,7 @@
   * [JSON schema of `login_flows`](#json-schema-of-login_flows)
   * [JSON Schema of `signup_login_flows`](#json-schema-of-signup_login_flows)
   * [JSON Schema of `reauth_flows`](#json-schema-of-reauth_flows)
-  * [Alternative design if Expressions were not used](#alternative-design-if-expressions-were-not-used)
+  * [Unused design that allow nested steps](#unused-design-that-allow-nested-steps)
 
 ## Goals
 
@@ -1394,10 +1394,10 @@ The context of that place is described as follows.
 }
 ```
 
-### Alternative design if Expressions were not used
+### Unused design that allow nested steps
 
-Here we show how would the configuration looks like if expressions were not used.
-We take the [Use case example 5](#use-case-example-5-comprehensive-example) and rewrite it.
+Here we show how would the configuration looks like if nested steps were allowed.
+We take the [Use case example 6](#use-case-example-6-comprehensive-example) and rewrite it.
 
 ```yaml
 identification_methods:
@@ -1436,65 +1436,51 @@ authentication_methods:
 signup_flows:
 - id: default_signup_flow
   steps:
-  - type: identify
+  - id: setup_identity
+    type: identify
     one_of:
-    - identification_method:
-        id: email
-        authentication_methods:
-        - id: primary_email_code
-        steps:
-        - type: verify
-        - type: authenticate
-          one_of:
-          - authentication_method:
-              id: primary_password
-              steps:
-              - type: authenticate
-                one_of:
-                - authentication_method:
-                    id: secondary_totp
-    - identification_method:
-        id: oauth
+    - identification: oauth
+    - identification: email
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: primary_email_code
+          target_step: setup_identity
+      - type: verify
+        target_step: setup_identity
+      - id: setup_first_factor
+        type: authenticate
+        one_of:
+        - authentication: primary_password
+      - type: authenticate
+        one_of:
+        - authentication: secondary_totp
 
 login_flows:
 - id: default_login_flow
   steps:
-  - type: identify
+  - id: identify
+    type: identify
     one_of:
-    - identification_method:
-        id: email
-        steps:
-        - type: authenticate
-          one_of:
-          - authentication_method:
-              id: primary_password
-              steps:
-              - type: authenticate
-                one_of:
-                - authentication_method:
-                    id: secondary_totp
-                - authentication_method:
-                    id: recovery_code
-                - authentication_method:
-                    id: device_token
-          - authentication_method:
-              id: primary_email_code
-              steps:
-              - type: authenticate
-                one_of:
-                - authentication_method:
-                    id: secondary_totp
-                - authentication_method:
-                    id: recovery_code
-                - authentication_method:
-                    id: device_token
-          - authentication_method:
-              id: primary_passkey
-    - identification_method:
-        id: oauth
-    - identification_method:
-        id: passkey
+    - identification: oauth
+    - identification: passkey
+    - identification: email
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: primary_password
+          steps:
+          - type: authenticate
+            one_of:
+            - authentication: secondary_totp
+            - authentication: recovery_code
+            - authentication: device_token
+        - authentication: primary_email_code
+          steps:
+          - type: authenticate
+            one_of:
+            - authentication: secondary_totp
+            - authentication: recovery_code
+            - authentication: device_token
+        - authentication: primary_passkey
 ```
-
-We can see that the steps are executed in a depth-first search fashion.
-There are also duplicates when two branches share the same steps.
