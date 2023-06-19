@@ -315,46 +315,36 @@ signup_flows:
   - id: setup_identity
     type: identify
     one_of:
-    - identification_method:
-        id: phone
-    - identification_method:
-        id: email
+    - identification: phone
+    - identification: email
   # Set up a phone OTP authenticator for the phone number
   - type: authenticate
-    if: steps.setup_identity.identification_method.id == "phone"
+    if: steps.setup_identity.identification == "phone"
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-      target_step:
-        id: setup_identity
+    - authentication: primary_sms_code
+      target_step: setup_identity
   # Set up an email OTP authenticator for the email address.
   - type: authenticate
-    if: steps.setup_identity.identification_method.id == "email"
+    if: steps.setup_identity.identification == "email"
     one_of:
-    - authentication_method:
-        id: primary_email_code
-      target_step:
-        id: setup_identity
+    - authentication: primary_email_code
+      target_step: setup_identity
   # Set up a primary password.
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
   # Verify the phone number or the email address
   # If this step is not specified, the phone number or the email address is unverified.
   - type: verify
-    if: contains(fromJSON('["phone", "email"]'), steps.setup_identity.identification_method.id)
-    target_step:
-      id: setup_identity
+    if: contains(fromJSON('["phone", "email"]'), steps.setup_identity.identification)
+    target_step: setup_identity
   # Set up another phone number for 2FA.
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: secondary_sms_code
+    - authentication: secondary_sms_code
   # Verify the phone number in the previous step.
   - type: verify
-    target_step:
-      id: setup_phone_2fa
+    target_step: setup_phone_2fa
   # Collect given name and family name.
   - type: user_profile
     user_profile:
@@ -380,75 +370,56 @@ login_flows:
 # Sign in with a phone number and OTP via SMS to any phone number the account has.
 - id: phone_otp_to_any_phone
   steps:
-  - id: identify
-    type: identify
+  - type: identify
     one_of:
-    - identification_method:
-        id: phone
+    - identification: phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
+    - authentication: primary_sms_code
 # Sign in with a phone number and OTP via SMS to the same phone number.
 - id: phone_otp_to_same_phone
   steps:
   - id: identify
     type: identify
     one_of:
-    - identification_method:
-        id: phone
+    - identification: phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-      target_step:
-        id: identify
+    - authentication: primary_sms_code
+      target_step: identify
 # Sign in with a phone number and a password
 - id: phone_password
   steps:
-  - id: identify
-    type: identify
+  - type: identify
     one_of:
-    - identification_method:
-        id: phone
-  - id: authenticate
-    type: authenticate
+    - identification: phone
+  - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 # Sign in with a phone number, or an email address, with a password
 - id: phone_email_password
   steps:
-  - id: identify
-    type: identify
+  - type: identify
     one_of:
-    - identification_method:
-        id: phone
-    - identification_method:
-        id: email
+    - identification: phone
+    - identification: email
   - id: authenticate
     type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 # Sign in with an email address, a password and a TOTP
 - id: email_password_totp
   steps:
-  - id: identify
-    type: identify
+  - type: identify
     one_of:
-    - identification_method:
-        id: email
+    - identification: email
   - id: first_factor
     type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
-  - id: second_factor
-    type: authenticate
+    - authentication: primary_password
+  - type: authenticate
     one_of:
-    - authentication_method:
-        id: secondary_totp
+    - authentication: secondary_totp
 ```
 
 #### Object: SignupLoginFlow
@@ -464,18 +435,12 @@ signup_login_flows:
   - id: step
     type: identify
     one_of:
-    - identification_method:
-        id: phone
-      signup_flow:
-        id: default_signup_flow
-      login_flow:
-        id: default_login_flow
-    - identification_method:
-        id: email
-      signup_flow:
-        id: default_signup_flow
-      login_flow:
-        id: default_login_flow
+    - identification: phone
+      signup_flow: default_signup_flow
+      login_flow: default_login_flow
+    - identification: email
+      signup_flow: default_signup_flow
+      login_flow: default_login_flow
 ```
 
 #### Object: ReauthFlow
@@ -492,8 +457,7 @@ reauth_flows:
   - id: password
     type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 
 # Re-authenticate with any 2nd factor, assuming that 2FA is required in signup flow.
 - id: reauth_2fa
@@ -501,10 +465,8 @@ reauth_flows:
   - id: second_factor
     type: authenticate
     one_of:
-    - authentication_method:
-        id: secondary_totp
-    - authentication_method:
-        id: secondary_sms_code
+    - authentication: secondary_totp
+    - authentication: secondary_sms_code
 
 # Re-authenticate with the 1st factor AND the 2nd factor.
 - id: reauth_full
@@ -512,15 +474,12 @@ reauth_flows:
   - id: first_factor
     type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
   - id: second_factor
     type: authenticate
     one_of:
-    - authentication_method:
-        id: secondary_totp
-    - authentication_method:
-        id: secondary_sms_code
+    - authentication: secondary_totp
+    - authentication: secondary_sms_code
 ```
 
 #### Use case example 1: Latte
@@ -555,50 +514,38 @@ signup_flows:
   - type: identify
     id: setup_phone
     one_of:
-    - identification_method:
-        id: phone
+    - identification: phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-      target_step:
-        id: setup_phone
+    - authentication: primary_sms_code
+      target_step: setup_phone
   - type: verify
-    target_step:
-      id: setup_phone
+    target_step: setup_phone
   - type: identify
     id: setup_email
     one_of:
-    - identification_method:
-        id: email
+    - identification: email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_email_login_link
-      target_step:
-        id: setup_email
+    - authentication: primary_email_login_link
+      target_step: setup_email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
   - type: identify
     one_of:
-    - identification_method:
-        id: phone
+    - identification: phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
+    - authentication: primary_sms_code
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_email_login_link
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_email_login_link
+    - authentication: primary_password
 ```
 
 #### Use case example 2: Uber
@@ -633,69 +580,51 @@ signup_flows:
   - type: identify
     id: setup_phone
     one_of:
-    - identification_method:
-        id: phone
+    - identification: phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-      target_step:
-        id: setup_phone
+    - authentication: primary_sms_code
+      target_step: setup_phone
   - type: verify
-    target_step:
-      id: setup_phone
+    target_step: setup_phone
   - type: identify
     id: setup_email
     one_of:
-    - identification_method:
-        id: email
+    - identification: email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_email_code
-      target_step:
-        id: setup_email
+    - authentication: primary_email_code
+      target_step: setup_email
   - type: verify
-    target_step:
-      id: setup_email
+    target_step: setup_email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 - id: email_first
   steps:
   - type: identify
     id: setup_email
     one_of:
-    - identification_method:
-        id: email
+    - identification: email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_email_code
-      target_step:
-        id: setup_email
+    - authentication: primary_email_code
+      target_step: setup_email
   - type: verify
-    target_step:
-      id: setup_email
+    target_step: setup_email
   - type: identify
     id: setup_phone
     one_of:
-    - identification_method:
-        id: phone
+    - identification: phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-      target_step:
-        id: setup_phone
+    - authentication: primary_sms_code
+      target_step: setup_phone
   - type: verify
-    target_step:
-      id: setup_phone
+    target_step: setup_phone
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 
 login_flows:
 - id: default_login_flow
@@ -703,26 +632,19 @@ login_flows:
   - id: identify
     type: identify
     one_of:
-    - identification_method:
-        id: phone
-    - identification_method:
-        id: email
+    - identification: phone
+    - identification: email
   - type: authenticate
-    if: steps.identify.identification_method.id == "phone"
+    if: steps.identify.identification == "phone"
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_sms_code
+    - authentication: primary_password
   - type: authenticate
-    if: steps.identify.identification_method.id == "email"
+    if: steps.identify.identification == "email"
     one_of:
-    - authentication_method:
-        id: primary_email_code
-    - authentication_method:
-        id: primary_sms_code
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_email_code
+    - authentication: primary_sms_code
+    - authentication: primary_password
 
 signup_login_flows:
 - id: default_signup_login_flow
@@ -730,18 +652,12 @@ signup_login_flows:
   - id: step
     type: identify
     one_of:
-    - identification_method:
-        id: phone
-      login_flow:
-        id: default_login_flow
-      signup_flow:
-        id: phone_first
-    - identification_method:
-        id: email
-      login_flow:
-        id: default_login_flow
-      signup_flow:
-        id: email_first
+    - identification: phone
+      login_flow: default_login_flow
+      signup_flow: phone_first
+    - identification: email
+      login_flow: default_login_flow
+      signup_flow: default_signup_flow
 ```
 
 #### Use case example 3: Google
@@ -770,30 +686,24 @@ signup_flows:
   steps:
   - type: identify
     one_of:
-    - identification_method:
-        id: email
+    - identification: email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
   - type: identify
     one_of:
-    - identification_method:
-        id: email
+    - identification: email
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: secondary_totp
-    - authentication_method:
-        id: secondary_sms_code
+    - authentication: secondary_totp
+    - authentication: secondary_sms_code
 ```
 
 #### Use case example 4: The Club
@@ -829,18 +739,13 @@ login_flows:
   steps:
   - type: identify
     one_of:
-    - identification_method:
-        id: email
-    - identification_method:
-        id: phone
-    - identification_method:
-        id: username
+    - identification: email
+    - identification: phone
+    - identification: username
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
-    - authentication_method:
-        id: primary_sms_code
+    - authentication: primary_password
+    - authentication: primary_sms_code
 ```
 
 #### Use case example 5: Manulife MPF
@@ -880,18 +785,14 @@ login_flows:
   steps:
   - type: identify
     one_of:
-    - identification_method:
-        id: username
+    - identification: username
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
   - type: authenticate
     one_of:
-    - authentication_method:
-        id: primary_sms_code
-    - authentication_method:
-        id: primary_email_code
+    - authentication: primary_sms_code
+    - authentication: primary_email_code
 ```
 
 #### Use case example 6: Comprehensive example
@@ -938,32 +839,25 @@ signup_flows:
   - id: setup_identity
     type: identify
     one_of:
-    - identification_method:
-        id: email
-    - identification_method:
-        id: oauth
+    - identification: email
+    - identification: oauth
   - type: authenticate
-    if: steps.setup_identity.identification_method.id == "email"
+    if: steps.setup_identity.identification == "email"
     one_of:
-    - authentication_method:
-        id: primary_email_code
-      target_step:
-        id: setup_identity
+    - authentication: primary_email_code
+      target_step: setup_identity
   - type: verify
-    if: steps.setup_identity.identification_method.id == "email"
-    target_step:
-      id: setup_identity
+    if: steps.setup_identity.identification == "email"
+    target_step: setup_identity
   - id: setup_first_factor
     type: authenticate
-    if: steps.setup_identity.identification_method.id == "email"
+    if: steps.setup_identity.identification == "email"
     one_of:
-    - authentication_method:
-        id: primary_password
+    - authentication: primary_password
   - type: authenticate
-    if: steps.setup_first_factor.authentication_method != null
+    if: steps.setup_first_factor.authentication != null
     one_of:
-    - authentication_method:
-        id: secondary_totp
+    - authentication: secondary_totp
 
 login_flows:
 # The end user can sign in with OAuth.
@@ -974,31 +868,22 @@ login_flows:
   - id: identify
     type: identify
     one_of:
-    - identification_method:
-        id: email
-    - identification_method:
-        id: oauth
-    - identification_method:
-        id: passkey
+    - identification: email
+    - identification: oauth
+    - identification: passkey
   - id: first_factor
     type: authenticate
-    if: steps.identify.identification_method.id == "email"
+    if: steps.identify.identification == "email"
     one_of:
-    - authentication_method:
-        id: primary_password
-    - authentication_method:
-        id: primary_email_code
-    - authentication_method:
-        id: primary_passkey
+    - authentication: primary_password
+    - authentication: primary_email_code
+    - authentication: primary_passkey
   - type: authenticate
-    if: steps.first_factor.authentication_method != null && setup.first_factor.authentication_method.id != "primary_passkey"
+    if: steps.first_factor.authentication != null && setup.first_factor.authentication != "primary_passkey"
     one_of:
-    - authentication_method:
-        id: secondary_totp
-    - authentication_method:
-        id: recovery_code
-    - authentication_method:
-        id: device_token
+    - authentication: secondary_totp
+    - authentication: recovery_code
+    - authentication: device_token
 ```
 
 ## Expressions
@@ -1051,8 +936,8 @@ The context of that place is described as follows.
 |---|---|---|
 |`steps`|`object`|The `steps` object|
 |`steps.<id>`|`object`|The `step` object|
-|`steps.<id>.identification_method.id`|`string`|The `id` of the selected `identification_method` in the step|
-|`steps.<id>.authentication_method.id`|`string`|The `id` of the selected `authentication_method` in the step|
+|`steps.<id>.identification`|`string` or `null`|The `id` of the selected `identification_method` in the step|
+|`steps.<id>.authentication`|`string` or `null`|The `id` of the selected `authentication_method` in the step|
 
 ## Appendix
 
@@ -1204,14 +1089,11 @@ The context of that place is described as follows.
                         "type": "array",
                         "items": {
                           "type": "object",
-                          "required": ["identification_method"],
+                          "required": ["identification"],
                           "properties": {
-                            "identification_method": {
-                              "type": "object",
-                              "required": ["id"],
-                              "properties": {
-                                "id": { "type": "string", "minLength": 1 }
-                              }
+                            "identification": {
+                              "type": "string",
+                              "minLength": 1
                             }
                           }
                         }
@@ -1232,21 +1114,15 @@ The context of that place is described as follows.
                         "type": "array",
                         "items": {
                           "type": "object",
-                          "required": ["authentication_method"],
+                          "required": ["authentication"],
                           "properties": {
-                            "authentication_method": {
-                              "type": "object",
-                              "required": ["id"],
-                              "properties": {
-                                "id": { "type": "string", "minLength": 1 }
-                              }
+                            "authentication": {
+                              "type": "string",
+                              "minLength": 1
                             },
                             "target_step": {
-                              "type": "object",
-                              "required": ["id"],
-                              "properties": {
-                                "id": { "type": "string", "minLength": 1 }
-                              }
+                              "type": "string",
+                              "minLength": 1
                             }
                           }
                         }
@@ -1264,11 +1140,8 @@ The context of that place is described as follows.
                     "required": ["target_step"],
                     "properties": {
                       "target_step": {
-                        "type": "object",
-                        "required": ["id"],
-                        "properties": {
-                          "id": { "type": "string", "minLength": 1 }
-                        }
+                        "type": "string",
+                        "minLength": 1
                       }
                     }
                   }
@@ -1349,14 +1222,11 @@ The context of that place is described as follows.
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["identification_method"],
+                        "required": ["identification"],
                         "properties": {
-                          "identification_method": {
-                            "type": "object",
-                            "required": ["id"],
-                            "properties": {
-                              "id": { "type": "string", "minLength": 1 }
-                            }
+                          "identification": {
+                            "type": "string",
+                            "minLength": 1
                           }
                         }
                       }
@@ -1377,21 +1247,15 @@ The context of that place is described as follows.
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["authentication_method"],
+                        "required": ["authentication"],
                         "properties": {
-                          "authentication_method": {
-                            "type": "object",
-                            "required": ["id"],
-                            "properties": {
-                              "id": { "type": "string", "minLength": 1 }
-                            }
+                          "authentication": {
+                            "type": "string",
+                            "minLength": 1
                           },
                           "target_step": {
-                            "type": "object",
-                            "required": ["id"],
-                            "properties": {
-                              "id": { "type": "string", "minLength": 1 }
-                            }
+                            "type": "string",
+                            "minLength": 1
                           }
                         }
                       }
@@ -1444,28 +1308,19 @@ The context of that place is described as follows.
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["identification_method", "signup_flow", "login_flow"],
+                        "required": ["identification", "signup_flow", "login_flow"],
                         "properties": {
                           "identification_method": {
-                            "type": "object",
-                            "required": ["id"],
-                            "properties": {
-                              "id": { "type": "string", "minLength": 1 }
-                            }
+                            "type": "string",
+                            "minLength": 1
                           },
                           "signup_flow": {
-                            "type": "object",
-                            "required": ["id"],
-                            "properties": {
-                              "id": { "type": "string", "minLength": 1 }
-                            }
+                            "type": "string",
+                            "minLength": 1
                           },
                           "login_flow": {
-                            "type": "object",
-                            "required": ["id"],
-                            "properties": {
-                              "id": { "type": "string", "minLength": 1 }
-                            }
+                            "type": "string",
+                            "minLength": 1
                           }
                         }
                       }
@@ -1517,14 +1372,11 @@ The context of that place is described as follows.
                         "type": "array",
                         "items": {
                           "type": "object",
-                          "required": ["authentication_method"],
+                          "required": ["authentication"],
                           "properties": {
-                            "authentication_method": {
-                              "type": "object",
-                              "required": ["id"],
-                              "properties": {
-                                "id": { "type": "string", "minLength": 1 }
-                              }
+                            "authentication": {
+                              "type": "string",
+                              "minLength": 1
                             }
                           }
                         }
