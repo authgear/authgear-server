@@ -174,13 +174,15 @@ export interface CTAProps {
     | "downgrade"
     | "current"
     | "non-applicable"
-    | "reactivate";
+    | "reactivate"
+    | "contact-us";
   nextBillingDate?: Date;
   disabled?: IButtonProps["disabled"];
   onClickSubscribe?: (planName: string) => void;
   onClickUpgrade?: (planName: string) => void;
   onClickDowngrade?: (planName: string) => void;
   onClickReactivate?: () => Promise<void>;
+  onClickContactUs?: () => void;
   reactivateLoading: boolean;
   reactivateError: any;
 }
@@ -200,7 +202,8 @@ const CURRENT_BUTTON_THEME: PartialTheme = {
   },
 };
 
-export function CTA(props: CTAProps): React.ReactElement {
+// eslint-disable-next-line complexity
+function CTA_(props: CTAProps): React.ReactElement {
   const {
     appID,
     planName,
@@ -211,6 +214,7 @@ export function CTA(props: CTAProps): React.ReactElement {
     onClickUpgrade: onClickUpgradeProps,
     onClickDowngrade: onClickDowngradeProps,
     onClickReactivate: onClickReactivateProps,
+    onClickContactUs,
     reactivateLoading,
     reactivateError,
   } = props;
@@ -504,8 +508,34 @@ export function CTA(props: CTAProps): React.ReactElement {
           />
         </>
       );
+    case "contact-us":
+      return <CTAContactUs onClick={onClickContactUs} disabled={disabled} />;
   }
 }
+
+function CTAContactUs(props: { onClick?: () => void; disabled?: boolean }) {
+  const { onClick: onClickContactUsProps, disabled } = props;
+
+  const onClickContactUs = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClickContactUsProps?.();
+    },
+    [onClickContactUsProps]
+  );
+
+  return (
+    <PrimaryButton
+      className={styles.cta}
+      onClick={onClickContactUs}
+      disabled={disabled}
+      text={<FormattedMessage id="SubscriptionPlanCard.label.contact-us" />}
+    />
+  );
+}
+
+export const CTA = Object.assign(CTA_, { ContactUs: CTAContactUs });
 
 function Separator() {
   const theme = useTheme();

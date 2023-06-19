@@ -1095,6 +1095,7 @@
   "SubscriptionPlanCard.label.current": "Current",
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
   "SubscriptionPlanCard.label.reactivate": "Reactivate",
+  "SubscriptionPlanCard.label.contact-us": "Contact Us",
   "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
   "SubscriptionPlanCard.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
   "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
@@ -1131,6 +1132,15 @@
   "SubscriptionPlanCard.plan.features.line.1.business": "Unlimited Hooks",
   "SubscriptionPlanCard.plan.features.line.2.business": "Unlimited Admins",
 
+  "SubscriptionPlanCard.plan.tagline.enterprise": "Enterprise-level support and tailored solution",
+  "SubscriptionPlanCard.plan.price.enterprise": "Get In Touch",
+  "SubscriptionPlanCard.plan.mau-restriction.enterprise": "10,000+ MAUs",
+  "SubscriptionPlanCard.plan.features.line.0.enterprise": "Volume Discounts",
+  "SubscriptionPlanCard.plan.features.line.1.enterprise": "Private Deployment",
+  "SubscriptionPlanCard.plan.features.line.2.enterprise": "Service Level Agreement (SLA)",
+  "SubscriptionPlanCard.plan.features.line.3.enterprise": "Enterprise Support",
+  "SubscriptionPlanCard.plan.features.line.4.enterprise": "Compliance Requirements",
+
   "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
   "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
   "SubscriptionPlanCard.mau": "USD {unitAmount}/mo per {divisor} additional MAUs",
@@ -1154,6 +1164,7 @@
   "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
+  "SubscriptionScreen.plan-name.enterprise": "Enterprise",
 
   "SubscriptionScreen.processing-payment": "Processing Payment... \nThis may take a few minutes",
   "SubscriptionScreen.payment-declined.description": "Payment declined, please try another payment method.",

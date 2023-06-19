@@ -67,8 +67,10 @@ import DefaultButton from "../../DefaultButton";
 import LinkButton from "../../LinkButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
+import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
 
-const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
+const ENTERPRISE_PLAN = "enterprise";
+const ALL_KNOWN_PLANS = ["free", "startups", "business", ENTERPRISE_PLAN];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
 
 const MAU_LIMIT: Record<string, number> = {
@@ -100,6 +102,12 @@ function previousPlan(planName: string): string | null {
 
 function isKnownPlan(planName: string): boolean {
   return ALL_KNOWN_PLANS.indexOf(planName) >= 0;
+}
+
+function isEnterprisePlan(
+  planName: string
+): planName is typeof ENTERPRISE_PLAN {
+  return planName === ENTERPRISE_PLAN;
 }
 
 function isKnownPaidPlan(planName: string): boolean {
@@ -822,6 +830,14 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                     subscriptionPlan={plan}
                     currentPlanName={planName}
                     nextBillingDate={nextBillingDate}
+                  />
+                );
+              }
+              if (isEnterprisePlan(paidPlanName)) {
+                return (
+                  <SubscriptionEnterprisePlan
+                    key={paidPlanName}
+                    previousPlanName={previousPlan(paidPlanName)}
                   />
                 );
               }
