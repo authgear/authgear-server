@@ -75,9 +75,8 @@ const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
 
 const MAU_LIMIT: Record<string, number> = {
   free: 5000,
-  developers: 1000,
   startups: 5000,
-  business: 50000,
+  business: 10000,
 };
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
@@ -144,14 +143,11 @@ function PlanDetailsLines(props: PlanDetailsLinesProps) {
   }
   let length = 0;
   switch (planName) {
-    case "developers":
-      length = 5;
-      break;
     case "startups":
       length = 4;
       break;
     case "business":
-      length = 3;
+      length = 6;
       break;
   }
   const children = [];
