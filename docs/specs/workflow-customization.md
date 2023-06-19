@@ -377,19 +377,32 @@ Example:
 
 ```yaml
 login_flows:
-# Sign in with a phone number and OTP via SMS.
-- id: phone_otp
+# Sign in with a phone number and OTP via SMS to any phone number the account has.
+- id: phone_otp_to_any_phone
   steps:
   - id: identify
     type: identify
     one_of:
     - identification_method:
         id: phone
-  - id: authenticate
-    type: authenticate
+  - type: authenticate
     one_of:
     - authentication_method:
         id: primary_sms_code
+# Sign in with a phone number and OTP via SMS to the same phone number.
+- id: phone_otp_to_same_phone
+  steps:
+  - id: identify
+    type: identify
+    one_of:
+    - identification_method:
+        id: phone
+  - type: authenticate
+    one_of:
+    - authentication_method:
+        id: primary_sms_code
+      target_step:
+        id: identify
 # Sign in with a phone number and a password
 - id: phone_password
   steps:
@@ -1367,6 +1380,13 @@ The context of that place is described as follows.
                         "required": ["authentication_method"],
                         "properties": {
                           "authentication_method": {
+                            "type": "object",
+                            "required": ["id"],
+                            "properties": {
+                              "id": { "type": "string", "minLength": 1 }
+                            }
+                          },
+                          "target_step": {
                             "type": "object",
                             "required": ["id"],
                             "properties": {
