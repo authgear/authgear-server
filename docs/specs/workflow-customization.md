@@ -15,7 +15,6 @@
   * [What is a reauth flow](#what-is-a-reauth-flow)
   * [Design of the configuration](#design-of-the-configuration)
     + [Design overview](#design-overview)
-    + [Object: IdentificationMethod](#object-identificationmethod)
     + [Object: AuthenticationMethod](#object-authenticationmethod)
     + [Object: Flow](#object-flow)
     + [Object: Step](#object-step)
@@ -37,7 +36,6 @@
     + [fromJSON](#fromjson)
   * [Contexts](#contexts)
 - [Appendix](#appendix)
-  * [JSON Schema of `identification_methods`](#json-schema-of-identification_methods)
   * [JSON Schema of `authentication_methods`](#json-schema-of-authentication_methods)
   * [JSON schema of `signup_flows`](#json-schema-of-signup_flows)
   * [JSON schema of `login_flows`](#json-schema-of-login_flows)
@@ -168,35 +166,6 @@ Every object must have an `id`. The namespace in which the `id` is in varies by 
 The configuration maps to a user flow as performed by a end-user.
 A user flow consists of one or more screens, and the configuration consists of one or more steps.
 Screens are not nested, so steps are organized linearly, and not nested as well.
-
-#### Object: IdentificationMethod
-
-We define available IdentificationMethods under `identification_methods`.
-The `id` is in the global namespace.
-
-Example:
-
-```yaml
-identification_methods:
-# Identify the User by a Email Login ID Identity
-- id: email
-  type: email
-# Identify the User by a Phone Login ID Identity
-- id: phone
-  type: phone
-# Identify the User by a Username Login ID Identity
-- id: username
-  type: username
-# Identify the User by a OAuth Identity
-- id: oauth
-  type: "oauth"
-# Identify the User by a Passkey Identity
-- id: passkey
-  type: "passkey"
-# Identify the User by a Sign-in with Ethereum Identity
-- id: siwe
-  type: "siwe"
-```
 
 #### Object: AuthenticationMethod
 
@@ -451,12 +420,6 @@ reauth_flows:
 #### Use case example 1: Latte
 
 ```yaml
-identification_methods:
-- id: phone
-  type: phone
-- id: email
-  type: email
-
 authentication_methods:
 - id: primary_oob_otp_sms
   kind: primary
@@ -511,12 +474,6 @@ login_flows:
 #### Use case example 2: Uber
 
 ```yaml
-identification_methods:
-- id: phone
-  type: phone
-- id: email
-  type: email
-
 authentication_methods:
 - id: primary_oob_otp_sms
   kind: primary
@@ -617,10 +574,6 @@ signup_login_flows:
 #### Use case example 3: Google
 
 ```yaml
-identification_methods:
-- id: email
-  type: email
-
 authentication_methods:
 - id: primary_password
   kind: primary
@@ -660,14 +613,6 @@ login_flows:
 #### Use case example 4: The Club
 
 ```yaml
-identification_methods:
-- id: email
-  type: email
-- id: phone
-  type: email
-- id: username
-  type: username
-
 authentication_methods:
 - id: primary_password
   kind: primary
@@ -695,14 +640,6 @@ login_flows:
 #### Use case example 5: Manulife MPF
 
 ```yaml
-identification_methods:
-- id: username
-  type: username
-- id: phone
-  type: phone
-- id: email
-  type: email
-
 authentication_methods:
 - id: primary_password
   kind: primary
@@ -734,14 +671,6 @@ login_flows:
 #### Use case example 6: Comprehensive example
 
 ```yaml
-identification_methods:
-- id: email
-  type: email
-- id: oauth
-  type: "oauth"
-- id: passkey
-  type: "passkey"
-
 authentication_methods:
 - id: primary_password
   kind: primary
@@ -867,40 +796,10 @@ The context of that place is described as follows.
 |---|---|---|
 |`steps`|`object`|The `steps` object|
 |`steps.<id>`|`object`|The `step` object|
-|`steps.<id>.identification`|`string` or `null`|The `id` of the selected `identification_method` in the step|
+|`steps.<id>.identification`|`string` or `null`|The identification method selected in the step|
 |`steps.<id>.authentication`|`string` or `null`|The `id` of the selected `authentication_method` in the step|
 
 ## Appendix
-
-### JSON Schema of `identification_methods`
-
-```json
-{
-  "properties": {
-    "identification_methods": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "type": {
-            "type": "string",
-            "enum": [
-              "email",
-              "phone",
-              "username",
-              "oauth",
-              "passkey",
-              "siwe"
-            ]
-          }
-        },
-        "required": ["id", "type"]
-      }
-    }
-  }
-}
-```
 
 ### JSON Schema of `authentication_methods`
 
@@ -985,7 +884,14 @@ The context of that place is described as follows.
                           "properties": {
                             "identification": {
                               "type": "string",
-                              "minLength": 1
+                              "enum": [
+                                "email",
+                                "phone",
+                                "username",
+                                "oauth",
+                                "passkey",
+                                "siwe"
+                              ]
                             }
                           }
                         }
@@ -1118,7 +1024,14 @@ The context of that place is described as follows.
                         "properties": {
                           "identification": {
                             "type": "string",
-                            "minLength": 1
+                            "enum": [
+                              "email",
+                              "phone",
+                              "username",
+                              "oauth",
+                              "passkey",
+                              "siwe"
+                            ]
                           }
                         }
                       }
@@ -1202,9 +1115,16 @@ The context of that place is described as follows.
                         "type": "object",
                         "required": ["identification", "signup_flow", "login_flow"],
                         "properties": {
-                          "identification_method": {
+                          "identification": {
                             "type": "string",
-                            "minLength": 1
+                            "enum": [
+                              "email",
+                              "phone",
+                              "username",
+                              "oauth",
+                              "passkey",
+                              "siwe"
+                            ]
                           },
                           "signup_flow": {
                             "type": "string",
@@ -1292,14 +1212,6 @@ Here we show how would the configuration looks like if nested steps were allowed
 We take the [Use case example 6](#use-case-example-6-comprehensive-example) and rewrite it.
 
 ```yaml
-identification_methods:
-- id: email
-  type: email
-- id: oauth
-  type: "oauth"
-- id: passkey
-  type: "passkey"
-
 authentication_methods:
 - id: primary_password
   kind: primary
