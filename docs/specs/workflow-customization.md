@@ -15,8 +15,6 @@
   * [What is a reauth flow](#what-is-a-reauth-flow)
   * [Design of the configuration](#design-of-the-configuration)
     + [Design overview](#design-overview)
-    + [Object: Flow](#object-flow)
-    + [Object: Step](#object-step)
     + [Object: SignupFlow](#object-signupflow)
     + [Object: LoginFlow](#object-loginflow)
     + [Object: SignupLoginFlow](#object-signuploginflow)
@@ -27,19 +25,8 @@
     + [Use case example 4: The Club](#use-case-example-4-the-club)
     + [Use case example 5: Manulife MPF](#use-case-example-5-manulife-mpf)
     + [Use case example 6: Comprehensive example](#use-case-example-6-comprehensive-example)
-- [Expressions](#expressions)
-  * [Literals](#literals)
-  * [Operators](#operators)
-  * [Functions](#functions)
-    + [contains](#contains)
-    + [fromJSON](#fromjson)
-  * [Contexts](#contexts)
 - [Appendix](#appendix)
-  * [JSON schema of `signup_flows`](#json-schema-of-signup_flows)
-  * [JSON schema of `login_flows`](#json-schema-of-login_flows)
-  * [JSON Schema of `signup_login_flows`](#json-schema-of-signup_login_flows)
-  * [JSON Schema of `reauth_flows`](#json-schema-of-reauth_flows)
-  * [Unused design that allow nested steps](#unused-design-that-allow-nested-steps)
+  * [JSON schema](#json-schema)
 
 ## Goals
 
@@ -158,29 +145,13 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 
 #### Design overview
 
-The configuration is a small DSL with a simple expression language.
-Every object must have an `id`. The namespace in which the `id` is in varies by object.
-
-The configuration maps to a user flow as performed by a end-user.
-A user flow consists of one or more screens, and the configuration consists of one or more steps.
-Screens are not nested, so steps are organized linearly, and not nested as well.
-
-#### Object: Flow
-
-A Flow has one or more Steps.
-The `id` is in the global namespace.
-
-#### Object: Step
-
-A Step is associated with one Flow.
-The `id` is the namespace of the Flow.
-So Steps in different Flows can share the same `id`.
-
-A Step is executed conditionally if it has a `if`.
-The value is an [Expression](#expressions).
-
-The `id` of a Flow can be omitted if the developer need not reference it in a later step.
-An `id` will be randomly generated in such case.
+- A flow has one or more `steps`.
+- A step MAY optionally have an `id`.
+- A step is either a `one_of` step or a `type` step.
+- A `type` step is specific to the kind of the flow. For example, only SignupFlow has the `type: user_profile` step.
+- A `type` step MAY optionally have zero or more `steps`.
+- A `one_of` step MUST have at least one `type` step.
+- All `type` steps in a `one_of` step MUST share the same `type`.
 
 #### Object: SignupFlow
 
@@ -190,40 +161,34 @@ Example:
 
 ```yaml
 signup_flows:
-- id: default_flow
+- id: default_signup_flow
   steps:
-  # Sign up with either a phone number or an email address.
-  - id: setup_identity
-    type: identify
-    one_of:
-    - identification: phone
-    - identification: email
-  # Set up a phone OTP authenticator for the phone number
+  - one_of:
+    - id: setup_phone
+      type: identify
+      identification: phone
+      steps:
+      # Set up a phone OTP authenticator for the phone number
+      - type: authenticate
+        authentication: primary_oob_otp_sms
+        target_step: setup_phone
+      - type: verify
+        target_step: setup_phone
+    - id: setup_email
+      type: identify
+      identification: email
+      steps:
+      # Set up an email OTP authenticator for the email address.
+      - type: authenticate
+        authentication: primary_oob_otp_email
+        target_step: setup_email
+      - type: verify
+        target_step: setup_email
   - type: authenticate
-    if: steps.setup_identity.identification == "phone"
-    one_of:
-    - authentication: primary_oob_otp_sms
-      target_step: setup_identity
-  # Set up an email OTP authenticator for the email address.
-  - type: authenticate
-    if: steps.setup_identity.identification == "email"
-    one_of:
-    - authentication: primary_oob_otp_email
-      target_step: setup_identity
-  # Set up a primary password.
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
-  # Verify the phone number or the email address
-  # If this step is not specified, the phone number or the email address is unverified.
-  - type: verify
-    if: contains(fromJSON('["phone", "email"]'), steps.setup_identity.identification)
-    target_step: setup_identity
-  # Set up another phone number for 2FA.
-  - type: authenticate
-    one_of:
-    - authentication: secondary_oob_otp_sms
-  # Verify the phone number in the previous step.
+    authentication: primary_password
+  - id: setup_phone_2fa
+    type: authenticate
+    authentication: secondary_oob_otp_sms
   - type: verify
     target_step: setup_phone_2fa
   # Collect given name and family name.
@@ -252,55 +217,47 @@ login_flows:
 - id: phone_otp_to_any_phone
   steps:
   - type: identify
-    one_of:
-    - identification: phone
+    identification: phone
   - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
+    authentication: primary_oob_otp_sms
+
 # Sign in with a phone number and OTP via SMS to the same phone number.
 - id: phone_otp_to_same_phone
   steps:
   - id: identify
     type: identify
-    one_of:
-    - identification: phone
+    identification: phone
   - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
-      target_step: identify
+    authentication: primary_oob_otp_sms
+    target_step: identify
+
 # Sign in with a phone number and a password
 - id: phone_password
   steps:
   - type: identify
-    one_of:
-    - identification: phone
+    identification: phone
   - type: authenticate
-    one_of:
-    - authentication: primary_password
+    authentication: primary_password
 # Sign in with a phone number, or an email address, with a password
 - id: phone_email_password
   steps:
-  - type: identify
-    one_of:
-    - identification: phone
-    - identification: email
-  - id: authenticate
-    type: authenticate
-    one_of:
-    - authentication: primary_password
+  - one_of:
+    - type: identify
+      identification: phone
+    - type: identify
+      identification: email
+  - type: authenticate
+    authentication: primary_password
+
 # Sign in with an email address, a password and a TOTP
 - id: email_password_totp
   steps:
   - type: identify
-    one_of:
-    - identification: email
-  - id: first_factor
-    type: authenticate
-    one_of:
-    - authentication: primary_password
+    identification: email
   - type: authenticate
-    one_of:
-    - authentication: secondary_totp
+    authentication: primary_password
+  - type: authenticate
+    authentication: secondary_totp
 ```
 
 #### Object: SignupLoginFlow
@@ -313,13 +270,13 @@ Example:
 signup_login_flows:
 - id: default_signup_login_flow
   steps:
-  - id: step
-    type: identify
-    one_of:
-    - identification: phone
+  - one_of:
+    - type: identify
+      identification: phone
       signup_flow: default_signup_flow
       login_flow: default_login_flow
-    - identification: email
+    - type: identify
+      identification: email
       signup_flow: default_signup_flow
       login_flow: default_login_flow
 ```
@@ -335,32 +292,28 @@ reauth_flows:
 # Re-authenticate with primary password.
 - id: reauth_password
   steps:
-  - id: password
-    type: authenticate
-    one_of:
-    - authentication: primary_password
+  - type: authenticate
+    authentication: primary_password
 
 # Re-authenticate with any 2nd factor, assuming that 2FA is required in signup flow.
 - id: reauth_2fa
   steps:
-  - id: second_factor
-    type: authenticate
-    one_of:
-    - authentication: secondary_totp
-    - authentication: secondary_sms_code
+  - one_of:
+    - type: authenticate
+      authentication: secondary_totp
+    - type: authenticate
+      authentication: secondary_sms_code
 
 # Re-authenticate with the 1st factor AND the 2nd factor.
 - id: reauth_full
   steps:
-  - id: first_factor
-    type: authenticate
-    one_of:
-    - authentication: primary_password
-  - id: second_factor
-    type: authenticate
-    one_of:
-    - authentication: secondary_totp
-    - authentication: secondary_sms_code
+  - type: authenticate
+    authentication: primary_password
+  - one_of:
+    - type: authenticate
+      authentication: secondary_totp
+    - type: authenticate
+      authentication: secondary_sms_code
 ```
 
 #### Use case example 1: Latte
@@ -369,128 +322,114 @@ reauth_flows:
 signup_flows:
 - id: default_signup_flow
   steps:
-  - type: identify
-    id: setup_phone
-    one_of:
-    - identification: phone
+  - id: setup_phone
+    type: identify
+    identification: phone
   - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
-      target_step: setup_phone
+    authentication: primary_oob_otp_sms
+    target_step: setup_phone
   - type: verify
     target_step: setup_phone
-  - type: identify
-    id: setup_email
-    one_of:
-    - identification: email
+  - id: setup_email
+    type: identify
+    identification: email
   - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_email
-      target_step: setup_email
+    authentication: primary_oob_otp_email
+    target_step: setup_email
   - type: authenticate
-    one_of:
-    - authentication: primary_password
+    authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
   - type: identify
-    one_of:
-    - identification: phone
+    identification: phone
   - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
-  - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_email
-    - authentication: primary_password
+    authentication: primary_oob_otp_sms
+  - one_of:
+    - type: authenticate
+      authentication: primary_oob_otp_email
+    - type: authenticate
+      authentication: primary_password
 ```
 
 #### Use case example 2: Uber
 
 ```yaml
 signup_flows:
-- id: phone_first
+- id: default_signup_flow
   steps:
-  - type: identify
-    id: setup_phone
-    one_of:
-    - identification: phone
+  - one_of:
+    - id: setup_phone
+      type: identify
+      identification: phone
+      steps:
+      - type: authenticate
+        authentication: primary_oob_otp_sms
+        target_step: setup_phone
+      - type: verify
+        target_step: setup_phone
+      - id: setup_email
+        type: identify
+        identification: email
+      - type: authenticate
+        authentication: primary_oob_otp_email
+        target_step: setup_email
+      - type: verify
+        target_step: setup_email
+    - id: setup_email
+      type: identify
+      identification: email
+      steps:
+      - type: authenticate
+        authentication: primary_oob_otp_email
+        target_step: setup_email
+      - type: verify
+        target_step: setup_email
+      - id: setup_phone
+        type: identify
+        identification: phone
+      - type: authenticate
+        authentication: primary_oob_otp_sms
+        target_step: setup_phone
+      - type: verify
+        target_step: setup_phone
   - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
-      target_step: setup_phone
-  - type: verify
-    target_step: setup_phone
-  - type: identify
-    id: setup_email
-    one_of:
-    - identification: email
-  - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_email
-      target_step: setup_email
-  - type: verify
-    target_step: setup_email
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
-- id: email_first
-  steps:
-  - type: identify
-    id: setup_email
-    one_of:
-    - identification: email
-  - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_email
-      target_step: setup_email
-  - type: verify
-    target_step: setup_email
-  - type: identify
-    id: setup_phone
-    one_of:
-    - identification: phone
-  - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
-      target_step: setup_phone
-  - type: verify
-    target_step: setup_phone
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
+    authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
-  - id: identify
-    type: identify
-    one_of:
-    - identification: phone
-    - identification: email
-  - type: authenticate
-    if: steps.identify.identification == "phone"
-    one_of:
-    - authentication: primary_oob_otp_sms
-    - authentication: primary_password
-  - type: authenticate
-    if: steps.identify.identification == "email"
-    one_of:
-    - authentication: primary_oob_otp_email
-    - authentication: primary_oob_otp_sms
-    - authentication: primary_password
+  - one_of:
+    - type: identify
+      identification: phone
+      steps:
+      - one_of:
+        - type: authenticate
+          authentication: primary_oob_otp_sms
+        - type: authenticate
+          authentication: primary_password
+    - type: identify
+      identification: email
+      steps:
+      - one_of:
+        - type: authenticate
+          authentication: primary_oob_otp_email
+        - type: authenticate
+          authentication: primary_oob_otp_sms
+        - type: authenticate
+          authentication: primary_password
 
 signup_login_flows:
 - id: default_signup_login_flow
   steps:
-  - id: step
-    type: identify
-    one_of:
-    - identification: phone
+  - one_of:
+    - type: identify
+      identification: phone
       login_flow: default_login_flow
-      signup_flow: phone_first
-    - identification: email
+      signup_flow: default_signup_flow
+    - type: identify
+      identification: email
       login_flow: default_login_flow
       signup_flow: default_signup_flow
 ```
@@ -502,25 +441,22 @@ signup_flows:
 - id: default_signup_flow
   steps:
   - type: identify
-    one_of:
-    - identification: email
+    identification: email
   - type: authenticate
-    one_of:
-    - authentication: primary_password
+    authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
   - type: identify
-    one_of:
-    - identification: email
+    identification: email
   - type: authenticate
-    one_of:
-    - authentication: primary_password
-  - type: authenticate
-    one_of:
-    - authentication: secondary_totp
-    - authentication: secondary_oob_otp_sms
+    authentication: primary_password
+  - one_of:
+    - type: authenticate
+      authentication: secondary_totp
+    - type: authenticate
+      authentication: secondary_oob_otp_sms
 ```
 
 #### Use case example 4: The Club
@@ -531,15 +467,18 @@ login_flows:
 login_flows:
 - id: default_login_flow
   steps:
-  - type: identify
-    one_of:
-    - identification: email
-    - identification: phone
-    - identification: username
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
-    - authentication: primary_oob_otp_sms
+  - one_of:
+    - type: identify
+      identification: email
+    - type: identify
+      identification: phone
+    - type: identify
+      identification: username
+  - one_of:
+    - type: authenticate
+      authentication: primary_password
+    - type: authenticate
+      authentication: primary_oob_otp_sms
 ```
 
 #### Use case example 5: Manulife MPF
@@ -551,15 +490,14 @@ login_flows:
 - id: default_login_flow
   steps:
   - type: identify
-    one_of:
-    - identification: username
+    identification: username
   - type: authenticate
-    one_of:
-    - authentication: primary_password
-  - type: authenticate
-    one_of:
-    - authentication: primary_oob_otp_sms
-    - authentication: primary_oob_otp_email
+    authentication: primary_password
+  - one_of:
+    - type: authenticate
+      authentication: primary_oob_otp_sms
+    - type: authenticate
+      authentication: primary_oob_otp_email
 ```
 
 #### Use case example 6: Comprehensive example
@@ -570,28 +508,23 @@ signup_flows:
 # Or the end user sign up with verified email with password and 2FA.
 - id: default_signup_flow
   steps:
-  - id: setup_identity
-    type: identify
-    one_of:
-    - identification: email
-    - identification: oauth
-  - type: authenticate
-    if: steps.setup_identity.identification == "email"
-    one_of:
-    - authentication: primary_oob_otp_email
-      target_step: setup_identity
-  - type: verify
-    if: steps.setup_identity.identification == "email"
-    target_step: setup_identity
-  - id: setup_first_factor
-    type: authenticate
-    if: steps.setup_identity.identification == "email"
-    one_of:
-    - authentication: primary_password
-  - type: authenticate
-    if: steps.setup_first_factor.authentication != null
-    one_of:
-    - authentication: secondary_totp
+  - one_of:
+    # The flow of using OAuth
+    - type: identify
+      identification: oauth
+    # The flow of using email
+    - id: setup_email
+      type: identify
+      identification: email
+      steps:
+      - authentication: primary_oob_otp_email
+        target_step: setup_email
+      - type: verify
+        target_step: setup_email
+      - type: authenticate
+        authentication: primary_password
+      - type: authenticate
+        authentication: secondary_totp
 
 login_flows:
 # The end user can sign in with OAuth.
@@ -599,539 +532,41 @@ login_flows:
 # The end user can sign in with email with OTP, password, or passkey, and with 2FA.
 - id: default_login_flow
   steps:
-  - id: identify
-    type: identify
-    one_of:
-    - identification: email
-    - identification: oauth
-    - identification: passkey
-  - id: first_factor
-    type: authenticate
-    if: steps.identify.identification == "email"
-    one_of:
-    - authentication: primary_password
-    - authentication: primary_oob_otp_email
-    - authentication: primary_passkey
-  - type: authenticate
-    if: steps.first_factor.authentication != null && setup.first_factor.authentication != "primary_passkey"
-    one_of:
-    - authentication: secondary_totp
-    - authentication: recovery_code
-    - authentication: device_token
+  - one_of:
+    - type: identify
+      identification: oauth
+    - type: identify
+      identification: passkey
+    - type: identify
+      identification: email
+      steps:
+      - one_of:
+        - type: authenticate
+          authentication: primary_passkey
+        - type: authenticate
+          authentication: primary_password
+          steps:
+          - one_of:
+            - type: authenticate
+              authentication: secondary_totp
+            - type: authenticate
+              authentication: recovery_code
+            - type: authenticate
+              authentication: device_token
+        - type: authenticate
+          authentication: primary_oob_otp_email
+          steps:
+          - one_of:
+            - type: authenticate
+              authentication: secondary_totp
+            - type: authenticate
+              authentication: recovery_code
+            - type: authenticate
+              authentication: device_token
 ```
-
-## Expressions
-
-Expressions are used to determine whether a Step should run.
-
-### Literals
-
-|Data Type|Literal|
-|---|---|
-|`boolean`|`true` or `false`|
-|`null`|`null`|
-|`number`|[A JSON number](https://datatracker.ietf.org/doc/html/rfc8259#section-6)|
-|`string`|[A JSON string](https://datatracker.ietf.org/doc/html/rfc8259#section-7)|
-
-### Operators
-
-|Operator|Meaning|
-|---|---|
-|`( )`|Grouping|
-|`.`|Property access|
-|`!`|Logical negation|
-|`==`|Equal|
-|`!=`|Not equal|
-|`&&`|And|
-|`||`|Or|
-
-### Functions
-
-The following built-in functions can be used in expressions.
-
-#### contains
-
-`contains(array, item)`
-
-`contains` returns `true` if `item` is an element of `array`.
-
-#### fromJSON
-
-`fromJSON(jsonString)`
-
-`fromJSON` returns a value represented by `jsonString`.
-
-### Contexts
-
-The only place an expression can appear is in the `if` of a Step.
-The context of that place is described as follows.
-
-|Expression|Type|Description|
-|---|---|---|
-|`steps`|`object`|The `steps` object|
-|`steps.<id>`|`object`|The `step` object|
-|`steps.<id>.identification`|`string` or `null`|The identification method selected in the step|
-|`steps.<id>.authentication`|`string` or `null`|The authentication method selected in the step|
 
 ## Appendix
 
-### JSON schema of `signup_flows`
+### JSON schema
 
-```json
-{
-  "properties": {
-    "signup_flows": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "steps"],
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "steps": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["type"],
-              "properties": {
-                "id": { "type": "string", "minLength": 1 },
-                "if": { "type": "string", "format": "x_expression"} },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "identify",
-                    "authenticate",
-                    "verify",
-                    "user_profile"
-                  ]
-                }
-              },
-              "allOf": [
-                {
-                  "if": {
-                    "properties": {
-                      "type": { "const": "identify" }
-                    }
-                  },
-                  "then": {
-                    "required": ["one_of"],
-                    "properties": {
-                      "one_of": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "required": ["identification"],
-                          "properties": {
-                            "identification": {
-                              "type": "string",
-                              "enum": [
-                                "email",
-                                "phone",
-                                "username",
-                                "oauth",
-                                "passkey",
-                                "siwe"
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "if": {
-                    "properties": {
-                      "type": { "const": "authenticate" }
-                    }
-                  },
-                  "then": {
-                    "required": ["one_of"],
-                    "properties": {
-                      "one_of": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "required": ["authentication"],
-                          "properties": {
-                            "authentication": {
-                              "type": "string",
-                              "enum": [
-                                "primary_password",
-                                "primary_passkey",
-                                "primary_oob_otp_email",
-                                "primary_oob_otp_sms",
-                                "secondary_password",
-                                "secondary_totp",
-                                "secondary_oob_otp_email",
-                                "secondary_oob_otp_sms",
-                                "recovery_code",
-                                "device_token"
-                              ]
-                            },
-                            "target_step": {
-                              "type": "string",
-                              "minLength": 1
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "if": {
-                    "properties": {
-                      "type": { "const": "verify" }
-                    }
-                  },
-                  "then": {
-                    "required": ["target_step"],
-                    "properties": {
-                      "target_step": {
-                        "type": "string",
-                        "minLength": 1
-                      }
-                    }
-                  }
-                },
-                {
-                  "if": {
-                    "properties": {
-                      "type": { "const": "user_profile" }
-                    }
-                  },
-                  "then": {
-                    "required": ["user_profile"],
-                    "properties": {
-                      "user_profile": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "required": ["pointer", "required"],
-                          "properties": {
-                            "pointer": { "type": "string" },
-                            "required": { "type": "boolean" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### JSON schema of `login_flows`
-
-```json
-{
-  "properties": {
-    "login_flows": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "steps"],
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "steps": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["type"],
-              "properties": {
-                "id": { "type": "string", "minLength": 1 },
-                "if": { "type": "string", "format": "x_expression"} },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "identify",
-                    "authenticate"
-                  ]
-                }
-              }
-            },
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                      "type": { "const": "identify" }
-                  }
-                },
-                "then": {
-                  "required": ["one_of"],
-                  "properties": {
-                    "one_of": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": ["identification"],
-                        "properties": {
-                          "identification": {
-                            "type": "string",
-                            "enum": [
-                              "email",
-                              "phone",
-                              "username",
-                              "oauth",
-                              "passkey",
-                              "siwe"
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              },
-              {
-                "if": {
-                  "properties": {
-                    "type": { "const": "authenticate" }
-                  }
-                },
-                "then": {
-                  "required": ["one_of"],
-                  "properties": {
-                    "one_of": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": ["authentication"],
-                        "properties": {
-                          "authentication": {
-                            "type": "string",
-                            "enum": [
-                              "primary_password",
-                              "primary_passkey",
-                              "primary_oob_otp_email",
-                              "primary_oob_otp_sms",
-                              "secondary_password",
-                              "secondary_totp",
-                              "secondary_oob_otp_email",
-                              "secondary_oob_otp_sms",
-                              "recovery_code",
-                              "device_token"
-                            ]
-                          },
-                          "target_step": {
-                            "type": "string",
-                            "minLength": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### JSON Schema of `signup_login_flows`
-
-```json
-{
-  "properties": {
-    "signup_login_flows": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "steps"],
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "steps": {
-            "type": "object",
-            "required": ["type"],
-            "properties": {
-              "id": { "type": "string", "minLength": 1 },
-              "if": { "type": "string", "format": "x_expression"} },
-              "type": {
-                "type": { "type": "string", "enum": ["identify"] }
-              }
-            },
-            "allOf": [
-              {
-                "if": {
-                  "properties": {
-                    "type": { "const": "identify" }
-                  }
-                },
-                "then": {
-                  "required": ["one_of"],
-                  "properties": {
-                    "one_of": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": ["identification", "signup_flow", "login_flow"],
-                        "properties": {
-                          "identification": {
-                            "type": "string",
-                            "enum": [
-                              "email",
-                              "phone",
-                              "username",
-                              "oauth",
-                              "passkey",
-                              "siwe"
-                            ]
-                          },
-                          "signup_flow": {
-                            "type": "string",
-                            "minLength": 1
-                          },
-                          "login_flow": {
-                            "type": "string",
-                            "minLength": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### JSON Schema of `reauth_flows`
-
-```json
-{
-  "properties": {
-    "reauth_flows": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "steps"],
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "steps": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["type"],
-              "properties": {
-                "id": { "type": "string", "minLength": 1 },
-                "if": { "type": "string", "format": "x_expression"} },
-                "type": { "type": "string", "enum": ["authenticate"] }
-              },
-              "allOf": [
-                {
-                  "if": {
-                    "properties": {
-                      "type": { "const": "authenticate" }
-                    }
-                  },
-                  "then": {
-                    "properties": {
-                      "one_of": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "required": ["authentication"],
-                          "properties": {
-                            "authentication": {
-                              "type": "string",
-                              "enum": [
-                                "primary_password",
-                                "primary_passkey",
-                                "primary_oob_otp_email",
-                                "primary_oob_otp_sms",
-                                "secondary_password",
-                                "secondary_totp",
-                                "secondary_oob_otp_email",
-                                "secondary_oob_otp_sms",
-                                "recovery_code",
-                                "device_token"
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### Unused design that allow nested steps
-
-Here we show how would the configuration looks like if nested steps were allowed.
-We take the [Use case example 6](#use-case-example-6-comprehensive-example) and rewrite it.
-
-```yaml
-signup_flows:
-- id: default_signup_flow
-  steps:
-  - id: setup_identity
-    type: identify
-    one_of:
-    - identification: oauth
-    - identification: email
-      steps:
-      - type: authenticate
-        one_of:
-        - authentication: primary_oob_otp_email
-          target_step: setup_identity
-      - type: verify
-        target_step: setup_identity
-      - id: setup_first_factor
-        type: authenticate
-        one_of:
-        - authentication: primary_password
-      - type: authenticate
-        one_of:
-        - authentication: secondary_totp
-
-login_flows:
-- id: default_login_flow
-  steps:
-  - id: identify
-    type: identify
-    one_of:
-    - identification: oauth
-    - identification: passkey
-    - identification: email
-      steps:
-      - type: authenticate
-        one_of:
-        - authentication: primary_password
-          steps:
-          - type: authenticate
-            one_of:
-            - authentication: secondary_totp
-            - authentication: recovery_code
-            - authentication: device_token
-        - authentication: primary_oob_otp_email
-          steps:
-          - type: authenticate
-            one_of:
-            - authentication: secondary_totp
-            - authentication: recovery_code
-            - authentication: device_token
-        - authentication: primary_passkey
-```
+TODO
