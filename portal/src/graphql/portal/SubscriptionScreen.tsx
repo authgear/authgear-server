@@ -128,7 +128,7 @@ function showRecommendedTag(
   const a = isRecommendedPlan(planName);
   const i = ALL_KNOWN_PLANS.indexOf(planName);
   const j = ALL_KNOWN_PLANS.indexOf(currentPlanName);
-  return a && i >= 0 && j >= 0 && j <= i;
+  return a && i >= 0 && j >= 0 && j < i;
 }
 
 interface PlanDetailsLinesProps {
@@ -608,25 +608,23 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
 
-  // @ts-expect-error
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
       subText: (
         <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
-      ),
+      ) as unknown as string,
     };
   }, []);
 
-  // @ts-expect-error
   const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
       subText: (
         <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
-      ),
+      ) as unknown as string,
     };
   }, []);
 
