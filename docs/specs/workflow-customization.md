@@ -196,8 +196,6 @@ identification_methods:
 # Identify the User by a OAuth Identity
 - id: oauth
   type: "oauth"
-  oauth:
-    aliases: ["google", "apple"]
 # Identify the User by a Anonymous Identity
 - id: anonymous
   type: "anonymous"
@@ -225,51 +223,31 @@ authentication_methods:
 - id: primary_password
   kind: primary
   type: password
-# Authenticate with a 6-digit code delivered via email
-- id: primary_email_code
+# Authenticate with Out-of-band One-time-password associated with an email address.
+# Whether it is code or link depends on the configuration in another place.
+- id: primary_oob_otp_email
   kind: primary
   type: oob_otp_email
-  email_otp_mode: "code"
-# Authenticate with a link delivered via email
-- id: primary_email_login_link
-  kind: primary
-  type: oob_otp_email
-  email_otp_mode: "login_link"
-# Authenticate with a 6-digit code delivered via SMS
-- id: primary_sms_code
+# Authenticate with Out-of-band One-time-password associated with a phone number.
+# Whether it is SMS or Whatsapp depends on the configuration in another place.
+- id: primary_oob_otp_sms
   kind: primary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
-# Authenticate with a 6-digit code delivered via Whatsapp
-- id: primary_whatsapp
-  kind: primary
-  type: oob_otp_sms
-  phone_otp_mode: "whatsapp"
 
 # 2FA with an additional password
 - id: secondary_password
   kind: secondary
   type: password
-# 2FA with a 6-digit code delivered via email
-- id: secondary_email_code
+# 2FA with Out-of-band One-time-password associated with an email address.
+# Whether it is code or link depends on the configuration in another place.
+- id: secondary_oob_otp_email
   kind: secondary
   type: oob_otp_email
-  email_otp_mode: "code"
-# 2FA with a link delivered via email
-- id: secondary_email_login_link
-  kind: secondary
-  type: oob_otp_email
-  email_otp_mode: "login_link"
-# 2FA with a 6-digit code delivered via SMS
-- id: secondary_sms_code
+# 2FA with Out-of-band One-time-password associated with a phone number.
+# Whether it is SMS or Whatsapp depends on the configuration in another place.
+- id: secondary_oob_otp_sms
   kind: secondary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
-# 2FA with a 6-digit code delivered via Whatsapp
-- id: secondary_whatsapp
-  kind: secondary
-  type: oob_otp_sms
-  phone_otp_mode: "whatsapp"
 # 2FA with a time-based 6-digit code
 - id: secondary_totp
   kind: secondary
@@ -321,13 +299,13 @@ signup_flows:
   - type: authenticate
     if: steps.setup_identity.identification == "phone"
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
       target_step: setup_identity
   # Set up an email OTP authenticator for the email address.
   - type: authenticate
     if: steps.setup_identity.identification == "email"
     one_of:
-    - authentication: primary_email_code
+    - authentication: primary_oob_otp_email
       target_step: setup_identity
   # Set up a primary password.
   - type: authenticate
@@ -375,7 +353,7 @@ login_flows:
     - identification: phone
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
 # Sign in with a phone number and OTP via SMS to the same phone number.
 - id: phone_otp_to_same_phone
   steps:
@@ -385,7 +363,7 @@ login_flows:
     - identification: phone
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
       target_step: identify
 # Sign in with a phone number and a password
 - id: phone_password
@@ -496,14 +474,12 @@ identification_methods:
     type: "email"
 
 authentication_methods:
-- id: primary_sms_code
+- id: primary_oob_otp_sms
   kind: primary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
-- id: primary_email_login_link
+- id: primary_oob_otp_email
   kind: primary
   type: oob_otp_email
-  email_otp_mode: "login_link"
 - id: primary_password
   kind: primary
   type: password
@@ -517,7 +493,7 @@ signup_flows:
     - identification: phone
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
       target_step: setup_phone
   - type: verify
     target_step: setup_phone
@@ -527,7 +503,7 @@ signup_flows:
     - identification: email
   - type: authenticate
     one_of:
-    - authentication: primary_email_login_link
+    - authentication: primary_oob_otp_email
       target_step: setup_email
   - type: authenticate
     one_of:
@@ -541,10 +517,10 @@ login_flows:
     - identification: phone
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
   - type: authenticate
     one_of:
-    - authentication: primary_email_login_link
+    - authentication: primary_oob_otp_email
     - authentication: primary_password
 ```
 
@@ -562,14 +538,12 @@ identification_methods:
     type: "email"
 
 authentication_methods:
-- id: primary_sms_code
+- id: primary_oob_otp_sms
   kind: primary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
-- id: primary_email_code
+- id: primary_oob_otp_email
   kind: primary
   type: oob_otp_email
-  email_otp_mode: "code"
 - id: primary_password
   kind: primary
   type: password
@@ -583,7 +557,7 @@ signup_flows:
     - identification: phone
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
       target_step: setup_phone
   - type: verify
     target_step: setup_phone
@@ -593,7 +567,7 @@ signup_flows:
     - identification: email
   - type: authenticate
     one_of:
-    - authentication: primary_email_code
+    - authentication: primary_oob_otp_email
       target_step: setup_email
   - type: verify
     target_step: setup_email
@@ -608,7 +582,7 @@ signup_flows:
     - identification: email
   - type: authenticate
     one_of:
-    - authentication: primary_email_code
+    - authentication: primary_oob_otp_email
       target_step: setup_email
   - type: verify
     target_step: setup_email
@@ -618,7 +592,7 @@ signup_flows:
     - identification: phone
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
       target_step: setup_phone
   - type: verify
     target_step: setup_phone
@@ -637,13 +611,13 @@ login_flows:
   - type: authenticate
     if: steps.identify.identification == "phone"
     one_of:
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
     - authentication: primary_password
   - type: authenticate
     if: steps.identify.identification == "email"
     one_of:
-    - authentication: primary_email_code
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_email
+    - authentication: primary_oob_otp_sms
     - authentication: primary_password
 
 signup_login_flows:
@@ -676,7 +650,6 @@ authentication_methods:
 - id: secondary_sms_code
   kind: secondary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
 - id: secondary_totp
   kind: secondary
   type: totp
@@ -727,10 +700,9 @@ authentication_methods:
 - id: primary_password
   kind: primary
   type: password
-- id: primary_sms_code
+- id: primary_oob_otp_sms
   kind: primary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
 
 # signup_flows is omitted here because the exact signup flow is unknown.
 
@@ -745,7 +717,7 @@ login_flows:
   - type: authenticate
     one_of:
     - authentication: primary_password
-    - authentication: primary_sms_code
+    - authentication: primary_oob_otp_sms
 ```
 
 #### Use case example 5: Manulife MPF
@@ -769,14 +741,12 @@ authentication_methods:
 - id: primary_password
   kind: primary
   type: password
-- id: primary_sms_code
+- id: primary_oob_otp_sms
   kind: primary
   type: oob_otp_sms
-  phone_otp_mode: "sms"
-- id: primary_email_code
+- id: primary_oob_otp_email
   kind: primary
   type: oob_otp_email
-  email_otp_mode: "code"
 
 # signup_flows are omitted because it does not have public signup.
 
@@ -791,8 +761,8 @@ login_flows:
     - authentication: primary_password
   - type: authenticate
     one_of:
-    - authentication: primary_sms_code
-    - authentication: primary_email_code
+    - authentication: primary_oob_otp_sms
+    - authentication: primary_oob_otp_email
 ```
 
 #### Use case example 6: Comprehensive example
@@ -805,8 +775,6 @@ identification_methods:
     type: "email"
 - id: oauth
   type: "oauth"
-  oauth:
-    aliases: ["google"]
 - id: passkey
   type: "passkey"
 
@@ -817,10 +785,9 @@ authentication_methods:
 - id: primary_passkey
   kind: primary
   type: passkey
-- id: primary_email_code
+- id: primary_oob_otp_email
   kind: primary
   type: oob_otp_email
-  email_otp_mode: "code"
 - id: secondary_totp
   kind: secondary
   type: totp
@@ -844,7 +811,7 @@ signup_flows:
   - type: authenticate
     if: steps.setup_identity.identification == "email"
     one_of:
-    - authentication: primary_email_code
+    - authentication: primary_oob_otp_email
       target_step: setup_identity
   - type: verify
     if: steps.setup_identity.identification == "email"
@@ -876,7 +843,7 @@ login_flows:
     if: steps.identify.identification == "email"
     one_of:
     - authentication: primary_password
-    - authentication: primary_email_code
+    - authentication: primary_oob_otp_email
     - authentication: primary_passkey
   - type: authenticate
     if: steps.first_factor.authentication != null && setup.first_factor.authentication != "primary_passkey"
@@ -975,17 +942,6 @@ The context of that place is described as follows.
                 ]
               }
             }
-          },
-          "oauth" {
-            "type": "object",
-            "properties": {
-              "aliases": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
           }
         },
         "required": ["id", "type"]
@@ -1014,27 +970,12 @@ The context of that place is described as follows.
             "type": "string",
             "enum": [
               "password",
-            "passkey",
-            "oob_otp_email",
-            "oob_otp_sms",
-            "totp",
-            "recovery_code",
-            "device_token"
-            ]
-          },
-          "phone_otp_mode": {
-            "type": "string",
-            "enum": [
-              "sms",
-            "whatsapp",
-            "whatsapp_sms"
-            ]
-          },
-          "email_otp_mode": {
-            "type": "string",
-            "enum": [
-              "code",
-            "login_link"
+              "passkey",
+              "oob_otp_email",
+              "oob_otp_sms",
+              "totp",
+              "recovery_code",
+              "device_token"
             ]
           }
         },
@@ -1407,8 +1348,6 @@ identification_methods:
     type: "email"
 - id: oauth
   type: "oauth"
-  oauth:
-    aliases: ["google"]
 - id: passkey
   type: "passkey"
 
@@ -1419,10 +1358,9 @@ authentication_methods:
 - id: primary_passkey
   kind: primary
   type: passkey
-- id: primary_email_code
+- id: primary_oob_otp_email
   kind: primary
   type: oob_otp_email
-  email_otp_mode: "code"
 - id: secondary_totp
   kind: secondary
   type: totp
@@ -1444,7 +1382,7 @@ signup_flows:
       steps:
       - type: authenticate
         one_of:
-        - authentication: primary_email_code
+        - authentication: primary_oob_otp_email
           target_step: setup_identity
       - type: verify
         target_step: setup_identity
@@ -1475,7 +1413,7 @@ login_flows:
             - authentication: secondary_totp
             - authentication: recovery_code
             - authentication: device_token
-        - authentication: primary_email_code
+        - authentication: primary_oob_otp_email
           steps:
           - type: authenticate
             one_of:
