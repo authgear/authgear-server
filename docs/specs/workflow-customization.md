@@ -549,20 +549,12 @@ login_flows:
           - one_of:
             - type: authenticate
               authentication: secondary_totp
-            - type: authenticate
-              authentication: recovery_code
-            - type: authenticate
-              authentication: device_token
         - type: authenticate
           authentication: primary_oob_otp_email
           steps:
           - one_of:
             - type: authenticate
               authentication: secondary_totp
-            - type: authenticate
-              authentication: recovery_code
-            - type: authenticate
-              authentication: device_token
 ```
 
 ## Appendix
