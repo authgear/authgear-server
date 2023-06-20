@@ -56,7 +56,6 @@ import SubscriptionPlanCard, {
 } from "./SubscriptionPlanCard";
 import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 import { useLoading, useIsLoading } from "./../../hook/loading";
-import { formatDatetime } from "../../util/formatDatetime";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -64,10 +63,10 @@ import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
-import LinkButton from "../../LinkButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
 import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
+import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
 
 const ENTERPRISE_PLAN = "enterprise";
 const ALL_KNOWN_PLANS = ["free", "startups", "business", ENTERPRISE_PLAN];
@@ -493,19 +492,8 @@ function getMAUCost(
   return undefined;
 }
 
-const CANCEL_THEME: PartialTheme = {
-  palette: {
-    themePrimary: "#c8c8c8",
-    neutralPrimary: "#c8c8c8",
-  },
-  semanticColors: {
-    linkHovered: "#c8c8c8",
-  },
-};
-
 // eslint-disable-next-line complexity
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
-  const { locale } = useContext(Context);
   const {
     appID,
     planName,
@@ -515,14 +503,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     previousMonthUsage,
   } = props;
   const { themes } = useSystemConfig();
-
-  const hasSubscription = useMemo(() => !!subscription, [subscription]);
-
-  const formattedSubscriptionEndedAt = useMemo(() => {
-    return subscription?.endedAt
-      ? formatDatetime(locale, subscription.endedAt, DateTime.DATETIME_SHORT)
-      : null;
-  }, [subscription?.endedAt, locale]);
 
   const subscriptionEndedAt = useMemo(() => {
     if (subscription?.endedAt != null) {
@@ -850,49 +830,15 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             })}
           </div>
         </div>
-        <div className={styles.footer}>
-          <Text block={true}>
-            <FormattedMessage id="SubscriptionScreen.footer.tax" />
-          </Text>
-          <Text block={true}>
-            <FormattedMessage
-              id="SubscriptionScreen.footer.enterprise-plan"
-              values={{
-                onClick: onClickEnterprisePlan,
-              }}
-            />
-          </Text>
-          <Text block={true}>
-            <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
-          </Text>
-          {isKnownPaidPlan(planName) ? (
-            <>
-              <Text block={true}>
-                <FormattedMessage id="SubscriptionScreen.footer.usage-delay-disclaimer" />
-              </Text>
-              {hasSubscription ? (
-                subscriptionCancelled ? (
-                  <Text block={true}>
-                    <FormattedMessage
-                      id="SubscriptionScreen.footer.expire"
-                      values={{
-                        date: formattedSubscriptionEndedAt ?? "",
-                      }}
-                    />
-                  </Text>
-                ) : (
-                  <ThemeProvider theme={CANCEL_THEME}>
-                    <LinkButton onClick={onClickCancel}>
-                      <Text>
-                        <FormattedMessage id="SubscriptionScreen.footer.cancel" />
-                      </Text>
-                    </LinkButton>
-                  </ThemeProvider>
-                )
-              ) : null}
-            </>
-          ) : null}
-        </div>
+        <SubscriptionScreenFooter
+          className={styles.section}
+          onClickEnterprisePlan={onClickEnterprisePlan}
+          onClickCancel={onClickCancel}
+          hasSubscription={!!subscription}
+          subscriptionCancelled={subscriptionCancelled}
+          isKnownPaidPlan={isKnownPaidPlan(planName)}
+          subscriptionEndedAt={subscription?.endedAt ?? undefined}
+        />
       </div>
     </>
   );
