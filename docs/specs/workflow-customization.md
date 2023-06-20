@@ -180,19 +180,13 @@ Example:
 identification_methods:
 # Identify the User by a Email Login ID Identity
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 # Identify the User by a Phone Login ID Identity
 - id: phone
-  type: "login_id"
-  login_id:
-    type: "phone"
+  type: phone
 # Identify the User by a Username Login ID Identity
 - id: username
-  type: "login_id"
-  login_id:
-    type: "username"
+  type: username
 # Identify the User by a OAuth Identity
 - id: oauth
   type: "oauth"
@@ -459,13 +453,9 @@ reauth_flows:
 ```yaml
 identification_methods:
 - id: phone
-  type: "login_id"
-  login_id:
-    type: "phone"
+  type: phone
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 
 authentication_methods:
 - id: primary_oob_otp_sms
@@ -523,13 +513,9 @@ login_flows:
 ```yaml
 identification_methods:
 - id: phone
-  type: "login_id"
-  login_id:
-    type: "phone"
+  type: phone
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 
 authentication_methods:
 - id: primary_oob_otp_sms
@@ -633,9 +619,7 @@ signup_login_flows:
 ```yaml
 identification_methods:
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 
 authentication_methods:
 - id: primary_password
@@ -678,17 +662,11 @@ login_flows:
 ```yaml
 identification_methods:
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 - id: phone
-  type: "login_id"
-  login_id:
-    type: "phone"
+  type: email
 - id: username
-  type: "username"
-  login_id:
-    type: "username"
+  type: username
 
 authentication_methods:
 - id: primary_password
@@ -719,17 +697,11 @@ login_flows:
 ```yaml
 identification_methods:
 - id: username
-  type: "login_id"
-  login_id:
-    type: "username"
+  type: username
 - id: phone
-  type: "login_id"
-  login_id:
-    type: "phone"
+  type: phone
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 
 authentication_methods:
 - id: primary_password
@@ -764,9 +736,7 @@ login_flows:
 ```yaml
 identification_methods:
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 - id: oauth
   type: "oauth"
 - id: passkey
@@ -916,24 +886,13 @@ The context of that place is described as follows.
           "type": {
             "type": "string",
             "enum": [
-              "login_id",
+              "email",
+              "phone",
+              "username",
               "oauth",
               "passkey",
               "siwe"
             ]
-          },
-          "login_id": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "email",
-                  "phone",
-                  "username"
-                ]
-              }
-            }
           }
         },
         "required": ["id", "type"]
@@ -1335,9 +1294,7 @@ We take the [Use case example 6](#use-case-example-6-comprehensive-example) and 
 ```yaml
 identification_methods:
 - id: email
-  type: "login_id"
-  login_id:
-    type: "email"
+  type: email
 - id: oauth
   type: "oauth"
 - id: passkey
