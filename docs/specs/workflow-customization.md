@@ -15,7 +15,6 @@
   * [What is a reauth flow](#what-is-a-reauth-flow)
   * [Design of the configuration](#design-of-the-configuration)
     + [Design overview](#design-overview)
-    + [Object: AuthenticationMethod](#object-authenticationmethod)
     + [Object: Flow](#object-flow)
     + [Object: Step](#object-step)
     + [Object: SignupFlow](#object-signupflow)
@@ -36,7 +35,6 @@
     + [fromJSON](#fromjson)
   * [Contexts](#contexts)
 - [Appendix](#appendix)
-  * [JSON Schema of `authentication_methods`](#json-schema-of-authentication_methods)
   * [JSON schema of `signup_flows`](#json-schema-of-signup_flows)
   * [JSON schema of `login_flows`](#json-schema-of-login_flows)
   * [JSON Schema of `signup_login_flows`](#json-schema-of-signup_login_flows)
@@ -167,58 +165,6 @@ The configuration maps to a user flow as performed by a end-user.
 A user flow consists of one or more screens, and the configuration consists of one or more steps.
 Screens are not nested, so steps are organized linearly, and not nested as well.
 
-#### Object: AuthenticationMethod
-
-We define available AuthenticationMethods under `authentication_methods`.
-The `id` is in the global namespace.
-
-Example:
-
-```yaml
-authentication_methods:
-# Authenticate with a password
-- id: primary_password
-  kind: primary
-  type: password
-# Authenticate with Out-of-band One-time-password associated with an email address.
-# Whether it is code or link depends on the configuration in another place.
-- id: primary_oob_otp_email
-  kind: primary
-  type: oob_otp_email
-# Authenticate with Out-of-band One-time-password associated with a phone number.
-# Whether it is SMS or Whatsapp depends on the configuration in another place.
-- id: primary_oob_otp_sms
-  kind: primary
-  type: oob_otp_sms
-
-# 2FA with an additional password
-- id: secondary_password
-  kind: secondary
-  type: password
-# 2FA with Out-of-band One-time-password associated with an email address.
-# Whether it is code or link depends on the configuration in another place.
-- id: secondary_oob_otp_email
-  kind: secondary
-  type: oob_otp_email
-# 2FA with Out-of-band One-time-password associated with a phone number.
-# Whether it is SMS or Whatsapp depends on the configuration in another place.
-- id: secondary_oob_otp_sms
-  kind: secondary
-  type: oob_otp_sms
-# 2FA with a time-based 6-digit code
-- id: secondary_totp
-  kind: secondary
-  type: totp
-# 2FA with 10-letter one-time-use recovery code
-- id: secondary_recovery_code
-  kind: secondary
-  type: recovery_code
-# Skip 2FA on trusted device
-- id: secondary_device_token
-  kind: secondary
-  type: device_token
-```
-
 #### Object: Flow
 
 A Flow has one or more Steps.
@@ -276,7 +222,7 @@ signup_flows:
   # Set up another phone number for 2FA.
   - type: authenticate
     one_of:
-    - authentication: secondary_sms_code
+    - authentication: secondary_oob_otp_sms
   # Verify the phone number in the previous step.
   - type: verify
     target_step: setup_phone_2fa
@@ -420,17 +366,6 @@ reauth_flows:
 #### Use case example 1: Latte
 
 ```yaml
-authentication_methods:
-- id: primary_oob_otp_sms
-  kind: primary
-  type: oob_otp_sms
-- id: primary_oob_otp_email
-  kind: primary
-  type: oob_otp_email
-- id: primary_password
-  kind: primary
-  type: password
-
 signup_flows:
 - id: default_signup_flow
   steps:
@@ -474,17 +409,6 @@ login_flows:
 #### Use case example 2: Uber
 
 ```yaml
-authentication_methods:
-- id: primary_oob_otp_sms
-  kind: primary
-  type: oob_otp_sms
-- id: primary_oob_otp_email
-  kind: primary
-  type: oob_otp_email
-- id: primary_password
-  kind: primary
-  type: password
-
 signup_flows:
 - id: phone_first
   steps:
@@ -574,17 +498,6 @@ signup_login_flows:
 #### Use case example 3: Google
 
 ```yaml
-authentication_methods:
-- id: primary_password
-  kind: primary
-  type: password
-- id: secondary_sms_code
-  kind: secondary
-  type: oob_otp_sms
-- id: secondary_totp
-  kind: secondary
-  type: totp
-
 signup_flows:
 - id: default_signup_flow
   steps:
@@ -607,20 +520,12 @@ login_flows:
   - type: authenticate
     one_of:
     - authentication: secondary_totp
-    - authentication: secondary_sms_code
+    - authentication: secondary_oob_otp_sms
 ```
 
 #### Use case example 4: The Club
 
 ```yaml
-authentication_methods:
-- id: primary_password
-  kind: primary
-  type: password
-- id: primary_oob_otp_sms
-  kind: primary
-  type: oob_otp_sms
-
 # signup_flows is omitted here because the exact signup flow is unknown.
 
 login_flows:
@@ -640,17 +545,6 @@ login_flows:
 #### Use case example 5: Manulife MPF
 
 ```yaml
-authentication_methods:
-- id: primary_password
-  kind: primary
-  type: password
-- id: primary_oob_otp_sms
-  kind: primary
-  type: oob_otp_sms
-- id: primary_oob_otp_email
-  kind: primary
-  type: oob_otp_email
-
 # signup_flows are omitted because it does not have public signup.
 
 login_flows:
@@ -671,26 +565,6 @@ login_flows:
 #### Use case example 6: Comprehensive example
 
 ```yaml
-authentication_methods:
-- id: primary_password
-  kind: primary
-  type: password
-- id: primary_passkey
-  kind: primary
-  type: passkey
-- id: primary_oob_otp_email
-  kind: primary
-  type: oob_otp_email
-- id: secondary_totp
-  kind: secondary
-  type: totp
-- id: recovery_code
-  kind: secondary
-  type: recovery_code
-- id: device_token
-  kind: secondary
-  type: device_token
-
 signup_flows:
 # The end user sign up with OAuth without password or 2FA.
 # Or the end user sign up with verified email with password and 2FA.
@@ -797,44 +671,9 @@ The context of that place is described as follows.
 |`steps`|`object`|The `steps` object|
 |`steps.<id>`|`object`|The `step` object|
 |`steps.<id>.identification`|`string` or `null`|The identification method selected in the step|
-|`steps.<id>.authentication`|`string` or `null`|The `id` of the selected `authentication_method` in the step|
+|`steps.<id>.authentication`|`string` or `null`|The authentication method selected in the step|
 
 ## Appendix
-
-### JSON Schema of `authentication_methods`
-
-```json
-{
-  "properties": {
-    "authentication_methods": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "kind": {
-            "type": "string",
-            "enum": ["primary", "secondary"]
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "password",
-              "passkey",
-              "oob_otp_email",
-              "oob_otp_sms",
-              "totp",
-              "recovery_code",
-              "device_token"
-            ]
-          }
-        },
-        "required": ["id", "kind", "type"]
-      }
-    }
-  }
-}
-```
 
 ### JSON schema of `signup_flows`
 
@@ -916,7 +755,18 @@ The context of that place is described as follows.
                           "properties": {
                             "authentication": {
                               "type": "string",
-                              "minLength": 1
+                              "enum": [
+                                "primary_password",
+                                "primary_passkey",
+                                "primary_oob_otp_email",
+                                "primary_oob_otp_sms",
+                                "secondary_password",
+                                "secondary_totp",
+                                "secondary_oob_otp_email",
+                                "secondary_oob_otp_sms",
+                                "recovery_code",
+                                "device_token"
+                              ]
                             },
                             "target_step": {
                               "type": "string",
@@ -1056,7 +906,18 @@ The context of that place is described as follows.
                         "properties": {
                           "authentication": {
                             "type": "string",
-                            "minLength": 1
+                            "enum": [
+                              "primary_password",
+                              "primary_passkey",
+                              "primary_oob_otp_email",
+                              "primary_oob_otp_sms",
+                              "secondary_password",
+                              "secondary_totp",
+                              "secondary_oob_otp_email",
+                              "secondary_oob_otp_sms",
+                              "recovery_code",
+                              "device_token"
+                            ]
                           },
                           "target_step": {
                             "type": "string",
@@ -1188,7 +1049,18 @@ The context of that place is described as follows.
                           "properties": {
                             "authentication": {
                               "type": "string",
-                              "minLength": 1
+                              "enum": [
+                                "primary_password",
+                                "primary_passkey",
+                                "primary_oob_otp_email",
+                                "primary_oob_otp_sms",
+                                "secondary_password",
+                                "secondary_totp",
+                                "secondary_oob_otp_email",
+                                "secondary_oob_otp_sms",
+                                "recovery_code",
+                                "device_token"
+                              ]
                             }
                           }
                         }
@@ -1212,26 +1084,6 @@ Here we show how would the configuration looks like if nested steps were allowed
 We take the [Use case example 6](#use-case-example-6-comprehensive-example) and rewrite it.
 
 ```yaml
-authentication_methods:
-- id: primary_password
-  kind: primary
-  type: password
-- id: primary_passkey
-  kind: primary
-  type: passkey
-- id: primary_oob_otp_email
-  kind: primary
-  type: oob_otp_email
-- id: secondary_totp
-  kind: secondary
-  type: totp
-- id: recovery_code
-  kind: secondary
-  type: recovery_code
-- id: device_token
-  kind: secondary
-  type: device_token
-
 signup_flows:
 - id: default_signup_flow
   steps:
