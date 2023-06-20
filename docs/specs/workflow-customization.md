@@ -196,12 +196,6 @@ identification_methods:
 # Identify the User by a OAuth Identity
 - id: oauth
   type: "oauth"
-# Identify the User by a Anonymous Identity
-- id: anonymous
-  type: "anonymous"
-# Identify the User by a Biometric Identity
-- id: biometric
-  type: "biometric"
 # Identify the User by a Passkey Identity
 - id: passkey
   type: "passkey"
@@ -924,8 +918,6 @@ The context of that place is described as follows.
             "enum": [
               "login_id",
               "oauth",
-              "anonymous",
-              "biometric",
               "passkey",
               "siwe"
             ]
