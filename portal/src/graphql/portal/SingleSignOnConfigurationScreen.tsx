@@ -356,14 +356,17 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       Object.values(state.isEnabled).filter(Boolean).length >=
       oauthClientsMaximum;
 
-    const isEditing = useMemo(
-      () =>
+    const isEditing = useMemo(() => {
+      const isAnySecretPresent =
         state.providers.filter(
           (p) =>
             p.secret.originalAlias != null && p.secret.newClientSecret != null
-        ).length !== 0,
-      [state.providers]
-    );
+        ).length !== 0;
+      const isNoExistingSecret =
+        state.providers.filter((p) => p.secret.originalAlias != null).length ===
+        0;
+      return isAnySecretPresent || isNoExistingSecret;
+    }, [state.providers]);
 
     const onRevealSecrets = useCallback(() => {
       const locationState: LocationState = {
