@@ -125,8 +125,8 @@ var cmdUsageCollectCount = &cobra.Command{
 			libusage.RecordTypeEmailSent: {
 				periodical.Daily: countCollector.CollectDailyEmailSent,
 			},
-			libusage.RecordTypeWhatsappOTPVerified: {
-				periodical.Daily: countCollector.CollectDailyWhatsappOTPVerified,
+			libusage.RecordTypeWhatsappSent: {
+				periodical.Daily: countCollector.CollectDailyWhatsappSent,
 			},
 		}
 
