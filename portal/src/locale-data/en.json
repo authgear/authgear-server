@@ -1118,7 +1118,7 @@
   "SubscriptionPlanCard.plan.features.line.2.startups": "30 Days Log Retention",
   "SubscriptionPlanCard.plan.features.line.3.startups": "3 Admins",
 
-  "SubscriptionPlanCard.plan.tagline.business": "Manage up to 50,000 MAUs",
+  "SubscriptionPlanCard.plan.tagline.business": "Manage up to 10,000 MAUs",
   "SubscriptionPlanCard.plan.mau-restriction.business": "Up to 10,000 MAUs",
   "SubscriptionPlanCard.plan.features.line.0.business": "Unlimited Custom Domain",
   "SubscriptionPlanCard.plan.features.line.1.business": "No Visible Branding",
@@ -1152,7 +1152,7 @@
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
-  "SubscriptionScreen.enterprise.instructions": "Managing 50,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
+  "SubscriptionScreen.enterprise.instructions": "Managing 10,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
   "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
