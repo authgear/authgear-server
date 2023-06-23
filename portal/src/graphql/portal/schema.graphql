@@ -872,6 +872,18 @@ enum SubscriptionItemPriceUsageType {
 }
 
 """"""
+enum SubscriptionItemPriceWhatsappRegion {
+  """"""
+  NONE
+
+  """"""
+  NORTH_AMERICA
+
+  """"""
+  OTHER_REGIONS
+}
+
+""""""
 type SubscriptionPlan {
   """"""
   name: String!
@@ -920,6 +932,9 @@ type SubscriptionUsageItem {
 
   """"""
   usageType: SubscriptionItemPriceUsageType!
+
+  """"""
+  whatsappRegion: SubscriptionItemPriceWhatsappRegion!
 }
 
 """"""
