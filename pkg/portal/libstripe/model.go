@@ -71,6 +71,15 @@ func newPrice(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *
 		price.SMSRegion = smsRegion
 	}
 
+	if whatsappRegionStr, ok := stripeProduct.Metadata[MetadatakeyWhatsappRegion]; ok {
+		whatsappRegion := model.WhatsappRegion(whatsappRegionStr)
+		err = whatsappRegion.Valid()
+		if err != nil {
+			return
+		}
+		price.WhatsappRegion = whatsappRegion
+	}
+
 	if freeQuantityStr, ok := stripePrice.Metadata[MetadataKeyFreeQuantity]; ok {
 		var freeQuantity int
 		freeQuantity, err = strconv.Atoi(freeQuantityStr)

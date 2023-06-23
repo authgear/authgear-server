@@ -440,10 +440,11 @@ func (s *SubscriptionService) GetSubscriptionUsage(
 		return nil, err
 	}
 	item1 := &model.SubscriptionUsageItem{
-		Type:      model.PriceTypeUsage,
-		UsageType: model.UsageTypeSMS,
-		SMSRegion: model.SMSRegionNorthAmerica,
-		Quantity:  sumUsageRecord(rs1),
+		Type:           model.PriceTypeUsage,
+		UsageType:      model.UsageTypeSMS,
+		SMSRegion:      model.SMSRegionNorthAmerica,
+		WhatsappRegion: model.WhatsappRegionNone,
+		Quantity:       sumUsageRecord(rs1),
 	}
 
 	rs2, err := s.UsageStore.FetchUploadedUsageRecords(
@@ -457,10 +458,11 @@ func (s *SubscriptionService) GetSubscriptionUsage(
 		return nil, err
 	}
 	item2 := &model.SubscriptionUsageItem{
-		Type:      model.PriceTypeUsage,
-		UsageType: model.UsageTypeSMS,
-		SMSRegion: model.SMSRegionOtherRegions,
-		Quantity:  sumUsageRecord(rs2),
+		Type:           model.PriceTypeUsage,
+		UsageType:      model.UsageTypeSMS,
+		SMSRegion:      model.SMSRegionOtherRegions,
+		WhatsappRegion: model.WhatsappRegionNone,
+		Quantity:       sumUsageRecord(rs2),
 	}
 
 	rs3, err := s.UsageStore.FetchUsageRecords(
@@ -473,15 +475,52 @@ func (s *SubscriptionService) GetSubscriptionUsage(
 		return nil, err
 	}
 	item3 := &model.SubscriptionUsageItem{
-		Type:      model.PriceTypeUsage,
-		UsageType: model.UsageTypeMAU,
-		SMSRegion: model.SMSRegionNone,
-		Quantity:  sumUsageRecord(rs3),
+		Type:           model.PriceTypeUsage,
+		UsageType:      model.UsageTypeMAU,
+		SMSRegion:      model.SMSRegionNone,
+		WhatsappRegion: model.WhatsappRegionNone,
+		Quantity:       sumUsageRecord(rs3),
+	}
+
+	rs4, err := s.UsageStore.FetchUploadedUsageRecords(
+		appID,
+		usage.RecordNameWhatsappSentNorthAmerica,
+		periodical.Daily,
+		stripeStart,
+		stripeEnd,
+	)
+	if err != nil {
+		return nil, err
+	}
+	item4 := &model.SubscriptionUsageItem{
+		Type:           model.PriceTypeUsage,
+		UsageType:      model.UsageTypeWhatsapp,
+		SMSRegion:      model.SMSRegionNone,
+		WhatsappRegion: model.WhatsappRegionNorthAmerica,
+		Quantity:       sumUsageRecord(rs4),
+	}
+
+	rs5, err := s.UsageStore.FetchUploadedUsageRecords(
+		appID,
+		usage.RecordNameWhatsappSentOtherRegions,
+		periodical.Daily,
+		stripeStart,
+		stripeEnd,
+	)
+	if err != nil {
+		return nil, err
+	}
+	item5 := &model.SubscriptionUsageItem{
+		Type:           model.PriceTypeUsage,
+		UsageType:      model.UsageTypeWhatsapp,
+		SMSRegion:      model.SMSRegionNone,
+		WhatsappRegion: model.WhatsappRegionOtherRegions,
+		Quantity:       sumUsageRecord(rs5),
 	}
 
 	incompleteSubscriptionUsage := &model.SubscriptionUsage{
 		NextBillingDate: stripeEnd,
-		Items:           []*model.SubscriptionUsageItem{item1, item2, item3},
+		Items:           []*model.SubscriptionUsageItem{item1, item2, item3, item4, item5},
 	}
 
 	targetPlan, ok := findPlan(planName, subscriptionPlans)
@@ -530,13 +569,14 @@ func fillCost(subscriptionUsage *model.SubscriptionUsage, subscriptionPlan *mode
 	for _, price := range subscriptionPlan.Prices {
 		if price.Type == model.PriceTypeFixed {
 			subscriptionUsage.Items = append(subscriptionUsage.Items, &model.SubscriptionUsageItem{
-				Type:        price.Type,
-				UsageType:   price.UsageType,
-				SMSRegion:   price.SMSRegion,
-				Quantity:    1,
-				Currency:    &price.Currency,
-				UnitAmount:  &price.UnitAmount,
-				TotalAmount: &price.UnitAmount,
+				Type:           price.Type,
+				UsageType:      price.UsageType,
+				SMSRegion:      price.SMSRegion,
+				WhatsappRegion: price.WhatsappRegion,
+				Quantity:       1,
+				Currency:       &price.Currency,
+				UnitAmount:     &price.UnitAmount,
+				TotalAmount:    &price.UnitAmount,
 			})
 		}
 	}
