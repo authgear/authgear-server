@@ -15,10 +15,10 @@
   * [What is a reauth flow](#what-is-a-reauth-flow)
   * [Design of the configuration](#design-of-the-configuration)
     + [Design overview](#design-overview)
-    + [Object: SignupFlow](#object-signupflow)
-    + [Object: LoginFlow](#object-loginflow)
-    + [Object: SignupLoginFlow](#object-signuploginflow)
-    + [Object: ReauthFlow](#object-reauthflow)
+    + [SignupFlow](#signupflow)
+    + [LoginFlow](#loginflow)
+    + [SignupLoginFlow](#signuploginflow)
+    + [ReauthFlow](#reauthflow)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
     + [Use case example 3: Google](#use-case-example-3-google)
@@ -152,9 +152,7 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 - Some steps allow branching. Those steps have `one_of`.
 - The branch of a step MAY optionally have zero or more `steps`.
 
-#### Object: SignupFlow
-
-A SignupFlow is a Flow.
+#### SignupFlow
 
 Example:
 
@@ -203,11 +201,7 @@ signup_flows:
       required: true
 ```
 
-#### Object: LoginFlow
-
-A LoginFlow is a Flow.
-
-Example:
+#### LoginFlow
 
 ```yaml
 login_flows:
@@ -285,9 +279,7 @@ login_flows:
     - authentication: secondary_totp
 ```
 
-#### Object: SignupLoginFlow
-
-A SignupLoginFlow is a Flow.
+#### SignupLoginFlow
 
 Example:
 
@@ -305,9 +297,7 @@ signup_login_flows:
       login_flow: default_login_flow
 ```
 
-#### Object: ReauthFlow
-
-A ReauthFlow is a Flow.
+#### ReauthFlow
 
 Example:
 
