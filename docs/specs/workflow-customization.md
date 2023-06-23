@@ -13,6 +13,7 @@
   * [What is a signup flow](#what-is-a-signup-flow)
   * [What is a login flow](#what-is-a-login-flow)
   * [What is a reauth flow](#what-is-a-reauth-flow)
+  * [What is account linking](#what-is-account-linking)
   * [Design of the configuration](#design-of-the-configuration)
     + [Design overview](#design-overview)
     + [SignupFlow](#signupflow)
@@ -37,7 +38,7 @@
 - Support combined signup and login flow
 - The customized flows are supported by Default UI out of the box
 - If Default UI does not suit the taste of the developer, the customized flows can be executed by a custom UI.
-- (Future works) Support account linking flow
+- (Future works) Support account linking
 
 ## Non-goals
 
@@ -140,6 +141,16 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 
 ### What is a reauth flow
 - Authenticate the User with any Authenticators.
+
+### What is account linking
+
+Account linking happens in a login flow.
+Each login flow can optionally specify the conditions when account linking can occur.
+If no conditions are specified or no conditions are matched, an error is returned, telling the end-user to sign in with the existing identity instead.
+
+The login flow is then proceeded as if the existing identity were selected.
+
+At the end of the flow, the new identity is added to the account.
 
 ### Design of the configuration
 
@@ -277,6 +288,34 @@ login_flows:
     optional: true
     one_of:
     - authentication: secondary_totp
+
+- id: account_linking
+  account_linking:
+    conditions:
+    # The standard_attribute to determine whether two identities are the "same".
+    # Account linking happens when the existing identity is Email Login ID,
+    # and the incoming identity is any OAuth identity.
+    - standard_attribute: /email
+      existing:
+        identification: email
+      incoming:
+        identification: oauth
+    # Account linking happens when the existing identity is any OAuth identity,
+    # and the incoming identity is Email Login ID.
+    - standard_attribute: /email
+      existing:
+        identification: oauth
+      incoming:
+        identification: email
+  steps:
+  - type: identify
+    one_of:
+    - identification: oauth
+    - identification: email
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: primary_password
 ```
 
 #### SignupLoginFlow
