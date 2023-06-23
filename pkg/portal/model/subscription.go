@@ -81,6 +81,8 @@ func (t UsageType) Valid() error {
 		return nil
 	case UsageTypeMAU:
 		return nil
+	case UsageTypeWhatsapp:
+		return nil
 	}
 	return fmt.Errorf("unknown usage_type: %#v", t)
 }
@@ -154,6 +156,7 @@ type SubscriptionUsageItem struct {
 	Type                      PriceType              `json:"type"`
 	UsageType                 UsageType              `json:"usageType"`
 	SMSRegion                 SMSRegion              `json:"smsRegion"`
+	WhatsappRegion            WhatsappRegion         `json:"whatsappRegion"`
 	Currency                  *string                `json:"currency"`
 	UnitAmount                *int                   `json:"unitAmount"`
 	FreeQuantity              *int                   `json:"freeQuantity,omitempty"`
@@ -170,6 +173,7 @@ type Price struct {
 	Type                      PriceType              `json:"type"`
 	UsageType                 UsageType              `json:"usageType,omitempty"`
 	SMSRegion                 SMSRegion              `json:"smsRegion,omitempty"`
+	WhatsappRegion            WhatsappRegion         `json:"whatsappRegion,omitempty"`
 	Currency                  string                 `json:"currency"`
 	UnitAmount                int                    `json:"unitAmount"`
 	FreeQuantity              *int                   `json:"freeQuantity,omitempty"`
@@ -182,7 +186,7 @@ func (p *Price) ShouldClearUsage() bool {
 }
 
 func (i *SubscriptionUsageItem) Match(p *Price) bool {
-	return i.Type == p.Type && i.UsageType == p.UsageType && i.SMSRegion == p.SMSRegion
+	return i.Type == p.Type && i.UsageType == p.UsageType && i.SMSRegion == p.SMSRegion && i.WhatsappRegion == p.WhatsappRegion
 }
 
 func (i *SubscriptionUsageItem) FillFrom(p *Price) *SubscriptionUsageItem {
