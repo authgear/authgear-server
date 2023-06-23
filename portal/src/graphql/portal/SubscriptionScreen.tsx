@@ -592,9 +592,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
+      // @ts-expect-error
       subText: (
         <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
-      ) as unknown as string,
+      ) as IDialogContentProps["subText"],
     };
   }, []);
 
@@ -602,9 +603,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+      // @ts-expect-error
       subText: (
-        <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
-      ) as unknown as string,
+        <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
+      ) as IDialogContentProps["subText"],
     };
   }, []);
 
