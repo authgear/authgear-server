@@ -147,11 +147,10 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 
 - A flow has one or more `steps`.
 - A step MAY optionally have an `id`.
-- A step is either a `one_of` step or a `type` step.
+- A step must have a `type`.
 - A `type` step is specific to the kind of the flow. For example, only SignupFlow has the `type: user_profile` step.
-- A `type` step MAY optionally have zero or more `steps`.
-- A `one_of` step MUST have at least one `type` step.
-- All `type` steps in a `one_of` step MUST share the same `type`.
+- Some steps allow branching. Those steps have `one_of`.
+- The branch of a step MAY optionally have zero or more `steps`.
 
 #### Object: SignupFlow
 
@@ -163,35 +162,34 @@ Example:
 signup_flows:
 - id: default_signup_flow
   steps:
-  - one_of:
-    - id: setup_phone
-      type: identify
-      identification: phone
+  - id: setup_identity
+    type: identify
+    one_of:
+    - identification: phone
       steps:
-      # Set up a phone OTP authenticator for the phone number
       - type: authenticate
-        authentication: primary_oob_otp_sms
-        target_step: setup_phone
-      - type: verify
-        target_step: setup_phone
-    - id: setup_email
-      type: identify
-      identification: email
+        one_of:
+        - authentication: primary_oob_otp_sms
+          target_step: setup_identity
+      - step: verify
+        target_step: setup_identity
+    - identification: email
       steps:
-      # Set up an email OTP authenticator for the email address.
       - type: authenticate
-        authentication: primary_oob_otp_email
-        target_step: setup_email
-      - type: verify
-        target_step: setup_email
+        one_of:
+        - authentication: primary_oob_otp_email
+          target_step: setup_identity
+      - step: verify
+        target_step: setup_identity
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
   - id: setup_phone_2fa
     type: authenticate
-    authentication: secondary_oob_otp_sms
+    one_of:
+    - authentication: secondary_oob_otp_sms
   - type: verify
     target_step: setup_phone_2fa
-  # Collect given name and family name.
   - type: user_profile
     user_profile:
     - pointer: /given_name
@@ -217,47 +215,57 @@ login_flows:
 - id: phone_otp_to_any_phone
   steps:
   - type: identify
-    identification: phone
+    one_of:
+    - identification: phone
   - type: authenticate
-    authentication: primary_oob_otp_sms
+    one_Of:
+    - authentication: primary_oob_otp_sms
 
 # Sign in with a phone number and OTP via SMS to the same phone number.
 - id: phone_otp_to_same_phone
   steps:
   - id: identify
     type: identify
-    identification: phone
+    one_of:
+    - identification: phone
   - type: authenticate
-    authentication: primary_oob_otp_sms
-    target_step: identify
+    one_of:
+    - authentication: primary_oob_otp_sms
+      target_step: identify
 
 # Sign in with a phone number and a password
 - id: phone_password
   steps:
   - type: identify
-    identification: phone
+    one_of:
+    - identification: phone
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
+
 # Sign in with a phone number, or an email address, with a password
 - id: phone_email_password
   steps:
-  - one_of:
-    - type: identify
-      identification: phone
-    - type: identify
-      identification: email
+  - type: identify
+    one_of:
+    - identification: phone
+    - identification: email
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
 
 # Sign in with an email address, a password and a TOTP
 - id: email_password_totp
   steps:
   - type: identify
-    identification: email
+    one_of:
+    - identification: email
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
   - type: authenticate
-    authentication: secondary_totp
+    one_of:
+    - authentication: secondary_totp
 ```
 
 #### Object: SignupLoginFlow
@@ -270,13 +278,12 @@ Example:
 signup_login_flows:
 - id: default_signup_login_flow
   steps:
-  - one_of:
-    - type: identify
-      identification: phone
+  - type: identify
+    one_of:
+    - identification: phone
       signup_flow: default_signup_flow
       login_flow: default_login_flow
-    - type: identify
-      identification: email
+    - identification: email
       signup_flow: default_signup_flow
       login_flow: default_login_flow
 ```
@@ -293,27 +300,27 @@ reauth_flows:
 - id: reauth_password
   steps:
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
 
 # Re-authenticate with any 2nd factor, assuming that 2FA is required in signup flow.
 - id: reauth_2fa
   steps:
-  - one_of:
-    - type: authenticate
-      authentication: secondary_totp
-    - type: authenticate
-      authentication: secondary_sms_code
+  - type: authenticate
+    one_of:
+    - authentication: secondary_totp
+    - authentication: secondary_sms_code
 
 # Re-authenticate with the 1st factor AND the 2nd factor.
 - id: reauth_full
   steps:
   - type: authenticate
-    authentication: primary_password
-  - one_of:
-    - type: authenticate
-      authentication: secondary_totp
-    - type: authenticate
-      authentication: secondary_sms_code
+    one_of:
+    - authentication: primary_password
+  - type: authenticate
+    one_of:
+    - authentication: secondary_totp
+    - authentication: secondary_sms_code
 ```
 
 #### Use case example 1: Latte
@@ -324,33 +331,39 @@ signup_flows:
   steps:
   - id: setup_phone
     type: identify
-    identification: phone
+    one_of:
+    - identification: phone
   - type: authenticate
-    authentication: primary_oob_otp_sms
-    target_step: setup_phone
+    one_of:
+    - authentication: primary_oob_otp_sms
+      target_step: setup_phone
   - type: verify
     target_step: setup_phone
   - id: setup_email
     type: identify
-    identification: email
+    one_of:
+    - identification: email
   - type: authenticate
-    authentication: primary_oob_otp_email
-    target_step: setup_email
+    one_of:
+    - authentication: primary_oob_otp_email
+      target_step: setup_email
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
   - type: identify
-    identification: phone
+    one_of:
+    - identification: phone
   - type: authenticate
-    authentication: primary_oob_otp_sms
-  - one_of:
-    - type: authenticate
-      authentication: primary_oob_otp_email
-    - type: authenticate
-      authentication: primary_password
+    one_of:
+    - authentication: primary_oob_otp_sms
+  - type: authenticate
+    one_of:
+    - authentication: primary_oob_otp_email
+    - authentication: primary_password
 ```
 
 #### Use case example 2: Uber
@@ -359,77 +372,76 @@ login_flows:
 signup_flows:
 - id: default_signup_flow
   steps:
-  - one_of:
-    - id: setup_phone
-      type: identify
-      identification: phone
+  - id: setup_first_identity
+    type: identify
+    one_of:
+    - identification: phone
       steps:
       - type: authenticate
-        authentication: primary_oob_otp_sms
-        target_step: setup_phone
+        one_of:
+        - authentication: primary_oob_otp_sms
+          target_step: setup_first_identity
       - type: verify
-        target_step: setup_phone
-      - id: setup_email
+        target_step: setup_first_identity
+      - id: setup_second_identity
         type: identify
-        identification: email
+        one_of:
+        - identification: email
       - type: authenticate
-        authentication: primary_oob_otp_email
-        target_step: setup_email
+        one_of:
+        - authentication: primary_oob_otp_email
+          target_step: setup_second_identity
       - type: verify
-        target_step: setup_email
-    - id: setup_email
-      type: identify
-      identification: email
-      steps:
+        target_step: setup_second_identity
+    - identification: email
       - type: authenticate
-        authentication: primary_oob_otp_email
-        target_step: setup_email
+        one_of:
+        - authentication: primary_oob_otp_email
+          target_step: setup_first_identity
       - type: verify
-        target_step: setup_email
-      - id: setup_phone
+        target_step: setup_first_identity
+      - id: setup_second_identity
         type: identify
-        identification: phone
+        one_of:
+        - identification: phone
       - type: authenticate
-        authentication: primary_oob_otp_sms
-        target_step: setup_phone
+        one_of:
+        - authentication: primary_oob_otp_sms
+          target_step: setup_second_identity
       - type: verify
-        target_step: setup_phone
+        target_step: setup_second_identity
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
-  - one_of:
-    - type: identify
-      identification: phone
+  - type: identify
+    one_of:
+    - identification: phone
       steps:
-      - one_of:
-        - type: authenticate
-          authentication: primary_oob_otp_sms
-        - type: authenticate
-          authentication: primary_password
-    - type: identify
-      identification: email
+      - type: authenticate
+        one_of:
+        - authentication: primary_oob_otp_sms
+        - authentication: primary_password
+    - identification: email
       steps:
-      - one_of:
-        - type: authenticate
-          authentication: primary_oob_otp_email
-        - type: authenticate
-          authentication: primary_oob_otp_sms
-        - type: authenticate
-          authentication: primary_password
+      - type: authenticate
+        one_of:
+        - authentication: primary_oob_otp_email
+        - authentication: primary_oob_otp_sms
+        - authentication: primary_password
 
 signup_login_flows:
 - id: default_signup_login_flow
   steps:
-  - one_of:
-    - type: identify
-      identification: phone
+  - type: identify
+    one_of:
+    - identification: phone
       login_flow: default_login_flow
       signup_flow: default_signup_flow
-    - type: identify
-      identification: email
+    - identification: email
       login_flow: default_login_flow
       signup_flow: default_signup_flow
 ```
@@ -441,22 +453,25 @@ signup_flows:
 - id: default_signup_flow
   steps:
   - type: identify
-    identification: email
+    one_of:
+    - identification: email
   - type: authenticate
-    authentication: primary_password
+    one_of:
+    - authentication: primary_password
 
 login_flows:
 - id: default_login_flow
   steps:
   - type: identify
-    identification: email
+    one_of:
+    - identification: email
   - type: authenticate
-    authentication: primary_password
-  - one_of:
-    - type: authenticate
-      authentication: secondary_totp
-    - type: authenticate
-      authentication: secondary_oob_otp_sms
+    one_of:
+    - authentication: primary_password
+  - type: authenticate
+    one_of:
+    - authentication: secondary_totp
+    - authentication: secondary_oob_otp_sms
 ```
 
 #### Use case example 4: The Club
@@ -467,18 +482,15 @@ login_flows:
 login_flows:
 - id: default_login_flow
   steps:
-  - one_of:
-    - type: identify
-      identification: email
-    - type: identify
-      identification: phone
-    - type: identify
-      identification: username
-  - one_of:
-    - type: authenticate
-      authentication: primary_password
-    - type: authenticate
-      authentication: primary_oob_otp_sms
+  - type: identify
+    one_of:
+    - identification: email
+    - identification: phone
+    - identification: username
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+    - authentication: primary_oob_otp_sms
 ```
 
 #### Use case example 5: Manulife MPF
@@ -490,14 +502,15 @@ login_flows:
 - id: default_login_flow
   steps:
   - type: identify
-    identification: username
+    one_of:
+    - identification: username
   - type: authenticate
-    authentication: primary_password
-  - one_of:
-    - type: authenticate
-      authentication: primary_oob_otp_sms
-    - type: authenticate
-      authentication: primary_oob_otp_email
+    one_of:
+    - authentication: primary_password
+  - type: authenticate
+    one_of:
+    - authentication: primary_oob_otp_sms
+    - authentication: primary_oob_otp_email
 ```
 
 #### Use case example 6: Comprehensive example
@@ -508,23 +521,24 @@ signup_flows:
 # Or the end user sign up with verified email with password and 2FA.
 - id: default_signup_flow
   steps:
-  - one_of:
-    # The flow of using OAuth
-    - type: identify
-      identification: oauth
-    # The flow of using email
-    - id: setup_email
-      type: identify
-      identification: email
+  - id: setup_identity
+    type: identify
+    one_of:
+    - identification: oauth
+    - identification: email
       steps:
-      - authentication: primary_oob_otp_email
-        target_step: setup_email
+      - type: authenticate
+        one_of:
+        - authentication: primary_oob_otp_email
+          target_step: setup_identity
       - type: verify
-        target_step: setup_email
+        target_step: setup_identity
       - type: authenticate
-        authentication: primary_password
+        one_of:
+        - authentication: primary_password
       - type: authenticate
-        authentication: secondary_totp
+        one_of:
+        - authentication: secondary_totp
 
 login_flows:
 # The end user can sign in with OAuth.
@@ -532,29 +546,25 @@ login_flows:
 # The end user can sign in with email with OTP, password, or passkey, and with 2FA.
 - id: default_login_flow
   steps:
-  - one_of:
-    - type: identify
-      identification: oauth
-    - type: identify
-      identification: passkey
-    - type: identify
-      identification: email
+  - type: identify
+    one_of:
+    - identification: oauth
+    - identification: passkey
+    - identification: email
       steps:
-      - one_of:
-        - type: authenticate
-          authentication: primary_passkey
-        - type: authenticate
-          authentication: primary_password
+      - type: authenticate
+        one_of:
+        - authentication: primary_passkey
+        - authentication: primary_password
           steps:
-          - one_of:
-            - type: authenticate
-              authentication: secondary_totp
-        - type: authenticate
-          authentication: primary_oob_otp_email
+          - type: authenticate
+            one_of:
+            - authentication: secondary_totp
+        - authentication: primary_oob_otp_email
           steps:
-          - one_of:
-            - type: authenticate
-              authentication: secondary_totp
+          - type: authenticate
+            one_of:
+            - authentication: secondary_totp
 ```
 
 ## Appendix
