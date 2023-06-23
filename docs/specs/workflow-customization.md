@@ -266,6 +266,23 @@ login_flows:
   - type: authenticate
     one_of:
     - authentication: secondary_totp
+
+# Sign in with an email address, a password. Perform 2FA if the end-user has configured.
+- id: email_password_optional_2fa
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+  - type: authenticate
+    # If the end-user has no applicable authentication method,
+    # then this step is optional.
+    # optional by default is false, meaning that the step is required.
+    optional: true
+    one_of:
+    - authentication: secondary_totp
 ```
 
 #### Object: SignupLoginFlow
