@@ -279,7 +279,7 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 		err = c.AuditHandle.ReadOnly(func() error {
 			events, after, err = c.queryEvents(
 				nonblocking.SMSSent,
-				&nonblocking.SMSSentEventPayload{},
+				func() event.Payload { return &nonblocking.SMSSentEventPayload{} },
 				appID, rangeFrom, rangeTo, first, after)
 			return err
 		})
@@ -322,7 +322,7 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 		err = c.AuditHandle.ReadOnly(func() error {
 			events, after, err = c.queryEvents(
 				nonblocking.WhatsappSent,
-				&nonblocking.WhatsappSentEventPayload{},
+				func() event.Payload { return &nonblocking.WhatsappSentEventPayload{} },
 				appID, rangeFrom, rangeTo, first, after)
 			return err
 		})
@@ -341,6 +341,7 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 			}
 
 			e164 := payload.Recipient
+
 			isNorthAmericaNumber, err := phoneutil.IsNorthAmericaNumber(e164)
 			if err != nil {
 				return nil, fmt.Errorf("usage: failed to parse whatsapp recipient %w", err)
@@ -357,7 +358,7 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 
 func (c *CountCollector) queryEvents(
 	eventType event.Type,
-	payloadType event.Payload,
+	payloadFactory func() event.Payload,
 	appID string,
 	rangeFrom *time.Time,
 	rangeTo *time.Time,
@@ -366,7 +367,7 @@ func (c *CountCollector) queryEvents(
 	options := audit.QueryPageOptions{
 		RangeFrom:     rangeFrom,
 		RangeTo:       rangeTo,
-		ActivityTypes: []string{string(nonblocking.SMSSent)},
+		ActivityTypes: []string{string(eventType)},
 	}
 
 	logs, offset, err := c.Meters.QueryPage(appID, options, graphqlutil.PageArgs{
@@ -384,7 +385,7 @@ func (c *CountCollector) queryEvents(
 			return
 		}
 		eventObj := event.Event{
-			Payload: payloadType,
+			Payload: payloadFactory(),
 		}
 		e = json.Unmarshal(b, &eventObj)
 		if e != nil {

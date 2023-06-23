@@ -42,7 +42,7 @@ var typeList = strings.Join([]string{
 	string(libusage.RecordTypeActiveUser),
 	string(libusage.RecordTypeSMSSent),
 	string(libusage.RecordTypeEmailSent),
-	string(libusage.RecordTypeWhatsappOTPVerified),
+	string(libusage.RecordTypeWhatsappSent),
 }, "|")
 
 var cmdUsageCollectCount = &cobra.Command{
