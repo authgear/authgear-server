@@ -20,8 +20,8 @@ type MessagingFeatureConfig struct {
 	EmailUsage    *UsageLimitConfig `json:"email_usage,omitempty"`
 	WhatsappUsage *UsageLimitConfig `json:"whatsapp_usage,omitempty"`
 
-	SMSBillingDisabled      bool `json:"sms_billing_disabled,omitempty"`
-	WhatsappBillingDisabled bool `json:"whatsapp_billing_disabled,omitempty"`
+	SMSUsageCountDisabled      bool `json:"sms_usage_count_disabled,omitempty"`
+	WhatsappUsageCountDisabled bool `json:"whatsapp_usage_count_disabled,omitempty"`
 }
 
 func (c *MessagingFeatureConfig) SetDefaults() {
