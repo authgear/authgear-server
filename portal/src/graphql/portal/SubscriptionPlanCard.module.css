@@ -5,7 +5,7 @@
   padding: 20px;
   display: grid;
   grid-template-columns: auto;
-  grid-template-rows: minmax(0, 0.7fr) 160px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 0.7fr) 200px minmax(0, 1fr);
 }
 
 .cardTag {

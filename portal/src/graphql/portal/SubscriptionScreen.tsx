@@ -31,6 +31,7 @@ import {
   SubscriptionItemPriceSmsRegion,
   SubscriptionItemPriceType,
   SubscriptionItemPriceUsageType,
+  SubscriptionItemPriceWhatsappRegion,
   SubscriptionPlan,
   SubscriptionUsage,
 } from "./globalTypes.generated";
@@ -279,6 +280,18 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       price.usageType === SubscriptionItemPriceUsageType.Sms &&
       price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
   );
+  const northAmericaWhatsappPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
+      price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
+  );
+  const otherRegionsWhatsappPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
+      price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
+  );
   const mauPrice = subscriptionPlan.prices.find(
     (price) =>
       price.type === SubscriptionItemPriceType.Usage &&
@@ -343,12 +356,32 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
               />
             </UsagePriceTag>
           ) : null}
+          {northAmericaWhatsappPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.whatsapp.north-america"
+                values={{
+                  unitAmount: northAmericaWhatsappPrice.unitAmount / 100,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
           {otherRegionsSMSPrice != null ? (
             <UsagePriceTag>
               <FormattedMessage
                 id="SubscriptionPlanCard.sms.other-regions"
                 values={{
                   unitAmount: otherRegionsSMSPrice.unitAmount / 100,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
+          {otherRegionsWhatsappPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.whatsapp.other-regions"
+                values={{
+                  unitAmount: otherRegionsWhatsappPrice.unitAmount / 100,
                 }}
               />
             </UsagePriceTag>
