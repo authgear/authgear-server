@@ -8,7 +8,9 @@ var _ = FeatureConfigSchema.Add("MessagingFeatureConfig", `
 		"rate_limits": { "$ref": "#/$defs/MessagingRateLimitsFeatureConfig" },
 		"sms_usage": { "$ref": "#/$defs/UsageLimitConfig" },
 		"email_usage": { "$ref": "#/$defs/UsageLimitConfig" },
-		"whatsapp_usage": { "$ref": "#/$defs/UsageLimitConfig" }
+		"whatsapp_usage": { "$ref": "#/$defs/UsageLimitConfig" },
+		"sms_usage_count_disabled": { "type": "boolean" },
+		"whatsapp_usage_count_disabled": { "type": "boolean" }
 	}
 }
 `)
