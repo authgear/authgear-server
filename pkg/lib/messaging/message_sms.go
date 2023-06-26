@@ -14,13 +14,16 @@ type SMSMessage struct {
 
 	Type nonblocking.MessageType
 	sms.SendOptions
+
+	IsNotBilled bool
 }
 
 func (m *SMSMessage) Send() error {
 	err := m.events.DispatchEvent(&nonblocking.SMSSentEventPayload{
-		Sender:    m.Sender,
-		Recipient: m.To,
-		Type:      m.Type,
+		Sender:      m.Sender,
+		Recipient:   m.To,
+		Type:        m.Type,
+		IsNotBilled: m.IsNotBilled,
 	})
 	if err != nil {
 		return err

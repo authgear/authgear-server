@@ -1778,10 +1778,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -4379,10 +4380,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -5235,10 +5237,11 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -6015,10 +6018,11 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -6900,10 +6904,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -7727,10 +7732,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -8553,10 +8559,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -9367,10 +9374,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -10174,10 +10182,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -10971,10 +10980,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -11771,10 +11781,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -12574,10 +12585,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -13379,10 +13391,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -14182,10 +14195,11 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -14981,10 +14995,11 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -15784,10 +15799,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -16588,10 +16604,11 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -17391,10 +17408,11 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -18194,10 +18212,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -18999,10 +19018,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -19802,10 +19822,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -20605,10 +20626,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -21412,10 +21434,11 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -22215,10 +22238,11 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -23022,10 +23046,11 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -23825,10 +23850,11 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -24636,10 +24662,11 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -25450,10 +25477,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -26253,10 +26281,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -27052,10 +27081,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -27855,10 +27885,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -28654,10 +28685,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -29463,10 +29495,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -30262,10 +30295,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -31063,10 +31097,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -31862,10 +31897,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -32693,10 +32729,11 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -33503,10 +33540,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -34326,10 +34364,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -35133,10 +35172,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -35933,10 +35973,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -36741,10 +36782,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -37541,10 +37583,11 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -38341,10 +38384,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -39141,10 +39185,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -39942,10 +39987,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -40761,10 +40807,11 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -41561,10 +41608,11 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -42361,10 +42409,11 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -43161,10 +43210,11 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -43961,10 +44011,11 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -44768,10 +44819,11 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -45569,10 +45621,11 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -46368,10 +46421,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -47182,10 +47236,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -47981,10 +48036,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -48780,10 +48836,11 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -49597,10 +49654,11 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -50360,10 +50418,11 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -51122,10 +51181,11 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -51931,10 +51991,11 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -52731,10 +52792,11 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -53517,10 +53579,11 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -54276,10 +54339,11 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -55006,10 +55070,11 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -55771,10 +55836,11 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -57314,10 +57380,11 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,

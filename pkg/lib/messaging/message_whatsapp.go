@@ -12,14 +12,16 @@ type WhatsappMessage struct {
 	taskQueue task.Queue
 	events    EventService
 
-	Type    nonblocking.MessageType
-	Options whatsapp.SendTemplateOptions
+	Type        nonblocking.MessageType
+	Options     whatsapp.SendTemplateOptions
+	IsNotBilled bool
 }
 
 func (m *WhatsappMessage) Send() error {
 	err := m.events.DispatchEvent(&nonblocking.WhatsappSentEventPayload{
-		Recipient: m.Options.To,
-		Type:      m.Type,
+		Recipient:   m.Options.To,
+		Type:        m.Type,
+		IsNotBilled: !m.IsNotBilled,
 	})
 	if err != nil {
 		return err
