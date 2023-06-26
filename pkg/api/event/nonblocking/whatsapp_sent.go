@@ -9,9 +9,9 @@ const (
 )
 
 type WhatsappSentEventPayload struct {
-	Recipient   string      `json:"recipient"`
-	Type        MessageType `json:"type"`
-	IsNotBilled bool        `json:"is_not_billed"`
+	Recipient           string      `json:"recipient"`
+	Type                MessageType `json:"type"`
+	IsNotCountedInUsage bool        `json:"is_not_counted_in_usage"`
 }
 
 func (e *WhatsappSentEventPayload) NonBlockingEventType() event.Type {
