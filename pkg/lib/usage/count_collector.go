@@ -296,6 +296,9 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 			if !ok {
 				return nil, errors.New("usage: unexpected event payload")
 			}
+			if payload.IsNotBilled {
+				continue
+			}
 
 			e164 := payload.Recipient
 			isNorthAmericaNumber, err := phoneutil.IsNorthAmericaNumber(e164)
@@ -345,6 +348,9 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 			isNorthAmericaNumber, err := phoneutil.IsNorthAmericaNumber(e164)
 			if err != nil {
 				return nil, fmt.Errorf("usage: failed to parse whatsapp recipient %w", err)
+			}
+			if payload.IsNotBilled {
+				continue
 			}
 
 			if isNorthAmericaNumber {

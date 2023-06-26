@@ -21,7 +21,7 @@ func (m *WhatsappMessage) Send() error {
 	err := m.events.DispatchEvent(&nonblocking.WhatsappSentEventPayload{
 		Recipient:   m.Options.To,
 		Type:        m.Type,
-		IsNotBilled: !m.IsNotBilled,
+		IsNotBilled: m.IsNotBilled,
 	})
 	if err != nil {
 		return err

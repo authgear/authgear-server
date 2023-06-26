@@ -56,7 +56,7 @@ func (s *Sender) PrepareSMS(phoneNumber string, msgType nonblocking.MessageType)
 		events:      s.Events,
 		SendOptions: sms.SendOptions{To: phoneNumber},
 		Type:        msgType,
-		IsNotBilled: s.MessagingFeatureConfig.WhatsappBillingDisabled,
+		IsNotBilled: s.MessagingFeatureConfig.SMSBillingDisabled,
 	}, nil
 }
 
