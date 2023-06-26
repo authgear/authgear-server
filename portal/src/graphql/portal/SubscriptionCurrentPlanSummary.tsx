@@ -12,6 +12,7 @@ import {
   ThemeProvider,
   Spinner,
   SpinnerSize,
+  Icon,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { DateTime } from "luxon";
@@ -106,9 +107,14 @@ export function CostItem(props: CostItemProps): React.ReactElement {
   }, [id]);
   const children = (
     <>
-      <Text id={id} block={true} className={styles.costItemTitle}>
-        {title}
-      </Text>
+      <div className="flex flex-row items-center">
+        <Text id={id} block={true} className={styles.costItemTitle}>
+          {title}
+        </Text>
+        {tooltip == null ? null : (
+          <Icon iconName="info" className="ml-1 text-xs flex-none" />
+        )}
+      </div>
       <Text block={true} variant="xLarge">
         {kind === "non-applicable" ? (
           "-"
