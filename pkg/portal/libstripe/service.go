@@ -311,10 +311,11 @@ func (s *Service) fetchProducts() ([]*stripe.Product, error) {
 	var products []*stripe.Product
 
 	expandDefaultPrice := "data.default_price"
+	expandTiers := "data.default_price.tiers"
 	listProductParams := &stripe.ProductListParams{
 		ListParams: stripe.ListParams{
 			Context: s.Context,
-			Expand:  []*string{&expandDefaultPrice},
+			Expand:  []*string{&expandDefaultPrice, &expandTiers},
 		},
 		Active: stripe.Bool(true),
 	}

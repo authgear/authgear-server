@@ -44,7 +44,24 @@ func newPrice(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *
 		StripePriceID:   stripePrice.ID,
 		Type:            priceType,
 		Currency:        string(stripePrice.Currency),
-		UnitAmount:      int(stripePrice.UnitAmount),
+	}
+
+	if len(stripePrice.Tiers) > 0 {
+		firstTier := stripePrice.Tiers[0]
+		if firstTier.UnitAmount == 0 {
+			// If the first tier is free, set the amount to FreeQuanity
+			freeQuantity := int(firstTier.UpTo)
+			price.FreeQuantity = &freeQuantity
+			if len(stripePrice.Tiers) > 1 {
+				// And get the next tier as the unit price
+				secondTier := stripePrice.Tiers[1]
+				price.UnitAmount = int(secondTier.UnitAmount)
+			}
+		} else {
+			price.UnitAmount = int(firstTier.UnitAmount)
+		}
+	} else {
+		price.UnitAmount = int(stripePrice.UnitAmount)
 	}
 
 	if stripePrice.TransformQuantity != nil {
