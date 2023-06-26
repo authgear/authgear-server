@@ -1084,7 +1084,7 @@
   "SubscriptionCurrentPlanSummary.manage-subscription": "View invoices or change billing methods",
   "SubscriptionCurrentPlanSummary.next-billing-date": "Next billing date: {date}",
   "SubscriptionCurrentPlanSummary.whatsapp.title": "Whatsapp",
-  "SubscriptionCurrentPlanSummary.whatsapp.tooltip": "{count} Whatsapp authentication completed",
+  "SubscriptionCurrentPlanSummary.whatsapp.tooltip": "{count1} Whatsapp (US, Canada) sent{br, react}{count2} Whatsapp (Other regions) sent",
   "SubscriptionCurrentPlanSummary.sms.title": "SMS",
   "SubscriptionCurrentPlanSummary.sms.tooltip": "{count1} SMS (US, Canada) sent{br, react}{count2} SMS (Other regions) sent",
   "SubscriptionCurrentPlanSummary.total-cost.title": "Total Cost (Estimated)",
