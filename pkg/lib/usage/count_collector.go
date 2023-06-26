@@ -291,7 +291,6 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 			return result, nil
 		}
 		for _, e := range events {
-			result.total++
 			payload, ok := e.Payload.(*nonblocking.SMSSentEventPayload)
 			if !ok {
 				return nil, errors.New("usage: unexpected event payload")
@@ -305,6 +304,8 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 			if err != nil {
 				return nil, fmt.Errorf("usage: failed to parse sms recipient %w", err)
 			}
+
+			result.total++
 
 			if isNorthAmericaNumber {
 				result.northAmerica++
@@ -337,7 +338,6 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 			return result, nil
 		}
 		for _, e := range events {
-			result.total++
 			payload, ok := e.Payload.(*nonblocking.WhatsappSentEventPayload)
 			if !ok {
 				return nil, errors.New("usage: unexpected event payload")
@@ -352,6 +352,8 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 			if payload.IsNotCountedInUsage {
 				continue
 			}
+
+			result.total++
 
 			if isNorthAmericaNumber {
 				result.northAmerica++
