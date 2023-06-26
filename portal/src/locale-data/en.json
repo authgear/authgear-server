@@ -1139,6 +1139,8 @@
 
   "SubscriptionPlanCard.sms.north-america": "USD {unitAmount} per SMS (US, Canada)",
   "SubscriptionPlanCard.sms.other-regions": "USD {unitAmount} per SMS (Other regions)",
+  "SubscriptionPlanCard.whatsapp.north-america": "USD {unitAmount} per Whatsapp (US, Canada)",
+  "SubscriptionPlanCard.whatsapp.other-regions": "USD {unitAmount} per Whatsapp (Other regions)",
   "SubscriptionPlanCard.mau": "USD {unitAmount}/mo per {divisor} additional MAUs",
 
   "SubscriptionScreen.footer.tax": "* Local VAT and taxes may apply.",

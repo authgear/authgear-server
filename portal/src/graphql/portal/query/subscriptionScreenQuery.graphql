@@ -10,6 +10,7 @@ fragment AppFragment on App {
       type
       usageType
       smsRegion
+      whatsappRegion
       quantity
       currency
       unitAmount
@@ -25,6 +26,7 @@ fragment AppFragment on App {
       type
       usageType
       smsRegion
+      whatsappRegion
       quantity
       currency
       unitAmount
@@ -43,7 +45,11 @@ fragment AppFragment on App {
   }
 }
 
-query subscriptionScreenQuery($id: ID!, $thisMonth: DateTime!, $previousMonth: DateTime!) {
+query subscriptionScreenQuery(
+  $id: ID!
+  $thisMonth: DateTime!
+  $previousMonth: DateTime!
+) {
   node(id: $id) {
     __typename
     ...AppFragment
@@ -54,6 +60,7 @@ query subscriptionScreenQuery($id: ID!, $thisMonth: DateTime!, $previousMonth: D
     prices {
       currency
       smsRegion
+      whatsappRegion
       type
       unitAmount
       usageType

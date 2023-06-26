@@ -49,26 +49,38 @@ export const SubscriptionEnterprisePlan: React.VFC<SubscriptionEnterprisePlanPro
         }
         usagePriceTags={
           <>
-            {
-              <UsagePriceTag>
-                <FormattedMessage
-                  id="SubscriptionPlanCard.sms.north-america"
-                  values={{
-                    unitAmount: "0.01",
-                  }}
-                />
-              </UsagePriceTag>
-            }
-            {
-              <UsagePriceTag>
-                <FormattedMessage
-                  id="SubscriptionPlanCard.sms.other-regions"
-                  values={{
-                    unitAmount: "0.06",
-                  }}
-                />
-              </UsagePriceTag>
-            }
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.sms.north-america"
+                values={{
+                  unitAmount: "0.01",
+                }}
+              />
+            </UsagePriceTag>
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.whatsapp.north-america"
+                values={{
+                  unitAmount: "0.02",
+                }}
+              />
+            </UsagePriceTag>
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.sms.other-regions"
+                values={{
+                  unitAmount: "0.06",
+                }}
+              />
+            </UsagePriceTag>
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.whatsapp.other-regions"
+                values={{
+                  unitAmount: "0.1",
+                }}
+              />
+            </UsagePriceTag>
           </>
         }
         cta={<CTA.ContactUs onClick={onClickContactUs} />}
