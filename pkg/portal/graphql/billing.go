@@ -98,6 +98,9 @@ var price = graphql.NewObject(graphql.ObjectConfig{
 		"smsRegion": &graphql.Field{
 			Type: graphql.NewNonNull(smsRegion),
 		},
+		"whatsappRegion": &graphql.Field{
+			Type: graphql.NewNonNull(whatsappRegion),
+		},
 		"transformQuantityDivideBy": &graphql.Field{
 			Type: graphql.Int,
 		},

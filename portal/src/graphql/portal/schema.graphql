@@ -836,6 +836,9 @@ type SubscriptionItemPrice {
 
   """"""
   usageType: SubscriptionItemPriceUsageType!
+
+  """"""
+  whatsappRegion: SubscriptionItemPriceWhatsappRegion!
 }
 
 """"""
@@ -869,6 +872,9 @@ enum SubscriptionItemPriceUsageType {
 
   """"""
   SMS
+
+  """"""
+  WHATSAPP
 }
 
 """"""

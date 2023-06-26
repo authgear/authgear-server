@@ -695,6 +695,7 @@ export type SubscriptionItemPrice = {
   type: SubscriptionItemPriceType;
   unitAmount: Scalars['Int'];
   usageType: SubscriptionItemPriceUsageType;
+  whatsappRegion: SubscriptionItemPriceWhatsappRegion;
 };
 
 export enum SubscriptionItemPriceSmsRegion {
@@ -711,7 +712,14 @@ export enum SubscriptionItemPriceType {
 export enum SubscriptionItemPriceUsageType {
   Mau = 'MAU',
   None = 'NONE',
-  Sms = 'SMS'
+  Sms = 'SMS',
+  Whatsapp = 'WHATSAPP'
+}
+
+export enum SubscriptionItemPriceWhatsappRegion {
+  None = 'NONE',
+  NorthAmerica = 'NORTH_AMERICA',
+  OtherRegions = 'OTHER_REGIONS'
 }
 
 export type SubscriptionPlan = {
@@ -738,6 +746,7 @@ export type SubscriptionUsageItem = {
   type: SubscriptionItemPriceType;
   unitAmount?: Maybe<Scalars['Int']>;
   usageType: SubscriptionItemPriceUsageType;
+  whatsappRegion: SubscriptionItemPriceWhatsappRegion;
 };
 
 export enum TransformQuantityRound {
