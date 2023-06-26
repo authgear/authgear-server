@@ -617,4 +617,416 @@ login_flows:
 
 ### JSON schema
 
-TODO
+```
+{
+  "$defs": {
+    "WorkflowSignupFlowConfig": {
+      "type": "object",
+      "required": ["id", "steps"],
+      "properties": {
+        "id": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowSignupFlowStep" }
+        }
+      }
+    },
+    "WorkflowSignupFlowStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "identify",
+            "authenticate",
+            "verify",
+            "user_profile"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "identify" }
+            }
+          },
+          "then": {
+            "required": ["one_of"],
+            "properties": {
+              "one_of": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowSignupFlowIdentify" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "authenticate" }
+            }
+          },
+          "then": {
+            "required": ["one_of"],
+            "properties": {
+              "one_of": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowSignupFlowAuthenticate" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "verify" }
+            }
+          },
+          "then": {
+            "required": ["target_step"],
+            "properties": {
+              "target_step": { "type": "string" }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "user_profile" }
+            }
+          },
+          "then": {
+            "required": ["user_profile"],
+            "properties": {
+              "user_profile": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowSignupFlowUserProfile" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "WorkflowSignupFlowIdentify": {
+      "type": "object",
+      "required": ["identification"],
+      "properties": {
+        "identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowSignupFlowStep" }
+        }
+      }
+    },
+    "WorkflowSignupFlowAuthenticate": {
+      "type": "object",
+      "required": ["authentication"],
+      "properties": {
+        "authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+        "target_step": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowSignupFlowStep" }
+        }
+      }
+    },
+    "WorkflowSignupFlowUserProfile": {
+      "type": "object",
+      "required": ["pointer", "required"],
+      "properties": {
+        "pointer": { "type": "string" },
+        "required": { "type": "boolean" }
+      }
+    },
+    "WorkflowLoginFlowConfig": {
+      "type": "object",
+      "required": ["id", "steps"],
+      "properties": {
+        "id": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+        },
+        "account_linking": { "$ref": "#/$defs/WorkflowLoginFlowAccountLinking" }
+      }
+    },
+    "WorkflowLoginFlowAccountLinking": {
+      "type": "object",
+      "required": ["conditions"],
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowLoginFlowAccountLinkingCondition" }
+        }
+      }
+    },
+    "WorkflowLoginFlowAccountLinkingCondition": {
+      "type": "object",
+      "required": ["standard_attribute", "existing", "incoming"],
+      "properties": {
+        "standard_attribute": {
+          "type": "string",
+          "enum": [
+            "/email"
+          ]
+        },
+        "existing": {
+          "type": "object",
+          "properties": {
+            "identification": {
+              "type": "string",
+              "enum": [
+                "email",
+                "oauth"
+              ]
+            }
+          }
+        },
+        "incoming": {
+          "type": "object",
+          "properties": {
+            "identification": {
+              "type": "string",
+              "enum": [
+                "email",
+                "oauth"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "WorkflowLoginFlowStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "identify",
+            "authenticate"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "identify" }
+            }
+          },
+          "then": {
+            "required": ["one_of"],
+            "properties": {
+              "one_of": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowLoginFlowIdentify" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "authenticate" }
+            }
+          },
+          "then": {
+            "required": ["one_of"],
+            "properties": {
+              "optional": { "type": "boolean" },
+              "one_of": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowLoginFlowAuthenticate" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "WorkflowLoginFlowIdentify": {
+      "type": "object",
+      "required": ["identification"],
+      "properties": {
+        "identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+        "steps": {
+          "type": "array",
+          "items": { "$def": "#/$defs/WorkflowLoginFlowStep" }
+        }
+      }
+    },
+    "WorkflowLoginFlowAuthenticate": {
+      "type": "object",
+      "required": ["authentication"],
+      "properties": {
+        "authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+        "target_step": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+        }
+      }
+    },
+    "WorkflowSignupLoginFlowConfig": {
+      "type": "object",
+      "required": ["id", "steps"],
+      "properties": {
+        "id": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowSignupLoginFlowStep" }
+        }
+      }
+    },
+    "WorkflowSignupLoginFlowStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "identify"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "identify" }
+            }
+          },
+          "then": {
+            "required": ["one_of"],
+            "properties": {
+              "one_of": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowSignupLoginFlowIdentify" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "WorkflowSignupLoginFlowIdentify": {
+      "type": "object",
+      "required": ["identification", "signup_flow", "login_flow"],
+      "properties": {
+        "identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+        "signup_flow": { "type": "string" },
+        "login_flow": { "type": "string" }
+      }
+    },
+    "WorkflowReauthFlowConfig": {
+      "type": "object",
+      "required": ["id", "steps"],
+      "properties": {
+        "id": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowReauthFlowStep" }
+        }
+      }
+    },
+    "WorkflowReauthFlowStep": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": [
+            "authenticate"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "authenticate" }
+            }
+          },
+          "then": {
+            "required": ["one_of"],
+            "properties": {
+              "optional": { "type": "boolean" },
+              "one_of": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/WorkflowReauthFlowAuthenticate" }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "WorkflowReauthFlowAuthenticate": {
+      "type": "object",
+      "required": ["authentication"],
+      "properties": {
+        "authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+        "target_step": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/WorkflowReauthFlowStep" }
+        }
+      }
+    },
+    "WorkflowIdentificationMethod": {
+      "type": "string",
+      "enum": [
+        "email",
+        "phone",
+        "username",
+        "oauth",
+        "passkey",
+        "siwe"
+      ]
+    },
+    "WorkflowAuthenticationMethod": {
+      "type": "string",
+      "enum": [
+        "primary_password",
+        "primary_passkey",
+        "primary_oob_otp_email",
+        "primary_oob_otp_sms",
+        "secondary_password",
+        "secondary_totp",
+        "secondary_oob_otp_email",
+        "secondary_oob_otp_sms"
+      ]
+    }
+  },
+  "properties": {
+    "signup_flows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/WorkflowSignupFlowConfig" }
+    },
+    "login_flows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/WorkflowLoginFlowConfig" }
+    },
+    "signup_login_flows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/WorkflowSignupLoginFlowConfig" }
+    },
+    "reauth_flows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/WorkflowReauthFlowConfig" }
+    }
+  }
+}
+```
