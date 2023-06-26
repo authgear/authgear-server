@@ -51,12 +51,12 @@ func (s *Sender) PrepareSMS(phoneNumber string, msgType nonblocking.MessageType)
 	}
 
 	return &SMSMessage{
-		message:     *msg,
-		taskQueue:   s.TaskQueue,
-		events:      s.Events,
-		SendOptions: sms.SendOptions{To: phoneNumber},
-		Type:        msgType,
-		IsNotBilled: s.MessagingFeatureConfig.SMSBillingDisabled,
+		message:      *msg,
+		taskQueue:    s.TaskQueue,
+		events:       s.Events,
+		SendOptions:  sms.SendOptions{To: phoneNumber},
+		Type:         msgType,
+		IsNotCounted: s.MessagingFeatureConfig.SMSUsageCountDisabled,
 	}, nil
 }
 
@@ -67,11 +67,11 @@ func (s *Sender) PrepareWhatsapp(phoneNumber string, msgType nonblocking.Message
 	}
 
 	return &WhatsappMessage{
-		message:     *msg,
-		taskQueue:   s.TaskQueue,
-		events:      s.Events,
-		Options:     whatsapp.SendTemplateOptions{To: phoneNumber},
-		Type:        msgType,
-		IsNotBilled: s.MessagingFeatureConfig.WhatsappBillingDisabled,
+		message:      *msg,
+		taskQueue:    s.TaskQueue,
+		events:       s.Events,
+		Options:      whatsapp.SendTemplateOptions{To: phoneNumber},
+		Type:         msgType,
+		IsNotCounted: s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 	}, nil
 }
