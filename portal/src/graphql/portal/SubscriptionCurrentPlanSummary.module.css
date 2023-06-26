@@ -12,6 +12,7 @@
 }
 
 .costItemTitle {
+  @apply flex-none;
   color: #646464;
 }
 
