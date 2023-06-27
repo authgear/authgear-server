@@ -983,7 +983,8 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
       maximumDurationMins: parseOptionalDurationInMinutes(
         config.authentication?.lockout?.maximum_duration
       ),
-      backoffFactor: config.authentication?.lockout?.backoff_factor,
+      backoffFactorRaw:
+        config.authentication?.lockout?.backoff_factor?.toString(),
       lockoutType: config.authentication?.lockout?.lockout_type ?? "per_user",
       isEnabledForPassword:
         config.authentication?.lockout?.password?.enabled ?? false,
@@ -1140,8 +1141,12 @@ function constructConfig(
       config.verification.rate_limits.sms.trigger_cooldown = undefined;
     }
 
-    config.authentication.lockout.backoff_factor =
-      currentState.lockout.backoffFactor;
+    const backoffFactor = Number(currentState.lockout.backoffFactorRaw);
+    config.authentication.lockout.backoff_factor = Number.isFinite(
+      backoffFactor
+    )
+      ? backoffFactor
+      : undefined;
     config.authentication.lockout.history_duration = formatOptionalDuration(
       currentState.lockout.historyDurationMins,
       "m"

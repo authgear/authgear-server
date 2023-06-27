@@ -20,7 +20,7 @@ export interface State {
   historyDurationMins?: number;
   minimumDurationMins?: number;
   maximumDurationMins?: number;
-  backoffFactor?: number;
+  backoffFactorRaw?: string;
   lockoutType: AuthenticationLockoutType;
   isEnabledForPassword: boolean;
   isEnabledForTOTP: boolean;
@@ -54,13 +54,12 @@ function SubsectionTitle(
   );
 }
 
-function useNumberOnChange<T extends State>(
+function useIntegerOnChange<T extends State>(
   setState: LockoutSettingsProps<T>["setState"],
   key:
     | "maxAttempts"
     | "historyDurationMins"
     | "minimumDurationMins"
-    | "backoffFactor"
     | "maximumDurationMins"
 ) {
   return useCallback(
@@ -71,6 +70,29 @@ function useNumberOnChange<T extends State>(
       setState((prev) =>
         produce(prev, (prev) => {
           prev[key] = parseIntegerAllowLeadingZeros(value);
+        })
+      );
+    },
+    [setState, key]
+  );
+}
+
+function useDecimalOnChange<T extends State>(
+  setState: LockoutSettingsProps<T>["setState"],
+  key: "backoffFactorRaw"
+) {
+  return useCallback(
+    (_: unknown, value?: string | undefined) => {
+      if (value == null) {
+        return;
+      }
+      const newNumber = Number(value);
+      if (!Number.isFinite(newNumber)) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev[key] = value;
         })
       );
     },
@@ -188,9 +210,16 @@ function LockoutDurationSection<T extends State>(props: {
 
   const overallDescriptionValues = useMemo(() => {
     const durationMins = state.minimumDurationMins ?? 0;
-    const backoffFactor = state.backoffFactor ?? 1;
-    const durationMinsSecond = durationMins * backoffFactor;
-    const durationMinsThird = durationMins * backoffFactor * backoffFactor;
+    let backoffFactor = Number(state.backoffFactorRaw);
+    if (!Number.isFinite(backoffFactor)) {
+      backoffFactor = 1;
+    }
+    const durationMinsSecond = Number(
+      (durationMins * backoffFactor).toFixed(2)
+    );
+    const durationMinsThird = Number(
+      (durationMins * backoffFactor * backoffFactor).toFixed(2)
+    );
     const maxDurationMins = state.maximumDurationMins ?? 0;
     const maxDurationHours = formatOptionalHour(maxDurationMins / 60);
     return {
@@ -234,7 +263,7 @@ function LockoutDurationSection<T extends State>(props: {
           label={renderToString(
             "LoginMethodConfigurationScreen.lockout.duration.backoff.title"
           )}
-          value={state.backoffFactor?.toString() ?? ""}
+          value={state.backoffFactorRaw ?? ""}
           onChange={onBackoffFactorChange}
         />
         <WidgetDescription className="mt-2">
@@ -259,7 +288,7 @@ function LockoutDurationSection<T extends State>(props: {
 
       <div className={styles.descriptionBox}>
         <Text variant="medium">
-          {(state.backoffFactor ?? 1) <= 1 ? (
+          {Number(state.backoffFactorRaw) <= 1 ? (
             <FormattedMessage
               id="LoginMethodConfigurationScreen.lockout.duration.overall.description.noBackoff"
               values={{
@@ -387,17 +416,20 @@ export default function LockoutSettings<T extends State>(
 ): ReactElement {
   const { className, setState, ...state } = props;
 
-  const onMaxAttemptsChange = useNumberOnChange(setState, "maxAttempts");
-  const onHistoryDurationMinsChange = useNumberOnChange(
+  const onMaxAttemptsChange = useIntegerOnChange(setState, "maxAttempts");
+  const onHistoryDurationMinsChange = useIntegerOnChange(
     setState,
     "historyDurationMins"
   );
-  const onMinDurationChange = useNumberOnChange(
+  const onMinDurationChange = useIntegerOnChange(
     setState,
     "minimumDurationMins"
   );
-  const onBackoffFactorChange = useNumberOnChange(setState, "backoffFactor");
-  const onMaximumDurationMinsChange = useNumberOnChange(
+  const onBackoffFactorChange = useDecimalOnChange(
+    setState,
+    "backoffFactorRaw"
+  );
+  const onMaximumDurationMinsChange = useIntegerOnChange(
     setState,
     "maximumDurationMins"
   );
