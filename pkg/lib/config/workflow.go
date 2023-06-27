@@ -188,3 +188,101 @@ var _ = Schema.Add("WorkflowSignupFlowUserProfile", `
 	}
 }
 `)
+
+var _ = Schema.Add("WorkflowLoginFlow", `
+{
+	"type": "object",
+	"required": ["id", "steps"],
+	"properties": {
+		"id": { "$ref": "#/$defs/WorkflowObjectID" },
+		"steps": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("WorkflowLoginFlowStep", `
+{
+	"type": "object",
+	"required": ["type"],
+	"properties": {
+		"id": { "$ref": "#/$defs/WorkflowObjectID" },
+		"type": {
+			"type": "string",
+			"enum": [
+				"identify",
+				"authenticate"
+			]
+		}
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "identify" }
+				}
+			},
+			"then": {
+				"required": ["one_of"],
+				"properties": {
+					"one_of": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/WorkflowLoginFlowIdentify" }
+					}
+				}
+			}
+		},
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "authenticate" }
+				}
+			},
+			"then": {
+				"required": ["one_of"],
+				"properties": {
+					"optional": { "type": "boolean" },
+					"one_of": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/WorkflowSignupFlowAuthenticate" }
+					}
+				}
+			}
+		}
+	]
+}
+`)
+
+var _ = Schema.Add("WorkflowLoginFlowIdentify", `
+{
+	"type": "object",
+	"required": ["identification"],
+	"properties": {
+		"identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+		"steps": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("WorkflowSignupFlowAuthenticate", `
+{
+	"type": "object",
+	"required": ["authentication"],
+	"properties": {
+		"authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+		"target_step": { "$ref": "#/$defs/WorkflowObjectID" },
+		"steps": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+		}
+	}
+}
+`)
