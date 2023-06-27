@@ -13,12 +13,13 @@ import { AuthenticationLockoutType } from "../../types";
 import produce from "immer";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./LockoutSettings.module.css";
+import HorizontalDivider from "../../HorizontalDivider";
 
 export interface State {
   maxAttempts?: number;
   historyDurationMins?: number;
   minimumDurationMins?: number;
-  maximumDuration?: number;
+  maximumDurationMins?: number;
   backoffFactor?: number;
   lockoutType: AuthenticationLockoutType;
   isEnabledForPassword: boolean;
@@ -55,10 +56,15 @@ function SubsectionTitle(
 
 function useNumberOnChange<T extends State>(
   setState: LockoutSettingsProps<T>["setState"],
-  key: "maxAttempts" | "historyDurationMins"
+  key:
+    | "maxAttempts"
+    | "historyDurationMins"
+    | "minimumDurationMins"
+    | "backoffFactor"
+    | "maximumDurationMins"
 ) {
   return useCallback(
-    (_, value) => {
+    (_: unknown, value?: string | undefined) => {
       if (value == null) {
         return;
       }
@@ -72,16 +78,191 @@ function useNumberOnChange<T extends State>(
   );
 }
 
+function formatOptionalHour(hour: number): string {
+  if (hour < 1) {
+    return "none";
+  }
+  return Number(hour.toFixed(2)).toString();
+}
+
+function LockoutThresholdSection<T extends State>(props: {
+  state: T;
+  onMaxAttemptsChange: (_: unknown, value?: string | undefined) => void;
+  onHistoryDurationMinsChange: (_: unknown, value?: string | undefined) => void;
+}) {
+  const { renderToString } = useContext(MessageContext);
+  const { state, onHistoryDurationMinsChange, onMaxAttemptsChange } = props;
+
+  return (
+    <WidgetSubsection>
+      <SubsectionTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.title" />
+      </SubsectionTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.description" />
+      </WidgetDescription>
+      <div>
+        <TextField
+          type="text"
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.title"
+          )}
+          value={state.maxAttempts?.toFixed(0) ?? ""}
+          onChange={onMaxAttemptsChange}
+        />
+        <WidgetDescription className="mt-2">
+          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.description" />
+        </WidgetDescription>
+      </div>
+      <div>
+        <TextField
+          type="text"
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.threshold.resetAfter.title"
+          )}
+          value={state.historyDurationMins?.toFixed(0) ?? ""}
+          onChange={onHistoryDurationMinsChange}
+        />
+        <WidgetDescription className="mt-2">
+          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.resetAfter.description" />
+        </WidgetDescription>
+      </div>
+      <div className={styles.descriptionBox}>
+        <Text variant="medium">
+          <FormattedMessage
+            id="LoginMethodConfigurationScreen.lockout.threshold.overall.description"
+            values={{
+              attempts: state.maxAttempts ?? 0,
+              resetIntervalMins: state.historyDurationMins ?? 0,
+              resetIntervalHours: formatOptionalHour(
+                (state.historyDurationMins ?? 0) / 60
+              ),
+            }}
+          />
+        </Text>
+      </div>
+    </WidgetSubsection>
+  );
+}
+
+function LockoutDurationSection<T extends State>(props: {
+  state: T;
+  onMinDurationChange: (_: unknown, value?: string | undefined) => void;
+  onBackoffFactorChange: (_: unknown, value?: string | undefined) => void;
+  onMaximumDurationMinsChange: (_: unknown, value?: string | undefined) => void;
+}) {
+  const { renderToString } = useContext(MessageContext);
+  const {
+    state,
+    onBackoffFactorChange,
+    onMaximumDurationMinsChange,
+    onMinDurationChange,
+  } = props;
+
+  const overallDescriptionValues = useMemo(() => {
+    const durationMins = state.minimumDurationMins ?? 0;
+    const backoffFactor = state.backoffFactor ?? 1;
+    const durationMinsSecond = durationMins * backoffFactor;
+    const durationMinsThird = durationMins * backoffFactor * backoffFactor;
+    const maxDurationMins = state.maximumDurationMins ?? 0;
+    const maxDurationHours = formatOptionalHour(maxDurationMins / 60);
+    return {
+      durationMins,
+      backoffFactor,
+      durationMinsSecond,
+      durationMinsThird,
+      maxDurationMins,
+      maxDurationHours,
+    };
+  }, [state]);
+
+  return (
+    <WidgetSubsection>
+      <SubsectionTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.title" />
+      </SubsectionTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.description" />
+      </WidgetDescription>
+      <div>
+        <TextField
+          type="text"
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.duration.duration.title"
+          )}
+          value={state.minimumDurationMins?.toFixed(0) ?? ""}
+          onChange={onMinDurationChange}
+        />
+        <WidgetDescription className="mt-2">
+          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.duration.description" />
+        </WidgetDescription>
+      </div>
+      <div>
+        <TextField
+          type="text"
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.duration.backoff.title"
+          )}
+          value={state.backoffFactor?.toString() ?? ""}
+          onChange={onBackoffFactorChange}
+        />
+        <WidgetDescription className="mt-2">
+          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.backoff.description" />
+        </WidgetDescription>
+      </div>
+      <div>
+        <TextField
+          type="text"
+          label={renderToString(
+            "LoginMethodConfigurationScreen.lockout.duration.max.title"
+          )}
+          value={state.maximumDurationMins?.toFixed(0) ?? ""}
+          onChange={onMaximumDurationMinsChange}
+        />
+        <WidgetDescription className="mt-2">
+          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.max.description" />
+        </WidgetDescription>
+      </div>
+
+      <div className={styles.descriptionBox}>
+        <Text variant="medium">
+          {(state.backoffFactor ?? 1) <= 1 ? (
+            <FormattedMessage
+              id="LoginMethodConfigurationScreen.lockout.duration.overall.description.noBackoff"
+              values={{
+                durationMins: state.minimumDurationMins ?? 0,
+              }}
+            />
+          ) : (
+            <FormattedMessage
+              id="LoginMethodConfigurationScreen.lockout.duration.overall.description.withBackoff"
+              values={overallDescriptionValues}
+            />
+          )}
+        </Text>
+      </div>
+    </WidgetSubsection>
+  );
+}
+
 export default function LockoutSettings<T extends State>(
   props: LockoutSettingsProps<T>
 ): ReactElement {
   const { className, setState, ...state } = props;
-  const { renderToString } = useContext(MessageContext);
 
   const onMaxAttemptsChange = useNumberOnChange(setState, "maxAttempts");
   const onHistoryDurationMinsChange = useNumberOnChange(
     setState,
     "historyDurationMins"
+  );
+  const onMinDurationChange = useNumberOnChange(
+    setState,
+    "minimumDurationMins"
+  );
+  const onBackoffFactorChange = useNumberOnChange(setState, "backoffFactor");
+  const onMaximumDurationMinsChange = useNumberOnChange(
+    setState,
+    "maximumDurationMins"
   );
 
   return (
@@ -89,54 +270,20 @@ export default function LockoutSettings<T extends State>(
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.title" />
       </WidgetTitle>
-      <WidgetSubsection>
-        <SubsectionTitle>
-          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.title" />
-        </SubsectionTitle>
-        <WidgetDescription>
-          <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.description" />
-        </WidgetDescription>
-        <div>
-          <TextField
-            type="text"
-            label={renderToString(
-              "LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.title"
-            )}
-            value={state.maxAttempts?.toFixed(0) ?? ""}
-            onChange={onMaxAttemptsChange}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.description" />
-          </WidgetDescription>
-        </div>
-        <div>
-          <TextField
-            type="text"
-            label={renderToString(
-              "LoginMethodConfigurationScreen.lockout.threshold.resetAfter.title"
-            )}
-            value={state.historyDurationMins?.toFixed(0) ?? ""}
-            onChange={onHistoryDurationMinsChange}
-          />
-          <WidgetDescription className="mt-2">
-            <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.resetAfter.description" />
-          </WidgetDescription>
-        </div>
-        <div className={styles.descriptionBox}>
-          <Text variant="medium">
-            <FormattedMessage
-              id="LoginMethodConfigurationScreen.lockout.threshold.overall.description"
-              values={{
-                attempts: state.maxAttempts ?? 0,
-                resetIntervalMins: state.historyDurationMins ?? 0,
-                resetIntervalHours: Number(
-                  ((state.historyDurationMins ?? 0) / 60).toFixed(2)
-                ),
-              }}
-            />
-          </Text>
-        </div>
-      </WidgetSubsection>
+      <LockoutThresholdSection
+        state={state}
+        onHistoryDurationMinsChange={onHistoryDurationMinsChange}
+        onMaxAttemptsChange={onMaxAttemptsChange}
+      />
+
+      <HorizontalDivider />
+
+      <LockoutDurationSection
+        state={state}
+        onBackoffFactorChange={onBackoffFactorChange}
+        onMaximumDurationMinsChange={onMaximumDurationMinsChange}
+        onMinDurationChange={onMinDurationChange}
+      />
     </Widget>
   );
 }
