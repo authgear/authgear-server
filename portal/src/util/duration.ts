@@ -1,6 +1,6 @@
 // ref: https://cs.opensource.google/go/go/+/refs/tags/go1.20.3:src/time/format.go;l=1589
 
-const units: Record<string, number> = {
+const units = {
   ns: 1e-9,
   us: 1e-6,
   µs: 1e-6,
@@ -9,7 +9,9 @@ const units: Record<string, number> = {
   s: 1,
   m: 60,
   h: 60 * 60,
-};
+} as const;
+
+type DurationUnit = keyof typeof units;
 
 const partRegex = new RegExp(
   `([0-9]*(?:\\.[0-9]*)?)(${Object.keys(units).join("|")})`,
@@ -34,12 +36,25 @@ export function parseDuration(s: string): number {
   let seconds = 0;
   for (const match of s.matchAll(partRegex)) {
     const [, num, unit] = match;
-    const value = Number(num) * units[unit];
+    const value = Number(num) * units[unit as DurationUnit];
     seconds += value;
   }
   return sign * seconds;
 }
 
-export function formatDuration(seconds: number): string {
-  return seconds.toString() + "s";
+export function formatDuration(
+  quantity: number,
+  unit: DurationUnit = "s"
+): string {
+  return quantity.toString() + unit;
+}
+
+export function formatOptionalDuration(
+  quantity: number | undefined,
+  unit: DurationUnit = "s"
+): string | undefined {
+  if (quantity == null) {
+    return undefined;
+  }
+  return formatDuration(quantity, unit);
 }

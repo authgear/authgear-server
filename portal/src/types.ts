@@ -238,10 +238,10 @@ export interface AuthenticationLockoutConfig {
   maximum_duration?: DurationString;
   backoff_factor?: number;
   lockout_type?: AuthenticationLockoutType;
-  password?: AuthenticationLockoutConfig;
-  totp?: AuthenticationLockoutConfig;
-  oob_otp?: AuthenticationLockoutConfig;
-  recovery_code?: AuthenticationLockoutConfig;
+  password?: AuthenticationLockoutMethodConfig;
+  totp?: AuthenticationLockoutMethodConfig;
+  oob_otp?: AuthenticationLockoutMethodConfig;
+  recovery_code?: AuthenticationLockoutMethodConfig;
 }
 
 export const primaryAuthenticatorTypes = [
@@ -307,6 +307,7 @@ export interface AuthenticationConfig {
   recovery_code?: RecoveryCodeConfig;
   device_token?: DeviceTokenConfig;
   rate_limits?: AuthenticationRateLimitsConfig;
+  lockout?: AuthenticationLockoutConfig;
 }
 
 export interface VerificationClaimConfig {
