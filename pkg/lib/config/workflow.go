@@ -286,3 +286,63 @@ var _ = Schema.Add("WorkflowSignupFlowAuthenticate", `
 	}
 }
 `)
+
+var _ = Schema.Add("WorkflowSignupLoginFlow", `
+{
+	"type": "object",
+	"required": ["id", "steps"],
+	"properties": {
+		"id": { "$ref": "#/$defs/WorkflowObjectID" },
+		"steps": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowSignupLoginFlowStep" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("WorkflowSignupLoginFlowStep", `
+{
+	"type": "object",
+	"required": ["type"],
+	"properties": {
+		"id": { "$ref": "#/$defs/WorkflowObjectID" },
+		"type": {
+			"type": "string",
+			"enum": ["identify"]
+		}
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "identify" }
+				}
+			},
+			"then": {
+				"required": ["one_of"],
+				"properties": {
+					"one_of": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/WorkflowSignupLoginFlowIdentify" }
+					}
+				}
+			}
+		}
+	]
+}
+`)
+
+var _ = Schema.Add("WorkflowSignupLoginFlowIdentify", `
+{
+	"type": "object",
+	"required": ["identification", "signup_flow", "login_flow"],
+	"properties": {
+		"identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+		"signup_flow": { "$ref": "#/$defs/WorkflowObjectID" },
+		"login_flow": { "$ref": "#/$defs/WorkflowObjectID" }
+	}
+}
+`)
