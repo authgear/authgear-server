@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -49,17 +48,15 @@ func (i *IntentForgotPassword) ReactTo(ctx context.Context, deps *workflow.Depen
 		loginID := inputTakeLoginID.GetLoginID()
 		node := NodeSendForgotPasswordCode{LoginID: loginID}
 		err := node.sendCode(ctx, deps, w)
-		if err != nil {
-			if errors.Is(err, forgotpassword.ErrUserNotFound) {
-				return nil, api.ErrUserNotFound
-			}
+		// We do not tell the user if the login ID was found
+		if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
 			return nil, err
 		}
+		// From here, err == nil or errors.Is(err, forgotpassword.ErrUserNotFound)
 		return workflow.NewNodeSimple(&node), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}
-
 }
 
 func (*IntentForgotPassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
