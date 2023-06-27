@@ -1477,6 +1477,12 @@
   "LoginMethodConfigurationScreen.lockout.type.description": "This determines whether the account lockout is only applied when the user attempts to login with the same IP address, or when the user attempts to login on any devices.",
   "LoginMethodConfigurationScreen.lockout.type.perUser": "Per user on any devices",
   "LoginMethodConfigurationScreen.lockout.type.perUserPerIP": "Per user on the same IP address",
+  "LoginMethodConfigurationScreen.lockout.authenticator.title": "Apply policy to selected authenticators",
+  "LoginMethodConfigurationScreen.lockout.authenticator.description": "Select the types of authenticator where failed login attempts will be counted.",
+  "LoginMethodConfigurationScreen.lockout.authenticator.password": "Password",
+  "LoginMethodConfigurationScreen.lockout.authenticator.passwordless": "Passwordless via Phone/Email",
+  "LoginMethodConfigurationScreen.lockout.authenticator.totp": "Authenticator App (TOTP)",
+  "LoginMethodConfigurationScreen.lockout.authenticator.recoveryCode": "Recovery code",
 
   "LoginMethodConfigurationScreen.pivot.custom.title": "Custom Login Methods",
   "LoginMethodConfigurationScreen.pivot.email.title": "Email",

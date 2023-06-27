@@ -3,7 +3,7 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import { Dropdown, IDropdownOption, Text } from "@fluentui/react";
+import { Checkbox, Dropdown, IDropdownOption, Text } from "@fluentui/react";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
@@ -71,6 +71,29 @@ function useNumberOnChange<T extends State>(
       setState((prev) =>
         produce(prev, (prev) => {
           prev[key] = parseIntegerAllowLeadingZeros(value);
+        })
+      );
+    },
+    [setState, key]
+  );
+}
+
+function useBooleanOnChange<T extends State>(
+  setState: LockoutSettingsProps<T>["setState"],
+  key:
+    | "isEnabledForPassword"
+    | "isEnabledForTOTP"
+    | "isEnabledForOOBOTP"
+    | "isEnabledForRecoveryCode"
+) {
+  return useCallback(
+    (_: unknown, value?: boolean | undefined) => {
+      if (value == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev[key] = value;
         })
       );
     },
@@ -293,6 +316,62 @@ function LockoutTypeSection<T extends State>(props: {
   );
 }
 
+function LockoutAuthenticatorSection<T extends State>(props: {
+  state: T;
+  onChangeIsEnabledForPassword: (_: unknown, checked?: boolean) => void;
+  onChangeIsEnabledForOOBOTP: (_: unknown, checked?: boolean) => void;
+  onChangeIsEnabledForTOTP: (_: unknown, checked?: boolean) => void;
+  onChangeIsEnabledForRecoveryCode: (_: unknown, checked?: boolean) => void;
+}) {
+  const {
+    state,
+    onChangeIsEnabledForPassword,
+    onChangeIsEnabledForOOBOTP,
+    onChangeIsEnabledForTOTP,
+    onChangeIsEnabledForRecoveryCode,
+  } = props;
+  const { renderToString } = useContext(MessageContext);
+
+  return (
+    <WidgetSubsection>
+      <SubsectionTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.authenticator.title" />
+      </SubsectionTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.authenticator.description" />
+      </WidgetDescription>
+      <Checkbox
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.authenticator.password"
+        )}
+        checked={state.isEnabledForPassword}
+        onChange={onChangeIsEnabledForPassword}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.authenticator.passwordless"
+        )}
+        checked={state.isEnabledForOOBOTP}
+        onChange={onChangeIsEnabledForOOBOTP}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.authenticator.totp"
+        )}
+        checked={state.isEnabledForTOTP}
+        onChange={onChangeIsEnabledForTOTP}
+      />
+      <Checkbox
+        label={renderToString(
+          "LoginMethodConfigurationScreen.lockout.authenticator.recoveryCode"
+        )}
+        checked={state.isEnabledForRecoveryCode}
+        onChange={onChangeIsEnabledForRecoveryCode}
+      />
+    </WidgetSubsection>
+  );
+}
+
 export default function LockoutSettings<T extends State>(
   props: LockoutSettingsProps<T>
 ): ReactElement {
@@ -329,6 +408,22 @@ export default function LockoutSettings<T extends State>(
     },
     [setState]
   );
+  const onChangeIsEnabledForPassword = useBooleanOnChange(
+    setState,
+    "isEnabledForPassword"
+  );
+  const onChangeIsEnabledForOOBOTP = useBooleanOnChange(
+    setState,
+    "isEnabledForOOBOTP"
+  );
+  const onChangeIsEnabledForTOTP = useBooleanOnChange(
+    setState,
+    "isEnabledForTOTP"
+  );
+  const onChangeIsEnabledForRecoveryCode = useBooleanOnChange(
+    setState,
+    "isEnabledForRecoveryCode"
+  );
 
   return (
     <Widget className={className}>
@@ -351,6 +446,14 @@ export default function LockoutSettings<T extends State>(
       <LockoutTypeSection
         state={state}
         onChangeLockoutType={onChangeLockoutType}
+      />
+      <HorizontalDivider />
+      <LockoutAuthenticatorSection
+        state={state}
+        onChangeIsEnabledForPassword={onChangeIsEnabledForPassword}
+        onChangeIsEnabledForOOBOTP={onChangeIsEnabledForOOBOTP}
+        onChangeIsEnabledForTOTP={onChangeIsEnabledForTOTP}
+        onChangeIsEnabledForRecoveryCode={onChangeIsEnabledForRecoveryCode}
       />
     </Widget>
   );
