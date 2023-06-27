@@ -10,13 +10,12 @@ import (
 )
 
 const (
-	MetadataKeyAppID          = "app_id"
-	MetadataKeyPlanName       = "plan_name"
-	MetadataKeyPriceType      = "price_type"
-	MetadataKeyUsageType      = "usage_type"
-	MetadatakeySMSRegion      = "sms_region"
-	MetadatakeyWhatsappRegion = "whatsapp_region"
-	MetadataKeyFreeQuantity   = "free_quantity"
+	MetadataKeyAppID        = "app_id"
+	MetadataKeyPlanName     = "plan_name"
+	MetadataKeyPriceType    = "price_type"
+	MetadataKeyUsageType    = "usage_type"
+	MetadatakeySMSRegion    = "sms_region"
+	MetadataKeyFreeQuantity = "free_quantity"
 )
 
 func NewPriceFromProductOfProductList(stripeProduct *stripe.Product) (price *model.Price, err error) {

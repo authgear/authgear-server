@@ -67,10 +67,9 @@ func (t PriceType) Valid() error {
 type UsageType string
 
 const (
-	UsageTypeNone     UsageType = ""
-	UsageTypeSMS      UsageType = "sms"
-	UsageTypeWhatsapp UsageType = "whatsapp"
-	UsageTypeMAU      UsageType = "mau"
+	UsageTypeNone UsageType = ""
+	UsageTypeSMS  UsageType = "sms"
+	UsageTypeMAU  UsageType = "mau"
 )
 
 func (t UsageType) Valid() error {
@@ -103,26 +102,6 @@ func (r SMSRegion) Valid() error {
 		return nil
 	}
 	return fmt.Errorf("unknown sms_region: %#v", r)
-}
-
-type WhatsappRegion string
-
-const (
-	WhatsappRegionNone         WhatsappRegion = ""
-	WhatsappRegionNorthAmerica WhatsappRegion = "north-america"
-	WhatsappRegionOtherRegions WhatsappRegion = "other-regions"
-)
-
-func (r WhatsappRegion) Valid() error {
-	switch r {
-	case WhatsappRegionNone:
-		return nil
-	case WhatsappRegionNorthAmerica:
-		return nil
-	case WhatsappRegionOtherRegions:
-		return nil
-	}
-	return fmt.Errorf("unknown whatsapp_region: %#v", r)
 }
 
 type TransformQuantityRound string

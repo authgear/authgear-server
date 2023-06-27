@@ -52,18 +52,6 @@ var metadataSMSOtherRegions = map[string]string{
 	libstripe.MetadatakeySMSRegion: string(model.SMSRegionOtherRegions),
 }
 
-var metadataWhatsappNorthAmerica = map[string]string{
-	libstripe.MetadataKeyPriceType:      string(model.PriceTypeUsage),
-	libstripe.MetadataKeyUsageType:      string(model.UsageTypeWhatsapp),
-	libstripe.MetadatakeyWhatsappRegion: string(model.WhatsappRegionNorthAmerica),
-}
-
-var metadataWhatsappOtherRegions = map[string]string{
-	libstripe.MetadataKeyPriceType:      string(model.PriceTypeUsage),
-	libstripe.MetadataKeyUsageType:      string(model.UsageTypeWhatsapp),
-	libstripe.MetadatakeyWhatsappRegion: string(model.WhatsappRegionOtherRegions),
-}
-
 var metadataMAU = map[string]string{
 	libstripe.MetadataKeyPriceType: string(model.PriceTypeUsage),
 	libstripe.MetadataKeyUsageType: string(model.UsageTypeMAU),
@@ -456,7 +444,9 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 				return
 			}
 		}
+	}
 
+	if canUploadDailyUsage {
 		if smsOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataSMSOtherRegions); ok {
 			err = s.uploadDailyUsageRecordToSubscriptionItem(
 				ctx,
@@ -464,34 +454,6 @@ func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err erro
 				stripeSubscription,
 				smsOtherRegions,
 				usage.RecordNameSMSSentOtherRegions,
-				midnight,
-			)
-			if err != nil {
-				return
-			}
-		}
-
-		if whatsappNorthAmerica, ok := s.findSubscriptionItem(stripeSubscription, metadataWhatsappNorthAmerica); ok {
-			err = s.uploadDailyUsageRecordToSubscriptionItem(
-				ctx,
-				appID,
-				stripeSubscription,
-				whatsappNorthAmerica,
-				usage.RecordNameWhatsappSentNorthAmerica,
-				midnight,
-			)
-			if err != nil {
-				return
-			}
-		}
-
-		if whatsappOtherRegions, ok := s.findSubscriptionItem(stripeSubscription, metadataWhatsappOtherRegions); ok {
-			err = s.uploadDailyUsageRecordToSubscriptionItem(
-				ctx,
-				appID,
-				stripeSubscription,
-				whatsappOtherRegions,
-				usage.RecordNameWhatsappSentOtherRegions,
 				midnight,
 			)
 			if err != nil {

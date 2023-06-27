@@ -10,15 +10,12 @@ import (
 type RecordName string
 
 const (
-	RecordNameActiveUser               RecordName = "active-user"
-	RecordNameSMSSentNorthAmerica      RecordName = "sms-sent.north-america"
-	RecordNameSMSSentOtherRegions      RecordName = "sms-sent.other-regions"
-	RecordNameSMSSentTotal             RecordName = "sms-sent.total"
-	RecordNameWhatsappSentNorthAmerica RecordName = "whatsapp-sent.north-america"
-	RecordNameWhatsappSentOtherRegions RecordName = "whatsapp-sent.other-regions"
-	RecordNameWhatsappSentTotal        RecordName = "whatsapp-sent.total"
-	RecordNameEmailSent                RecordName = "email-sent"
-	RecordNameWhatsappOTPVerified      RecordName = "whatsapp-otp-verified"
+	RecordNameActiveUser          RecordName = "active-user"
+	RecordNameSMSSentNorthAmerica RecordName = "sms-sent.north-america"
+	RecordNameSMSSentOtherRegions RecordName = "sms-sent.other-regions"
+	RecordNameSMSSentTotal        RecordName = "sms-sent.total"
+	RecordNameEmailSent           RecordName = "email-sent"
+	RecordNameWhatsappOTPVerified RecordName = "whatsapp-otp-verified"
 )
 
 type RecordType string
@@ -27,7 +24,6 @@ const (
 	RecordTypeActiveUser          RecordType = "active-user"
 	RecordTypeSMSSent             RecordType = "sms-sent"
 	RecordTypeEmailSent           RecordType = "email-sent"
-	RecordTypeWhatsappSent        RecordType = "whatsapp-sent"
 	RecordTypeWhatsappOTPVerified RecordType = "whatsapp-otp-verified"
 )
 
