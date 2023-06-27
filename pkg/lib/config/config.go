@@ -45,7 +45,8 @@ var _ = Schema.Add("AppConfig", `
 		"web3": { "$ref": "#/$defs/Web3Config" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" },
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
-		"captcha": { "$ref": "#/$defs/CaptchaConfig" }
+		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
+		"workflow": { "$ref": "#/$defs/WorkflowConfig" }
 	},
 	"required": ["id", "http"]
 }
