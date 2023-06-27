@@ -687,7 +687,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
       // @ts-expect-error
       subText: (
-        <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
+        <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
       ) as IDialogContentProps["subText"],
     };
   }, []);
