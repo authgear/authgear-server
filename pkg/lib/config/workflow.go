@@ -4,7 +4,28 @@ var _ = Schema.Add("WorkflowConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
-	"properties": {}
+	"properties": {
+		"signup_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowSignupFlow" }
+		},
+		"login_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowLoginFlow" }
+		},
+		"signup_login_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowSignupLoginFlow" }
+		},
+		"reauth_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowReauthFlow" }
+		}
+	}
 }
 `)
 
