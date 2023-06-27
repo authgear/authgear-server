@@ -112,17 +112,14 @@ function BasePriceSection(props: BasePriceSectionProps) {
 
 export interface BasePriceTagProps {
   children?: React.ReactNode;
-  showAsterisk?: boolean;
 }
 
 export function BasePriceTag(props: BasePriceTagProps): React.ReactElement {
-  const { children, showAsterisk = true } = props;
+  const { children } = props;
   return (
     <Text block={true} variant="xLarge" className={styles.basePriceTag}>
       {children}
-      {showAsterisk ? (
-        <span className={styles.basePriceTagRemarks}>*</span>
-      ) : null}
+      <span className={styles.basePriceTagRemarks}>*</span>
     </Text>
   );
 }
@@ -177,15 +174,13 @@ export interface CTAProps {
     | "downgrade"
     | "current"
     | "non-applicable"
-    | "reactivate"
-    | "contact-us";
+    | "reactivate";
   nextBillingDate?: Date;
   disabled?: IButtonProps["disabled"];
   onClickSubscribe?: (planName: string) => void;
   onClickUpgrade?: (planName: string) => void;
   onClickDowngrade?: (planName: string) => void;
   onClickReactivate?: () => Promise<void>;
-  onClickContactUs?: () => void;
   reactivateLoading: boolean;
   reactivateError: any;
 }
@@ -205,8 +200,7 @@ const CURRENT_BUTTON_THEME: PartialTheme = {
   },
 };
 
-// eslint-disable-next-line complexity
-function CTA_(props: CTAProps): React.ReactElement {
+export function CTA(props: CTAProps): React.ReactElement {
   const {
     appID,
     planName,
@@ -217,7 +211,6 @@ function CTA_(props: CTAProps): React.ReactElement {
     onClickUpgrade: onClickUpgradeProps,
     onClickDowngrade: onClickDowngradeProps,
     onClickReactivate: onClickReactivateProps,
-    onClickContactUs,
     reactivateLoading,
     reactivateError,
   } = props;
@@ -511,34 +504,8 @@ function CTA_(props: CTAProps): React.ReactElement {
           />
         </>
       );
-    case "contact-us":
-      return <CTAContactUs onClick={onClickContactUs} disabled={disabled} />;
   }
 }
-
-function CTAContactUs(props: { onClick?: () => void; disabled?: boolean }) {
-  const { onClick: onClickContactUsProps, disabled } = props;
-
-  const onClickContactUs = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onClickContactUsProps?.();
-    },
-    [onClickContactUsProps]
-  );
-
-  return (
-    <PrimaryButton
-      className={styles.cta}
-      onClick={onClickContactUs}
-      disabled={disabled}
-      text={<FormattedMessage id="SubscriptionPlanCard.label.contact-us" />}
-    />
-  );
-}
-
-export const CTA = Object.assign(CTA_, { ContactUs: CTAContactUs });
 
 function Separator() {
   const theme = useTheme();
