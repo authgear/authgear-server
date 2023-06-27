@@ -83,6 +83,8 @@ type AppConfig struct {
 	AccountMigration *AccountMigrationConfig `json:"account_migration,omitempty"`
 
 	Captcha *CaptchaConfig `json:"captcha,omitempty"`
+
+	Workflow *WorkflowConfig `json:"workflow,omitempty"`
 }
 
 func (c *AppConfig) Validate(ctx *validation.Context) {

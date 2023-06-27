@@ -433,3 +433,75 @@ var _ = Schema.Add("WorkflowReauthFlowAuthenticate", `
 	}
 }
 `)
+
+type WorkflowIdentificationMethod string
+
+const (
+	WorkflowIdentificationMethodEmail    WorkflowIdentificationMethod = "email"
+	WorkflowIdentificationMethodPhone    WorkflowIdentificationMethod = "phone"
+	WorkflowIdentificationMethodUsername WorkflowIdentificationMethod = "username"
+	WorkflowIdentificationMethodOAuth    WorkflowIdentificationMethod = "oauth"
+	WorkflowIdentificationMethodPasskey  WorkflowIdentificationMethod = "passkey"
+	WorkflowIdentificationMethodSiwe     WorkflowIdentificationMethod = "siwe"
+)
+
+type WorkflowAuthenticationMethod string
+
+const (
+	WorkflowAuthenticationMethodPrimaryPassword      WorkflowAuthenticationMethod = "primary_password"
+	WorkflowAuthenticationMethodPrimaryPasskey       WorkflowAuthenticationMethod = "primary_passkey"
+	WorkflowAuthenticationMethodPrimaryOOBOTPEmail   WorkflowAuthenticationMethod = "primary_oob_otp_email"
+	WorkflowAuthenticationMethodPrimaryOOBOTPSMS     WorkflowAuthenticationMethod = "primary_oob_otp_sms"
+	WorkflowAuthenticationMethodSecondaryPassword    WorkflowAuthenticationMethod = "secondary_password"
+	WorkflowAuthenticationMethodSecondaryTOTP        WorkflowAuthenticationMethod = "secondary_totp"
+	WorkflowAuthenticationMethodSecondaryOOBOTPEmail WorkflowAuthenticationMethod = "secondary_oob_otp_email"
+	WorkflowAuthenticationMethodSecondaryOOBOTPSMS   WorkflowAuthenticationMethod = "secondary_oob_otp_sms"
+)
+
+type WorkflowConfig struct {
+	SignupFlows []*WorkflowSignupFlow `json:"signup_flows,omitempty"`
+}
+
+type WorkflowSignupFlow struct {
+	ID    string                    `json:"id,omitempty"`
+	Steps []*WorkflowSignupFlowStep `json:"steps,omitempty"`
+}
+
+type WorkflowSignupFlowStepType string
+
+const (
+	WorkflowSignupFlowStepTypeIdentify     WorkflowSignupFlowStepType = "identify"
+	WorkflowSignupFlowStepTypeAuthenticate WorkflowSignupFlowStepType = "authenticate"
+	WorkflowSignupFlowStepTypeVerify       WorkflowSignupFlowStepType = "verify"
+	WorkflowSignupFlowStepTypeUserProfile  WorkflowSignupFlowStepType = "user_profile"
+)
+
+type WorkflowSignupFlowStep struct {
+	ID   string                     `json:"id,omitempty"`
+	Type WorkflowSignupFlowStepType `json:"type,omitempty"`
+
+	// OneOf is relevant when Type is identify or authenticate.
+	OneOf []*WorkflowSignupFlowOneOf `json:"one_of,omitempty"`
+	// TargetStep is relevant when Type is verify.
+	TargetStep string `json:"target_step,omitempty"`
+	// UserProfile is relevant when Type is user_profile.
+	UserProfile []*WorkflowSignupFlowUserProfile `json:"user_profile,omitempty"`
+}
+
+type WorkflowSignupFlowOneOf struct {
+	// Identification is specific to identify.
+	Identification WorkflowIdentificationMethod `json:"identification,omitempty"`
+
+	// Authentication is specific to authenticate.
+	Authentication WorkflowAuthenticationMethod `json:"authentication,omitempty"`
+	// TargetStep is specific to authenticate.
+	TargetStep string `json:"target_step,omitempty"`
+
+	// Steps are common.
+	Steps []*WorkflowSignupFlowStep `json:"step,omitempty"`
+}
+
+type WorkflowSignupFlowUserProfile struct {
+	Pointer  string `json:"pointer,omitempty"`
+	Required bool   `json:"required,omitempty"`
+}
