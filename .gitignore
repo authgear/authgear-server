@@ -29,3 +29,6 @@ resources/portal/static/
 
 # generated code
 pkg/lib/webparcel/parcel_gen.go
+
+# OSX
+.DS_Store
