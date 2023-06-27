@@ -42,7 +42,7 @@ var typeList = strings.Join([]string{
 	string(libusage.RecordTypeActiveUser),
 	string(libusage.RecordTypeSMSSent),
 	string(libusage.RecordTypeEmailSent),
-	string(libusage.RecordTypeWhatsappOTPVerified),
+	string(libusage.RecordTypeWhatsappSent),
 }, "|")
 
 var cmdUsageCollectCount = &cobra.Command{
@@ -125,8 +125,8 @@ var cmdUsageCollectCount = &cobra.Command{
 			libusage.RecordTypeEmailSent: {
 				periodical.Daily: countCollector.CollectDailyEmailSent,
 			},
-			libusage.RecordTypeWhatsappOTPVerified: {
-				periodical.Daily: countCollector.CollectDailyWhatsappOTPVerified,
+			libusage.RecordTypeWhatsappSent: {
+				periodical.Daily: countCollector.CollectDailyWhatsappSent,
 			},
 		}
 
