@@ -3,7 +3,7 @@ import {
   FormattedMessage,
   Context as MessageContext,
 } from "@oursky/react-messageformat";
-import { Text } from "@fluentui/react";
+import { Dropdown, IDropdownOption, Text } from "@fluentui/react";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
@@ -245,6 +245,54 @@ function LockoutDurationSection<T extends State>(props: {
   );
 }
 
+function LockoutTypeSection<T extends State>(props: {
+  state: T;
+  onChangeLockoutType: (
+    _: unknown,
+    option?: IDropdownOption<AuthenticationLockoutType>
+  ) => void;
+}) {
+  const { state, onChangeLockoutType } = props;
+  const { renderToString } = useContext(MessageContext);
+
+  const lockoutTypeOptions = useMemo<
+    IDropdownOption<AuthenticationLockoutType>[]
+  >(() => {
+    return [
+      {
+        key: "per_user",
+        data: "per_user",
+        text: renderToString(
+          "LoginMethodConfigurationScreen.lockout.type.perUser"
+        ),
+      },
+      {
+        key: "per_user_per_ip",
+        data: "per_user_per_ip",
+        text: renderToString(
+          "LoginMethodConfigurationScreen.lockout.type.perUserPerIP"
+        ),
+      },
+    ];
+  }, [renderToString]);
+
+  return (
+    <WidgetSubsection>
+      <SubsectionTitle>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.type.title" />
+      </SubsectionTitle>
+      <WidgetDescription>
+        <FormattedMessage id="LoginMethodConfigurationScreen.lockout.type.description" />
+      </WidgetDescription>
+      <Dropdown
+        options={lockoutTypeOptions}
+        selectedKey={state.lockoutType}
+        onChange={onChangeLockoutType}
+      />
+    </WidgetSubsection>
+  );
+}
+
 export default function LockoutSettings<T extends State>(
   props: LockoutSettingsProps<T>
 ): ReactElement {
@@ -264,6 +312,23 @@ export default function LockoutSettings<T extends State>(
     setState,
     "maximumDurationMins"
   );
+  const onChangeLockoutType = useCallback(
+    (_: unknown, option?: IDropdownOption<AuthenticationLockoutType>) => {
+      if (option == null) {
+        return;
+      }
+      const { data: newType } = option;
+      if (newType == null) {
+        return;
+      }
+      setState((prev) =>
+        produce(prev, (prev) => {
+          prev.lockoutType = newType;
+        })
+      );
+    },
+    [setState]
+  );
 
   return (
     <Widget className={className}>
@@ -275,14 +340,17 @@ export default function LockoutSettings<T extends State>(
         onHistoryDurationMinsChange={onHistoryDurationMinsChange}
         onMaxAttemptsChange={onMaxAttemptsChange}
       />
-
       <HorizontalDivider />
-
       <LockoutDurationSection
         state={state}
         onBackoffFactorChange={onBackoffFactorChange}
         onMaximumDurationMinsChange={onMaximumDurationMinsChange}
         onMinDurationChange={onMinDurationChange}
+      />
+      <HorizontalDivider />
+      <LockoutTypeSection
+        state={state}
+        onChangeLockoutType={onChangeLockoutType}
       />
     </Widget>
   );

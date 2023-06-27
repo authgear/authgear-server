@@ -1473,6 +1473,10 @@
   "LoginMethodConfigurationScreen.lockout.duration.max.description": "This will allow you to put a cap on the lockout duration.",
   "LoginMethodConfigurationScreen.lockout.duration.overall.description.noBackoff": "If a user account has exceeded the lockout threshold, it will be locked for {durationMins} minutes. For every subsequent failed attempt, the user must wait for another {durationMins} minutes until a correct password is entered.",
   "LoginMethodConfigurationScreen.lockout.duration.overall.description.withBackoff": "If a user account has exceeded the lockout threshold, it will be locked for {durationMins} minutes. For every subsequent failed attempt, lockout duration will increase by {backoffFactor} times (e.g. {durationMins} mins, {durationMinsSecond} mins, {durationMinsThird} mins...) until it reaches the maximum of {maxDurationMins} minutes {maxDurationHours, select, none {} other {(i.e. {maxDurationHours} hours)}}.",
+  "LoginMethodConfigurationScreen.lockout.type.title": "Lockout type",
+  "LoginMethodConfigurationScreen.lockout.type.description": "This determines whether the account lockout is only applied when the user attempts to login with the same IP address, or when the user attempts to login on any devices.",
+  "LoginMethodConfigurationScreen.lockout.type.perUser": "Per user on any devices",
+  "LoginMethodConfigurationScreen.lockout.type.perUserPerIP": "Per user on the same IP address",
 
   "LoginMethodConfigurationScreen.pivot.custom.title": "Custom Login Methods",
   "LoginMethodConfigurationScreen.pivot.email.title": "Email",
