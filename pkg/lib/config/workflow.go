@@ -346,3 +346,69 @@ var _ = Schema.Add("WorkflowSignupLoginFlowIdentify", `
 	}
 }
 `)
+
+var _ = Schema.Add("WorkflowReauthFlow", `
+{
+	"type": "object",
+	"required": ["id", "steps"],
+	"properties": {
+		"id": { "$ref": "#/$defs/WorkflowObjectID" },
+		"steps": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/WorkflowReauthFlowStep" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("WorkflowReauthFlowStep", `
+{
+	"type": "object",
+	"required": ["type"],
+	"properties": {
+		"id": { "$ref": "#/$defs/WorkflowObjectID" },
+		"type": {
+			"type": "string",
+			"enum": [
+				"authenticate"
+			]
+		}
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "authenticate" }
+				}
+			},
+			"then": {
+				"required": ["one_of"],
+				"properties": {
+					"optional": { "type": "boolean" },
+					"one_of": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/WorkflowReauthFlowAuthenticate" }
+					}
+				}
+			}
+		}
+	]
+}
+`)
+
+var _ = Schema.Add("WorkflowReauthFlowAuthenticate", `
+{
+	"type": "object",
+	"required": ["authentication"],
+	"properties": {
+		"authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+		"target_step": { "$ref": "#/$defs/WorkflowObjectID" },
+		"steps": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/WorkflowReauthFlowStep" }
+		}
+	}
+}
+`)
