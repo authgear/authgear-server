@@ -8,12 +8,12 @@ import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
 import WidgetDescription from "../../WidgetDescription";
 import { WidgetSubsection } from "./LoginMethodConfigurationScreen";
-import TextField from "../../TextField";
 import { AuthenticationLockoutType } from "../../types";
 import produce from "immer";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./LockoutSettings.module.css";
 import HorizontalDivider from "../../HorizontalDivider";
+import FormTextField from "../../FormTextField";
 
 export interface State {
   maxAttempts?: number;
@@ -125,7 +125,9 @@ function LockoutThresholdSection<T extends State>(props: {
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.threshold.description" />
       </WidgetDescription>
       <div>
-        <TextField
+        <FormTextField
+          fieldName="max_attempts"
+          parentJSONPointer="/authentication/lockout"
           type="text"
           label={renderToString(
             "LoginMethodConfigurationScreen.lockout.threshold.failedAttempts.title"
@@ -138,7 +140,9 @@ function LockoutThresholdSection<T extends State>(props: {
         </WidgetDescription>
       </div>
       <div>
-        <TextField
+        <FormTextField
+          fieldName="history_duration"
+          parentJSONPointer="/authentication/lockout"
           type="text"
           label={renderToString(
             "LoginMethodConfigurationScreen.lockout.threshold.resetAfter.title"
@@ -208,7 +212,9 @@ function LockoutDurationSection<T extends State>(props: {
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.description" />
       </WidgetDescription>
       <div>
-        <TextField
+        <FormTextField
+          fieldName="minimum_duration"
+          parentJSONPointer="/authentication/lockout"
           type="text"
           label={renderToString(
             "LoginMethodConfigurationScreen.lockout.duration.duration.title"
@@ -221,7 +227,9 @@ function LockoutDurationSection<T extends State>(props: {
         </WidgetDescription>
       </div>
       <div>
-        <TextField
+        <FormTextField
+          fieldName="backoff_factor"
+          parentJSONPointer="/authentication/lockout"
           type="text"
           label={renderToString(
             "LoginMethodConfigurationScreen.lockout.duration.backoff.title"
@@ -234,7 +242,9 @@ function LockoutDurationSection<T extends State>(props: {
         </WidgetDescription>
       </div>
       <div>
-        <TextField
+        <FormTextField
+          fieldName="maximum_duration"
+          parentJSONPointer="/authentication/lockout"
           type="text"
           label={renderToString(
             "LoginMethodConfigurationScreen.lockout.duration.max.title"
