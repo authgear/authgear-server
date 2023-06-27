@@ -58,7 +58,8 @@ func (s *Sender) PrepareSMS(phoneNumber string, msgType nonblocking.MessageType)
 }
 
 func (s *Sender) PrepareWhatsapp(phoneNumber string, msgType nonblocking.MessageType) (*WhatsappMessage, error) {
-	msg, err := s.Limits.checkWhatsapp(phoneNumber)
+	// FIXME: Should use a separated limit
+	msg, err := s.Limits.checkSMS(phoneNumber)
 	if err != nil {
 		return nil, err
 	}

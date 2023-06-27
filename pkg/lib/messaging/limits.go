@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	usageLimitEmail    usage.LimitName = "Email"
-	usageLimitSMS      usage.LimitName = "SMS"
-	usageLimitWhatsapp usage.LimitName = "Whatsapp"
+	usageLimitEmail usage.LimitName = "Email"
+	usageLimitSMS   usage.LimitName = "SMS"
 )
 
 const (
@@ -155,55 +154,6 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
-		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
-		MessagingSMS,
-	)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-func (l *Limits) checkWhatsapp(phoneNumber string) (msg *message, err error) {
-	msg = &message{
-		logger:       l.Logger,
-		rateLimiter:  l.RateLimiter,
-		usageLimiter: l.UsageLimiter,
-	}
-	defer func() {
-		if err != nil {
-			// Return reserved tokens
-			msg.Close()
-			msg = nil
-		}
-	}()
-
-	msg.usageLimit, err = l.UsageLimiter.Reserve(usageLimitWhatsapp, l.FeatureConfig.WhatsappUsage)
-	if err != nil {
-		return
-	}
-
-	// TODO: Use whatsapp specific rate limits
-	msg.rateLimits, err = l.check(msg.rateLimits,
-		l.EnvConfig.SMSPerIP, l.FeatureConfig.RateLimits.SMSPerIP, l.Config.SMSPerIP,
-		MessagingSMSPerIP, string(l.RemoteIP),
-	)
-	if err != nil {
-		return
-	}
-
-	// TODO: Use whatsapp specific rate limits
-	msg.rateLimits, err = l.check(msg.rateLimits,
-		l.EnvConfig.SMSPerTarget, l.FeatureConfig.RateLimits.SMSPerTarget, l.Config.SMSPerTarget,
-		MessagingSMSPerTarget, phoneNumber,
-	)
-	if err != nil {
-		return
-	}
-
-	// TODO: Use whatsapp specific rate limits
 	msg.rateLimits, err = l.check(msg.rateLimits,
 		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
 		MessagingSMS,

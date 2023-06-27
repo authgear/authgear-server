@@ -101,10 +101,6 @@ messaging:
     enabled: true
     period: month
     quota: 100000
-  whatsapp_usage:
-    enabled: true
-    period: month
-    quota: 100000
 collaborator: {}
 web3:
   nft:
