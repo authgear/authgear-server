@@ -225,6 +225,25 @@ export interface AuthenticatorConfig {
   totp?: Record<string, unknown>;
 }
 
+export type AuthenticationLockoutType = "per_user" | "per_user_per_ip";
+
+export interface AuthenticationLockoutMethodConfig {
+  enabled: boolean;
+}
+
+export interface AuthenticationLockoutConfig {
+  max_attempts?: number;
+  history_duration?: DurationString;
+  minimum_duration?: DurationString;
+  maximum_duration?: DurationString;
+  backoff_factor?: number;
+  lockout_type?: AuthenticationLockoutType;
+  password?: AuthenticationLockoutConfig;
+  totp?: AuthenticationLockoutConfig;
+  oob_otp?: AuthenticationLockoutConfig;
+  recovery_code?: AuthenticationLockoutConfig;
+}
+
 export const primaryAuthenticatorTypes = [
   "password",
   "oob_otp_email",

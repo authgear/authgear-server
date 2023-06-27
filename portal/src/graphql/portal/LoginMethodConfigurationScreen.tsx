@@ -99,6 +99,7 @@ import {
 import styles from "./LoginMethodConfigurationScreen.module.css";
 import ChoiceButton from "../../ChoiceButton";
 import { formatDuration, parseDuration } from "../../util/duration";
+import LockoutSettings from "./LockoutSettings";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -1162,7 +1163,9 @@ interface WidgetSubsectionProps {
   children?: ReactNode;
 }
 
-function WidgetSubsection(props: WidgetSubsectionProps) {
+export function WidgetSubsection(
+  props: WidgetSubsectionProps
+): React.ReactElement {
   const { children } = props;
   return <div className={styles.widgetSubsection}>{children}</div>;
 }
@@ -3016,7 +3019,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             {showPasswordSettings ? (
               <PivotItem
                 headerText={renderToString(
-                  "LoginMethodConfigurationScreen.password.title"
+                  "LoginMethodConfigurationScreen.pivot.password.title"
                 )}
                 itemKey="password"
               >
@@ -3030,6 +3033,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
                 />
               </PivotItem>
             ) : null}
+            <PivotItem
+              headerText={renderToString(
+                "LoginMethodConfigurationScreen.pivot.lockout.title"
+              )}
+              itemKey="lockout"
+            >
+              <LockoutSettings setState={setState} />
+            </PivotItem>
           </Pivot>
         </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
