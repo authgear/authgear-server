@@ -1,6 +1,10 @@
 import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
-import { ValidationFailedErrorInfoCause } from "./validation";
+import {
+  FormatErrorCause,
+  GeneralErrorCause,
+  ValidationFailedErrorInfoCause,
+} from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
@@ -91,11 +95,51 @@ function isKnownCauseKind(kind: string): boolean {
   return kind in errorCauseMessageIDs;
 }
 
+function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
+  if (
+    cause.details.format === "x_duration_string" &&
+    cause.details.error?.startsWith("non-positive duration")
+  ) {
+    return {
+      messageID: "errors.validation.format.duration.nonPositive",
+    };
+  }
+  return null;
+}
+
+function getGeneralErrorMessage(
+  cause: GeneralErrorCause
+): ParsedAPIError | null {
+  if (
+    cause.details.msg ===
+    "maximum_duration must be greater than or equal to minimum_duration"
+  ) {
+    return {
+      messageID:
+        "errors.validation.general.lockout.maxDurationMustBeGreaterThanMinDuration",
+    };
+  }
+  return null;
+}
+
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (cause.kind === "general") {
-    return { message: cause.details.msg };
+    return getGeneralErrorMessage(cause) ?? { message: cause.details.msg };
   } else if (cause.kind === "__local") {
     return cause.details.error;
+  }
+
+  let specificErrorMessage: ParsedAPIError | null = null;
+  switch (cause.kind) {
+    case "format":
+      specificErrorMessage = getFormatErrorMessage(cause);
+      break;
+
+    default:
+      break;
+  }
+  if (specificErrorMessage != null) {
+    return specificErrorMessage;
   }
 
   const messageID = errorCauseMessageIDs[cause.kind];
