@@ -131,13 +131,18 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li>{{ .details.msg }}</li>
     {{ else }}
     <li>{{ .Error.message }}</li>
-    {{ end }} {{ end }} {{ else if eq .Error.reason "UserNotFound" }} {{
-    template "__error_account" . }} {{ else if eq .Error.reason
-    "InvalidCredentials" }}
-    <li>
-      {{ template "error-invalid-credentials" (dict "AuthenticationType"
-      $info.AuthenticationType) }}
-    </li>
+    {{ end }} {{ end }}
+    {{ else if eq .Error.reason "UserNotFound" }}
+    {{ template "__error_account" . }}
+    {{ else if eq .Error.reason "InvalidCredentials" }}
+      {{ if eq $info.Channel "whatsapp" }}
+        <li>{{ template "error-invalid-whatsapp-otp" }}</li>
+      {{ else }}
+        <li>
+          {{ template "error-invalid-credentials" (dict "AuthenticationType"
+          $info.AuthenticationType) }}
+        </li>
+      {{ end }}
     {{ else if eq .Error.reason "PasswordResetFailed" }}
     <li>{{ template "error-password-reset-failed" }}</li>
     {{ else if eq .Error.reason "NewPasswordTypo" }}
@@ -169,18 +174,23 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li>{{ template "error-developer-reauthentication" }}</li>
     {{ else }}
     <li>{{ .Error.message }}</li>
-    {{ end }} {{ else if eq .Error.reason "InvalidVerificationCode" }}
-    <li>
-      {{ template "error-verification-code-invalid" }}
-      <a
-        href="#"
-        data-transfer-click-click-value="#verify-identity-resend-button"
-        data-controller="transfer-click"
-        data-action="transfer-click#click"
-      >
-        {{ template "error-verification-code-invalid-click-to-resend" }}
-      </a>
-    </li>
+    {{ end }}
+    {{ else if eq .Error.reason "InvalidVerificationCode" }}
+      {{ if eq $info.Channel "whatsapp" }}
+        <li>{{ template "error-invalid-whatsapp-otp" }}</li>
+      {{ else }}
+        <li>
+          {{ template "error-verification-code-invalid" }}
+          <a
+            href="#"
+            data-transfer-click-click-value="#verify-identity-resend-button"
+            data-controller="transfer-click"
+            data-action="transfer-click#click"
+          >
+            {{ template "error-verification-code-invalid-click-to-resend" }}
+          </a>
+        </li>
+      {{ end }}
     {{ else if eq .Error.reason "RateLimited" }}
       {{ if eq .Error.info.bucket_name "MessagingSMSPerTarget" }}
       <li>{{ template "error-sms-send-limit-exceeded" }}</li>
