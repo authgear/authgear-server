@@ -107,3 +107,45 @@ login_flows:
 `)
 	})
 }
+
+func TestWorkflowSignupLoginFlow(t *testing.T) {
+	Convey("WorkflowSignupLoginFlow", t, func() {
+		test := func(inputYAML string) {
+			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
+			So(err, ShouldBeNil)
+
+			err = Schema.PartValidator("WorkflowConfig").Validate(bytes.NewReader(inputJSON))
+			So(err, ShouldBeNil)
+
+			var cfg WorkflowConfig
+			err = json.Unmarshal([]byte(inputJSON), &cfg)
+			So(err, ShouldBeNil)
+
+			var input interface{}
+			err = json.Unmarshal([]byte(inputJSON), &input)
+			So(err, ShouldBeNil)
+
+			encodedCfg, err := json.Marshal(cfg)
+			So(err, ShouldBeNil)
+
+			encodedInput, err := json.Marshal(input)
+			So(err, ShouldBeNil)
+
+			err = Schema.PartValidator("WorkflowConfig").Validate(bytes.NewReader(encodedCfg))
+			So(err, ShouldBeNil)
+
+			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
+		}
+
+		test(`
+signup_login_flows:
+- id: signup_login_flow
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      signup_flow: a
+      login_flow: b
+`)
+	})
+}
