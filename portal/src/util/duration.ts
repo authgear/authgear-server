@@ -42,16 +42,13 @@ export function parseDuration(s: string): number {
   return sign * seconds;
 }
 
-export function formatDuration(
-  quantity: number,
-  unit: DurationUnit = "s"
-): string {
+export function formatDuration(quantity: number, unit: DurationUnit): string {
   return quantity.toString() + unit;
 }
 
 export function formatOptionalDuration(
   quantity: number | undefined,
-  unit: DurationUnit = "s"
+  unit: DurationUnit
 ): string | undefined {
   if (quantity == null) {
     return undefined;

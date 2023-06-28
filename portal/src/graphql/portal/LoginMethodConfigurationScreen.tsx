@@ -1107,7 +1107,8 @@ function constructConfig(
 
     if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
       config.forgot_password.code_valid_period = formatDuration(
-        currentState.forgotPasswordCodeValidPeriodSeconds
+        currentState.forgotPasswordCodeValidPeriodSeconds,
+        "s"
       );
     }
 
@@ -1116,7 +1117,8 @@ function constructConfig(
 
     if (currentState.sixDigitOTPValidPeriodSeconds != null) {
       const duration = formatDuration(
-        currentState.sixDigitOTPValidPeriodSeconds
+        currentState.sixDigitOTPValidPeriodSeconds,
+        "s"
       );
       config.authenticator.oob_otp.sms.code_valid_period = duration;
       config.verification.code_valid_period = duration;
@@ -1132,7 +1134,10 @@ function constructConfig(
     }
 
     if (currentState.smsOTPCooldownPeriodSeconds != null) {
-      const duration = formatDuration(currentState.smsOTPCooldownPeriodSeconds);
+      const duration = formatDuration(
+        currentState.smsOTPCooldownPeriodSeconds,
+        "s"
+      );
       config.authentication.rate_limits.oob_otp.sms.trigger_cooldown = duration;
       config.verification.rate_limits.sms.trigger_cooldown = duration;
     } else {
@@ -1186,7 +1191,8 @@ function constructConfig(
 
     if (currentState.emailOTPCooldownPeriodSeconds != null) {
       const duration = formatDuration(
-        currentState.emailOTPCooldownPeriodSeconds
+        currentState.emailOTPCooldownPeriodSeconds,
+        "s"
       );
       config.authentication.rate_limits.oob_otp.email.trigger_cooldown =
         duration;
