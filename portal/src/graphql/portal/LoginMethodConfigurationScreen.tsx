@@ -799,7 +799,7 @@ function parseOptionalDuration(s: string | undefined) {
   return parseDuration(s);
 }
 
-function parseOptionalDurationInMinutes(s: string | undefined) {
+function parseOptionalDurationIntoMinutes(s: string | undefined) {
   const seconds = parseOptionalDuration(s);
   if (seconds === undefined) {
     return undefined;
@@ -974,13 +974,13 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
     lockout: {
       maxAttempts: config.authentication?.lockout?.max_attempts,
-      historyDurationMins: parseOptionalDurationInMinutes(
+      historyDurationMins: parseOptionalDurationIntoMinutes(
         config.authentication?.lockout?.history_duration
       ),
-      minimumDurationMins: parseOptionalDurationInMinutes(
+      minimumDurationMins: parseOptionalDurationIntoMinutes(
         config.authentication?.lockout?.minimum_duration
       ),
-      maximumDurationMins: parseOptionalDurationInMinutes(
+      maximumDurationMins: parseOptionalDurationIntoMinutes(
         config.authentication?.lockout?.maximum_duration
       ),
       backoffFactorRaw:
