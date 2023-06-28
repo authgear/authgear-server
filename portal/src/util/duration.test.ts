@@ -27,6 +27,6 @@ describe("formatDuration", () => {
     expect(formatDuration(10, "s")).toEqual("10s");
     expect(formatDuration(-2, "s")).toEqual("-2s");
     expect(formatDuration(89.6, "s")).toEqual("89.6s");
-    expect(formatDuration(11, "m")).toEqual("10m");
+    expect(formatDuration(11, "m")).toEqual("11m");
   });
 });
