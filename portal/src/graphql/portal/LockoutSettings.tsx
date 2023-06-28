@@ -123,11 +123,17 @@ function useBooleanOnChange<T extends State>(
   );
 }
 
-function formatOptionalHour(hour: number): string {
+function formatOptionalHour(hour: number): {
+  isDisplayed: "true" | "false";
+  value: number;
+} {
   if (hour < 1) {
-    return "none";
+    return {
+      isDisplayed: "false",
+      value: hour,
+    };
   }
-  return Number(hour.toFixed(2)).toString();
+  return { isDisplayed: "true", value: Number(hour.toFixed(2)) };
 }
 
 function LockoutThresholdSection<T extends State>(props: {
@@ -137,6 +143,15 @@ function LockoutThresholdSection<T extends State>(props: {
 }) {
   const { renderToString } = useContext(MessageContext);
   const { state, onHistoryDurationMinsChange, onMaxAttemptsChange } = props;
+  const overallDescValues = useMemo(() => {
+    const hours = formatOptionalHour((state.historyDurationMins ?? 0) / 60);
+    return {
+      attempts: state.maxAttempts ?? 0,
+      resetIntervalMins: state.historyDurationMins ?? 0,
+      resetIntervalHoursDisplayed: hours.isDisplayed,
+      resetIntervalHours: hours.value,
+    };
+  }, [state.historyDurationMins, state.maxAttempts]);
 
   return (
     <WidgetSubsection>
@@ -180,13 +195,7 @@ function LockoutThresholdSection<T extends State>(props: {
         <Text variant="medium">
           <FormattedMessage
             id="LoginMethodConfigurationScreen.lockout.threshold.overall.description"
-            values={{
-              attempts: state.maxAttempts ?? 0,
-              resetIntervalMins: state.historyDurationMins ?? 0,
-              resetIntervalHours: formatOptionalHour(
-                (state.historyDurationMins ?? 0) / 60
-              ),
-            }}
+            values={overallDescValues}
           />
         </Text>
       </div>
@@ -228,7 +237,8 @@ function LockoutDurationSection<T extends State>(props: {
       durationMinsSecond,
       durationMinsThird,
       maxDurationMins,
-      maxDurationHours,
+      maxDurationHours: maxDurationHours.value,
+      maxDurationHoursDisplayed: maxDurationHours.isDisplayed,
     };
   }, [state]);
 
