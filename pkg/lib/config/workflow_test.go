@@ -149,3 +149,47 @@ signup_login_flows:
 `)
 	})
 }
+
+func TestWorkflowReauthFlow(t *testing.T) {
+	Convey("WorkflowReauthFlow", t, func() {
+		test := func(inputYAML string) {
+			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
+			So(err, ShouldBeNil)
+
+			err = Schema.PartValidator("WorkflowConfig").Validate(bytes.NewReader(inputJSON))
+			So(err, ShouldBeNil)
+
+			var cfg WorkflowConfig
+			err = json.Unmarshal([]byte(inputJSON), &cfg)
+			So(err, ShouldBeNil)
+
+			var input interface{}
+			err = json.Unmarshal([]byte(inputJSON), &input)
+			So(err, ShouldBeNil)
+
+			encodedCfg, err := json.Marshal(cfg)
+			So(err, ShouldBeNil)
+
+			encodedInput, err := json.Marshal(input)
+			So(err, ShouldBeNil)
+
+			err = Schema.PartValidator("WorkflowConfig").Validate(bytes.NewReader(encodedCfg))
+			So(err, ShouldBeNil)
+
+			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
+		}
+
+		test(`
+reauth_flows:
+- id: reauth_flow
+  steps:
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+  - type: authenticate
+    optional: true
+    one_of:
+    - authentication: secondary_totp
+`)
+	})
+}

@@ -462,6 +462,7 @@ type WorkflowConfig struct {
 	SignupFlows      []*WorkflowSignupFlow      `json:"signup_flows,omitempty"`
 	LoginFlows       []*WorkflowLoginFlow       `json:"login_flows,omitempty"`
 	SignupLoginFlows []*WorkflowSignupLoginFlow `json:"signup_login_flows,omitempty"`
+	ReauthFlows      []*WorkflowReauthFlow      `json:"reauth_flows,omitempty"`
 }
 
 type WorkflowSignupFlow struct {
@@ -565,4 +566,32 @@ type WorkflowSignupLoginFlowOneOf struct {
 	Identification WorkflowIdentificationMethod `json:"identification,omitempty"`
 	SignupFlow     string                       `json:"signup_flow,omitempty"`
 	LoginFlow      string                       `json:"login_flow,omitempty"`
+}
+
+type WorkflowReauthFlow struct {
+	ID    string                    `json:"id,omitempty"`
+	Steps []*WorkflowReauthFlowStep `json:"steps,omitempty"`
+}
+
+type WorkflowReauthFlowStepType string
+
+const (
+	WorkflowReauthFlowStepTypeAuthenticate WorkflowReauthFlowStepType = "authenticate"
+)
+
+type WorkflowReauthFlowStep struct {
+	ID   string                     `json:"id,omitempty"`
+	Type WorkflowReauthFlowStepType `json:"type,omitempty"`
+
+	// Optional is relevant when Type is authenticate.
+	Optional *bool `json:"optional,omitempty"`
+
+	// OneOf is relevant when Type is authenticate.
+	OneOf []*WorkflowReauthFlowOneOf `json:"one_of,omitempty"`
+}
+
+type WorkflowReauthFlowOneOf struct {
+	Authentication WorkflowAuthenticationMethod `json:"authentication,omitempty"`
+	TargetStep     string                       `json:"target_step,omitempty"`
+	Steps          []*WorkflowLoginFlowStep     `json:"step,omitempty"`
 }
