@@ -459,8 +459,9 @@ const (
 )
 
 type WorkflowConfig struct {
-	SignupFlows []*WorkflowSignupFlow `json:"signup_flows,omitempty"`
-	LoginFlows  []*WorkflowLoginFlow  `json:"login_flows,omitempty"`
+	SignupFlows      []*WorkflowSignupFlow      `json:"signup_flows,omitempty"`
+	LoginFlows       []*WorkflowLoginFlow       `json:"login_flows,omitempty"`
+	SignupLoginFlows []*WorkflowSignupLoginFlow `json:"signup_login_flows,omitempty"`
 }
 
 type WorkflowSignupFlow struct {
@@ -541,4 +542,27 @@ type WorkflowLoginFlowOneOf struct {
 
 	// Steps are common.
 	Steps []*WorkflowLoginFlowStep `json:"step,omitempty"`
+}
+
+type WorkflowSignupLoginFlow struct {
+	ID    string                         `json:"id,omitempty"`
+	Steps []*WorkflowSignupLoginFlowStep `json:"steps,omitempty"`
+}
+
+type WorkflowSignupLoginFlowStep struct {
+	ID    string                          `json:"id,omitempty"`
+	Type  WorkflowSignupLoginFlowStepType `json:"type,omitempty"`
+	OneOf []*WorkflowSignupLoginFlowOneOf `json:"one_of,omitempty"`
+}
+
+type WorkflowSignupLoginFlowStepType string
+
+const (
+	WorkflowSignupLoginFlowStepTypeIdentify WorkflowSignupLoginFlowStepType = "identify"
+)
+
+type WorkflowSignupLoginFlowOneOf struct {
+	Identification WorkflowIdentificationMethod `json:"identification,omitempty"`
+	SignupFlow     string                       `json:"signup_flow,omitempty"`
+	LoginFlow      string                       `json:"login_flow,omitempty"`
 }
