@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -33,11 +34,19 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/flows/enter_password")
 }
 
+type EnterPasswordViewVariant string
+
+const (
+	EnterPasswordViewVariantDefault EnterPasswordViewVariant = "default"
+	EnterPasswordViewVariantReAuth  EnterPasswordViewVariant = "reauth"
+)
+
 type EnterPasswordViewModel struct {
 	IdentityDisplayID string
 	// ForgotPasswordInputType is either phone or email
 	ForgotPasswordInputType string
 	ForgotPasswordLoginID   string
+	Variant                 EnterPasswordViewVariant
 }
 
 type EnterPasswordHandler struct {
@@ -77,10 +86,19 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 		}
 	}
 
+	var variant EnterPasswordViewVariant
+	switch graph.Intent.(type) {
+	case *intents.IntentReauthenticate:
+		variant = EnterPasswordViewVariantReAuth
+	default:
+		variant = EnterPasswordViewVariantDefault
+	}
+
 	enterPasswordViewModel := EnterPasswordViewModel{
 		IdentityDisplayID:       identityDisplayID,
 		ForgotPasswordInputType: forgotPasswordInputType,
 		ForgotPasswordLoginID:   forgotPasswordLoginID,
+		Variant:                 variant,
 	}
 
 	viewmodels.Embed(data, baseViewModel)

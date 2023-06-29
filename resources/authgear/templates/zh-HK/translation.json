@@ -155,6 +155,10 @@
 
   "enter-password-page-title": "請輸入密碼",
   "enter-additional-password-page-title": "請輸入輔助密碼",
+  "enter-password-page-title-reauth": "請輸入密碼以繼續操作",
+  "enter-additional-password-page-title-reauth": "請輸入輔助密碼以繼續操作",
+  "enter-password-page-tips-password-reauth": "須重新輸入密碼以繼續操作",
+  "enter-password-page-tips-additional-password-reauth": "須重新輸入輔助密碼以繼續操作",
   "password-placeholder": "目前密碼",
   "new-password-placeholder": "新密碼",
   "confirm-password-placeholder": "再次輸入新密碼",
