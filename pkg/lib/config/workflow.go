@@ -434,6 +434,12 @@ var _ = Schema.Add("WorkflowReauthFlowAuthenticate", `
 }
 `)
 
+type WorkflowObject interface {
+	GetID() (string, bool)
+	GetSteps() ([]WorkflowObject, bool)
+	GetOneOf() ([]WorkflowObject, bool)
+}
+
 type WorkflowIdentificationMethod string
 
 const (
@@ -470,6 +476,23 @@ type WorkflowSignupFlow struct {
 	Steps []*WorkflowSignupFlowStep `json:"steps,omitempty"`
 }
 
+func (f *WorkflowSignupFlow) GetID() (string, bool) {
+	return f.ID, true
+}
+
+func (f *WorkflowSignupFlow) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowSignupFlow) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
 type WorkflowSignupFlowStepType string
 
 const (
@@ -491,6 +514,30 @@ type WorkflowSignupFlowStep struct {
 	UserProfile []*WorkflowSignupFlowUserProfile `json:"user_profile,omitempty"`
 }
 
+func (s *WorkflowSignupFlowStep) GetID() (string, bool) {
+	return s.ID, true
+}
+
+func (s *WorkflowSignupFlowStep) GetSteps() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
+func (s *WorkflowSignupFlowStep) GetOneOf() ([]WorkflowObject, bool) {
+	switch s.Type {
+	case WorkflowSignupFlowStepTypeIdentify:
+		fallthrough
+	case WorkflowSignupFlowStepTypeAuthenticate:
+		out := make([]WorkflowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out, true
+	default:
+		return nil, false
+	}
+}
+
 type WorkflowSignupFlowOneOf struct {
 	// Identification is specific to identify.
 	Identification WorkflowIdentificationMethod `json:"identification,omitempty"`
@@ -504,6 +551,23 @@ type WorkflowSignupFlowOneOf struct {
 	Steps []*WorkflowSignupFlowStep `json:"steps,omitempty"`
 }
 
+func (f *WorkflowSignupFlowOneOf) GetID() (string, bool) {
+	return "", false
+}
+
+func (f *WorkflowSignupFlowOneOf) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowSignupFlowOneOf) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
 type WorkflowSignupFlowUserProfile struct {
 	Pointer  string `json:"pointer,omitempty"`
 	Required bool   `json:"required,omitempty"`
@@ -512,6 +576,23 @@ type WorkflowSignupFlowUserProfile struct {
 type WorkflowLoginFlow struct {
 	ID    string                   `json:"id,omitempty"`
 	Steps []*WorkflowLoginFlowStep `json:"steps,omitempty"`
+}
+
+func (f *WorkflowLoginFlow) GetID() (string, bool) {
+	return f.ID, true
+}
+
+func (f *WorkflowLoginFlow) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowLoginFlow) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
 }
 
 type WorkflowLoginFlowStepType string
@@ -532,6 +613,30 @@ type WorkflowLoginFlowStep struct {
 	OneOf []*WorkflowLoginFlowOneOf `json:"one_of,omitempty"`
 }
 
+func (s *WorkflowLoginFlowStep) GetID() (string, bool) {
+	return s.ID, true
+}
+
+func (s *WorkflowLoginFlowStep) GetSteps() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
+func (s *WorkflowLoginFlowStep) GetOneOf() ([]WorkflowObject, bool) {
+	switch s.Type {
+	case WorkflowLoginFlowStepTypeIdentify:
+		fallthrough
+	case WorkflowLoginFlowStepTypeAuthenticate:
+		out := make([]WorkflowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out, true
+	default:
+		return nil, false
+	}
+}
+
 type WorkflowLoginFlowOneOf struct {
 	// Identification is specific to identify.
 	Identification WorkflowIdentificationMethod `json:"identification,omitempty"`
@@ -545,15 +650,71 @@ type WorkflowLoginFlowOneOf struct {
 	Steps []*WorkflowLoginFlowStep `json:"steps,omitempty"`
 }
 
+func (f *WorkflowLoginFlowOneOf) GetID() (string, bool) {
+	return "", false
+}
+
+func (f *WorkflowLoginFlowOneOf) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowLoginFlowOneOf) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
 type WorkflowSignupLoginFlow struct {
 	ID    string                         `json:"id,omitempty"`
 	Steps []*WorkflowSignupLoginFlowStep `json:"steps,omitempty"`
+}
+
+func (f *WorkflowSignupLoginFlow) GetID() (string, bool) {
+	return f.ID, true
+}
+
+func (f *WorkflowSignupLoginFlow) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowSignupLoginFlow) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
 }
 
 type WorkflowSignupLoginFlowStep struct {
 	ID    string                          `json:"id,omitempty"`
 	Type  WorkflowSignupLoginFlowStepType `json:"type,omitempty"`
 	OneOf []*WorkflowSignupLoginFlowOneOf `json:"one_of,omitempty"`
+}
+
+func (s *WorkflowSignupLoginFlowStep) GetID() (string, bool) {
+	return s.ID, true
+}
+
+func (s *WorkflowSignupLoginFlowStep) GetSteps() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
+func (s *WorkflowSignupLoginFlowStep) GetOneOf() ([]WorkflowObject, bool) {
+	switch s.Type {
+	case WorkflowSignupLoginFlowStepTypeIdentify:
+		out := make([]WorkflowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out, true
+	default:
+		return nil, false
+	}
 }
 
 type WorkflowSignupLoginFlowStepType string
@@ -568,9 +729,38 @@ type WorkflowSignupLoginFlowOneOf struct {
 	LoginFlow      string                       `json:"login_flow,omitempty"`
 }
 
+func (s *WorkflowSignupLoginFlowOneOf) GetID() (string, bool) {
+	return "", false
+}
+
+func (s *WorkflowSignupLoginFlowOneOf) GetSteps() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
+func (s *WorkflowSignupLoginFlowOneOf) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
 type WorkflowReauthFlow struct {
 	ID    string                    `json:"id,omitempty"`
 	Steps []*WorkflowReauthFlowStep `json:"steps,omitempty"`
+}
+
+func (f *WorkflowReauthFlow) GetID() (string, bool) {
+	return f.ID, true
+}
+
+func (f *WorkflowReauthFlow) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowReauthFlow) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
 }
 
 type WorkflowReauthFlowStepType string
@@ -590,8 +780,47 @@ type WorkflowReauthFlowStep struct {
 	OneOf []*WorkflowReauthFlowOneOf `json:"one_of,omitempty"`
 }
 
+func (s *WorkflowReauthFlowStep) GetID() (string, bool) {
+	return s.ID, true
+}
+
+func (s *WorkflowReauthFlowStep) GetSteps() ([]WorkflowObject, bool) {
+	return nil, false
+}
+
+func (s *WorkflowReauthFlowStep) GetOneOf() ([]WorkflowObject, bool) {
+	switch s.Type {
+	case WorkflowReauthFlowStepTypeAuthenticate:
+		out := make([]WorkflowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out, true
+	default:
+		return nil, false
+	}
+}
+
 type WorkflowReauthFlowOneOf struct {
 	Authentication WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 	TargetStep     string                       `json:"target_step,omitempty"`
 	Steps          []*WorkflowReauthFlowStep    `json:"steps,omitempty"`
+}
+
+func (f *WorkflowReauthFlowOneOf) GetID() (string, bool) {
+	return "", false
+}
+
+func (f *WorkflowReauthFlowOneOf) GetSteps() ([]WorkflowObject, bool) {
+	out := make([]WorkflowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out, true
+}
+
+func (f *WorkflowReauthFlowOneOf) GetOneOf() ([]WorkflowObject, bool) {
+	return nil, false
 }
