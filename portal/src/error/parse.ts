@@ -1,6 +1,6 @@
 import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
-import { ValidationFailedErrorInfoCause } from "./validation";
+import { FormatErrorCause, ValidationFailedErrorInfoCause } from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
@@ -91,11 +91,36 @@ function isKnownCauseKind(kind: string): boolean {
   return kind in errorCauseMessageIDs;
 }
 
+function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
+  if (
+    cause.details.format === "x_duration_string" &&
+    cause.details.error?.startsWith("non-positive duration")
+  ) {
+    return {
+      messageID: "errors.validation.format.duration.nonPositive",
+    };
+  }
+  return null;
+}
+
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (cause.kind === "general") {
     return { message: cause.details.msg };
   } else if (cause.kind === "__local") {
     return cause.details.error;
+  }
+
+  let specificErrorMessage: ParsedAPIError | null = null;
+  switch (cause.kind) {
+    case "format":
+      specificErrorMessage = getFormatErrorMessage(cause);
+      break;
+
+    default:
+      break;
+  }
+  if (specificErrorMessage != null) {
+    return specificErrorMessage;
   }
 
   const messageID = errorCauseMessageIDs[cause.kind];
@@ -461,12 +486,15 @@ export function parseAPIErrors(
 
   const rules = aggregateRules(fields, topRules);
 
-  const { rawFieldCauses, unhandledErrors: unhandledErrorsForRules } =
-    parseValidationErrors(errors, fields);
+  const {
+    fieldErrors,
+    topErrors,
+    unhandledErrors: ruleUnhandledErrors,
+  } = parseErrorWithRules(errors, rules);
 
-  const { fieldErrors, topErrors, unhandledErrors } = parseErrorWithRules(
-    unhandledErrorsForRules,
-    rules
+  const { rawFieldCauses, unhandledErrors } = parseValidationErrors(
+    ruleUnhandledErrors,
+    fields
   );
 
   // Add rawFieldCauses to fieldErrors

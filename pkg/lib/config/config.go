@@ -105,6 +105,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 7: validate custom attribute
 	c.validateCustomAttribute(ctx)
+
+	// Validation 8: validate lockout configs
+	c.validateLockout(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -283,6 +286,17 @@ func (c *AppConfig) validateCustomAttribute(ctx *validation.Context) {
 				})
 			}
 		}
+	}
+}
+
+func (c *AppConfig) validateLockout(ctx *validation.Context) {
+	minDuration, isMinDurationValid := c.Authentication.Lockout.MinimumDuration.MaybeDuration()
+	maxDuration, isMaxDurationValid := c.Authentication.Lockout.MaximumDuration.MaybeDuration()
+	if isMaxDurationValid && isMinDurationValid && minDuration.Seconds() > maxDuration.Seconds() {
+		ctx.Child("authentication", "lockout", "minimum_duration").EmitError("maximum", map[string]interface{}{
+			"maximum": maxDuration.Seconds(),
+			"actual":  minDuration.Seconds(),
+		})
 	}
 }
 

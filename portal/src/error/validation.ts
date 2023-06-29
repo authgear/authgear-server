@@ -55,6 +55,7 @@ export interface FormatErrorCause {
   kind: "format";
   details: {
     format: string;
+    error?: string;
   };
 }
 

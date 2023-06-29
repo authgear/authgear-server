@@ -23,9 +23,10 @@ describe("parseDuration", () => {
 
 describe("formatDuration", () => {
   it("format number as duration string", () => {
-    expect(formatDuration(0)).toEqual("0s");
-    expect(formatDuration(10)).toEqual("10s");
-    expect(formatDuration(-2)).toEqual("-2s");
-    expect(formatDuration(89.6)).toEqual("89.6s");
+    expect(formatDuration(0, "s")).toEqual("0s");
+    expect(formatDuration(10, "s")).toEqual("10s");
+    expect(formatDuration(-2, "s")).toEqual("-2s");
+    expect(formatDuration(89.6, "s")).toEqual("89.6s");
+    expect(formatDuration(11, "m")).toEqual("11m");
   });
 });

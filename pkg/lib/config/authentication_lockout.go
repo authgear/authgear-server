@@ -113,7 +113,7 @@ func (c *AuthenticationLockoutConfig) IsEnabled() bool {
 }
 
 func (c *AuthenticationLockoutConfig) SetDefaults() {
-	if c.IsEnabled() {
+	if c.IsEnabled() && c.BackoffFactor == nil {
 		one := 1.0
 		c.BackoffFactor = &one
 	}

@@ -186,7 +186,8 @@ function constructConfig(
 
     if (currentState.forgotPasswordCodeValidPeriodSeconds != null) {
       config.forgot_password.code_valid_period = formatDuration(
-        currentState.forgotPasswordCodeValidPeriodSeconds
+        currentState.forgotPasswordCodeValidPeriodSeconds,
+        "s"
       );
     }
 
