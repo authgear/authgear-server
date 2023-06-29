@@ -131,9 +131,10 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li>{{ .details.msg }}</li>
     {{ else }}
     <li>{{ .Error.message }}</li>
-    {{ end }} {{ end }} {{ else if eq .Error.reason "UserNotFound" }} {{
-    template "__error_account" . }} {{ else if eq .Error.reason
-    "InvalidCredentials" }}
+    {{ end }} {{ end }}
+    {{ else if eq .Error.reason "UserNotFound" }}
+    {{ template "__error_account" . }}
+    {{ else if eq .Error.reason "InvalidCredentials" }}
     <li>
       {{ template "error-invalid-credentials" (dict "AuthenticationType"
       $info.AuthenticationType) }}
@@ -169,12 +170,13 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li>{{ template "error-developer-reauthentication" }}</li>
     {{ else }}
     <li>{{ .Error.message }}</li>
-    {{ end }} {{ else if eq .Error.reason "InvalidVerificationCode" }}
+    {{ end }}
+    {{ else if eq .Error.reason "InvalidVerificationCode" }}
     <li>
       {{ template "error-verification-code-invalid" }}
       <a
         href="#"
-        data-transfer-click-click-value="#verify-identity-resend-button"
+        data-transfer-click-click-value="#resend-button"
         data-controller="transfer-click"
         data-action="transfer-click#click"
       >

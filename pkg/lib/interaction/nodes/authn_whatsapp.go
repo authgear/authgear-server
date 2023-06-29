@@ -1,11 +1,14 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -39,6 +42,11 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 		},
 	)
 	if err != nil {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
+			return nil, errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
+				"AuthenticationType": apierrors.APIErrorDetail.Value(e.Authenticator.Type),
+			})
+		}
 		return nil, err
 	}
 

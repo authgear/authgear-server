@@ -3,9 +3,11 @@ package nodes
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -120,6 +122,9 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 		},
 	)
 	if err != nil {
+		if apierrors.IsKind(err, otp.InvalidOTPCode) {
+			return nil, verification.ErrInvalidVerificationCode
+		}
 		return nil, err
 	}
 
