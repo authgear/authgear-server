@@ -18,8 +18,10 @@ import {
   ErrorParseRule,
   makeValidationErrorMatchUnknownKindParseRule,
 } from "../../error/parse";
+import Toggle from "../../Toggle";
 
 export interface State {
+  isEnabled: boolean;
   maxAttempts?: number;
   historyDurationMins?: number;
   minimumDurationMins?: number;
@@ -107,6 +109,7 @@ function useDecimalOnChange<T extends State>(
 function useBooleanOnChange<T extends State>(
   setState: LockoutSettingsProps<T>["setState"],
   key:
+    | "isEnabled"
     | "isEnabledForPassword"
     | "isEnabledForTOTP"
     | "isEnabledForOOBOTP"
@@ -439,6 +442,10 @@ export default function LockoutSettings<T extends State>(
 ): ReactElement {
   const { className, setState, ...state } = props;
 
+  const { renderToString } = useContext(MessageContext);
+
+  const onChangeIsEnabled = useBooleanOnChange(setState, "isEnabled");
+
   const onMaxAttemptsChange = useIntegerOnChange(setState, "maxAttempts");
   const onHistoryDurationMinsChange = useIntegerOnChange(
     setState,
@@ -495,31 +502,40 @@ export default function LockoutSettings<T extends State>(
       <WidgetTitle>
         <FormattedMessage id="LoginMethodConfigurationScreen.lockout.title" />
       </WidgetTitle>
-      <LockoutThresholdSection
-        state={state}
-        onHistoryDurationMinsChange={onHistoryDurationMinsChange}
-        onMaxAttemptsChange={onMaxAttemptsChange}
+      <Toggle
+        checked={state.isEnabled}
+        label={renderToString("LoginMethodConfigurationScreen.lockout.enable")}
+        onChange={onChangeIsEnabled}
       />
-      <HorizontalDivider />
-      <LockoutDurationSection
-        state={state}
-        onBackoffFactorChange={onBackoffFactorChange}
-        onMaximumDurationMinsChange={onMaximumDurationMinsChange}
-        onMinDurationChange={onMinDurationChange}
-      />
-      <HorizontalDivider />
-      <LockoutTypeSection
-        state={state}
-        onChangeLockoutType={onChangeLockoutType}
-      />
-      <HorizontalDivider />
-      <LockoutAuthenticatorSection
-        state={state}
-        onChangeIsEnabledForPassword={onChangeIsEnabledForPassword}
-        onChangeIsEnabledForOOBOTP={onChangeIsEnabledForOOBOTP}
-        onChangeIsEnabledForTOTP={onChangeIsEnabledForTOTP}
-        onChangeIsEnabledForRecoveryCode={onChangeIsEnabledForRecoveryCode}
-      />
+      {state.isEnabled ? (
+        <>
+          <LockoutThresholdSection
+            state={state}
+            onHistoryDurationMinsChange={onHistoryDurationMinsChange}
+            onMaxAttemptsChange={onMaxAttemptsChange}
+          />
+          <HorizontalDivider />
+          <LockoutDurationSection
+            state={state}
+            onBackoffFactorChange={onBackoffFactorChange}
+            onMaximumDurationMinsChange={onMaximumDurationMinsChange}
+            onMinDurationChange={onMinDurationChange}
+          />
+          <HorizontalDivider />
+          <LockoutTypeSection
+            state={state}
+            onChangeLockoutType={onChangeLockoutType}
+          />
+          <HorizontalDivider />
+          <LockoutAuthenticatorSection
+            state={state}
+            onChangeIsEnabledForPassword={onChangeIsEnabledForPassword}
+            onChangeIsEnabledForOOBOTP={onChangeIsEnabledForOOBOTP}
+            onChangeIsEnabledForTOTP={onChangeIsEnabledForTOTP}
+            onChangeIsEnabledForRecoveryCode={onChangeIsEnabledForRecoveryCode}
+          />
+        </>
+      ) : null}
     </Widget>
   );
 }
