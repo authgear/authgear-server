@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -124,9 +123,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	)
 	if err != nil {
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			return nil, errorutil.WithDetails(verification.ErrInvalidVerificationCode, errorutil.Details{
-				"Channel": apierrors.APIErrorDetail.Value(model.AuthenticatorOOBChannelWhatsapp),
-			})
+			return nil, verification.ErrInvalidVerificationCode
 		}
 		return nil, err
 	}

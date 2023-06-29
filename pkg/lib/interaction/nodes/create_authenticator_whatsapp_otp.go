@@ -43,7 +43,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTP) Instantiate(ctx *interaction.Contex
 	if err != nil {
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			return nil, errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
-				"Channel": apierrors.APIErrorDetail.Value(model.AuthenticatorOOBChannelWhatsapp),
+				"AuthenticationType": apierrors.APIErrorDetail.Value(e.Authenticator.Type),
 			})
 		}
 		return nil, err
