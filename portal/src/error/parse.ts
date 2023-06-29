@@ -1,10 +1,6 @@
 import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
-import {
-  FormatErrorCause,
-  GeneralErrorCause,
-  ValidationFailedErrorInfoCause,
-} from "./validation";
+import { FormatErrorCause, ValidationFailedErrorInfoCause } from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
@@ -107,24 +103,9 @@ function getFormatErrorMessage(cause: FormatErrorCause): ParsedAPIError | null {
   return null;
 }
 
-function getGeneralErrorMessage(
-  cause: GeneralErrorCause
-): ParsedAPIError | null {
-  if (
-    cause.details.msg ===
-    "maximum_duration must be greater than or equal to minimum_duration"
-  ) {
-    return {
-      messageID:
-        "errors.validation.general.lockout.maxDurationMustBeGreaterThanMinDuration",
-    };
-  }
-  return null;
-}
-
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (cause.kind === "general") {
-    return getGeneralErrorMessage(cause) ?? { message: cause.details.msg };
+    return { message: cause.details.msg };
   } else if (cause.kind === "__local") {
     return cause.details.error;
   }
@@ -505,12 +486,15 @@ export function parseAPIErrors(
 
   const rules = aggregateRules(fields, topRules);
 
-  const { rawFieldCauses, unhandledErrors: unhandledErrorsForRules } =
-    parseValidationErrors(errors, fields);
+  const {
+    fieldErrors,
+    topErrors,
+    unhandledErrors: ruleUnhandledErrors,
+  } = parseErrorWithRules(errors, rules);
 
-  const { fieldErrors, topErrors, unhandledErrors } = parseErrorWithRules(
-    unhandledErrorsForRules,
-    rules
+  const { rawFieldCauses, unhandledErrors } = parseValidationErrors(
+    ruleUnhandledErrors,
+    fields
   );
 
   // Add rawFieldCauses to fieldErrors

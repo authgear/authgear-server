@@ -293,8 +293,10 @@ func (c *AppConfig) validateLockout(ctx *validation.Context) {
 	minDuration, isMinDurationValid := c.Authentication.Lockout.MinimumDuration.MaybeDuration()
 	maxDuration, isMaxDurationValid := c.Authentication.Lockout.MaximumDuration.MaybeDuration()
 	if isMaxDurationValid && isMinDurationValid && minDuration.Seconds() > maxDuration.Seconds() {
-		ctx.Child("authentication", "lockout", "maximum_duration").
-			EmitErrorMessage("maximum_duration must be greater than or equal to minimum_duration")
+		ctx.Child("authentication", "lockout", "minimum_duration").EmitError("maximum", map[string]interface{}{
+			"maximum": c.Authentication.Lockout.MaximumDuration,
+			"actual":  c.Authentication.Lockout.MinimumDuration,
+		})
 	}
 }
 

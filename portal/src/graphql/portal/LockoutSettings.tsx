@@ -14,6 +14,10 @@ import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./LockoutSettings.module.css";
 import HorizontalDivider from "../../HorizontalDivider";
 import FormTextField from "../../FormTextField";
+import {
+  ErrorParseRule,
+  makeValidationErrorMatchUnknownKindParseRule,
+} from "../../error/parse";
 
 export interface State {
   maxAttempts?: number;
@@ -203,6 +207,14 @@ function LockoutThresholdSection<T extends State>(props: {
   );
 }
 
+const minDurationErrorParseRules: ErrorParseRule[] = [
+  makeValidationErrorMatchUnknownKindParseRule(
+    "maximum",
+    /\/authentication\/lockout\/minimum_duration/,
+    "LoginMethodConfigurationScreen.lockout.errors.maxDurationMustBeGreaterThanMinDuration"
+  ),
+];
+
 function LockoutDurationSection<T extends State>(props: {
   state: T;
   onMinDurationChange: (_: unknown, value?: string | undefined) => void;
@@ -260,6 +272,7 @@ function LockoutDurationSection<T extends State>(props: {
           )}
           value={state.minimumDurationMins?.toFixed(0) ?? ""}
           onChange={onMinDurationChange}
+          errorRules={minDurationErrorParseRules}
         />
         <WidgetDescription className="mt-2">
           <FormattedMessage id="LoginMethodConfigurationScreen.lockout.duration.duration.description" />

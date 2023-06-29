@@ -76,7 +76,6 @@
   "errors.validation.unknown": "Invalid input at {location}: {kind}",
   "errors.validation.required": "Please fill in this field",
   "errors.validation.general": "Invalid value",
-  "errors.validation.general.lockout.maxDurationMustBeGreaterThanMinDuration": "Maximum Lockout Duration should be greater than or equal to Lockout Duration",
   "errors.validation.pattern": "Expect the value to match {expected}",
   "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} username{Invalid username format} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} x_custom_attribute_pointer{Invalid attribute name} google_tag_manager_container_id{Google Tag Manager Container ID starts with GTM-} other{Invalid format}}",
   "errors.validation.format.duration.nonPositive": "Please enter a positive value",
@@ -1485,6 +1484,7 @@
   "LoginMethodConfigurationScreen.lockout.authenticator.passwordless": "Passwordless via Phone/Email",
   "LoginMethodConfigurationScreen.lockout.authenticator.totp": "Authenticator App (TOTP)",
   "LoginMethodConfigurationScreen.lockout.authenticator.recoveryCode": "Recovery code",
+  "LoginMethodConfigurationScreen.lockout.errors.maxDurationMustBeGreaterThanMinDuration": "Maximum Lockout Duration should be greater than or equal to Lockout Duration",
 
   "LoginMethodConfigurationScreen.pivot.custom.title": "Custom Login Methods",
   "LoginMethodConfigurationScreen.pivot.email.title": "Email",
