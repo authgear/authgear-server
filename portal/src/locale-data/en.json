@@ -1485,6 +1485,7 @@
   "LoginMethodConfigurationScreen.lockout.authenticator.totp": "Authenticator App (TOTP)",
   "LoginMethodConfigurationScreen.lockout.authenticator.recoveryCode": "Recovery code",
   "LoginMethodConfigurationScreen.lockout.errors.maxDurationMustBeGreaterThanMinDuration": "Maximum Lockout Duration should be greater than or equal to Lockout Duration",
+  "LoginMethodConfigurationScreen.lockout.errors.mustEnableForAtLeastOneAuthenticator": "Please select at least one authenticator",
   "LoginMethodConfigurationScreen.lockout.enable": "Enable account lockout policy?",
 
   "LoginMethodConfigurationScreen.pivot.custom.title": "Custom Login Methods",

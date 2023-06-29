@@ -104,6 +104,11 @@ import {
   parseDuration,
 } from "../../util/duration";
 import LockoutSettings, { State as LockoutFormState } from "./LockoutSettings";
+import { APIError } from "../../error/error";
+import {
+  LocalValidationError,
+  makeLocalValidationError,
+} from "../../error/validation";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -3165,6 +3170,44 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     );
   };
 
+function validateFormState(state: ConfigFormState): APIError | null {
+  if (!state.lockout.isEnabled) {
+    return null;
+  }
+
+  const errors: LocalValidationError[] = [];
+
+  if ((state.lockout.maxAttempts ?? 0) < 1) {
+    errors.push({
+      messageID: "errors.validation.minimum",
+      arguments: {
+        minimum: 1,
+      },
+      location: "/authentication/lockout/max_attempts",
+    });
+  }
+
+  if (
+    [
+      state.lockout.isEnabledForOOBOTP,
+      state.lockout.isEnabledForPassword,
+      state.lockout.isEnabledForRecoveryCode,
+      state.lockout.isEnabledForTOTP,
+    ].every((enabled) => !enabled)
+  ) {
+    errors.push({
+      messageID:
+        "LoginMethodConfigurationScreen.lockout.errors.mustEnableForAtLeastOneAuthenticator",
+    });
+  }
+
+  if (errors.length < 1) {
+    return null;
+  }
+
+  return makeLocalValidationError(errors);
+}
+
 const LoginMethodConfigurationScreen: React.VFC =
   function LoginMethodConfigurationScreen() {
     const { appID } = useParams() as { appID: string };
@@ -3175,6 +3218,7 @@ const LoginMethodConfigurationScreen: React.VFC =
       appID,
       constructFormState,
       constructConfig,
+      validate: validateFormState,
     });
 
     const resourceForm = useResourceForm(
