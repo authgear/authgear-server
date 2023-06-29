@@ -904,6 +904,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     config.verification?.rate_limits?.email?.trigger_per_user ?? {}
   );
 
+  const isLockoutEnabled =
+    (config.authentication?.lockout?.max_attempts ?? 0) > 0;
+
   const state: ConfigFormState = {
     identitiesControl: controlListOf(
       (a, b) => a === b,
@@ -973,26 +976,41 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     forgotPasswordCodeValidPeriodSeconds,
     passkeyChecked: passkeyIndex != null && passkeyIndex >= 0,
     lockout: {
-      maxAttempts: config.authentication?.lockout?.max_attempts,
-      historyDurationMins: parseOptionalDurationIntoMinutes(
-        config.authentication?.lockout?.history_duration
-      ),
-      minimumDurationMins: parseOptionalDurationIntoMinutes(
-        config.authentication?.lockout?.minimum_duration
-      ),
-      maximumDurationMins: parseOptionalDurationIntoMinutes(
-        config.authentication?.lockout?.maximum_duration
-      ),
-      backoffFactorRaw:
-        config.authentication?.lockout?.backoff_factor?.toString(),
+      isEnabled: isLockoutEnabled,
+      maxAttempts: isLockoutEnabled
+        ? config.authentication?.lockout?.max_attempts
+        : 10,
+      historyDurationMins: isLockoutEnabled
+        ? parseOptionalDurationIntoMinutes(
+            config.authentication?.lockout?.history_duration
+          )
+        : 1440,
+      minimumDurationMins: isLockoutEnabled
+        ? parseOptionalDurationIntoMinutes(
+            config.authentication?.lockout?.minimum_duration
+          )
+        : 1,
+      maximumDurationMins: isLockoutEnabled
+        ? parseOptionalDurationIntoMinutes(
+            config.authentication?.lockout?.maximum_duration
+          )
+        : 60,
+      backoffFactorRaw: isLockoutEnabled
+        ? config.authentication?.lockout?.backoff_factor?.toString()
+        : "2",
       lockoutType: config.authentication?.lockout?.lockout_type ?? "per_user",
-      isEnabledForPassword:
-        config.authentication?.lockout?.password?.enabled ?? false,
-      isEnabledForTOTP: config.authentication?.lockout?.totp?.enabled ?? false,
-      isEnabledForOOBOTP:
-        config.authentication?.lockout?.oob_otp?.enabled ?? false,
-      isEnabledForRecoveryCode:
-        config.authentication?.lockout?.recovery_code?.enabled ?? false,
+      isEnabledForPassword: isLockoutEnabled
+        ? config.authentication?.lockout?.password?.enabled ?? false
+        : true,
+      isEnabledForTOTP: isLockoutEnabled
+        ? config.authentication?.lockout?.totp?.enabled ?? false
+        : true,
+      isEnabledForOOBOTP: isLockoutEnabled
+        ? config.authentication?.lockout?.oob_otp?.enabled ?? false
+        : true,
+      isEnabledForRecoveryCode: isLockoutEnabled
+        ? config.authentication?.lockout?.recovery_code?.enabled ?? false
+        : true,
     },
     sixDigitOTPValidPeriodSeconds,
     smsOTPCooldownPeriodSeconds,
@@ -1146,47 +1164,51 @@ function constructConfig(
       config.verification.rate_limits.sms.trigger_cooldown = undefined;
     }
 
-    const backoffFactor = Number(currentState.lockout.backoffFactorRaw);
-    config.authentication.lockout.backoff_factor = Number.isFinite(
-      backoffFactor
-    )
-      ? backoffFactor
-      : undefined;
-    config.authentication.lockout.history_duration = formatOptionalDuration(
-      currentState.lockout.historyDurationMins,
-      "m"
-    );
-    config.authentication.lockout.lockout_type =
-      currentState.lockout.lockoutType;
-    config.authentication.lockout.max_attempts =
-      currentState.lockout.maxAttempts;
-    config.authentication.lockout.maximum_duration = formatOptionalDuration(
-      currentState.lockout.maximumDurationMins,
-      "m"
-    );
-    config.authentication.lockout.minimum_duration = formatOptionalDuration(
-      currentState.lockout.minimumDurationMins,
-      "m"
-    );
-    if (currentState.lockout.isEnabledForOOBOTP) {
-      config.authentication.lockout.oob_otp = { enabled: true };
+    if (!currentState.lockout.isEnabled) {
+      config.authentication.lockout = undefined;
     } else {
-      config.authentication.lockout.oob_otp = undefined;
-    }
-    if (currentState.lockout.isEnabledForPassword) {
-      config.authentication.lockout.password = { enabled: true };
-    } else {
-      config.authentication.lockout.password = undefined;
-    }
-    if (currentState.lockout.isEnabledForRecoveryCode) {
-      config.authentication.lockout.recovery_code = { enabled: true };
-    } else {
-      config.authentication.lockout.recovery_code = undefined;
-    }
-    if (currentState.lockout.isEnabledForTOTP) {
-      config.authentication.lockout.totp = { enabled: true };
-    } else {
-      config.authentication.lockout.totp = undefined;
+      const backoffFactor = Number(currentState.lockout.backoffFactorRaw);
+      config.authentication.lockout.backoff_factor = Number.isFinite(
+        backoffFactor
+      )
+        ? backoffFactor
+        : undefined;
+      config.authentication.lockout.history_duration = formatOptionalDuration(
+        currentState.lockout.historyDurationMins,
+        "m"
+      );
+      config.authentication.lockout.lockout_type =
+        currentState.lockout.lockoutType;
+      config.authentication.lockout.max_attempts =
+        currentState.lockout.maxAttempts;
+      config.authentication.lockout.maximum_duration = formatOptionalDuration(
+        currentState.lockout.maximumDurationMins,
+        "m"
+      );
+      config.authentication.lockout.minimum_duration = formatOptionalDuration(
+        currentState.lockout.minimumDurationMins,
+        "m"
+      );
+      if (currentState.lockout.isEnabledForOOBOTP) {
+        config.authentication.lockout.oob_otp = { enabled: true };
+      } else {
+        config.authentication.lockout.oob_otp = undefined;
+      }
+      if (currentState.lockout.isEnabledForPassword) {
+        config.authentication.lockout.password = { enabled: true };
+      } else {
+        config.authentication.lockout.password = undefined;
+      }
+      if (currentState.lockout.isEnabledForRecoveryCode) {
+        config.authentication.lockout.recovery_code = { enabled: true };
+      } else {
+        config.authentication.lockout.recovery_code = undefined;
+      }
+      if (currentState.lockout.isEnabledForTOTP) {
+        config.authentication.lockout.totp = { enabled: true };
+      } else {
+        config.authentication.lockout.totp = undefined;
+      }
     }
 
     if (currentState.emailOTPCooldownPeriodSeconds != null) {
