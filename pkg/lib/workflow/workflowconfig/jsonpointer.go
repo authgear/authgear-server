@@ -94,3 +94,7 @@ func GetCurrentObject(entries []TraverseEntry) (config.WorkflowObject, error) {
 func JSONPointerForStep(p jsonpointer.T, index int) jsonpointer.T {
 	return p.AddReferenceToken("steps").AddReferenceToken(strconv.Itoa(index))
 }
+
+func JSONPointerForOneOf(p jsonpointer.T, index int) jsonpointer.T {
+	return p.AddReferenceToken("one_of").AddReferenceToken(strconv.Itoa(index))
+}
