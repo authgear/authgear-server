@@ -501,7 +501,7 @@ type WorkflowSignupFlowOneOf struct {
 	TargetStep string `json:"target_step,omitempty"`
 
 	// Steps are common.
-	Steps []*WorkflowSignupFlowStep `json:"step,omitempty"`
+	Steps []*WorkflowSignupFlowStep `json:"steps,omitempty"`
 }
 
 type WorkflowSignupFlowUserProfile struct {
@@ -542,7 +542,7 @@ type WorkflowLoginFlowOneOf struct {
 	TargetStep string `json:"target_step,omitempty"`
 
 	// Steps are common.
-	Steps []*WorkflowLoginFlowStep `json:"step,omitempty"`
+	Steps []*WorkflowLoginFlowStep `json:"steps,omitempty"`
 }
 
 type WorkflowSignupLoginFlow struct {
@@ -593,5 +593,5 @@ type WorkflowReauthFlowStep struct {
 type WorkflowReauthFlowOneOf struct {
 	Authentication WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 	TargetStep     string                       `json:"target_step,omitempty"`
-	Steps          []*WorkflowLoginFlowStep     `json:"step,omitempty"`
+	Steps          []*WorkflowReauthFlowStep    `json:"steps,omitempty"`
 }
