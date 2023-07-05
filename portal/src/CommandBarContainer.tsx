@@ -80,7 +80,14 @@ const CommandBarContainer: React.VFC<CommandBarContainerProps> =
             ? renderHeaderContent(defaultHeaderContent)
             : defaultHeaderContent}
         </div>
-        <div className={cn(styles.content, className)}>{props.children}</div>
+        <div
+          className={cn(styles.content, className)}
+          // For DetailList to correctly know what to display
+          // https://developer.microsoft.com/en-us/fluentui#/controls/web/detailslist
+          data-is-scrollable="true"
+        >
+          {props.children}
+        </div>
       </>
     );
   };
