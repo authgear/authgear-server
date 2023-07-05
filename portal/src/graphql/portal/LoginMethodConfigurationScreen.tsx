@@ -2440,6 +2440,7 @@ function useVerificationOnChangeEnabled(
 }
 
 interface VerificationSettingsProps {
+  isPasswordlessEnabled: boolean;
   showEmailSettings: boolean;
   showPhoneSettings: boolean;
   authenticatorOOBEmailConfig: AuthenticatorOOBEmailConfig;
@@ -2460,6 +2461,7 @@ interface VerificationSettingsProps {
 // eslint-disable-next-line complexity
 function VerificationSettings(props: VerificationSettingsProps) {
   const {
+    isPasswordlessEnabled,
     showEmailSettings,
     showPhoneSettings,
     setState,
@@ -2692,44 +2694,23 @@ function VerificationSettings(props: VerificationSettingsProps) {
   return (
     <Widget>
       <WidgetTitle>
-        <FormattedMessage id="LoginMethodConfigurationScreen.verification.title" />
+        <FormattedMessage
+          id={
+            isPasswordlessEnabled
+              ? "LoginMethodConfigurationScreen.verificationAndPasswordless.title"
+              : "LoginMethodConfigurationScreen.verification.title"
+          }
+        />
       </WidgetTitle>
       <WidgetDescription>
-        <FormattedMessage id="LoginMethodConfigurationScreen.verification.description" />
-      </WidgetDescription>
-      <TextField
-        type="text"
-        label={renderToString(
-          "VerificationConfigurationScreen.otp-valid-seconds.label"
-        )}
-        value={sixDigitOTPValidPeriodSeconds?.toFixed(0) ?? ""}
-        onChange={onChangeOTPValidPeriodSeconds}
-      />
-      <div className={styles.otpFailedAttemptContainer}>
-        <Toggle
-          label={renderToString(
-            "VerificationConfigurationScreen.otp-failed-attempt.label"
-          )}
-          offText={renderToString(
-            "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
-          )}
-          onText={renderToString("Toggle.on")}
-          checked={anyOTPRevokeFailedAttemptsEnabled}
-          onChange={onChangeOTPFailedAttemptEnabled}
+        <FormattedMessage
+          id={
+            isPasswordlessEnabled
+              ? "LoginMethodConfigurationScreen.verificationAndPasswordless.description"
+              : "LoginMethodConfigurationScreen.verification.description"
+          }
         />
-        {anyOTPRevokeFailedAttemptsEnabled ? (
-          <FormTextField
-            parentJSONPointer="/otp/ratelimit/failed_attempt"
-            fieldName="size"
-            type="text"
-            value={anyOTPRevokeFailedAttempts?.toFixed(0) ?? ""}
-            onChange={onChangeOTPFailedAttemptSize}
-          />
-        ) : null}
-        <WidgetDescription>
-          <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.description" />
-        </WidgetDescription>
-      </div>
+      </WidgetDescription>
       {showEmailSettings && showPhoneSettings ? (
         <Dropdown
           options={criteriaOptions}
@@ -2838,6 +2819,40 @@ function VerificationSettings(props: VerificationSettingsProps) {
           ) : null}
         </>
       ) : null}
+      <HorizontalDivider />
+      <TextField
+        type="text"
+        label={renderToString(
+          "VerificationConfigurationScreen.otp-valid-seconds.label"
+        )}
+        value={sixDigitOTPValidPeriodSeconds?.toFixed(0) ?? ""}
+        onChange={onChangeOTPValidPeriodSeconds}
+      />
+      <div className={styles.otpFailedAttemptContainer}>
+        <Toggle
+          label={renderToString(
+            "VerificationConfigurationScreen.otp-failed-attempt.label"
+          )}
+          offText={renderToString(
+            "VerificationConfigurationScreen.otp-failed-attempt.enabled.offText"
+          )}
+          onText={renderToString("Toggle.on")}
+          checked={anyOTPRevokeFailedAttemptsEnabled}
+          onChange={onChangeOTPFailedAttemptEnabled}
+        />
+        {anyOTPRevokeFailedAttemptsEnabled ? (
+          <FormTextField
+            parentJSONPointer="/otp/ratelimit/failed_attempt"
+            fieldName="size"
+            type="text"
+            value={anyOTPRevokeFailedAttempts?.toFixed(0) ?? ""}
+            onChange={onChangeOTPFailedAttemptSize}
+          />
+        ) : null}
+        <WidgetDescription>
+          <FormattedMessage id="VerificationConfigurationScreen.otp-failed-attempt.description" />
+        </WidgetDescription>
+      </div>
     </Widget>
   );
 }
@@ -2884,6 +2899,12 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
 
       resources,
     } = state;
+
+    const isPasswordlessEnabled = useMemo(() => {
+      return primaryAuthenticatorsControl
+        .filter((c) => c.value === "oob_otp_email" || c.value === "oob_otp_sms")
+        .some((c) => c.isChecked);
+    }, [primaryAuthenticatorsControl]);
 
     const [loginMethod, setLoginMethod] = useState(() =>
       loginMethodFromFormState(state)
@@ -3115,11 +3136,14 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             {showVerificationSettings ? (
               <PivotItem
                 headerText={renderToString(
-                  "LoginMethodConfigurationScreen.pivot.verification.title"
+                  isPasswordlessEnabled
+                    ? "LoginMethodConfigurationScreen.pivot.verificationAndPasswordless.title"
+                    : "LoginMethodConfigurationScreen.pivot.verification.title"
                 )}
                 itemKey="verification"
               >
                 <VerificationSettings
+                  isPasswordlessEnabled={isPasswordlessEnabled}
                   showEmailSettings={showEmailSettings}
                   showPhoneSettings={showPhoneSettings}
                   authenticatorOOBEmailConfig={authenticatorOOBEmailConfig}
