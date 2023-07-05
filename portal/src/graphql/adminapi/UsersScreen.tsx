@@ -10,9 +10,11 @@ import {
   ICommandBarItemProps,
   SearchBox,
   ISearchBoxProps,
+  MessageBar,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
+import cn from "classnames";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -163,6 +165,9 @@ const UsersScreen: React.VFC = function UsersScreen() {
     fetchPolicy: "network-only",
   });
 
+  const isTotalExceededLimit =
+    (data?.users?.totalCount ?? 0) > searchResultSize;
+
   const messageBar = useMemo(() => {
     if (error != null) {
       return <ShowError error={error} onRetry={refetch} />;
@@ -200,6 +205,11 @@ const UsersScreen: React.VFC = function UsersScreen() {
       >
         <ScreenContent className={styles.content} layout="list">
           <NavBreadcrumb className={styles.widget} items={items} />
+          {isSearch && isTotalExceededLimit ? (
+            <MessageBar className={cn(styles.widget, "h-min")}>
+              <FormattedMessage id="UsersScreen.search.resultLimited" />
+            </MessageBar>
+          ) : null}
           <UsersList
             className={styles.widget}
             isSearch={isSearch}
