@@ -15,6 +15,7 @@ fragment UsersList on UserConnection {
       formattedName
       endUserAccountID
     }
+    cursor
   }
   totalCount
 }
