@@ -5,5 +5,7 @@ import (
 )
 
 var ErrFlowNotFound = apierrors.NotFound.WithReason("WorkflowConfigFlowNotFound").New("flow not found")
+var ErrStepNotFound = apierrors.NotFound.WithReason("WorkflowConfigStepNotFound").New("step not found")
 
-var InvalidIdentificationMethod = apierrors.BadRequest.WithReason("workflowConfigInvalidIdentificationMethod")
+var InvalidIdentificationMethod = apierrors.BadRequest.WithReason("WorkflowConfigInvalidIdentificationMethod")
+var InvalidVerifyTarget = apierrors.InternalError.WithReason("WorkflowConfigInvalidVerifyTarget")

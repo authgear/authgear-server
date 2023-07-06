@@ -64,7 +64,12 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depe
 			UserID:      i.UserID,
 		}), nil
 	case config.WorkflowSignupFlowStepTypeVerify:
-		// FIXME(workflow): verify claim in the target step.
+		return workflow.NewSubWorkflow(&IntentSignupFlowVerify{
+			SignupFlow:  i.SignupFlow,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
+		}), nil
 	case config.WorkflowSignupFlowStepTypeAuthenticate:
 		// FIXME(workflow): create authenticator
 	case config.WorkflowSignupFlowStepTypeUserProfile:
