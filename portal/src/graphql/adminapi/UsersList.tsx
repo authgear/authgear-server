@@ -356,13 +356,15 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             items={items}
           />
         </div>
-        <PaginationWidget
-          className={cn(styles.pagination, isEmpty && styles.empty)}
-          offset={offset}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onChangeOffset={onChangeOffset}
-        />
+        {!isSearch ? (
+          <PaginationWidget
+            className={cn(styles.pagination, isEmpty && styles.empty)}
+            offset={offset}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onChangeOffset={onChangeOffset}
+          />
+        ) : null}
         {isEmpty ? (
           <MessageBar>
             {isSearch ? (

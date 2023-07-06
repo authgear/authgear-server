@@ -10,9 +10,11 @@ import {
   ICommandBarItemProps,
   SearchBox,
   ISearchBoxProps,
+  MessageBar,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
+import cn from "classnames";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -34,6 +36,7 @@ import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
 
 const pageSize = 10;
+const searchResultSize = 1000;
 
 interface LocalSearchBoxProps {
   className?: ISearchBoxProps["className"];
@@ -65,6 +68,8 @@ const UsersScreen: React.VFC = function UsersScreen() {
 
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
+
+  const isSearch = searchKeyword !== "";
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
@@ -132,11 +137,15 @@ const UsersScreen: React.VFC = function UsersScreen() {
   // The first item is excluded.
   // Therefore we have adjust it by -1.
   const cursor = useMemo(() => {
+    if (isSearch) {
+      // Search always query all rows.
+      return null;
+    }
     if (offset === 0) {
       return null;
     }
     return encodeOffsetToCursor(offset - 1);
-  }, [offset]);
+  }, [isSearch, offset]);
 
   const onChangeOffset = useCallback((offset) => {
     setOffset(offset);
@@ -147,7 +156,7 @@ const UsersScreen: React.VFC = function UsersScreen() {
     UsersListQueryQueryVariables
   >(UsersListQueryDocument, {
     variables: {
-      pageSize,
+      pageSize: isSearch ? searchResultSize : pageSize,
       cursor,
       sortBy,
       sortDirection,
@@ -155,6 +164,9 @@ const UsersScreen: React.VFC = function UsersScreen() {
     },
     fetchPolicy: "network-only",
   });
+
+  const isTotalExceededLimit =
+    (data?.users?.totalCount ?? 0) > searchResultSize;
 
   const messageBar = useMemo(() => {
     if (error != null) {
@@ -193,9 +205,14 @@ const UsersScreen: React.VFC = function UsersScreen() {
       >
         <ScreenContent className={styles.content} layout="list">
           <NavBreadcrumb className={styles.widget} items={items} />
+          {isSearch && isTotalExceededLimit ? (
+            <MessageBar className={cn(styles.widget, "h-min")}>
+              <FormattedMessage id="UsersScreen.search.resultLimited" />
+            </MessageBar>
+          ) : null}
           <UsersList
             className={styles.widget}
-            isSearch={searchKeyword !== ""}
+            isSearch={isSearch}
             loading={loading}
             users={data?.users ?? null}
             offset={offset}
