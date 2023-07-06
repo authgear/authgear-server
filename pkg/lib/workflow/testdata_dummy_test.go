@@ -39,7 +39,7 @@ func (*testMarshalIntent0) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (i *testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (i *testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return []Effect{
 		OnCommitEffect(func(ctx context.Context, deps *Dependencies) error {
 			if w, ok := GetEffectWriter(ctx); ok {
@@ -50,15 +50,15 @@ func (i *testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies,
 	}, nil
 }
 
-func (*testMarshalIntent0) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*testMarshalIntent0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (testMarshalIntent0) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (testMarshalIntent0) ReactTo(ctx context.Context, deps *Dependencies, workflow Workflows, input Input) (*Node, error) {
 	panic("unreachable")
 }
 
-func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return map[string]interface{}{
 		"intent0": i.Intent0,
 	}, nil
@@ -76,7 +76,7 @@ func (*testMarshalIntent1) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (i *testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (i *testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return []Effect{
 		OnCommitEffect(func(ctx context.Context, deps *Dependencies) error {
 			if w, ok := GetEffectWriter(ctx); ok {
@@ -87,15 +87,15 @@ func (i *testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies,
 	}, nil
 }
 
-func (*testMarshalIntent1) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*testMarshalIntent1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (testMarshalIntent1) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (testMarshalIntent1) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	panic("unreachable")
 }
 
-func (i *testMarshalIntent1) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (i *testMarshalIntent1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return map[string]interface{}{
 		"intent1": i.Intent1,
 	}, nil
@@ -109,7 +109,7 @@ func (*testMarshalNode0) Kind() string {
 	return "testMarshalNode0"
 }
 
-func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return []Effect{
 		RunEffect(func(ctx context.Context, deps *Dependencies) error {
 			if w, ok := GetEffectWriter(ctx); ok {
@@ -126,15 +126,15 @@ func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies, w
 	}, nil
 }
 
-func (*testMarshalNode0) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*testMarshalNode0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	panic("unreachable")
 }
 
-func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return map[string]interface{}{
 		"node0": i.Node0,
 	}, nil
@@ -148,7 +148,7 @@ func (*testMarshalNode1) Kind() string {
 	return "testMarshalNode1"
 }
 
-func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return []Effect{
 		RunEffect(func(ctx context.Context, deps *Dependencies) error {
 			if w, ok := GetEffectWriter(ctx); ok {
@@ -165,15 +165,15 @@ func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies, w
 	}, nil
 }
 
-func (*testMarshalNode1) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*testMarshalNode1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	panic("unreachable")
 }
 
-func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return map[string]interface{}{
 		"node1": i.Node1,
 	}, nil

@@ -81,16 +81,16 @@ func (n *Node) Traverse(t WorkflowTraverser, w *Workflow) error {
 	}
 }
 
-func (n *Node) FindInputReactor(ctx context.Context, deps *Dependencies, w *Workflow) (*Workflow, InputReactor, error) {
+func (n *Node) FindInputReactor(ctx context.Context, deps *Dependencies, workflows Workflows) (*Workflow, InputReactor, error) {
 	switch n.Type {
 	case NodeTypeSimple:
-		_, err := n.Simple.CanReactTo(ctx, deps, w)
+		_, err := n.Simple.CanReactTo(ctx, deps, workflows)
 		if err == nil {
-			return w, n.Simple, nil
+			return workflows.Nearest, n.Simple, nil
 		}
 		return nil, nil, err
 	case NodeTypeSubWorkflow:
-		return n.SubWorkflow.FindInputReactor(ctx, deps)
+		return n.SubWorkflow.FindInputReactor(ctx, deps, workflows)
 	default:
 		panic(errors.New("unreachable"))
 	}
@@ -176,14 +176,14 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 	return nil
 }
 
-func (n *Node) ToOutput(ctx context.Context, deps *Dependencies, w *Workflow) (*NodeOutput, error) {
+func (n *Node) ToOutput(ctx context.Context, deps *Dependencies, workflows Workflows) (*NodeOutput, error) {
 	output := &NodeOutput{
 		Type: n.Type,
 	}
 
 	switch n.Type {
 	case NodeTypeSimple:
-		nodeSimpleData, err := n.Simple.OutputData(ctx, deps, w)
+		nodeSimpleData, err := n.Simple.OutputData(ctx, deps, workflows)
 		if err != nil {
 			return nil, err
 		}
@@ -193,7 +193,7 @@ func (n *Node) ToOutput(ctx context.Context, deps *Dependencies, w *Workflow) (*
 		}
 		return output, nil
 	case NodeTypeSubWorkflow:
-		workflowOutput, err := n.SubWorkflow.ToOutput(ctx, deps)
+		workflowOutput, err := n.SubWorkflow.ToOutput(ctx, deps, workflows)
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +209,7 @@ type NodeSimple interface {
 	InputReactor
 	EffectGetter
 	Kind() string
-	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error)
 }
 
 type NodeFactory func() NodeSimple

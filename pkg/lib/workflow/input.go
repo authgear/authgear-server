@@ -10,8 +10,8 @@ import (
 )
 
 type InputReactor interface {
-	CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error)
-	ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error)
+	CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error)
+	ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error)
 }
 
 type Input interface {
