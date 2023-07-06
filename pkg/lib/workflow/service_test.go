@@ -263,22 +263,22 @@ func (*intentNilInput) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentNilInput) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentNilInput) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
-	if len(workflow.Nodes) == 0 {
+func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, ErrEOF
 }
 
-func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return NewNodeSimple(&nodeNilInput{}), nil
 }
 
-func (*intentNilInput) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (*intentNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -290,19 +290,19 @@ func (*nodeNilInput) Kind() string {
 	return "nodeNilInput"
 }
 
-func (*nodeNilInput) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (*nodeNilInput) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*nodeNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*nodeNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (*nodeNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*nodeNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeNilInput) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (*nodeNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -318,12 +318,12 @@ func (*intentServiceContext) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
-	if len(workflow.Nodes) == 0 {
+func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []Input{
 			&inputServiceContext{},
 		}, nil
@@ -331,7 +331,7 @@ func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies,
 	return nil, ErrEOF
 }
 
-func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var inputServiceContext InputServiceContext
 
 	switch {
@@ -345,11 +345,11 @@ func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, wo
 
 }
 
-func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (*intentServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error) {
+func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies, workflows Workflows) ([]*http.Cookie, error) {
 	return []*http.Cookie{
 		{
 			Name:  "intentServiceContext",
@@ -384,23 +384,23 @@ func (*nodeServiceContext) Kind() string {
 	return "nodeServiceContext"
 }
 
-func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (*nodeServiceContext) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*nodeServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*nodeServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (*nodeServiceContext) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*nodeServiceContext) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (*nodeServiceContext) OutputData(ctx context.Context, deps *Dependencies, workflow Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (*nodeServiceContext) GetCookies(ctx context.Context, deps *Dependencies, w *Workflow) ([]*http.Cookie, error) {
+func (*nodeServiceContext) GetCookies(ctx context.Context, deps *Dependencies, workflow Workflows) ([]*http.Cookie, error) {
 	return []*http.Cookie{
 		{
 			Name:  "nodeServiceContext",

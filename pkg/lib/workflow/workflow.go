@@ -34,6 +34,23 @@ type WorkflowTraverser struct {
 	NodeSimple func(nodeSimple NodeSimple, w *Workflow) error
 }
 
+type Workflows struct {
+	Root    *Workflow
+	Nearest *Workflow
+}
+
+func NewWorkflows(root *Workflow) Workflows {
+	return Workflows{
+		Root:    root,
+		Nearest: root,
+	}
+}
+
+func (w Workflows) Replace(nearest *Workflow) Workflows {
+	w.Nearest = nearest
+	return w
+}
+
 func NewWorkflow(workflowID string, intent Intent) *Workflow {
 	return &Workflow{
 		WorkflowID: workflowID,
@@ -45,7 +62,7 @@ func NewWorkflow(workflowID string, intent Intent) *Workflow {
 // Accept executes the workflow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
-func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) (err error) {
+func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (err error) {
 	var workflowInQuestion *Workflow
 	var inputReactor InputReactor
 
@@ -60,14 +77,14 @@ func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) 
 	}()
 
 	for {
-		workflowInQuestion, inputReactor, err = w.FindInputReactor(ctx, deps)
+		workflowInQuestion, inputReactor, err = w.FindInputReactor(ctx, deps, workflows.Replace(w))
 		if err != nil {
 			return
 		}
 
 		// Otherwise we found an InputReactor that we can feed input to.
 		var nextNode *Node
-		nextNode, err = inputReactor.ReactTo(ctx, deps, workflowInQuestion, input)
+		nextNode, err = inputReactor.ReactTo(ctx, deps, workflows.Replace(workflowInQuestion), input)
 
 		// Handle err == ErrIncompatibleInput
 		if errors.Is(err, ErrIncompatibleInput) {
@@ -111,7 +128,7 @@ func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) 
 		}
 
 		// We need to append the nextNode to the closest workflow.
-		err = workflowInQuestion.appendNode(ctx, deps, *nextNode)
+		err = workflowInQuestion.appendNode(ctx, deps, workflows.Replace(workflowInQuestion), *nextNode)
 		if err != nil {
 			return
 		}
@@ -119,12 +136,12 @@ func (w *Workflow) Accept(ctx context.Context, deps *Dependencies, input Input) 
 	}
 }
 
-func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node) error {
+func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, workflows Workflows, node Node) error {
 	w.Nodes = append(w.Nodes, node)
 
 	err := node.Traverse(WorkflowTraverser{
 		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
-			effs, err := nodeSimple.GetEffects(ctx, deps, w)
+			effs, err := nodeSimple.GetEffects(ctx, deps, workflows.Replace(w))
 			if err != nil {
 				return err
 			}
@@ -148,10 +165,10 @@ func (w *Workflow) appendNode(ctx context.Context, deps *Dependencies, node Node
 	return nil
 }
 
-func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies) error {
+func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies, workflows Workflows) error {
 	err := w.Traverse(WorkflowTraverser{
 		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
-			effs, err := nodeSimple.GetEffects(ctx, deps, w)
+			effs, err := nodeSimple.GetEffects(ctx, deps, workflows.Replace(w))
 			if err != nil {
 				return err
 			}
@@ -166,7 +183,7 @@ func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies) erro
 			return nil
 		},
 		Intent: func(intent Intent, w *Workflow) error {
-			effs, err := intent.GetEffects(ctx, deps, w)
+			effs, err := intent.GetEffects(ctx, deps, workflows.Replace(w))
 			if err != nil {
 				return err
 			}
@@ -186,15 +203,15 @@ func (w *Workflow) ApplyRunEffects(ctx context.Context, deps *Dependencies) erro
 	return nil
 }
 
-func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) error {
-	err := w.ApplyRunEffects(ctx, deps)
+func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies, workflows Workflows) error {
+	err := w.ApplyRunEffects(ctx, deps, workflows.Replace(w))
 	if err != nil {
 		return err
 	}
 
 	err = w.Traverse(WorkflowTraverser{
 		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
-			effs, err := nodeSimple.GetEffects(ctx, deps, w)
+			effs, err := nodeSimple.GetEffects(ctx, deps, workflows.Replace(w))
 			if err != nil {
 				return err
 			}
@@ -209,7 +226,7 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 			return nil
 		},
 		Intent: func(intent Intent, w *Workflow) error {
-			effs, err := intent.GetEffects(ctx, deps, w)
+			effs, err := intent.GetEffects(ctx, deps, workflows.Replace(w))
 			if err != nil {
 				return err
 			}
@@ -231,11 +248,11 @@ func (w *Workflow) ApplyAllEffects(ctx context.Context, deps *Dependencies) erro
 	return nil
 }
 
-func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies) (cookies []*http.Cookie, err error) {
+func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies, workflows Workflows) (cookies []*http.Cookie, err error) {
 	err = w.Traverse(WorkflowTraverser{
 		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
 			if n, ok := nodeSimple.(CookieGetter); ok {
-				c, err := n.GetCookies(ctx, deps, w)
+				c, err := n.GetCookies(ctx, deps, workflows.Replace(w))
 				if err != nil {
 					return err
 				}
@@ -246,7 +263,7 @@ func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies) (cook
 		},
 		Intent: func(intent Intent, w *Workflow) error {
 			if i, ok := intent.(CookieGetter); ok {
-				c, err := i.GetCookies(ctx, deps, w)
+				c, err := i.GetCookies(ctx, deps, workflows.Replace(w))
 				if err != nil {
 					return err
 				}
@@ -279,11 +296,11 @@ func (w *Workflow) Traverse(t WorkflowTraverser) error {
 	return nil
 }
 
-func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies) (*Workflow, InputReactor, error) {
+func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies, workflows Workflows) (*Workflow, InputReactor, error) {
 	if len(w.Nodes) > 0 {
 		// We check the last node if it can react to input first.
 		lastNode := w.Nodes[len(w.Nodes)-1]
-		workflow, inputReactor, err := lastNode.FindInputReactor(ctx, deps, w)
+		workflow, inputReactor, err := lastNode.FindInputReactor(ctx, deps, workflows.Replace(w))
 		if err == nil {
 			return workflow, inputReactor, nil
 		}
@@ -295,7 +312,7 @@ func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies) (*W
 	}
 
 	// Otherwise we check if the intent can react to input.
-	_, err := w.Intent.CanReactTo(ctx, deps, w)
+	_, err := w.Intent.CanReactTo(ctx, deps, workflows.Replace(w))
 	if err == nil {
 		return w, w.Intent, nil
 	}
@@ -305,8 +322,8 @@ func (w *Workflow) FindInputReactor(ctx context.Context, deps *Dependencies) (*W
 	return nil, nil, err
 }
 
-func (w *Workflow) IsEOF(ctx context.Context, deps *Dependencies) (bool, error) {
-	_, _, err := w.FindInputReactor(ctx, deps)
+func (w *Workflow) IsEOF(ctx context.Context, deps *Dependencies, workflows Workflows) (bool, error) {
+	_, _, err := w.FindInputReactor(ctx, deps, workflows.Replace(w))
 	if err != nil {
 		if errors.Is(err, ErrEOF) {
 			return true, nil
@@ -374,13 +391,13 @@ func (w *Workflow) UnmarshalJSON(d []byte) (err error) {
 	return nil
 }
 
-func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies) (*WorkflowOutput, error) {
+func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies, workflows Workflows) (*WorkflowOutput, error) {
 	output := &WorkflowOutput{
 		WorkflowID: w.WorkflowID,
 		InstanceID: w.InstanceID,
 	}
 
-	intentOutputData, err := w.Intent.OutputData(ctx, deps, w)
+	intentOutputData, err := w.Intent.OutputData(ctx, deps, workflows.Replace(w))
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +407,7 @@ func (w *Workflow) ToOutput(ctx context.Context, deps *Dependencies) (*WorkflowO
 	}
 
 	for _, node := range w.Nodes {
-		nodeOutput, err := node.ToOutput(ctx, deps, w)
+		nodeOutput, err := node.ToOutput(ctx, deps, workflows.Replace(w))
 		if err != nil {
 			return nil, err
 		}

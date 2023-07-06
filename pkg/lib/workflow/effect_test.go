@@ -15,7 +15,7 @@ func TestApplyRunEffects(t *testing.T) {
 			ctx := context.Background()
 			ctx = WithEffectWriter(ctx, &buf)
 			deps := &Dependencies{}
-			err := w.ApplyRunEffects(ctx, deps)
+			err := w.ApplyRunEffects(ctx, deps, NewWorkflows(w))
 			So(err, ShouldBeNil)
 			So(buf.String(), ShouldEqual, expectedEffect)
 		}
@@ -70,7 +70,7 @@ func TestApplyAllEffects(t *testing.T) {
 			ctx := context.Background()
 			ctx = WithEffectWriter(ctx, &buf)
 			deps := &Dependencies{}
-			err := w.ApplyAllEffects(ctx, deps)
+			err := w.ApplyAllEffects(ctx, deps, NewWorkflows(w))
 			So(err, ShouldBeNil)
 			So(buf.String(), ShouldEqual, expectedEffect)
 		}

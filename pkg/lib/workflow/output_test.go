@@ -58,7 +58,7 @@ func TestOutput(t *testing.T) {
 	Convey("ToOutput", t, func() {
 		ctx := context.TODO()
 		deps := &Dependencies{}
-		output, err := workflow.ToOutput(ctx, deps)
+		output, err := workflow.ToOutput(ctx, deps, NewWorkflows(workflow))
 		So(err, ShouldBeNil)
 		bytes, err := json.MarshalIndent(output, "", "  ")
 		So(err, ShouldBeNil)

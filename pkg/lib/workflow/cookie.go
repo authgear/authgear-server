@@ -8,7 +8,7 @@ import (
 )
 
 type CookieGetter interface {
-	GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error)
+	GetCookies(ctx context.Context, deps *Dependencies, workflows Workflows) ([]*http.Cookie, error)
 }
 
 func NewUserAgentIDCookieDef() *httputil.CookieDef {
