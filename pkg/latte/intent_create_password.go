@@ -30,8 +30,8 @@ func (*IntentCreatePassword) JSONSchema() *validation.SimpleSchema {
 	return IntentCreatePasswordSchema
 }
 
-func (*IntentCreatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentCreatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputTakeNewPassword{},
 		}, nil
@@ -39,7 +39,7 @@ func (*IntentCreatePassword) CanReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentCreatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentCreatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 
 	switch {
@@ -70,10 +70,10 @@ func (i *IntentCreatePassword) ReactTo(ctx context.Context, deps *workflow.Depen
 
 }
 
-func (*IntentCreatePassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentCreatePassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentCreatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentCreatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

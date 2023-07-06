@@ -37,8 +37,8 @@ func (*IntentSignup) JSONSchema() *validation.SimpleSchema {
 	return IntentSignupSchema
 }
 
-func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		// Generate a new user ID.
 		return nil, nil
@@ -60,8 +60,8 @@ func (*IntentSignup) CanReactTo(ctx context.Context, deps *workflow.Dependencies
 	}
 }
 
-func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	switch len(w.Nodes) {
+func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return workflow.NewNodeSimple(&NodeDoCreateUser{
 			UserID: uuid.New(),
@@ -69,7 +69,7 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 	case 1:
 		intent := &IntentCreateLoginID{
 			// LoginID key and LoginID type are fixed here.
-			UserID:      i.userID(w),
+			UserID:      i.userID(workflows.Nearest),
 			LoginIDType: model.LoginIDKeyTypePhone,
 			LoginIDKey:  string(model.LoginIDKeyTypePhone),
 		}
@@ -78,14 +78,14 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 	case 2:
 		return workflow.NewSubWorkflow(&IntentCreateLoginID{
 			// LoginID key and LoginID type are fixed here.
-			UserID:      i.userID(w),
+			UserID:      i.userID(workflows.Nearest),
 			LoginIDType: model.LoginIDKeyTypeEmail,
 			LoginIDKey:  string(model.LoginIDKeyTypeEmail),
 		}), nil
 	case 3:
 		// The type, kind is fixed here.
 		return workflow.NewSubWorkflow(&IntentCreatePassword{
-			UserID:                 i.userID(w),
+			UserID:                 i.userID(workflows.Nearest),
 			AuthenticatorKind:      authenticator.KindPrimary,
 			AuthenticatorIsDefault: false,
 		}), nil
@@ -95,7 +95,7 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 			mode = EnsureSessionModeNoop
 		}
 		return workflow.NewSubWorkflow(&IntentEnsureSession{
-			UserID:       i.userID(w),
+			UserID:       i.userID(workflows.Nearest),
 			CreateReason: session.CreateReasonSignup,
 			// AMR is NOT populated because
 			// 1. Strictly speaking this is NOT an authentication. It is a sign up.
@@ -108,7 +108,7 @@ func (i *IntentSignup) ReactTo(ctx context.Context, deps *workflow.Dependencies,
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
@@ -121,7 +121,7 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			var identities []*identity.Info
-			identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](w)
+			identityWorkflows := workflow.FindSubWorkflows[NewIdentityGetter](workflows.Nearest)
 			for _, subWorkflow := range identityWorkflows {
 				if iden, ok := subWorkflow.Intent.(NewIdentityGetter).GetNewIdentities(subWorkflow); ok {
 					identities = append(identities, iden...)
@@ -129,14 +129,14 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 			}
 
 			var authenticators []*authenticator.Info
-			authenticatorWorkflows := workflow.FindSubWorkflows[NewAuthenticatorGetter](w)
+			authenticatorWorkflows := workflow.FindSubWorkflows[NewAuthenticatorGetter](workflows.Nearest)
 			for _, subWorkflow := range authenticatorWorkflows {
 				if a, ok := subWorkflow.Intent.(NewAuthenticatorGetter).GetNewAuthenticators(subWorkflow); ok {
 					authenticators = append(authenticators, a...)
 				}
 			}
 
-			userID := i.userID(w)
+			userID := i.userID(workflows.Nearest)
 			isAdminAPI := false
 			uiParam := uiparam.GetUIParam(ctx)
 
@@ -161,7 +161,7 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 	}, nil
 }
 
-func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentSignup) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

@@ -18,23 +18,23 @@ func (n *NodeSendForgotPasswordCode) Kind() string {
 	return "latte.NodeSendForgotPasswordCode"
 }
 
-func (n *NodeSendForgotPasswordCode) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeSendForgotPasswordCode) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeSendForgotPasswordCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeSendForgotPasswordCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return nil, workflow.ErrEOF
 }
 
-func (*NodeSendForgotPasswordCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (*NodeSendForgotPasswordCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeSendForgotPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*NodeSendForgotPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (n *NodeSendForgotPasswordCode) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
+func (n *NodeSendForgotPasswordCode) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
 	return deps.ForgotPassword.SendCode(n.LoginID)
 
 }

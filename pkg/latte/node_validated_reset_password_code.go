@@ -19,19 +19,19 @@ func (n *NodeValidatedResetPasswordCode) Kind() string {
 	return "latte.NodeValidatedResetPasswordCode"
 }
 
-func (n *NodeValidatedResetPasswordCode) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeValidatedResetPasswordCode) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeValidatedResetPasswordCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeValidatedResetPasswordCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return nil, workflow.ErrEOF
 }
 
-func (*NodeValidatedResetPasswordCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (*NodeValidatedResetPasswordCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeValidatedResetPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeValidatedResetPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	type NodeValidatedResetPasswordCodeOutput struct {
 		UserID string `json:"user_id"`
 	}

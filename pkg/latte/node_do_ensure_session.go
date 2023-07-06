@@ -32,7 +32,7 @@ func (n *NodeDoEnsureSession) Kind() string {
 	return "latte.NodeDoEnsureSession"
 }
 
-func (n *NodeDoEnsureSession) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeDoEnsureSession) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			return deps.AuthenticationInfos.Save(n.AuthenticationInfoEntry)
@@ -74,7 +74,7 @@ func (n *NodeDoEnsureSession) GetEffects(ctx context.Context, deps *workflow.Dep
 	}, nil
 }
 
-func (n *NodeDoEnsureSession) GetCookies(ctx context.Context, deps *workflow.Dependencies, workflow *workflow.Workflow) ([]*http.Cookie, error) {
+func (n *NodeDoEnsureSession) GetCookies(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]*http.Cookie, error) {
 	var cookies []*http.Cookie
 	if n.SessionCookie != nil {
 		cookies = append(cookies, n.SessionCookie)
@@ -88,14 +88,14 @@ func (n *NodeDoEnsureSession) GetCookies(ctx context.Context, deps *workflow.Dep
 	return cookies, nil
 }
 
-func (*NodeDoEnsureSession) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeDoEnsureSession) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return nil, workflow.ErrEOF
 }
 
-func (*NodeDoEnsureSession) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (*NodeDoEnsureSession) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeDoEnsureSession) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeDoEnsureSession) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

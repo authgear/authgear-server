@@ -32,8 +32,8 @@ func (*IntentAuthenticate) JSONSchema() *validation.SimpleSchema {
 	return IntentAuthenticateSchema
 }
 
-func (*IntentAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputTakeLoginID{},
 		}, nil
@@ -42,7 +42,7 @@ func (*IntentAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Depend
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 
 	switch {
@@ -76,12 +76,12 @@ func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Depende
 	}
 }
 
-func (*IntentAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	// IntentAuthenticate has no effects.
 	// The effects would be in IntentSignup or IntentLogin.
 	return nil, nil
 }
 
-func (*IntentAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

@@ -35,8 +35,8 @@ func (*IntentChangeEmail) JSONSchema() *validation.SimpleSchema {
 	return IntentChangeEmailSchema
 }
 
-func (*IntentChangeEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentChangeEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return []workflow.Input{
 			&InputTakeCurrentLoginID{},
@@ -49,13 +49,13 @@ func (*IntentChangeEmail) CanReactTo(ctx context.Context, deps *workflow.Depende
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	userID := session.GetUserID(ctx)
 	if userID == nil {
 		return nil, apierrors.NewUnauthorized("authentication required")
 	}
 
-	switch len(w.Nodes) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		var inputTakeCurrentLoginID inputTakeCurrentLoginID
 		switch {
@@ -83,12 +83,12 @@ func (i *IntentChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependen
 			}), nil
 		}
 	case 1:
-		iden := i.newIdentityInfo(w)
+		iden := i.newIdentityInfo(workflows.Nearest)
 		return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
 			Identity: iden,
 		}), nil
 	case 2:
-		iden := i.newIdentityInfo(w)
+		iden := i.newIdentityInfo(workflows.Nearest)
 		return workflow.NewSubWorkflow(&IntentVerifyIdentity{
 			Identity:     iden,
 			IsFromSignUp: false,
@@ -108,10 +108,10 @@ func (i *IntentChangeEmail) newIdentityInfo(w *workflow.Workflow) *identity.Info
 	return node.IdentityAfterUpdate
 }
 
-func (i *IntentChangeEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentChangeEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentChangeEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentChangeEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

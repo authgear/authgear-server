@@ -30,14 +30,14 @@ func (*IntentMigrateOOBOTPAuthenticator) JSONSchema() *validation.SimpleSchema {
 	return IntentMigrateOOBOTPAuthenticatorSchema
 }
 
-func (*IntentMigrateOOBOTPAuthenticator) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentMigrateOOBOTPAuthenticator) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentMigrateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentMigrateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	spec := i.MigrateSpec.GetSpec()
 	spec.UserID = i.UserID
 	spec.IsDefault = i.AuthenticatorIsDefault
@@ -96,11 +96,11 @@ func (i *IntentMigrateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *wo
 	}), nil
 }
 
-func (*IntentMigrateOOBOTPAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentMigrateOOBOTPAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentMigrateOOBOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentMigrateOOBOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
