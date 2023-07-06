@@ -32,14 +32,14 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) JSONSchema() *validation.Simpl
 	return IntentCreateOOBOTPAuthenticatorForLoginIDSchema
 }
 
-func (*IntentCreateOOBOTPAuthenticatorForLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentCreateOOBOTPAuthenticatorForLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	channel, target := i.Identity.LoginID.ToChannelTarget()
 
 	authenticatorType, err := model.GetOOBAuthenticatorType(channel)
@@ -93,11 +93,11 @@ func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context,
 	}), nil
 }
 
-func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentCreateOOBOTPAuthenticatorForLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentCreateOOBOTPAuthenticatorForLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentCreateOOBOTPAuthenticatorForLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

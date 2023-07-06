@@ -31,14 +31,14 @@ func (*IntentCreateSession) JSONSchema() *validation.SimpleSchema {
 	return IntentCreateSessionSchema
 }
 
-func (*IntentCreateSession) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentCreateSession) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentCreateSession) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentCreateSession) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	attrs := session.NewAttrs(i.UserID)
 	attrs.SetAMR(i.AMR)
 	s, token := deps.IDPSessions.MakeSession(attrs)
@@ -73,11 +73,11 @@ func (i *IntentCreateSession) ReactTo(ctx context.Context, deps *workflow.Depend
 	}), nil
 }
 
-func (*IntentCreateSession) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentCreateSession) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentCreateSession) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentCreateSession) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

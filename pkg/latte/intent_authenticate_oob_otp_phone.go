@@ -28,16 +28,16 @@ func (i *IntentAuthenticateOOBOTPPhone) JSONSchema() *validation.SimpleSchema {
 	return IntentAuthenticateOOBOTPPhoneSchema
 }
 
-func (i *IntentAuthenticateOOBOTPPhone) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (i *IntentAuthenticateOOBOTPPhone) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	if i.IsCaptchaProtected {
-		switch len(w.Nodes) {
+		switch len(workflows.Nearest.Nodes) {
 		case 0:
 			return nil, nil
 		case 1:
 			return nil, nil
 		}
 	} else {
-		switch len(w.Nodes) {
+		switch len(workflows.Nearest.Nodes) {
 		case 0:
 			return nil, nil
 		}
@@ -45,12 +45,12 @@ func (i *IntentAuthenticateOOBOTPPhone) CanReactTo(ctx context.Context, deps *wo
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	if i.IsCaptchaProtected && len(workflow.FindSubWorkflows[*IntentVerifyCaptcha](w)) == 0 {
+func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	if i.IsCaptchaProtected && len(workflow.FindSubWorkflows[*IntentVerifyCaptcha](workflows.Nearest)) == 0 {
 		return workflow.NewSubWorkflow(&IntentVerifyCaptcha{}), nil
 	}
 
-	if _, found := workflow.FindSingleNode[*NodeAuthenticateOOBOTPPhone](w); !found {
+	if _, found := workflow.FindSingleNode[*NodeAuthenticateOOBOTPPhone](workflows.Nearest); !found {
 		authenticator := i.Authenticator
 		err := (&SendOOBCode{
 			WorkflowID:        workflow.GetWorkflowID(ctx),
@@ -71,11 +71,11 @@ func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workf
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentAuthenticateOOBOTPPhone) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentAuthenticateOOBOTPPhone) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }
 

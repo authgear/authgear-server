@@ -27,8 +27,8 @@ func (*IntentMigrateAccount) JSONSchema() *validation.SimpleSchema {
 	return IntentMigrateAccountSchema
 }
 
-func (*IntentMigrateAccount) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentMigrateAccount) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		// Resolve migration spec from the migration token.
 		return []workflow.Input{
@@ -45,8 +45,8 @@ func (*IntentMigrateAccount) CanReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	switch len(w.Nodes) {
+func (i *IntentMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		var inputTakeMigrationToken inputTakeMigrationToken
 		if workflow.AsInput(input, &inputTakeMigrationToken) {
@@ -61,13 +61,13 @@ func (i *IntentMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Depen
 			}), nil
 		}
 	case 1:
-		specs := i.getIdentityMigrateSpecs(w)
+		specs := i.getIdentityMigrateSpecs(workflows.Nearest)
 		return workflow.NewSubWorkflow(&IntentMigrateIdentities{
 			UserID:       i.UseID,
 			MigrateSpecs: specs,
 		}), nil
 	case 2:
-		specs := i.getAuthenticatorMigrateSpecs(w)
+		specs := i.getAuthenticatorMigrateSpecs(workflows.Nearest)
 		return workflow.NewSubWorkflow(&IntentMigrateAuthenticators{
 			UserID:       i.UseID,
 			MigrateSpecs: specs,
@@ -77,11 +77,11 @@ func (i *IntentMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Depen
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentMigrateAccount) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentMigrateAccount) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentMigrateAccount) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentMigrateAccount) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

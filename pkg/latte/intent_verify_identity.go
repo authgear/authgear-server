@@ -33,16 +33,16 @@ func (*IntentVerifyIdentity) JSONSchema() *validation.SimpleSchema {
 	return IntentVerifyIdentitySchema
 }
 
-func (i *IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (i *IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	if i.IsCaptchaProtected {
-		switch len(w.Nodes) {
+		switch len(workflows.Nearest.Nodes) {
 		case 0:
 			return nil, nil
 		case 1:
 			return nil, nil
 		}
 	} else {
-		switch len(w.Nodes) {
+		switch len(workflows.Nearest.Nodes) {
 		case 0:
 			return nil, nil
 		}
@@ -50,7 +50,7 @@ func (i *IntentVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.De
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	statuses, err := deps.Verification.GetIdentityVerificationStatus(i.Identity)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 		}), nil
 	}
 
-	if i.IsCaptchaProtected && len(workflow.FindSubWorkflows[*IntentVerifyCaptcha](w)) == 0 {
+	if i.IsCaptchaProtected && len(workflow.FindSubWorkflows[*IntentVerifyCaptcha](workflows.Nearest)) == 0 {
 		return workflow.NewSubWorkflow(&IntentVerifyCaptcha{}), nil
 	}
 
@@ -81,7 +81,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 		workflow.NodeSimple
 		otpKind(deps *workflow.Dependencies) otp.Kind
 		otpTarget() string
-		sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error
+		sendCode(ctx context.Context, deps *workflow.Dependencies) error
 	}
 	switch model.ClaimName(status.Name) {
 	case model.ClaimEmail:
@@ -105,7 +105,7 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	}
 
 	kind := node.otpKind(deps)
-	err = node.sendCode(ctx, deps, w)
+	err = node.sendCode(ctx, deps)
 	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.otpTarget()).Name) {
 		// Ignore trigger cooldown rate limit error; continue the workflow
 	} else if err != nil {
@@ -115,11 +115,11 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 	return workflow.NewNodeSimple(node), nil
 }
 
-func (*IntentVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

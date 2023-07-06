@@ -33,14 +33,14 @@ func (*IntentVerifyUser) JSONSchema() *validation.SimpleSchema {
 	return IntentVerifyUserSchema
 }
 
-func (*IntentVerifyUser) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentVerifyUser) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (*IntentVerifyUser) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (*IntentVerifyUser) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	userID := session.GetUserID(ctx)
 	if userID == nil {
 		return nil, apierrors.NewUnauthorized("authentication required")
@@ -51,10 +51,10 @@ func (*IntentVerifyUser) ReactTo(ctx context.Context, deps *workflow.Dependencie
 	}), nil
 }
 
-func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			verifyIdentity, workflow := workflow.MustFindSubWorkflow[*IntentFindVerifyIdentity](w)
+			verifyIdentity, workflow := workflow.MustFindSubWorkflow[*IntentFindVerifyIdentity](workflows.Nearest)
 			verified, ok := verifyIdentity.VerifiedIdentity(workflow)
 			if !ok || verified.NewVerifiedClaim == nil {
 				// No actual verification is done; skipping event
@@ -83,6 +83,6 @@ func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependen
 	}, nil
 }
 
-func (i *IntentVerifyUser) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentVerifyUser) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

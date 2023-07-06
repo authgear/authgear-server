@@ -39,8 +39,8 @@ func (*IntentCreateLoginID) JSONSchema() *validation.SimpleSchema {
 	return IntentCreateLoginIDSchema
 }
 
-func (*IntentCreateLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentCreateLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return []workflow.Input{
 			&InputTakeLoginID{},
@@ -56,10 +56,10 @@ func (*IntentCreateLoginID) CanReactTo(ctx context.Context, deps *workflow.Depen
 	}
 }
 
-func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 
-	switch len(w.Nodes) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		if workflow.AsInput(input, &inputTakeLoginID) {
 			loginID := inputTakeLoginID.GetLoginID()
@@ -95,12 +95,12 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 			}), nil
 		}
 	case 1:
-		iden := i.identityInfo(w)
+		iden := i.identityInfo(workflows.Nearest)
 		return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
 			Identity: iden,
 		}), nil
 	case 2:
-		iden := i.identityInfo(w)
+		iden := i.identityInfo(workflows.Nearest)
 		intent := &IntentVerifyIdentity{
 			Identity:     iden,
 			IsFromSignUp: true,
@@ -108,7 +108,7 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 		intent.IsCaptchaProtected = i.IsCaptchaProtected
 		return workflow.NewSubWorkflow(intent), nil
 	case 3:
-		iden := i.identityInfo(w)
+		iden := i.identityInfo(workflows.Nearest)
 		return workflow.NewSubWorkflow(&IntentCreateOOBOTPAuthenticatorForLoginID{
 			Identity: iden,
 		}), nil
@@ -126,11 +126,11 @@ func (i *IntentCreateLoginID) identityInfo(w *workflow.Workflow) *identity.Info 
 	return node.Identity
 }
 
-func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentCreateLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentCreateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

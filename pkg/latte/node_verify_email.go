@@ -28,18 +28,18 @@ func (n *NodeVerifyEmail) Kind() string {
 	return "latte.NodeVerifyEmail"
 }
 
-func (n *NodeVerifyEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeVerifyEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeVerifyEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeVerifyEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakeOOBOTPCode{},
 		&InputResendOOBOTPCode{},
 	}, nil
 }
 
-func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPCode inputTakeOOBOTPCode
 	var inputResendOOBOTPCode inputResendOOBOTPCode
 
@@ -66,7 +66,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 		}), nil
 
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
-		err := n.sendCode(ctx, deps, w)
+		err := n.sendCode(ctx, deps)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 	}
 }
 
-func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Email
 	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target)
 	if err != nil {
@@ -107,7 +107,7 @@ func (n *NodeVerifyEmail) otpTarget() string {
 	return n.Email
 }
 
-func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
+func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
 	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, otp.FormCode, otp.MessageTypeVerification)
 	if err != nil {
 		return err
