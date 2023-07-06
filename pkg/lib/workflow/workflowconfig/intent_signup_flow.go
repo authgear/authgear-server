@@ -31,6 +31,8 @@ type IntentSignupFlow struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 }
 
+var _ workflow.Intent = &IntentSignupFlow{}
+
 func (*IntentSignupFlow) Kind() string {
 	return "workflowconfig.IntentSignupFlow"
 }

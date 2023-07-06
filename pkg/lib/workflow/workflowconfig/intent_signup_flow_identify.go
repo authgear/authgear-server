@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -25,6 +26,28 @@ type IntentSignupFlowIdentify struct {
 	StepID      string        `json:"step_id,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
+
+var _ WorkflowStep = &IntentSignupFlowIdentify{}
+
+func (i *IntentSignupFlowIdentify) GetID() string {
+	return i.StepID
+}
+
+func (i *IntentSignupFlowIdentify) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
+
+var _ IntentSignupFlowVerifyTarget = &IntentSignupFlowIdentify{}
+
+func (*IntentSignupFlowIdentify) GetVerifiableClaims(w *workflow.Workflow) (map[model.ClaimName]string, error) {
+	n, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
+	if !ok {
+		return nil, fmt.Errorf("NodeDoCreateIdentity cannot be found in IntentSignupFlowIdentify")
+	}
+	return n.Identity.IdentityAwareStandardClaims(), nil
+}
+
+var _ workflow.Intent = &IntentSignupFlowIdentify{}
 
 func (*IntentSignupFlowIdentify) Kind() string {
 	return "workflowconfig.IntentSignupFlowIdentify"
