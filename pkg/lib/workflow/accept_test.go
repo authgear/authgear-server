@@ -21,7 +21,7 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, deps, nil)
+		err := w.Accept(ctx, deps, NewWorkflows(w), nil)
 		So(errors.Is(err, ErrNoChange), ShouldBeTrue)
 	})
 
@@ -32,7 +32,7 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, deps, &inputLoginID{
+		err := w.Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
 			LoginID: "user@example.com",
 		})
 
@@ -150,7 +150,7 @@ func TestAccept(t *testing.T) {
 }
 		`
 
-		err := w.Accept(ctx, deps, &inputLoginID{
+		err := w.Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
@@ -159,7 +159,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, jsonStr)
 
-		err = w.Accept(ctx, deps, &inputOTP{
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputOTP{
 			OTP: "nonsense",
 		})
 		So(errors.Is(err, ErrInvalidOTP), ShouldBeTrue)
@@ -175,12 +175,12 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, deps, &inputLoginID{
+		err := w.Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputResendOTP{})
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputResendOTP{})
 		So(err, ShouldBeNil)
 
 		bytes, err := json.Marshal(w)
@@ -245,20 +245,20 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, deps, &inputLoginID{
+		err := w.Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputOTP{
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputOTP{
 			OTP: "123456",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputCreatePasswordFlow{})
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputCreatePasswordFlow{})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputNewPassword{
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputNewPassword{
 			NewPassword: "password",
 		})
 		So(err, ShouldBeNil)
@@ -353,25 +353,25 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := w.Accept(ctx, deps, &inputLoginID{
+		err := w.Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
 			LoginID: "user@example.com",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputOTP{
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputOTP{
 			OTP: "123456",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputCreatePasswordFlow{})
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputCreatePasswordFlow{})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputNewPassword{
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputNewPassword{
 			NewPassword: "password",
 		})
 		So(err, ShouldBeNil)
 
-		err = w.Accept(ctx, deps, &inputFinishSignup{})
+		err = w.Accept(ctx, deps, NewWorkflows(w), &inputFinishSignup{})
 		So(errors.Is(err, ErrEOF), ShouldBeTrue)
 
 		bytes, err := json.Marshal(w)

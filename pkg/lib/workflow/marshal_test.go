@@ -158,19 +158,19 @@ func (*intentNoValidateDuringUnmarshal) JSONSchema() *validation.SimpleSchema {
 	return intentNoValidateDuringUnmarshalSchema
 }
 
-func (i *intentNoValidateDuringUnmarshal) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (i *intentNoValidateDuringUnmarshal) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentNoValidateDuringUnmarshal) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*intentNoValidateDuringUnmarshal) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (i *intentNoValidateDuringUnmarshal) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (i *intentNoValidateDuringUnmarshal) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 

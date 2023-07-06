@@ -35,12 +35,12 @@ func (i *intentAuthenticate) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentAuthenticate) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
-	if len(workflow.Nodes) == 0 {
+func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []Input{
 			&inputLoginID{},
 		}, nil
@@ -49,7 +49,7 @@ func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies,
 	return nil, ErrEOF
 }
 
-func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
 
 	switch {
@@ -68,7 +68,7 @@ func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, wo
 	}
 }
 
-func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (i *intentAuthenticate) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -104,19 +104,19 @@ func (*intentLogin) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentLogin) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentLogin) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*intentLogin) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (*intentLogin) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*intentLogin) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (i *intentLogin) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -132,13 +132,13 @@ func (*intentSignup) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentSignup) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
-	if len(workflow.Nodes) > 0 {
-		lastNode := workflow.Nodes[len(workflow.Nodes)-1]
+func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	if len(workflows.Nearest.Nodes) > 0 {
+		lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
 		if lastNode.Type == NodeTypeSubWorkflow {
 			intent := lastNode.SubWorkflow.Intent
 			_, ok := intent.(*intentFinishSignup)
@@ -155,7 +155,7 @@ func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, workf
 	}, nil
 }
 
-func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
 	var passwordInput InputCreatePasswordFlow
 	var inputFinishSignup InputFinishSignup
@@ -175,7 +175,7 @@ func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, workflow
 	}
 }
 
-func (i *intentSignup) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (i *intentSignup) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -191,12 +191,12 @@ func (*intentAddLoginID) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentAddLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
-	if len(workflow.Nodes) == 0 {
+func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []Input{
 			&inputLoginID{},
 		}, nil
@@ -205,7 +205,7 @@ func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, w
 	return nil, ErrEOF
 }
 
-func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
 
 	switch {
@@ -219,7 +219,7 @@ func (i *intentAddLoginID) ReactTo(ctx context.Context, deps *Dependencies, work
 	}
 }
 
-func (*intentAddLoginID) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (*intentAddLoginID) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -232,18 +232,18 @@ func (*nodeVerifyLoginID) Kind() string {
 	return "nodeVerifyLoginID"
 }
 
-func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (*nodeVerifyLoginID) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (n *nodeVerifyLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (n *nodeVerifyLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return []Input{
 		&inputOTP{},
 		&inputResendOTP{},
 	}, nil
 }
 
-func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var otpInput InputOTP
 	var resendInput InputResendOTP
 
@@ -266,7 +266,7 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, wor
 	}
 }
 
-func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (*nodeVerifyLoginID) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -298,21 +298,21 @@ func (*nodeLoginIDVerified) Kind() string {
 	return "nodeLoginIDVerified"
 }
 
-func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (*nodeLoginIDVerified) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	// In actual case, we create the identity here.
 	return nil, nil
 }
 
-func (*nodeLoginIDVerified) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*nodeLoginIDVerified) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	// This workflow ends here.
 	return nil, ErrEOF
 }
 
-func (*nodeLoginIDVerified) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*nodeLoginIDVerified) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (*nodeLoginIDVerified) OutputData(ctx context.Context, deps *Dependencies, workflow Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -378,12 +378,12 @@ func (*intentCreatePassword) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
-	if len(workflow.Nodes) == 0 {
+func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []Input{
 			&inputNewPassword{},
 		}, nil
@@ -392,7 +392,7 @@ func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies,
 	return nil, ErrEOF
 }
 
-func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var inputNewPassword InputNewPassword
 	switch {
 	case AsInput(input, &inputNewPassword):
@@ -405,7 +405,7 @@ func (*intentCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, wo
 	}
 }
 
-func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (*intentCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -417,20 +417,20 @@ func (*nodeCreatePassword) Kind() string {
 	return "nodeCreatePassword"
 }
 
-func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, w *Workflow) ([]Effect, error) {
+func (*nodeCreatePassword) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	// In actual case, we create the password authenticator here.
 	return nil, nil
 }
 
-func (*nodeCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*nodeCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	return nil, ErrEOF
 }
 
-func (*nodeCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*nodeCreatePassword) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies, w *Workflow) (interface{}, error) {
+func (*nodeCreatePassword) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }
 
@@ -464,21 +464,21 @@ func (*intentFinishSignup) JSONSchema() *validation.SimpleSchema {
 	return EmptyJSONSchema
 }
 
-func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Effect, error) {
+func (*intentFinishSignup) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
 	return nil, nil
 }
 
-func (*intentFinishSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]Input, error) {
+func (*intentFinishSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
 	// In actual case, we have a lot to do in this workflow.
 	// We have to check if the user has required identity, authenticator, 2FA set up.
 	// And create session.
 	return nil, ErrEOF
 }
 
-func (*intentFinishSignup) ReactTo(ctx context.Context, deps *Dependencies, workflow *Workflow, input Input) (*Node, error) {
+func (*intentFinishSignup) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
 
-func (*intentFinishSignup) OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error) {
+func (*intentFinishSignup) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
 	return nil, nil
 }

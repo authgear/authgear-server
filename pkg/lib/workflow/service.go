@@ -128,7 +128,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 
 	// Feed an nil input to the workflow to let it proceed.
 	var input Input
-	err = workflow.Accept(ctx, s.Deps, input)
+	err = workflow.Accept(ctx, s.Deps, NewWorkflows(workflow), input)
 	// As a special case, we do not treat ErrNoChange as error because
 	// Not every workflow can react to nil input.
 	if errors.Is(err, ErrNoChange) {
@@ -146,7 +146,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 		return
 	}
 
-	output, err = workflow.ToOutput(ctx, s.Deps)
+	output, err = workflow.ToOutput(ctx, s.Deps, NewWorkflows(workflow))
 	if err != nil {
 		return
 	}
@@ -194,12 +194,12 @@ func (s *Service) Get(workflowID string, instanceID string, userAgentID string) 
 
 func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (output *ServiceOutput, err error) {
 	// Apply the run-effects.
-	err = w.ApplyRunEffects(ctx, s.Deps)
+	err = w.ApplyRunEffects(ctx, s.Deps, NewWorkflows(w))
 	if err != nil {
 		return
 	}
 
-	workflowOutput, err := w.ToOutput(ctx, s.Deps)
+	workflowOutput, err := w.ToOutput(ctx, s.Deps, NewWorkflows(w))
 	if err != nil {
 		return
 	}
@@ -299,12 +299,12 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 	}
 
 	// Apply the run-effects.
-	err = workflow.ApplyRunEffects(ctx, s.Deps)
+	err = workflow.ApplyRunEffects(ctx, s.Deps, NewWorkflows(workflow))
 	if err != nil {
 		return
 	}
 
-	err = workflow.Accept(ctx, s.Deps, input)
+	err = workflow.Accept(ctx, s.Deps, NewWorkflows(workflow), input)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
@@ -317,7 +317,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 		return
 	}
 
-	output, err = workflow.ToOutput(ctx, s.Deps)
+	output, err = workflow.ToOutput(ctx, s.Deps, NewWorkflows(workflow))
 	if err != nil {
 		return
 	}
@@ -337,12 +337,12 @@ func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cooki
 	// When the workflow is finished, we have the following things to do:
 	// 1. Apply all effects.
 	// 2. Collect cookies.
-	err = workflow.ApplyAllEffects(ctx, s.Deps)
+	err = workflow.ApplyAllEffects(ctx, s.Deps, NewWorkflows(workflow))
 	if err != nil {
 		return
 	}
 
-	cookies, err = workflow.CollectCookies(ctx, s.Deps)
+	cookies, err = workflow.CollectCookies(ctx, s.Deps, NewWorkflows(workflow))
 	if err != nil {
 		return
 	}
@@ -351,7 +351,7 @@ func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cooki
 }
 
 func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, error) {
-	isEOF, err := workflow.IsEOF(ctx, s.Deps)
+	isEOF, err := workflow.IsEOF(ctx, s.Deps, NewWorkflows(workflow))
 	if err != nil {
 		return nil, err
 	}
