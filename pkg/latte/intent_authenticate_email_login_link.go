@@ -27,16 +27,16 @@ func (i *IntentAuthenticateEmailLoginLink) JSONSchema() *validation.SimpleSchema
 	return IntentAuthenticateEmailLoginLinkSchema
 }
 
-func (i *IntentAuthenticateEmailLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (i *IntentAuthenticateEmailLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	switch len(w.Nodes) {
+func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		authenticator := i.Authenticator
 		err := (&SendOOBCode{
@@ -58,11 +58,11 @@ func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *wo
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }
 

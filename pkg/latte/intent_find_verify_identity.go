@@ -36,8 +36,8 @@ func (*IntentFindVerifyIdentity) JSONSchema() *validation.SimpleSchema {
 	return IntentFindVerifyIdentitySchema
 }
 
-func (*IntentFindVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentFindVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputSelectClaim{},
 		}, nil
@@ -45,7 +45,7 @@ func (*IntentFindVerifyIdentity) CanReactTo(ctx context.Context, deps *workflow.
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputSelectClaim inputSelectClaim
 
 	switch {
@@ -76,11 +76,11 @@ func (i *IntentFindVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.D
 	}
 }
 
-func (*IntentFindVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentFindVerifyIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentFindVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentFindVerifyIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

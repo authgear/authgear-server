@@ -32,8 +32,8 @@ func (*IntentMigrateLoginID) JSONSchema() *validation.SimpleSchema {
 	return IntentMigrateLoginIDSchema
 }
 
-func (*IntentMigrateLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentMigrateLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		// Create identity.
 		return nil, nil
@@ -48,8 +48,8 @@ func (*IntentMigrateLoginID) CanReactTo(ctx context.Context, deps *workflow.Depe
 	}
 }
 
-func (i *IntentMigrateLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	switch len(w.Nodes) {
+func (i *IntentMigrateLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		spec := i.MigrateSpec.GetSpec()
 		info, err := deps.Identities.New(i.UserID, spec, identity.NewIdentityOptions{
@@ -74,12 +74,12 @@ func (i *IntentMigrateLoginID) ReactTo(ctx context.Context, deps *workflow.Depen
 			Identity: info,
 		}), nil
 	case 1:
-		iden := i.identityInfo(w)
+		iden := i.identityInfo(workflows.Nearest)
 		return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
 			Identity: iden,
 		}), nil
 	case 2:
-		iden := i.identityInfo(w)
+		iden := i.identityInfo(workflows.Nearest)
 		var verifiedClaim *verification.Claim
 		switch iden.LoginID.LoginIDType {
 		case model.LoginIDKeyTypeEmail:
@@ -103,11 +103,11 @@ func (i *IntentMigrateLoginID) identityInfo(w *workflow.Workflow) *identity.Info
 	return node.Identity
 }
 
-func (*IntentMigrateLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentMigrateLoginID) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentMigrateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentMigrateLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

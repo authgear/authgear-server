@@ -26,7 +26,7 @@ func (n *NodeDoUpdateIdentity) Kind() string {
 	return "latte.NodeDoUpdateIdentity"
 }
 
-func (n *NodeDoUpdateIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeDoUpdateIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			if _, err := deps.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
@@ -80,14 +80,14 @@ func (n *NodeDoUpdateIdentity) GetEffects(ctx context.Context, deps *workflow.De
 	}, nil
 }
 
-func (*NodeDoUpdateIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeDoUpdateIdentity) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return nil, workflow.ErrEOF
 }
 
-func (*NodeDoUpdateIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (*NodeDoUpdateIdentity) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeDoUpdateIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeDoUpdateIdentity) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

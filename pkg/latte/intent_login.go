@@ -37,8 +37,8 @@ func (*IntentLogin) JSONSchema() *validation.SimpleSchema {
 	return IntentLoginSchema
 }
 
-func (*IntentLogin) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentLogin) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return nil, nil
 	case 1:
@@ -53,8 +53,8 @@ func (*IntentLogin) CanReactTo(ctx context.Context, deps *workflow.Dependencies,
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	switch len(w.Nodes) {
+func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		// 1st step: authenticate oob otp phone
 		phoneAuthenticator, err := i.getAuthenticator(deps,
@@ -100,17 +100,17 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 		return workflow.NewSubWorkflow(&IntentCreateSession{
 			UserID:       i.userID(),
 			CreateReason: session.CreateReasonLogin,
-			AMR:          i.GetAMR(w),
+			AMR:          i.GetAMR(workflows.Nearest),
 			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
 		}), nil
 	}
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			createSession, workflow := workflow.MustFindSubWorkflow[*IntentCreateSession](w)
+			createSession, workflow := workflow.MustFindSubWorkflow[*IntentCreateSession](workflows.Nearest)
 			session := createSession.GetSession(workflow)
 			if session == nil {
 				return nil
@@ -134,7 +134,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			return nil
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			authenticators, err := i.getVerifiedAuthenticators(w)
+			authenticators, err := i.getVerifiedAuthenticators(workflows.Nearest)
 			if err != nil {
 				return err
 			}
@@ -147,7 +147,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 	}, nil
 }
 
-func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

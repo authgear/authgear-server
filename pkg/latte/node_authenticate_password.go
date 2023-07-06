@@ -23,17 +23,17 @@ func (n *NodeAuthenticatePassword) Kind() string {
 	return "latte.NodeAuthenticatePassword"
 }
 
-func (n *NodeAuthenticatePassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeAuthenticatePassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (n *NodeAuthenticatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakePassword{},
 	}, nil
 }
 
-func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakePassword inputTakePassword
 	switch {
 	case workflow.AsInput(input, &inputTakePassword):
@@ -65,7 +65,7 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeAuthenticatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeAuthenticatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }
 

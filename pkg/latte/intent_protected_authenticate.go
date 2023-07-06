@@ -28,15 +28,15 @@ func (*IntentProtectedAuthenticate) JSONSchema() *validation.SimpleSchema {
 	return IntentProtectedAuthenticateSchema
 }
 
-func (*IntentProtectedAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentProtectedAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (*IntentProtectedAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentProtectedAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		intent := &IntentAuthenticate{}
 		intent.IsCaptchaProtected = true
 		return workflow.NewSubWorkflow(intent), nil
@@ -45,10 +45,10 @@ func (*IntentProtectedAuthenticate) ReactTo(ctx context.Context, deps *workflow.
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentProtectedAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentProtectedAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentProtectedAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentProtectedAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

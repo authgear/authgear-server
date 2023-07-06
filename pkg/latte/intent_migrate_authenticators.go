@@ -29,20 +29,20 @@ func (*IntentMigrateAuthenticators) JSONSchema() *validation.SimpleSchema {
 	return IntentMigrateAuthenticatorsSchema
 }
 
-func (i *IntentMigrateAuthenticators) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (i *IntentMigrateAuthenticators) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// Create sub-workflows to migrate authenticators
-	if len(w.Nodes) < len(i.MigrateSpecs) {
+	if len(workflows.Nearest.Nodes) < len(i.MigrateSpecs) {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentMigrateAuthenticators) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	if len(w.Nodes) >= len(i.MigrateSpecs) {
+func (i *IntentMigrateAuthenticators) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	if len(workflows.Nearest.Nodes) >= len(i.MigrateSpecs) {
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	idx := len(w.Nodes)
+	idx := len(workflows.Nearest.Nodes)
 	spec := i.MigrateSpecs[idx]
 	if spec.Type != model.AuthenticatorTypeOOBEmail && spec.Type != model.AuthenticatorTypeOOBSMS {
 		panic(fmt.Sprintf("workflow: unsupported authenticator type for account migrations: %T", spec.Type))
@@ -55,11 +55,11 @@ func (i *IntentMigrateAuthenticators) ReactTo(ctx context.Context, deps *workflo
 	}), nil
 }
 
-func (*IntentMigrateAuthenticators) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentMigrateAuthenticators) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentMigrateAuthenticators) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentMigrateAuthenticators) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
