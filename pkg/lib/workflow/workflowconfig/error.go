@@ -9,3 +9,4 @@ var ErrStepNotFound = apierrors.NotFound.WithReason("WorkflowConfigStepNotFound"
 
 var InvalidIdentificationMethod = apierrors.BadRequest.WithReason("WorkflowConfigInvalidIdentificationMethod")
 var InvalidVerifyTarget = apierrors.InternalError.WithReason("WorkflowConfigInvalidVerifyTarget")
+var InvalidOOBOTPChannel = apierrors.BadRequest.WithReason("WorkflowConfigInvalidOOBOTPChannel")
