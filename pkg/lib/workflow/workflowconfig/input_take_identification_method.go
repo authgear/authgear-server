@@ -7,10 +7,10 @@ import (
 )
 
 func init() {
-	workflow.RegisterPublicInput(&InputIdentify{})
+	workflow.RegisterPublicInput(&InputTakeIdentificationMethod{})
 }
 
-var InputIdentifySchema = validation.NewSimpleSchema(`
+var InputTakeIdentificationMethodSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -31,24 +31,24 @@ var InputIdentifySchema = validation.NewSimpleSchema(`
 }
 `)
 
-type InputIdentify struct {
+type InputTakeIdentificationMethod struct {
 	Identification config.WorkflowIdentificationMethod `json:"identification,omitempty"`
 }
 
-func (*InputIdentify) Kind() string {
-	return "workflowconfig.InputIdentify"
+func (*InputTakeIdentificationMethod) Kind() string {
+	return "workflowconfig.InputTakeIdentificationMethod"
 }
 
-func (*InputIdentify) JSONSchema() *validation.SimpleSchema {
-	return InputIdentifySchema
+func (*InputTakeIdentificationMethod) JSONSchema() *validation.SimpleSchema {
+	return InputTakeIdentificationMethodSchema
 }
 
-func (i *InputIdentify) GetIdentificationMethod() config.WorkflowIdentificationMethod {
+func (i *InputTakeIdentificationMethod) GetIdentificationMethod() config.WorkflowIdentificationMethod {
 	return i.Identification
 }
 
-type inputIdentify interface {
+type inputTakeIdentificationMethod interface {
 	GetIdentificationMethod() config.WorkflowIdentificationMethod
 }
 
-var _ inputIdentify = &InputIdentify{}
+var _ inputTakeIdentificationMethod = &InputTakeIdentificationMethod{}
