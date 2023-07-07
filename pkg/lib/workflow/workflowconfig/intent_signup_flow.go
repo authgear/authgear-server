@@ -41,32 +41,32 @@ func (*IntentSignupFlow) JSONSchema() *validation.SimpleSchema {
 	return IntentSignupSchema
 }
 
-func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// The list of nodes looks like
 	// 1 NodeDoCreateUser
 	// 1 IntentSignupFlowSteps
 	// 1 IntentCreateSession
 	// So at the end of the flow, it will have 3 nodes.
-	if len(w.Nodes) == 3 {
+	if len(workflows.Nearest.Nodes) == 3 {
 		return nil, workflow.ErrEOF
 	}
 
 	return nil, nil
 }
 
-func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	switch {
-	case len(w.Nodes) == 0:
+	case len(workflows.Nearest.Nodes) == 0:
 		return workflow.NewNodeSimple(&NodeDoCreateUser{
 			UserID: uuid.New(),
 		}), nil
-	case len(w.Nodes) == 1:
+	case len(workflows.Nearest.Nodes) == 1:
 		return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
 			SignupFlow:  i.SignupFlow,
 			JSONPointer: i.JSONPointer,
-			UserID:      i.userID(w),
+			UserID:      i.userID(workflows.Nearest),
 		}), nil
-	case len(w.Nodes) == 2:
+	case len(workflows.Nearest.Nodes) == 2:
 		// FIXME(workflow): create session
 		break
 	}
@@ -74,12 +74,12 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependenc
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	// FIXME(workflow): perform signup effects.
 	return nil, nil
 }
 
-func (*IntentSignupFlow) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentSignupFlow) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

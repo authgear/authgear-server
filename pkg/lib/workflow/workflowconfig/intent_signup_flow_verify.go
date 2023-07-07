@@ -50,16 +50,16 @@ func (*IntentSignupFlowVerify) JSONSchema() *validation.SimpleSchema {
 	return IntentSignupFlowVerifySchema
 }
 
-func (*IntentSignupFlowVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*IntentSignupFlowVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// Look up the claim to verify
-	if len(w.Nodes) == 0 {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, w)
+func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	current, err := i.current(deps, workflows.Nearest)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,8 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 	step := i.step(current)
 	targetStepID := step.TargetStep
 
-	targetStepWorkflow, err := FindTargetStep(w, targetStepID)
+	// FIXME(workflow): FindTargetStep from the root.
+	targetStepWorkflow, err := FindTargetStep(workflows.Nearest, targetStepID)
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +122,11 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 	}), nil
 }
 
-func (*IntentSignupFlowVerify) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlowVerify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentSignupFlowVerify) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentSignupFlowVerify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
