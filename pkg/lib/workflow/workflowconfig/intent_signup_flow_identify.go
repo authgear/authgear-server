@@ -61,7 +61,7 @@ func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.
 	// Let the input to select which identification method to use.
 	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
-			&InputIdentify{},
+			&InputTakeIdentificationMethod{},
 		}, nil
 	}
 
@@ -88,9 +88,9 @@ func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.D
 	step := i.step(current)
 
 	if len(workflows.Nearest.Nodes) == 0 {
-		var inputIdentify inputIdentify
-		if workflow.AsInput(input, &inputIdentify) {
-			identification := inputIdentify.GetIdentificationMethod()
+		var inputTakeIdentificationMethod inputTakeIdentificationMethod
+		if workflow.AsInput(input, &inputTakeIdentificationMethod) {
+			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
 			err = i.checkIdentificationMethod(step, identification)
 			if err != nil {
 				return nil, err
