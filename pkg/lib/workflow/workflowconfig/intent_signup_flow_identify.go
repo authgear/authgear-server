@@ -57,15 +57,15 @@ func (*IntentSignupFlowIdentify) JSONSchema() *validation.SimpleSchema {
 	return IntentSignupFlowIdentifySchema
 }
 
-func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// Let the input to select which identification method to use.
-	if len(w.Nodes) == 0 {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputIdentify{},
 		}, nil
 	}
 
-	lastNode := w.Nodes[len(w.Nodes)-1]
+	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
 	if lastNode.Type == workflow.NodeTypeSimple {
 		switch lastNode.Simple.(type) {
 		case *NodeDoCreateIdentity:
@@ -80,14 +80,14 @@ func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, w)
+func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	current, err := i.current(deps, workflows.Nearest)
 	if err != nil {
 		return nil, err
 	}
 	step := i.step(current)
 
-	if len(w.Nodes) == 0 {
+	if len(workflows.Nearest.Nodes) == 0 {
 		var inputIdentify inputIdentify
 		if workflow.AsInput(input, &inputIdentify) {
 			identification := inputIdentify.GetIdentificationMethod()
@@ -117,16 +117,16 @@ func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.D
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	lastNode := w.Nodes[len(w.Nodes)-1]
+	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
 	if lastNode.Type == workflow.NodeTypeSimple {
 		switch lastNode.Simple.(type) {
 		case *NodeDoCreateIdentity:
-			iden := i.identityInfo(w)
+			iden := i.identityInfo(workflows.Nearest)
 			return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
 				Identity: iden,
 			}), nil
 		case *NodePopulateStandardAttributes:
-			identification := i.identificationMethod(w)
+			identification := i.identificationMethod(workflows.Nearest)
 			return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
 				SignupFlow:  i.SignupFlow,
 				JSONPointer: i.jsonPointer(step, identification),
@@ -138,11 +138,11 @@ func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlowIdentify) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlowIdentify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentSignupFlowIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentSignupFlowIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

@@ -31,28 +31,28 @@ func (*IntentSignupFlowSteps) JSONSchema() *validation.SimpleSchema {
 	return IntentSignupFlowStepsSchema
 }
 
-func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	current, err := i.current(deps, w)
+func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	current, err := i.current(deps, workflows.Nearest)
 	if err != nil {
 		return nil, err
 	}
 
 	steps := i.steps(current)
-	if len(w.Nodes) < len(steps) {
+	if len(workflows.Nearest.Nodes) < len(steps) {
 		return nil, nil
 	}
 
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, w)
+func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	current, err := i.current(deps, workflows.Nearest)
 	if err != nil {
 		return nil, err
 	}
 
 	steps := i.steps(current)
-	nextStepIndex := len(w.Nodes)
+	nextStepIndex := len(workflows.Nearest.Nodes)
 	step := steps[nextStepIndex].(*config.WorkflowSignupFlowStep)
 
 	switch step.Type {
@@ -79,11 +79,11 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlowSteps) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlowSteps) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentSignupFlowSteps) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentSignupFlowSteps) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
