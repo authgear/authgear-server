@@ -67,8 +67,8 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 	step := i.step(current)
 	targetStepID := step.TargetStep
 
-	// FIXME(workflow): FindTargetStep from the root.
-	targetStepWorkflow, err := FindTargetStep(workflows.Nearest, targetStepID)
+	// Find the target step from the root.
+	targetStepWorkflow, err := FindTargetStep(workflows.Root, targetStepID)
 	if err != nil {
 		return nil, err
 	}
