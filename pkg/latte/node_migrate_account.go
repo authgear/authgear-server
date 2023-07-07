@@ -34,5 +34,11 @@ func (*NodeMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Dependenc
 }
 
 func (n *NodeMigrateAccount) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return nil, nil
+	type NodeMigrateAccountOutput struct {
+		IdentityMigrateSpecs []*identity.MigrateSpec `json:"identity_migrate_specs"`
+	}
+
+	return &NodeMigrateAccountOutput{
+		IdentityMigrateSpecs: n.IdentityMigrateSpecs,
+	}, nil
 }
