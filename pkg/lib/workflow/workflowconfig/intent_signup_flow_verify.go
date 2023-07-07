@@ -115,7 +115,7 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 	}
 
 	claimValue := claims[claimName]
-	return workflow.NewNodeSimple(&NodeVerifyClaim{
+	return workflow.NewNodeSimple(&NodeVerifyClaimSelectChannel{
 		UserID:     i.UserID,
 		ClaimName:  claimName,
 		ClaimValue: claimValue,
