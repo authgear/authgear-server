@@ -17,12 +17,12 @@ func init() {
 	workflow.RegisterNode(&NodeVerifyPhoneSMS{})
 }
 
+var nodeVerifyPhoneSMSForm = otp.FormCode
+
 type NodeVerifyPhoneSMS struct {
 	UserID      string `json:"user_id"`
 	IdentityID  string `json:"identity_id"`
 	PhoneNumber string `json:"phone_number"`
-
-	CodeLength int `json:"code_length"`
 }
 
 func (n *NodeVerifyPhoneSMS) Kind() string {
@@ -94,7 +94,7 @@ func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Depe
 
 	return NodeVerifyPhoneNumberOutput{
 		MaskedPhoneNumber:              phone.Mask(target),
-		CodeLength:                     n.CodeLength,
+		CodeLength:                     nodeVerifyPhoneSMSForm.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
@@ -115,7 +115,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, otp.FormCode, otp.MessageTypeVerification)
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, nodeVerifyPhoneSMSForm, otp.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
 		n.PhoneNumber,
-		otp.FormCode,
+		nodeVerifyPhoneSMSForm,
 		&otp.GenerateOptions{
 			UserID:     n.UserID,
 			WorkflowID: workflow.GetWorkflowID(ctx),
@@ -133,7 +133,6 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 	if err != nil {
 		return err
 	}
-	n.CodeLength = len(code)
 
 	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {
