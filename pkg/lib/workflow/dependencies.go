@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -126,10 +125,6 @@ type AccountMigrationService interface {
 	Run(migrationTokenString string) (*accountmigration.HookResponse, error)
 }
 
-type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
-}
-
 type CaptchaService interface {
 	VerifyToken(token string) error
 }
@@ -141,18 +136,17 @@ type Dependencies struct {
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
 
-	Users                    UserService
-	Identities               IdentityService
-	Authenticators           AuthenticatorService
-	StdAttrsService          StdAttrsService
-	OTPCodes                 OTPCodeService
-	OTPSender                OTPSender
-	Verification             VerificationService
-	ForgotPassword           ForgotPasswordService
-	ResetPassword            ResetPasswordService
-	AccountMigrations        AccountMigrationService
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
-	Captcha                  CaptchaService
+	Users             UserService
+	Identities        IdentityService
+	Authenticators    AuthenticatorService
+	StdAttrsService   StdAttrsService
+	OTPCodes          OTPCodeService
+	OTPSender         OTPSender
+	Verification      VerificationService
+	ForgotPassword    ForgotPasswordService
+	ResetPassword     ResetPasswordService
+	AccountMigrations AccountMigrationService
+	Captcha           CaptchaService
 
 	IDPSessions         IDPSessionService
 	Sessions            SessionService

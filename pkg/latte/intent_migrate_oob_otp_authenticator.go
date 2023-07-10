@@ -3,7 +3,6 @@ package latte
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -41,28 +40,6 @@ func (i *IntentMigrateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *wo
 	spec := i.MigrateSpec.GetSpec()
 	spec.UserID = i.UserID
 	spec.IsDefault = i.AuthenticatorIsDefault
-
-	// Normalize the target.
-	switch spec.Type {
-	case model.AuthenticatorTypeOOBEmail:
-		email := spec.OOBOTP.Email
-		var err error
-		email, err = deps.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(email)
-		if err != nil {
-			return nil, err
-		}
-		spec.OOBOTP.Email = email
-	case model.AuthenticatorTypeOOBSMS:
-		phone := spec.OOBOTP.Phone
-		var err error
-		phone, err = deps.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(phone)
-		if err != nil {
-			return nil, err
-		}
-		spec.OOBOTP.Phone = phone
-	default:
-		panic("workflow: creating OOB authenticator for invalid channel")
-	}
 
 	authenticatorID := uuid.New()
 	info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)

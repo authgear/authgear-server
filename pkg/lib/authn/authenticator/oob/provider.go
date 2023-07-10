@@ -6,14 +6,20 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type LoginIDNormalizerFactory interface {
+	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
+}
+
 type Provider struct {
-	Store *Store
-	Clock clock.Clock
+	Store                    *Store
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                    clock.Clock
 }
 
 func (p *Provider) Get(userID string, id string) (*authenticator.OOBOTP, error) {
@@ -50,29 +56,44 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 		Kind:                 kind,
 	}
 
-	// Validate the target.
-	validationCtx := &validation.Context{}
+	// Validate and normalize the target.
 	switch oobAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
+		validationCtx := &validation.Context{}
 		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
 		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
 		}
+		err = validationCtx.Error("invalid target")
+		if err != nil {
+			return nil, err
+		}
+
+		target, err = p.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
+		if err != nil {
+			return nil, err
+		}
 
 		a.Email = target
 	case model.AuthenticatorTypeOOBSMS:
+		validationCtx := &validation.Context{}
 		err := validation.FormatPhone{}.CheckFormat(target)
 		if err != nil {
 			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+		}
+		err = validationCtx.Error("invalid target")
+		if err != nil {
+			return nil, err
+		}
+
+		target, err = p.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(target)
+		if err != nil {
+			return nil, err
 		}
 
 		a.Phone = target
 	default:
 		panic(fmt.Errorf("authenticator: unexpected OOBOTP authenticator type: %v", oobAuthenticatorType))
-	}
-	err := validationCtx.Error("invalid target")
-	if err != nil {
-		return nil, err
 	}
 
 	return a, nil

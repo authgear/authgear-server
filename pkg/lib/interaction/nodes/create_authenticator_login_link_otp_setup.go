@@ -80,13 +80,6 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 			Type:      model.AuthenticatorTypeOOBEmail,
 			OOBOTP:    &authenticator.OOBOTPSpec{},
 		}
-
-		// Normalize the target.
-		var err error
-		target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	spec.OOBOTP.Email = target
@@ -95,6 +88,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 	if err != nil {
 		return nil, err
 	}
+	target = info.OOBOTP.ToTarget()
 
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
