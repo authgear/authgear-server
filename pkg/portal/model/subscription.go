@@ -4,7 +4,38 @@ import (
 	"fmt"
 	"math"
 	"time"
+
+	"github.com/stripe/stripe-go/v72"
 )
+
+type SubscriptionItemType string
+
+const (
+	SubscriptionItemTypePlan                 SubscriptionItemType = "plan"
+	SubscriptionItemTypeSMSNorthAmerica      SubscriptionItemType = "sms-north-america"
+	SubscriptionItemTypeSMSOtherRegion       SubscriptionItemType = "sms-other-region"
+	SubscriptionItemTypeWhatsappNorthAmerica SubscriptionItemType = "whatsapp-north-america"
+	SubscriptionItemTypeWhatsappOtherRegion  SubscriptionItemType = "whatsapp-other-region"
+	SubscriptionItemTypeMAU                  SubscriptionItemType = "mau"
+)
+
+func (t SubscriptionItemType) Valid() error {
+	switch t {
+	case SubscriptionItemTypePlan:
+		return nil
+	case SubscriptionItemTypeSMSNorthAmerica:
+		return nil
+	case SubscriptionItemTypeSMSOtherRegion:
+		return nil
+	case SubscriptionItemTypeWhatsappNorthAmerica:
+		return nil
+	case SubscriptionItemTypeWhatsappOtherRegion:
+		return nil
+	case SubscriptionItemTypeMAU:
+		return nil
+	}
+	return fmt.Errorf("unknown subscription_item_type: %#v", t)
+}
 
 type SubscriptionCheckoutStatus string
 
@@ -179,6 +210,7 @@ type Price struct {
 	FreeQuantity              *int                   `json:"freeQuantity,omitempty"`
 	TransformQuantityDivideBy *int                   `json:"transformQuantityDivideBy,omitempty"`
 	TransformQuantityRound    TransformQuantityRound `json:"transformQuantityRound,omitempty"`
+	StripeProduct             *stripe.Product        `json:"stripeProduct"`
 }
 
 func (p *Price) ShouldClearUsage() bool {

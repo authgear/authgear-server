@@ -10,13 +10,14 @@ import (
 )
 
 const (
-	MetadataKeyAppID          = "app_id"
-	MetadataKeyPlanName       = "plan_name"
-	MetadataKeyPriceType      = "price_type"
-	MetadataKeyUsageType      = "usage_type"
-	MetadatakeySMSRegion      = "sms_region"
-	MetadatakeyWhatsappRegion = "whatsapp_region"
-	MetadataKeyFreeQuantity   = "free_quantity"
+	MetadataKeyAppID                = "app_id"
+	MetadataKeyPlanName             = "plan_name"
+	MetadataKeyPriceType            = "price_type"
+	MetadataKeyUsageType            = "usage_type"
+	MetadatakeySMSRegion            = "sms_region"
+	MetadatakeyWhatsappRegion       = "whatsapp_region"
+	MetadataKeyFreeQuantity         = "free_quantity"
+	MetadataKeySubscriptionItemType = "subscription_item_type"
 )
 
 func NewPriceFromProductOfProductList(stripeProduct *stripe.Product) (price *model.Price, err error) {
@@ -44,6 +45,8 @@ func newPrice(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *
 		StripePriceID:   stripePrice.ID,
 		Type:            priceType,
 		Currency:        string(stripePrice.Currency),
+
+		StripeProduct: stripeProduct,
 	}
 
 	if len(stripePrice.Tiers) > 0 {
