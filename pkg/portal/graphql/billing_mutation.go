@@ -286,17 +286,11 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
 			}
 
-			err = ctx.StripeService.UpdateSubscription(
+			// This only set pending updates to the subscription
+			// We update the db records in webhook
+			err = ctx.StripeService.UpdateSubscriptionWhenPaid(
 				subscription.StripeSubscriptionID,
 				plan,
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			err = ctx.SubscriptionService.UpdateAppPlan(
-				appID,
-				planName,
 			)
 			if err != nil {
 				return nil, err

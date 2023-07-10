@@ -23,7 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/redisutil"
-	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
@@ -519,7 +519,7 @@ func (s *Service) GenerateCustomerPortalSession(appID string, customerID string)
 	return s.ClientAPI.BillingPortalSessions.New(params)
 }
 
-func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (err error) {
+func (s *Service) UpdateSubscriptionWhenPaid(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (err error) {
 	getParams := &stripe.SubscriptionParams{
 		Params: stripe.Params{
 			Context: s.Context,
@@ -545,7 +545,9 @@ func (s *Service) UpdateSubscription(stripeSubscriptionID string, subscriptionPl
 			// Update metadata
 			Metadata: sub.Metadata,
 		},
-		Items: itemsParams,
+		Items:             itemsParams,
+		PaymentBehavior:   stripe.String(string(stripe.SubscriptionPaymentBehaviorPendingIfIncomplete)),
+		ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorAlwaysInvoice)),
 	}
 
 	_, err = s.ClientAPI.Subscriptions.Update(stripeSubscriptionID, updateParams)
@@ -595,43 +597,42 @@ func (s *Service) PreviewUpdateSubscription(stripeSubscriptionID string, subscri
 }
 
 func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscriptionPlan *model.SubscriptionPlan) (out []*stripe.SubscriptionItemsParams, err error) {
-	oldPrices, err := stripeSubscriptionToPrices(sub)
 	if err != nil {
 		return
 	}
 	newPrices := subscriptionPlan.Prices
 
-	f := func(p *model.Price) string {
-		return p.StripePriceID
-	}
-	oldPriceSet := setutil.NewSetFromSlice(oldPrices, f)
-	newPriceSet := setutil.NewSetFromSlice(newPrices, f)
-
-	pricesToBeRemoved := setutil.SetToSlice(
-		oldPrices,
-		oldPriceSet.Subtract(newPriceSet),
-		f,
-	)
-	pricesToBeAdded := setutil.SetToSlice(
-		newPrices,
-		newPriceSet.Subtract(oldPriceSet),
-		f,
-	)
-
-	for _, priceToBeRemoved := range pricesToBeRemoved {
-		for _, item := range sub.Items.Data {
-			if item.Price.ID == priceToBeRemoved.StripePriceID {
-				out = append(out, &stripe.SubscriptionItemsParams{
-					ID:         stripe.String(item.ID),
-					Deleted:    stripe.Bool(true),
-					ClearUsage: stripe.Bool(priceToBeRemoved.ShouldClearUsage()),
-				})
-			}
+	// Update old items by matching subscription_item_type in metadata of product
+	// Create new items if no old items exist
+	// We don't support removing existing subscription item
+	for _, newPrice := range newPrices {
+		itemType := model.SubscriptionItemType(newPrice.StripeProduct.Metadata[MetadataKeySubscriptionItemType])
+		err := itemType.Valid()
+		if err != nil {
+			continue
 		}
-	}
-	for _, priceToBeAdded := range pricesToBeAdded {
+		oldItemIdx := slice.FindIndex(sub.Items.Data, func(oldItem *stripe.SubscriptionItem) bool {
+			oldItemType := model.SubscriptionItemType(oldItem.Price.Product.Metadata[MetadataKeySubscriptionItemType])
+			err := oldItemType.Valid()
+			if err != nil {
+				return false
+			}
+			return oldItemType == itemType
+		})
+
+		if oldItemIdx == -1 {
+			// No updatable old item, create a new item
+			out = append(out, &stripe.SubscriptionItemsParams{
+				Price: &newPrice.StripePriceID,
+			})
+			continue
+		}
+
+		// Update old item to new price
+		oldItem := sub.Items.Data[oldItemIdx]
 		out = append(out, &stripe.SubscriptionItemsParams{
-			Price: stripe.String(priceToBeAdded.StripePriceID),
+			ID:    stripe.String(oldItem.ID),
+			Price: &newPrice.StripePriceID,
 		})
 	}
 

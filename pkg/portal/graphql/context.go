@@ -110,7 +110,7 @@ type StripeService interface {
 	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
 	GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error)
 	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
-	UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
+	UpdateSubscriptionWhenPaid(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
 	PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
 	SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error)
 	GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error)
