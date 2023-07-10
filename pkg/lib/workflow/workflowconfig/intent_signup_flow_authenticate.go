@@ -77,7 +77,7 @@ func (*IntentSignupFlowAuthenticate) CanReactTo(ctx context.Context, deps *workf
 }
 
 func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, workflows.Nearest)
+	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -87,17 +87,15 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-			err = i.checkAuthenticationMethod(step, authentication)
+			var idx int
+			idx, err = i.checkAuthenticationMethod(step, authentication)
 			if err != nil {
 				return nil, err
 			}
 
 			switch authentication {
 			case config.WorkflowAuthenticationMethodPrimaryPassword:
-				return workflow.NewNodeSimple(&NodeCreatePassword{
-					UserID:         i.UserID,
-					Authentication: authentication,
-				}), nil
+				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryPassword:
 				return workflow.NewNodeSimple(&NodeCreatePassword{
 					UserID:         i.UserID,
@@ -106,13 +104,18 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 			case config.WorkflowAuthenticationMethodPrimaryPasskey:
 				// FIXME(workflow): create primary passkey
 			case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
-				// FIXME(workflow): create primary oob_otp_email
+				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
-				// FIXME(workflow): create secondary oob_otp_email
+				fallthrough
 			case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
-				// FIXME(workflow): create primary oob_otp_sms
+				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
-				// FIXME(workflow): create secondary oob_otp_sms:
+				return workflow.NewNodeSimple(&NodeCreateOOBOTPAuthenticator{
+					SignupFlow:     i.SignupFlow,
+					JSONPointer:    JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
 				// FIXME(workflow): create secondary totp
 			}
@@ -144,7 +147,7 @@ func (*IntentSignupFlowAuthenticate) OutputData(ctx context.Context, deps *workf
 	return nil, nil
 }
 
-func (i *IntentSignupFlowAuthenticate) current(deps *workflow.Dependencies, w *workflow.Workflow) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowAuthenticate) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err
@@ -172,24 +175,27 @@ func (*IntentSignupFlowAuthenticate) step(o config.WorkflowObject) *config.Workf
 	return step
 }
 
-func (*IntentSignupFlowAuthenticate) checkAuthenticationMethod(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) error {
+func (*IntentSignupFlowAuthenticate) checkAuthenticationMethod(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+	idx = -1
 	var allAllowed []config.WorkflowAuthenticationMethod
 
-	for _, branch := range step.OneOf {
+	for i, branch := range step.OneOf {
 		branch := branch
 		allAllowed = append(allAllowed, branch.Authentication)
-	}
-
-	for _, allowed := range allAllowed {
-		if am == allowed {
-			return nil
+		if am == branch.Authentication {
+			idx = i
 		}
 	}
 
-	return InvalidAuthenticationMethod.NewWithInfo("invalid authentication method", apierrors.Details{
+	if idx >= 0 {
+		return
+	}
+
+	err = InvalidAuthenticationMethod.NewWithInfo("invalid authentication method", apierrors.Details{
 		"expected": allAllowed,
 		"actual":   am,
 	})
+	return
 }
 
 func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
@@ -199,6 +205,8 @@ func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) 
 
 	switch n := w.Nodes[0].Simple.(type) {
 	case *NodeCreatePassword:
+		return n.Authentication
+	case *NodeCreateOOBOTPAuthenticator:
 		return n.Authentication
 	default:
 		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))

@@ -47,6 +47,12 @@ func (*IntentSignupFlowIdentify) GetVerifiableClaims(w *workflow.Workflow) (map[
 	return n.Identity.IdentityAwareStandardClaims(), nil
 }
 
+var _ IntentSignupFlowAuthenticateTarget = &IntentSignupFlowIdentify{}
+
+func (n *IntentSignupFlowIdentify) GetOOBOTPClaims(w *workflow.Workflow) (map[model.ClaimName]string, error) {
+	return n.GetVerifiableClaims(w)
+}
+
 var _ workflow.Intent = &IntentSignupFlowIdentify{}
 
 func (*IntentSignupFlowIdentify) Kind() string {
@@ -81,7 +87,7 @@ func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.
 }
 
 func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, workflows.Nearest)
+	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +152,7 @@ func (*IntentSignupFlowIdentify) OutputData(ctx context.Context, deps *workflow.
 	return nil, nil
 }
 
-func (i *IntentSignupFlowIdentify) current(deps *workflow.Dependencies, w *workflow.Workflow) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowIdentify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err

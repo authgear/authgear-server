@@ -59,7 +59,7 @@ func (*IntentSignupFlowVerify) CanReactTo(ctx context.Context, deps *workflow.De
 }
 
 func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, workflows.Nearest)
+	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 
 	target, ok := targetStepWorkflow.Intent.(IntentSignupFlowVerifyTarget)
 	if !ok {
-		return nil, InvalidVerifyTarget.NewWithInfo("invalid target_step", apierrors.Details{
+		return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
 			"target_step": targetStepID,
 		})
 	}
@@ -97,7 +97,7 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 
 	if len(claimNames) > 1 {
 		// TODO(workflow): support verify more than 1 claim?
-		return nil, InvalidVerifyTarget.NewWithInfo("target_step contains more than one claim to verify", apierrors.Details{
+		return nil, InvalidTargetStep.NewWithInfo("target_step contains more than one claim to verify", apierrors.Details{
 			"claims": claimNames,
 		})
 	}
@@ -109,7 +109,7 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 	case model.ClaimPhoneNumber:
 		break
 	default:
-		return nil, InvalidVerifyTarget.NewWithInfo("target_step contains a claim that cannot be verified", apierrors.Details{
+		return nil, InvalidTargetStep.NewWithInfo("target_step contains a claim that cannot be verified", apierrors.Details{
 			"claim_name": claimName,
 		})
 	}
@@ -130,7 +130,7 @@ func (*IntentSignupFlowVerify) OutputData(ctx context.Context, deps *workflow.De
 	return nil, nil
 }
 
-func (i *IntentSignupFlowVerify) current(deps *workflow.Dependencies, w *workflow.Workflow) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowVerify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err
