@@ -32,7 +32,7 @@ func (*IntentSignupFlowSteps) JSONSchema() *validation.SimpleSchema {
 }
 
 func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	current, err := i.current(deps, workflows.Nearest)
+	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.D
 }
 
 func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps, workflows.Nearest)
+	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (*IntentSignupFlowSteps) OutputData(ctx context.Context, deps *workflow.Dep
 	return nil, nil
 }
 
-func (i *IntentSignupFlowSteps) current(deps *workflow.Dependencies, w *workflow.Workflow) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowSteps) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err
