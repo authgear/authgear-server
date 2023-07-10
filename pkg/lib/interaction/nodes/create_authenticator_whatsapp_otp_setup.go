@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
@@ -57,13 +56,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		phone = input.GetWhatsappPhone()
 	}
 
-	err := validation.FormatPhone{}.CheckFormat(phone)
-	if err != nil {
-		validationCtx := &validation.Context{}
-		validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
-		return nil, validationCtx.Error("invalid target")
-	}
-	phone, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).
+	phone, err := ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).
 		Normalize(phone)
 	if err != nil {
 		return nil, err
