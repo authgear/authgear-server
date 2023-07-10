@@ -2,6 +2,7 @@ package graphql
 
 import (
 	"errors"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -284,6 +285,12 @@ var _ = registerMutationField(
 			// Changing to the same plan is disallowed.
 			if app.Context.PlanName == planName {
 				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
+			}
+
+			now := time.Now()
+			err = ctx.SubscriptionService.SetSubscriptionPendingUpdateSince(subscription.ID, &now)
+			if err != nil {
+				return nil, err
 			}
 
 			// This only set pending updates to the subscription

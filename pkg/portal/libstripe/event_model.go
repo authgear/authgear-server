@@ -36,6 +36,7 @@ type CustomerSubscriptionEvent struct {
 	AppID                    string
 	PlanName                 string
 	StripeSubscriptionStatus stripe.SubscriptionStatus
+	IsPendingUpdate          bool
 }
 
 func (e *CustomerSubscriptionEvent) IsSubscriptionIncompleteExpired() bool {

@@ -1042,6 +1042,7 @@ const SubscriptionProcessingPaymentScreen: React.VFC<SubscriptionProcessingPayme
     );
   };
 
+// eslint-disable-next-line complexity
 const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   const now = useConst(new Date());
   const thisMonth = useMemo(() => {
@@ -1066,10 +1067,13 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     },
   });
 
+  const app =
+    (subscriptionScreenQuery.data?.node as AppFragmentFragment | null) ?? null;
+
   const isProcessingSubscription =
     !!subscriptionScreenQuery.data &&
-    (subscriptionScreenQuery.data.node as AppFragmentFragment)
-      .isProcessingSubscription;
+    (app?.isProcessingSubscription === true ||
+      app?.subscription?.pendingUpdateSince != null);
 
   const lastStripeError = useMemo(() => {
     return (

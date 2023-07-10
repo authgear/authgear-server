@@ -42,6 +42,7 @@ fragment AppFragment on App {
     updatedAt
     cancelledAt
     endedAt
+    pendingUpdateSince
   }
 }
 

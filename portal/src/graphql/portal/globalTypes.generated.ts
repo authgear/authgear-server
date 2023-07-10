@@ -682,6 +682,7 @@ export type Subscription = {
   createdAt: Scalars['DateTime'];
   endedAt?: Maybe<Scalars['DateTime']>;
   id: Scalars['String'];
+  pendingUpdateSince?: Maybe<Scalars['DateTime']>;
   updatedAt: Scalars['DateTime'];
 };
 
