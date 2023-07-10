@@ -3,8 +3,10 @@ package workflowconfig
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
@@ -29,6 +31,20 @@ func MakeLoginIDSpec(i config.WorkflowIdentificationMethod, loginID string) (*id
 		return nil, InvalidIdentificationMethod.New("unexpected identification method")
 	}
 	return spec, nil
+}
+
+func authenticatorIsDefault(deps *workflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
+	ais, err := deps.Authenticators.List(
+		userID,
+		authenticator.KeepKind(authenticatorKind),
+		authenticator.KeepDefault,
+	)
+	if err != nil {
+		return
+	}
+
+	isDefault = len(ais) == 0
+	return
 }
 
 func findSignupFlow(c *config.WorkflowConfig, id string) (config.WorkflowObject, error) {
