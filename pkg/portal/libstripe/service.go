@@ -253,8 +253,7 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		Params: stripe.Params{
 			Context: s.Context,
 			Metadata: map[string]string{
-				MetadataKeyAppID:    appID,
-				MetadataKeyPlanName: planName,
+				MetadataKeyAppID: appID,
 			},
 		},
 		Customer:           customerID,
@@ -451,10 +450,6 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 			return nil, ErrUnknownEvent
 		}
 
-		subscriptionStatus, ok := object["status"].(string)
-		if !ok {
-			return nil, ErrUnknownEvent
-		}
 		customerID, ok := object["customer"].(string)
 		if !ok {
 			return nil, ErrUnknownEvent
@@ -467,9 +462,9 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 		if !ok {
 			return nil, ErrUnknownEvent
 		}
-		planName, ok := metadata[MetadataKeyPlanName].(string)
-		if !ok {
-			return nil, ErrUnknownEvent
+		sub, err := s.getSubscriptionByID(subscriptionID)
+		if err != nil {
+			return nil, err
 		}
 		if stripeEvent.Type == string(EventTypeCustomerSubscriptionCreated) {
 			return &CustomerSubscriptionCreatedEvent{
@@ -477,8 +472,8 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					StripeSubscriptionID:     subscriptionID,
 					StripeCustomerID:         customerID,
 					AppID:                    appID,
-					PlanName:                 planName,
-					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+					StripeSubscriptionStatus: sub.Status,
+					PlanName:                 s.deriveSubscriptionPlanName(sub),
 				},
 			}, nil
 		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionUpdated) {
@@ -487,8 +482,8 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					StripeSubscriptionID:     subscriptionID,
 					StripeCustomerID:         customerID,
 					AppID:                    appID,
-					PlanName:                 planName,
-					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+					StripeSubscriptionStatus: sub.Status,
+					PlanName:                 s.deriveSubscriptionPlanName(sub),
 				},
 			}, nil
 		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
@@ -497,8 +492,8 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					StripeSubscriptionID:     subscriptionID,
 					StripeCustomerID:         customerID,
 					AppID:                    appID,
-					PlanName:                 planName,
-					StripeSubscriptionStatus: stripe.SubscriptionStatus(subscriptionStatus),
+					StripeSubscriptionStatus: sub.Status,
+					PlanName:                 s.deriveSubscriptionPlanName(sub),
 				},
 			}, nil
 		}
@@ -520,19 +515,10 @@ func (s *Service) GenerateCustomerPortalSession(appID string, customerID string)
 }
 
 func (s *Service) UpdateSubscriptionWhenPaid(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (err error) {
-	getParams := &stripe.SubscriptionParams{
-		Params: stripe.Params{
-			Context: s.Context,
-			Expand:  []*string{stripe.String("items.data.price.product")},
-		},
-	}
-	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	sub, err := s.getSubscriptionByID(stripeSubscriptionID)
 	if err != nil {
 		return
 	}
-
-	// Update the plan name in metadata
-	sub.Metadata[MetadataKeyPlanName] = subscriptionPlan.Name
 
 	itemsParams, err := s.deriveSubscriptionItemsParams(sub, subscriptionPlan)
 	if err != nil {
@@ -542,8 +528,6 @@ func (s *Service) UpdateSubscriptionWhenPaid(stripeSubscriptionID string, subscr
 	updateParams := &stripe.SubscriptionParams{
 		Params: stripe.Params{
 			Context: s.Context,
-			// Update metadata
-			Metadata: sub.Metadata,
 		},
 		Items:             itemsParams,
 		PaymentBehavior:   stripe.String(string(stripe.SubscriptionPaymentBehaviorPendingIfIncomplete)),
@@ -559,13 +543,7 @@ func (s *Service) UpdateSubscriptionWhenPaid(stripeSubscriptionID string, subscr
 }
 
 func (s *Service) PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (preview *model.SubscriptionUpdatePreview, err error) {
-	getParams := &stripe.SubscriptionParams{
-		Params: stripe.Params{
-			Context: s.Context,
-			Expand:  []*string{stripe.String("items.data.price.product")},
-		},
-	}
-	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	sub, err := s.getSubscriptionByID(stripeSubscriptionID)
 	if err != nil {
 		return
 	}
@@ -639,6 +617,21 @@ func (s *Service) deriveSubscriptionItemsParams(sub *stripe.Subscription, subscr
 	return
 }
 
+func (s *Service) deriveSubscriptionPlanName(sub *stripe.Subscription) string {
+	for _, item := range sub.Items.Data {
+		itemType := model.SubscriptionItemType(item.Price.Product.Metadata[MetadataKeySubscriptionItemType])
+		err := itemType.Valid()
+		if err != nil || itemType != model.SubscriptionItemTypePlan {
+			continue
+		}
+		planName, ok := item.Price.Product.Metadata[MetadataKeyPlanName]
+		if ok && planName != "" {
+			return planName
+		}
+	}
+	return ""
+}
+
 func (s *Service) GetSubscription(stripeCustomerID string) (*stripe.Subscription, error) {
 	subscriptionListParams := &stripe.SubscriptionListParams{
 		ListParams: stripe.ListParams{
@@ -687,6 +680,17 @@ func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, e
 	}
 
 	return paymentIntent.LastPaymentError, nil
+}
+
+func (s *Service) getSubscriptionByID(stripeSubscriptionID string) (*stripe.Subscription, error) {
+	getParams := &stripe.SubscriptionParams{
+		Params: stripe.Params{
+			Context: s.Context,
+			Expand:  []*string{stripe.String("items.data.price.product")},
+		},
+	}
+	sub, err := s.ClientAPI.Subscriptions.Get(stripeSubscriptionID, getParams)
+	return sub, err
 }
 
 // CancelSubscriptionImmediately removes the subscription immediately
