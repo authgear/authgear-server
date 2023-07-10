@@ -2,6 +2,7 @@ package transport
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -202,6 +203,9 @@ func (h *StripeWebhookHandler) handleIncompleteExpiredSubscriptionEvent(event *l
 }
 
 func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(event *libstripe.CustomerSubscriptionEvent) error {
+	if event.PlanName == "" {
+		return fmt.Errorf("invalid plan name")
+	}
 	err := h.Database.WithTx(func() error {
 		// Mark checkout session as subscribed
 		err := h.Subscriptions.MarkCheckoutSubscribed(
