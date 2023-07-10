@@ -387,8 +387,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
