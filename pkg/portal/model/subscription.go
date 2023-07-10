@@ -65,6 +65,7 @@ type Subscription struct {
 	UpdatedAt            time.Time  `json:"updatedAt"`
 	CancelledAt          *time.Time `json:"cancelledAt"`
 	EndedAt              *time.Time `json:"endedAt"`
+	PendingUpdateSince   *time.Time `json:"pendingUpdateSince"`
 }
 
 type SubscriptionCheckout struct {

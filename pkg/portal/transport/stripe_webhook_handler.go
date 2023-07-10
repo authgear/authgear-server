@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
@@ -39,6 +40,7 @@ type SubscriptionService interface {
 	ArchiveSubscription(sub *model.Subscription) error
 	UpdateAppPlan(appID string, planName string) error
 	UpdateAppPlanToDefault(appID string) error
+	SetSubscriptionPendingUpdateSince(id string, pendingUpdateSince *time.Time) error
 }
 
 type StripeWebhookHandler struct {
@@ -226,9 +228,17 @@ func (h *StripeWebhookHandler) handleActiveSubscriptionEvent(event *libstripe.Cu
 		}
 
 		// Upsert _portal_subscription
-		_, err = h.Subscriptions.UpsertSubscription(event.AppID, event.StripeSubscriptionID, event.StripeCustomerID)
+		sub, err := h.Subscriptions.UpsertSubscription(event.AppID, event.StripeSubscriptionID, event.StripeCustomerID)
 		if err != nil {
 			return err
+		}
+
+		// If it is not pending update, clear the stored timestamp
+		if !event.IsPendingUpdate {
+			err = h.Subscriptions.SetSubscriptionPendingUpdateSince(sub.ID, nil)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Update app plan

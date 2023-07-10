@@ -130,6 +130,7 @@ type SubscriptionService interface {
 	) (*model.SubscriptionUsage, error)
 	UpdateAppPlan(appID string, planName string) error
 	SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error
+	SetSubscriptionPendingUpdateSince(id string, pendingUpdateSince *time.Time) error
 	GetLastProcessingCustomerID(appID string) (*string, error)
 	MarkCheckoutExpired(appID string, customerID string) error
 }

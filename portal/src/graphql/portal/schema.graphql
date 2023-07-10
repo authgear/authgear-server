@@ -808,6 +808,9 @@ type Subscription {
   id: String!
 
   """"""
+  pendingUpdateSince: DateTime
+
+  """"""
   updatedAt: DateTime!
 }
 

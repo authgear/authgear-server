@@ -102,6 +102,7 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		"updated_at",
 		"cancelled_at",
 		"ended_at",
+		"pending_update_since",
 	).
 		From(s.SQLBuilder.TableName("_portal_subscription")).
 		Where("app_id = ?", appID)
@@ -124,6 +125,7 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 		&subscription.UpdatedAt,
 		&subscription.CancelledAt,
 		&subscription.EndedAt,
+		&subscription.PendingUpdateSince,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrSubscriptionNotFound
@@ -259,6 +261,29 @@ func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelle
 
 	if rowsAffected == 0 {
 		return ErrSubscriptionCheckoutNotFound
+	}
+
+	return nil
+}
+
+func (s *SubscriptionService) SetSubscriptionPendingUpdateSince(id string, pendingUpdateSince *time.Time) error {
+	q := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_portal_subscription")).
+		Set("pending_update_since", pendingUpdateSince).
+		Where("id = ?", id)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionNotFound
 	}
 
 	return nil

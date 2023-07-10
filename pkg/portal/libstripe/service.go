@@ -466,6 +466,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 		if err != nil {
 			return nil, err
 		}
+		isPendingUpdate := sub.PendingUpdate != nil
 		if stripeEvent.Type == string(EventTypeCustomerSubscriptionCreated) {
 			return &CustomerSubscriptionCreatedEvent{
 				&CustomerSubscriptionEvent{
@@ -474,6 +475,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					AppID:                    appID,
 					StripeSubscriptionStatus: sub.Status,
 					PlanName:                 s.deriveSubscriptionPlanName(sub),
+					IsPendingUpdate:          isPendingUpdate,
 				},
 			}, nil
 		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionUpdated) {
@@ -484,6 +486,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					AppID:                    appID,
 					StripeSubscriptionStatus: sub.Status,
 					PlanName:                 s.deriveSubscriptionPlanName(sub),
+					IsPendingUpdate:          isPendingUpdate,
 				},
 			}, nil
 		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
@@ -494,6 +497,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					AppID:                    appID,
 					StripeSubscriptionStatus: sub.Status,
 					PlanName:                 s.deriveSubscriptionPlanName(sub),
+					IsPendingUpdate:          isPendingUpdate,
 				},
 			}, nil
 		}

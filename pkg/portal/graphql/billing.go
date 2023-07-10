@@ -140,11 +140,12 @@ var subscriptionUsage = graphql.NewObject(graphql.ObjectConfig{
 var subscription = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Subscription",
 	Fields: graphql.Fields{
-		"id":          &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-		"createdAt":   &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},
-		"updatedAt":   &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},
-		"cancelledAt": &graphql.Field{Type: graphql.DateTime},
-		"endedAt":     &graphql.Field{Type: graphql.DateTime},
+		"id":                 &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
+		"createdAt":          &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},
+		"updatedAt":          &graphql.Field{Type: graphql.NewNonNull(graphql.DateTime)},
+		"cancelledAt":        &graphql.Field{Type: graphql.DateTime},
+		"endedAt":            &graphql.Field{Type: graphql.DateTime},
+		"pendingUpdateSince": &graphql.Field{Type: graphql.DateTime},
 	},
 })
 
