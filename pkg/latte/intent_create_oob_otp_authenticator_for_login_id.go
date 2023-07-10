@@ -47,25 +47,6 @@ func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context,
 		return nil, err
 	}
 
-	// Validate target against channel
-	validationCtx := &validation.Context{}
-	switch channel {
-	case model.AuthenticatorOOBChannelEmail:
-		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
-		}
-	case model.AuthenticatorOOBChannelSMS:
-		err := validation.FormatPhone{}.CheckFormat(target)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
-		}
-	}
-	err = validationCtx.Error("invalid target")
-	if err != nil {
-		return nil, err
-	}
-
 	spec := &authenticator.Spec{
 		Type:      authenticatorType,
 		UserID:    i.Identity.UserID,

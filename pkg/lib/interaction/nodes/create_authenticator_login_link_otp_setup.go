@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
@@ -54,18 +53,6 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 			return nil, interaction.ErrIncompatibleInput
 		}
 		target = input.GetLoginLinkOTPTarget()
-	}
-
-	// Validate target against channel
-	validationCtx := &validation.Context{}
-	err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
-	if err != nil {
-		validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
-	}
-
-	err = validationCtx.Error("invalid target")
-	if err != nil {
-		return nil, err
 	}
 
 	var spec *authenticator.Spec

@@ -42,27 +42,6 @@ func (i *IntentMigrateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *wo
 	spec.UserID = i.UserID
 	spec.IsDefault = i.AuthenticatorIsDefault
 
-	// Validate the target.
-	validationCtx := &validation.Context{}
-	switch spec.Type {
-	case model.AuthenticatorTypeOOBEmail:
-		err := validation.FormatEmail{AllowName: false}.CheckFormat(spec.OOBOTP.Email)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
-		}
-	case model.AuthenticatorTypeOOBSMS:
-		err := validation.FormatPhone{}.CheckFormat(spec.OOBOTP.Phone)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
-		}
-	default:
-		panic("workflow: creating OOB authenticator for invalid channel")
-	}
-	err := validationCtx.Error("invalid target")
-	if err != nil {
-		return nil, err
-	}
-
 	// Normalize the target.
 	switch spec.Type {
 	case model.AuthenticatorTypeOOBEmail:

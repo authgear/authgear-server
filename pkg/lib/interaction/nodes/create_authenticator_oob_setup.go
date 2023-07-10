@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
@@ -73,26 +72,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			return nil, interaction.ErrIncompatibleInput
 		}
 		target = input.GetOOBTarget()
-	}
-
-	// Validate target against channel
-	validationCtx := &validation.Context{}
-	switch channel {
-	case model.AuthenticatorOOBChannelEmail:
-		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
-		}
-	case model.AuthenticatorOOBChannelSMS:
-		err := validation.FormatPhone{}.CheckFormat(target)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
-		}
-	}
-
-	err := validationCtx.Error("invalid target")
-	if err != nil {
-		return nil, err
 	}
 
 	var spec *authenticator.Spec

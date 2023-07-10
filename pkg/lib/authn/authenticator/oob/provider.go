@@ -1,12 +1,14 @@
 package oob
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type Provider struct {
@@ -36,7 +38,7 @@ func (p *Provider) List(userID string) ([]*authenticator.OOBOTP, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *authenticator.OOBOTP {
+func (p *Provider) New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error) {
 	if id == "" {
 		id = uuid.New()
 	}
@@ -48,15 +50,32 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 		Kind:                 kind,
 	}
 
+	// Validate the target.
+	validationCtx := &validation.Context{}
 	switch oobAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
+		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
+		if err != nil {
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+		}
+
 		a.Email = target
 	case model.AuthenticatorTypeOOBSMS:
+		err := validation.FormatPhone{}.CheckFormat(target)
+		if err != nil {
+			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+		}
+
 		a.Phone = target
 	default:
-		panic("oob: incompatible authenticator type:" + oobAuthenticatorType)
+		panic(fmt.Errorf("authenticator: unexpected OOBOTP authenticator type: %v", oobAuthenticatorType))
 	}
-	return a
+	err := validationCtx.Error("invalid target")
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
 }
 
 // WithSpec return new authenticator pointer if target is changed
