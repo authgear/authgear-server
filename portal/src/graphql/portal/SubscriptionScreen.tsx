@@ -1114,7 +1114,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     );
   }
 
-  if (isProcessingSubscription) {
+  if (isProcessingSubscription || lastStripeError != null) {
     return (
       <SubscriptionProcessingPaymentScreen stripeError={lastStripeError} />
     );

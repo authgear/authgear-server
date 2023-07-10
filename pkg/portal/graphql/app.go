@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -339,20 +340,33 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					appID := p.Source.(*model.App).ID
-					customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
-					if err != nil {
-						return nil, err
-					}
-					if customerID == nil {
-						return nil, err
-					}
+					var customerID *string = nil
 
-					stripeError, err := ctx.StripeService.GetLastPaymentError(*customerID)
-					if err != nil {
-						return nil, err
+					subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+					if subscription != nil && err == nil {
+						customerID = &subscription.StripeCustomerID
+					} else if err != nil {
+						if errors.Is(err, service.ErrSubscriptionNotFound) {
+							customerID, err = ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
+							if err != nil {
+								return nil, err
+							}
+						} else {
+							return nil, err
+						}
 					}
+					if customerID != nil {
+						stripeError, err := ctx.StripeService.GetLastPaymentError(*customerID)
+						if err != nil {
+							if errors.Is(err, libstripe.ErrNoPaymentIntent) {
+								return nil, nil
+							}
+							return nil, err
+						}
 
-					return stripeError, nil
+						return stripeError, nil
+					}
+					return nil, nil
 				},
 			},
 			"domains": &graphql.Field{
