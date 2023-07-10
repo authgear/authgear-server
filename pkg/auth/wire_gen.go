@@ -379,8 +379,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -891,8 +892,9 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -1486,8 +1488,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -1879,7 +1882,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -2283,8 +2285,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -2755,8 +2758,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -3128,8 +3132,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -3566,8 +3571,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -4109,8 +4115,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -4502,7 +4509,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -4949,8 +4955,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -5385,7 +5392,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -5734,8 +5740,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -6170,7 +6177,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -6624,8 +6630,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -7057,7 +7064,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -7454,8 +7460,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -7887,7 +7894,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -8283,8 +8289,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -8716,7 +8723,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -9100,8 +9106,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -9533,7 +9540,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -9910,8 +9916,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -10343,7 +10350,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -10710,8 +10716,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -11143,7 +11150,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -11513,8 +11519,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -11946,7 +11953,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -12319,8 +12325,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -12752,7 +12759,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -13127,8 +13133,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -13560,7 +13567,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -13933,8 +13939,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -14366,7 +14373,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -14735,8 +14741,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -15168,7 +15175,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -15541,8 +15547,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -15974,7 +15981,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -16348,8 +16354,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -16781,7 +16788,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -17154,8 +17160,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -17587,7 +17594,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -17960,8 +17966,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -18393,7 +18400,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -18768,8 +18774,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -19201,7 +19208,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -19574,8 +19580,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -20007,7 +20014,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -20380,8 +20386,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -20813,7 +20820,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -21190,8 +21196,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -21623,7 +21630,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -21996,8 +22002,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -22429,7 +22436,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -22806,8 +22812,9 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -23239,7 +23246,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -23640,8 +23646,9 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -24045,7 +24052,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -24454,8 +24460,9 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	rateLimits := service2.RateLimits{
 		IP:          remoteIP,
@@ -24859,7 +24866,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -25243,8 +25249,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -25676,7 +25683,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -26049,8 +26055,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -26482,7 +26489,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -26851,8 +26857,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -27284,7 +27291,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -27657,8 +27663,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -28090,7 +28097,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -28459,8 +28465,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -28892,7 +28899,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -29271,8 +29277,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -29704,7 +29711,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -30073,8 +30079,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -30506,7 +30513,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -30877,8 +30883,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -31310,7 +31317,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -31679,8 +31685,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -32112,7 +32119,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -32513,8 +32519,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -32946,7 +32953,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -33326,8 +33332,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -33759,7 +33766,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -34152,8 +34158,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -34585,7 +34592,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -34962,8 +34968,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -35395,7 +35402,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -35765,8 +35771,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -36198,7 +36205,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -36576,8 +36582,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -37009,7 +37016,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -37379,8 +37385,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -37812,7 +37819,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -38182,8 +38188,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -38615,7 +38622,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -38985,8 +38991,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -39418,7 +39425,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -39789,8 +39795,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -40222,7 +40229,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -40611,8 +40617,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -41044,7 +41051,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -41414,8 +41420,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -41847,7 +41854,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -42217,8 +42223,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -42650,7 +42657,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -43020,8 +43026,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -43453,7 +43460,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -43823,8 +43829,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -44256,7 +44263,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -44633,8 +44639,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -45066,7 +45073,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -45437,8 +45443,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -45870,7 +45877,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -46239,8 +46245,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -46672,7 +46679,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -47056,8 +47062,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -47489,7 +47496,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -47858,8 +47864,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -48291,7 +48298,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -48660,8 +48666,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -49093,7 +49100,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -49480,8 +49486,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -49913,7 +49920,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -50248,8 +50254,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -50681,7 +50688,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -51015,8 +51021,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -51448,7 +51455,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -51827,8 +51833,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -52260,7 +52267,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -52630,8 +52636,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -53063,7 +53070,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -53414,8 +53420,9 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -53845,30 +53852,29 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:                   appConfig,
-		FeatureConfig:            featureConfig,
-		Clock:                    clockClock,
-		RemoteIP:                 remoteIP,
-		Users:                    userProvider,
-		Identities:               identityFacade,
-		Authenticators:           authenticatorFacade,
-		StdAttrsService:          stdattrsService,
-		OTPCodes:                 otpService,
-		OTPSender:                messageSender,
-		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordService,
-		ResetPassword:            forgotpasswordService,
-		AccountMigrations:        accountmigrationService,
-		LoginIDNormalizerFactory: normalizerFactory,
-		Captcha:                  captchaProvider,
-		IDPSessions:              idpsessionProvider,
-		Sessions:                 manager2,
-		AuthenticationInfos:      authenticationinfoStoreRedis,
-		SessionCookie:            cookieDef,
-		Cookies:                  cookieManager,
-		Events:                   eventService,
-		RateLimiter:              limiter,
-		WorkflowEvents:           eventStoreImpl,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OTPSender:           messageSender,
+		Verification:        workflowVerificationFacade,
+		ForgotPassword:      forgotpasswordService,
+		ResetPassword:       forgotpasswordService,
+		AccountMigrations:   accountmigrationService,
+		Captcha:             captchaProvider,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
+		WorkflowEvents:      eventStoreImpl,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -54173,8 +54179,9 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -54606,30 +54613,29 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:                   appConfig,
-		FeatureConfig:            featureConfig,
-		Clock:                    clockClock,
-		RemoteIP:                 remoteIP,
-		Users:                    userProvider,
-		Identities:               identityFacade,
-		Authenticators:           authenticatorFacade,
-		StdAttrsService:          stdattrsService,
-		OTPCodes:                 otpService,
-		OTPSender:                messageSender,
-		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordService,
-		ResetPassword:            forgotpasswordService,
-		AccountMigrations:        accountmigrationService,
-		LoginIDNormalizerFactory: normalizerFactory,
-		Captcha:                  captchaProvider,
-		IDPSessions:              idpsessionProvider,
-		Sessions:                 manager2,
-		AuthenticationInfos:      authenticationinfoStoreRedis,
-		SessionCookie:            cookieDef,
-		Cookies:                  cookieManager,
-		Events:                   eventService,
-		RateLimiter:              limiter,
-		WorkflowEvents:           eventStoreImpl,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OTPSender:           messageSender,
+		Verification:        workflowVerificationFacade,
+		ForgotPassword:      forgotpasswordService,
+		ResetPassword:       forgotpasswordService,
+		AccountMigrations:   accountmigrationService,
+		Captcha:             captchaProvider,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
+		WorkflowEvents:      eventStoreImpl,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -54905,8 +54911,9 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -55338,30 +55345,29 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:                   appConfig,
-		FeatureConfig:            featureConfig,
-		Clock:                    clockClock,
-		RemoteIP:                 remoteIP,
-		Users:                    userProvider,
-		Identities:               identityFacade,
-		Authenticators:           authenticatorFacade,
-		StdAttrsService:          stdattrsService,
-		OTPCodes:                 otpService,
-		OTPSender:                messageSender,
-		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordService,
-		ResetPassword:            forgotpasswordService,
-		AccountMigrations:        accountmigrationService,
-		LoginIDNormalizerFactory: normalizerFactory,
-		Captcha:                  captchaProvider,
-		IDPSessions:              idpsessionProvider,
-		Sessions:                 manager2,
-		AuthenticationInfos:      authenticationinfoStoreRedis,
-		SessionCookie:            cookieDef,
-		Cookies:                  cookieManager,
-		Events:                   eventService,
-		RateLimiter:              limiter,
-		WorkflowEvents:           eventStoreImpl,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OTPSender:           messageSender,
+		Verification:        workflowVerificationFacade,
+		ForgotPassword:      forgotpasswordService,
+		ResetPassword:       forgotpasswordService,
+		AccountMigrations:   accountmigrationService,
+		Captcha:             captchaProvider,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
+		WorkflowEvents:      eventStoreImpl,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -55674,8 +55680,9 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -56105,30 +56112,29 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:                   appConfig,
-		FeatureConfig:            featureConfig,
-		Clock:                    clockClock,
-		RemoteIP:                 remoteIP,
-		Users:                    userProvider,
-		Identities:               identityFacade,
-		Authenticators:           authenticatorFacade,
-		StdAttrsService:          stdattrsService,
-		OTPCodes:                 otpService,
-		OTPSender:                messageSender,
-		Verification:             workflowVerificationFacade,
-		ForgotPassword:           forgotpasswordService,
-		ResetPassword:            forgotpasswordService,
-		AccountMigrations:        accountmigrationService,
-		LoginIDNormalizerFactory: normalizerFactory,
-		Captcha:                  captchaProvider,
-		IDPSessions:              idpsessionProvider,
-		Sessions:                 manager2,
-		AuthenticationInfos:      authenticationinfoStoreRedis,
-		SessionCookie:            cookieDef,
-		Cookies:                  cookieManager,
-		Events:                   eventService,
-		RateLimiter:              limiter,
-		WorkflowEvents:           eventStoreImpl,
+		Config:              appConfig,
+		FeatureConfig:       featureConfig,
+		Clock:               clockClock,
+		RemoteIP:            remoteIP,
+		Users:               userProvider,
+		Identities:          identityFacade,
+		Authenticators:      authenticatorFacade,
+		StdAttrsService:     stdattrsService,
+		OTPCodes:            otpService,
+		OTPSender:           messageSender,
+		Verification:        workflowVerificationFacade,
+		ForgotPassword:      forgotpasswordService,
+		ResetPassword:       forgotpasswordService,
+		AccountMigrations:   accountmigrationService,
+		Captcha:             captchaProvider,
+		IDPSessions:         idpsessionProvider,
+		Sessions:            manager2,
+		AuthenticationInfos: authenticationinfoStoreRedis,
+		SessionCookie:       cookieDef,
+		Cookies:             cookieManager,
+		Events:              eventService,
+		RateLimiter:         limiter,
+		WorkflowEvents:      eventStoreImpl,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -56868,8 +56874,9 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -57386,8 +57393,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -57819,7 +57827,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,
@@ -58237,8 +58244,9 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{

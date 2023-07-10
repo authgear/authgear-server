@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -152,10 +151,6 @@ type PasskeyService interface {
 	ConsumeAssertionResponse(assertionResponse []byte) (err error)
 }
 
-type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
-}
-
 type VerificationService interface {
 	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	GetAuthenticatorVerificationStatus(a *authenticator.Info) (verification.AuthenticatorStatus, error)
@@ -216,7 +211,6 @@ type Context struct {
 	ForgotPassword                  ForgotPasswordService
 	ResetPassword                   ResetPasswordService
 	Passkey                         PasskeyService
-	LoginIDNormalizerFactory        LoginIDNormalizerFactory
 	Verification                    VerificationService
 	RateLimiter                     RateLimiter
 

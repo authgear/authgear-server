@@ -56,12 +56,6 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		phone = input.GetWhatsappPhone()
 	}
 
-	phone, err := ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).
-		Normalize(phone)
-	if err != nil {
-		return nil, err
-	}
-
 	spec := &authenticator.Spec{
 		UserID:    userID,
 		IsDefault: e.IsDefault,
@@ -76,6 +70,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 	if err != nil {
 		return nil, err
 	}
+	phone = info.OOBOTP.ToTarget()
 
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {

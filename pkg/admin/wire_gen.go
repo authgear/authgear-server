@@ -404,8 +404,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobProvider := &oob.Provider{
-		Store: oobStore,
-		Clock: clockClock,
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -881,7 +882,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
-		LoginIDNormalizerFactory:        normalizerFactory,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
 		Nonces:                          nonceService,

@@ -123,21 +123,10 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			OOBOTP:    &authenticator.OOBOTPSpec{},
 		}
 
-		// Normalize the target.
 		switch channel {
 		case model.AuthenticatorOOBChannelEmail:
-			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
-			if err != nil {
-				return nil, err
-			}
 			oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
 		case model.AuthenticatorOOBChannelSMS:
-			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(target)
-			if err != nil {
-				return nil, err
-			}
 			oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
 		default:
 			panic("interaction: creating OOB authenticator for invalid channel")
@@ -156,6 +145,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	if err != nil {
 		return nil, err
 	}
+	target = info.OOBOTP.ToTarget()
 
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
