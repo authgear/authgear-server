@@ -138,7 +138,7 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 					Authentication: authentication,
 				}), nil
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
-				node, err := NewNodeCreateTOTPAuthenticator(deps, &NodeCreateTOTPAuthenticator{
+				node, err := NewNodeCreateAuthenticatorTOTP(deps, &NodeCreateAuthenticatorTOTP{
 					UserID:         i.UserID,
 					Authentication: authentication,
 				})
@@ -236,7 +236,7 @@ func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) 
 		return n.Authentication
 	case *NodeCreateOOBOTPAuthenticator:
 		return n.Authentication
-	case *NodeCreateTOTPAuthenticator:
+	case *NodeCreateAuthenticatorTOTP:
 		return n.Authentication
 	default:
 		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
