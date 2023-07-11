@@ -96,7 +96,7 @@ func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workf
 }
 
 func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	current, err := i.current(deps)
+	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -159,25 +159,6 @@ func (*IntentSignupFlowStepIdentify) GetEffects(ctx context.Context, deps *workf
 
 func (*IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
-}
-
-func (i *IntentSignupFlowStepIdentify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
-	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
-	if err != nil {
-		return nil, err
-	}
-
-	entries, err := Traverse(root, i.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
 }
 
 func (*IntentSignupFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {

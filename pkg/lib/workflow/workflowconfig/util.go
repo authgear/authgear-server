@@ -1,6 +1,8 @@
 package workflowconfig
 
 import (
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -24,14 +26,30 @@ func authenticatorIsDefault(deps *workflow.Dependencies, userID string, authenti
 	return
 }
 
-func findSignupFlow(c *config.WorkflowConfig, id string) (config.WorkflowObject, error) {
-	for _, f := range c.SignupFlows {
+func signupFlowCurrent(deps *workflow.Dependencies, id string, pointer jsonpointer.T) (config.WorkflowObject, error) {
+	var root config.WorkflowObject
+	for _, f := range deps.Config.Workflow.SignupFlows {
+		f := f
 		if f.ID == id {
-			f := f
-			return f, nil
+			root = f
+			break
 		}
 	}
-	return nil, ErrFlowNotFound
+	if root == nil {
+		return nil, ErrFlowNotFound
+	}
+
+	entries, err := Traverse(root, pointer)
+	if err != nil {
+		return nil, err
+	}
+
+	current, err := GetCurrentObject(entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return current, nil
 }
 
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {

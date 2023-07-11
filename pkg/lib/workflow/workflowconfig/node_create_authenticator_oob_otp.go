@@ -30,7 +30,7 @@ func (*NodeCreateAuthenticatorOOBOTP) Kind() string {
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	current, err := n.current(deps)
+	current, err := signupFlowCurrent(deps, n.SignupFlow, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *wo
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	current, err := n.current(deps)
+	current, err := signupFlowCurrent(deps, n.SignupFlow, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -115,25 +115,6 @@ func (*NodeCreateAuthenticatorOOBOTP) GetEffects(ctx context.Context, deps *work
 
 func (*NodeCreateAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
-}
-
-func (n *NodeCreateAuthenticatorOOBOTP) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
-	root, err := findSignupFlow(deps.Config.Workflow, n.SignupFlow)
-	if err != nil {
-		return nil, err
-	}
-
-	entries, err := Traverse(root, n.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.WorkflowSignupFlowOneOf {
