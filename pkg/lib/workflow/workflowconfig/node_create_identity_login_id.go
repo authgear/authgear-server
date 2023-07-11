@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -31,7 +32,7 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.
 	var inputTakeLoginID inputTakeLoginID
 	if workflow.AsInput(input, &inputTakeLoginID) {
 		loginID := inputTakeLoginID.GetLoginID()
-		spec, err := MakeLoginIDSpec(n.Identification, loginID)
+		spec, err := n.makeLoginIDSpec(loginID)
 		if err != nil {
 			return nil, err
 		}
@@ -67,4 +68,27 @@ func (*NodeCreateIdentityLoginID) GetEffects(ctx context.Context, deps *workflow
 
 func (n *NodeCreateIdentityLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
+}
+
+func (n *NodeCreateIdentityLoginID) makeLoginIDSpec(loginID string) (*identity.Spec, error) {
+	spec := &identity.Spec{
+		Type: model.IdentityTypeLoginID,
+		LoginID: &identity.LoginIDSpec{
+			Value: loginID,
+		},
+	}
+	switch n.Identification {
+	case config.WorkflowIdentificationMethodEmail:
+		spec.LoginID.Type = model.LoginIDKeyTypeEmail
+		spec.LoginID.Key = string(spec.LoginID.Type)
+	case config.WorkflowIdentificationMethodPhone:
+		spec.LoginID.Type = model.LoginIDKeyTypePhone
+		spec.LoginID.Key = string(spec.LoginID.Type)
+	case config.WorkflowIdentificationMethodUsername:
+		spec.LoginID.Type = model.LoginIDKeyTypeUsername
+		spec.LoginID.Key = string(spec.LoginID.Type)
+	default:
+		return nil, InvalidIdentificationMethod.New("unexpected identification method")
+	}
+	return spec, nil
 }
