@@ -118,7 +118,7 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 			case config.WorkflowAuthenticationMethodPrimaryPassword:
 				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryPassword:
-				return workflow.NewNodeSimple(&NodeCreatePassword{
+				return workflow.NewNodeSimple(&NodeCreateAuthenticatorPassword{
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
@@ -232,7 +232,7 @@ func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) 
 	}
 
 	switch n := w.Nodes[0].Simple.(type) {
-	case *NodeCreatePassword:
+	case *NodeCreateAuthenticatorPassword:
 		return n.Authentication
 	case *NodeCreateOOBOTPAuthenticator:
 		return n.Authentication
