@@ -110,7 +110,12 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 
 	if len(workflows.Nearest.Nodes) == 0 {
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
-		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
+		if workflow.AsInput(input, &inputTakeAuthenticationMethod) &&
+			// NodeCreateAuthenticatorOOBOTP sometimes does not take any input to proceed when it has target_step.
+			// In that case, if the next step is also type: authenticate, then the input will be incorrectly fed to the next step.
+			// To protect against this, we require the first input of each step to provide the json pointer to indicate the audience of the input.
+			inputTakeAuthenticationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
+
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 			var idx int
 			idx, err = i.checkAuthenticationMethod(step, authentication)
@@ -175,8 +180,10 @@ func (*IntentSignupFlowStepAuthenticate) GetEffects(ctx context.Context, deps *w
 	return nil, nil
 }
 
-func (*IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return nil, nil
+func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+	return map[string]interface{}{
+		"json_pointer": i.JSONPointer.String(),
+	}, nil
 }
 
 func (*IntentSignupFlowStepAuthenticate) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
