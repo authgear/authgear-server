@@ -14,16 +14,16 @@ import (
 )
 
 func init() {
-	workflow.RegisterNode(&NodeCreateTOTPAuthenticator{})
+	workflow.RegisterNode(&NodeCreateAuthenticatorTOTP{})
 }
 
-type NodeCreateTOTPAuthenticator struct {
+type NodeCreateAuthenticatorTOTP struct {
 	UserID         string                              `json:"user_id,omitempty"`
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 	Authenticator  *authenticator.Info                 `json:"authenticator,omitempty"`
 }
 
-func NewNodeCreateTOTPAuthenticator(deps *workflow.Dependencies, n *NodeCreateTOTPAuthenticator) (*NodeCreateTOTPAuthenticator, error) {
+func NewNodeCreateAuthenticatorTOTP(deps *workflow.Dependencies, n *NodeCreateAuthenticatorTOTP) (*NodeCreateAuthenticatorTOTP, error) {
 	authenticatorKind := n.authenticatorKind()
 
 	isDefault, err := authenticatorIsDefault(deps, n.UserID, authenticatorKind)
@@ -52,15 +52,15 @@ func NewNodeCreateTOTPAuthenticator(deps *workflow.Dependencies, n *NodeCreateTO
 	return n, nil
 }
 
-func (*NodeCreateTOTPAuthenticator) Kind() string {
-	return "workflowconfig.NodeCreateTOTPAuthenticator"
+func (*NodeCreateAuthenticatorTOTP) Kind() string {
+	return "workflowconfig.NodeCreateAuthenticatorTOTP"
 }
 
-func (*NodeCreateTOTPAuthenticator) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{&InputSetupTOTP{}}, nil
 }
 
-func (i *NodeCreateTOTPAuthenticator) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputSetupTOTP inputSetupTOTP
 	if workflow.AsInput(input, &inputSetupTOTP) {
 		_, err := deps.Authenticators.VerifyWithSpec(i.Authenticator, &authenticator.Spec{
@@ -84,18 +84,18 @@ func (i *NodeCreateTOTPAuthenticator) ReactTo(ctx context.Context, deps *workflo
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeCreateTOTPAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (*NodeCreateAuthenticatorTOTP) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (n *NodeCreateTOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	secret := n.Authenticator.TOTP.Secret
 	return map[string]interface{}{
 		"secret": secret,
 	}, nil
 }
 
-func (n *NodeCreateTOTPAuthenticator) authenticatorKind() model.AuthenticatorKind {
+func (n *NodeCreateAuthenticatorTOTP) authenticatorKind() model.AuthenticatorKind {
 	switch n.Authentication {
 	case config.WorkflowAuthenticationMethodSecondaryTOTP:
 		return model.AuthenticatorKindSecondary
