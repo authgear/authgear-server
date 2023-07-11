@@ -15,7 +15,7 @@ import (
 )
 
 type IntentSignupFlowAuthenticateTarget interface {
-	GetOOBOTPClaims(w *workflow.Workflow) (map[model.ClaimName]string, error)
+	GetOOBOTPClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error)
 }
 
 func init() {
@@ -71,7 +71,7 @@ func (n *NodeCreateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *workf
 			})
 		}
 
-		claims, err := target.GetOOBOTPClaims(targetStepWorkflow)
+		claims, err := target.GetOOBOTPClaims(ctx, deps, workflows.Replace(targetStepWorkflow))
 		if err != nil {
 			return nil, err
 		}

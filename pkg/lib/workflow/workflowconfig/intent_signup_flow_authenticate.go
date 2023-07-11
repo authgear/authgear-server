@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -38,12 +39,32 @@ func (i *IntentSignupFlowAuthenticate) GetJSONPointer() jsonpointer.T {
 
 var _ IntentSignupFlowVerifyTarget = &IntentSignupFlowAuthenticate{}
 
-func (*IntentSignupFlowAuthenticate) GetVerifiableClaims(w *workflow.Workflow) (map[model.ClaimName]string, error) {
-	n, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](w)
+func (*IntentSignupFlowAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
+	n, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](workflows.Nearest)
 	if !ok {
 		return nil, fmt.Errorf("NodeDoCreateAuthenticator cannot be found in IntentSignupFlowAuthenticate")
 	}
 	return n.Authenticator.StandardClaims(), nil
+}
+
+func (*IntentSignupFlowAuthenticate) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
+	return otp.PurposeOOBOTP
+}
+
+func (i *IntentSignupFlowAuthenticate) GetMessageType(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType {
+	authenticationMethod := i.authenticationMethod(workflows.Nearest)
+	switch authenticationMethod {
+	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+		return otp.MessageTypeSetupPrimaryOOB
+	case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+		return otp.MessageTypeSetupPrimaryOOB
+	case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+		return otp.MessageTypeSetupSecondaryOOB
+	case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+		return otp.MessageTypeSetupSecondaryOOB
+	default:
+		panic(fmt.Errorf("workflow: unexpected authentication method: %v", authenticationMethod))
+	}
 }
 
 var _ workflow.Intent = &IntentSignupFlowAuthenticate{}
