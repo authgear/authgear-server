@@ -117,7 +117,7 @@ func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.D
 			case config.WorkflowIdentificationMethodPhone:
 				fallthrough
 			case config.WorkflowIdentificationMethodUsername:
-				return workflow.NewNodeSimple(&NodeCreateLoginID{
+				return workflow.NewNodeSimple(&NodeCreateIdentityLoginID{
 					UserID:         i.UserID,
 					Identification: identification,
 				}), nil
@@ -215,7 +215,7 @@ func (*IntentSignupFlowIdentify) identificationMethod(w *workflow.Workflow) conf
 	}
 
 	switch n := w.Nodes[0].Simple.(type) {
-	case *NodeCreateLoginID:
+	case *NodeCreateIdentityLoginID:
 		return n.Identification
 	default:
 		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
