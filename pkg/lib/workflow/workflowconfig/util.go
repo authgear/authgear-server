@@ -10,29 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
-func MakeLoginIDSpec(i config.WorkflowIdentificationMethod, loginID string) (*identity.Spec, error) {
-	spec := &identity.Spec{
-		Type: model.IdentityTypeLoginID,
-		LoginID: &identity.LoginIDSpec{
-			Value: loginID,
-		},
-	}
-	switch i {
-	case config.WorkflowIdentificationMethodEmail:
-		spec.LoginID.Type = model.LoginIDKeyTypeEmail
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.WorkflowIdentificationMethodPhone:
-		spec.LoginID.Type = model.LoginIDKeyTypePhone
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	case config.WorkflowIdentificationMethodUsername:
-		spec.LoginID.Type = model.LoginIDKeyTypeUsername
-		spec.LoginID.Key = string(spec.LoginID.Type)
-	default:
-		return nil, InvalidIdentificationMethod.New("unexpected identification method")
-	}
-	return spec, nil
-}
-
 func authenticatorIsDefault(deps *workflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
 	ais, err := deps.Authenticators.List(
 		userID,
