@@ -18,6 +18,7 @@ value:
     user_profile:
     - pointer: /given_name
       required: true
+  - type: recovery_code
 
 ---
 part: WorkflowSignupFlow
@@ -35,7 +36,7 @@ error: |-
   /steps/2/user_profile/0/pointer: format
     map[error:0: expecting / but found: "g" format:json-pointer]
   /steps/3/type: enum
-    map[actual:foobar expected:[identify authenticate verify user_profile]]
+    map[actual:foobar expected:[identify authenticate verify user_profile recovery_code]]
 value:
   id: id
   steps:
