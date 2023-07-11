@@ -93,7 +93,8 @@ var _ = Schema.Add("WorkflowSignupFlowStep", `
 				"identify",
 				"authenticate",
 				"verify",
-				"user_profile"
+				"user_profile",
+				"recovery_code"
 			]
 		}
 	},
@@ -500,6 +501,7 @@ const (
 	WorkflowSignupFlowStepTypeAuthenticate WorkflowSignupFlowStepType = "authenticate"
 	WorkflowSignupFlowStepTypeVerify       WorkflowSignupFlowStepType = "verify"
 	WorkflowSignupFlowStepTypeUserProfile  WorkflowSignupFlowStepType = "user_profile"
+	WorkflowSignupFlowStepTypeRecoveryCode WorkflowSignupFlowStepType = "recovery_code"
 )
 
 type WorkflowSignupFlowStep struct {
