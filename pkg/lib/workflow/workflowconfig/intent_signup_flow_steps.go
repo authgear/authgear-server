@@ -71,7 +71,7 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depe
 			UserID:      i.UserID,
 		}), nil
 	case config.WorkflowSignupFlowStepTypeAuthenticate:
-		return workflow.NewSubWorkflow(&IntentSignupFlowAuthenticate{
+		return workflow.NewSubWorkflow(&IntentSignupFlowStepAuthenticate{
 			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
 			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
