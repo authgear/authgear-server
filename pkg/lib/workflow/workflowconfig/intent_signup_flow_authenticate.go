@@ -138,7 +138,14 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 					Authentication: authentication,
 				}), nil
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
-				// FIXME(workflow): create secondary totp
+				node, err := NewNodeCreateTOTPAuthenticator(deps, &NodeCreateTOTPAuthenticator{
+					UserID:         i.UserID,
+					Authentication: authentication,
+				})
+				if err != nil {
+					return nil, err
+				}
+				return workflow.NewNodeSimple(node), nil
 			}
 		}
 		return nil, workflow.ErrIncompatibleInput
@@ -228,6 +235,8 @@ func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) 
 	case *NodeCreatePassword:
 		return n.Authentication
 	case *NodeCreateOOBOTPAuthenticator:
+		return n.Authentication
+	case *NodeCreateTOTPAuthenticator:
 		return n.Authentication
 	default:
 		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
