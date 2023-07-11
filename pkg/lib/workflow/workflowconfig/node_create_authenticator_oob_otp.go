@@ -19,21 +19,21 @@ type IntentSignupFlowAuthenticateTarget interface {
 }
 
 func init() {
-	workflow.RegisterNode(&NodeCreateOOBOTPAuthenticator{})
+	workflow.RegisterNode(&NodeCreateAuthenticatorOOBOTP{})
 }
 
-type NodeCreateOOBOTPAuthenticator struct {
+type NodeCreateAuthenticatorOOBOTP struct {
 	SignupFlow     string                              `json:"signup_flow,omitempty"`
 	JSONPointer    jsonpointer.T                       `json:"json_pointer,omitempty"`
 	UserID         string                              `json:"user_id,omitempty"`
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-func (*NodeCreateOOBOTPAuthenticator) Kind() string {
-	return "workflowconfig.NodeCreateOOBOTPAuthenticator"
+func (*NodeCreateAuthenticatorOOBOTP) Kind() string {
+	return "workflowconfig.NodeCreateAuthenticatorOOBOTP"
 }
 
-func (n *NodeCreateOOBOTPAuthenticator) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	current, err := n.current(deps)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (n *NodeCreateOOBOTPAuthenticator) CanReactTo(ctx context.Context, deps *wo
 	return []workflow.Input{&InputTakeOOBOTPTarget{}}, nil
 }
 
-func (n *NodeCreateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	current, err := n.current(deps)
 	if err != nil {
 		return nil, err
@@ -113,15 +113,15 @@ func (n *NodeCreateOOBOTPAuthenticator) ReactTo(ctx context.Context, deps *workf
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeCreateOOBOTPAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (*NodeCreateAuthenticatorOOBOTP) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeCreateOOBOTPAuthenticator) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*NodeCreateAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateOOBOTPAuthenticator) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
+func (n *NodeCreateAuthenticatorOOBOTP) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, n.SignupFlow)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (n *NodeCreateOOBOTPAuthenticator) current(deps *workflow.Dependencies) (co
 	return current, nil
 }
 
-func (n *NodeCreateOOBOTPAuthenticator) oneOf(o config.WorkflowObject) *config.WorkflowSignupFlowOneOf {
+func (n *NodeCreateAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.WorkflowSignupFlowOneOf {
 	oneOf, ok := o.(*config.WorkflowSignupFlowOneOf)
 	if !ok {
 		panic(fmt.Errorf("workflow: workflow object is %T", o))
@@ -149,7 +149,7 @@ func (n *NodeCreateOOBOTPAuthenticator) oneOf(o config.WorkflowObject) *config.W
 	return oneOf
 }
 
-func (n *NodeCreateOOBOTPAuthenticator) newNode(deps *workflow.Dependencies, target string) (*workflow.Node, error) {
+func (n *NodeCreateAuthenticatorOOBOTP) newNode(deps *workflow.Dependencies, target string) (*workflow.Node, error) {
 	spec := &authenticator.Spec{
 		UserID: n.UserID,
 		OOBOTP: &authenticator.OOBOTPSpec{},
