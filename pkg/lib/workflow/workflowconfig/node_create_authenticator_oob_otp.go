@@ -14,10 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type IntentSignupFlowAuthenticateTarget interface {
-	GetOOBOTPClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error)
-}
-
 func init() {
 	workflow.RegisterNode(&NodeCreateAuthenticatorOOBOTP{})
 }
@@ -64,7 +60,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workf
 			return nil, err
 		}
 
-		target, ok := targetStepWorkflow.Intent.(IntentSignupFlowAuthenticateTarget)
+		target, ok := targetStepWorkflow.Intent.(IntentSignupFlowStepAuthenticateTarget)
 		if !ok {
 			return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
 				"target_step": targetStepID,
