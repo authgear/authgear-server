@@ -8,13 +8,16 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type IntentSignupFlowVerifyTarget interface {
-	GetVerifiableClaims(w *workflow.Workflow) (map[model.ClaimName]string, error)
+	GetVerifiableClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error)
+	GetPurpose(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) otp.Purpose
+	GetMessageType(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType
 }
 
 func init() {
@@ -80,7 +83,7 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 		})
 	}
 
-	claims, err := target.GetVerifiableClaims(targetStepWorkflow)
+	claims, err := target.GetVerifiableClaims(ctx, deps, workflows.Replace(targetStepWorkflow))
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +117,15 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 		})
 	}
 
+	purpose := target.GetPurpose(ctx, deps, workflows.Replace(targetStepWorkflow))
+	messageType := target.GetMessageType(ctx, deps, workflows.Replace(targetStepWorkflow))
 	claimValue := claims[claimName]
 	return workflow.NewNodeSimple(&NodeVerifyClaimSelectChannel{
-		UserID:     i.UserID,
-		ClaimName:  claimName,
-		ClaimValue: claimValue,
+		UserID:      i.UserID,
+		Purpose:     purpose,
+		MessageType: messageType,
+		ClaimName:   claimName,
+		ClaimValue:  claimValue,
 	}), nil
 }
 

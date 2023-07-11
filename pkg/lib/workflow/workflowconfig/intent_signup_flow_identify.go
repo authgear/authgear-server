@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -39,18 +40,26 @@ func (i *IntentSignupFlowIdentify) GetJSONPointer() jsonpointer.T {
 
 var _ IntentSignupFlowVerifyTarget = &IntentSignupFlowIdentify{}
 
-func (*IntentSignupFlowIdentify) GetVerifiableClaims(w *workflow.Workflow) (map[model.ClaimName]string, error) {
-	n, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
+func (*IntentSignupFlowIdentify) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
+	n, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](workflows.Nearest)
 	if !ok {
 		return nil, fmt.Errorf("NodeDoCreateIdentity cannot be found in IntentSignupFlowIdentify")
 	}
 	return n.Identity.IdentityAwareStandardClaims(), nil
 }
 
+func (*IntentSignupFlowIdentify) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
+	return otp.PurposeVerification
+}
+
+func (*IntentSignupFlowIdentify) GetMessageType(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.MessageType {
+	return otp.MessageTypeVerification
+}
+
 var _ IntentSignupFlowAuthenticateTarget = &IntentSignupFlowIdentify{}
 
-func (n *IntentSignupFlowIdentify) GetOOBOTPClaims(w *workflow.Workflow) (map[model.ClaimName]string, error) {
-	return n.GetVerifiableClaims(w)
+func (n *IntentSignupFlowIdentify) GetOOBOTPClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
+	return n.GetVerifiableClaims(ctx, deps, workflows)
 }
 
 var _ workflow.Intent = &IntentSignupFlowIdentify{}

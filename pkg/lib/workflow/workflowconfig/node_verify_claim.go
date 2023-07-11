@@ -19,10 +19,12 @@ func init() {
 }
 
 type NodeVerifyClaim struct {
-	UserID     string                        `json:"user_id,omitempty"`
-	ClaimName  model.ClaimName               `json:"claim_name,omitempty"`
-	ClaimValue string                        `json:"claim_value,omitempty"`
-	Channel    model.AuthenticatorOOBChannel `json:"channel,omitempty"`
+	UserID      string                        `json:"user_id,omitempty"`
+	Purpose     otp.Purpose                   `json:"purpose,omitempty"`
+	MessageType otp.MessageType               `json:"message_type,omitempty"`
+	ClaimName   model.ClaimName               `json:"claim_name,omitempty"`
+	ClaimValue  string                        `json:"claim_value,omitempty"`
+	Channel     model.AuthenticatorOOBChannel `json:"channel,omitempty"`
 }
 
 func (n *NodeVerifyClaim) Kind() string {
@@ -102,7 +104,14 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *workflow.Depende
 }
 
 func (n *NodeVerifyClaim) otpKind(deps *workflow.Dependencies) otp.Kind {
-	return otp.KindVerification(deps.Config, n.Channel)
+	switch n.Purpose {
+	case otp.PurposeVerification:
+		return otp.KindVerification(deps.Config, n.Channel)
+	case otp.PurposeOOBOTP:
+		return otp.KindOOBOTP(deps.Config, n.Channel)
+	default:
+		panic(fmt.Errorf("workflow: unexpected otp purpose: %v", n.Purpose))
+	}
 }
 
 func (n *NodeVerifyClaim) otpForm() otp.Form {
@@ -125,13 +134,13 @@ func (n *NodeVerifyClaim) maskedOTPTarget() string {
 }
 
 func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *workflow.Dependencies) error {
-	// here is a bit trick.
-	// Normally we should use otp.MessageTypeVerification to send a verification message.
+	// Here is a bit tricky.
+	// Normally we should use the given message type to send a message.
 	// However, if the channel is whatsapp, we use the specialized otp.MessageTypeWhatsappCode.
 	// It is because otp.MessageTypeWhatsappCode will send a Whatsapp authentication message.
 	// which is optimized for delivering a authentication code to the end-user.
 	// See https://developers.facebook.com/docs/whatsapp/business-management-api/authentication-templates/
-	typ := otp.MessageTypeVerification
+	typ := n.MessageType
 	if n.Channel == model.AuthenticatorOOBChannelWhatsapp {
 		typ = otp.MessageTypeWhatsappCode
 	}

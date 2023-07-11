@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -15,9 +16,11 @@ func init() {
 }
 
 type NodeVerifyClaimSelectChannel struct {
-	UserID     string          `json:"user_id,omitempty"`
-	ClaimName  model.ClaimName `json:"claim_name,omitempty"`
-	ClaimValue string          `json:"claim_value,omitempty"`
+	UserID      string          `json:"user_id,omitempty"`
+	Purpose     otp.Purpose     `json:"purpose,omitempty"`
+	MessageType otp.MessageType `json:"message_type,omitempty"`
+	ClaimName   model.ClaimName `json:"claim_name,omitempty"`
+	ClaimValue  string          `json:"claim_value,omitempty"`
 }
 
 func (n *NodeVerifyClaimSelectChannel) Kind() string {
@@ -45,10 +48,12 @@ func (n *NodeVerifyClaimSelectChannel) ReactTo(ctx context.Context, deps *workfl
 			return nil, err
 		}
 		node := &NodeVerifyClaim{
-			UserID:     n.UserID,
-			ClaimName:  n.ClaimName,
-			ClaimValue: n.ClaimValue,
-			Channel:    channel,
+			UserID:      n.UserID,
+			Purpose:     n.Purpose,
+			MessageType: n.MessageType,
+			ClaimName:   n.ClaimName,
+			ClaimValue:  n.ClaimValue,
+			Channel:     channel,
 		}
 		kind := node.otpKind(deps)
 		err = node.SendCode(ctx, deps)
