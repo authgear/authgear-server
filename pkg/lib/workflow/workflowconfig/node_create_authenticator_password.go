@@ -12,23 +12,23 @@ import (
 )
 
 func init() {
-	workflow.RegisterNode(&NodeCreatePassword{})
+	workflow.RegisterNode(&NodeCreateAuthenticatorPassword{})
 }
 
-type NodeCreatePassword struct {
+type NodeCreateAuthenticatorPassword struct {
 	UserID         string                              `json:"user_id,omitempty"`
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-func (*NodeCreatePassword) Kind() string {
-	return "workflowconfig.NodeCreatePassword"
+func (*NodeCreateAuthenticatorPassword) Kind() string {
+	return "workflowconfig.NodeCreateAuthenticatorPassword"
 }
 
-func (*NodeCreatePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{&InputTakeNewPassword{}}, nil
 }
 
-func (i *NodeCreatePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *NodeCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 	if workflow.AsInput(input, &inputTakeNewPassword) {
 		authenticatorKind := i.authenticatorKind()
@@ -62,15 +62,15 @@ func (i *NodeCreatePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeCreatePassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (*NodeCreateAuthenticatorPassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeCreatePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*NodeCreateAuthenticatorPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *NodeCreatePassword) authenticatorKind() model.AuthenticatorKind {
+func (i *NodeCreateAuthenticatorPassword) authenticatorKind() model.AuthenticatorKind {
 	switch i.Authentication {
 	case config.WorkflowAuthenticationMethodPrimaryPassword:
 		return model.AuthenticatorKindPrimary
