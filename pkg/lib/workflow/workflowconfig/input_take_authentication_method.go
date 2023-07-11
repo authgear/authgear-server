@@ -1,6 +1,8 @@
 package workflowconfig
 
 import (
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -14,7 +16,7 @@ var InputTakeAuthenticationMethodSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
 	"additionalProperties": false,
-	"required": ["authentication"],
+	"required": ["authentication", "json_pointer"],
 	"properties": {
 		"authentication": {
 			"type": "string",
@@ -28,6 +30,10 @@ var InputTakeAuthenticationMethodSchema = validation.NewSimpleSchema(`
 				"secondary_oob_otp_email",
 				"secondary_oob_otp_sms"
 			]
+		},
+		"json_pointer": {
+			"type": "string",
+			"format": "json-pointer"
 		}
 	}
 }
@@ -35,6 +41,7 @@ var InputTakeAuthenticationMethodSchema = validation.NewSimpleSchema(`
 
 type InputTakeAuthenticationMethod struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
+	JSONPointer    jsonpointer.T                       `json:"json_pointer,omitempty"`
 }
 
 func (*InputTakeAuthenticationMethod) Kind() string {
@@ -49,8 +56,13 @@ func (i *InputTakeAuthenticationMethod) GetAuthenticationMethod() config.Workflo
 	return i.Authentication
 }
 
+func (i *InputTakeAuthenticationMethod) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
+
 type inputTakeAuthenticationMethod interface {
 	GetAuthenticationMethod() config.WorkflowAuthenticationMethod
+	GetJSONPointer() jsonpointer.T
 }
 
 var _ inputTakeAuthenticationMethod = &InputTakeAuthenticationMethod{}
