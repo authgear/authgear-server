@@ -77,6 +77,13 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depe
 			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
+	case config.WorkflowSignupFlowStepTypeRecoveryCode:
+		return workflow.NewSubWorkflow(&IntentSignupFlowStepRecoveryCode{
+			SignupFlow:  i.SignupFlow,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
+		}), nil
 	case config.WorkflowSignupFlowStepTypeUserProfile:
 		// FIXME(workflow): fill user profile
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -129,6 +130,11 @@ type CaptchaService interface {
 	VerifyToken(token string) error
 }
 
+type MFAService interface {
+	GenerateRecoveryCodes() []string
+	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -139,6 +145,7 @@ type Dependencies struct {
 	Users             UserService
 	Identities        IdentityService
 	Authenticators    AuthenticatorService
+	MFA               MFAService
 	StdAttrsService   StdAttrsService
 	OTPCodes          OTPCodeService
 	OTPSender         OTPSender
