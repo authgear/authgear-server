@@ -131,7 +131,7 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 			case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
 				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
-				return workflow.NewNodeSimple(&NodeCreateOOBOTPAuthenticator{
+				return workflow.NewNodeSimple(&NodeCreateAuthenticatorOOBOTP{
 					SignupFlow:     i.SignupFlow,
 					JSONPointer:    JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
@@ -234,7 +234,7 @@ func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) 
 	switch n := w.Nodes[0].Simple.(type) {
 	case *NodeCreateAuthenticatorPassword:
 		return n.Authentication
-	case *NodeCreateOOBOTPAuthenticator:
+	case *NodeCreateAuthenticatorOOBOTP:
 		return n.Authentication
 	case *NodeCreateAuthenticatorTOTP:
 		return n.Authentication
