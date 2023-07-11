@@ -104,7 +104,9 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 
 	if len(workflows.Nearest.Nodes) == 0 {
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
-		if workflow.AsInput(input, &inputTakeIdentificationMethod) {
+		if workflow.AsInput(input, &inputTakeIdentificationMethod) &&
+			inputTakeIdentificationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
+
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
 			err = i.checkIdentificationMethod(step, identification)
 			if err != nil {
@@ -157,8 +159,10 @@ func (*IntentSignupFlowStepIdentify) GetEffects(ctx context.Context, deps *workf
 	return nil, nil
 }
 
-func (*IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return nil, nil
+func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+	return map[string]interface{}{
+		"json_pointer": i.JSONPointer.String(),
+	}, nil
 }
 
 func (*IntentSignupFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
