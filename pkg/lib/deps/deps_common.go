@@ -165,6 +165,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		mfa.DependencySet,
 
+		wire.Bind(new(workflow.MFAService), new(*mfa.Service)),
 		wire.Bind(new(facade.MFAService), new(*mfa.Service)),
 	),
 
