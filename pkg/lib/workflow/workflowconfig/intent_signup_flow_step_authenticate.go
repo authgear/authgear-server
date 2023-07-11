@@ -14,44 +14,48 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func init() {
-	workflow.RegisterPrivateIntent(&IntentSignupFlowAuthenticate{})
+type IntentSignupFlowStepAuthenticateTarget interface {
+	GetOOBOTPClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error)
 }
 
-var IntentSignupFlowAuthenticateSchema = validation.NewSimpleSchema(`{}`)
+func init() {
+	workflow.RegisterPrivateIntent(&IntentSignupFlowStepAuthenticate{})
+}
 
-type IntentSignupFlowAuthenticate struct {
+var IntentSignupFlowStepAuthenticateSchema = validation.NewSimpleSchema(`{}`)
+
+type IntentSignupFlowStepAuthenticate struct {
 	SignupFlow  string        `json:"signup_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ WorkflowStep = &IntentSignupFlowAuthenticate{}
+var _ WorkflowStep = &IntentSignupFlowStepAuthenticate{}
 
-func (i *IntentSignupFlowAuthenticate) GetID() string {
+func (i *IntentSignupFlowStepAuthenticate) GetID() string {
 	return i.StepID
 }
 
-func (i *IntentSignupFlowAuthenticate) GetJSONPointer() jsonpointer.T {
+func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowAuthenticate{}
+var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepAuthenticate{}
 
-func (*IntentSignupFlowAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
+func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
 	n, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](workflows.Nearest)
 	if !ok {
-		return nil, fmt.Errorf("NodeDoCreateAuthenticator cannot be found in IntentSignupFlowAuthenticate")
+		return nil, fmt.Errorf("NodeDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
 	}
 	return n.Authenticator.StandardClaims(), nil
 }
 
-func (*IntentSignupFlowAuthenticate) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
+func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
 	return otp.PurposeOOBOTP
 }
 
-func (i *IntentSignupFlowAuthenticate) GetMessageType(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType {
+func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType {
 	authenticationMethod := i.authenticationMethod(workflows.Nearest)
 	switch authenticationMethod {
 	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
@@ -67,17 +71,17 @@ func (i *IntentSignupFlowAuthenticate) GetMessageType(_ context.Context, _ *work
 	}
 }
 
-var _ workflow.Intent = &IntentSignupFlowAuthenticate{}
+var _ workflow.Intent = &IntentSignupFlowStepAuthenticate{}
 
-func (*IntentSignupFlowAuthenticate) Kind() string {
-	return "workflowconfig.IntentSignupFlowAuthenticate"
+func (*IntentSignupFlowStepAuthenticate) Kind() string {
+	return "workflowconfig.IntentSignupFlowStepAuthenticate"
 }
 
-func (*IntentSignupFlowAuthenticate) JSONSchema() *validation.SimpleSchema {
-	return IntentSignupFlowAuthenticateSchema
+func (*IntentSignupFlowStepAuthenticate) JSONSchema() *validation.SimpleSchema {
+	return IntentSignupFlowStepAuthenticateSchema
 }
 
-func (*IntentSignupFlowAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// Let the input to select which authentication method to use.
 	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
@@ -97,7 +101,7 @@ func (*IntentSignupFlowAuthenticate) CanReactTo(ctx context.Context, deps *workf
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
@@ -167,15 +171,15 @@ func (i *IntentSignupFlowAuthenticate) ReactTo(ctx context.Context, deps *workfl
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlowAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlowStepAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentSignupFlowAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *IntentSignupFlowAuthenticate) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowStepAuthenticate) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err
@@ -194,7 +198,7 @@ func (i *IntentSignupFlowAuthenticate) current(deps *workflow.Dependencies) (con
 	return current, nil
 }
 
-func (*IntentSignupFlowAuthenticate) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
+func (*IntentSignupFlowStepAuthenticate) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
 	step, ok := o.(*config.WorkflowSignupFlowStep)
 	if !ok {
 		panic(fmt.Errorf("workflow: workflow object is %T", o))
@@ -203,7 +207,7 @@ func (*IntentSignupFlowAuthenticate) step(o config.WorkflowObject) *config.Workf
 	return step
 }
 
-func (*IntentSignupFlowAuthenticate) checkAuthenticationMethod(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+func (*IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int, err error) {
 	idx = -1
 	var allAllowed []config.WorkflowAuthenticationMethod
 
@@ -226,7 +230,7 @@ func (*IntentSignupFlowAuthenticate) checkAuthenticationMethod(step *config.Work
 	return
 }
 
-func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
+func (*IntentSignupFlowStepAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
 	if len(w.Nodes) == 0 {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}
@@ -243,7 +247,7 @@ func (*IntentSignupFlowAuthenticate) authenticationMethod(w *workflow.Workflow) 
 	}
 }
 
-func (i *IntentSignupFlowAuthenticate) jsonPointer(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) jsonpointer.T {
+func (i *IntentSignupFlowStepAuthenticate) jsonPointer(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Authentication == am {
