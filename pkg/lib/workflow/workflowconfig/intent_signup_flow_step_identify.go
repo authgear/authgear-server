@@ -16,63 +16,63 @@ import (
 )
 
 func init() {
-	workflow.RegisterPrivateIntent(&IntentSignupFlowIdentify{})
+	workflow.RegisterPrivateIntent(&IntentSignupFlowStepIdentify{})
 }
 
-var IntentSignupFlowIdentifySchema = validation.NewSimpleSchema(`{}`)
+var IntentSignupFlowStepIdentifySchema = validation.NewSimpleSchema(`{}`)
 
-type IntentSignupFlowIdentify struct {
+type IntentSignupFlowStepIdentify struct {
 	SignupFlow  string        `json:"signup_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ WorkflowStep = &IntentSignupFlowIdentify{}
+var _ WorkflowStep = &IntentSignupFlowStepIdentify{}
 
-func (i *IntentSignupFlowIdentify) GetID() string {
+func (i *IntentSignupFlowStepIdentify) GetID() string {
 	return i.StepID
 }
 
-func (i *IntentSignupFlowIdentify) GetJSONPointer() jsonpointer.T {
+func (i *IntentSignupFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ IntentSignupFlowVerifyTarget = &IntentSignupFlowIdentify{}
+var _ IntentSignupFlowVerifyTarget = &IntentSignupFlowStepIdentify{}
 
-func (*IntentSignupFlowIdentify) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
+func (*IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
 	n, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](workflows.Nearest)
 	if !ok {
-		return nil, fmt.Errorf("NodeDoCreateIdentity cannot be found in IntentSignupFlowIdentify")
+		return nil, fmt.Errorf("NodeDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
 	return n.Identity.IdentityAwareStandardClaims(), nil
 }
 
-func (*IntentSignupFlowIdentify) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
+func (*IntentSignupFlowStepIdentify) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
 	return otp.PurposeVerification
 }
 
-func (*IntentSignupFlowIdentify) GetMessageType(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.MessageType {
+func (*IntentSignupFlowStepIdentify) GetMessageType(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.MessageType {
 	return otp.MessageTypeVerification
 }
 
-var _ IntentSignupFlowAuthenticateTarget = &IntentSignupFlowIdentify{}
+var _ IntentSignupFlowAuthenticateTarget = &IntentSignupFlowStepIdentify{}
 
-func (n *IntentSignupFlowIdentify) GetOOBOTPClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
+func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
 	return n.GetVerifiableClaims(ctx, deps, workflows)
 }
 
-var _ workflow.Intent = &IntentSignupFlowIdentify{}
+var _ workflow.Intent = &IntentSignupFlowStepIdentify{}
 
-func (*IntentSignupFlowIdentify) Kind() string {
-	return "workflowconfig.IntentSignupFlowIdentify"
+func (*IntentSignupFlowStepIdentify) Kind() string {
+	return "workflowconfig.IntentSignupFlowStepIdentify"
 }
 
-func (*IntentSignupFlowIdentify) JSONSchema() *validation.SimpleSchema {
-	return IntentSignupFlowIdentifySchema
+func (*IntentSignupFlowStepIdentify) JSONSchema() *validation.SimpleSchema {
+	return IntentSignupFlowStepIdentifySchema
 }
 
-func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// Let the input to select which identification method to use.
 	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
@@ -95,7 +95,7 @@ func (*IntentSignupFlowIdentify) CanReactTo(ctx context.Context, deps *workflow.
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
@@ -153,15 +153,15 @@ func (i *IntentSignupFlowIdentify) ReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlowIdentify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlowStepIdentify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentSignupFlowIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *IntentSignupFlowIdentify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowStepIdentify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (i *IntentSignupFlowIdentify) current(deps *workflow.Dependencies) (config.
 	return current, nil
 }
 
-func (*IntentSignupFlowIdentify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
+func (*IntentSignupFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
 	step, ok := o.(*config.WorkflowSignupFlowStep)
 	if !ok {
 		panic(fmt.Errorf("workflow: workflow object is %T", o))
@@ -189,7 +189,7 @@ func (*IntentSignupFlowIdentify) step(o config.WorkflowObject) *config.WorkflowS
 	return step
 }
 
-func (*IntentSignupFlowIdentify) checkIdentificationMethod(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) error {
+func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) error {
 	var allAllowed []config.WorkflowIdentificationMethod
 
 	for _, branch := range step.OneOf {
@@ -209,7 +209,7 @@ func (*IntentSignupFlowIdentify) checkIdentificationMethod(step *config.Workflow
 	})
 }
 
-func (*IntentSignupFlowIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
+func (*IntentSignupFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
 	if len(w.Nodes) == 0 {
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
@@ -222,7 +222,7 @@ func (*IntentSignupFlowIdentify) identificationMethod(w *workflow.Workflow) conf
 	}
 }
 
-func (i *IntentSignupFlowIdentify) jsonPointer(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) jsonpointer.T {
+func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {
@@ -233,7 +233,7 @@ func (i *IntentSignupFlowIdentify) jsonPointer(step *config.WorkflowSignupFlowSt
 	panic(fmt.Errorf("workflow: selected identification method is not allowed"))
 }
 
-func (*IntentSignupFlowIdentify) identityInfo(w *workflow.Workflow) *identity.Info {
+func (*IntentSignupFlowStepIdentify) identityInfo(w *workflow.Workflow) *identity.Info {
 	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
 	if !ok {
 		panic(fmt.Errorf("workflow: expected NodeCreateIdentity"))
