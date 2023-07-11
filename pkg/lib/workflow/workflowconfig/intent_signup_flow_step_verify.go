@@ -14,46 +14,46 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type IntentSignupFlowVerifyTarget interface {
+type IntentSignupFlowStepVerifyTarget interface {
 	GetVerifiableClaims(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error)
 	GetPurpose(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) otp.Purpose
 	GetMessageType(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType
 }
 
 func init() {
-	workflow.RegisterPrivateIntent(&IntentSignupFlowVerify{})
+	workflow.RegisterPrivateIntent(&IntentSignupFlowStepVerify{})
 }
 
-var IntentSignupFlowVerifySchema = validation.NewSimpleSchema(`{}`)
+var IntentSignupFlowStepVerifySchema = validation.NewSimpleSchema(`{}`)
 
-type IntentSignupFlowVerify struct {
+type IntentSignupFlowStepVerify struct {
 	SignupFlow  string        `json:"signup_flow,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ WorkflowStep = &IntentSignupFlowVerify{}
+var _ WorkflowStep = &IntentSignupFlowStepVerify{}
 
-func (i *IntentSignupFlowVerify) GetID() string {
+func (i *IntentSignupFlowStepVerify) GetID() string {
 	return i.StepID
 }
 
-func (i *IntentSignupFlowVerify) GetJSONPointer() jsonpointer.T {
+func (i *IntentSignupFlowStepVerify) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ workflow.Intent = &IntentSignupFlowVerify{}
+var _ workflow.Intent = &IntentSignupFlowStepVerify{}
 
-func (*IntentSignupFlowVerify) Kind() string {
-	return "workflowconfig.IntentSignupFlowVerify"
+func (*IntentSignupFlowStepVerify) Kind() string {
+	return "workflowconfig.IntentSignupFlowStepVerify"
 }
 
-func (*IntentSignupFlowVerify) JSONSchema() *validation.SimpleSchema {
-	return IntentSignupFlowVerifySchema
+func (*IntentSignupFlowStepVerify) JSONSchema() *validation.SimpleSchema {
+	return IntentSignupFlowStepVerifySchema
 }
 
-func (*IntentSignupFlowVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// Look up the claim to verify
 	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
@@ -61,7 +61,7 @@ func (*IntentSignupFlowVerify) CanReactTo(ctx context.Context, deps *workflow.De
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	current, err := i.current(deps)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 		return nil, err
 	}
 
-	target, ok := targetStepWorkflow.Intent.(IntentSignupFlowVerifyTarget)
+	target, ok := targetStepWorkflow.Intent.(IntentSignupFlowStepVerifyTarget)
 	if !ok {
 		return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
 			"target_step": targetStepID,
@@ -129,15 +129,15 @@ func (i *IntentSignupFlowVerify) ReactTo(ctx context.Context, deps *workflow.Dep
 	}), nil
 }
 
-func (*IntentSignupFlowVerify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (*IntentSignupFlowStepVerify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentSignupFlowVerify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentSignupFlowStepVerify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *IntentSignupFlowVerify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
+func (i *IntentSignupFlowStepVerify) current(deps *workflow.Dependencies) (config.WorkflowObject, error) {
 	root, err := findSignupFlow(deps.Config.Workflow, i.SignupFlow)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (i *IntentSignupFlowVerify) current(deps *workflow.Dependencies) (config.Wo
 	return current, nil
 }
 
-func (*IntentSignupFlowVerify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
+func (*IntentSignupFlowStepVerify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
 	step, ok := o.(*config.WorkflowSignupFlowStep)
 	if !ok {
 		panic(fmt.Errorf("workflow: workflow object is %T", o))

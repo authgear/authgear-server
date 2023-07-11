@@ -37,7 +37,7 @@ func (i *IntentSignupFlowAuthenticate) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ IntentSignupFlowVerifyTarget = &IntentSignupFlowAuthenticate{}
+var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowAuthenticate{}
 
 func (*IntentSignupFlowAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
 	n, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](workflows.Nearest)
