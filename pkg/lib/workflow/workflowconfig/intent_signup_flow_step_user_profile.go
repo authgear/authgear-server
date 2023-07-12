@@ -54,7 +54,8 @@ func (*IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *wo
 
 func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputFillUserProfile inputFillUserProfile
-	if workflow.AsInput(input, &inputFillUserProfile) {
+	if workflow.AsInput(input, &inputFillUserProfile) &&
+		inputFillUserProfile.GetJSONPointer().String() == i.JSONPointer.String() {
 		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
 		if err != nil {
 			return nil, err
@@ -92,8 +93,10 @@ func (*IntentSignupFlowStepUserProfile) GetEffects(ctx context.Context, deps *wo
 	return nil, nil
 }
 
-func (*IntentSignupFlowStepUserProfile) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return nil, nil
+func (i *IntentSignupFlowStepUserProfile) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+	return map[string]interface{}{
+		"json_pointer": i.JSONPointer.String(),
+	}, nil
 }
 
 func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlowStep, attributes []attrs.T) (absent []string, err error) {
