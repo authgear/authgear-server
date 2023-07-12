@@ -261,6 +261,16 @@ localization:
   fallback_language: en
   supported_languages: ["en"]
 messaging:
+  sms:
+    ratelimit:
+      per_phone:
+        enabled: false
+      per_ip:
+        enabled: false
+      resend_cooldown_seconds: 60
+  email:
+    ratelimit:
+      resend_cooldown_seconds: 60
   whatsapp:
     api_type: on-premises
   rate_limits:
@@ -467,6 +477,10 @@ authenticator:
     force_change: true
     policy:
       min_length: 8
+    ratelimit:
+      failed_attempt:
+        size: 10
+        reset_period: 1m
   totp:
     maximum: 99
   oob_otp:
@@ -572,7 +586,7 @@ account_anonymization:
 forgot_password:
   enabled: true
   valid_periods:
-    link: 20m
+    link: 20m0s
     code: 300s
   rate_limits:
     email:
@@ -589,6 +603,8 @@ forgot_password:
         enabled: true
         period: 1m
         burst: 60
+welcome_message:
+  destination: first
 verification:
   claims:
     email:
@@ -598,7 +614,8 @@ verification:
       enabled: true
       required: true
   criteria: any
-  code_valid_period: 1h
+  code_valid_period: 1h0m0s
+  code_expiry_seconds: 3600
   rate_limits:
     email:
       trigger_per_ip: {}
@@ -616,6 +633,10 @@ verification:
         enabled: true
         period: 1m
         burst: 60
+otp:
+  ratelimit:
+    failed_attempt:
+      enabled: false
 web3:
   siwe: {}
   nft: {}

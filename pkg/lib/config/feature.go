@@ -42,6 +42,7 @@ type FeatureConfig struct {
 	Hook             *HookFeatureConfig             `json:"hook,omitempty"`
 	AuditLog         *AuditLogFeatureConfig         `json:"audit_log,omitempty"`
 	GoogleTagManager *GoogleTagManagerFeatureConfig `json:"google_tag_manager,omitempty"`
+	RateLimit        *RateLimitFeatureConfig        `json:"rate_limit,omitempty"`
 	RateLimits       *RateLimitsFeatureConfig       `json:"rate_limits,omitempty"`
 	Messaging        *MessagingFeatureConfig        `json:"messaging,omitempty"`
 	Collaborator     *CollaboratorFeatureConfig     `json:"collaborator,omitempty"`

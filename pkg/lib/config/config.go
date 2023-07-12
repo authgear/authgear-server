@@ -39,7 +39,9 @@ var _ = Schema.Add("AppConfig", `
 		"account_deletion": { "$ref": "#/$defs/AccountDeletionConfig" },
 		"account_anonymization": { "$ref": "#/$defs/AccountAnonymizationConfig" },
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
+		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
 		"verification": { "$ref": "#/$defs/VerificationConfig" },
+		"otp": { "$ref": "#/$defs/OTPLegacyConfig" },
 		"web3": { "$ref": "#/$defs/Web3Config" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" },
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
@@ -71,7 +73,9 @@ type AppConfig struct {
 	AccountAnonymization *AccountAnonymizationConfig `json:"account_anonymization,omitempty"`
 
 	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
+	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
 	Verification   *VerificationConfig   `json:"verification,omitempty"`
+	OTP            *OTPLegacyConfig      `json:"otp,omitempty"`
 
 	Web3 *Web3Config `json:"web3,omitempty"`
 
