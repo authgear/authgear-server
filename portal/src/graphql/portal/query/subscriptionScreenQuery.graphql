@@ -2,7 +2,10 @@ fragment AppFragment on App {
   id
   effectiveFeatureConfig
   isProcessingSubscription
-  lastStripeError
+  lastInvoice {
+    lastPaymentError
+    url
+  }
   planName
   previousMonth: subscriptionUsage(date: $previousMonth) {
     nextBillingDate

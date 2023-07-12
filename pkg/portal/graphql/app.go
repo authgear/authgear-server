@@ -335,8 +335,8 @@ var nodeApp = node(
 					return customerID != nil, nil
 				},
 			},
-			"lastStripeError": &graphql.Field{
-				Type: StripeError,
+			"lastInvoice": &graphql.Field{
+				Type: invoice,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					appID := p.Source.(*model.App).ID
@@ -356,15 +356,17 @@ var nodeApp = node(
 						}
 					}
 					if customerID != nil {
-						stripeError, err := ctx.StripeService.GetLastPaymentError(*customerID)
+						invoice, err := ctx.StripeService.GetLastInvoice(*customerID)
 						if err != nil {
 							if errors.Is(err, libstripe.ErrNoPaymentIntent) {
 								return nil, nil
 							}
 							return nil, err
 						}
-
-						return stripeError, nil
+						return model.Invoice{
+							URL:              invoice.HostedInvoiceURL,
+							LastPaymentError: invoice.LastPaymentError,
+						}, nil
 					}
 					return nil, nil
 				},

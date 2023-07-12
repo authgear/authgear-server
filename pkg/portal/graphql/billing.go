@@ -149,6 +149,14 @@ var subscription = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var invoice = graphql.NewObject(graphql.ObjectConfig{
+	Name: "Invoice",
+	Fields: graphql.Fields{
+		"lastPaymentError": &graphql.Field{Type: StripeError},
+		"url":              &graphql.Field{Type: graphql.String},
+	},
+})
+
 var usageItem = graphql.NewObject(graphql.ObjectConfig{
 	Name: "SubscriptionUsageItem",
 	Fields: graphql.Fields{

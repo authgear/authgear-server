@@ -27,6 +27,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import {
+  Invoice,
   Subscription,
   SubscriptionItemPriceSmsRegion,
   SubscriptionItemPriceType,
@@ -68,6 +69,7 @@ import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSub
 import ExternalLink from "../../ExternalLink";
 import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
 import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
+import SubscriptionInvoiceErrorSummary from "./SubscriptionInvoiceErrorSummary";
 
 type Plan = "free" | "developers" | "startups" | "business" | "enterprise";
 
@@ -438,6 +440,7 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
 interface SubscriptionScreenContentProps {
   appID: string;
   planName: string;
+  lastInvoice?: Invoice;
   subscription?: Subscription;
   subscriptionPlans: SubscriptionPlan[];
   thisMonthUsage?: SubscriptionUsage;
@@ -583,6 +586,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const {
     appID,
     planName,
+    lastInvoice,
     subscription,
     subscriptionPlans,
     thisMonthUsage,
@@ -837,6 +841,12 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         <ScreenTitle className={styles.section}>
           <FormattedMessage id="SubscriptionScreen.title" />
         </ScreenTitle>
+        {lastInvoice?.lastPaymentError != null ? (
+          <SubscriptionInvoiceErrorSummary
+            className={styles.section}
+            invoiceURL={lastInvoice.url ?? undefined}
+          />
+        ) : null}
         <SubscriptionCurrentPlanSummary
           className={styles.section}
           planName={planName}
@@ -1100,14 +1110,15 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     (subscriptionScreenQuery.data?.node as AppFragmentFragment | null) ?? null;
 
   const isProcessingSubscription =
-    !!subscriptionScreenQuery.data &&
-    (app?.isProcessingSubscription === true ||
-      app?.subscription?.pendingUpdateSince != null);
+    !!subscriptionScreenQuery.data && app?.isProcessingSubscription === true;
+
+  const isUpdatingSubscription = app?.subscription?.pendingUpdateSince != null;
 
   const lastStripeError = useMemo(() => {
     return (
       !!subscriptionScreenQuery.data &&
-      (subscriptionScreenQuery.data.node as AppFragmentFragment).lastStripeError
+      (subscriptionScreenQuery.data.node as AppFragmentFragment).lastInvoice
+        ?.lastPaymentError
     );
   }, [subscriptionScreenQuery]);
 
@@ -1117,7 +1128,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     if (subscriptionScreenQuery.loading) {
       return () => {};
     }
-    if (!isProcessingSubscription) {
+    if (!isProcessingSubscription && !isUpdatingSubscription) {
       return () => {};
     }
     const interval = setInterval(() => {
@@ -1129,6 +1140,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   }, [
     subscriptionScreenQuery.loading,
     isProcessingSubscription,
+    isUpdatingSubscription,
     subscriptionScreenQuery,
   ]);
 
@@ -1147,7 +1159,10 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     );
   }
 
-  if (isProcessingSubscription || lastStripeError != null) {
+  if (
+    isProcessingSubscription ||
+    (isUpdatingSubscription && lastStripeError == null)
+  ) {
     return (
       <SubscriptionProcessingPaymentScreen stripeError={lastStripeError} />
     );
@@ -1172,6 +1187,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
       <SubscriptionScreenContent
         appID={appID}
         planName={planName}
+        lastInvoice={app?.lastInvoice ?? undefined}
         subscription={subscription ?? undefined}
         subscriptionPlans={subscriptionPlans}
         thisMonthUsage={thisMonthUsage ?? undefined}

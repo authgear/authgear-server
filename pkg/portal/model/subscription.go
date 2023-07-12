@@ -273,3 +273,8 @@ type SubscriptionUpdatePreview struct {
 	Currency  string `json:"currency"`
 	AmountDue int    `json:"amountDue"`
 }
+
+type Invoice struct {
+	URL              string      `json:"url"`
+	LastPaymentError interface{} `json:"lastPaymentError"`
+}

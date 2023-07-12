@@ -63,7 +63,7 @@ export type App = Node & {
   /** The ID of an object */
   id: Scalars['ID'];
   isProcessingSubscription: Scalars['Boolean'];
-  lastStripeError?: Maybe<Scalars['StripeError']>;
+  lastInvoice?: Maybe<Invoice>;
   nftCollections: Array<NftCollection>;
   planName: Scalars['String'];
   rawAppConfig: Scalars['AppConfig'];
@@ -284,6 +284,12 @@ export type GenerateStripeCustomerPortalSessionInput = {
 export type GenerateStripeCustomerPortalSessionPayload = {
   __typename?: 'GenerateStripeCustomerPortalSessionPayload';
   url: Scalars['String'];
+};
+
+export type Invoice = {
+  __typename?: 'Invoice';
+  lastPaymentError?: Maybe<Scalars['StripeError']>;
+  url?: Maybe<Scalars['String']>;
 };
 
 export type Mutation = {
