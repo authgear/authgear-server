@@ -9,7 +9,9 @@ mutation cancelFailedSubscriptionMutation(
     app {
       id
       isProcessingSubscription
-      lastStripeError
+      lastInvoice {
+        lastPaymentError
+      }
     }
   }
 }

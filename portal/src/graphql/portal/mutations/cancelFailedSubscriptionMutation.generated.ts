@@ -8,7 +8,7 @@ export type CancelFailedSubscriptionMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type CancelFailedSubscriptionMutationMutation = { __typename?: 'Mutation', cancelFailedSubscription: { __typename?: 'CancelFailedSubscriptionPayload', app: { __typename?: 'App', id: string, isProcessingSubscription: boolean, lastStripeError?: any | null } } };
+export type CancelFailedSubscriptionMutationMutation = { __typename?: 'Mutation', cancelFailedSubscription: { __typename?: 'CancelFailedSubscriptionPayload', app: { __typename?: 'App', id: string, isProcessingSubscription: boolean, lastInvoice?: { __typename?: 'Invoice', lastPaymentError?: any | null } | null } } };
 
 
 export const CancelFailedSubscriptionMutationDocument = gql`
@@ -17,7 +17,9 @@ export const CancelFailedSubscriptionMutationDocument = gql`
     app {
       id
       isProcessingSubscription
-      lastStripeError
+      lastInvoice {
+        lastPaymentError
+      }
     }
   }
 }

@@ -113,7 +113,7 @@ type StripeService interface {
 	UpdateSubscriptionWhenPaid(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
 	PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
 	SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error)
-	GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error)
+	GetLastInvoice(stripeCustomerID string) (*libstripe.Invoice, error)
 	GetSubscription(stripeCustomerID string) (*stripe.Subscription, error)
 	CancelSubscriptionImmediately(subscriptionID string) error
 }

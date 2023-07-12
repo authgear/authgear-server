@@ -1091,6 +1091,10 @@
   "SubscriptionCurrentPlanSummary.additional-mau.title": "Additional MAU",
   "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
+  "SubscriptionInvoiceErrorSummary.title": "Payment failed",
+  "SubscriptionInvoiceErrorSummary.description": "We were unable to charge your payment method for your Authgear subscription. To avoid service interruption please review the billing information and pay the overdue invoice.",
+  "SubscriptionInvoiceErrorSummary.pay": "Pay invoice",
+
   "SubscriptionPlanCard.label.upgrade": "Upgrade",
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",

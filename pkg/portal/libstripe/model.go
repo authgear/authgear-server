@@ -140,3 +140,8 @@ func NewCheckoutSession(checkoutSession *stripe.CheckoutSession) *CheckoutSessio
 
 	return cs
 }
+
+type Invoice struct {
+	HostedInvoiceURL string
+	LastPaymentError *stripe.Error
+}

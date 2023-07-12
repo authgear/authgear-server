@@ -673,7 +673,7 @@ func (s *Service) GetSubscription(stripeCustomerID string) (*stripe.Subscription
 	return nil, ErrNoSubscription
 }
 
-func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error) {
+func (s *Service) GetLastInvoice(stripeCustomerID string) (*Invoice, error) {
 	sub, err := s.GetSubscription(stripeCustomerID)
 	if err != nil {
 		if errors.Is(err, ErrNoSubscription) {
@@ -695,7 +695,10 @@ func (s *Service) GetLastPaymentError(stripeCustomerID string) (*stripe.Error, e
 		return nil, ErrNoPaymentIntent
 	}
 
-	return paymentIntent.LastPaymentError, nil
+	return &Invoice{
+		HostedInvoiceURL: invoice.HostedInvoiceURL,
+		LastPaymentError: paymentIntent.LastPaymentError,
+	}, nil
 }
 
 func (s *Service) getSubscriptionByID(stripeSubscriptionID string) (*stripe.Subscription, error) {

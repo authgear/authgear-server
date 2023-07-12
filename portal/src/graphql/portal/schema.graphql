@@ -64,7 +64,7 @@ type App implements Node {
   isProcessingSubscription: Boolean!
 
   """"""
-  lastStripeError: StripeError
+  lastInvoice: Invoice
 
   """"""
   nftCollections: [NFTCollection!]!
@@ -389,6 +389,15 @@ input GenerateStripeCustomerPortalSessionInput {
 type GenerateStripeCustomerPortalSessionPayload {
   """"""
   url: String!
+}
+
+""""""
+type Invoice {
+  """"""
+  lastPaymentError: StripeError
+
+  """"""
+  url: String
 }
 
 """"""
