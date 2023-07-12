@@ -180,6 +180,7 @@ var CommonDependencySet = wire.NewSet(
 		featurecustomattrs.DependencySet,
 		wire.Bind(new(user.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
 		wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*featurecustomattrs.ServiceNoEvent)),
+		wire.Bind(new(workflow.CustomAttrsService), new(*featurecustomattrs.Service)),
 	),
 
 	wire.NewSet(
