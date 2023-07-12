@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -19,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -107,6 +109,11 @@ type SessionService interface {
 
 type StdAttrsService interface {
 	PopulateStandardAttributes(userID string, iden *identity.Info) error
+	UpdateStandardAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error
+}
+
+type CustomAttrsService interface {
+	UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error
 }
 
 type AuthenticationInfoService interface {
@@ -142,18 +149,19 @@ type Dependencies struct {
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
 
-	Users             UserService
-	Identities        IdentityService
-	Authenticators    AuthenticatorService
-	MFA               MFAService
-	StdAttrsService   StdAttrsService
-	OTPCodes          OTPCodeService
-	OTPSender         OTPSender
-	Verification      VerificationService
-	ForgotPassword    ForgotPasswordService
-	ResetPassword     ResetPasswordService
-	AccountMigrations AccountMigrationService
-	Captcha           CaptchaService
+	Users              UserService
+	Identities         IdentityService
+	Authenticators     AuthenticatorService
+	MFA                MFAService
+	StdAttrsService    StdAttrsService
+	CustomAttrsService CustomAttrsService
+	OTPCodes           OTPCodeService
+	OTPSender          OTPSender
+	Verification       VerificationService
+	ForgotPassword     ForgotPasswordService
+	ResetPassword      ResetPasswordService
+	AccountMigrations  AccountMigrationService
+	Captcha            CaptchaService
 
 	IDPSessions         IDPSessionService
 	Sessions            SessionService

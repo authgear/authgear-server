@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -21,11 +22,20 @@ func (*NodeDoUpdateUserProfile) Kind() string {
 	return "workflowconfig.NodeDoUpdateUserProfile"
 }
 
-func (*NodeDoUpdateUserProfile) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+func (n *NodeDoUpdateUserProfile) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			// FIXME(workflow): update standard attributes
-			// FIXME(workflow): update custom attributes
+			// FIXME(workflow): support other role?
+			err := deps.StdAttrsService.UpdateStandardAttributesWithList(config.RoleEndUser, n.UserID, n.StandardAttributes)
+			if err != nil {
+				return err
+			}
+			// FIXME(workflow): support other role?
+			err = deps.CustomAttrsService.UpdateCustomAttributesWithList(config.RoleEndUser, n.UserID, n.CustomAttributes)
+			if err != nil {
+				return err
+			}
+
 			return nil
 		}),
 	}, nil

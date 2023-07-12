@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -50,6 +51,26 @@ func (s *Service) PopulateStandardAttributes(userID string, iden *identity.Info)
 	stdAttrs := originalStdAttrs.MergedWith(stdAttrsFromIden)
 
 	err = s.UserStore.UpdateStandardAttributes(userID, stdAttrs.ToClaims())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) UpdateStandardAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error {
+	user, err := s.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	originalStdAttrs := stdattrs.T(user.StandardAttributes)
+	stdAttrs, err := originalStdAttrs.MergedWithList(attrs)
+	if err != nil {
+		return err
+	}
+
+	err = s.ServiceNoEvent.UpdateStandardAttributes(role, userID, stdAttrs)
 	if err != nil {
 		return err
 	}
