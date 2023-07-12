@@ -3,10 +3,10 @@ package workflowconfig
 import (
 	"testing"
 
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -15,13 +15,13 @@ func TestIntentSignupFlowStepUserProfileValidate(t *testing.T) {
 	f := i.validate
 
 	Convey("IntentSignupFlowStepUserProfile.validate", t, func() {
-		test := func(step *config.WorkflowSignupFlowStep, attributes []InputFillUserProfileAttribute, expected error) {
-			actual := f(step, attributes)
-			if expected == nil {
-				So(actual, ShouldBeNil)
+		test := func(step *config.WorkflowSignupFlowStep, attributes []attrs.T, expectedResult []string, expectedErr error) {
+			actualResult, actualErr := f(step, attributes)
+			if expectedErr == nil {
+				So(actualResult, ShouldResemble, expectedResult)
 			} else {
-				expectedAPIErr := apierrors.AsAPIError(expected)
-				actualAPIErr := apierrors.AsAPIError(actual)
+				expectedAPIErr := apierrors.AsAPIError(expectedErr)
+				actualAPIErr := apierrors.AsAPIError(actualErr)
 				So(actualAPIErr.Info, ShouldResemble, expectedAPIErr.Info)
 			}
 		}
@@ -37,12 +37,12 @@ func TestIntentSignupFlowStepUserProfileValidate(t *testing.T) {
 					Required: false,
 				},
 			},
-		}, []InputFillUserProfileAttribute{
+		}, []attrs.T{
 			{
-				Pointer: jsonpointer.MustParse("/given_name"),
+				Pointer: "/given_name",
 				Value:   "john",
 			},
-		}, nil)
+		}, []string{"/family_name"}, nil)
 
 		test(&config.WorkflowSignupFlowStep{
 			UserProfile: []*config.WorkflowSignupFlowUserProfile{
@@ -55,19 +55,20 @@ func TestIntentSignupFlowStepUserProfileValidate(t *testing.T) {
 					Required: false,
 				},
 			},
-		}, []InputFillUserProfileAttribute{
+		}, []attrs.T{
 			{
-				Pointer: jsonpointer.MustParse("/family_name"),
+				Pointer: "/family_name",
 				Value:   "doe",
 			},
 			{
-				Pointer: jsonpointer.MustParse("/middle_name"),
+				Pointer: "/middle_name",
 				Value:   "mid",
 			},
-		}, InvalidUserProfile.NewWithInfo("invalid attributes", apierrors.Details{
+		}, nil, InvalidUserProfile.NewWithInfo("invalid attributes", apierrors.Details{
 			"allowed":    []string{"/given_name", "/family_name"},
 			"required":   []string{"/given_name"},
-			"actual":     []string{"/family_name", "/middle_name"},
+			"present":    []string{"/family_name", "/middle_name"},
+			"absent":     []string{"/given_name"},
 			"missing":    []string{"/given_name"},
 			"disallowed": []string{"/middle_name"},
 		}))
