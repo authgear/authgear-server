@@ -157,13 +157,10 @@ For example
 
 The Whatsapp OTP aggregator reads from the event data written by [the non-blocking event sink](#the-non-blocking-event-sink), and writes to [the usage record table](#the-usage-record-table).
 
-Since junk messages can be sent to our Whatsapp number,
-only valid OTP code is counted as 1.
-
 For example
 
 ```csv
-,myapp,whatsapp-otp-verified,daily,2022-06-01,101
+,myapp,whatsapp-sent,2022-06-01,101
 ```
 
 ## Usage alert
@@ -219,10 +216,19 @@ The following metadata are known to Authgear.
 - `price_type`: Valid values are `fixed` and `usage`. Only appear in Product.
 - `plan_name`: Valid values are `developers`, `startups` and `business`. Only appear in Product.
 - `usage_type`: Valid values are `sms` and `mau`. Only appear in Product.
-- `sms_region`: Valid values are `north-america` and `other-regions`. Only appear in Product.
+- `sms_region`: Valid values are `north-america` and `other-regions`.Only appear in Price.
 - `free_quantity`: valid values are non-negative integers. Only appear in Price.
+- `subscription_item_type`: Only appear in Product. Valid values are:
+  - `plan`: The base cost of plan
+  - `sms-north-america`: The sms cost in north america region
+  - `sms-other-region`: The sms cost in other region
+  - `whatsapp-north-america`: The whatsapp cost in north america region
+  - `whatsapp-other-region`: The whatsapp cost in other region
+  - `mau`: The mau cost
 
-Each Stripe Product MUST have `price_type`.
+Each Stripe Product MUST have `price_type` and `subscription_item_type`.
+Products with the same `subscription_item_type` are interchangable when upgrading or downgrading plan.
+All plans must have exactly one product with each `subscription_item_type`.
 If a Stripe Product has `plan_name`, then it is applicable ONLY to that plan.
 Otherwise a Stripe Product is applicable to every plan.
 Only the default Price of a Stripe Product is used for creating new subscriptions.
@@ -257,6 +263,8 @@ It is used for billing MAU cost.
 If `free_quantity` is present, then `free_quantity` is subtracted from the actual MAU count.
 If the result is positive, the result is uploaded as quantity.
 
+MAU price must present for each plans even additional maus are not applicable for the plan. Set the price to 0 for this case.
+
 See [Configure Products and Prices](#configure-products-and-prices) for details.
 
 #### Clear usage rule
@@ -281,6 +289,7 @@ The base cost of a plan
 
 ```
 Product
+metadata.subscription_item_type=plan
 metadata.price_type=fixed
 metadata.plan_name=PLAN_NAME
 
@@ -292,6 +301,7 @@ The SMS cost for North America
 
 ```
 Product
+metadata.subscription_item_type=sms-north-america
 metadata.price_type=usage
 metadata.usage_type=sms
 metadata.sms_region=north-america
@@ -302,8 +312,10 @@ recurring.aggregate_usage=sum
 ```
 
 The SMS cost for other regions
+
 ```
 Product
+metadata.subscription_item_type=sms-other-region
 metadata.price_type=usage
 metadata.usage_type=sms
 metadata.sms_region=other-regions
@@ -313,9 +325,39 @@ recurring.usage_type=metered
 recurring.aggregate_usage=sum
 ```
 
-The MAU cost of Business Plan
+The Whatsapp cost for North America
+
 ```
 Product
+metadata.subscription_item_type=whatsapp-north-america
+metadata.price_type=usage
+metadata.usage_type=whatsapp
+metadata.sms_region=north-america
+
+Price
+recurring.usage_type=metered
+recurring.aggregate_usage=sum
+```
+
+The Whatsapp cost for other regions
+
+```
+Product
+metadata.subscription_item_type=whatsapp-other-region
+metadata.price_type=usage
+metadata.usage_type=whatsapp
+metadata.sms_region=other-regions
+
+Price
+recurring.usage_type=metered
+recurring.aggregate_usage=sum
+```
+
+The MAU cost of Business Plan
+
+```
+Product
+metadata.subscription_item_type=mau
 metadata.price_type=usage
 metadata.usage_type=mau
 metadata.plan_name=business
@@ -325,14 +367,14 @@ recurring.usage_type=metered
 recurring.aggregate_usage=last_during_period
 transform_quantity.divide_by=5000
 transform_quantity.round=up
-metadata.free_quantity=30000
+metadata.free_quantity=10000
 ```
 
 Reference: https://stripe.com/docs/products-prices/manage-prices
 
 ### Configure Webhooks
 
-- Go to Stripe dashboard *Webhooks* section
+- Go to Stripe dashboard _Webhooks_ section
 - Add endpoint `https://PORTAL_DOMAIN/api/subscription/webhook/stripe`
 - Select events:
   - `checkout.session.completed`
@@ -381,7 +423,7 @@ The cronjob takes the following steps:
 - Get the `_portal_subscription`
 - Fetch the Stripe Subscription
 - Set `SUBSCRIPTION_CREATED_AT` be the creation time of the Stripe subscription.
-- If `MIDNIGHT` is NOT within [current\_period\_start](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_start) and [current\_period\_end](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_end), exit.
+- If `MIDNIGHT` is NOT within [current_period_start](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_start) and [current_period_end](https://stripe.com/docs/api/subscriptions/object#subscription_object-current_period_end), exit.
 - For each kind of usage we keep track of, do the following
   - Identify the Stripe Subscription Item that contains the target Stripe Price for this usage with `metadata`. If not found, exit.
   - Fetch the daily usage records from [the usage record table](#the-usage-record-table) with this condition.
