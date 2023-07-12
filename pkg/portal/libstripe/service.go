@@ -729,17 +729,3 @@ func (s *Service) CancelSubscriptionImmediately(subscriptionID string) error {
 	}
 	return nil
 }
-
-func stripeSubscriptionToPrices(subscription *stripe.Subscription) ([]*model.Price, error) {
-	var prices []*model.Price
-	for _, item := range subscription.Items.Data {
-		stripePrice := item.Price
-		stripeProduct := stripePrice.Product
-		price, err := NewPriceFromProductOfSubscription(stripeProduct, stripePrice)
-		if err != nil {
-			return nil, err
-		}
-		prices = append(prices, price)
-	}
-	return prices, nil
-}
