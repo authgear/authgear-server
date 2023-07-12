@@ -7,10 +7,11 @@ import (
 type EventType string
 
 const (
-	EventTypeCheckoutSessionCompleted    EventType = "checkout.session.completed"
-	EventTypeCustomerSubscriptionCreated EventType = "customer.subscription.created"
-	EventTypeCustomerSubscriptionUpdated EventType = "customer.subscription.updated"
-	EventTypeCustomerSubscriptionDeleted EventType = "customer.subscription.deleted"
+	EventTypeCheckoutSessionCompleted                 EventType = "checkout.session.completed"
+	EventTypeCustomerSubscriptionCreated              EventType = "customer.subscription.created"
+	EventTypeCustomerSubscriptionUpdated              EventType = "customer.subscription.updated"
+	EventTypeCustomerSubscriptionDeleted              EventType = "customer.subscription.deleted"
+	EventTypeCustomerSubscriptionPendingUpdateExpired EventType = "customer.subscription.pending_update_expired"
 )
 
 // type StripeSubscription
@@ -73,6 +74,14 @@ type CustomerSubscriptionDeletedEvent struct {
 
 func (e *CustomerSubscriptionDeletedEvent) EventType() EventType {
 	return EventTypeCustomerSubscriptionDeleted
+}
+
+type CustomerSubscriptionPendingUpdateExpiredEvent struct {
+	*CustomerSubscriptionEvent
+}
+
+func (e *CustomerSubscriptionPendingUpdateExpiredEvent) EventType() EventType {
+	return EventTypeCustomerSubscriptionPendingUpdateExpired
 }
 
 var _ Event = &CheckoutSessionCompletedEvent{}
