@@ -105,7 +105,7 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 				return err
 			}
 		} else {
-			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithJSONPointer(m)
+			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithForm(m)
 			if err != nil {
 				return err
 			}

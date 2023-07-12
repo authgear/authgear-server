@@ -148,7 +148,7 @@ func (t T) Tidy() T {
 	return out
 }
 
-func (t T) MergedWithJSONPointer(ptrs map[string]string) (T, error) {
+func (t T) MergedWithForm(ptrs map[string]string) (T, error) {
 	out := t.Clone().ToClaims()
 	for ptrStr, val := range ptrs {
 		ptr, err := jsonpointer.Parse(ptrStr)
