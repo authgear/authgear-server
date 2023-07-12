@@ -33,8 +33,8 @@ func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID stri
 	return nil
 }
 
-func (s *Service) UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
-	err := s.ServiceNoEvent.UpdateCustomAttributesWithJSONPointerMap(role, userID, jsonPointerMap)
+func (s *Service) UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
+	err := s.ServiceNoEvent.UpdateCustomAttributesWithForm(role, userID, jsonPointerMap)
 	if err != nil {
 		return err
 	}
