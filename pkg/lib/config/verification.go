@@ -22,7 +22,6 @@ var _ = Schema.Add("VerificationConfig", `
 		"claims": { "$ref": "#/$defs/VerificationClaimsConfig" },
 		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
 		"rate_limits": { "$ref": "#/$defs/VerificationRateLimitsConfig" },
-		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 60 },
 		"code_valid_period": { "$ref": "#/$defs/DurationString" }
 	}
 }
@@ -33,20 +32,15 @@ type VerificationConfig struct {
 	Criteria   VerificationCriteria          `json:"criteria,omitempty"`
 	RateLimits *VerificationRateLimitsConfig `json:"rate_limits,omitempty"`
 
-	// CodeExpirySeconds is deprecated
-	CodeExpirySeconds DurationSeconds `json:"code_expiry_seconds,omitempty"`
-	CodeValidPeriod   DurationString  `json:"code_valid_period,omitempty"`
+	CodeValidPeriod DurationString `json:"code_valid_period,omitempty"`
 }
 
 func (c *VerificationConfig) SetDefaults() {
 	if c.Criteria == "" {
 		c.Criteria = VerificationCriteriaAny
 	}
-	if c.CodeExpirySeconds == 0 {
-		c.CodeExpirySeconds = DurationSeconds(3600)
-	}
 	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = DurationString(c.CodeExpirySeconds.Duration().String())
+		c.CodeValidPeriod = DurationString("1h")
 	}
 }
 
