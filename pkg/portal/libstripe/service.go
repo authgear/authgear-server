@@ -573,9 +573,11 @@ func (s *Service) PreviewUpdateSubscription(stripeSubscriptionID string, subscri
 		Params: stripe.Params{
 			Context: s.Context,
 		},
-		Customer:          stripe.String(sub.Customer.ID),
-		Subscription:      stripe.String(sub.ID),
-		SubscriptionItems: itemsParams,
+		Customer:                      stripe.String(sub.Customer.ID),
+		Subscription:                  stripe.String(sub.ID),
+		SubscriptionItems:             itemsParams,
+		SubscriptionProrationDate:     stripe.Int64(time.Now().Unix()),
+		SubscriptionProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorAlwaysInvoice)),
 	}
 
 	inv, err := s.ClientAPI.Invoices.GetNext(invoiceParams)
