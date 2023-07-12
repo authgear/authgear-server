@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -62,15 +63,23 @@ func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *wor
 		}
 
 		attributes := inputFillUserProfile.GetAttributes()
-		err = i.validate(step, attributes)
+		allAbsent, err := i.validate(step, attributes)
 		if err != nil {
 			return nil, err
 		}
 
-		// FIXME(workflow): separate attributes into standard attributes and custom attributes.
-		// FIXME(workflow): update standard attributes
-		// FIXME(workflow): update custom attributes.
-		return workflow.NewNodeSimple(&NodeSentinel{}), nil
+		attributes = i.addAbsent(attributes, allAbsent)
+
+		stdAttrs, customAttrs, err := i.separate(deps, attributes)
+		if err != nil {
+			return nil, err
+		}
+
+		return workflow.NewNodeSimple(&NodeDoUpdateUserProfile{
+			UserID:             i.UserID,
+			StandardAttributes: stdAttrs,
+			CustomAttributes:   customAttrs,
+		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
@@ -84,7 +93,7 @@ func (*IntentSignupFlowStepUserProfile) OutputData(ctx context.Context, deps *wo
 	return nil, nil
 }
 
-func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlowStep, attributes []InputFillUserProfileAttribute) error {
+func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlowStep, attributes []attrs.T) (absent []string, err error) {
 	allAllowed := []string{}
 	allRequired := []string{}
 	for _, spec := range step.UserProfile {
@@ -98,24 +107,41 @@ func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlow
 	allPresent := []string{}
 	for _, attr := range attributes {
 		attr := attr
-		pointer := attr.Pointer.String()
+		pointer := attr.Pointer
 		allPresent = append(allPresent, pointer)
 	}
 
 	allMissing := slice.ExceptStrings(allRequired, allPresent)
 	allDisallowed := slice.ExceptStrings(allPresent, allAllowed)
+	allAbsent := slice.ExceptStrings(allAllowed, allPresent)
 
 	if len(allMissing) > 0 || len(allDisallowed) > 0 {
-		return InvalidUserProfile.NewWithInfo("invalid attributes", apierrors.Details{
+		return nil, InvalidUserProfile.NewWithInfo("invalid attributes", apierrors.Details{
 			"allowed":    allAllowed,
 			"required":   allRequired,
-			"actual":     allPresent,
+			"present":    allPresent,
+			"absent":     allAbsent,
 			"missing":    allMissing,
 			"disallowed": allDisallowed,
 		})
 	}
 
-	return nil
+	absent = allAbsent
+	return
+}
+
+func (*IntentSignupFlowStepUserProfile) addAbsent(attributes []attrs.T, allAbsent []string) attrs.List {
+	return attrs.List(attributes).AddAbsent(allAbsent)
+}
+
+func (*IntentSignupFlowStepUserProfile) separate(deps *workflow.Dependencies, attributes attrs.List) (stdAttrs attrs.List, customAttrs attrs.List, err error) {
+	stdAttrs, customAttrs, unknownAttrs := attrs.List(attributes).Separate(deps.Config.UserProfile)
+	if len(unknownAttrs) > 0 {
+		err = InvalidUserProfile.NewWithInfo("unknown attributes", apierrors.Details{
+			"unknown": unknownAttrs,
+		})
+	}
+	return
 }
 
 func (*IntentSignupFlowStepUserProfile) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
