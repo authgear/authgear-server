@@ -138,11 +138,11 @@ func (s *ServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, user
 	return s.updateCustomAttributes(role, userID, pointers, reprForm)
 }
 
-func (s *ServiceNoEvent) UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
+func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, form map[string]string) error {
 	var pointers []string
 	reprForm := make(map[string]interface{})
 
-	for ptrStr, strRepr := range jsonPointerMap {
+	for ptrStr, strRepr := range form {
 		for _, c := range s.Config.CustomAttributes.Attributes {
 			if ptrStr == c.Pointer {
 				ptr, err := jsonpointer.Parse(c.Pointer)
