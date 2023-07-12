@@ -46,7 +46,10 @@ func (*IntentSignupFlowStepUserProfile) JSONSchema() *validation.SimpleSchema {
 }
 
 func (*IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputFillUserProfile{}}, nil
+	if len(workflows.Nearest.Nodes) == 0 {
+		return []workflow.Input{&InputFillUserProfile{}}, nil
+	}
+	return nil, workflow.ErrEOF
 }
 
 func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {

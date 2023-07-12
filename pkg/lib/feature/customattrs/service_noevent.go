@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -135,6 +136,36 @@ func (s *ServiceNoEvent) allPointers() (out []string) {
 
 func (s *ServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
 	pointers := s.allPointers()
+	return s.updateCustomAttributes(role, userID, pointers, reprForm)
+}
+
+func (s *ServiceNoEvent) UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, l attrs.List) error {
+	var pointers []string
+	reprForm := make(map[string]interface{})
+
+	for _, attr := range l {
+		for _, c := range s.Config.CustomAttributes.Attributes {
+			if attr.Pointer == c.Pointer {
+				ptr, err := jsonpointer.Parse(c.Pointer)
+				if err != nil {
+					return err
+				}
+
+				pointers = append(pointers, c.Pointer)
+
+				// nil means deletion
+				if attr.Value == nil {
+					continue
+				}
+
+				err = jsonpointerutil.AssignToJSONObject(ptr, reprForm, attr.Value)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return s.updateCustomAttributes(role, userID, pointers, reprForm)
 }
 
