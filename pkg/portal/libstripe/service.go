@@ -443,7 +443,8 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 		}, nil
 	case string(EventTypeCustomerSubscriptionCreated),
 		string(EventTypeCustomerSubscriptionUpdated),
-		string(EventTypeCustomerSubscriptionDeleted):
+		string(EventTypeCustomerSubscriptionDeleted),
+		string(EventTypeCustomerSubscriptionPendingUpdateExpired):
 		object := stripeEvent.Data.Object
 		subscriptionID, ok := object["id"].(string)
 		if !ok {
@@ -491,6 +492,17 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 			}, nil
 		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
 			return &CustomerSubscriptionDeletedEvent{
+				&CustomerSubscriptionEvent{
+					StripeSubscriptionID:     subscriptionID,
+					StripeCustomerID:         customerID,
+					AppID:                    appID,
+					StripeSubscriptionStatus: sub.Status,
+					PlanName:                 s.deriveSubscriptionPlanName(sub),
+					IsPendingUpdate:          isPendingUpdate,
+				},
+			}, nil
+		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
+			return &CustomerSubscriptionPendingUpdateExpiredEvent{
 				&CustomerSubscriptionEvent{
 					StripeSubscriptionID:     subscriptionID,
 					StripeCustomerID:         customerID,
