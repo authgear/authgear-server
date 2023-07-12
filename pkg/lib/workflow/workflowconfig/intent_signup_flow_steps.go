@@ -85,7 +85,12 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depe
 			UserID:      i.UserID,
 		}), nil
 	case config.WorkflowSignupFlowStepTypeUserProfile:
-		// FIXME(workflow): fill user profile
+		return workflow.NewSubWorkflow(&IntentSignupFlowStepUserProfile{
+			SignupFlow:  i.SignupFlow,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
+		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
