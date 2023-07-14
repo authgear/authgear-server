@@ -1,7 +1,14 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+{{ $until := "" }}
+{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
+	{{ $until = (rfc3339 (ensureTime .Error.info.until)) }}
+{{ end }}
+<div 
+	data-controller="timer"
+	data-timer-until="{{ $until }}"
+	class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
@@ -69,6 +76,7 @@
 	value="submit"
 	{{ if $.FailedAttemptRateLimitExceeded }}disabled{{ end }}
 	data-authgear-event="authgear.button.enter_oob_otp"
+	data-timer-disabled-before
 >{{ template "next-button-label" }}</button>
 
 {{/* Since the page has two alternatives list, so we need to handle the display of separator separately*/}}

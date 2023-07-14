@@ -11,18 +11,29 @@ export class TimerController extends Controller {
       return;
     }
     const luxonDatetime = DateTime.fromISO(rfc3339);
-    const beforeEls = el.querySelectorAll("[data-timer-display-before]");
-    const afterEls = el.querySelectorAll("[data-timer-display-after]");
+    if (!luxonDatetime.isValid) {
+      return;
+    }
+    const displayBeforeEls = el.querySelectorAll("[data-timer-display-before]");
+    const displayAfterEls = el.querySelectorAll("[data-timer-display-after]");
+    const disabledBeforeEls = el.querySelectorAll(
+      "[data-timer-disabled-before]"
+    );
 
     const render = () => {
       const now = DateTime.now();
       const isBeforeDt = now < luxonDatetime;
-      beforeEls.forEach(
+      displayBeforeEls.forEach(
         (el) => ((el as HTMLElement).style.display = isBeforeDt ? "" : "none")
       );
-      afterEls.forEach(
+      displayAfterEls.forEach(
         (el) => ((el as HTMLElement).style.display = isBeforeDt ? "none" : "")
       );
+      disabledBeforeEls.forEach((el) => {
+        const wasDisabled = el.getAttribute("disabled") != null;
+        (el as HTMLButtonElement).disabled =
+          isBeforeDt || wasDisabled ? true : false;
+      });
     };
     render();
 

@@ -1,7 +1,14 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+{{ $until := "" }}
+{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
+	{{ $until = (rfc3339 (ensureTime .Error.info.until)) }}
+{{ end }}
+<div
+	data-controller="timer"
+	data-timer-until="{{ $until }}"
+	class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
 <h1 class="m-0 primary-txt text-center text-xl font-bold">
 	<div class="whatsapp-icon w-6 h-6 inline-block align-sub" ></div>
@@ -65,6 +72,7 @@
 	value="submit"
 	{{ if $.FailedAttemptRateLimitExceeded }}disabled{{ end }}
 	data-authgear-event="authgear.button.enter_whatsapp_otp"
+	data-timer-disabled-before
 >{{ template "next-button-label" }}</button>
 
 {{/* Since the page has two alternatives list, so we need to handle the display of separator separately*/}}
