@@ -77,7 +77,8 @@
   "error-deactivated-user": "You have deactivated your account.",
   "error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
-  "error-account-locked": "Your account is locked out. Please try again <span data-date=\"{rfc3339}\" data-date-type=relative>{datetime, time, long}</span>.",
+  "error-account-locked--countdown": "Your account is locked out. Please try again <span data-date=\"{rfc3339}\" data-date-countdown=\"true\" data-date-type=relative>{datetime, time, long}</span>.",
+  "error-account-locked": "Your account is locked out. Please try again.",
 
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",

@@ -55,6 +55,8 @@ function parseTimeStyle(s: string | null): TimeStyle | undefined {
 }
 
 export class FormatDateRelativeController extends Controller {
+  declare intervalHandle: number | null;
+
   connect() {
     const dateSpans = document.documentElement.querySelectorAll("[data-date]");
     const lang = document.documentElement.lang;
@@ -65,9 +67,11 @@ export class FormatDateRelativeController extends Controller {
 
     const hasAbs = intlDateTimeFormatIsSupported();
     const hasRel = intlRelativeTimeFormatIsSupported();
+    const animationTasks: (() => void)[] = [];
 
     for (let i = 0; i < dateSpans.length; i++) {
       const dateSpan = dateSpans[i];
+      const isCountdown = Boolean(dateSpan.getAttribute("data-date-countdown"));
       const rfc3339 = dateSpan.getAttribute("data-date");
       const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
       const dateStyle = parseDateStyle(
@@ -77,47 +81,70 @@ export class FormatDateRelativeController extends Controller {
         dateSpan.getAttribute("data-date-time-style")
       );
 
-      if (typeof rfc3339 === "string") {
-        const luxonDatetime = DateTime.fromISO(rfc3339);
-        const abs = hasAbs
-          ? luxonDatetime.toLocaleString(
-              {
-                dateStyle,
-                timeStyle,
-              },
-              {
+      const render = () => {
+        if (typeof rfc3339 === "string") {
+          const luxonDatetime = DateTime.fromISO(rfc3339);
+          const now = DateTime.now();
+          const abs = hasAbs
+            ? luxonDatetime.toLocaleString(
+                {
+                  dateStyle,
+                  timeStyle,
+                },
+                {
+                  locale: lang,
+                }
+              )
+            : null;
+          const rel = hasRel
+            ? luxonDatetime.toRelative({
                 locale: lang,
-              }
-            )
-          : null;
-        const rel = hasRel
-          ? luxonDatetime.toRelative({
-              locale: lang,
-            })
-          : null;
+                base: now,
+              })
+            : null;
 
-        if (dateSpan instanceof HTMLElement) {
-          // Display the absolute date time as title (tooltip).
-          // This is how GitHub shows date time.
-          if (abs != null) {
-            dateSpan.title = abs;
+          if (dateSpan instanceof HTMLElement) {
+            // Display the absolute date time as title (tooltip).
+            // This is how GitHub shows date time.
+            if (abs != null) {
+              dateSpan.title = abs;
+            }
+          }
+
+          if (dateType === "relative") {
+            // Prefer showing relative date time,
+            // and fallback to absolute date time.
+            if (rel != null) {
+              dateSpan.textContent = rel;
+            } else if (abs != null) {
+              dateSpan.textContent = abs;
+            }
+          } else {
+            if (abs != null) {
+              dateSpan.textContent = abs;
+            }
           }
         }
+      };
+      render();
 
-        if (dateType === "relative") {
-          // Prefer showing relative date time,
-          // and fallback to absolute date time.
-          if (rel != null) {
-            dateSpan.textContent = rel;
-          } else if (abs != null) {
-            dateSpan.textContent = abs;
-          }
-        } else {
-          if (abs != null) {
-            dateSpan.textContent = abs;
-          }
-        }
+      if (isCountdown) {
+        animationTasks.push(render);
       }
+    }
+
+    if (animationTasks.length > 0) {
+      const tick = () => {
+        animationTasks.forEach((fn) => fn());
+      };
+      this.intervalHandle = window.setInterval(tick, 100);
+    }
+  }
+
+  disconnect() {
+    if (this.intervalHandle != null) {
+      window.clearInterval(this.intervalHandle);
+      this.intervalHandle = null;
     }
   }
 }
