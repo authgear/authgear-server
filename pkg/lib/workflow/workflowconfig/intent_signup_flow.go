@@ -6,6 +6,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -45,7 +47,7 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Depend
 	// The list of nodes looks like
 	// 1 NodeDoCreateUser
 	// 1 IntentSignupFlowSteps
-	// 1 IntentCreateSession
+	// 1 NodeDoCreateSession
 	// So at the end of the flow, it will have 3 nodes.
 	if len(workflows.Nearest.Nodes) == 3 {
 		return nil, workflow.ErrEOF
@@ -67,16 +69,62 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependenc
 			UserID:      i.userID(workflows.Nearest),
 		}), nil
 	case len(workflows.Nearest.Nodes) == 2:
-		// FIXME(workflow): create session
-		break
+		node := NewNodeDoCreateSession(deps, &NodeDoCreateSession{
+			UserID:       i.userID(workflows.Nearest),
+			CreateReason: session.CreateReasonSignup,
+			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
+		})
+		return workflow.NewNodeSimple(node), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
-	// FIXME(workflow): perform signup effects.
-	return nil, nil
+func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
+	return []workflow.Effect{
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// Apply rate limit on sign up.
+			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
+			err := deps.RateLimiter.Allow(spec)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			userID := i.userID(workflows.Nearest)
+			isAdminAPI := false
+			uiParam := uiparam.GetUIParam(ctx)
+
+			u, err := deps.Users.GetRaw(userID)
+			if err != nil {
+				return err
+			}
+
+			identities, err := deps.Identities.ListByUser(userID)
+			if err != nil {
+				return err
+			}
+
+			authenticators, err := deps.Authenticators.List(userID)
+			if err != nil {
+				return err
+			}
+
+			err = deps.Users.AfterCreate(
+				u,
+				identities,
+				authenticators,
+				isAdminAPI,
+				uiParam,
+			)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}),
+	}, nil
 }
 
 func (*IntentSignupFlow) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
