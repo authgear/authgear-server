@@ -29,6 +29,7 @@ type IdentityService interface {
 	Get(id string) (*identity.Info, error)
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
+	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
