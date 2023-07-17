@@ -4,7 +4,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 )
 
-const MaxPageSize uint64 = 1000
+const MaxPageSize uint64 = 100
 
 type Cursor string
 

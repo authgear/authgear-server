@@ -14,7 +14,6 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
-import cn from "classnames";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -36,7 +35,9 @@ import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 const LocalSearchBoxContext = createContext<LocalSearchBoxProps | null>(null);
 
 const pageSize = 10;
-const searchResultSize = 1000;
+// We have performance problem on the users query
+// limit to 10 items for now
+const searchResultSize = 10;
 
 interface LocalSearchBoxProps {
   className?: ISearchBoxProps["className"];
@@ -204,12 +205,14 @@ const UsersScreen: React.VFC = function UsersScreen() {
         messageBar={messageBar}
       >
         <ScreenContent className={styles.content} layout="list">
-          <NavBreadcrumb className={styles.widget} items={items} />
-          {isSearch && isTotalExceededLimit ? (
-            <MessageBar className={cn(styles.widget, "h-min")}>
-              <FormattedMessage id="UsersScreen.search.resultLimited" />
-            </MessageBar>
-          ) : null}
+          <div className={styles.widget}>
+            <NavBreadcrumb className="block" items={items} />
+            {isSearch && isTotalExceededLimit && !loading ? (
+              <MessageBar className={styles.message}>
+                <FormattedMessage id="UsersScreen.search.resultLimited" />
+              </MessageBar>
+            ) : null}
+          </div>
           <UsersList
             className={styles.widget}
             isSearch={isSearch}
