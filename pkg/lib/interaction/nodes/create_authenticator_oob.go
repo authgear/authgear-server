@@ -31,7 +31,7 @@ func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: input.GetOOBOTP(),
 		},
-	})
+	}, nil)
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
 		errors.Is(err, authenticator.ErrInvalidCredentials) {
 		return nil, api.ErrInvalidCredentials

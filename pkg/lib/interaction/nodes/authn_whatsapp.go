@@ -1,12 +1,14 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -29,20 +31,17 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
-
-	phone := e.Authenticator.OOBOTP.Phone
-	userID := e.Authenticator.UserID
 	code := input.GetWhatsappOTP()
-	err := ctx.OTPCodeService.VerifyOTP(
-		otp.KindOOBOTP(ctx.Config, model.AuthenticatorOOBChannelWhatsapp),
-		phone,
-		code,
-		&otp.VerifyOptions{
-			UserID: userID,
+	channel := model.AuthenticatorOOBChannelWhatsapp
+	_, err := ctx.Authenticators.VerifyWithSpec(e.Authenticator, &authenticator.Spec{
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Code: code,
 		},
-	)
+	}, &service.VerifyOptions{
+		OOBChannel: &channel,
+	})
 	if err != nil {
-		if apierrors.IsKind(err, otp.InvalidOTPCode) {
+		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			return nil, errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
 				"AuthenticationType": apierrors.APIErrorDetail.Value(e.Authenticator.Type),
 			})

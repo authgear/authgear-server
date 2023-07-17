@@ -49,7 +49,7 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputTakePassword.GetPassword(),
 			},
-		})
+		}, nil)
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			if err := DispatchAuthenticationFailedEvent(deps.Events, info); err != nil {
 				return nil, err

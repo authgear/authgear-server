@@ -35,7 +35,7 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, grap
 		TOTP: &authenticator.TOTPSpec{
 			Code: input.GetTOTP(),
 		},
-	})
+	}, nil)
 	if errors.Is(err, authenticator.ErrInvalidCredentials) {
 		return nil, api.ErrInvalidCredentials
 	} else if err != nil {

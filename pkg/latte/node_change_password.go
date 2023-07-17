@@ -49,7 +49,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputChangePassword.GetOldPassword(),
 			},
-		})
+		}, nil)
 		if err != nil {
 			return nil, api.ErrInvalidCredentials
 		}
