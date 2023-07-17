@@ -55,36 +55,44 @@ function parseTimeStyle(s: string | null): TimeStyle | undefined {
 }
 
 export class FormatDateRelativeController extends Controller {
-  declare intervalHandle: number | null;
+  static values = {
+    relativeBase: String,
+  };
+
+  declare relativeBaseValue: string;
+
+  render: () => void = () => {};
 
   connect() {
     const dateSpans = document.documentElement.querySelectorAll("[data-date]");
-    const lang = document.documentElement.lang;
 
-    if (lang == null || lang === "") {
-      return;
-    }
+    const render = () => {
+      const lang = document.documentElement.lang;
 
-    const hasAbs = intlDateTimeFormatIsSupported();
-    const hasRel = intlRelativeTimeFormatIsSupported();
-    const animationTasks: (() => void)[] = [];
+      if (lang == null || lang === "") {
+        return;
+      }
 
-    for (let i = 0; i < dateSpans.length; i++) {
-      const dateSpan = dateSpans[i];
-      const isCountdown = Boolean(dateSpan.getAttribute("data-date-countdown"));
-      const rfc3339 = dateSpan.getAttribute("data-date");
-      const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
-      const dateStyle = parseDateStyle(
-        dateSpan.getAttribute("data-date-date-style")
-      );
-      const timeStyle = parseTimeStyle(
-        dateSpan.getAttribute("data-date-time-style")
-      );
+      const hasAbs = intlDateTimeFormatIsSupported();
+      const hasRel = intlRelativeTimeFormatIsSupported();
+      let relativeBase = DateTime.now();
+      if (this.relativeBaseValue) {
+        relativeBase = DateTime.fromISO(this.relativeBaseValue);
+      }
 
-      const render = () => {
+      for (let i = 0; i < dateSpans.length; i++) {
+        const dateSpan = dateSpans[i];
+        const rfc3339 = dateSpan.getAttribute("data-date");
+        const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
+        const dateStyle = parseDateStyle(
+          dateSpan.getAttribute("data-date-date-style")
+        );
+        const timeStyle = parseTimeStyle(
+          dateSpan.getAttribute("data-date-time-style")
+        );
+
         if (typeof rfc3339 === "string") {
           const luxonDatetime = DateTime.fromISO(rfc3339);
-          const now = DateTime.now();
           const abs = hasAbs
             ? luxonDatetime.toLocaleString(
                 {
@@ -99,7 +107,7 @@ export class FormatDateRelativeController extends Controller {
           const rel = hasRel
             ? luxonDatetime.toRelative({
                 locale: lang,
-                base: now,
+                base: relativeBase,
               })
             : null;
 
@@ -125,27 +133,15 @@ export class FormatDateRelativeController extends Controller {
             }
           }
         }
-      };
-      render();
-
-      if (isCountdown) {
-        animationTasks.push(render);
       }
-    }
+    };
 
-    if (animationTasks.length > 0) {
-      const tick = () => {
-        animationTasks.forEach((fn) => fn());
-      };
-      this.intervalHandle = window.setInterval(tick, 100);
-    }
+    this.render = render.bind(this);
+    this.render();
   }
 
-  disconnect() {
-    if (this.intervalHandle != null) {
-      window.clearInterval(this.intervalHandle);
-      this.intervalHandle = null;
-    }
+  relativeBaseValueChanged() {
+    this.render();
   }
 }
 

@@ -1,8 +1,24 @@
 {{ define "__page_frame.html" }}
 <!DOCTYPE html>
-<html lang="{{ $.ResolvedLanguageTag }}" data-controller="format-date-relative" data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
+
+<html
+	lang="{{ $.ResolvedLanguageTag }}"
+	data-controller="format-date-relative"
+	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
 {{ template "__html_head.html" . }}
-<body class="page" data-controller="prevent-double-tap websocket modal simple-modal xhr-submit-form" data-action="dblclick->prevent-double-tap#action">
+
+{{ $lockedUntil := "" }}
+{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
+	{{ $lockedUntil = (rfc3339 (ensureTime .Error.info.until)) }}
+{{ end }}
+
+<body
+	class="page"
+	data-controller="prevent-double-tap websocket modal simple-modal xhr-submit-form lockout"
+	data-action="dblclick->prevent-double-tap#action"
+	data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
+	data-lockout-lock-until-value="{{ $lockedUntil }}"
+	data-lockout-action-button-selector-value="[data-action-button]">
 
 <!-- Google Tag Manager (noscript) -->
 {{ if $.GoogleTagManagerContainerID }}
