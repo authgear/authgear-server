@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -20,12 +19,16 @@ type AuthzAdder interface {
 		hdr http.Header) (err error)
 }
 
+type AdminAPIDefaultDomainService interface {
+	GetLatestAppHost(appID string) (string, error)
+}
+
 type AdminAPIService struct {
 	AuthgearConfig *portalconfig.AuthgearConfig
-	AppConfig      *portalconfig.AppConfig
 	AdminAPIConfig *portalconfig.AdminAPIConfig
 	ConfigSource   *configsource.ConfigSource
 	AuthzAdder     AuthzAdder
+	DefaultDomains AdminAPIDefaultDomainService
 }
 
 type Usage string
@@ -47,13 +50,6 @@ func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
 		return nil, err
 	}
 	return appCtx.Config, nil
-}
-
-func (s *AdminAPIService) ResolveHost(appID string) (host string, err error) {
-	if s.AppConfig.HostSuffix == "" {
-		return "", errors.New("app hostname suffix is not configured")
-	}
-	return appID + s.AppConfig.HostSuffix, nil
 }
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
@@ -87,7 +83,7 @@ func (s *AdminAPIService) Director(appID string, p string, actorUserID string, u
 	}
 	endpoint.Path = p
 
-	host, err := s.ResolveHost(appID)
+	host, err := s.DefaultDomains.GetLatestAppHost(appID)
 	if err != nil {
 		return
 	}
