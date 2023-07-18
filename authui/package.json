@@ -14,6 +14,9 @@
     "process": false,
     "buffer": false
   },
+  "overrides": {
+    "word-wrap" : "@aashutoshrathi/word-wrap"
+  },
   "devDependencies": {
     "@jest/globals": "29.2.2",
     "@parcel/config-default": "2.7.0",
