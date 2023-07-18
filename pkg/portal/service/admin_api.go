@@ -1,11 +1,10 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
-	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -23,6 +22,7 @@ type AuthzAdder interface {
 
 type AdminAPIService struct {
 	AuthgearConfig *portalconfig.AuthgearConfig
+	AppConfig      *portalconfig.AppConfig
 	AdminAPIConfig *portalconfig.AdminAPIConfig
 	ConfigSource   *configsource.ConfigSource
 	AuthzAdder     AuthzAdder
@@ -50,23 +50,10 @@ func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
 }
 
 func (s *AdminAPIService) ResolveHost(appID string) (host string, err error) {
-	t := texttemplate.New("host-template")
-	_, err = t.Parse(s.AdminAPIConfig.HostTemplate)
-	if err != nil {
-		return
+	if s.AppConfig.HostSuffix == "" {
+		return "", errors.New("app hostname suffix is not configured")
 	}
-	var buf strings.Builder
-
-	data := map[string]interface{}{
-		"AppID": appID,
-	}
-	err = t.Execute(&buf, data)
-	if err != nil {
-		return
-	}
-
-	host = buf.String()
-	return
+	return appID + s.AppConfig.HostSuffix, nil
 }
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
