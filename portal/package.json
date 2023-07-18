@@ -19,6 +19,9 @@
     "process": false,
     "buffer": false
   },
+  "overrides": {
+    "word-wrap" : "@aashutoshrathi/word-wrap"
+  },
   "devDependencies": {
     "@graphql-codegen/cli": "2.13.7",
     "@graphql-codegen/near-operation-file-preset": "2.4.3",
