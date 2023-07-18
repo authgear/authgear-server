@@ -25,7 +25,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(AppAuthzService), new(*AuthzService)),
 	wire.Bind(new(AppConfigService), new(*ConfigService)),
 	wire.Bind(new(CollaboratorAppConfigService), new(*ConfigService)),
-	wire.Bind(new(AppAdminAPIService), new(*AdminAPIService)),
 	wire.Bind(new(AppDomainService), new(*DomainService)),
 	wire.Bind(new(AuthzConfigService), new(*ConfigService)),
 	wire.Bind(new(AuthzCollaboratorService), new(*CollaboratorService)),

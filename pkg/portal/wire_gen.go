@@ -89,6 +89,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
 	authgearConfig := rootProvider.AuthgearConfig
+	appConfig := rootProvider.AppConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
@@ -98,6 +99,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	adminAPIService := &service.AdminAPIService{
 		AuthgearConfig: authgearConfig,
+		AppConfig:      appConfig,
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
@@ -111,7 +113,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
-	appConfig := rootProvider.AppConfig
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
@@ -236,7 +237,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfig:                appConfig,
 		AppConfigs:               configService,
 		AppAuthz:                 authzService,
-		AppAdminAPI:              adminAPIService,
 		AppDomains:               domainService,
 		Resources:                manager,
 		AppResMgrFactory:         managerFactory,
@@ -469,6 +469,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	adminAPIService := &service.AdminAPIService{
 		AuthgearConfig: authgearConfig,
+		AppConfig:      appConfig,
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
