@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
 	"path"
 	"regexp"
@@ -57,8 +56,9 @@ type AppAuthzService interface {
 	ListAuthorizedApps(userID string) ([]string, error)
 }
 
-type AppDomainService interface {
-	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error)
+type AppDefaultDomainService interface {
+	GetLatestAppHost(appID string) (string, error)
+	CreateAllDefaultDomains(appID string) error
 }
 
 type AppPlanService interface {
@@ -96,7 +96,7 @@ type AppService struct {
 	AppConfig                *portalconfig.AppConfig
 	AppConfigs               AppConfigService
 	AppAuthz                 AppAuthzService
-	AppDomains               AppDomainService
+	DefaultDomains           AppDefaultDomainService
 	Resources                ResourceManager
 	AppResMgrFactory         AppResourceManagerFactory
 	Plan                     AppPlanService
@@ -259,7 +259,7 @@ func (s *AppService) Create(userID string, id string) error {
 		WithField("app_id", id).
 		Info("creating app")
 
-	appHost, err := s.generateAppHost(id)
+	appHost, err := s.DefaultDomains.GetLatestAppHost(id)
 	if err != nil {
 		return err
 	}
@@ -281,12 +281,7 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	appDomain := appHost
-	if h, _, err := net.SplitHostPort(appHost); err == nil {
-		appDomain = h
-	}
-
-	_, err = s.AppDomains.CreateDomain(id, appDomain, true, false)
+	err = s.DefaultDomains.CreateAllDefaultDomains(id)
 	if err != nil {
 		return err
 	}
@@ -361,13 +356,6 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 	appResources[defaultTranslationJSONPath] = translationJSON
 
 	return appResources, nil
-}
-
-func (s *AppService) generateAppHost(appID string) (string, error) {
-	if s.AppConfig.HostSuffix == "" {
-		return "", errors.New("app hostname suffix is not configured")
-	}
-	return appID + s.AppConfig.HostSuffix, nil
 }
 
 func (s *AppService) generateConfig(appHost string, appID string, appPlan *model.Plan) (opts *CreateAppOptions, err error) {
