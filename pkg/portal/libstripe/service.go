@@ -501,7 +501,7 @@ func (s *Service) constructEvent(stripeEvent *stripe.Event) (Event, error) {
 					IsPendingUpdate:          isPendingUpdate,
 				},
 			}, nil
-		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionDeleted) {
+		} else if stripeEvent.Type == string(EventTypeCustomerSubscriptionPendingUpdateExpired) {
 			return &CustomerSubscriptionPendingUpdateExpiredEvent{
 				&CustomerSubscriptionEvent{
 					StripeSubscriptionID:     subscriptionID,
