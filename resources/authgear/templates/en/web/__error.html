@@ -195,10 +195,17 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
       {{ end }}
     {{ else if eq .Error.reason "AccountLockout" }}
     {{ $until := (ensureTime .Error.info.until) }}
-    <li data-controller="format-date-relative">{{ template "error-account-locked" (dict
-      "rfc3339" (rfc3339 $until)
-      "datetime" $until
-    )}}</li>
+    <li>
+      <span data-lockout-target="locked" data-controller="format-date-relative">
+        {{ template "error-account-locked--countdown" (dict
+          "rfc3339" (rfc3339 $until)
+          "datetime" $until
+        )}}
+      </span>
+      <span data-lockout-target="unlocked">
+        {{ template "error-account-locked" }}
+      </span>
+    </li>
     {{ else if eq .Error.reason "UsageLimitExceeded" }}
     <li>{{ template "error-usage-limit-exceeded" }}</li>
     {{ else if eq .Error.reason "SMSNotSupported" }}

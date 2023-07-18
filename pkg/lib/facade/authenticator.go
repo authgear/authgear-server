@@ -2,6 +2,7 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 )
 
 type AuthenticatorFacade struct {
@@ -40,8 +41,8 @@ func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error
 	return a.Coordinator.AuthenticatorDelete(authenticatorInfo)
 }
 
-func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
-	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec)
+func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (requireUpdate bool, err error) {
+	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec, options)
 }
 
 func (a AuthenticatorFacade) ClearLockoutAttempts(authenticators []*authenticator.Info) error {

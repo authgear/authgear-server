@@ -45,7 +45,7 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 
 	var info *authenticator.Info
 	for _, a := range e.Authenticators {
-		_, err := ctx.Authenticators.VerifyWithSpec(a, spec)
+		_, err := ctx.Authenticators.VerifyWithSpec(a, spec, nil)
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			continue
 		} else if err != nil {

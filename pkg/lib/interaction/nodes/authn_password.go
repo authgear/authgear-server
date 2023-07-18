@@ -59,7 +59,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 	var requireUpdate bool
 	var info *authenticator.Info
 	for _, a := range e.Authenticators {
-		b, err := ctx.Authenticators.VerifyWithSpec(a, spec)
+		b, err := ctx.Authenticators.VerifyWithSpec(a, spec, nil)
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			continue
 		} else if err != nil {

@@ -439,7 +439,11 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec) (requireUpdate bool, err error) {
+func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
+	if options == nil {
+		options = &VerifyOptions{}
+	}
+
 	r := s.RateLimits.Reserve(info.UserID, info.Type)
 	defer s.RateLimits.Cancel(r)
 
@@ -505,11 +509,15 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		return
 	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
 		var channel model.AuthenticatorOOBChannel
-		switch info.Type {
-		case model.AuthenticatorTypeOOBEmail:
-			channel = model.AuthenticatorOOBChannelEmail
-		case model.AuthenticatorTypeOOBSMS:
-			channel = model.AuthenticatorOOBChannelSMS
+		if options.OOBChannel != nil {
+			channel = *options.OOBChannel
+		} else {
+			switch info.Type {
+			case model.AuthenticatorTypeOOBEmail:
+				channel = model.AuthenticatorOOBChannelEmail
+			case model.AuthenticatorTypeOOBSMS:
+				channel = model.AuthenticatorOOBChannelSMS
+			}
 		}
 		kind := otp.KindOOBOTP(s.Config, channel)
 

@@ -108,7 +108,7 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: oldPassword,
 			},
-		})
+		}, nil)
 		if err != nil {
 			err = api.ErrInvalidCredentials
 			return

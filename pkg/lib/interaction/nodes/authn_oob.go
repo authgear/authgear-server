@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -34,9 +35,13 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: input.GetOOBOTP(),
 		},
-	})
+	}, nil)
 	if err != nil {
-		info = nil
+		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+			info = nil
+		} else {
+			return nil, err
+		}
 	}
 
 	return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: info, AuthenticatorType: e.Authenticator.Type}, nil

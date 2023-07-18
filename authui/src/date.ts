@@ -55,70 +55,93 @@ function parseTimeStyle(s: string | null): TimeStyle | undefined {
 }
 
 export class FormatDateRelativeController extends Controller {
+  static values = {
+    relativeBase: String,
+  };
+
+  declare relativeBaseValue: string;
+
+  render: () => void = () => {};
+
   connect() {
     const dateSpans = document.documentElement.querySelectorAll("[data-date]");
-    const lang = document.documentElement.lang;
 
-    if (lang == null || lang === "") {
-      return;
-    }
+    const render = () => {
+      const lang = document.documentElement.lang;
 
-    const hasAbs = intlDateTimeFormatIsSupported();
-    const hasRel = intlRelativeTimeFormatIsSupported();
+      if (lang == null || lang === "") {
+        return;
+      }
 
-    for (let i = 0; i < dateSpans.length; i++) {
-      const dateSpan = dateSpans[i];
-      const rfc3339 = dateSpan.getAttribute("data-date");
-      const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
-      const dateStyle = parseDateStyle(
-        dateSpan.getAttribute("data-date-date-style")
-      );
-      const timeStyle = parseTimeStyle(
-        dateSpan.getAttribute("data-date-time-style")
-      );
+      const hasAbs = intlDateTimeFormatIsSupported();
+      const hasRel = intlRelativeTimeFormatIsSupported();
+      let relativeBase = DateTime.now();
+      if (this.relativeBaseValue) {
+        relativeBase = DateTime.fromISO(this.relativeBaseValue);
+      }
 
-      if (typeof rfc3339 === "string") {
-        const luxonDatetime = DateTime.fromISO(rfc3339);
-        const abs = hasAbs
-          ? luxonDatetime.toLocaleString(
-              {
-                dateStyle,
-                timeStyle,
-              },
-              {
+      for (let i = 0; i < dateSpans.length; i++) {
+        const dateSpan = dateSpans[i];
+        const rfc3339 = dateSpan.getAttribute("data-date");
+        const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
+        const dateStyle = parseDateStyle(
+          dateSpan.getAttribute("data-date-date-style")
+        );
+        const timeStyle = parseTimeStyle(
+          dateSpan.getAttribute("data-date-time-style")
+        );
+
+        if (typeof rfc3339 === "string") {
+          const luxonDatetime = DateTime.fromISO(rfc3339);
+          const abs = hasAbs
+            ? luxonDatetime.toLocaleString(
+                {
+                  dateStyle,
+                  timeStyle,
+                },
+                {
+                  locale: lang,
+                }
+              )
+            : null;
+          const rel = hasRel
+            ? luxonDatetime.toRelative({
                 locale: lang,
-              }
-            )
-          : null;
-        const rel = hasRel
-          ? luxonDatetime.toRelative({
-              locale: lang,
-            })
-          : null;
+                base: relativeBase,
+              })
+            : null;
 
-        if (dateSpan instanceof HTMLElement) {
-          // Display the absolute date time as title (tooltip).
-          // This is how GitHub shows date time.
-          if (abs != null) {
-            dateSpan.title = abs;
+          if (dateSpan instanceof HTMLElement) {
+            // Display the absolute date time as title (tooltip).
+            // This is how GitHub shows date time.
+            if (abs != null) {
+              dateSpan.title = abs;
+            }
           }
-        }
 
-        if (dateType === "relative") {
-          // Prefer showing relative date time,
-          // and fallback to absolute date time.
-          if (rel != null) {
-            dateSpan.textContent = rel;
-          } else if (abs != null) {
-            dateSpan.textContent = abs;
-          }
-        } else {
-          if (abs != null) {
-            dateSpan.textContent = abs;
+          if (dateType === "relative") {
+            // Prefer showing relative date time,
+            // and fallback to absolute date time.
+            if (rel != null) {
+              dateSpan.textContent = rel;
+            } else if (abs != null) {
+              dateSpan.textContent = abs;
+            }
+          } else {
+            if (abs != null) {
+              dateSpan.textContent = abs;
+            }
           }
         }
       }
-    }
+    };
+
+    this.render = render.bind(this);
+    this.render();
+  }
+
+  relativeBaseValueChanged() {
+    this.render();
   }
 }
 
