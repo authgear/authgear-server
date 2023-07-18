@@ -4,13 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -41,11 +38,10 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 	}, nil)
 	if err != nil {
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			return nil, errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
-				"AuthenticationType": apierrors.APIErrorDetail.Value(info.Type),
-			})
+			info = nil
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: info, AuthenticatorType: e.Authenticator.Type}, nil

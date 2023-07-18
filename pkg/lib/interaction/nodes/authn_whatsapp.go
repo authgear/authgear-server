@@ -3,14 +3,11 @@ package nodes
 import (
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -33,6 +30,7 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 	}
 	code := input.GetWhatsappOTP()
 	channel := model.AuthenticatorOOBChannelWhatsapp
+	info := e.Authenticator
 	_, err := ctx.Authenticators.VerifyWithSpec(e.Authenticator, &authenticator.Spec{
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: code,
@@ -42,14 +40,13 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 	})
 	if err != nil {
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			return nil, errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
-				"AuthenticationType": apierrors.APIErrorDetail.Value(e.Authenticator.Type),
-			})
+			info = nil
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
-	return &NodeAuthenticationWhatsapp{Stage: e.Stage, Authenticator: e.Authenticator}, nil
+	return &NodeAuthenticationWhatsapp{Stage: e.Stage, Authenticator: info}, nil
 }
 
 type NodeAuthenticationWhatsapp struct {
