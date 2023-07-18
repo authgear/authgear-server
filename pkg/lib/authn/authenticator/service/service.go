@@ -1,6 +1,9 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -439,36 +442,13 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
-	if options == nil {
-		options = &VerifyOptions{}
-	}
-
-	r := s.RateLimits.Reserve(info.UserID, info.Type)
-	defer s.RateLimits.Cancel(r)
-
-	if err = r.Error(); err != nil {
-		return
-	}
-
-	// Check if it is already locked
-	err = s.Lockout.Check(info.UserID)
-	if err != nil {
-		return
-	}
-
+func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
 		plainPassword := spec.Password.PlainPassword
 		a := info.Password
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
-			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
-			if lockErr != nil {
-				err = lockErr
-				return
-			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -479,12 +459,6 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.Passkey
 		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
-			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
-			if lockErr != nil {
-				err = lockErr
-				return
-			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -495,12 +469,6 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		code := spec.TOTP.Code
 		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
-			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
-			if lockErr != nil {
-				err = lockErr
-				return
-			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		}
@@ -527,12 +495,6 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 			UserID: info.UserID,
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			r.Consume()
-			lockErr := s.Lockout.MakeAttempt(info.UserID, info.Type)
-			if lockErr != nil {
-				err = lockErr
-				return
-			}
 			err = authenticator.ErrInvalidCredentials
 			return
 		} else if err != nil {
@@ -544,6 +506,72 @@ func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.S
 	}
 
 	panic("authenticator: unhandled authenticator type " + info.Type)
+}
+
+// Given a list of authenticators, try to verify one of them
+func (s *Service) VerifyOneWithSpec(
+	infos []*authenticator.Info,
+	spec *authenticator.Spec,
+	options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	if options == nil {
+		options = &VerifyOptions{}
+	}
+
+	if len(infos) == 0 {
+		err = fmt.Errorf("no available authenticator")
+		return
+	}
+
+	authenticatorType := infos[0].Type
+	userID := infos[0].UserID
+
+	r := s.RateLimits.Reserve(userID, authenticatorType)
+	defer s.RateLimits.Cancel(r)
+
+	if err = r.Error(); err != nil {
+		return
+	}
+
+	// Check if it is already locked
+	err = s.Lockout.Check(userID)
+	if err != nil {
+		return
+	}
+
+	for _, thisInfo := range infos {
+		if thisInfo.UserID != userID || thisInfo.Type != authenticatorType {
+			// Ensure all authenticators are in same type of the same user
+			err = fmt.Errorf("only authenticators with same type of same user can be verified together")
+			return
+		}
+		requireUpdate, err = s.verifyWithSpec(thisInfo, spec, options)
+		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+			continue
+		}
+		// unexpected errors or no error
+		// For both cases we should break the loop and return
+		if err == nil {
+			info = thisInfo
+		}
+		break
+	}
+	// If error is ErrInvalidCredentials, consume rate limit token and increment lockout attempt
+	if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		r.Consume()
+		lockErr := s.Lockout.MakeAttempt(userID, authenticatorType)
+		if lockErr != nil {
+			err = lockErr
+			return
+		}
+		return
+	}
+	// else, simply return the error if any
+	return
+}
+
+func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
+	_, requireUpdate, err = s.VerifyOneWithSpec([]*authenticator.Info{info}, spec, options)
+	return
 }
 
 func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error {

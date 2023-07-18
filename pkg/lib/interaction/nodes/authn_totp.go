@@ -43,17 +43,11 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 		},
 	}
 
-	var info *authenticator.Info
-	for _, a := range e.Authenticators {
-		_, err := ctx.Authenticators.VerifyWithSpec(a, spec, nil)
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			continue
-		} else if err != nil {
-			return nil, err
-		} else {
-			aa := a
-			info = aa
-		}
+	info, _, err := ctx.Authenticators.VerifyOneWithSpec(e.Authenticators, spec, nil)
+	if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		info = nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	return &NodeAuthenticationTOTP{Stage: e.Stage, Authenticator: info}, nil

@@ -45,6 +45,10 @@ func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *auth
 	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec, options)
 }
 
+func (a AuthenticatorFacade) VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	return a.Coordinator.AuthenticatorVerifyOneWithSpec(infos, spec, options)
+}
+
 func (a AuthenticatorFacade) ClearLockoutAttempts(authenticators []*authenticator.Info) error {
 	return a.Coordinator.AuthenticatorClearLockoutAttempts(authenticators)
 }
