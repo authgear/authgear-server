@@ -41,7 +41,7 @@ export class LockoutController extends Controller {
       const actionButtonEl = el.querySelector(this.actionButtonSelectorValue);
       const now = DateTime.now();
       this.formatDateRelativeOutlets.forEach(
-        (outlet) => (outlet.relativeBaseValue = now.toISO())
+        (outlet) => (outlet.relativeBaseValue = now.toISO() as string)
       );
 
       const newIsLocked = now < lockUntil;

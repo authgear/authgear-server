@@ -77,7 +77,7 @@
   "error-deactivated-user": "你已停用你的帳戶。",
   "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
-  "error-account-locked--countdown": "你的帳號已被鎖定。請於 <span data-date=\"{rfc3339}\" data-date-countdown=\"true\" data-date-type=relative>{datetime, time, long}</span>再試。",
+  "error-account-locked--countdown": "你的帳號已被鎖定。請於 <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span> 後再試。",
   "error-account-locked": "你的帳號已被鎖定。",
 
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
