@@ -19,3 +19,7 @@
 
   @apply mobile:w-auto;
 }
+
+.message {
+  @apply mt-5;
+}
