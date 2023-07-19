@@ -48,11 +48,11 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Depend
 	// 1 NodeDoCreateUser
 	// 1 IntentSignupFlowSteps
 	// 1 NodeDoCreateSession
-	// So at the end of the flow, it will have 3 nodes.
-	if len(workflows.Nearest.Nodes) == 3 {
+	// So if NodeDoCreateSession is found, this workflow has finished.
+	_, ok := workflow.FindSingleNode[*NodeDoCreateSession](workflows.Nearest)
+	if ok {
 		return nil, workflow.ErrEOF
 	}
-
 	return nil, nil
 }
 
