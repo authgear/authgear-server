@@ -40,7 +40,7 @@ func CreateDefaultDomain(opts CreateDefaultDomainOptions) (err error) {
 		domain := makeDefaultDomain(appID, opts.DefaultDomainSuffix)
 
 		var exists bool
-		exists, err = checkDefaultDomainExistance(ctx, tx, appID, domain)
+		exists, err = checkDomainExistance(ctx, tx, appID, domain)
 		if err != nil {
 			return
 		}
@@ -75,7 +75,7 @@ func makeDefaultDomain(appID string, suffix string) string {
 	return appID + suffix
 }
 
-func checkDefaultDomainExistance(ctx context.Context, tx *sql.Tx, appID string, domain string) (exists bool, err error) {
+func checkDomainExistance(ctx context.Context, tx *sql.Tx, appID string, domain string) (exists bool, err error) {
 	builder := newSQLBuilder().Select("id").
 		From(pq.QuoteIdentifier("_portal_domain")).
 		Where("app_id = ? AND domain = ?", appID, domain)

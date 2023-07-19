@@ -148,3 +148,13 @@ var ArgDefaultDomainSuffix = &cobraviper.StringArgument{
 	ArgumentName: "default-domain-suffix",
 	Usage:        "e.g. .localhost It must NOT contain a port number.",
 }
+
+var ArgDomain = &cobraviper.StringArgument{
+	ArgumentName: "domain",
+	Usage:        "It must NOT contain a port number.",
+}
+
+var ArgApexDomain = &cobraviper.StringArgument{
+	ArgumentName: "apex-domain",
+	Usage:        "The apex domain of the domain. It must NOT contain a port number.",
+}

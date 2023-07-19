@@ -50,6 +50,56 @@ var cmdInternalDomainCreateDefault = &cobra.Command{
 	},
 }
 
+var cmdInternalDomainCreateCustom = &cobra.Command{
+	Use:   "create-custom <app-id>",
+	Short: "Create custom domain for the app. It does NOT create duplicate records.",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		binder := portalcmd.GetBinder()
+
+		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
+		if err != nil {
+			return err
+		}
+
+		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
+		if err != nil {
+			return err
+		}
+
+		domain, err := binder.GetRequiredString(cmd, portalcmd.ArgDomain)
+		if err != nil {
+			return err
+		}
+
+		apexDomain, err := binder.GetRequiredString(cmd, portalcmd.ArgApexDomain)
+		if err != nil {
+			return err
+		}
+
+		err = validateDomain(domain)
+		if err != nil {
+			return fmt.Errorf("%s: %w", portalcmd.ArgDomain.ArgumentName, err)
+		}
+
+		err = validateDomain(apexDomain)
+		if err != nil {
+			return fmt.Errorf("%s: %w", portalcmd.ArgApexDomain.ArgumentName, err)
+		}
+
+		appID := args[0]
+
+		// FIXME(domain): Create the ingress resource?
+		return internal.CreateCustomDomain(internal.CreateCustomDomainOptions{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+			AppID:          appID,
+			Domain:         domain,
+			ApexDomain:     apexDomain,
+		})
+	},
+}
+
 func validateDomainSuffix(suffix string) error {
 	if !strings.HasPrefix(suffix, ".") {
 		return fmt.Errorf("domain suffix must start with a `.`")
@@ -66,6 +116,20 @@ func validateDomainSuffix(suffix string) error {
 	ip := net.ParseIP(host)
 	if ip != nil {
 		return fmt.Errorf("domain suffix must not be an IP")
+	}
+
+	return nil
+}
+
+func validateDomain(domain string) error {
+	host, _, err := net.SplitHostPort(domain)
+	if err == nil {
+		return fmt.Errorf("domain must not contain a port")
+	}
+
+	ip := net.ParseIP(host)
+	if ip != nil {
+		return fmt.Errorf("domain must not be an IP")
 	}
 
 	return nil
