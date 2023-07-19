@@ -2,7 +2,7 @@ import {
   intlDateTimeFormatIsSupported,
   intlRelativeTimeFormatIsSupported,
 } from "./feature";
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import { Controller } from "@hotwired/stimulus";
 
 // In order to be backward compatible,
@@ -10,7 +10,7 @@ import { Controller } from "@hotwired/stimulus";
 // <span data-date data-date-type="relative" data-date-date-style="medium" data-date-time-style="short">
 // To suppress time, specify data-date-time-style as an empty attribute.
 
-const DATE_TYPES = ["relative", "absolute"] as const;
+const DATE_TYPES = ["relative", "absolute", "luxon-relative-duration"] as const;
 type DateType = typeof DATE_TYPES[number];
 
 const DATE_STYLES = ["full", "long", "medium", "short"] as const;
@@ -62,6 +62,27 @@ export class FormatDateRelativeController extends Controller {
   declare relativeBaseValue: string;
 
   render: () => void = () => {};
+
+  private formatLuxonRelativeDuration(
+    lang: string,
+    dt: DateTime,
+    base: DateTime
+  ): string {
+    let duration = dt.diff(base);
+    duration = Duration.fromMillis(
+      // Trim to seconds
+      Math.trunc(duration.toMillis() / 1000) * 1000,
+      {
+        locale: lang,
+      }
+    ).rescale();
+    const opts = {
+      unitDisplay: "narrow",
+      listStyle: "narrow",
+      type: "unit",
+    } as const;
+    return duration.reconfigure({ locale: lang }).toHuman(opts);
+  }
 
   connect() {
     const dateSpans = document.documentElement.querySelectorAll("[data-date]");
@@ -127,6 +148,12 @@ export class FormatDateRelativeController extends Controller {
             } else if (abs != null) {
               dateSpan.textContent = abs;
             }
+          } else if (dateType === "luxon-relative-duration") {
+            dateSpan.textContent = this.formatLuxonRelativeDuration(
+              lang,
+              luxonDatetime,
+              relativeBase
+            );
           } else {
             if (abs != null) {
               dateSpan.textContent = abs;

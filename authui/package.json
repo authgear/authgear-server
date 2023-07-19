@@ -16,12 +16,12 @@
     "buffer": false
   },
   "overrides": {
-    "word-wrap" : "@aashutoshrathi/word-wrap"
+    "word-wrap": "@aashutoshrathi/word-wrap"
   },
   "devDependencies": {
     "@jest/globals": "29.2.2",
     "@parcel/config-default": "2.7.0",
-    "@types/luxon": "3.0.2",
+    "@types/luxon": "3.3.0",
     "@types/zxcvbn": "4.4.1",
     "jest": "29.2.2",
     "jest-environment-jsdom": "29.2.2",
@@ -44,7 +44,7 @@
     "cropperjs": "1.5.12",
     "ethers": "5.5.1",
     "intl-tel-input": "17.0.19",
-    "luxon": "3.2.1",
+    "luxon": "3.3.0",
     "siwe": "1.1.6",
     "zxcvbn": "4.4.2"
   }
