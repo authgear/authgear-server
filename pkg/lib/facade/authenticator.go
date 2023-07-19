@@ -43,11 +43,11 @@ func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error
 	return a.Coordinator.AuthenticatorDelete(authenticatorInfo)
 }
 
-func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options VerifyOptions) (requireUpdate bool, err error) {
+func (a AuthenticatorFacade) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
 	return a.Coordinator.AuthenticatorVerifyWithSpec(info, spec, options)
 }
 
-func (a AuthenticatorFacade) VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+func (a AuthenticatorFacade) VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
 	return a.Coordinator.AuthenticatorVerifyOneWithSpec(infos, spec, options)
 }
 

@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -28,12 +29,7 @@ func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *interaction.Context, graph *i
 	recoveryCode := input.GetRecoveryCode()
 
 	rc, err := ctx.MFA.VerifyRecoveryCode(userID, recoveryCode)
-	if errors.Is(err, mfa.ErrRecoveryCodeNotFound) {
-		return &NodeAuthenticationEnd{
-			Stage:              authn.AuthenticationStageSecondary,
-			AuthenticationType: authn.AuthenticationTypeRecoveryCode,
-		}, nil
-	} else if errors.Is(err, mfa.ErrRecoveryCodeConsumed) {
+	if errors.Is(err, api.ErrInvalidCredentials) {
 		return &NodeAuthenticationEnd{
 			Stage:              authn.AuthenticationStageSecondary,
 			AuthenticationType: authn.AuthenticationTypeRecoveryCode,
