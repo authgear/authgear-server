@@ -129,7 +129,7 @@ var ArgAnalyticGoogleSpreadsheetRange = &cobraviper.StringArgument{
 var ArgDataJSONFilePath = &cobraviper.StringArgument{
 	ArgumentName: "data-json-file",
 	Short:        "f",
-	Usage:        "File path of database configsource data JSON",
+	Usage:        "File path of the database config source data JSON file",
 }
 
 var ArgOutputDirectoryPath = &cobraviper.StringArgument{

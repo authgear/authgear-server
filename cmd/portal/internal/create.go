@@ -22,13 +22,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type SetupPortalOptions struct {
+type CreateOptions struct {
 	DatabaseURL    string
 	DatabaseSchema string
 	ResourceDir    string
 }
 
-func SetupPortal(opt *SetupPortalOptions) error {
+func Create(opt *CreateOptions) error {
 	// construct config source
 	data, err := constructConfigSourceData(opt.ResourceDir)
 	if err != nil {
