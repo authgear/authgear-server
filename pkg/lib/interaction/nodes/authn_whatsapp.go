@@ -35,10 +35,11 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 		},
 	}, &facade.VerifyOptions{
 		OOBChannel: &channel,
-		AuthenticationDetails: &facade.AuthenticationDetails{
-			Stage:              e.Stage,
-			AuthenticationType: authn.AuthenticationTypeOOBOTPSMS,
-		},
+		AuthenticationDetails: facade.NewAuthenticationDetails(
+			graph.MustGetUserID(),
+			e.Stage,
+			authn.AuthenticationTypeOOBOTPSMS,
+		),
 	})
 	if err != nil {
 		return nil, err

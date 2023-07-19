@@ -70,6 +70,19 @@ func (v *VerifyOptions) toServiceOptions() *service.VerifyOptions {
 }
 
 type AuthenticationDetails struct {
+	UserID             string
 	Stage              authn.AuthenticationStage
 	AuthenticationType authn.AuthenticationType
+}
+
+func NewAuthenticationDetails(
+	userID string,
+	stage authn.AuthenticationStage,
+	authenticationType authn.AuthenticationType,
+) *AuthenticationDetails {
+	return &AuthenticationDetails{
+		UserID:             userID,
+		Stage:              stage,
+		AuthenticationType: authenticationType,
+	}
 }

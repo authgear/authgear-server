@@ -59,10 +59,11 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 		e.Authenticators,
 		spec,
 		&facade.VerifyOptions{
-			AuthenticationDetails: &facade.AuthenticationDetails{
-				Stage:              e.Stage,
-				AuthenticationType: authn.AuthenticationTypePassword,
-			},
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				graph.MustGetUserID(),
+				e.Stage,
+				authn.AuthenticationTypePassword,
+			),
 		},
 	)
 	if err != nil {

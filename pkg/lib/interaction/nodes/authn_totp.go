@@ -46,10 +46,11 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 		e.Authenticators,
 		spec,
 		&facade.VerifyOptions{
-			AuthenticationDetails: &facade.AuthenticationDetails{
-				Stage:              e.Stage,
-				AuthenticationType: authn.AuthenticationTypeTOTP,
-			},
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				graph.MustGetUserID(),
+				e.Stage,
+				authn.AuthenticationTypeTOTP,
+			),
 		},
 	)
 	if err != nil {

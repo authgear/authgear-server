@@ -36,10 +36,11 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 			Code: input.GetOOBOTP(),
 		},
 	}, &facade.VerifyOptions{
-		AuthenticationDetails: &facade.AuthenticationDetails{
-			Stage:              e.Stage,
-			AuthenticationType: deriveNodeAuthenticationOOBAuthenticationType(info.Type),
-		},
+		AuthenticationDetails: facade.NewAuthenticationDetails(
+			info.UserID,
+			e.Stage,
+			deriveNodeAuthenticationOOBAuthenticationType(info.Type),
+		),
 	})
 	if err != nil {
 		return nil, err

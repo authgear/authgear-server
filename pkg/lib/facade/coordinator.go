@@ -374,7 +374,7 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info
 	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(infos, spec, options.toServiceOptions())
 	if err != nil && errors.Is(err, api.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
 		err = c.dispatchAuthenticationFailedEvent(
-			info.UserID,
+			options.AuthenticationDetails.UserID,
 			options.AuthenticationDetails.Stage,
 			options.AuthenticationDetails.AuthenticationType,
 		)
