@@ -17,7 +17,10 @@ type Service struct {
 
 func (s *Service) MakeAttempts(spec LockoutSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
 	if !spec.Enabled {
-		return nil, nil
+		return &MakeAttemptResult{
+			spec:        spec,
+			LockedUntil: nil,
+		}, nil
 	}
 
 	logger := s.Logger.
