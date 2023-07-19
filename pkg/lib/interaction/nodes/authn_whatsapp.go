@@ -1,12 +1,10 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -35,15 +33,15 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: code,
 		},
-	}, &service.VerifyOptions{
+	}, &facade.VerifyOptions{
 		OOBChannel: &channel,
+		AuthenticationDetails: &facade.AuthenticationDetails{
+			Stage:              e.Stage,
+			AuthenticationType: authn.AuthenticationTypeOOBOTPSMS,
+		},
 	})
 	if err != nil {
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			info = nil
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &NodeAuthenticationWhatsapp{Stage: e.Stage, Authenticator: info}, nil

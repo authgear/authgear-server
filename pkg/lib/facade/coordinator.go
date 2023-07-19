@@ -44,7 +44,6 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
 	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
@@ -331,12 +330,28 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (requireUpdate bool, err error) {
-	return c.Authenticators.VerifyWithSpec(info, spec, options)
+func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options VerifyOptions) (requireUpdate bool, err error) {
+	_, requireUpdate, err = c.AuthenticatorVerifyOneWithSpec([]*authenticator.Info{info}, spec, options)
+	return
 }
 
-func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
-	return c.Authenticators.VerifyOneWithSpec(infos, spec, options)
+func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(infos, spec, options.toServiceOptions())
+	if err != nil && errors.Is(err, authenticator.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
+		err = c.Events.DispatchEvent(&nonblocking.AuthenticationFailedEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: info.UserID,
+				},
+			},
+			AuthenticationStage: string(options.AuthenticationDetails.Stage),
+			AuthenticationType:  string(options.AuthenticationDetails.AuthenticationType),
+		})
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {

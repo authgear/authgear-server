@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -37,7 +37,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTP) Instantiate(ctx *interaction.Contex
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: code,
 		},
-	}, &service.VerifyOptions{
+	}, &facade.VerifyOptions{
 		OOBChannel: &channel,
 	})
 	if err != nil {

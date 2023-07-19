@@ -2,10 +2,8 @@ package latte
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -63,12 +61,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 				Code: inputTakeOOBOTPCode.GetCode(),
 			},
 		}, nil)
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			if err := DispatchAuthenticationFailedEvent(deps.Events, info); err != nil {
-				return nil, err
-			}
-			return nil, api.ErrInvalidCredentials
-		} else if err != nil {
+		if err != nil {
 			return nil, err
 		}
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{

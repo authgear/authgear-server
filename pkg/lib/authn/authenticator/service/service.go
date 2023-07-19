@@ -569,11 +569,6 @@ func (s *Service) VerifyOneWithSpec(
 	return
 }
 
-func (s *Service) VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
-	_, requireUpdate, err = s.VerifyOneWithSpec([]*authenticator.Info{info}, spec, options)
-	return
-}
-
 func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error {
 	authenticators, err := s.List(oldInfo.UserID)
 	if err != nil {
