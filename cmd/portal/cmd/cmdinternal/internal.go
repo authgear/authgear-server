@@ -53,6 +53,7 @@ func init() {
 	binder := portalcmd.GetBinder()
 
 	cmdInternal.AddCommand(cmdInternalConfigSource)
+	cmdInternal.AddCommand(cmdInternalDomain)
 	cmdInternal.AddCommand(cmdInternalBreakingChange)
 
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
@@ -62,6 +63,8 @@ func init() {
 	cmdInternalConfigSource.AddCommand(cmdInternalConfigSourceUnpack)
 	cmdInternalConfigSource.AddCommand(cmdInternalConfigSourcePack)
 	cmdInternalConfigSource.AddCommand(cmdInternalConfigSourceCheckDatabase)
+
+	cmdInternalDomain.AddCommand(cmdInternalDomainCreateDefault)
 
 	binder.BindString(cmdInternalConfigSourceCreate.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalConfigSourceCreate.Flags(), portalcmd.ArgDatabaseSchema)
@@ -73,6 +76,10 @@ func init() {
 
 	binder.BindString(cmdInternalConfigSourceCheckDatabase.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalConfigSourceCheckDatabase.Flags(), portalcmd.ArgDatabaseSchema)
+
+	binder.BindString(cmdInternalDomainCreateDefault.Flags(), portalcmd.ArgDatabaseURL)
+	binder.BindString(cmdInternalDomainCreateDefault.Flags(), portalcmd.ArgDatabaseSchema)
+	binder.BindString(cmdInternalDomainCreateDefault.Flags(), portalcmd.ArgDefaultDomainSuffix)
 
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), portalcmd.ArgDatabaseSchema)

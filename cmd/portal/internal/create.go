@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,12 +11,10 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/spf13/afero"
-	"golang.org/x/net/publicsuffix"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
-	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -60,50 +57,6 @@ func Create(opt *CreateOptions) error {
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return nil
-}
-
-// create domain record in db
-func createDomain(ctx context.Context, tx *sql.Tx, appID string, domain string, isCustom bool) error {
-	apexDomain, err := publicsuffix.EffectiveTLDPlusOne(domain)
-	if err != nil {
-		return fmt.Errorf("invalid domain: %w", err)
-	}
-	if !isCustom {
-		// For non-custom domain, assume the domain is always an apex domain,
-		// in case the domain suffix is not yet in PSL.
-		apexDomain = domain
-	}
-
-	nonce := make([]byte, 16)
-	corerand.SecureRand.Read(nonce)
-	verificationNonce := hex.EncodeToString(nonce)
-
-	builder := newSQLBuilder().
-		Insert(pq.QuoteIdentifier("_portal_domain")).
-		Columns(
-			"id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom",
-		).
-		Values(
-			uuid.New(),
-			appID,
-			time.Now().UTC(),
-			domain,
-			apexDomain,
-			verificationNonce,
-			isCustom,
-		)
-
-	q, args, err := builder.ToSql()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx, q, args...)
-	if err != nil {
-		return err
 	}
 
 	return nil

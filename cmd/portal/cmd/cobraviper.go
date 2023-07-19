@@ -143,3 +143,8 @@ var ArgInputDirectoryPath = &cobraviper.StringArgument{
 	Short:        "i",
 	Usage:        "File path of the input directory",
 }
+
+var ArgDefaultDomainSuffix = &cobraviper.StringArgument{
+	ArgumentName: "default-domain-suffix",
+	Usage:        "e.g. .localhost It must NOT contain a port number.",
+}
