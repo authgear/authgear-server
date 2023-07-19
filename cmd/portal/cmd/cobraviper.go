@@ -61,18 +61,6 @@ var ArgNamespace = &cobraviper.StringArgument{
 	Usage:        "Namespace",
 }
 
-var ArgDefaultAuthgearDomain = &cobraviper.StringArgument{
-	ArgumentName: "default-authgear-domain",
-	EnvName:      "DEFAULT_AUTHGEAR_DOMAIN",
-	Usage:        "App default domain",
-}
-
-var ArgCustomAuthgearDomain = &cobraviper.StringArgument{
-	ArgumentName: "custom-authgear-domain",
-	EnvName:      "CUSTOM_AUTHGEAR_DOMAIN",
-	Usage:        "App custom domain",
-}
-
 var ArgFeatureConfigFilePath = &cobraviper.StringArgument{
 	ArgumentName: "file",
 	Usage:        "Feature config file path",

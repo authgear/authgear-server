@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"time"
 
 	"github.com/lib/pq"
@@ -24,28 +23,26 @@ import (
 )
 
 type SetupPortalOptions struct {
-	DatabaseURL           string
-	DatabaseSchema        string
-	DefaultAuthgearDoamin string
-	CustomAuthgearDomain  string
-	ResourceDir           string
+	DatabaseURL    string
+	DatabaseSchema string
+	ResourceDir    string
 }
 
-func SetupPortal(opt *SetupPortalOptions) {
+func SetupPortal(opt *SetupPortalOptions) error {
 	// construct config source
 	data, err := constructConfigSourceData(opt.ResourceDir)
 	if err != nil {
-		log.Fatalf("invalid resource directory: %s", err)
+		return fmt.Errorf("invalid resource directory: %w", err)
 	}
 
 	err = validateConfigSource(data)
 	if err != nil {
-		log.Fatalf("invalid resource directory: %s", err)
+		return fmt.Errorf("invalid resource directory: %w", err)
 	}
 
 	appID, err := parseAppID(data["authgear.yaml"])
 	if err != nil {
-		log.Fatalf("failed to parse app id: %s", err)
+		return fmt.Errorf("failed to parse app id: %w", err)
 	}
 
 	// start store domains and config source to db
@@ -54,27 +51,18 @@ func SetupPortal(opt *SetupPortalOptions) {
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		log.Fatalf("failed to connect db: %s", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	if err := createConfigSource(ctx, tx, appID, data); err != nil {
-		log.Fatalf("failed to create config source record: %s", err)
-	}
-
-	if err := createDomain(ctx, tx, appID, opt.DefaultAuthgearDoamin, false); err != nil {
-		_ = tx.Rollback()
-		log.Fatalf("failed to create default domain: %s", err)
-	}
-
-	if err := createDomain(ctx, tx, appID, opt.CustomAuthgearDomain, true); err != nil {
-		_ = tx.Rollback()
-		log.Fatalf("failed to create custom domain: %s", err)
+		return fmt.Errorf("failed to create config source record: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
+	return nil
 }
 
 // create domain record in db

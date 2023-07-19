@@ -1,8 +1,6 @@
 package cmdinternal
 
 import (
-	"log"
-
 	"github.com/spf13/cobra"
 
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
@@ -10,44 +8,37 @@ import (
 )
 
 var cmdInternal = &cobra.Command{
-	Use:   "internal [setup-portal]",
-	Short: "Setup portal config source data in db",
+	Use:   "internal",
+	Short: "Internal commands. Subject to changes without deprecation or removal warnings",
 }
 
 var cmdInternalSetupPortal = &cobra.Command{
 	Use:   "setup-portal",
 	Short: "Initialize app configuration",
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := portalcmd.GetBinder()
 		dbURL, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseURL)
 		if err != nil {
-			log.Fatalf(err.Error())
+			return err
 		}
 		dbSchema, err := binder.GetRequiredString(cmd, portalcmd.ArgDatabaseSchema)
 		if err != nil {
-			log.Fatalf(err.Error())
-		}
-		defaultAuthgearDomain, err := binder.GetRequiredString(cmd, portalcmd.ArgDefaultAuthgearDomain)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-		customAuthgearDomain, err := binder.GetRequiredString(cmd, portalcmd.ArgCustomAuthgearDomain)
-		if err != nil {
-			log.Fatalf(err.Error())
+			return err
 		}
 
-		resourceDir := "./"
-		if len(args) >= 1 {
-			resourceDir = args[0]
-		}
+		resourceDir := args[0]
 
-		internal.SetupPortal(&internal.SetupPortalOptions{
-			DatabaseURL:           dbURL,
-			DatabaseSchema:        dbSchema,
-			DefaultAuthgearDoamin: defaultAuthgearDomain,
-			CustomAuthgearDomain:  customAuthgearDomain,
-			ResourceDir:           resourceDir,
+		err = internal.SetupPortal(&internal.SetupPortalOptions{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+			ResourceDir:    resourceDir,
 		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	},
 }
 
@@ -142,8 +133,6 @@ func init() {
 
 	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDatabaseURL)
 	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDatabaseSchema)
-	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgDefaultAuthgearDomain)
-	binder.BindString(cmdInternalSetupPortal.Flags(), portalcmd.ArgCustomAuthgearDomain)
 
 	binder.BindString(cmdInternalUnpack.Flags(), portalcmd.ArgDataJSONFilePath)
 	binder.BindString(cmdInternalUnpack.Flags(), portalcmd.ArgOutputDirectoryPath)
