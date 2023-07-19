@@ -6,7 +6,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -49,7 +51,13 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputTakePassword.GetPassword(),
 			},
-		}, nil)
+		}, &facade.VerifyOptions{
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				info.UserID,
+				authn.AuthenticationStageSecondary,
+				authn.AuthenticationTypePassword,
+			),
+		})
 		if err != nil {
 			return nil, err
 		}
