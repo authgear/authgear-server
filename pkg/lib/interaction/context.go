@@ -53,6 +53,7 @@ type AuthenticatorService interface {
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (requireUpdate bool, err error)
+	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
 	ClearLockoutAttempts(authenticators []*authenticator.Info) error
 }
 

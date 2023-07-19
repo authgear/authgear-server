@@ -56,20 +56,11 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 		},
 	}
 
-	var requireUpdate bool
-	var info *authenticator.Info
-	for _, a := range e.Authenticators {
-		b, err := ctx.Authenticators.VerifyWithSpec(a, spec, nil)
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			continue
-		} else if err != nil {
-			return nil, err
-		} else {
-			aa := a
-			info = aa
-			requireUpdate = b
-			break
-		}
+	info, requireUpdate, err := ctx.Authenticators.VerifyOneWithSpec(e.Authenticators, spec, nil)
+	if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		info = nil
+	} else if err != nil {
+		return nil, err
 	}
 
 	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info, RequireUpdate: requireUpdate}, nil
