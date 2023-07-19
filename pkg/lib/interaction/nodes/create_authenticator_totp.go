@@ -1,9 +1,6 @@
 package nodes
 
 import (
-	"errors"
-
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -36,9 +33,7 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, grap
 			Code: input.GetTOTP(),
 		},
 	}, nil)
-	if errors.Is(err, authenticator.ErrInvalidCredentials) {
-		return nil, api.ErrInvalidCredentials
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 

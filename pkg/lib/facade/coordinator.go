@@ -3,6 +3,8 @@ package facade
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -16,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type EventService interface {
@@ -337,7 +340,7 @@ func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec
 
 func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
 	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(infos, spec, options.toServiceOptions())
-	if err != nil && errors.Is(err, authenticator.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
+	if err != nil && errors.Is(err, api.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
 		err = c.Events.DispatchEvent(&nonblocking.AuthenticationFailedEventPayload{
 			UserRef: model.UserRef{
 				Meta: model.Meta{
@@ -350,6 +353,9 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info
 		if err != nil {
 			return
 		}
+		err = errorutil.WithDetails(err, errorutil.Details{
+			"AuthenticationType": apierrors.APIErrorDetail.Value(options.AuthenticationDetails.AuthenticationType),
+		})
 	}
 	return
 }

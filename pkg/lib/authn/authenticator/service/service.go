@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -449,7 +450,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.Password
 		requireUpdate, err = s.Password.Authenticate(a, plainPassword)
 		if err != nil {
-			err = authenticator.ErrInvalidCredentials
+			err = api.ErrInvalidCredentials
 			return
 		}
 		*info = *a.ToInfo()
@@ -459,7 +460,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.Passkey
 		requireUpdate, err = s.Passkey.Authenticate(a, assertionResponse)
 		if err != nil {
-			err = authenticator.ErrInvalidCredentials
+			err = api.ErrInvalidCredentials
 			return
 		}
 		*info = *a.ToInfo()
@@ -469,7 +470,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		code := spec.TOTP.Code
 		a := info.TOTP
 		if s.TOTP.Authenticate(a, code) != nil {
-			err = authenticator.ErrInvalidCredentials
+			err = api.ErrInvalidCredentials
 			return
 		}
 		// Do not update info because by definition TOTP does not update itself during verification.
@@ -495,7 +496,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 			UserID: info.UserID,
 		})
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			err = authenticator.ErrInvalidCredentials
+			err = api.ErrInvalidCredentials
 			return
 		} else if err != nil {
 			return
@@ -545,7 +546,7 @@ func (s *Service) VerifyOneWithSpec(
 			return
 		}
 		requireUpdate, err = s.verifyWithSpec(thisInfo, spec, options)
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		if errors.Is(err, api.ErrInvalidCredentials) {
 			continue
 		}
 		// unexpected errors or no error
@@ -556,11 +557,11 @@ func (s *Service) VerifyOneWithSpec(
 		break
 	}
 	// If error is ErrInvalidCredentials, consume rate limit token and increment lockout attempt
-	if errors.Is(err, authenticator.ErrInvalidCredentials) {
+	if errors.Is(err, api.ErrInvalidCredentials) {
 		r.Consume()
 		lockErr := s.Lockout.MakeAttempt(userID, authenticatorType)
 		if lockErr != nil {
-			err = lockErr
+			err = errors.Join(lockErr, err)
 			return
 		}
 		return
