@@ -363,25 +363,29 @@ func (c *Coordinator) dispatchAuthenticationFailedEvent(userID string,
 	})
 }
 
-func (c *Coordinator) makeInvalidCredentialsError(err error, authnType authn.AuthenticationType) error {
-	errInvalidCredential := errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
+func (c *Coordinator) addAuthenticationTypeToError(err error, authnType authn.AuthenticationType) error {
+	d := errorutil.Details{
 		"AuthenticationType": apierrors.APIErrorDetail.Value(authnType),
-	})
-	return errors.Join(errInvalidCredential, err)
+	}
+	newe := errorutil.WithDetails(err, d)
+	return newe
 }
 
 func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	if options == nil {
+		options = &VerifyOptions{}
+	}
 	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(infos, spec, options.toServiceOptions())
 	if err != nil && errors.Is(err, api.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
-		err = c.dispatchAuthenticationFailedEvent(
+		eventerr := c.dispatchAuthenticationFailedEvent(
 			options.AuthenticationDetails.UserID,
 			options.AuthenticationDetails.Stage,
 			options.AuthenticationDetails.AuthenticationType,
 		)
-		if err != nil {
-			return
+		if eventerr != nil {
+			return nil, false, eventerr
 		}
-		err = c.makeInvalidCredentialsError(err, options.AuthenticationDetails.AuthenticationType)
+		err = c.addAuthenticationTypeToError(err, options.AuthenticationDetails.AuthenticationType)
 	}
 	return
 }
@@ -1023,7 +1027,7 @@ func (c *Coordinator) MFAVerifyRecoveryCode(userID string, code string) (*mfa.Re
 		if err != nil {
 			return nil, err
 		}
-		err = c.makeInvalidCredentialsError(err, authnType)
+		err = c.addAuthenticationTypeToError(errors.Join(api.ErrInvalidCredentials, err), authnType)
 	}
 	return rc, err
 }
