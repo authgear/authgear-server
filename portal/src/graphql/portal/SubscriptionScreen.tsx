@@ -718,6 +718,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       >
         <DialogFooter>
           <PrimaryButton
+            href="mailto:hello@authgear.com"
             onClick={onDismiss}
             text={<FormattedMessage id="SubscriptionScreen.enterprise.cta" />}
           />
