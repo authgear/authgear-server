@@ -46,12 +46,6 @@ func (s *InProcessQueue) DidCommitTx() {
 	}
 }
 
-func (s *InProcessQueue) WillRollbackTx() error {
-	return nil
-}
-
-func (s *InProcessQueue) DidRollbackTx() {}
-
 func (s *InProcessQueue) run(param task.Param) {
 	s.Executor.Run(s.CaptureContext(), param)
 }
