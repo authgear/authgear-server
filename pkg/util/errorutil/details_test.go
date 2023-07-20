@@ -36,4 +36,21 @@ func TestDetails(t *testing.T) {
 		data, _ := json.Marshal(details)
 		So(string(data), ShouldEqual, `{"data":456,"value":"[detail: safe]"}`)
 	})
+
+	Convey("WithDetails/CollectDetails works well with errors.Join", t, func() {
+		rootCause := errors.New("root cause")
+		rootCauseWithDetails := errorutil.WithDetails(rootCause, errorutil.Details{"a": "a", "b": "b"})
+		invalidCredentials := errors.New("invalid credentials")
+		err := errors.Join(errorutil.WithDetails(invalidCredentials, errorutil.Details{"a": "aa"}), rootCauseWithDetails)
+
+		So(errors.Is(err, rootCause), ShouldBeTrue)
+		So(errors.Is(err, rootCauseWithDetails), ShouldBeTrue)
+		So(errors.Is(err, invalidCredentials), ShouldBeTrue)
+		So(errors.Is(err, err), ShouldBeTrue)
+		details := errorutil.CollectDetails(err, nil)
+		So(details, ShouldResemble, errorutil.Details{
+			"a": "aa",
+			"b": "b",
+		})
+	})
 }
