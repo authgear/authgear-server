@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
 	"path"
 	"regexp"
@@ -50,7 +49,6 @@ type AppConfigService interface {
 	ResolveContext(appID string) (*config.AppContext, error)
 	UpdateResources(appID string, updates []*resource.ResourceFile) error
 	Create(opts *CreateAppOptions) error
-	CreateDomain(appID string, domainID string, domain string, isCustom bool) error
 }
 
 type AppAuthzService interface {
@@ -58,12 +56,9 @@ type AppAuthzService interface {
 	ListAuthorizedApps(userID string) ([]string, error)
 }
 
-type AppAdminAPIService interface {
-	ResolveHost(appID string) (host string, err error)
-}
-
-type AppDomainService interface {
-	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error)
+type AppDefaultDomainService interface {
+	GetLatestAppHost(appID string) (string, error)
+	CreateAllDefaultDomains(appID string) error
 }
 
 type AppPlanService interface {
@@ -101,8 +96,7 @@ type AppService struct {
 	AppConfig                *portalconfig.AppConfig
 	AppConfigs               AppConfigService
 	AppAuthz                 AppAuthzService
-	AppAdminAPI              AppAdminAPIService
-	AppDomains               AppDomainService
+	DefaultDomains           AppDefaultDomainService
 	Resources                ResourceManager
 	AppResMgrFactory         AppResourceManagerFactory
 	Plan                     AppPlanService
@@ -265,7 +259,7 @@ func (s *AppService) Create(userID string, id string) error {
 		WithField("app_id", id).
 		Info("creating app")
 
-	appHost, err := s.generateAppHost(id)
+	appHost, err := s.DefaultDomains.GetLatestAppHost(id)
 	if err != nil {
 		return err
 	}
@@ -280,11 +274,6 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	adminAPIHost, err := s.AppAdminAPI.ResolveHost(id)
-	if err != nil {
-		return err
-	}
-
 	err = s.AppConfigs.Create(createAppOpts)
 	if err != nil {
 		// TODO(portal): cleanup orphaned resources created from failed app creation
@@ -292,37 +281,9 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	appDomain := appHost
-	if h, _, err := net.SplitHostPort(appHost); err == nil {
-		appDomain = h
-	}
-
-	appAPIDomain := adminAPIHost
-	if h, _, err := net.SplitHostPort(adminAPIHost); err == nil {
-		appAPIDomain = h
-	}
-
-	// Deduplicate domains
-	// when appDomain and appAPIDomain are the same, there will be only one
-	// entry in domains
-	domains := map[string]struct{}{
-		appDomain:    {},
-		appAPIDomain: {},
-	}
-	for domain := range domains {
-		isMain := domain == appDomain
-
-		if isMain {
-			_, err := s.AppDomains.CreateDomain(id, domain, true, false)
-			if err != nil {
-				return err
-			}
-		} else {
-			err := s.AppConfigs.CreateDomain(id, "", domain, false)
-			if err != nil {
-				return err
-			}
-		}
+	err = s.DefaultDomains.CreateAllDefaultDomains(id)
+	if err != nil {
+		return err
 	}
 
 	err = s.AppAuthz.AddAuthorizedUser(id, userID, model.CollaboratorRoleOwner)
@@ -395,13 +356,6 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 	appResources[defaultTranslationJSONPath] = translationJSON
 
 	return appResources, nil
-}
-
-func (s *AppService) generateAppHost(appID string) (string, error) {
-	if s.AppConfig.HostSuffix == "" {
-		return "", errors.New("app hostname suffix is not configured")
-	}
-	return appID + s.AppConfig.HostSuffix, nil
 }
 
 func (s *AppService) generateConfig(appHost string, appID string, appPlan *model.Plan) (opts *CreateAppOptions, err error) {

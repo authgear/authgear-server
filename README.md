@@ -102,11 +102,11 @@ To avoid doing the above every time you open a new shell, you may want to add it
 4. (Optional) To use db as config source.
 
    - Update `.env` to change `CONFIG_SOURCE_TYPE=database`
-   - Setup config source in db
+   - Setup config source and domain.
      ```
-     go run ./cmd/portal internal setup-portal ./var/ \
-        --default-authgear-domain=accounts.localhost \
-        --custom-authgear-domain=accounts.portal.localhost \
+     go run ./cmd/portal internal configsource create ./var
+     go run ./cmd/portal internal domain create-default --default-domain-suffix .localhost
+     go run ./cmd/portal internal domain create-custom accounts --domain accounts.portal.localhost --apex-domain portal.localhost
      ```
 
 ## Database setup

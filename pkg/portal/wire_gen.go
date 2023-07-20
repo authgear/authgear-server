@@ -96,22 +96,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	adder := &authz.Adder{
 		Clock: clock,
 	}
-	adminAPIService := &service.AdminAPIService{
-		AuthgearConfig: authgearConfig,
-		AdminAPIConfig: adminAPIConfig,
-		ConfigSource:   configSource,
-		AuthzAdder:     adder,
-	}
-	userLoader := loader.NewUserLoader(adminAPIService)
-	appServiceLogger := service.NewAppServiceLogger(logFactory)
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	context := deps.ProvideRequestContext(request)
-	pool := rootProvider.Database
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
-	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
+	context := deps.ProvideRequestContext(request)
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
@@ -130,6 +116,32 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DomainImplementation: domainImplementationType,
 		Kubernetes:           kubernetes,
 	}
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	pool := rootProvider.Database
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
+	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	domainService := &service.DomainService{
+		Context:      context,
+		Clock:        clock,
+		DomainConfig: configService,
+		SQLBuilder:   sqlBuilder,
+		SQLExecutor:  sqlExecutor,
+	}
+	defaultDomainService := &service.DefaultDomainService{
+		AppConfig: appConfig,
+		Domains:   domainService,
+	}
+	adminAPIService := &service.AdminAPIService{
+		AuthgearConfig: authgearConfig,
+		AdminAPIConfig: adminAPIConfig,
+		ConfigSource:   configSource,
+		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
+	}
+	userLoader := loader.NewUserLoader(adminAPIService)
+	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
 	mailLogger := mail.NewLogger(logFactory)
@@ -190,13 +202,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
-	domainService := &service.DomainService{
-		Context:      context,
-		Clock:        clock,
-		DomainConfig: configService,
-		SQLBuilder:   sqlBuilder,
-		SQLExecutor:  sqlExecutor,
-	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	storeImpl := &tutorial.StoreImpl{
 		SQLBuilder:  sqlBuilder,
@@ -236,8 +241,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfig:                appConfig,
 		AppConfigs:               configService,
 		AppAuthz:                 authzService,
-		AppAdminAPI:              adminAPIService,
-		AppDomains:               domainService,
+		DefaultDomains:           defaultDomainService,
 		Resources:                manager,
 		AppResMgrFactory:         managerFactory,
 		Plan:                     planService,
@@ -467,11 +471,23 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	adder := &authz.Adder{
 		Clock: clockClock,
 	}
+	domainService := &service.DomainService{
+		Context:      context,
+		Clock:        clockClock,
+		DomainConfig: configService,
+		SQLBuilder:   sqlBuilder,
+		SQLExecutor:  sqlExecutor,
+	}
+	defaultDomainService := &service.DefaultDomainService{
+		AppConfig: appConfig,
+		Domains:   domainService,
+	}
 	adminAPIService := &service.AdminAPIService{
 		AuthgearConfig: authgearConfig,
 		AdminAPIConfig: adminAPIConfig,
 		ConfigSource:   configSource,
 		AuthzAdder:     adder,
+		DefaultDomains: defaultDomainService,
 	}
 	collaboratorService := &service.CollaboratorService{
 		Context:        context,

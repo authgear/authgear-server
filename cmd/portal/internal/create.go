@@ -4,48 +4,42 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"time"
 
 	"github.com/lib/pq"
 	"github.com/spf13/afero"
-	"golang.org/x/net/publicsuffix"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
-	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type SetupPortalOptions struct {
-	DatabaseURL           string
-	DatabaseSchema        string
-	DefaultAuthgearDoamin string
-	CustomAuthgearDomain  string
-	ResourceDir           string
+type CreateOptions struct {
+	DatabaseURL    string
+	DatabaseSchema string
+	ResourceDir    string
 }
 
-func SetupPortal(opt *SetupPortalOptions) {
+func Create(opt *CreateOptions) error {
 	// construct config source
 	data, err := constructConfigSourceData(opt.ResourceDir)
 	if err != nil {
-		log.Fatalf("invalid resource directory: %s", err)
+		return fmt.Errorf("invalid resource directory: %w", err)
 	}
 
 	err = validateConfigSource(data)
 	if err != nil {
-		log.Fatalf("invalid resource directory: %s", err)
+		return fmt.Errorf("invalid resource directory: %w", err)
 	}
 
 	appID, err := parseAppID(data["authgear.yaml"])
 	if err != nil {
-		log.Fatalf("failed to parse app id: %s", err)
+		return fmt.Errorf("failed to parse app id: %w", err)
 	}
 
 	// start store domains and config source to db
@@ -54,68 +48,15 @@ func SetupPortal(opt *SetupPortalOptions) {
 	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		log.Fatalf("failed to connect db: %s", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	if err := createConfigSource(ctx, tx, appID, data); err != nil {
-		log.Fatalf("failed to create config source record: %s", err)
-	}
-
-	if err := createDomain(ctx, tx, appID, opt.DefaultAuthgearDoamin, false); err != nil {
-		_ = tx.Rollback()
-		log.Fatalf("failed to create default domain: %s", err)
-	}
-
-	if err := createDomain(ctx, tx, appID, opt.CustomAuthgearDomain, true); err != nil {
-		_ = tx.Rollback()
-		log.Fatalf("failed to create custom domain: %s", err)
+		return fmt.Errorf("failed to create config source record: %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Fatal(err)
-	}
-
-}
-
-// create domain record in db
-func createDomain(ctx context.Context, tx *sql.Tx, appID string, domain string, isCustom bool) error {
-	apexDomain, err := publicsuffix.EffectiveTLDPlusOne(domain)
-	if err != nil {
-		return fmt.Errorf("invalid domain: %w", err)
-	}
-	if !isCustom {
-		// For non-custom domain, assume the domain is always an apex domain,
-		// in case the domain suffix is not yet in PSL.
-		apexDomain = domain
-	}
-
-	nonce := make([]byte, 16)
-	corerand.SecureRand.Read(nonce)
-	verificationNonce := hex.EncodeToString(nonce)
-
-	builder := newSQLBuilder().
-		Insert(pq.QuoteIdentifier("_portal_domain")).
-		Columns(
-			"id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom",
-		).
-		Values(
-			uuid.New(),
-			appID,
-			time.Now().UTC(),
-			domain,
-			apexDomain,
-			verificationNonce,
-			isCustom,
-		)
-
-	q, args, err := builder.ToSql()
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx, q, args...)
-	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil

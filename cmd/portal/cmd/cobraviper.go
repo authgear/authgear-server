@@ -61,18 +61,6 @@ var ArgNamespace = &cobraviper.StringArgument{
 	Usage:        "Namespace",
 }
 
-var ArgDefaultAuthgearDomain = &cobraviper.StringArgument{
-	ArgumentName: "default-authgear-domain",
-	EnvName:      "DEFAULT_AUTHGEAR_DOMAIN",
-	Usage:        "App default domain",
-}
-
-var ArgCustomAuthgearDomain = &cobraviper.StringArgument{
-	ArgumentName: "custom-authgear-domain",
-	EnvName:      "CUSTOM_AUTHGEAR_DOMAIN",
-	Usage:        "App custom domain",
-}
-
 var ArgFeatureConfigFilePath = &cobraviper.StringArgument{
 	ArgumentName: "file",
 	Usage:        "Feature config file path",
@@ -141,7 +129,7 @@ var ArgAnalyticGoogleSpreadsheetRange = &cobraviper.StringArgument{
 var ArgDataJSONFilePath = &cobraviper.StringArgument{
 	ArgumentName: "data-json-file",
 	Short:        "f",
-	Usage:        "File path of database configsource data JSON",
+	Usage:        "File path of the database config source data JSON file",
 }
 
 var ArgOutputDirectoryPath = &cobraviper.StringArgument{
@@ -154,4 +142,19 @@ var ArgInputDirectoryPath = &cobraviper.StringArgument{
 	ArgumentName: "input-directory",
 	Short:        "i",
 	Usage:        "File path of the input directory",
+}
+
+var ArgDefaultDomainSuffix = &cobraviper.StringArgument{
+	ArgumentName: "default-domain-suffix",
+	Usage:        "e.g. .localhost It must NOT contain a port number.",
+}
+
+var ArgDomain = &cobraviper.StringArgument{
+	ArgumentName: "domain",
+	Usage:        "It must NOT contain a port number.",
+}
+
+var ArgApexDomain = &cobraviper.StringArgument{
+	ArgumentName: "apex-domain",
+	Usage:        "The apex domain of the domain. It must NOT contain a port number.",
 }

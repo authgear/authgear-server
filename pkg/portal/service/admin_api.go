@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
-	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -21,11 +19,16 @@ type AuthzAdder interface {
 		hdr http.Header) (err error)
 }
 
+type AdminAPIDefaultDomainService interface {
+	GetLatestAppHost(appID string) (string, error)
+}
+
 type AdminAPIService struct {
 	AuthgearConfig *portalconfig.AuthgearConfig
 	AdminAPIConfig *portalconfig.AdminAPIConfig
 	ConfigSource   *configsource.ConfigSource
 	AuthzAdder     AuthzAdder
+	DefaultDomains AdminAPIDefaultDomainService
 }
 
 type Usage string
@@ -47,26 +50,6 @@ func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
 		return nil, err
 	}
 	return appCtx.Config, nil
-}
-
-func (s *AdminAPIService) ResolveHost(appID string) (host string, err error) {
-	t := texttemplate.New("host-template")
-	_, err = t.Parse(s.AdminAPIConfig.HostTemplate)
-	if err != nil {
-		return
-	}
-	var buf strings.Builder
-
-	data := map[string]interface{}{
-		"AppID": appID,
-	}
-	err = t.Execute(&buf, data)
-	if err != nil {
-		return
-	}
-
-	host = buf.String()
-	return
 }
 
 func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
@@ -100,7 +83,7 @@ func (s *AdminAPIService) Director(appID string, p string, actorUserID string, u
 	}
 	endpoint.Path = p
 
-	host, err := s.ResolveHost(appID)
+	host, err := s.DefaultDomains.GetLatestAppHost(appID)
 	if err != nil {
 		return
 	}
