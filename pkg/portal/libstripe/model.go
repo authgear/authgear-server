@@ -10,12 +10,13 @@ import (
 )
 
 const (
-	MetadataKeyAppID        = "app_id"
-	MetadataKeyPlanName     = "plan_name"
-	MetadataKeyPriceType    = "price_type"
-	MetadataKeyUsageType    = "usage_type"
-	MetadatakeySMSRegion    = "sms_region"
-	MetadataKeyFreeQuantity = "free_quantity"
+	MetadataKeyAppID          = "app_id"
+	MetadataKeyPlanName       = "plan_name"
+	MetadataKeyPriceType      = "price_type"
+	MetadataKeyUsageType      = "usage_type"
+	MetadatakeySMSRegion      = "sms_region"
+	MetadatakeyWhatsappRegion = "whatsapp_region"
+	MetadataKeyFreeQuantity   = "free_quantity"
 )
 
 func NewPriceFromProductOfProductList(stripeProduct *stripe.Product) (price *model.Price, err error) {
@@ -43,7 +44,24 @@ func newPrice(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *
 		StripePriceID:   stripePrice.ID,
 		Type:            priceType,
 		Currency:        string(stripePrice.Currency),
-		UnitAmount:      int(stripePrice.UnitAmount),
+	}
+
+	if len(stripePrice.Tiers) > 0 {
+		firstTier := stripePrice.Tiers[0]
+		if firstTier.UnitAmount == 0 {
+			// If the first tier is free, set the amount to FreeQuanity
+			freeQuantity := int(firstTier.UpTo)
+			price.FreeQuantity = &freeQuantity
+			if len(stripePrice.Tiers) > 1 {
+				// And get the next tier as the unit price
+				secondTier := stripePrice.Tiers[1]
+				price.UnitAmount = int(secondTier.UnitAmount)
+			}
+		} else {
+			price.UnitAmount = int(firstTier.UnitAmount)
+		}
+	} else {
+		price.UnitAmount = int(stripePrice.UnitAmount)
 	}
 
 	if stripePrice.TransformQuantity != nil {
@@ -68,6 +86,15 @@ func newPrice(stripeProduct *stripe.Product, stripePrice *stripe.Price) (price *
 			return
 		}
 		price.SMSRegion = smsRegion
+	}
+
+	if whatsappRegionStr, ok := stripeProduct.Metadata[MetadatakeyWhatsappRegion]; ok {
+		whatsappRegion := model.WhatsappRegion(whatsappRegionStr)
+		err = whatsappRegion.Valid()
+		if err != nil {
+			return
+		}
+		price.WhatsappRegion = whatsappRegion
 	}
 
 	if freeQuantityStr, ok := stripePrice.Metadata[MetadataKeyFreeQuantity]; ok {

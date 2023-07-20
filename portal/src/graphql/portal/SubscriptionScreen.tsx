@@ -31,6 +31,7 @@ import {
   SubscriptionItemPriceSmsRegion,
   SubscriptionItemPriceType,
   SubscriptionItemPriceUsageType,
+  SubscriptionItemPriceWhatsappRegion,
   SubscriptionPlan,
   SubscriptionUsage,
 } from "./globalTypes.generated";
@@ -56,7 +57,6 @@ import SubscriptionPlanCard, {
 } from "./SubscriptionPlanCard";
 import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 import { useLoading, useIsLoading } from "./../../hook/loading";
-import { formatDatetime } from "../../util/formatDatetime";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -64,18 +64,19 @@ import ErrorDialog from "../../error/ErrorDialog";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
-import LinkButton from "../../LinkButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
+import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
+import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
 
-const ALL_KNOWN_PLANS = ["free", "developers", "startups", "business"];
+const ENTERPRISE_PLAN = "enterprise";
+const ALL_KNOWN_PLANS = ["free", "startups", "business", ENTERPRISE_PLAN];
 const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
 
 const MAU_LIMIT: Record<string, number> = {
   free: 5000,
-  developers: 1000,
   startups: 5000,
-  business: 50000,
+  business: 10000,
 };
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
@@ -102,6 +103,12 @@ function isKnownPlan(planName: string): boolean {
   return ALL_KNOWN_PLANS.indexOf(planName) >= 0;
 }
 
+function isEnterprisePlan(
+  planName: string
+): planName is typeof ENTERPRISE_PLAN {
+  return planName === ENTERPRISE_PLAN;
+}
+
 function isKnownPaidPlan(planName: string): boolean {
   return PAID_PLANS.indexOf(planName) >= 0;
 }
@@ -121,7 +128,7 @@ function showRecommendedTag(
   const a = isRecommendedPlan(planName);
   const i = ALL_KNOWN_PLANS.indexOf(planName);
   const j = ALL_KNOWN_PLANS.indexOf(currentPlanName);
-  return a && i >= 0 && j >= 0 && j <= i;
+  return a && i >= 0 && j >= 0 && j < i;
 }
 
 interface PlanDetailsLinesProps {
@@ -136,14 +143,11 @@ function PlanDetailsLines(props: PlanDetailsLinesProps) {
   }
   let length = 0;
   switch (planName) {
-    case "developers":
-      length = 5;
-      break;
     case "startups":
       length = 4;
       break;
     case "business":
-      length = 3;
+      length = 6;
       break;
   }
   const children = [];
@@ -276,6 +280,18 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       price.usageType === SubscriptionItemPriceUsageType.Sms &&
       price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
   );
+  const northAmericaWhatsappPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
+      price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
+  );
+  const otherRegionsWhatsappPrice = subscriptionPlan.prices.find(
+    (price) =>
+      price.type === SubscriptionItemPriceType.Usage &&
+      price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
+      price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
+  );
   const mauPrice = subscriptionPlan.prices.find(
     (price) =>
       price.type === SubscriptionItemPriceType.Usage &&
@@ -340,12 +356,32 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
               />
             </UsagePriceTag>
           ) : null}
+          {northAmericaWhatsappPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.whatsapp.north-america"
+                values={{
+                  unitAmount: northAmericaWhatsappPrice.unitAmount / 100,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
           {otherRegionsSMSPrice != null ? (
             <UsagePriceTag>
               <FormattedMessage
                 id="SubscriptionPlanCard.sms.other-regions"
                 values={{
                   unitAmount: otherRegionsSMSPrice.unitAmount / 100,
+                }}
+              />
+            </UsagePriceTag>
+          ) : null}
+          {otherRegionsWhatsappPrice != null ? (
+            <UsagePriceTag>
+              <FormattedMessage
+                id="SubscriptionPlanCard.whatsapp.other-regions"
+                values={{
+                  unitAmount: otherRegionsWhatsappPrice.unitAmount / 100,
                 }}
               />
             </UsagePriceTag>
@@ -368,14 +404,20 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
         />
       }
       planDetailsTitle={
-        <PlanDetailsTitle>
-          <FormattedMessage
-            id="SubscriptionPlanCard.plan.features.title"
-            values={{
-              previousPlan: previousPlanName ?? "-",
-            }}
-          />
-        </PlanDetailsTitle>
+        previousPlanName ? (
+          <PlanDetailsTitle>
+            <FormattedMessage
+              id="SubscriptionPlanCard.plan.features.title"
+              values={{
+                previousPlan: (
+                  <FormattedMessage
+                    id={`SubscriptionScreen.plan-name.${previousPlanName}`}
+                  />
+                ),
+              }}
+            />
+          </PlanDetailsTitle>
+        ) : null
       }
       planDetailsLines={<PlanDetailsLines planName={name} />}
     />
@@ -448,6 +490,48 @@ function getSMSCost(
   return cost;
 }
 
+interface SMSCost {
+  totalCost: number;
+  northAmericaCount: number;
+  otherRegionsCount: number;
+}
+
+function getWhatsappCost(
+  planName: string,
+  subscriptionUsage: SubscriptionUsage
+): SMSCost | undefined {
+  if (!isKnownPaidPlan(planName)) {
+    return undefined;
+  }
+
+  const cost = {
+    totalCost: 0,
+    northAmericaCount: 0,
+    otherRegionsCount: 0,
+  };
+
+  for (const item of subscriptionUsage.items) {
+    if (
+      item.type === SubscriptionItemPriceType.Usage &&
+      item.usageType === SubscriptionItemPriceUsageType.Whatsapp
+    ) {
+      cost.totalCost += item.totalAmount ?? 0;
+      if (
+        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
+      ) {
+        cost.northAmericaCount = item.quantity;
+      }
+      if (
+        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
+      ) {
+        cost.otherRegionsCount = item.quantity;
+      }
+    }
+  }
+
+  return cost;
+}
+
 interface MAUCost {
   totalCost: number;
   additionalMAU: number;
@@ -483,19 +567,8 @@ function getMAUCost(
   return undefined;
 }
 
-const CANCEL_THEME: PartialTheme = {
-  palette: {
-    themePrimary: "#c8c8c8",
-    neutralPrimary: "#c8c8c8",
-  },
-  semanticColors: {
-    linkHovered: "#c8c8c8",
-  },
-};
-
 // eslint-disable-next-line complexity
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
-  const { locale } = useContext(Context);
   const {
     appID,
     planName,
@@ -505,14 +578,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     previousMonthUsage,
   } = props;
   const { themes } = useSystemConfig();
-
-  const hasSubscription = useMemo(() => !!subscription, [subscription]);
-
-  const formattedSubscriptionEndedAt = useMemo(() => {
-    return subscription?.endedAt
-      ? formatDatetime(locale, subscription.endedAt, DateTime.DATETIME_SHORT)
-      : null;
-  }, [subscription?.endedAt, locale]);
 
   const subscriptionEndedAt = useMemo(() => {
     if (subscription?.endedAt != null) {
@@ -538,6 +603,13 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       return undefined;
     }
     return getSMSCost(planName, thisMonthUsage);
+  }, [planName, thisMonthUsage]);
+
+  const whatsappCost = useMemo(() => {
+    if (thisMonthUsage == null) {
+      return undefined;
+    }
+    return getWhatsappCost(planName, thisMonthUsage);
   }, [planName, thisMonthUsage]);
 
   const mauCost = useMemo(() => {
@@ -598,31 +670,35 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
 
-  // @ts-expect-error
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionScreen.enterprise.title" />,
+      // @ts-expect-error
       subText: (
         <FormattedMessage id="SubscriptionScreen.enterprise.instructions" />
-      ),
+      ) as IDialogContentProps["subText"],
     };
   }, []);
 
-  // @ts-expect-error
   const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+      // @ts-expect-error
       subText: (
         <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
-      ),
+      ) as IDialogContentProps["subText"],
     };
   }, []);
 
   const onClickEnterprisePlan = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
+    setEnterpriseDialogHidden(false);
+  }, []);
+
+  const onClickEnterprisePlanContactUs = useCallback(() => {
     setEnterpriseDialogHidden(false);
   }, []);
 
@@ -763,7 +839,19 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             title={
               <FormattedMessage id="SubscriptionCurrentPlanSummary.whatsapp.title" />
             }
-            kind={isKnownPaidPlan(planName) ? "free" : "non-applicable"}
+            kind={whatsappCost == null ? "non-applicable" : "billed"}
+            amount={whatsappCost == null ? undefined : whatsappCost.totalCost}
+            tooltip={
+              whatsappCost == null ? undefined : (
+                <FormattedMessage
+                  id="SubscriptionCurrentPlanSummary.whatsapp.tooltip"
+                  values={{
+                    count1: whatsappCost.northAmericaCount,
+                    count2: whatsappCost.otherRegionsCount,
+                  }}
+                />
+              )
+            }
           />
           <CostItem
             title={
@@ -826,53 +914,28 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                   />
                 );
               }
+              if (isEnterprisePlan(paidPlanName)) {
+                return (
+                  <SubscriptionEnterprisePlan
+                    key={paidPlanName}
+                    previousPlanName={previousPlan(paidPlanName)}
+                    onClickContactUs={onClickEnterprisePlanContactUs}
+                  />
+                );
+              }
               return null;
             })}
           </div>
         </div>
-        <div className={styles.footer}>
-          <Text block={true}>
-            <FormattedMessage id="SubscriptionScreen.footer.tax" />
-          </Text>
-          <Text block={true}>
-            <FormattedMessage
-              id="SubscriptionScreen.footer.enterprise-plan"
-              values={{
-                onClick: onClickEnterprisePlan,
-              }}
-            />
-          </Text>
-          <Text block={true}>
-            <FormattedMessage id="SubscriptionScreen.footer.pricing-details" />
-          </Text>
-          {isKnownPaidPlan(planName) ? (
-            <>
-              <Text block={true}>
-                <FormattedMessage id="SubscriptionScreen.footer.usage-delay-disclaimer" />
-              </Text>
-              {hasSubscription ? (
-                subscriptionCancelled ? (
-                  <Text block={true}>
-                    <FormattedMessage
-                      id="SubscriptionScreen.footer.expire"
-                      values={{
-                        date: formattedSubscriptionEndedAt ?? "",
-                      }}
-                    />
-                  </Text>
-                ) : (
-                  <ThemeProvider theme={CANCEL_THEME}>
-                    <LinkButton onClick={onClickCancel}>
-                      <Text>
-                        <FormattedMessage id="SubscriptionScreen.footer.cancel" />
-                      </Text>
-                    </LinkButton>
-                  </ThemeProvider>
-                )
-              ) : null}
-            </>
-          ) : null}
-        </div>
+        <SubscriptionScreenFooter
+          className={styles.section}
+          onClickEnterprisePlan={onClickEnterprisePlan}
+          onClickCancel={onClickCancel}
+          hasSubscription={!!subscription}
+          subscriptionCancelled={subscriptionCancelled}
+          isKnownPaidPlan={isKnownPaidPlan(planName)}
+          subscriptionEndedAt={subscription?.endedAt ?? undefined}
+        />
       </div>
     </>
   );

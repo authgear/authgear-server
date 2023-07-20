@@ -836,6 +836,9 @@ type SubscriptionItemPrice {
 
   """"""
   usageType: SubscriptionItemPriceUsageType!
+
+  """"""
+  whatsappRegion: SubscriptionItemPriceWhatsappRegion!
 }
 
 """"""
@@ -869,6 +872,21 @@ enum SubscriptionItemPriceUsageType {
 
   """"""
   SMS
+
+  """"""
+  WHATSAPP
+}
+
+""""""
+enum SubscriptionItemPriceWhatsappRegion {
+  """"""
+  NONE
+
+  """"""
+  NORTH_AMERICA
+
+  """"""
+  OTHER_REGIONS
 }
 
 """"""
@@ -920,6 +938,9 @@ type SubscriptionUsageItem {
 
   """"""
   usageType: SubscriptionItemPriceUsageType!
+
+  """"""
+  whatsappRegion: SubscriptionItemPriceWhatsappRegion!
 }
 
 """"""

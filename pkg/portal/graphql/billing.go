@@ -26,6 +26,9 @@ var usageType = graphql.NewEnum(graphql.EnumConfig{
 		"SMS": &graphql.EnumValueConfig{
 			Value: model.UsageTypeSMS,
 		},
+		"WHATSAPP": &graphql.EnumValueConfig{
+			Value: model.UsageTypeWhatsapp,
+		},
 		"MAU": &graphql.EnumValueConfig{
 			Value: model.UsageTypeMAU,
 		},
@@ -43,6 +46,21 @@ var smsRegion = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"OTHER_REGIONS": &graphql.EnumValueConfig{
 			Value: model.SMSRegionOtherRegions,
+		},
+	},
+})
+
+var whatsappRegion = graphql.NewEnum(graphql.EnumConfig{
+	Name: "SubscriptionItemPriceWhatsappRegion",
+	Values: graphql.EnumValueConfigMap{
+		"NONE": &graphql.EnumValueConfig{
+			Value: model.WhatsappRegionNone,
+		},
+		"NORTH_AMERICA": &graphql.EnumValueConfig{
+			Value: model.WhatsappRegionNorthAmerica,
+		},
+		"OTHER_REGIONS": &graphql.EnumValueConfig{
+			Value: model.WhatsappRegionOtherRegions,
 		},
 	},
 })
@@ -79,6 +97,9 @@ var price = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"smsRegion": &graphql.Field{
 			Type: graphql.NewNonNull(smsRegion),
+		},
+		"whatsappRegion": &graphql.Field{
+			Type: graphql.NewNonNull(whatsappRegion),
 		},
 		"transformQuantityDivideBy": &graphql.Field{
 			Type: graphql.Int,
@@ -138,6 +159,9 @@ var usageItem = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"smsRegion": &graphql.Field{
 			Type: graphql.NewNonNull(smsRegion),
+		},
+		"whatsappRegion": &graphql.Field{
+			Type: graphql.NewNonNull(whatsappRegion),
 		},
 		"currency": &graphql.Field{
 			Type: graphql.String,

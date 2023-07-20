@@ -67,9 +67,10 @@ func (t PriceType) Valid() error {
 type UsageType string
 
 const (
-	UsageTypeNone UsageType = ""
-	UsageTypeSMS  UsageType = "sms"
-	UsageTypeMAU  UsageType = "mau"
+	UsageTypeNone     UsageType = ""
+	UsageTypeSMS      UsageType = "sms"
+	UsageTypeWhatsapp UsageType = "whatsapp"
+	UsageTypeMAU      UsageType = "mau"
 )
 
 func (t UsageType) Valid() error {
@@ -79,6 +80,8 @@ func (t UsageType) Valid() error {
 	case UsageTypeSMS:
 		return nil
 	case UsageTypeMAU:
+		return nil
+	case UsageTypeWhatsapp:
 		return nil
 	}
 	return fmt.Errorf("unknown usage_type: %#v", t)
@@ -102,6 +105,26 @@ func (r SMSRegion) Valid() error {
 		return nil
 	}
 	return fmt.Errorf("unknown sms_region: %#v", r)
+}
+
+type WhatsappRegion string
+
+const (
+	WhatsappRegionNone         WhatsappRegion = ""
+	WhatsappRegionNorthAmerica WhatsappRegion = "north-america"
+	WhatsappRegionOtherRegions WhatsappRegion = "other-regions"
+)
+
+func (r WhatsappRegion) Valid() error {
+	switch r {
+	case WhatsappRegionNone:
+		return nil
+	case WhatsappRegionNorthAmerica:
+		return nil
+	case WhatsappRegionOtherRegions:
+		return nil
+	}
+	return fmt.Errorf("unknown whatsapp_region: %#v", r)
 }
 
 type TransformQuantityRound string
@@ -133,6 +156,7 @@ type SubscriptionUsageItem struct {
 	Type                      PriceType              `json:"type"`
 	UsageType                 UsageType              `json:"usageType"`
 	SMSRegion                 SMSRegion              `json:"smsRegion"`
+	WhatsappRegion            WhatsappRegion         `json:"whatsappRegion"`
 	Currency                  *string                `json:"currency"`
 	UnitAmount                *int                   `json:"unitAmount"`
 	FreeQuantity              *int                   `json:"freeQuantity,omitempty"`
@@ -149,6 +173,7 @@ type Price struct {
 	Type                      PriceType              `json:"type"`
 	UsageType                 UsageType              `json:"usageType,omitempty"`
 	SMSRegion                 SMSRegion              `json:"smsRegion,omitempty"`
+	WhatsappRegion            WhatsappRegion         `json:"whatsappRegion,omitempty"`
 	Currency                  string                 `json:"currency"`
 	UnitAmount                int                    `json:"unitAmount"`
 	FreeQuantity              *int                   `json:"freeQuantity,omitempty"`
@@ -161,7 +186,7 @@ func (p *Price) ShouldClearUsage() bool {
 }
 
 func (i *SubscriptionUsageItem) Match(p *Price) bool {
-	return i.Type == p.Type && i.UsageType == p.UsageType && i.SMSRegion == p.SMSRegion
+	return i.Type == p.Type && i.UsageType == p.UsageType && i.SMSRegion == p.SMSRegion && i.WhatsappRegion == p.WhatsappRegion
 }
 
 func (i *SubscriptionUsageItem) FillFrom(p *Price) *SubscriptionUsageItem {

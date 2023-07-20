@@ -7,7 +7,10 @@ var _ = FeatureConfigSchema.Add("MessagingFeatureConfig", `
 	"properties": {
 		"rate_limits": { "$ref": "#/$defs/MessagingRateLimitsFeatureConfig" },
 		"sms_usage": { "$ref": "#/$defs/UsageLimitConfig" },
-		"email_usage": { "$ref": "#/$defs/UsageLimitConfig" }
+		"email_usage": { "$ref": "#/$defs/UsageLimitConfig" },
+		"whatsapp_usage": { "$ref": "#/$defs/UsageLimitConfig" },
+		"sms_usage_count_disabled": { "type": "boolean" },
+		"whatsapp_usage_count_disabled": { "type": "boolean" }
 	}
 }
 `)
@@ -15,8 +18,12 @@ var _ = FeatureConfigSchema.Add("MessagingFeatureConfig", `
 type MessagingFeatureConfig struct {
 	RateLimits *MessagingRateLimitsFeatureConfig `json:"rate_limits,omitempty"`
 
-	SMSUsage   *UsageLimitConfig `json:"sms_usage,omitempty"`
-	EmailUsage *UsageLimitConfig `json:"email_usage,omitempty"`
+	SMSUsage      *UsageLimitConfig `json:"sms_usage,omitempty"`
+	EmailUsage    *UsageLimitConfig `json:"email_usage,omitempty"`
+	WhatsappUsage *UsageLimitConfig `json:"whatsapp_usage,omitempty"`
+
+	SMSUsageCountDisabled      bool `json:"sms_usage_count_disabled,omitempty"`
+	WhatsappUsageCountDisabled bool `json:"whatsapp_usage_count_disabled,omitempty"`
 }
 
 func (c *MessagingFeatureConfig) SetDefaults() {
@@ -29,6 +36,13 @@ func (c *MessagingFeatureConfig) SetDefaults() {
 	}
 	if c.EmailUsage.Enabled == nil {
 		c.EmailUsage = &UsageLimitConfig{
+			Enabled: newBool(true),
+			Period:  UsageLimitPeriodMonth,
+			Quota:   100000,
+		}
+	}
+	if c.WhatsappUsage.Enabled == nil {
+		c.WhatsappUsage = &UsageLimitConfig{
 			Enabled: newBool(true),
 			Period:  UsageLimitPeriodMonth,
 			Quota:   100000,

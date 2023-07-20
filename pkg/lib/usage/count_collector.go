@@ -37,6 +37,12 @@ type smsCountResult struct {
 	total        int
 }
 
+type whatsappCountResult struct {
+	northAmerica int
+	otherRegions int
+	total        int
+}
+
 type CountCollector struct {
 	GlobalHandle  *globaldb.Handle
 	GlobalDBStore *GlobalDBStore
@@ -209,7 +215,7 @@ func (c *CountCollector) CollectDailyEmailSent(startTime *time.Time) (int, error
 	return c.upsertUsageRecords(usageRecords)
 }
 
-func (c *CountCollector) CollectDailyWhatsappOTPVerified(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectDailyWhatsappSent(startTime *time.Time) (int, error) {
 	startT := timeutil.TruncateToDate(*startTime)
 	endT := startT.AddDate(0, 0, 1)
 	appIDs, err := c.getAppIDs()
@@ -219,25 +225,21 @@ func (c *CountCollector) CollectDailyWhatsappOTPVerified(startTime *time.Time) (
 
 	usageRecords := []*UsageRecord{}
 	for _, appID := range appIDs {
-		err := c.AuditHandle.ReadOnly(func() (e error) {
-			count, err := c.Meters.GetCountByActivityType(appID, string(nonblocking.WhatsappOTPVerified), &startT, &endT)
-			if err != nil {
-				return err
-			}
-			if count > 0 {
-				usageRecords = append(usageRecords, NewUsageRecord(
-					appID,
-					RecordNameWhatsappOTPVerified,
-					count,
-					periodical.Daily,
-					startT,
-					endT,
-				))
-			}
-			return nil
-		})
+		result, err := c.queryWhatsappCount(appID, &startT, &endT)
 		if err != nil {
 			return 0, err
+		}
+
+		if result.northAmerica > 0 {
+			usageRecords = append(usageRecords, NewUsageRecord(appID, RecordNameWhatsappSentNorthAmerica, result.northAmerica, periodical.Daily, startT, endT))
+		}
+
+		if result.otherRegions > 0 {
+			usageRecords = append(usageRecords, NewUsageRecord(appID, RecordNameWhatsappSentOtherRegions, result.otherRegions, periodical.Daily, startT, endT))
+		}
+
+		if result.total > 0 {
+			usageRecords = append(usageRecords, NewUsageRecord(appID, RecordNameWhatsappSentTotal, result.total, periodical.Daily, startT, endT))
 		}
 	}
 
@@ -275,7 +277,10 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 		var err error
 		var events []*event.Event
 		err = c.AuditHandle.ReadOnly(func() error {
-			events, after, err = c.querySMSSentEvents(appID, rangeFrom, rangeTo, first, after)
+			events, after, err = c.queryEvents(
+				nonblocking.SMSSent,
+				func() event.Payload { return &nonblocking.SMSSentEventPayload{} },
+				appID, rangeFrom, rangeTo, first, after)
 			return err
 		})
 		if err != nil {
@@ -286,10 +291,12 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 			return result, nil
 		}
 		for _, e := range events {
-			result.total++
 			payload, ok := e.Payload.(*nonblocking.SMSSentEventPayload)
 			if !ok {
 				return nil, errors.New("usage: unexpected event payload")
+			}
+			if payload.IsNotCountedInUsage {
+				continue
 			}
 
 			e164 := payload.Recipient
@@ -297,6 +304,8 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 			if err != nil {
 				return nil, fmt.Errorf("usage: failed to parse sms recipient %w", err)
 			}
+
+			result.total++
 
 			if isNorthAmericaNumber {
 				result.northAmerica++
@@ -307,11 +316,66 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 	}
 }
 
-func (c *CountCollector) querySMSSentEvents(appID string, rangeFrom *time.Time, rangeTo *time.Time, first uint64, after model.PageCursor) (events []*event.Event, lastCursor model.PageCursor, err error) {
+func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*whatsappCountResult, error) {
+	result := &whatsappCountResult{}
+	var first uint64 = 100
+	var after model.PageCursor = ""
+	for {
+		var err error
+		var events []*event.Event
+		err = c.AuditHandle.ReadOnly(func() error {
+			events, after, err = c.queryEvents(
+				nonblocking.WhatsappSent,
+				func() event.Payload { return &nonblocking.WhatsappSentEventPayload{} },
+				appID, rangeFrom, rangeTo, first, after)
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+		// Termination condition
+		if len(events) == 0 {
+			return result, nil
+		}
+		for _, e := range events {
+			payload, ok := e.Payload.(*nonblocking.WhatsappSentEventPayload)
+			if !ok {
+				return nil, errors.New("usage: unexpected event payload")
+			}
+
+			e164 := payload.Recipient
+
+			isNorthAmericaNumber, err := phoneutil.IsNorthAmericaNumber(e164)
+			if err != nil {
+				return nil, fmt.Errorf("usage: failed to parse whatsapp recipient %w", err)
+			}
+			if payload.IsNotCountedInUsage {
+				continue
+			}
+
+			result.total++
+
+			if isNorthAmericaNumber {
+				result.northAmerica++
+			} else {
+				result.otherRegions++
+			}
+		}
+	}
+}
+
+func (c *CountCollector) queryEvents(
+	eventType event.Type,
+	payloadFactory func() event.Payload,
+	appID string,
+	rangeFrom *time.Time,
+	rangeTo *time.Time,
+	first uint64,
+	after model.PageCursor) (events []*event.Event, lastCursor model.PageCursor, err error) {
 	options := audit.QueryPageOptions{
 		RangeFrom:     rangeFrom,
 		RangeTo:       rangeTo,
-		ActivityTypes: []string{string(nonblocking.SMSSent)},
+		ActivityTypes: []string{string(eventType)},
 	}
 
 	logs, offset, err := c.Meters.QueryPage(appID, options, graphqlutil.PageArgs{
@@ -329,7 +393,7 @@ func (c *CountCollector) querySMSSentEvents(appID string, rangeFrom *time.Time, 
 			return
 		}
 		eventObj := event.Event{
-			Payload: &nonblocking.SMSSentEventPayload{},
+			Payload: payloadFactory(),
 		}
 		e = json.Unmarshal(b, &eventObj)
 		if e != nil {

@@ -800,10 +800,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TokenStore:                 tokenStore,
 	}
 	sender := &messaging.Sender{
-		Limits:    limits,
-		TaskQueue: queue,
-		Events:    eventService,
-		Whatsapp:  whatsappService,
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
