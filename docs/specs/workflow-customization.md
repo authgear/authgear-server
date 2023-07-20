@@ -180,7 +180,7 @@ signup_flows:
         one_of:
         - authentication: primary_oob_otp_sms
           target_step: setup_identity
-      - step: verify
+      - type: verify
         target_step: setup_identity
     - identification: email
       steps:
@@ -188,7 +188,7 @@ signup_flows:
         one_of:
         - authentication: primary_oob_otp_email
           target_step: setup_identity
-      - step: verify
+      - type: verify
         target_step: setup_identity
   - type: authenticate
     one_of:
