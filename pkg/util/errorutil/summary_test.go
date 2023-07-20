@@ -24,4 +24,15 @@ func TestSummary(t *testing.T) {
 		So(errorutil.Summary(err4), ShouldEqual, "err d: err b: err a")
 		So(errorutil.Summary(err5), ShouldEqual, "(err b: err a) err e")
 	})
+
+	Convey("Summary works well with errors.Join", t, func() {
+		rootCause := errors.New("root cause")
+		invalidCredentials := fmt.Errorf("invalid credentials: %w", rootCause)
+		rollbackError := errors.New("rollback error")
+		e := errorutil.WithSecondaryError(invalidCredentials, rollbackError)
+		apiError := errors.New("api error")
+		err := errors.Join(apiError, e)
+
+		So(errorutil.Summary(err), ShouldEqual, "api error: (rollback error) invalid credentials: root cause")
+	})
 }

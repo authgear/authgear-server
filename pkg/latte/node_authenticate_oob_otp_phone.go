@@ -2,13 +2,13 @@ package latte
 
 import (
 	"context"
-	"errors"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -62,13 +62,14 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 			OOBOTP: &authenticator.OOBOTPSpec{
 				Code: inputTakeOOBOTPCode.GetCode(),
 			},
-		}, nil)
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			if err := DispatchAuthenticationFailedEvent(deps.Events, info); err != nil {
-				return nil, err
-			}
-			return nil, api.ErrInvalidCredentials
-		} else if err != nil {
+		}, &facade.VerifyOptions{
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				info.UserID,
+				authn.AuthenticationStagePrimary,
+				authn.AuthenticationTypeOOBOTPSMS,
+			),
+		})
+		if err != nil {
 			return nil, err
 		}
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{

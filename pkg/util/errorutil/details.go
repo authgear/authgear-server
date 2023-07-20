@@ -35,14 +35,14 @@ func CollectDetails(err error, d Details) Details {
 
 	// Inspect the error chain to fill out Detailer.
 	var detailers []Detailer
-	for err != nil {
+
+	Unwrap(err, func(err error) {
 		var detailer Detailer
 		ok := errors.As(err, &detailer)
 		if ok {
 			detailers = append(detailers, detailer)
 		}
-		err = errors.Unwrap(err)
-	}
+	})
 
 	// Loop the detailers backward to make sure wrapping error override wrapped error.
 	for i := len(detailers) - 1; i >= 0; i-- {

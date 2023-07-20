@@ -1,12 +1,12 @@
 package nodes
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -35,13 +35,15 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: input.GetOOBOTP(),
 		},
-	}, nil)
+	}, &facade.VerifyOptions{
+		AuthenticationDetails: facade.NewAuthenticationDetails(
+			info.UserID,
+			e.Stage,
+			deriveNodeAuthenticationOOBAuthenticationType(info.Type),
+		),
+	})
 	if err != nil {
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			info = nil
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: info, AuthenticatorType: e.Authenticator.Type}, nil
@@ -62,21 +64,24 @@ func (n *NodeAuthenticationOOB) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeAuthenticationOOB) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+	return []interaction.Edge{
+		&EdgeAuthenticationEnd{
+			Stage:                 n.Stage,
+			AuthenticationType:    deriveNodeAuthenticationOOBAuthenticationType(n.AuthenticatorType),
+			VerifiedAuthenticator: n.Authenticator,
+		},
+	}, nil
+}
+
+func deriveNodeAuthenticationOOBAuthenticationType(authenticatorType model.AuthenticatorType) authn.AuthenticationType {
 	var typ authn.AuthenticationType
-	switch n.AuthenticatorType {
+	switch authenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
 		typ = authn.AuthenticationTypeOOBOTPEmail
 	case model.AuthenticatorTypeOOBSMS:
 		typ = authn.AuthenticationTypeOOBOTPSMS
 	default:
-		panic(fmt.Errorf("interaction: unexpected authenticator type: %v", n.AuthenticatorType))
+		panic(fmt.Errorf("interaction: unexpected authenticator type: %v", authenticatorType))
 	}
-
-	return []interaction.Edge{
-		&EdgeAuthenticationEnd{
-			Stage:                 n.Stage,
-			AuthenticationType:    typ,
-			VerifiedAuthenticator: n.Authenticator,
-		},
-	}, nil
+	return typ
 }

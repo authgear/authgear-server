@@ -3,23 +3,29 @@ package facade
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type EventService interface {
 	DispatchEvent(payload event.Payload) error
+	DispatchErrorEvent(payload event.NonBlockingPayload) error
 }
 
 type IdentityService interface {
@@ -44,7 +50,6 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
 	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
@@ -63,6 +68,15 @@ type VerificationService interface {
 
 type MFAService interface {
 	InvalidateAllRecoveryCode(userID string) error
+	GenerateDeviceToken() string
+	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(userID string, token string) error
+	InvalidateAllDeviceTokens(userID string) error
+	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(rc *mfa.RecoveryCode) error
+	GenerateRecoveryCodes() []string
+	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type UserQueries interface {
@@ -331,12 +345,50 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (requireUpdate bool, err error) {
-	return c.Authenticators.VerifyWithSpec(info, spec, options)
+func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
+	_, requireUpdate, err = c.AuthenticatorVerifyOneWithSpec([]*authenticator.Info{info}, spec, options)
+	return
 }
 
-func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
-	return c.Authenticators.VerifyOneWithSpec(infos, spec, options)
+func (c *Coordinator) dispatchAuthenticationFailedEvent(userID string,
+	stage authn.AuthenticationStage,
+	authenticationType authn.AuthenticationType) error {
+	return c.Events.DispatchErrorEvent(&nonblocking.AuthenticationFailedEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AuthenticationStage: string(stage),
+		AuthenticationType:  string(authenticationType),
+	})
+}
+
+func (c *Coordinator) addAuthenticationTypeToError(err error, authnType authn.AuthenticationType) error {
+	d := errorutil.Details{
+		"AuthenticationType": apierrors.APIErrorDetail.Value(authnType),
+	}
+	newe := errorutil.WithDetails(err, d)
+	return newe
+}
+
+func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+	if options == nil {
+		options = &VerifyOptions{}
+	}
+	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(infos, spec, options.toServiceOptions())
+	if err != nil && errors.Is(err, api.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
+		eventerr := c.dispatchAuthenticationFailedEvent(
+			options.AuthenticationDetails.UserID,
+			options.AuthenticationDetails.Stage,
+			options.AuthenticationDetails.AuthenticationType,
+		)
+		if eventerr != nil {
+			return nil, false, eventerr
+		}
+		err = c.addAuthenticationTypeToError(err, options.AuthenticationDetails.AuthenticationType)
+	}
+	return
 }
 
 func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {
@@ -946,4 +998,53 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 
 func (c *Coordinator) AuthenticatorClearLockoutAttempts(authenticators []*authenticator.Info) error {
 	return c.Authenticators.ClearLockoutAttempts(authenticators)
+}
+
+func (c *Coordinator) MFAGenerateDeviceToken() string {
+	return c.MFA.GenerateDeviceToken()
+}
+
+func (c *Coordinator) MFACreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error) {
+	return c.MFA.CreateDeviceToken(userID, token)
+}
+
+func (c *Coordinator) MFAVerifyDeviceToken(userID string, token string) error {
+	return c.MFA.VerifyDeviceToken(userID, token)
+}
+
+func (c *Coordinator) MFAInvalidateAllDeviceTokens(userID string) error {
+	return c.MFA.InvalidateAllDeviceTokens(userID)
+}
+
+func (c *Coordinator) MFAVerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error) {
+	rc, err := c.MFA.VerifyRecoveryCode(userID, code)
+	authnType := authn.AuthenticationTypeRecoveryCode
+	if errors.Is(err, mfa.ErrRecoveryCodeNotFound) || errors.Is(err, mfa.ErrRecoveryCodeConsumed) {
+		err = c.dispatchAuthenticationFailedEvent(
+			userID,
+			authn.AuthenticationStageSecondary,
+			authnType,
+		)
+		if err != nil {
+			return nil, err
+		}
+		err = c.addAuthenticationTypeToError(errors.Join(api.ErrInvalidCredentials, err), authnType)
+	}
+	return rc, err
+}
+
+func (c *Coordinator) MFAConsumeRecoveryCode(rc *mfa.RecoveryCode) error {
+	return c.MFA.ConsumeRecoveryCode(rc)
+}
+
+func (c *Coordinator) MFAGenerateRecoveryCodes() []string {
+	return c.MFA.GenerateRecoveryCodes()
+}
+
+func (c *Coordinator) MFAReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error) {
+	return c.MFA.ReplaceRecoveryCodes(userID, codes)
+}
+
+func (c *Coordinator) MFAListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error) {
+	return c.MFA.ListRecoveryCodes(userID)
 }

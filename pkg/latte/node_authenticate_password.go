@@ -6,7 +6,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -49,13 +51,14 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputTakePassword.GetPassword(),
 			},
-		}, nil)
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
-			if err := DispatchAuthenticationFailedEvent(deps.Events, info); err != nil {
-				return nil, err
-			}
-			return nil, api.ErrInvalidCredentials
-		} else if err != nil {
+		}, &facade.VerifyOptions{
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				info.UserID,
+				authn.AuthenticationStageSecondary,
+				authn.AuthenticationTypePassword,
+			),
+		})
+		if err != nil {
 			return nil, err
 		}
 		return workflow.NewNodeSimple(&NodeVerifiedAuthenticator{

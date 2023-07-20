@@ -3,8 +3,6 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
@@ -29,22 +27,6 @@ func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *int
 		AuthenticationType:    e.AuthenticationType,
 		VerifiedAuthenticator: e.VerifiedAuthenticator,
 		RecoveryCode:          e.RecoveryCode,
-	}
-
-	if err := node.IsFailure(); err != nil {
-		userID := graph.MustGetUserID()
-		err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: userID,
-				},
-			},
-			AuthenticationStage: string(e.Stage),
-			AuthenticationType:  string(e.AuthenticationType),
-		})
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return node, nil

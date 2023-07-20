@@ -90,7 +90,7 @@ func (k Kind) NewWithCauses(msg string, cs []Cause) error {
 }
 
 func (k Kind) Wrap(err error, msg string) error {
-	return &skyerr{kind: k, inner: err, msg: msg}
+	return errors.Join(&skyerr{kind: k, msg: msg}, err)
 }
 
 func (k Kind) Errorf(format string, args ...interface{}) error {
@@ -99,14 +99,12 @@ func (k Kind) Errorf(format string, args ...interface{}) error {
 }
 
 type skyerr struct {
-	inner   error
 	msg     string
 	kind    Kind
 	details Details
 }
 
 func (e *skyerr) Error() string { return e.msg }
-func (e *skyerr) Unwrap() error { return e.inner }
 func (e *skyerr) FillDetails(d errorutil.Details) {
 	for key, value := range e.details {
 		d[key] = value

@@ -824,6 +824,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -872,7 +875,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,

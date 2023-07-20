@@ -1802,6 +1802,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -1854,7 +1857,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -4403,6 +4406,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -4455,7 +4461,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -5259,6 +5265,9 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -5311,7 +5320,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -6039,6 +6048,9 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -6091,7 +6103,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -6924,6 +6936,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -6975,7 +6990,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -7751,6 +7766,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -7802,7 +7820,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -8577,6 +8595,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -8628,7 +8649,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -9391,6 +9412,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -9442,7 +9466,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -10198,6 +10222,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -10249,7 +10276,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -10995,6 +11022,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -11046,7 +11076,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -11795,6 +11825,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -11846,7 +11879,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -12598,6 +12631,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -12649,7 +12685,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -13403,6 +13439,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -13454,7 +13493,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -14206,6 +14245,9 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -14257,7 +14299,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -15005,6 +15047,9 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -15056,7 +15101,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -15808,6 +15853,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -15859,7 +15907,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -16612,6 +16660,9 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -16663,7 +16714,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -17415,6 +17466,9 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -17466,7 +17520,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -18218,6 +18272,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -18269,7 +18326,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -19023,6 +19080,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -19074,7 +19134,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -19826,6 +19886,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -19877,7 +19940,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -20629,6 +20692,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -20680,7 +20746,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -21436,6 +21502,9 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -21487,7 +21556,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -22239,6 +22308,9 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -22290,7 +22362,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -23046,6 +23118,9 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -23097,7 +23172,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -23849,6 +23924,9 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -23900,7 +23978,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -24660,6 +24738,9 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -24711,7 +24792,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -25474,6 +25555,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -25525,7 +25609,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -26277,6 +26361,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -26328,7 +26415,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -27076,6 +27163,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -27127,7 +27217,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -27879,6 +27969,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -27930,7 +28023,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -28678,6 +28771,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -28729,7 +28825,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -29487,6 +29583,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -29538,7 +29637,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -30286,6 +30385,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -30337,7 +30439,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -31087,6 +31189,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -31138,7 +31243,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -31886,6 +31991,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -31937,7 +32045,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -32717,6 +32825,9 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -32768,7 +32879,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -33527,6 +33638,9 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -33578,7 +33692,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -34350,6 +34464,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -34401,7 +34518,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -35157,6 +35274,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -35208,7 +35328,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -35957,6 +36077,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -36008,7 +36131,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -36765,6 +36888,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -36816,7 +36942,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -37565,6 +37691,9 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -37616,7 +37745,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -38365,6 +38494,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -38416,7 +38548,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -39165,6 +39297,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -39216,7 +39351,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -39966,6 +40101,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -40017,7 +40155,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -40785,6 +40923,9 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -40836,7 +40977,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -41585,6 +41726,9 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -41636,7 +41780,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -42385,6 +42529,9 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -42436,7 +42583,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -43185,6 +43332,9 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -43236,7 +43386,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -43985,6 +44135,9 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -44036,7 +44189,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -44792,6 +44945,9 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -44843,7 +44999,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -45593,6 +45749,9 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -45644,7 +45803,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -46392,6 +46551,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -46443,7 +46605,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -47206,6 +47368,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -47257,7 +47422,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -48005,6 +48170,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -48056,7 +48224,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -48804,6 +48972,9 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -48855,7 +49026,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -49621,6 +49792,9 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -49672,7 +49846,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -50384,6 +50558,9 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -50435,7 +50612,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -51146,6 +51323,9 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -51197,7 +51377,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -51955,6 +52135,9 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -52006,7 +52189,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -52755,6 +52938,9 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -52806,7 +52992,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,
@@ -57338,6 +57524,9 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
@@ -57389,7 +57578,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OTPCodeService:                  otpService,
 		OTPSender:                       messageSender,
 		OAuthProviderFactory:            oAuthProviderFactory,
-		MFA:                             mfaService,
+		MFA:                             mfaFacade,
 		ForgotPassword:                  forgotpasswordService,
 		ResetPassword:                   forgotpasswordService,
 		Passkey:                         passkeyService,

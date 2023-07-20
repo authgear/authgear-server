@@ -1,7 +1,6 @@
 package errorutil
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -9,7 +8,7 @@ func Summary(err error) string {
 	var msgs []string
 	lastMsg := ""
 
-	for ; err != nil; err = errors.Unwrap(err) {
+	Unwrap(err, func(err error) {
 		var msg string
 		if s, ok := err.(interface{ Summary() string }); ok {
 			msg = s.Summary()
@@ -21,6 +20,7 @@ func Summary(err error) string {
 			msgs = append(msgs, msg)
 			lastMsg = msg
 		}
-	}
+	})
+
 	return strings.Join(msgs, ": ")
 }

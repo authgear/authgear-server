@@ -9,8 +9,6 @@ import (
 
 var ErrAuthenticatorNotFound = errors.New("authenticator not found")
 
-var ErrInvalidCredentials = errors.New("invalid credentials")
-
 func NewErrDuplicatedAuthenticator(typ model.AuthenticatorType) error {
 	return apierrors.Invalid.WithReason("InvariantViolated").
 		NewWithCause(

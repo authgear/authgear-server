@@ -1,11 +1,10 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -54,10 +53,17 @@ func (e *EdgeAuthenticationPasskey) Instantiate(ctx *interaction.Context, graph 
 		},
 	}
 
-	info, requireUpdate, err := ctx.Authenticators.VerifyOneWithSpec(e.Authenticators, spec, nil)
-	if errors.Is(err, authenticator.ErrInvalidCredentials) {
-		info = nil
-	} else if err != nil {
+	info, requireUpdate, err := ctx.Authenticators.VerifyOneWithSpec(
+		e.Authenticators, spec,
+		&facade.VerifyOptions{
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				graph.MustGetUserID(),
+				e.Stage,
+				authn.AuthenticationTypePasskey,
+			),
+		},
+	)
+	if err != nil {
 		return nil, err
 	}
 

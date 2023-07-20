@@ -51,14 +51,13 @@ type Service struct {
 	Resolver        Resolver
 	Sinks           []Sink
 
-	NonBlockingPayloads      []event.NonBlockingPayload `wire:"-"`
-	NonBlockingEvents        []*event.Event             `wire:"-"`
-	NonBlockingErrorPayloads []event.NonBlockingPayload `wire:"-"`
-	NonBlockingErrorEvents   []*event.Event             `wire:"-"`
-	DatabaseHooked           bool                       `wire:"-"`
-	IsDispatchEventErr       bool                       `wire:"-"`
+	NonBlockingPayloads []event.NonBlockingPayload `wire:"-"`
+	NonBlockingEvents   []*event.Event             `wire:"-"`
+	DatabaseHooked      bool                       `wire:"-"`
+	IsDispatchEventErr  bool                       `wire:"-"`
 }
 
+// DispatchEvent dispatches the event according to the tranaction lifecycle.
 func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 	defer func() {
 		if err != nil {
@@ -103,18 +102,8 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 	return
 }
 
+// DispatchErrorEvent dispatches the event immediately.
 func (s *Service) DispatchErrorEvent(payload event.NonBlockingPayload) (err error) {
-	defer func() {
-		if err != nil {
-			s.IsDispatchEventErr = true
-		}
-	}()
-
-	if !s.DatabaseHooked {
-		s.Database.UseHook(s)
-		s.DatabaseHooked = true
-	}
-
 	// Resolve refs once here
 	// If the event is about entity deletion,
 	// then it is not possible to resolve the entity in DidRollbackTx.
@@ -123,7 +112,18 @@ func (s *Service) DispatchErrorEvent(payload event.NonBlockingPayload) (err erro
 		return
 	}
 
-	s.NonBlockingErrorPayloads = append(s.NonBlockingErrorPayloads, payload)
+	e, err := s.resolveNonBlockingEvent(payload)
+	if err != nil {
+		return err
+	}
+
+	for _, sink := range s.Sinks {
+		err = sink.ReceiveNonBlockingEvent(e)
+		if err != nil {
+			s.Logger.WithError(err).Error("failed to dispatch nonblocking error event")
+		}
+	}
+
 	return
 }
 
@@ -161,45 +161,6 @@ func (s *Service) DidCommitTx() {
 			err := sink.ReceiveNonBlockingEvent(e)
 			if err != nil {
 				s.Logger.WithError(err).Error("failed to dispatch nonblocking event")
-			}
-		}
-	}
-}
-
-func (s *Service) WillRollbackTx() error {
-	defer func() {
-		s.NonBlockingErrorPayloads = nil
-	}()
-
-	// Skip non-blocking event if there is error during blocking event.
-	if s.IsDispatchEventErr {
-		return nil
-	}
-
-	// We have to prepare the event here because we need an ongoing transaction
-	// to get the seq number, as well as resolving refs.
-	for _, payload := range s.NonBlockingErrorPayloads {
-		e, err := s.resolveNonBlockingEvent(payload)
-		if err != nil {
-			return err
-		}
-		s.NonBlockingErrorEvents = append(s.NonBlockingErrorEvents, e)
-	}
-
-	return nil
-}
-
-func (s *Service) DidRollbackTx() {
-	// To avoid triggering the events multiple times
-	// reset s.NonBlockingEvents when we start processing the events
-	events := s.NonBlockingErrorEvents
-	s.NonBlockingErrorEvents = nil
-
-	for _, e := range events {
-		for _, sink := range s.Sinks {
-			err := sink.ReceiveNonBlockingEvent(e)
-			if err != nil {
-				s.Logger.WithError(err).Error("failed to dispatch nonblocking error event")
 			}
 		}
 	}
