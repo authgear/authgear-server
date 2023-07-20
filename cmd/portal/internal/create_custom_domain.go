@@ -8,6 +8,7 @@ import (
 
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -55,7 +56,7 @@ func CreateCustomDomain(opts CreateCustomDomainOptions) (err error) {
 
 func createCustomDomain(ctx context.Context, tx *sql.Tx, appID string, domain string, apexDomain string) error {
 	isCustom := true
-	verificationNonce := makeVerificationNonce()
+	verificationNonce := service.MakeVerificationNonce()
 
 	builder := newSQLBuilder().
 		Insert(pq.QuoteIdentifier("_portal_domain")).

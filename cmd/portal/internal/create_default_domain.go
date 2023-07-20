@@ -3,13 +3,12 @@ package internal
 import (
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/lib/pq"
 
-	corerand "github.com/authgear/authgear-server/pkg/util/rand"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -64,13 +63,6 @@ func CreateDefaultDomain(opts CreateDefaultDomainOptions) (err error) {
 	return
 }
 
-func makeVerificationNonce() string {
-	nonce := make([]byte, 16)
-	corerand.SecureRand.Read(nonce)
-	verificationNonce := hex.EncodeToString(nonce)
-	return verificationNonce
-}
-
 func makeDefaultDomain(appID string, suffix string) string {
 	return appID + suffix
 }
@@ -115,7 +107,7 @@ func createDefaultDomain(ctx context.Context, tx *sql.Tx, appID string, domain s
 	isCustom := false
 	// The apex domain of default domain is itself.
 	apexDomain := domain
-	verificationNonce := makeVerificationNonce()
+	verificationNonce := service.MakeVerificationNonce()
 
 	builder := newSQLBuilder().
 		Insert(pq.QuoteIdentifier("_portal_domain")).

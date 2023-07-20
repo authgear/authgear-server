@@ -381,9 +381,15 @@ func scanDomain(scn db.Scanner) (*domain, error) {
 	return d, nil
 }
 
-func newDomain(appID string, domainName string, createdAt time.Time, isCustom bool) (*domain, error) {
+func MakeVerificationNonce() string {
 	nonce := make([]byte, 16)
 	corerand.SecureRand.Read(nonce)
+	verificationNonce := hex.EncodeToString(nonce)
+	return verificationNonce
+}
+
+func newDomain(appID string, domainName string, createdAt time.Time, isCustom bool) (*domain, error) {
+	verificationNonce := MakeVerificationNonce()
 
 	apexDomain, err := publicsuffix.EffectiveTLDPlusOne(domainName)
 	if err != nil {
@@ -396,7 +402,7 @@ func newDomain(appID string, domainName string, createdAt time.Time, isCustom bo
 		CreatedAt:         createdAt,
 		Domain:            domainName,
 		ApexDomain:        apexDomain,
-		VerificationNonce: hex.EncodeToString(nonce),
+		VerificationNonce: verificationNonce,
 		IsCustom:          isCustom,
 	}, nil
 }
