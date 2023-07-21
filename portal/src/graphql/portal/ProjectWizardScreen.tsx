@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import {
   ChoiceGroup,
-  MessageBar,
   IChoiceGroupOption,
   TooltipHost,
   Text,
@@ -27,7 +26,9 @@ import {
   AppConfigFormModel,
 } from "../../hook/useAppConfigForm";
 import {
+  LoginIDKeyConfig,
   PortalAPIAppConfig,
+  PrimaryAuthenticatorType,
   SecondaryAuthenticationMode,
   SecondaryAuthenticatorType,
 } from "../../types";
@@ -51,7 +52,11 @@ const TOOLTIP_HOST_STYLES = {
   },
 } as const;
 
-type Step1Answer = "password" | "oob_otp_email";
+type Step1Answer =
+  | "password"
+  | "oob_otp_email"
+  | "phone_and_password"
+  | "oob_otp_sms";
 type Step2Answer = boolean;
 interface Step3Answer {
   useRecommenededSettings: boolean;
@@ -84,6 +89,44 @@ function constructFormState(_config: PortalAPIAppConfig): FormState {
   };
 }
 
+function derivePrimaryAuthenticatorsFromStep1Answer(
+  step1Answer: Step1Answer
+): PrimaryAuthenticatorType[] {
+  switch (step1Answer) {
+    case "oob_otp_email":
+      return ["oob_otp_email"];
+    case "oob_otp_sms":
+      return ["oob_otp_sms"];
+    case "phone_and_password":
+      return ["password"];
+    case "password":
+      return ["password"];
+    default:
+      console.error("Unexpected step1Answer", step1Answer);
+      break;
+  }
+  return [];
+}
+
+function deriveLoginIDKeysFromStep1Answer(
+  step1Answer: Step1Answer
+): LoginIDKeyConfig[] {
+  switch (step1Answer) {
+    case "oob_otp_email":
+      return [{ type: "email" }];
+    case "oob_otp_sms":
+      return [{ type: "phone" }];
+    case "phone_and_password":
+      return [{ type: "phone" }];
+    case "password":
+      return [{ type: "email" }];
+    default:
+      console.error("Unexpected step1Answer", step1Answer);
+      break;
+  }
+  return [];
+}
+
 function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
@@ -92,11 +135,14 @@ function constructConfig(
   return produce(config, (config) => {
     config.identity ??= {};
     config.identity.login_id ??= {};
-    config.identity.login_id.keys = [{ type: "email" }];
+    config.identity.login_id.keys = deriveLoginIDKeysFromStep1Answer(
+      currentState.step1Answer
+    );
     config.authentication ??= {};
     config.authentication.identities = ["oauth", "login_id"];
 
-    config.authentication.primary_authenticators = [currentState.step1Answer];
+    config.authentication.primary_authenticators =
+      derivePrimaryAuthenticatorsFromStep1Answer(currentState.step1Answer);
 
     if (currentState.step2Answer) {
       config.authentication.identities.push("passkey");
@@ -114,6 +160,10 @@ function constructConfig(
       ];
     }
   });
+}
+
+interface Step1Option extends IChoiceGroupOption {
+  key: Step1Answer;
 }
 
 function Step1(props: StepProps) {
@@ -156,7 +206,7 @@ function Step1(props: StepProps) {
     };
   }, [targetElement]);
 
-  const options: IChoiceGroupOption[] = useMemo(() => {
+  const options: Step1Option[] = useMemo(() => {
     return [
       {
         key: "password",
@@ -184,16 +234,14 @@ function Step1(props: StepProps) {
         },
       },
       {
-        key: "__not_important_1__",
+        key: "phone_and_password",
         text: renderToString(
           "ProjectWizardScreen.step1.option.phone-number-password"
         ),
-        disabled: true,
       },
       {
-        key: "__not_important_2__",
+        key: "oob_otp_sms",
         text: renderToString("ProjectWizardScreen.step1.option.oob-otp-sms"),
-        disabled: true,
       },
     ];
   }, [renderToString, id, setRef, tooltipProps]);
@@ -239,9 +287,6 @@ function Step1(props: StepProps) {
         selectedKey={step1Answer}
         onChange={onChange}
       />
-      <MessageBar>
-        <FormattedMessage id="ProjectWizardScreen.step1.message" />
-      </MessageBar>
     </WizardContentLayout>
   );
 }
