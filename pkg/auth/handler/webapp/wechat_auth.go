@@ -5,17 +5,19 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/boombuler/barcode/qr"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
-	"github.com/boombuler/barcode/qr"
 )
 
 var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
@@ -25,7 +27,7 @@ var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
 
 func ConfigureWechatAuthRoute(route httproute.Route) httproute.Route {
 	return route.
-		WithMethods("OPTIONS", "GET").
+		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern("/sso/wechat/auth/:alias")
 }
 
@@ -140,6 +142,47 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebWechatAuthHandlerHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		session, err := ctrl.InteractionSession()
+		if err != nil {
+			return err
+		}
+
+		if session != nil {
+			step := session.CurrentStep()
+			action, ok := step.FormData["x_action"].(string)
+			if ok && action == WechatActionCallback {
+				data := InputOAuthCallback{
+					ProviderAlias:    httproute.GetParam(r, "alias"),
+					Code:             step.FormData["x_code"].(string),
+					Scope:            step.FormData["x_scope"].(string),
+					Error:            step.FormData["x_error"].(string),
+					ErrorDescription: step.FormData["x_error_description"].(string),
+				}
+
+				result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+					input = &data
+					return
+				})
+				if err != nil {
+					return err
+				}
+				result.WriteResponse(w, r)
+				return nil
+
+			}
+		}
+
+		// Otherwise redirect to the current page.
+		redirectURI := httputil.HostRelative(r.URL).String()
+		result := webapp.Result{
+			NavigationAction: "replace",
+			RedirectURI:      redirectURI,
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 }

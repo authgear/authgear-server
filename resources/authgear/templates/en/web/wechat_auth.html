@@ -9,7 +9,9 @@
 {{ if .WeChatRedirectURI }}
 <p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-app-description" }}</p>
 
-<div class="twc-container-vertical my-5" data-controller="click-to-switch">
+<form class="twc-container-vertical my-5" data-controller="click-to-switch" method="post" novalidate>
+{{ $.CSRFField }}
+
 <a class="as-btn not-a btn primary-btn"
     href="{{ $.WeChatRedirectURI }}"
     data-turbo-action="replace"
@@ -18,15 +20,19 @@
 >
 {{ template "wechat-open-app" }}
 </a>
-<a class="as-btn not-a btn primary-btn wechat hidden"
-    href="{{ call $.MakeURL "" }}"
-    data-turbo-action="replace"
+
+<button
+    class="btn primary-btn wechat hidden"
+    type="submit"
+    name="x_action"
+    value=""
     data-is-refresh-link="true"
     data-click-to-switch-target="clickToShow"
 >
 {{ template "wechat-proceed" }}
-</a>
-</div>
+</button>
+
+</form>
 {{ end }}
 {{ else }}
 <p class="text-sm break-words m-0 primary-txt text-center">{{ template "wechat-auth-with-qr-code-description" }}</p>
