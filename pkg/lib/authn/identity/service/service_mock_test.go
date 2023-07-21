@@ -7,7 +7,6 @@ package service
 import (
 	reflect "reflect"
 
-	model "github.com/authgear/authgear-server/pkg/api/model"
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
@@ -35,21 +34,6 @@ func NewMockLoginIDIdentityProvider(ctrl *gomock.Controller) *MockLoginIDIdentit
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockLoginIDIdentityProvider) EXPECT() *MockLoginIDIdentityProviderMockRecorder {
 	return m.recorder
-}
-
-// CheckDuplicated mocks base method.
-func (m *MockLoginIDIdentityProvider) CheckDuplicated(uniqueKey string, standardClaims map[model.ClaimName]string, userID string) (*identity.LoginID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckDuplicated", uniqueKey, standardClaims, userID)
-	ret0, _ := ret[0].(*identity.LoginID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckDuplicated indicates an expected call of CheckDuplicated.
-func (mr *MockLoginIDIdentityProviderMockRecorder) CheckDuplicated(uniqueKey, standardClaims, userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDuplicated", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).CheckDuplicated), uniqueKey, standardClaims, userID)
 }
 
 // Create mocks base method.
@@ -93,6 +77,21 @@ func (m *MockLoginIDIdentityProvider) Get(userID, id string) (*identity.LoginID,
 func (mr *MockLoginIDIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Get), userID, id)
+}
+
+// GetByUniqueKey mocks base method.
+func (m *MockLoginIDIdentityProvider) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUniqueKey", uniqueKey)
+	ret0, _ := ret[0].(*identity.LoginID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUniqueKey indicates an expected call of GetByUniqueKey.
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetByUniqueKey(uniqueKey interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUniqueKey", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByUniqueKey), uniqueKey)
 }
 
 // GetByValue mocks base method.
@@ -220,21 +219,6 @@ func NewMockOAuthIdentityProvider(ctrl *gomock.Controller) *MockOAuthIdentityPro
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockOAuthIdentityProvider) EXPECT() *MockOAuthIdentityProviderMockRecorder {
 	return m.recorder
-}
-
-// CheckDuplicated mocks base method.
-func (m *MockOAuthIdentityProvider) CheckDuplicated(standardClaims map[model.ClaimName]string, userID string) (*identity.OAuth, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckDuplicated", standardClaims, userID)
-	ret0, _ := ret[0].(*identity.OAuth)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CheckDuplicated indicates an expected call of CheckDuplicated.
-func (mr *MockOAuthIdentityProviderMockRecorder) CheckDuplicated(standardClaims, userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDuplicated", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).CheckDuplicated), standardClaims, userID)
 }
 
 // Create mocks base method.

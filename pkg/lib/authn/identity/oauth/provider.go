@@ -3,7 +3,6 @@ package oauth
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -92,25 +91,6 @@ func (p *Provider) WithUpdate(
 	newIden.Claims = claims
 
 	return &newIden
-}
-
-func (p *Provider) CheckDuplicated(standardClaims map[model.ClaimName]string, userID string) (*identity.OAuth, error) {
-	// check duplication with standard claims
-	for name, value := range standardClaims {
-		ls, err := p.ListByClaim(string(name), value)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, i := range ls {
-			if i.UserID == userID {
-				continue
-			}
-			return i, identity.ErrIdentityAlreadyExists
-		}
-	}
-
-	return nil, nil
 }
 
 func (p *Provider) Create(i *identity.OAuth) error {
