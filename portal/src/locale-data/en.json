@@ -1160,6 +1160,7 @@
   "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
+  "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
   "SubscriptionScreen.plan-name.enterprise": "Enterprise",
