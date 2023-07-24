@@ -53,9 +53,9 @@ const TOOLTIP_HOST_STYLES = {
 } as const;
 
 type Step1Answer =
-  | "password"
+  | "email_password"
+  | "phone_password"
   | "oob_otp_email"
-  | "phone_and_password"
   | "oob_otp_sms";
 type Step2Answer = boolean;
 interface Step3Answer {
@@ -79,7 +79,7 @@ interface StepProps {
 
 function constructFormState(_config: PortalAPIAppConfig): FormState {
   return {
-    step1Answer: "password",
+    step1Answer: "email_password",
     step2Answer: true,
     step3Answer: {
       useRecommenededSettings: true,
@@ -97,9 +97,9 @@ function derivePrimaryAuthenticatorsFromStep1Answer(
       return ["oob_otp_email"];
     case "oob_otp_sms":
       return ["oob_otp_sms"];
-    case "phone_and_password":
-      return ["password"];
-    case "password":
+    case "email_password":
+    // fallthrough
+    case "phone_password":
       return ["password"];
     default:
       console.error("Unexpected step1Answer", step1Answer);
@@ -112,14 +112,14 @@ function deriveLoginIDKeysFromStep1Answer(
   step1Answer: Step1Answer
 ): LoginIDKeyConfig[] {
   switch (step1Answer) {
+    case "email_password":
+    // fallthrough
     case "oob_otp_email":
       return [{ type: "email" }];
+    case "phone_password":
+    // fallthrough
     case "oob_otp_sms":
       return [{ type: "phone" }];
-    case "phone_and_password":
-      return [{ type: "phone" }];
-    case "password":
-      return [{ type: "email" }];
     default:
       console.error("Unexpected step1Answer", step1Answer);
       break;
@@ -209,8 +209,14 @@ function Step1(props: StepProps) {
   const options: Step1Option[] = useMemo(() => {
     return [
       {
-        key: "password",
+        key: "email_password",
         text: renderToString("ProjectWizardScreen.step1.option.email-password"),
+      },
+      {
+        key: "phone_password",
+        text: renderToString(
+          "ProjectWizardScreen.step1.option.phone-number-password"
+        ),
       },
       {
         key: "oob_otp_email",
@@ -232,12 +238,6 @@ function Step1(props: StepProps) {
             </>
           );
         },
-      },
-      {
-        key: "phone_and_password",
-        text: renderToString(
-          "ProjectWizardScreen.step1.option.phone-number-password"
-        ),
       },
       {
         key: "oob_otp_sms",
