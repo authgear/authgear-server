@@ -318,6 +318,8 @@ var _ = registerMutationField(
 			}
 
 			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppUpdatedEventPayload{
+				AppConfigOld:     originalAppConfig,
+				AppConfigNew:     newAppConfig,
 				AppConfigDiff:    appConfigDiff,
 				UpdatedSecrets:   updatedSecrets,
 				UpdatedResources: auditedUpdatePaths,
