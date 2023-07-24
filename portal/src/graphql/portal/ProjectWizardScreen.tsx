@@ -57,11 +57,15 @@ type Step1Answer =
   | "phone_password"
   | "oob_otp_email"
   | "oob_otp_sms";
+
 type Step2Answer = boolean;
+
+type Step3AuthenticatorType = SecondaryAuthenticatorType;
+
 interface Step3Answer {
   useRecommenededSettings: boolean;
   secondaryAuthenticationMode: SecondaryAuthenticationMode;
-  secondaryAuthenticatorType: SecondaryAuthenticatorType;
+  secondaryAuthenticatorType: Step3AuthenticatorType;
 }
 
 interface FormState {
@@ -164,6 +168,10 @@ function constructConfig(
 
 interface Step1Option extends IChoiceGroupOption {
   key: Step1Answer;
+}
+
+interface Step3Question3Option extends IChoiceGroupOption {
+  key: Step3AuthenticatorType;
 }
 
 function Step1(props: StepProps) {
@@ -426,8 +434,8 @@ function Step3(props: StepProps) {
     ];
   }, [renderToString]);
 
-  const q3Options: IChoiceGroupOption[] = useMemo(() => {
-    const options = [
+  const q3Options: Step3Question3Option[] = useMemo(() => {
+    const options: Step3Question3Option[] = [
       {
         key: "totp",
         text: (
@@ -443,18 +451,25 @@ function Step3(props: StepProps) {
         ) as any,
       },
     ];
-    if (step1Answer === "password") {
-      options.push({
-        key: "oob_otp_email",
-        text: renderToString(
-          "ProjectWizardScreen.step3.q3.option.oob_otp_email"
-        ),
-      });
-    } else {
-      options.push({
-        key: "password",
-        text: renderToString("ProjectWizardScreen.step3.q3.option.password"),
-      });
+    switch (step1Answer) {
+      case "email_password":
+      // fallthrough
+      case "phone_password":
+        options.push({
+          key: "oob_otp_email",
+          text: renderToString(
+            "ProjectWizardScreen.step3.q3.option.oob_otp_email"
+          ),
+        });
+        break;
+      case "oob_otp_email":
+      // fallthrough
+      case "oob_otp_sms":
+        options.push({
+          key: "password",
+          text: renderToString("ProjectWizardScreen.step3.q3.option.password"),
+        });
+        break;
     }
     return options;
   }, [step1Answer, renderToString]);
