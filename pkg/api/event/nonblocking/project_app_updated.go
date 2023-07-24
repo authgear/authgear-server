@@ -9,9 +9,11 @@ const (
 )
 
 type ProjectAppUpdatedEventPayload struct {
-	AppConfigDiff    string   `json:"app_config_diff"`
-	UpdatedSecrets   []string `json:"updated_secrets"`
-	UpdatedResources []string `json:"updated_resources"`
+	AppConfigOld     AppConfig `json:"app_config_old,omitempty"`
+	AppConfigNew     AppConfig `json:"app_config_new,omitempty"`
+	AppConfigDiff    string    `json:"app_config_diff"`
+	UpdatedSecrets   []string  `json:"updated_secrets"`
+	UpdatedResources []string  `json:"updated_resources"`
 }
 
 func (e *ProjectAppUpdatedEventPayload) NonBlockingEventType() event.Type {
