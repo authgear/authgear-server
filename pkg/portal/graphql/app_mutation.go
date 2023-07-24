@@ -381,14 +381,20 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.AppService.Create(actorID, appID)
+			app, err := gqlCtx.AppService.Create(actorID, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			appLazy := gqlCtx.Apps.Load(appID)
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppCreatedEventPayload{
+				AppConfig: app.Context.Config.AppConfig,
+			})
+			if err != nil {
+				return nil, err
+			}
+
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": appLazy,
+				"app": gqlCtx.Apps.Load(appID),
 			}).Value, nil
 		},
 	},

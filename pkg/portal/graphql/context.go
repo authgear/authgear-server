@@ -44,7 +44,7 @@ type CollaboratorInvitationLoader interface {
 type AppService interface {
 	Get(id string) (*model.App, error)
 	GetAppList(userID string) ([]*model.AppListItem, error)
-	Create(userID string, id string) error
+	Create(userID string, id string) (*model.App, error)
 	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
