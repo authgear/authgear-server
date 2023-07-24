@@ -207,12 +207,12 @@ function Step1(props: StepProps) {
     [navigate, gtmEventBase, sendDataToGTM, rawAppID, step1Answer]
   );
 
-  const { id, setRef, targetElement } = useTooltipTargetElement();
-  const tooltipProps = useMemo(() => {
+  const oobOTPEmailTooltip = useTooltipTargetElement();
+  const oobOTPEmailTooltipProps = useMemo(() => {
     return {
-      targetElement,
+      targetElement: oobOTPEmailTooltip.targetElement,
     };
-  }, [targetElement]);
+  }, [oobOTPEmailTooltip.targetElement]);
 
   const options: Step1Option[] = useMemo(() => {
     return [
@@ -236,12 +236,15 @@ function Step1(props: StepProps) {
               {render!(props)}
               <TooltipHost
                 styles={TOOLTIP_HOST_STYLES}
-                tooltipProps={tooltipProps}
+                tooltipProps={oobOTPEmailTooltipProps}
                 content={renderToString(
                   "ProjectWizardScreen.step1.tooltip.oob-otp-email"
                 )}
               >
-                <TooltipIcon id={id} setRef={setRef} />
+                <TooltipIcon
+                  id={oobOTPEmailTooltip.id}
+                  setRef={oobOTPEmailTooltip.setRef}
+                />
               </TooltipHost>
             </>
           );
@@ -252,7 +255,12 @@ function Step1(props: StepProps) {
         text: renderToString("ProjectWizardScreen.step1.option.oob-otp-sms"),
       },
     ];
-  }, [renderToString, id, setRef, tooltipProps]);
+  }, [
+    renderToString,
+    oobOTPEmailTooltipProps,
+    oobOTPEmailTooltip.id,
+    oobOTPEmailTooltip.setRef,
+  ]);
 
   const onChange = useCallback(
     (_e, option) => {
