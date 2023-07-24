@@ -381,7 +381,14 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			_, err = gqlCtx.AppService.Create(actorID, appID)
+			app, err := gqlCtx.AppService.Create(actorID, appID)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppCreatedEventPayload{
+				AppConfig: app.Context.Config.AppConfig,
+			})
 			if err != nil {
 				return nil, err
 			}
