@@ -693,6 +693,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, []);
 
   const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
+    if (!subscription) {
+      return {
+        type: DialogType.normal,
+        title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+        // @ts-expect-error
+        subText: (
+          <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan" />
+        ) as IDialogContentProps["subText"],
+      };
+    }
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
@@ -701,7 +711,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
       ) as IDialogContentProps["subText"],
     };
-  }, []);
+  }, [subscription]);
 
   const onClickEnterprisePlan = useCallback((e) => {
     e.preventDefault();
@@ -779,13 +789,24 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         dialogContentProps={cancelDialogContentProps}
       >
         <DialogFooter>
-          <ButtonWithLoading
-            theme={themes.destructive}
-            loading={cancelSubscriptionLoading}
-            onClick={onClickCancelSubscriptionConfirm}
-            disabled={cancelDialogHidden}
-            labelId="confirm"
-          />
+          {!!subscription ? (
+            <ButtonWithLoading
+              theme={themes.destructive}
+              loading={cancelSubscriptionLoading}
+              onClick={onClickCancelSubscriptionConfirm}
+              disabled={cancelDialogHidden}
+              labelId="confirm"
+            />
+          ) : (
+            <PrimaryButton
+              href="mailto:hello@authgear.com"
+              onClick={onDismiss}
+              disabled={cancelDialogHidden}
+              text={
+                <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan.button" />
+              }
+            />
+          )}
           <DefaultButton
             onClick={onDismiss}
             disabled={cancelSubscriptionLoading || cancelDialogHidden}
@@ -939,7 +960,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           className={styles.section}
           onClickEnterprisePlan={onClickEnterprisePlan}
           onClickCancel={onClickCancel}
-          hasSubscription={!!subscription}
           subscriptionCancelled={subscriptionCancelled}
           isKnownPaidPlan={isPaidPlan(planName)}
           subscriptionEndedAt={subscription?.endedAt ?? undefined}
