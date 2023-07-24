@@ -1,8 +1,14 @@
 package service
 
 import (
-	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/google/wire"
+
+	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/portal/appsecret"
+	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 var DependencySet = wire.NewSet(
@@ -33,4 +39,15 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(AppDefaultDomainService), new(*DefaultDomainService)),
 	wire.Bind(new(AdminAPIDefaultDomainService), new(*DefaultDomainService)),
 	wire.Bind(new(DefaultDomainDomainService), new(*DomainService)),
+)
+
+func ProvideAuthgearAppConfig(app *model.App) *config.Config {
+	return app.Context.Config
+}
+
+var AuthgearDependencySet = wire.NewSet(
+	ProvideAuthgearAppConfig,
+	deps.ConfigDeps,
+	auditdb.DependencySet,
+	audit.DependencySet,
 )

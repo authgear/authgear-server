@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -30,15 +29,14 @@ type AuditService struct {
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
-	AuditDatabase              *auditdb.WriteHandle
-	AuditDatabaseWriteExecutor *auditdb.WriteSQLExecutor
-	AuditDatabaseSQLBuilder    *auditdb.SQLBuilder
-	Clock                      clock.Clock
-	LoggerFactory              *log.Factory
+	AuditDatabase *auditdb.WriteHandle
+
+	Clock         clock.Clock
+	LoggerFactory *log.Factory
 }
 
 func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (err error) {
-	if s.AuditDatabase == nil || s.AuditDatabaseWriteExecutor == nil || s.AuditDatabaseSQLBuilder == nil {
+	if s.AuditDatabase == nil {
 		return
 	}
 
@@ -49,16 +47,8 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 		sentry.NewLogHookFromContext(s.Context),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	sqlBuilder := s.AuditDatabaseSQLBuilder.WithAppID(app.ID)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: s.AuditDatabaseWriteExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   audit.NewLogger(loggerFactory),
-		Database: s.AuditDatabase,
-		Store:    writeStore,
-	}
+
+	auditSink := newAuditSink(s.Context, app, s.AuditDatabase, loggerFactory)
 
 	e, err := s.resolveNonBlockingEvent(payload)
 	if err != nil {
