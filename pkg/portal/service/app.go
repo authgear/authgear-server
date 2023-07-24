@@ -249,9 +249,9 @@ func (s *AppService) GenerateSecretVisitToken(
 	return token, nil
 }
 
-func (s *AppService) Create(userID string, id string) error {
+func (s *AppService) Create(userID string, id string) (*model.App, error) {
 	if err := s.validateAppID(id); err != nil {
-		return err
+		return nil, err
 	}
 
 	s.Logger.
@@ -261,37 +261,42 @@ func (s *AppService) Create(userID string, id string) error {
 
 	appHost, err := s.DefaultDomains.GetLatestAppHost(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defaultAppPlan, err := s.Plan.GetDefaultPlan()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = s.AppConfigs.Create(createAppOpts)
 	if err != nil {
 		// TODO(portal): cleanup orphaned resources created from failed app creation
 		s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
-		return err
+		return nil, err
 	}
 
 	err = s.DefaultDomains.CreateAllDefaultDomains(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = s.AppAuthz.AddAuthorizedUser(id, userID, model.CollaboratorRoleOwner)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	app, err := s.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
 }
 
 func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
