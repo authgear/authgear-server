@@ -1348,6 +1348,7 @@
   "ProjectWizardScreen.step1.option.email-password": "Email and Password",
   "ProjectWizardScreen.step1.option.oob-otp-email": "Passwordless via Email",
   "ProjectWizardScreen.step1.tooltip.oob-otp-email": "User will sign in by receiving one-time password (OTP) via email",
+  "ProjectWizardScreen.step1.tooltip.oob-otp-sms": "User will sign in by receiving one-time password (OTP) via SMS",
   "ProjectWizardScreen.step1.option.phone-number-password": "Phone number and Password",
   "ProjectWizardScreen.step1.option.oob-otp-sms": "Passwordless via Phone number",
   "ProjectWizardScreen.step2.question": "Can users sign in with passkeys?",

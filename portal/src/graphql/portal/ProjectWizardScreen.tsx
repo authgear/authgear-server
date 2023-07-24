@@ -214,6 +214,13 @@ function Step1(props: StepProps) {
     };
   }, [oobOTPEmailTooltip.targetElement]);
 
+  const oobOTPSMSTooltip = useTooltipTargetElement();
+  const oobOTPSMSTooltipProps = useMemo(() => {
+    return {
+      targetElement: oobOTPSMSTooltip.targetElement,
+    };
+  }, [oobOTPSMSTooltip.targetElement]);
+
   const options: Step1Option[] = useMemo(() => {
     return [
       {
@@ -253,6 +260,26 @@ function Step1(props: StepProps) {
       {
         key: "oob_otp_sms",
         text: renderToString("ProjectWizardScreen.step1.option.oob-otp-sms"),
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderField: (props, render) => {
+          return (
+            <>
+              {render!(props)}
+              <TooltipHost
+                styles={TOOLTIP_HOST_STYLES}
+                tooltipProps={oobOTPSMSTooltipProps}
+                content={renderToString(
+                  "ProjectWizardScreen.step1.tooltip.oob-otp-sms"
+                )}
+              >
+                <TooltipIcon
+                  id={oobOTPSMSTooltip.id}
+                  setRef={oobOTPSMSTooltip.setRef}
+                />
+              </TooltipHost>
+            </>
+          );
+        },
       },
     ];
   }, [
@@ -260,6 +287,9 @@ function Step1(props: StepProps) {
     oobOTPEmailTooltipProps,
     oobOTPEmailTooltip.id,
     oobOTPEmailTooltip.setRef,
+    oobOTPSMSTooltipProps,
+    oobOTPSMSTooltip.id,
+    oobOTPSMSTooltip.setRef,
   ]);
 
   const onChange = useCallback(
