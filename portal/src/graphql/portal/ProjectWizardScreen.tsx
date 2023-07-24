@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import {
   ChoiceGroup,
-  MessageBar,
   IChoiceGroupOption,
   TooltipHost,
   Text,
@@ -27,7 +26,9 @@ import {
   AppConfigFormModel,
 } from "../../hook/useAppConfigForm";
 import {
+  LoginIDKeyConfig,
   PortalAPIAppConfig,
+  PrimaryAuthenticatorType,
   SecondaryAuthenticationMode,
   SecondaryAuthenticatorType,
 } from "../../types";
@@ -51,12 +52,20 @@ const TOOLTIP_HOST_STYLES = {
   },
 } as const;
 
-type Step1Answer = "password" | "oob_otp_email";
+type Step1Answer =
+  | "email_password"
+  | "phone_password"
+  | "oob_otp_email"
+  | "oob_otp_sms";
+
 type Step2Answer = boolean;
+
+type Step3AuthenticatorType = SecondaryAuthenticatorType;
+
 interface Step3Answer {
   useRecommenededSettings: boolean;
   secondaryAuthenticationMode: SecondaryAuthenticationMode;
-  secondaryAuthenticatorType: SecondaryAuthenticatorType;
+  secondaryAuthenticatorType: Step3AuthenticatorType;
 }
 
 interface FormState {
@@ -74,7 +83,7 @@ interface StepProps {
 
 function constructFormState(_config: PortalAPIAppConfig): FormState {
   return {
-    step1Answer: "password",
+    step1Answer: "email_password",
     step2Answer: true,
     step3Answer: {
       useRecommenededSettings: true,
@@ -82,6 +91,44 @@ function constructFormState(_config: PortalAPIAppConfig): FormState {
       secondaryAuthenticatorType: "totp",
     },
   };
+}
+
+function derivePrimaryAuthenticatorsFromStep1Answer(
+  step1Answer: Step1Answer
+): PrimaryAuthenticatorType[] {
+  switch (step1Answer) {
+    case "oob_otp_email":
+      return ["oob_otp_email"];
+    case "oob_otp_sms":
+      return ["oob_otp_sms"];
+    case "email_password":
+    // fallthrough
+    case "phone_password":
+      return ["password"];
+    default:
+      console.error("Unexpected step1Answer", step1Answer);
+      break;
+  }
+  return [];
+}
+
+function deriveLoginIDKeysFromStep1Answer(
+  step1Answer: Step1Answer
+): LoginIDKeyConfig[] {
+  switch (step1Answer) {
+    case "email_password":
+    // fallthrough
+    case "oob_otp_email":
+      return [{ type: "email" }];
+    case "phone_password":
+    // fallthrough
+    case "oob_otp_sms":
+      return [{ type: "phone" }];
+    default:
+      console.error("Unexpected step1Answer", step1Answer);
+      break;
+  }
+  return [];
 }
 
 function constructConfig(
@@ -92,11 +139,14 @@ function constructConfig(
   return produce(config, (config) => {
     config.identity ??= {};
     config.identity.login_id ??= {};
-    config.identity.login_id.keys = [{ type: "email" }];
+    config.identity.login_id.keys = deriveLoginIDKeysFromStep1Answer(
+      currentState.step1Answer
+    );
     config.authentication ??= {};
     config.authentication.identities = ["oauth", "login_id"];
 
-    config.authentication.primary_authenticators = [currentState.step1Answer];
+    config.authentication.primary_authenticators =
+      derivePrimaryAuthenticatorsFromStep1Answer(currentState.step1Answer);
 
     if (currentState.step2Answer) {
       config.authentication.identities.push("passkey");
@@ -114,6 +164,14 @@ function constructConfig(
       ];
     }
   });
+}
+
+interface Step1Option extends IChoiceGroupOption {
+  key: Step1Answer;
+}
+
+interface Step3Question3Option extends IChoiceGroupOption {
+  key: Step3AuthenticatorType;
 }
 
 function Step1(props: StepProps) {
@@ -149,18 +207,31 @@ function Step1(props: StepProps) {
     [navigate, gtmEventBase, sendDataToGTM, rawAppID, step1Answer]
   );
 
-  const { id, setRef, targetElement } = useTooltipTargetElement();
-  const tooltipProps = useMemo(() => {
+  const oobOTPEmailTooltip = useTooltipTargetElement();
+  const oobOTPEmailTooltipProps = useMemo(() => {
     return {
-      targetElement,
+      targetElement: oobOTPEmailTooltip.targetElement,
     };
-  }, [targetElement]);
+  }, [oobOTPEmailTooltip.targetElement]);
 
-  const options: IChoiceGroupOption[] = useMemo(() => {
+  const oobOTPSMSTooltip = useTooltipTargetElement();
+  const oobOTPSMSTooltipProps = useMemo(() => {
+    return {
+      targetElement: oobOTPSMSTooltip.targetElement,
+    };
+  }, [oobOTPSMSTooltip.targetElement]);
+
+  const options: Step1Option[] = useMemo(() => {
     return [
       {
-        key: "password",
+        key: "email_password",
         text: renderToString("ProjectWizardScreen.step1.option.email-password"),
+      },
+      {
+        key: "phone_password",
+        text: renderToString(
+          "ProjectWizardScreen.step1.option.phone-number-password"
+        ),
       },
       {
         key: "oob_otp_email",
@@ -172,31 +243,54 @@ function Step1(props: StepProps) {
               {render!(props)}
               <TooltipHost
                 styles={TOOLTIP_HOST_STYLES}
-                tooltipProps={tooltipProps}
+                tooltipProps={oobOTPEmailTooltipProps}
                 content={renderToString(
                   "ProjectWizardScreen.step1.tooltip.oob-otp-email"
                 )}
               >
-                <TooltipIcon id={id} setRef={setRef} />
+                <TooltipIcon
+                  id={oobOTPEmailTooltip.id}
+                  setRef={oobOTPEmailTooltip.setRef}
+                />
               </TooltipHost>
             </>
           );
         },
       },
       {
-        key: "__not_important_1__",
-        text: renderToString(
-          "ProjectWizardScreen.step1.option.phone-number-password"
-        ),
-        disabled: true,
-      },
-      {
-        key: "__not_important_2__",
+        key: "oob_otp_sms",
         text: renderToString("ProjectWizardScreen.step1.option.oob-otp-sms"),
-        disabled: true,
+        // eslint-disable-next-line react/no-unstable-nested-components
+        onRenderField: (props, render) => {
+          return (
+            <>
+              {render!(props)}
+              <TooltipHost
+                styles={TOOLTIP_HOST_STYLES}
+                tooltipProps={oobOTPSMSTooltipProps}
+                content={renderToString(
+                  "ProjectWizardScreen.step1.tooltip.oob-otp-sms"
+                )}
+              >
+                <TooltipIcon
+                  id={oobOTPSMSTooltip.id}
+                  setRef={oobOTPSMSTooltip.setRef}
+                />
+              </TooltipHost>
+            </>
+          );
+        },
       },
     ];
-  }, [renderToString, id, setRef, tooltipProps]);
+  }, [
+    renderToString,
+    oobOTPEmailTooltipProps,
+    oobOTPEmailTooltip.id,
+    oobOTPEmailTooltip.setRef,
+    oobOTPSMSTooltipProps,
+    oobOTPSMSTooltip.id,
+    oobOTPSMSTooltip.setRef,
+  ]);
 
   const onChange = useCallback(
     (_e, option) => {
@@ -239,9 +333,6 @@ function Step1(props: StepProps) {
         selectedKey={step1Answer}
         onChange={onChange}
       />
-      <MessageBar>
-        <FormattedMessage id="ProjectWizardScreen.step1.message" />
-      </MessageBar>
     </WizardContentLayout>
   );
 }
@@ -381,8 +472,8 @@ function Step3(props: StepProps) {
     ];
   }, [renderToString]);
 
-  const q3Options: IChoiceGroupOption[] = useMemo(() => {
-    const options = [
+  const q3Options: Step3Question3Option[] = useMemo(() => {
+    const options: Step3Question3Option[] = [
       {
         key: "totp",
         text: (
@@ -398,18 +489,25 @@ function Step3(props: StepProps) {
         ) as any,
       },
     ];
-    if (step1Answer === "password") {
-      options.push({
-        key: "oob_otp_email",
-        text: renderToString(
-          "ProjectWizardScreen.step3.q3.option.oob_otp_email"
-        ),
-      });
-    } else {
-      options.push({
-        key: "password",
-        text: renderToString("ProjectWizardScreen.step3.q3.option.password"),
-      });
+    switch (step1Answer) {
+      case "email_password":
+      // fallthrough
+      case "phone_password":
+        options.push({
+          key: "oob_otp_email",
+          text: renderToString(
+            "ProjectWizardScreen.step3.q3.option.oob_otp_email"
+          ),
+        });
+        break;
+      case "oob_otp_email":
+      // fallthrough
+      case "oob_otp_sms":
+        options.push({
+          key: "password",
+          text: renderToString("ProjectWizardScreen.step3.q3.option.password"),
+        });
+        break;
     }
     return options;
   }, [step1Answer, renderToString]);
