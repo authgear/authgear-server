@@ -1105,6 +1105,8 @@
 
   "SubscriptionPlanCard.cancel.title": "Cancel Subscription",
   "SubscriptionPlanCard.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
+  "SubscriptionPlanCard.cancel.confirmation.customPlan": "Please send us an email for cancelling the plan.",
+  "SubscriptionPlanCard.cancel.confirmation.customPlan.button": "Contact Us",
   "SubscriptionPlanCard.cancel.error": "Failed to cancel plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to cancel.",
 
   "SubscriptionPlanCard.reactivate.title": "Reactivate Subscription",
@@ -1160,6 +1162,7 @@
   "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
+  "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
   "SubscriptionScreen.plan-name.enterprise": "Enterprise",

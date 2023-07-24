@@ -24,6 +24,7 @@ import styles from "./SubscriptionCurrentPlanSummary.module.css";
 export interface SubscriptionCurrentPlanSummaryProps {
   className?: string;
   planName: string;
+  isCustomPlan: boolean;
   baseAmount?: number;
   mauCurrent?: number;
   mauLimit?: number;
@@ -38,18 +39,18 @@ export interface SubscriptionCurrentPlanSummaryProps {
 
 interface TitleProps {
   planName: string;
+  isCustomPlan: boolean;
   baseAmount?: number;
   subscriptionEndedAt?: Date;
 }
 
 function Title(props: TitleProps) {
   const { locale } = useContext(Context);
-  const { planName, baseAmount, subscriptionEndedAt } = props;
+  const { planName, isCustomPlan, subscriptionEndedAt, baseAmount } = props;
   const { renderToString } = useContext(Context);
-  const planDisplayName =
-    baseAmount == null
-      ? planName
-      : renderToString("SubscriptionScreen.plan-name." + planName);
+  const planDisplayName = isCustomPlan
+    ? planName
+    : renderToString("SubscriptionScreen.plan-name." + planName);
   const formattedDate = formatDatetime(
     locale,
     subscriptionEndedAt ?? null,
@@ -57,7 +58,7 @@ function Title(props: TitleProps) {
   );
   return (
     <Text block={true} variant="xLarge">
-      {baseAmount == null ? (
+      {isCustomPlan ? (
         <FormattedMessage
           id="SubscriptionCurrentPlanSummary.title.custom-plan"
           values={{
@@ -69,7 +70,7 @@ function Title(props: TitleProps) {
           id="SubscriptionCurrentPlanSummary.title.known-plan"
           values={{
             name: planDisplayName,
-            amount: baseAmount / 100,
+            amount: (baseAmount ?? 0) / 100,
             expiredAt: formattedDate ?? "false",
           }}
         />
@@ -304,6 +305,7 @@ function SubscriptionCurrentPlanSummary(
     onClickManageSubscription,
     manageSubscriptionLoading,
     manageSubscriptionDisabled,
+    isCustomPlan,
     children,
   } = props;
   return (
@@ -315,6 +317,7 @@ function SubscriptionCurrentPlanSummary(
     >
       <Title
         planName={planName}
+        isCustomPlan={isCustomPlan}
         baseAmount={baseAmount}
         subscriptionEndedAt={subscriptionEndedAt}
       />

@@ -49,7 +49,6 @@ interface SubscriptionScreenFooterProps {
   onClickEnterprisePlan: (e: React.MouseEvent) => void;
   onClickCancel: (e: React.MouseEvent) => void;
   isKnownPaidPlan: boolean;
-  hasSubscription: boolean;
   subscriptionCancelled: boolean;
   subscriptionEndedAt?: string;
 }
@@ -60,7 +59,6 @@ export const SubscriptionScreenFooter: React.VFC<SubscriptionScreenFooterProps> 
     onClickEnterprisePlan,
     onClickCancel,
     isKnownPaidPlan,
-    hasSubscription,
     subscriptionCancelled,
     subscriptionEndedAt,
   }) {
@@ -96,28 +94,26 @@ export const SubscriptionScreenFooter: React.VFC<SubscriptionScreenFooterProps> 
               <Text block={true}>
                 <FormattedMessage id="SubscriptionScreen.footer.usage-delay-disclaimer" />
               </Text>
-              {hasSubscription ? (
-                subscriptionCancelled ? (
-                  <Text block={true}>
-                    <FormattedMessage
-                      id="SubscriptionScreen.footer.expire"
-                      values={{
-                        date: formattedSubscriptionEndedAt ?? "",
-                      }}
-                    />
-                  </Text>
-                ) : (
-                  <ThemeProvider theme={CANCEL_THEME}>
-                    <LinkButton onClick={onClickCancel}>
-                      <Text>
-                        <FormattedMessage id="SubscriptionScreen.footer.cancel" />
-                      </Text>
-                    </LinkButton>
-                  </ThemeProvider>
-                )
-              ) : null}
             </>
           ) : null}
+          {subscriptionCancelled ? (
+            <Text block={true}>
+              <FormattedMessage
+                id="SubscriptionScreen.footer.expire"
+                values={{
+                  date: formattedSubscriptionEndedAt ?? "",
+                }}
+              />
+            </Text>
+          ) : (
+            <ThemeProvider theme={CANCEL_THEME}>
+              <LinkButton onClick={onClickCancel}>
+                <Text>
+                  <FormattedMessage id="SubscriptionScreen.footer.cancel" />
+                </Text>
+              </LinkButton>
+            </ThemeProvider>
+          )}
         </div>
       </div>
     );

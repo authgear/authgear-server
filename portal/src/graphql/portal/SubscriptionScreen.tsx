@@ -69,9 +69,22 @@ import ExternalLink from "../../ExternalLink";
 import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
 import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
 
-const ENTERPRISE_PLAN = "enterprise";
-const ALL_KNOWN_PLANS = ["free", "startups", "business", ENTERPRISE_PLAN];
-const PAID_PLANS = ALL_KNOWN_PLANS.slice(1);
+type Plan = "free" | "developers" | "startups" | "business" | "enterprise";
+
+const ENTERPRISE_PLAN: Plan = "enterprise";
+const PAID_PLANS: Plan[] = [
+  "developers",
+  "startups",
+  "business",
+  ENTERPRISE_PLAN,
+];
+const STANDARD_PLANS: Plan[] = ["free", ...PAID_PLANS];
+const SUBSCRIPTABLE_PLANS: Plan[] = ["startups", "business"];
+const ALL_KNOWN_PLANS: Plan[] = [
+  "free",
+  ...SUBSCRIPTABLE_PLANS,
+  ENTERPRISE_PLAN,
+];
 
 const MAU_LIMIT: Record<string, number> = {
   free: 5000,
@@ -92,7 +105,7 @@ const CONTACT_US_BUTTON_THEME: PartialTheme = {
 };
 
 function previousPlan(planName: string): string | null {
-  const idx = ALL_KNOWN_PLANS.indexOf(planName);
+  const idx = ALL_KNOWN_PLANS.indexOf(planName as Plan);
   if (idx >= 1) {
     return ALL_KNOWN_PLANS[idx - 1];
   }
@@ -100,17 +113,15 @@ function previousPlan(planName: string): string | null {
 }
 
 function isKnownPlan(planName: string): boolean {
-  return ALL_KNOWN_PLANS.indexOf(planName) >= 0;
+  return ALL_KNOWN_PLANS.indexOf(planName as Plan) >= 0;
 }
 
-function isEnterprisePlan(
-  planName: string
-): planName is typeof ENTERPRISE_PLAN {
-  return planName === ENTERPRISE_PLAN;
+function isPaidPlan(planName: string): boolean {
+  return PAID_PLANS.indexOf(planName as Plan) >= 0;
 }
 
-function isKnownPaidPlan(planName: string): boolean {
-  return PAID_PLANS.indexOf(planName) >= 0;
+function isCustomPlan(planName: string): boolean {
+  return STANDARD_PLANS.indexOf(planName as Plan) === -1;
 }
 
 function isRecommendedPlan(planName: string): boolean {
@@ -126,8 +137,8 @@ function showRecommendedTag(
   currentPlanName: string
 ): boolean {
   const a = isRecommendedPlan(planName);
-  const i = ALL_KNOWN_PLANS.indexOf(planName);
-  const j = ALL_KNOWN_PLANS.indexOf(currentPlanName);
+  const i = ALL_KNOWN_PLANS.indexOf(planName as Plan);
+  const j = ALL_KNOWN_PLANS.indexOf(currentPlanName as Plan);
   return a && i >= 0 && j >= 0 && j < i;
 }
 
@@ -137,7 +148,7 @@ interface PlanDetailsLinesProps {
 
 function PlanDetailsLines(props: PlanDetailsLinesProps) {
   const { planName } = props;
-  const isKnown = isKnownPaidPlan(planName);
+  const isKnown = isPaidPlan(planName);
   if (!isKnown) {
     return null;
   }
@@ -198,12 +209,12 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     if (!isKnownPlan(currentPlanName)) {
       return "non-applicable";
     }
-    if (!isKnownPaidPlan(currentPlanName)) {
+    if (!isPaidPlan(currentPlanName)) {
       return "subscribe";
     }
     const targetPlan = subscriptionPlan.name;
-    const currentPlanIdx = ALL_KNOWN_PLANS.indexOf(currentPlanName);
-    const targetPlanIdx = ALL_KNOWN_PLANS.indexOf(targetPlan);
+    const currentPlanIdx = ALL_KNOWN_PLANS.indexOf(currentPlanName as Plan);
+    const targetPlanIdx = ALL_KNOWN_PLANS.indexOf(targetPlan as Plan);
     if (subscriptionCancelled) {
       if (currentPlanIdx === targetPlanIdx) {
         return "reactivate";
@@ -259,7 +270,7 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     await setSubscriptionCancelledStatus(false);
   }, [setSubscriptionCancelledStatus]);
 
-  const isKnown = isKnownPaidPlan(subscriptionPlan.name);
+  const isKnown = isPaidPlan(subscriptionPlan.name);
   if (!isKnown) {
     return null;
   }
@@ -438,7 +449,7 @@ function getTotalCost(
   subscriptionUsage: SubscriptionUsage,
   skipFixedPriceType: boolean
 ): number | undefined {
-  if (!isKnownPaidPlan(planName)) {
+  if (!isPaidPlan(planName)) {
     return undefined;
   }
 
@@ -462,7 +473,7 @@ function getSMSCost(
   planName: string,
   subscriptionUsage: SubscriptionUsage
 ): SMSCost | undefined {
-  if (!isKnownPaidPlan(planName)) {
+  if (!isPaidPlan(planName)) {
     return undefined;
   }
 
@@ -500,7 +511,7 @@ function getWhatsappCost(
   planName: string,
   subscriptionUsage: SubscriptionUsage
 ): SMSCost | undefined {
-  if (!isKnownPaidPlan(planName)) {
+  if (!isPaidPlan(planName)) {
     return undefined;
   }
 
@@ -541,7 +552,7 @@ function getMAUCost(
   planName: string,
   subscriptionUsage: SubscriptionUsage
 ): MAUCost | undefined {
-  if (!isKnownPaidPlan(planName)) {
+  if (!isPaidPlan(planName)) {
     return undefined;
   }
 
@@ -620,7 +631,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, [planName, thisMonthUsage]);
 
   const baseAmount = useMemo(() => {
-    if (!isKnownPaidPlan(planName)) {
+    if (!isPaidPlan(planName)) {
       return undefined;
     }
 
@@ -656,7 +667,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, [previousMonthUsage]);
 
   const nextBillingDate = useMemo(() => {
-    if (!isKnownPaidPlan(planName)) {
+    if (!isPaidPlan(planName)) {
       return undefined;
     }
 
@@ -682,6 +693,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, []);
 
   const cancelDialogContentProps: IDialogContentProps = useMemo(() => {
+    if (!subscription) {
+      return {
+        type: DialogType.normal,
+        title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+        // @ts-expect-error
+        subText: (
+          <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan" />
+        ) as IDialogContentProps["subText"],
+      };
+    }
     return {
       type: DialogType.normal,
       title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
@@ -690,7 +711,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
       ) as IDialogContentProps["subText"],
     };
-  }, []);
+  }, [subscription]);
 
   const onClickEnterprisePlan = useCallback((e) => {
     e.preventDefault();
@@ -768,13 +789,24 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         dialogContentProps={cancelDialogContentProps}
       >
         <DialogFooter>
-          <ButtonWithLoading
-            theme={themes.destructive}
-            loading={cancelSubscriptionLoading}
-            onClick={onClickCancelSubscriptionConfirm}
-            disabled={cancelDialogHidden}
-            labelId="confirm"
-          />
+          {!!subscription ? (
+            <ButtonWithLoading
+              theme={themes.destructive}
+              loading={cancelSubscriptionLoading}
+              onClick={onClickCancelSubscriptionConfirm}
+              disabled={cancelDialogHidden}
+              labelId="confirm"
+            />
+          ) : (
+            <PrimaryButton
+              href="mailto:hello@authgear.com"
+              onClick={onDismiss}
+              disabled={cancelDialogHidden}
+              text={
+                <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan.button" />
+              }
+            />
+          )}
           <DefaultButton
             onClick={onDismiss}
             disabled={cancelSubscriptionLoading || cancelDialogHidden}
@@ -808,6 +840,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
         <SubscriptionCurrentPlanSummary
           className={styles.section}
           planName={planName}
+          isCustomPlan={isCustomPlan(planName)}
           baseAmount={baseAmount}
           mauCurrent={mauCurrent}
           mauLimit={mauLimit}
@@ -899,9 +932,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.cards.title" />
           </Text>
           <div className={styles.cards}>
-            {PAID_PLANS.map((paidPlanName) => {
+            {SUBSCRIPTABLE_PLANS.map((subscriptablePlanName) => {
               const plan = subscriptionPlans.find(
-                (plan) => plan.name === paidPlanName
+                (plan) => plan.name === subscriptablePlanName
               );
               if (plan != null) {
                 return (
@@ -914,26 +947,21 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                   />
                 );
               }
-              if (isEnterprisePlan(paidPlanName)) {
-                return (
-                  <SubscriptionEnterprisePlan
-                    key={paidPlanName}
-                    previousPlanName={previousPlan(paidPlanName)}
-                    onClickContactUs={onClickEnterprisePlanContactUs}
-                  />
-                );
-              }
               return null;
             })}
+            <SubscriptionEnterprisePlan
+              key={ENTERPRISE_PLAN}
+              previousPlanName={previousPlan(ENTERPRISE_PLAN)}
+              onClickContactUs={onClickEnterprisePlanContactUs}
+            />
           </div>
         </div>
         <SubscriptionScreenFooter
           className={styles.section}
           onClickEnterprisePlan={onClickEnterprisePlan}
           onClickCancel={onClickCancel}
-          hasSubscription={!!subscription}
           subscriptionCancelled={subscriptionCancelled}
-          isKnownPaidPlan={isKnownPaidPlan(planName)}
+          isKnownPaidPlan={isPaidPlan(planName)}
           subscriptionEndedAt={subscription?.endedAt ?? undefined}
         />
       </div>
