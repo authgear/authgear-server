@@ -6,12 +6,12 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libevent "github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -21,24 +21,37 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
+type AuditServiceAppService interface {
+	Get(id string) (*model.App, error)
+}
+
 type AuditService struct {
 	Context         context.Context
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
 	Request         *http.Request
 
+	Apps     AuditServiceAppService
+	Authgear *portalconfig.AuthgearConfig
+
+	DenoEndpoint config.DenoEndpoint
+
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
-	AuditDatabase              *auditdb.WriteHandle
-	AuditDatabaseWriteExecutor *auditdb.WriteSQLExecutor
-	AuditDatabaseSQLBuilder    *auditdb.SQLBuilder
-	Clock                      clock.Clock
-	LoggerFactory              *log.Factory
+	AuditDatabase *auditdb.WriteHandle
+
+	Clock         clock.Clock
+	LoggerFactory *log.Factory
 }
 
 func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (err error) {
-	if s.AuditDatabase == nil || s.AuditDatabaseWriteExecutor == nil || s.AuditDatabaseSQLBuilder == nil {
+	if s.AuditDatabase == nil {
+		return
+	}
+
+	authgearApp, err := s.Apps.Get(s.Authgear.AppID)
+	if err != nil {
 		return
 	}
 
@@ -49,22 +62,32 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 		sentry.NewLogHookFromContext(s.Context),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	sqlBuilder := s.AuditDatabaseSQLBuilder.WithAppID(app.ID)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: s.AuditDatabaseWriteExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   audit.NewLogger(loggerFactory),
-		Database: s.AuditDatabase,
-		Store:    writeStore,
-	}
 
-	e, err := s.resolveNonBlockingEvent(payload)
+	// AuditSink is app specific.
+	// The records MUST have correct app_id.
+	// We have construct audit sink with the target app.
+	auditSink := newAuditSink(s.Context, app, s.AuditDatabase, loggerFactory)
+	// The portal uses its Authgear to deliver hooks.
+	// We have construct hook sink with the Authgear app.
+	hookSink := newHookSink(s.Context, authgearApp, s.DenoEndpoint, loggerFactory)
+
+	// Use the target app ID.
+	e, err := s.resolveNonBlockingEvent(app.ID, payload)
 	if err != nil {
 		return err
 	}
-	return auditSink.ReceiveNonBlockingEvent(e)
+
+	err = auditSink.ReceiveNonBlockingEvent(e)
+	if err != nil {
+		return err
+	}
+
+	err = hookSink.ReceiveNonBlockingEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *AuditService) nextSeq() (seq int64, err error) {
@@ -78,7 +101,7 @@ func (s *AuditService) nextSeq() (seq int64, err error) {
 	return
 }
 
-func (s *AuditService) makeContext(payload event.Payload) event.Context {
+func (s *AuditService) makeContext(appID string, payload event.Payload) event.Context {
 	var userIDStr string
 	portalSession := portalsession.GetValidSessionInfo(s.Context)
 	if portalSession != nil {
@@ -113,6 +136,7 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 		IPAddress:          string(s.RemoteIP),
 		UserAgent:          string(s.UserAgentString),
 		ClientID:           clientID,
+		AppID:              appID,
 	}
 
 	payload.FillContext(ctx)
@@ -120,8 +144,8 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 	return *ctx
 }
 
-func (s *AuditService) resolveNonBlockingEvent(payload event.NonBlockingPayload) (*event.Event, error) {
-	eventContext := s.makeContext(payload)
+func (s *AuditService) resolveNonBlockingEvent(appID string, payload event.NonBlockingPayload) (*event.Event, error) {
+	eventContext := s.makeContext(appID, payload)
 	seq, err := s.nextSeq()
 	if err != nil {
 		return nil, err

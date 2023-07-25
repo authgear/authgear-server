@@ -29,7 +29,7 @@ func (e *ProjectBillingSubscriptionStatusUpdatedEventPayload) FillContext(ctx *e
 }
 
 func (e *ProjectBillingSubscriptionStatusUpdatedEventPayload) ForHook() bool {
-	return false
+	return true
 }
 
 func (e *ProjectBillingSubscriptionStatusUpdatedEventPayload) ForAudit() bool {

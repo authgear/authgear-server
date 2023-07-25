@@ -32,7 +32,7 @@ func (e *ProjectAppUpdatedEventPayload) FillContext(ctx *event.Context) {
 }
 
 func (e *ProjectAppUpdatedEventPayload) ForHook() bool {
-	return false
+	return true
 }
 
 func (e *ProjectAppUpdatedEventPayload) ForAudit() bool {

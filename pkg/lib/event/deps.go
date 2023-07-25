@@ -24,6 +24,7 @@ var DependencySet = wire.NewSet(
 
 func NewService(
 	ctx context.Context,
+	appID config.AppID,
 	remoteIP httputil.RemoteIP,
 	userAgentString httputil.UserAgentString,
 	logger Logger,
@@ -39,6 +40,7 @@ func NewService(
 ) *Service {
 	return &Service{
 		Context:         ctx,
+		AppID:           appID,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		Logger:          logger,

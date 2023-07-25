@@ -309,19 +309,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	writeHandle := auditdb.NewWriteHandle(context, pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
 	auditService := &service.AuditService{
-		Context:                    context,
-		RemoteIP:                   remoteIP,
-		UserAgentString:            userAgentString,
-		Request:                    request,
-		SQLBuilder:                 sqlBuilder,
-		SQLExecutor:                sqlExecutor,
-		AuditDatabase:              writeHandle,
-		AuditDatabaseWriteExecutor: writeSQLExecutor,
-		AuditDatabaseSQLBuilder:    auditdbSQLBuilder,
-		Clock:                      clock,
-		LoggerFactory:              logFactory,
+		Context:         context,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		Request:         request,
+		Apps:            appService,
+		Authgear:        authgearConfig,
+		DenoEndpoint:    denoEndpoint,
+		SQLBuilder:      sqlBuilder,
+		SQLExecutor:     sqlExecutor,
+		AuditDatabase:   writeHandle,
+		Clock:           clock,
+		LoggerFactory:   logFactory,
 	}
 	graphqlContext := &graphql.Context{
 		Request:                 request,

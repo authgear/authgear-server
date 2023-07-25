@@ -29,7 +29,7 @@ func (e *ProjectDomainDeletedEventPayload) FillContext(ctx *event.Context) {
 }
 
 func (e *ProjectDomainDeletedEventPayload) ForHook() bool {
-	return false
+	return true
 }
 
 func (e *ProjectDomainDeletedEventPayload) ForAudit() bool {

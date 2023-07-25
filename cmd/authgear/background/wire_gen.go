@@ -564,7 +564,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(ctx, configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
