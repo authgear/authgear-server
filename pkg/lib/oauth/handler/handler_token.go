@@ -13,7 +13,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -31,6 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/lestrrat-go/jwx/jwk"
 )
 
 const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
@@ -65,6 +68,15 @@ type TokenHandlerUserFacade interface {
 	GetRaw(id string) (*user.User, error)
 }
 
+type App2AppService interface {
+	ParseTokenUnverified(requestJWT string) (t *app2app.Token, err error)
+	ParseToken(requestJWT string, key jwk.Key) (*app2app.Token, error)
+}
+
+type ChallengeProvider interface {
+	Consume(token string) (*challenge.Purpose, error)
+}
+
 type TokenHandlerLogger struct{ *log.Logger }
 
 func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
@@ -89,6 +101,8 @@ type TokenHandler struct {
 	TokenService        TokenService
 	Events              EventService
 	SessionManager      SessionManager
+	App2App             App2AppService
+	Challenges          ChallengeProvider
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -266,7 +280,26 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo)
+	var app2appDevicePublicKey jwk.Key = nil
+	if r.App2AppDeviceKeyJWT() != "" {
+		jwt := r.App2AppDeviceKeyJWT()
+		app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
+		if err != nil {
+			return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
+		}
+		purpose, err := h.Challenges.Consume(app2appToken.Challenge)
+		if err != nil || *purpose != challenge.PurposeApp2AppRequest {
+			return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
+		}
+		key := app2appToken.Key
+		_, err = h.App2App.ParseToken(jwt, key)
+		if err != nil {
+			return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
+		}
+		app2appDevicePublicKey = key
+	}
+
+	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, app2appDevicePublicKey)
 	if err != nil {
 		return nil, err
 	}
@@ -752,6 +785,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
 	deviceInfo map[string]interface{},
+	app2appDevicePublicKey jwk.Key,
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
@@ -816,6 +850,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		IDPSessionID:       code.IDPSessionID,
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         code.SSOEnabled,
+		App2AppDeviceKey:   app2appDevicePublicKey,
 	}
 	if issueRefreshToken {
 		offlineGrant, err := h.issueOfflineGrant(
@@ -959,6 +994,7 @@ type IssueOfflineGrantOptions struct {
 	DeviceInfo         map[string]interface{}
 	IdentityID         string
 	SSOEnabled         bool
+	App2AppDeviceKey   jwk.Key
 }
 
 func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {

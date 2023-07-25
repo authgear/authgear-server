@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/lestrrat-go/jwx/jwk"
 )
 
 var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
@@ -62,8 +63,16 @@ func (s *TokenService) IssueOfflineGrant(
 			LastAccess:    accessEvent,
 		},
 
-		DeviceInfo: opts.DeviceInfo,
-		SSOEnabled: opts.SSOEnabled,
+		DeviceInfo:       opts.DeviceInfo,
+		SSOEnabled:       opts.SSOEnabled,
+		App2AppDeviceKey: "",
+	}
+	if opts.App2AppDeviceKey != nil {
+		pem, err := jwk.Pem(opts.App2AppDeviceKey)
+		if err != nil {
+			return nil, err
+		}
+		offlineGrant.App2AppDeviceKey = string(pem)
 	}
 
 	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)

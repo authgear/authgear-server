@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/google/wire"
@@ -97,6 +98,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		challenge.DependencySet,
 		wire.Bind(new(interaction.ChallengeProvider), new(*challenge.Provider)),
+		wire.Bind(new(oauthhandler.ChallengeProvider), new(*challenge.Provider)),
 	),
 
 	wire.NewSet(
@@ -422,5 +424,10 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		accountmigration.DependencySet,
 		wire.Bind(new(workflow.AccountMigrationService), new(*accountmigration.Service)),
+	),
+
+	wire.NewSet(
+		app2app.DependencySet,
+		wire.Bind(new(oauthhandler.App2AppService), new(*app2app.Provider)),
 	),
 )
