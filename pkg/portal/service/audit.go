@@ -69,13 +69,24 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 	auditSink := newAuditSink(s.Context, app, s.AuditDatabase, loggerFactory)
 	// The portal uses its Authgear to deliver hooks.
 	// We have construct hook sink with the Authgear app.
-	_ = newHookSink(s.Context, authgearApp, s.DenoEndpoint, loggerFactory)
+	hookSink := newHookSink(s.Context, authgearApp, s.DenoEndpoint, loggerFactory)
 
 	e, err := s.resolveNonBlockingEvent(payload)
 	if err != nil {
 		return err
 	}
-	return auditSink.ReceiveNonBlockingEvent(e)
+
+	err = auditSink.ReceiveNonBlockingEvent(e)
+	if err != nil {
+		return err
+	}
+
+	err = hookSink.ReceiveNonBlockingEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *AuditService) nextSeq() (seq int64, err error) {
