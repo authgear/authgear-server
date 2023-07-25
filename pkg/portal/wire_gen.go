@@ -314,6 +314,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		Request:         request,
+		Apps:            appService,
+		Authgear:        authgearConfig,
 		DenoEndpoint:    denoEndpoint,
 		SQLBuilder:      sqlBuilder,
 		SQLExecutor:     sqlExecutor,

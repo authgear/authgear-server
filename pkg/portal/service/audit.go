@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalsession "github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -20,11 +21,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/sentry"
 )
 
+type AuditServiceAppService interface {
+	Get(id string) (*model.App, error)
+}
+
 type AuditService struct {
 	Context         context.Context
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
 	Request         *http.Request
+
+	Apps     AuditServiceAppService
+	Authgear *portalconfig.AuthgearConfig
 
 	DenoEndpoint config.DenoEndpoint
 
@@ -42,6 +50,11 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 		return
 	}
 
+	authgearApp, err := s.Apps.Get(s.Authgear.AppID)
+	if err != nil {
+		return
+	}
+
 	cfg := app.Context.Config
 	loggerFactory := s.LoggerFactory.ReplaceHooks(
 		log.NewDefaultMaskLogHook(),
@@ -52,10 +65,10 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 
 	// AuditSink is app specific.
 	// The records MUST have correct app_id.
-	// We have construct it with the target app.
+	// We have construct audit sink with the target app.
 	auditSink := newAuditSink(s.Context, app, s.AuditDatabase, loggerFactory)
-	// FIXME: This is clearly wrong.
-	authgearApp := app
+	// The portal uses its Authgear to deliver hooks.
+	// We have construct hook sink with the Authgear app.
 	_ = newHookSink(s.Context, authgearApp, s.DenoEndpoint, loggerFactory)
 
 	e, err := s.resolveNonBlockingEvent(payload)
