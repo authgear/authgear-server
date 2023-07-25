@@ -70,8 +70,9 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
 	}
 
 	if s.WillDeliverNonBlockingEvent(e.Type) {
-		if err := s.DeliverNonBlockingEvent(e); err != nil {
-			s.Logger.WithError(err).Error("failed to dispatch non blocking event")
+		err = s.DeliverNonBlockingEvent(e)
+		if err != nil {
+			return
 		}
 	}
 
@@ -154,9 +155,9 @@ func (s *Sink) DeliverNonBlockingEvent(e *event.Event) error {
 			continue
 		}
 
-		err := s.deliverNonBlockingEvent(hook, e)
-		if err != nil {
-			return err
+		errToIgnore := s.deliverNonBlockingEvent(hook, e)
+		if errToIgnore != nil {
+			s.Logger.WithError(errToIgnore).Error("failed to dispatch non blocking event")
 		}
 	}
 
