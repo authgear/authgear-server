@@ -91,6 +91,8 @@ All fields are guaranteed that only backward-compatible changes would be made.
 
 ### Event Context
 
+- `app_id`: The app ID.
+- `client_id`: The client id, if present.
 - `timestamp`: signed 64-bit UNIX timestamp of when this event is generated. Retried deliveries do not affect this field.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
 - `triggered_by`: The origin of the event.

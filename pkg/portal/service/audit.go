@@ -71,7 +71,8 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 	// We have construct hook sink with the Authgear app.
 	hookSink := newHookSink(s.Context, authgearApp, s.DenoEndpoint, loggerFactory)
 
-	e, err := s.resolveNonBlockingEvent(payload)
+	// Use the target app ID.
+	e, err := s.resolveNonBlockingEvent(app.ID, payload)
 	if err != nil {
 		return err
 	}
@@ -100,7 +101,7 @@ func (s *AuditService) nextSeq() (seq int64, err error) {
 	return
 }
 
-func (s *AuditService) makeContext(payload event.Payload) event.Context {
+func (s *AuditService) makeContext(appID string, payload event.Payload) event.Context {
 	var userIDStr string
 	portalSession := portalsession.GetValidSessionInfo(s.Context)
 	if portalSession != nil {
@@ -135,6 +136,7 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 		IPAddress:          string(s.RemoteIP),
 		UserAgent:          string(s.UserAgentString),
 		ClientID:           clientID,
+		AppID:              appID,
 	}
 
 	payload.FillContext(ctx)
@@ -142,8 +144,8 @@ func (s *AuditService) makeContext(payload event.Payload) event.Context {
 	return *ctx
 }
 
-func (s *AuditService) resolveNonBlockingEvent(payload event.NonBlockingPayload) (*event.Event, error) {
-	eventContext := s.makeContext(payload)
+func (s *AuditService) resolveNonBlockingEvent(appID string, payload event.NonBlockingPayload) (*event.Event, error) {
+	eventContext := s.makeContext(appID, payload)
 	seq, err := s.nextSeq()
 	if err != nil {
 		return nil, err

@@ -36,6 +36,7 @@ type Context struct {
 	OAuth     *OAuthContext `json:"oauth,omitempty"`
 	IPAddress string        `json:"ip_address,omitempty"`
 	UserAgent string        `json:"user_agent,omitempty"`
+	AppID     string        `json:"app_id,omitempty"`
 	ClientID  string        `json:"client_id,omitempty"`
 }
 

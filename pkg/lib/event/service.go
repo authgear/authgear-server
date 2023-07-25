@@ -41,6 +41,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
 
 type Service struct {
 	Context         context.Context
+	AppID           config.AppID
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
 	Logger          Logger
@@ -215,6 +216,7 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		Language:           resolvedLanguage,
 		IPAddress:          string(s.RemoteIP),
 		UserAgent:          string(s.UserAgentString),
+		AppID:              string(s.AppID),
 		ClientID:           clientID,
 	}
 

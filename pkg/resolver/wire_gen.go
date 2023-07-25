@@ -596,7 +596,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
 		Clock:      clock,
