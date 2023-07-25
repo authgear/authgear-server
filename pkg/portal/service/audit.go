@@ -26,6 +26,8 @@ type AuditService struct {
 	UserAgentString httputil.UserAgentString
 	Request         *http.Request
 
+	DenoEndpoint config.DenoEndpoint
+
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
@@ -48,7 +50,13 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 
+	// AuditSink is app specific.
+	// The records MUST have correct app_id.
+	// We have construct it with the target app.
 	auditSink := newAuditSink(s.Context, app, s.AuditDatabase, loggerFactory)
+	// FIXME: This is clearly wrong.
+	authgearApp := app
+	_ = newHookSink(s.Context, authgearApp, s.DenoEndpoint, loggerFactory)
 
 	e, err := s.resolveNonBlockingEvent(payload)
 	if err != nil {

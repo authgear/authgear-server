@@ -6,9 +6,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
 var DependencySet = wire.NewSet(
@@ -41,13 +45,33 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(DefaultDomainDomainService), new(*DomainService)),
 )
 
-func ProvideAuthgearAppConfig(app *model.App) *config.Config {
-	return app.Context.Config
+type NoopAttributesService struct{}
+
+func (*NoopAttributesService) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+	return nil
+}
+
+func (*NoopAttributesService) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+	return nil
 }
 
 var AuthgearDependencySet = wire.NewSet(
-	ProvideAuthgearAppConfig,
+	wire.FieldsOf(new(*model.App),
+		"Context",
+	),
+	wire.FieldsOf(new(*config.AppContext),
+		"Resources",
+		"Config",
+	),
+	wire.Value(&NoopAttributesService{}),
+
 	deps.ConfigDeps,
+	clock.DependencySet,
 	auditdb.DependencySet,
 	audit.DependencySet,
+
+	hook.DependencySet,
+	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*NoopAttributesService)),
+	wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*NoopAttributesService)),
 )
