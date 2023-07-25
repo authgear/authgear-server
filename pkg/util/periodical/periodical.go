@@ -13,6 +13,7 @@ import (
 type Type string
 
 const (
+	Hourly  Type = "hourly"
 	Daily   Type = "daily"
 	Weekly  Type = "weekly"
 	Monthly Type = "monthly"
@@ -28,13 +29,20 @@ type ArgumentParser struct {
 
 // ParseAnalyticCollectCountPeriodicalArgument parse the argument input and
 // returns periodical and the start date of the periodical
-// if periodical is daily, the date can be any date
-// if periodical is monthly, the date should be first day of the month
-// if periodical is weekly, the date should be monday of the week
+// if periodical is hourly, t is the start of the hour.
+// if periodical is daily, t is the start of the day.
+// if periodical is monthly, t is the start of the day on the first day of the month.
+// if periodical is weekly, t is the start of the day on the monday of the week.
 // Supported input format:
+// - this-hour
+// - today
+// - this-week
+// - this-month
+// - last-hour
 // - yesterday
 // - last-week
 // - last-month
+// - 2016-01-02T15
 // - 2016-01-02
 // - 2016-01
 // - 2016-W37
@@ -42,6 +50,9 @@ func (p *ArgumentParser) Parse(input string) (Type, *time.Time, error) {
 	now := p.Clock.NowUTC()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	switch input {
+	case "this-hour":
+		thisHour := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.UTC)
+		return Hourly, &thisHour, nil
 	case "today":
 		return Daily, &today, nil
 	case "this-week":
@@ -53,6 +64,10 @@ func (p *ArgumentParser) Parse(input string) (Type, *time.Time, error) {
 	case "this-month":
 		fistDateOfMonth := time.Date(today.Year(), today.Month(), 1, 0, 0, 0, 0, time.UTC)
 		return Monthly, &fistDateOfMonth, nil
+	case "last-hour":
+		thisHour := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.UTC)
+		lastHour := thisHour.Add(-time.Hour)
+		return Hourly, &lastHour, nil
 	case "yesterday":
 		yesterday := today.AddDate(0, 0, -1)
 		return Daily, &yesterday, nil
@@ -68,8 +83,15 @@ func (p *ArgumentParser) Parse(input string) (Type, *time.Time, error) {
 		return Monthly, &fistDateOfMonth, nil
 	}
 
+	// match format "2006-01-02T15"
+	t, err := time.Parse("2006-01-02T15", input)
+	if err == nil {
+		t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, time.UTC)
+		return Hourly, &t, nil
+	}
+
 	// match format "2006-01-02"
-	t, err := time.Parse("2006-01-02", input)
+	t, err = time.Parse("2006-01-02", input)
 	if err == nil {
 		t = time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
 		return Daily, &t, nil
