@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -1916,6 +1917,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		Users:               queries,
 	}
+	app2appProvider := &app2app.Provider{
+		Clock: clockClock,
+	}
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
@@ -1933,6 +1937,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:           tokenService,
 		Events:                 eventService,
 		SessionManager:         manager2,
+		App2App:                app2appProvider,
+		Challenges:             challengeProvider,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -4521,6 +4527,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		Users:               queries,
 	}
+	app2appProvider := &app2app.Provider{
+		Clock: clockClock,
+	}
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
@@ -4538,6 +4547,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:           tokenService,
 		Events:                 eventService,
 		SessionManager:         manager2,
+		App2App:                app2appProvider,
+		Challenges:             challengeProvider,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
