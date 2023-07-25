@@ -29,7 +29,7 @@ func (e *ProjectCollaboratorInvitationDeletedEventPayload) FillContext(ctx *even
 }
 
 func (e *ProjectCollaboratorInvitationDeletedEventPayload) ForHook() bool {
-	return false
+	return true
 }
 
 func (e *ProjectCollaboratorInvitationDeletedEventPayload) ForAudit() bool {

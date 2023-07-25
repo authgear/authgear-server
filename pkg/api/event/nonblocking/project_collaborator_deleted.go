@@ -30,7 +30,7 @@ func (e *ProjectCollaboratorDeletedEventPayload) FillContext(ctx *event.Context)
 }
 
 func (e *ProjectCollaboratorDeletedEventPayload) ForHook() bool {
-	return false
+	return true
 }
 
 func (e *ProjectCollaboratorDeletedEventPayload) ForAudit() bool {

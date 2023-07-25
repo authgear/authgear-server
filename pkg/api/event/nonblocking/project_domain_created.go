@@ -29,7 +29,7 @@ func (e *ProjectDomainCreatedEventPayload) FillContext(ctx *event.Context) {
 }
 
 func (e *ProjectDomainCreatedEventPayload) ForHook() bool {
-	return false
+	return true
 }
 
 func (e *ProjectDomainCreatedEventPayload) ForAudit() bool {
