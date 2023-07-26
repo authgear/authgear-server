@@ -14,6 +14,7 @@ type OutputReportOptions struct {
 	CSVOutputFilePath                        string
 	GoogleOAuthClientCredentialsJSONFilePath string
 	GoogleOAuthTokenFilePath                 string
+	SpreadsheetOutputMode                    analytic.OutputGoogleSpreadsheetMode
 	SpreadsheetID                            string
 	SpreadsheetRange                         string
 }
@@ -41,6 +42,7 @@ func OutputReport(ctx context.Context, options *OutputReportOptions, data *analy
 		outputGoogle := analytic.OutputGoogleSpreadsheet{
 			GoogleOAuthClientCredentialsJSONFilePath: options.GoogleOAuthClientCredentialsJSONFilePath,
 			GoogleOAuthTokenFilePath:                 options.GoogleOAuthTokenFilePath,
+			SpreadsheetOutputMode:                    options.SpreadsheetOutputMode,
 			SpreadsheetID:                            options.SpreadsheetID,
 			SpreadsheetRange:                         options.SpreadsheetRange,
 		}

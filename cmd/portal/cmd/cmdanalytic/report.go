@@ -112,6 +112,7 @@ var cmdAnalyticReport = &cobra.Command{
 			}, nil
 		}
 
+		var mode analyticlib.OutputGoogleSpreadsheetMode
 		var data *analyticlib.ReportData
 		dbPool := db.NewPool()
 		switch reportType {
@@ -137,13 +138,13 @@ var cmdAnalyticReport = &cobra.Command{
 
 			switch periodicalType {
 			case periodical.Hourly:
+				mode = analyticlib.OutputGoogleSpreadsheetModeOverwrite
 				report := analytic.NewProjectHourlyReport(
 					context.Background(),
 					dbPool,
 					dbCredentials,
 					auditDBCredentials,
 				)
-				// FIXME: We want to truncate the sheet first, before we append the data.
 				data, err = report.Run(&analyticlib.ProjectHourlyReportOptions{
 					Time: date,
 				})
@@ -192,6 +193,7 @@ var cmdAnalyticReport = &cobra.Command{
 			&analytic.OutputReportOptions{
 				OutputType:                               outputType,
 				CSVOutputFilePath:                        csvOutputFilePath,
+				SpreadsheetOutputMode:                    mode,
 				GoogleOAuthClientCredentialsJSONFilePath: clientCredentialsJSONFilePath,
 				GoogleOAuthTokenFilePath:                 tokenJSONFilePath,
 				SpreadsheetID:                            googleSpreadsheetID,

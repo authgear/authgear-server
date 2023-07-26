@@ -9,9 +9,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/googleutil"
 )
 
+type OutputGoogleSpreadsheetMode string
+
+const (
+	OutputGoogleSpreadsheetModeDefault   OutputGoogleSpreadsheetMode = ""
+	OutputGoogleSpreadsheetModeAppend    OutputGoogleSpreadsheetMode = "append"
+	OutputGoogleSpreadsheetModeOverwrite OutputGoogleSpreadsheetMode = "overwrite"
+)
+
 type OutputGoogleSpreadsheet struct {
 	GoogleOAuthClientCredentialsJSONFilePath string
 	GoogleOAuthTokenFilePath                 string
+	SpreadsheetOutputMode                    OutputGoogleSpreadsheetMode
 	SpreadsheetID                            string
 	SpreadsheetRange                         string
 }
@@ -32,7 +41,7 @@ func (o *OutputGoogleSpreadsheet) OutputReport(ctx context.Context, data *Report
 		return err
 	}
 
-	srv, err := googleutil.GetGoogleSheetsService(ctx, oauth2Config, token)
+	svc, err := googleutil.GetGoogleSheetsService(ctx, oauth2Config, token)
 	if err != nil {
 		return err
 	}
@@ -41,15 +50,53 @@ func (o *OutputGoogleSpreadsheet) OutputReport(ctx context.Context, data *Report
 		Values: data.Values,
 	}
 
-	_, err = srv.Spreadsheets.Values.Append(
-		o.SpreadsheetID,
-		o.SpreadsheetRange,
-		vr,
-	).ValueInputOption("RAW").Do()
+	err = o.output(svc, vr)
 
 	if err != nil {
 		return fmt.Errorf("unable to update data to sheet: %w", err)
 	}
 
 	return nil
+}
+
+func (o *OutputGoogleSpreadsheet) output(svc *sheets.Service, vr *sheets.ValueRange) error {
+	mode := o.SpreadsheetOutputMode
+	if mode == OutputGoogleSpreadsheetModeDefault {
+		mode = OutputGoogleSpreadsheetModeAppend
+	}
+
+	switch mode {
+	case OutputGoogleSpreadsheetModeAppend:
+		_, err := svc.Spreadsheets.Values.Append(
+			o.SpreadsheetID,
+			o.SpreadsheetRange,
+			vr,
+		).ValueInputOption("RAW").Do()
+		if err != nil {
+			return err
+		}
+		return nil
+	case OutputGoogleSpreadsheetModeOverwrite:
+		_, err := svc.Spreadsheets.Values.Clear(
+			o.SpreadsheetID,
+			// TODO: we assume there are no more than Z columns. It should be good for now.
+			fmt.Sprintf("%v:Z", o.SpreadsheetRange),
+			&sheets.ClearValuesRequest{},
+		).Do()
+		if err != nil {
+			return err
+		}
+
+		_, err = svc.Spreadsheets.Values.Append(
+			o.SpreadsheetID,
+			o.SpreadsheetRange,
+			vr,
+		).ValueInputOption("RAW").Do()
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		return fmt.Errorf("unknown mode: %v", mode)
+	}
 }
