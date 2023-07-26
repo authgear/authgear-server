@@ -34,7 +34,9 @@ func (r TokenResponse) IDToken(v string) { r["id_token"] = v }
 
 // PKCE extension
 
-func (r TokenRequest) CodeVerifier() string { return r["code_verifier"] }
+func (r TokenRequest) CodeVerifier() string        { return r["code_verifier"] }
+func (r TokenRequest) CodeChallenge() string       { return r["code_challenge"] }
+func (r TokenRequest) CodeChallengeMethod() string { return r["code_challenge_method"] }
 
 // Proprietary
 func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
@@ -61,3 +63,7 @@ func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
 
 	return deviceInfo, nil
 }
+
+// App2App
+
+func (r TokenResponse) Code(v string) { r["code"] = v }

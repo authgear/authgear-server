@@ -36,8 +36,11 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
-const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
-const BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
+const (
+	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
+	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
+	App2AppRequestGrantType   = "urn:authgear:params:oauth:grant-type:app2app-request"
+)
 
 // nolint: gosec
 const IDTokenGrantType = "urn:authgear:params:oauth:grant-type:id-token"
@@ -86,6 +89,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 type TokenHandler struct {
 	AppID                  config.AppID
 	Config                 *config.OAuthConfig
+	HTTPConfig             *config.HTTPConfig
 	IdentityFeatureConfig  *config.IdentityFeatureConfig
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
@@ -103,6 +107,7 @@ type TokenHandler struct {
 	SessionManager      SessionManager
 	App2App             App2AppService
 	Challenges          ChallengeProvider
+	CodeGrantService    CodeGrantService
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -171,6 +176,8 @@ func (h *TokenHandler) doHandle(
 		return h.handleAnonymousRequest(client, r)
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
+	case App2AppRequestGrantType:
+		return h.handleApp2AppRequest(rw, req, client, r)
 	case IDTokenGrantType:
 		return h.handleIDToken(rw, req, client, r)
 	default:
@@ -206,6 +213,22 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
+	case App2AppRequestGrantType:
+		if r.JWT() == "" {
+			return protocol.NewError("invalid_request", "jwt is required")
+		}
+		if r.RefreshToken() == "" {
+			return protocol.NewError("invalid_request", "refresh token is required")
+		}
+		if r.ClientID() == "" {
+			return protocol.NewError("invalid_request", "client id is required")
+		}
+		if r.RedirectURI() == "" {
+			return protocol.NewError("invalid_request", "redirect uri is required")
+		}
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
+			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
+		}
 	case IDTokenGrantType:
 		break
 	default:
@@ -216,6 +239,18 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 }
 
 var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
+
+func (h *TokenHandler) validateApp2AppTokenChallenge(jwt string) (*app2app.Token, error) {
+	app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
+	}
+	purpose, err := h.Challenges.Consume(app2appToken.Challenge)
+	if err != nil || *purpose != challenge.PurposeApp2AppRequest {
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
+	}
+	return app2appToken, nil
+}
 
 func (h *TokenHandler) handleAuthorizationCode(
 	client *config.OAuthClientConfig,
@@ -283,13 +318,9 @@ func (h *TokenHandler) handleAuthorizationCode(
 	var app2appDevicePublicKey jwk.Key = nil
 	if r.App2AppDeviceKeyJWT() != "" {
 		jwt := r.App2AppDeviceKeyJWT()
-		app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
+		app2appToken, err := h.validateApp2AppTokenChallenge(jwt)
 		if err != nil {
-			return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
-		}
-		purpose, err := h.Challenges.Consume(app2appToken.Challenge)
-		if err != nil || *purpose != challenge.PurposeApp2AppRequest {
-			return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
+			return nil, err
 		}
 		key := app2appToken.Key
 		_, err = h.App2App.ParseToken(jwt, key)
@@ -705,6 +736,80 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
+	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) handleApp2AppRequest(
+	rw http.ResponseWriter,
+	req *http.Request,
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	if !client.App2appEnabled {
+		return nil, protocol.NewError(
+			"unauthorized_client",
+			"this client may not use app2app authentication",
+		)
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
+	if errResp != nil {
+		return nil, protocol.NewErrorWithErrorResponse(errResp)
+	}
+
+	_, originalOfflineGrant, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	if err != nil {
+		return nil, err
+	}
+	scopes := originalOfflineGrant.Scopes
+
+	if originalOfflineGrant.App2AppDeviceKey == "" {
+		return nil, protocol.NewError("invalid_grant", "app2app is not allowed in current session")
+	}
+	app2appjwt := r.JWT()
+	_, err = h.validateApp2AppTokenChallenge(app2appjwt)
+	if err != nil {
+		return nil, err
+	}
+	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKey), jwk.WithPEM(true))
+	if err != nil {
+		return nil, err
+	}
+	_, err = h.App2App.ParseToken(app2appjwt, parsedKey)
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
+	}
+
+	authz, err := h.Authorizations.CheckAndGrant(
+		client.ClientID,
+		originalOfflineGrant.GetUserID(),
+		scopes,
+	)
+	if err != nil {
+		return nil, err
+	}
+	info := authenticationinfo.T{
+		UserID:          originalOfflineGrant.GetUserID(),
+		AuthenticatedAt: h.Clock.NowUTC(),
+	}
+	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
+		Authorization:      authz,
+		IDPSessionID:       originalOfflineGrant.IDPSessionID,
+		AuthenticationInfo: info,
+		IDTokenHintSID:     "",
+		Scopes:             authz.Scopes,
+		RedirectURI:        redirectURI.String(),
+		// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
+		OIDCNonce:     "",
+		PKCEChallenge: r.CodeChallenge(),
+		SSOEnabled:    originalOfflineGrant.SSOEnabled,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp := protocol.TokenResponse{}
+	resp.Code(code)
 	return tokenResultOK{Response: resp}, nil
 }
 

@@ -13,5 +13,6 @@ var DependencySet = wire.NewSet(
 	NewAnonymousUserHandlerLogger,
 	wire.Struct(new(AnonymousUserHandler), "*"),
 	wire.Struct(new(TokenService), "*"),
+	wire.Struct(new(CodeGrantService), "*"),
 	wire.Struct(new(ProxyRedirectHandler), "*"),
 )

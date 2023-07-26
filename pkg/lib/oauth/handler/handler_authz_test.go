@@ -75,13 +75,17 @@ func TestAuthorizationHandler(t *testing.T) {
 			UIURLBuilder:              uiURLBuilder,
 			UIInfoResolver:            uiInfoResolver,
 			Authorizations:            authzService,
-			CodeGrants:                codeGrantStore,
 			ValidateScopes:            func(*config.OAuthClientConfig, []string) error { return nil },
-			CodeGenerator:             func() string { return "authz-code" },
 			Clock:                     clock,
 			AuthenticationInfoService: authenticationInfoService,
 			Cookies:                   cookieManager,
 			OAuthSessionService:       oauthSessionService,
+			CodeGrantService: handler.CodeGrantService{
+				AppID:         appID,
+				Clock:         clock,
+				CodeGenerator: func() string { return "authz-code" },
+				CodeGrants:    codeGrantStore,
+			},
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)
