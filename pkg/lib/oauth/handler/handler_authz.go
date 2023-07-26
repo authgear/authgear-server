@@ -84,14 +84,13 @@ type AuthorizationHandler struct {
 	UIURLBuilder              UIURLBuilder
 	UIInfoResolver            UIInfoResolver
 	Authorizations            AuthorizationService
-	CodeGrants                oauth.CodeGrantStore
 	ValidateScopes            ScopesValidator
-	CodeGenerator             TokenGenerator
 	AppSessionTokenService    AppSessionTokenService
 	AuthenticationInfoService AuthenticationInfoService
 	Clock                     clock.Clock
 	Cookies                   CookieManager
 	OAuthSessionService       OAuthSessionService
+	CodeGrantService          CodeGrantService
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -590,28 +589,17 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	authz *oauth.Authorization,
 	resp protocol.AuthorizationResponse,
 ) error {
-	code := h.CodeGenerator()
-	codeHash := oauth.HashToken(code)
-
-	codeGrant := &oauth.CodeGrant{
-		AppID:              string(h.AppID),
-		AuthorizationID:    authz.ID,
+	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
+		Authorization:      authz,
 		IDPSessionID:       idpSessionID,
 		AuthenticationInfo: authenticationInfo,
 		IDTokenHintSID:     idTokenHintSID,
-
-		CreatedAt: h.Clock.NowUTC(),
-		ExpireAt:  h.Clock.NowUTC().Add(CodeGrantValidDuration),
-		Scopes:    r.Scope(),
-		CodeHash:  codeHash,
-
-		RedirectURI:   redirectURI,
-		OIDCNonce:     r.Nonce(),
-		PKCEChallenge: r.CodeChallenge(),
-		SSOEnabled:    r.SSOEnabled(),
-	}
-
-	err := h.CodeGrants.CreateCodeGrant(codeGrant)
+		Scopes:             r.Scope(),
+		RedirectURI:        redirectURI,
+		OIDCNonce:          r.Nonce(),
+		PKCEChallenge:      r.CodeChallenge(),
+		SSOEnabled:         r.SSOEnabled(),
+	})
 	if err != nil {
 		return err
 	}
