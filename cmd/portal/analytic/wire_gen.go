@@ -50,6 +50,33 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 	return userWeeklyReport
 }
 
+func NewProjectHourlyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectHourlyReport {
+	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
+	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
+	factory := NewLoggerFactory()
+	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	globalDBStore := &analytic.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
+	appDBStore := &analytic.AppDBStore{
+		SQLBuilder:  appdbSQLBuilder,
+		SQLExecutor: appdbSQLExecutor,
+	}
+	projectHourlyReport := &analytic.ProjectHourlyReport{
+		GlobalHandle:  handle,
+		GlobalDBStore: globalDBStore,
+		AppDBHandle:   appdbHandle,
+		AppDBStore:    appDBStore,
+	}
+	return projectHourlyReport
+}
+
 func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectWeeklyReport {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()

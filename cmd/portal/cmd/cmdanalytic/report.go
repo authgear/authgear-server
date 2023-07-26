@@ -136,6 +136,20 @@ var cmdAnalyticReport = &cobra.Command{
 			}
 
 			switch periodicalType {
+			case periodical.Hourly:
+				report := analytic.NewProjectHourlyReport(
+					context.Background(),
+					dbPool,
+					dbCredentials,
+					auditDBCredentials,
+				)
+				// FIXME: We want to truncate the sheet first, before we append the data.
+				data, err = report.Run(&analyticlib.ProjectHourlyReportOptions{
+					Time: date,
+				})
+				if err != nil {
+					return err
+				}
 			case periodical.Weekly:
 				year, week := date.ISOWeek()
 				report := analytic.NewProjectWeeklyReport(
