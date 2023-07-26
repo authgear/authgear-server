@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
-	"github.com/authgear/authgear-server/cmd/portal/util/google"
+	"github.com/authgear/authgear-server/pkg/util/googleutil"
 )
 
 var cmdAnalyticSetupGoogleSheetsToken = &cobra.Command{
@@ -22,7 +22,7 @@ var cmdAnalyticSetupGoogleSheetsToken = &cobra.Command{
 			return err
 		}
 
-		oauth2Config, err := google.GetOAuth2Config(
+		oauth2Config, err := googleutil.GetOAuth2Config(
 			clientCredentialsJSONFilePath,
 			"https://www.googleapis.com/auth/spreadsheets",
 		)
@@ -30,12 +30,12 @@ var cmdAnalyticSetupGoogleSheetsToken = &cobra.Command{
 			return err
 		}
 
-		token, err := google.GetTokenFromWeb(oauth2Config)
+		token, err := googleutil.GetTokenFromWeb(oauth2Config)
 		if err != nil {
 			return err
 		}
 
-		err = google.SaveToken(tokenJSONFilePath, token)
+		err = googleutil.SaveToken(tokenJSONFilePath, token)
 		if err != nil {
 			return err
 		}

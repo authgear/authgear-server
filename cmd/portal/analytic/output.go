@@ -7,9 +7,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/authgear/authgear-server/cmd/portal/util/google"
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"google.golang.org/api/sheets/v4"
+
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
+	"github.com/authgear/authgear-server/pkg/util/googleutil"
 )
 
 type OutputReportOptions struct {
@@ -44,7 +45,7 @@ func OutputReport(ctx context.Context, options *OutputReportOptions, data *analy
 
 		log.Println("Done")
 	case ReportOutputTypeGoogleSheets:
-		oauth2Config, err := google.GetOAuth2Config(
+		oauth2Config, err := googleutil.GetOAuth2Config(
 			options.GoogleOAuthClientCredentialsJSONFilePath,
 			"https://www.googleapis.com/auth/spreadsheets",
 		)
@@ -52,14 +53,14 @@ func OutputReport(ctx context.Context, options *OutputReportOptions, data *analy
 			return err
 		}
 
-		token, err := google.GetTokenFromFile(
+		token, err := googleutil.GetTokenFromFile(
 			options.GoogleOAuthTokenFilePath,
 		)
 		if err != nil {
 			return err
 		}
 
-		srv, err := google.GetGoogleSheetsService(ctx, oauth2Config, token)
+		srv, err := googleutil.GetGoogleSheetsService(ctx, oauth2Config, token)
 		if err != nil {
 			return err
 		}
