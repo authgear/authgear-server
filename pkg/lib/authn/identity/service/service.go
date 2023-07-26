@@ -17,13 +17,13 @@ type LoginIDIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.LoginID, error)
 	List(userID string) ([]*identity.LoginID, error)
 	GetByValue(loginIDValue string) ([]*identity.LoginID, error)
-	GetByUniqueKey(uniqueKey string) (*identity.LoginID, error)
 	ListByClaim(name string, value string) ([]*identity.LoginID, error)
 	New(userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)
 	WithValue(iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error)
 	Create(i *identity.LoginID) error
 	Update(i *identity.LoginID) error
 	Delete(i *identity.LoginID) error
+	CheckDuplicated(uniqueKey string, standardClaims map[model.ClaimName]string, userID string) (*identity.LoginID, error)
 }
 
 type OAuthIdentityProvider interface {
@@ -44,6 +44,7 @@ type OAuthIdentityProvider interface {
 	Create(i *identity.OAuth) error
 	Update(i *identity.OAuth) error
 	Delete(i *identity.OAuth) error
+	CheckDuplicated(standardClaims map[model.ClaimName]string, userID string) (*identity.OAuth, error)
 }
 
 type AnonymousIdentityProvider interface {
@@ -642,73 +643,40 @@ func (s *Service) Delete(info *identity.Info) error {
 	return nil
 }
 
-func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.Info, err error) {
-	// There are two ways to check duplicate.
-	// 1. Check duplicate by considering standard attributes.
-	// 2. Check duplicate by considering type-specific unique key.
-	// Only LoginID and OAuth has identity aware standard attributes and unique key.
-
-	// 1. Check duplicate by considering standard attributes.
-	claims := info.IdentityAwareStandardClaims()
-	for name, value := range claims {
-		var loginIDs []*identity.LoginID
-		loginIDs, err = s.LoginID.ListByClaim(string(name), value)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, i := range loginIDs {
-			if i.UserID == info.UserID {
-				continue
-			}
-			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
-			return
-		}
-
-		var oauths []*identity.OAuth
-		oauths, err = s.OAuth.ListByClaim(string(name), value)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, i := range oauths {
-			if i.UserID == info.UserID {
-				continue
-			}
-			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
-			return
-		}
+func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Info, err error) {
+	// extract login id unique key
+	loginIDUniqueKey := ""
+	if is.Type == model.IdentityTypeLoginID {
+		li := is.LoginID
+		loginIDUniqueKey = li.UniqueKey
 	}
 
-	// 2. Check duplicate by considering type-specific unique key.
-	switch info.Type {
-	case model.IdentityTypeLoginID:
-		var i *identity.LoginID
-		i, err = s.LoginID.GetByUniqueKey(info.LoginID.UniqueKey)
-		if err != nil {
-			if !errors.Is(err, identity.ErrIdentityNotFound) {
-				return
-			}
-			err = nil
-		} else {
-			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
-		}
-	case model.IdentityTypeOAuth:
-		var o *identity.OAuth
-		o, err = s.OAuth.GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID)
-		if err != nil {
-			if !errors.Is(err, identity.ErrIdentityNotFound) {
-				return
-			}
-			err = nil
-		} else {
-			dupeIdentity = o.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
-		}
+	// extract standard claims
+	claims := is.IdentityAwareStandardClaims()
+
+	li, err := s.LoginID.CheckDuplicated(loginIDUniqueKey, claims, is.UserID)
+	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+		dupeIdentity = li.ToInfo()
+		return
+	} else if err != nil {
+		return
 	}
+
+	oi, err := s.OAuth.CheckDuplicated(claims, is.UserID)
+	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+		dupeIdentity = oi.ToInfo()
+		return
+	} else if err != nil {
+		return
+	}
+
+	// No need to consider anonymous identity
+
+	// No need to consider biometric identity
+
+	// No need to consider passkey identity
+
+	// No need to consider SIWE identity
 
 	return
 }
