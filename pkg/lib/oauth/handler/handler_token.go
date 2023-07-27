@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -252,6 +253,55 @@ func (h *TokenHandler) validateApp2AppTokenChallenge(jwt string) (*app2app.Token
 	return app2appToken, nil
 }
 
+func (h *TokenHandler) getApp2AppDeviceKey(jwt string) (jwk.Key, error) {
+	app2appToken, err := h.validateApp2AppTokenChallenge(jwt)
+	if err != nil {
+		return nil, err
+	}
+	key := app2appToken.Key
+	_, err = h.App2App.ParseToken(jwt, key)
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
+	}
+	return key, nil
+}
+
+func (h *TokenHandler) updateApp2AppDeviceKeyIfNeeded(
+	client *config.OAuthClientConfig,
+	offlineGrant *oauth.OfflineGrant,
+	app2AppDeviceKeyJWT string) error {
+	if app2AppDeviceKeyJWT != "" && client.App2appEnabled {
+		newKey, err := h.getApp2AppDeviceKey(app2AppDeviceKeyJWT)
+		if err != nil {
+			return err
+		}
+		newKeyJson, err := json.Marshal(newKey)
+		if err != nil {
+			return err
+		}
+		isSameKey := subtle.ConstantTimeCompare(newKeyJson, []byte(offlineGrant.App2AppDeviceKey)) != 0
+		if isSameKey {
+			// If same key was provided, do nothing
+		} else {
+			if !client.App2appInsecureDeviceKeyBindingEnabled {
+				return protocol.NewError("invalid_request", "x_app2app_insecure_device_key_binding_enabled must be true to allow updating x_app2app_device_key_jwt")
+			}
+			if offlineGrant.App2AppDeviceKey != "" {
+				return protocol.NewError("invalid_grant", "app2app device key cannot be changed")
+			}
+			expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+			if err != nil {
+				return err
+			}
+			_, err = h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), expiry)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (h *TokenHandler) handleAuthorizationCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
@@ -315,22 +365,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	var app2appDevicePublicKey jwk.Key = nil
-	if r.App2AppDeviceKeyJWT() != "" && client.App2appEnabled {
-		jwt := r.App2AppDeviceKeyJWT()
-		app2appToken, err := h.validateApp2AppTokenChallenge(jwt)
-		if err != nil {
-			return nil, err
-		}
-		key := app2appToken.Key
-		_, err = h.App2App.ParseToken(jwt, key)
-		if err != nil {
-			return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
-		}
-		app2appDevicePublicKey = key
-	}
-
-	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, app2appDevicePublicKey)
+	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -353,6 +388,11 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	authz, offlineGrant, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.updateApp2AppDeviceKeyIfNeeded(client, offlineGrant, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -890,7 +930,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
 	deviceInfo map[string]interface{},
-	app2appDevicePublicKey jwk.Key,
+	app2appDeviceKeyJWT string,
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
@@ -933,9 +973,24 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 					if err != nil {
 						return nil, err
 					}
+					if app2appDeviceKeyJWT != "" {
+						err := h.updateApp2AppDeviceKeyIfNeeded(client, offlineGrant, app2appDeviceKeyJWT)
+						if err != nil {
+							return nil, err
+						}
+					}
 				}
 			}
 		}
+	}
+
+	var app2appDevicePublicKey jwk.Key = nil
+	if app2appDeviceKeyJWT != "" && client.App2appEnabled {
+		k, err := h.getApp2AppDeviceKey(app2appDeviceKeyJWT)
+		if err != nil {
+			return nil, err
+		}
+		app2appDevicePublicKey = k
 	}
 
 	resp := protocol.TokenResponse{}
