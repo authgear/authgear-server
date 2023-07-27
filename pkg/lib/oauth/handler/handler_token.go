@@ -771,7 +771,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	if err != nil {
 		return nil, err
 	}
-	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKey), jwk.WithPEM(true))
+	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKey))
 	if err != nil {
 		return nil, err
 	}
