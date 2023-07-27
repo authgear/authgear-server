@@ -692,7 +692,7 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 				return
 			}
 			err = nil
-		} else {
+		} else if i.UserID != info.UserID {
 			dupeIdentity = i.ToInfo()
 			err = identity.ErrIdentityAlreadyExists
 		}
@@ -704,7 +704,7 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 				return
 			}
 			err = nil
-		} else {
+		} else if o.UserID != info.UserID {
 			dupeIdentity = o.ToInfo()
 			err = identity.ErrIdentityAlreadyExists
 		}
