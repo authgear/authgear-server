@@ -316,7 +316,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	}
 
 	var app2appDevicePublicKey jwk.Key = nil
-	if r.App2AppDeviceKeyJWT() != "" {
+	if r.App2AppDeviceKeyJWT() != "" && client.App2appEnabled {
 		jwt := r.App2AppDeviceKeyJWT()
 		app2appToken, err := h.validateApp2AppTokenChallenge(jwt)
 		if err != nil {
