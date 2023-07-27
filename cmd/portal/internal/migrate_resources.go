@@ -3,8 +3,11 @@ package internal
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	"encoding/base64"
+	"errors"
 	"log"
+	"os"
+	"os/exec"
 	"reflect"
 )
 
@@ -48,19 +51,24 @@ func MigrateResources(opt *MigrateResourcesOptions) {
 
 		if dryRun {
 			if updated {
-				log.Printf("dry run: original resources appid (%s)", c.AppID)
-				data, err := json.MarshalIndent(original, "", "  ")
+				appID := c.AppID
+				originalAuthgearYAMLBytes, err := base64.StdEncoding.DecodeString(original["authgear.yaml"])
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("%s\n", string(data))
 
-				log.Printf("dry run: updated resources appid (%s)", c.AppID)
-				data, err = json.MarshalIndent(c.Data, "", "  ")
+				updatedAuthgearYAMLBytes, err := base64.StdEncoding.DecodeString(c.Data["authgear.yaml"])
 				if err != nil {
 					panic(err)
 				}
-				log.Printf("%s\n", string(data))
+
+				diff, err := Diff("authgear.yaml", originalAuthgearYAMLBytes, updatedAuthgearYAMLBytes)
+				if err != nil {
+					panic(err)
+				}
+
+				log.Printf("diff of authgear.yaml: %v\n", appID)
+				log.Printf("%v\n", diff)
 			}
 		}
 	}
@@ -85,4 +93,57 @@ func MigrateResources(opt *MigrateResourcesOptions) {
 		}
 	}
 	log.Printf("updated apps count: %d", count)
+}
+
+func Diff(filename string, original []byte, updated []byte) (diff string, err error) {
+	fOriginal, err := os.CreateTemp("", filename)
+	if err != nil {
+		return
+	}
+	defer os.Remove(fOriginal.Name())
+
+	fUpdated, err := os.CreateTemp("", filename)
+	if err != nil {
+		return
+	}
+	defer os.Remove(fUpdated.Name())
+
+	_, err = fOriginal.Write(original)
+	if err != nil {
+		return
+	}
+	err = fOriginal.Close()
+	if err != nil {
+		return
+	}
+
+	_, err = fUpdated.Write(updated)
+	if err != nil {
+		return
+	}
+	err = fUpdated.Close()
+	if err != nil {
+		return
+	}
+
+	output, err := exec.Command(
+		"diff",
+		"-u",
+		fOriginal.Name(),
+		fUpdated.Name(),
+	).CombinedOutput()
+	if err != nil {
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
+			if exitError.ExitCode() == 0 || exitError.ExitCode() == 1 {
+				err = nil
+			}
+		}
+		if err != nil {
+			return
+		}
+	}
+
+	diff = string(output)
+	return
 }
