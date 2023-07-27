@@ -25,6 +25,17 @@ func NewUserWeeklyReport(
 	))
 }
 
+func NewProjectHourlyReport(
+	ctx context.Context,
+	pool *db.Pool,
+	databaseCredentials *config.DatabaseCredentials,
+	auditDatabaseCredentials *config.AuditDatabaseCredentials,
+) *analytic.ProjectHourlyReport {
+	panic(wire.Build(
+		DependencySet,
+	))
+}
+
 func NewProjectWeeklyReport(
 	ctx context.Context,
 	pool *db.Pool,

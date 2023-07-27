@@ -112,6 +112,7 @@ var cmdAnalyticReport = &cobra.Command{
 			}, nil
 		}
 
+		var mode analyticlib.OutputGoogleSpreadsheetMode
 		var data *analyticlib.ReportData
 		dbPool := db.NewPool()
 		switch reportType {
@@ -136,6 +137,20 @@ var cmdAnalyticReport = &cobra.Command{
 			}
 
 			switch periodicalType {
+			case periodical.Hourly:
+				mode = analyticlib.OutputGoogleSpreadsheetModeOverwrite
+				report := analytic.NewProjectHourlyReport(
+					context.Background(),
+					dbPool,
+					dbCredentials,
+					auditDBCredentials,
+				)
+				data, err = report.Run(&analyticlib.ProjectHourlyReportOptions{
+					Time: date,
+				})
+				if err != nil {
+					return err
+				}
 			case periodical.Weekly:
 				year, week := date.ISOWeek()
 				report := analytic.NewProjectWeeklyReport(
@@ -178,6 +193,7 @@ var cmdAnalyticReport = &cobra.Command{
 			&analytic.OutputReportOptions{
 				OutputType:                               outputType,
 				CSVOutputFilePath:                        csvOutputFilePath,
+				SpreadsheetOutputMode:                    mode,
 				GoogleOAuthClientCredentialsJSONFilePath: clientCredentialsJSONFilePath,
 				GoogleOAuthTokenFilePath:                 tokenJSONFilePath,
 				SpreadsheetID:                            googleSpreadsheetID,
