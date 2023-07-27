@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -13,6 +14,8 @@ import (
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 )
+
+var KeyIDFormat = regexp.MustCompile(`^[-\w]{8,64}$`)
 
 type jwtClock struct {
 	Clock clock.Clock
@@ -45,6 +48,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error)
 	}
 
 	var key jwk.Key
+	var keyID string
 	if jwkIface, ok := hdr.Get("jwk"); ok {
 		var jwkBytes []byte
 		jwkBytes, err = json.Marshal(jwkIface)
@@ -65,6 +69,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error)
 			err = fmt.Errorf("empty app2app JWK set")
 			return
 		}
+		keyID = key.KeyID()
 
 		// The client does include alg in the JWK.
 		// Fix it by copying alg in the header.
@@ -73,6 +78,11 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error)
 		}
 	} else {
 		err = errors.New("no app2app key provided")
+		return
+	}
+
+	if !KeyIDFormat.MatchString(keyID) {
+		err = errors.New("invalid app2app key ID format")
 		return
 	}
 
