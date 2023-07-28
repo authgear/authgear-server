@@ -73,8 +73,8 @@ type TokenHandlerUserFacade interface {
 }
 
 type App2AppService interface {
-	ParseTokenUnverified(requestJWT string) (t *app2app.Token, err error)
-	ParseToken(requestJWT string, key jwk.Key) (*app2app.Token, error)
+	ParseTokenUnverified(requestJWT string) (t *app2app.Request, err error)
+	ParseToken(requestJWT string, key jwk.Key) (*app2app.Request, error)
 }
 
 type ChallengeProvider interface {
@@ -241,7 +241,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 
 var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
 
-func (h *TokenHandler) validateApp2AppTokenChallenge(jwt string) (*app2app.Token, error) {
+func (h *TokenHandler) validateApp2AppTokenChallenge(jwt string) (*app2app.Request, error) {
 	app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
