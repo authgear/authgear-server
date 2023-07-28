@@ -29,7 +29,7 @@ type Provider struct {
 	Clock clock.Clock
 }
 
-func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error) {
+func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Request, err error) {
 	compact := []byte(requestJWT)
 
 	hdr, jwtToken, err := jwtutil.SplitWithoutVerify(compact)
@@ -87,7 +87,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error)
 	}
 
 	typ := hdr.Type()
-	if typ != TokenType {
+	if typ != RequestTokenType {
 		err = errors.New("invalid app2app JWT type")
 		return
 	}
@@ -98,7 +98,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error)
 		return
 	}
 
-	var tokenPayload Token
+	var tokenPayload Request
 	err = json.Unmarshal(token.Payload(), &tokenPayload)
 	if err != nil {
 		err = fmt.Errorf("invalid app2app JWT payload: %w", err)
@@ -110,7 +110,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Token, err error)
 	return
 }
 
-func (p *Provider) ParseToken(requestJWT string, key jwk.Key) (*Token, error) {
+func (p *Provider) ParseToken(requestJWT string, key jwk.Key) (*Request, error) {
 
 	set := jwk.NewSet()
 	_ = set.Add(key)
@@ -120,7 +120,7 @@ func (p *Provider) ParseToken(requestJWT string, key jwk.Key) (*Token, error) {
 		return nil, fmt.Errorf("invalid app2app JWT: %w", err)
 	}
 
-	var tokenPayload Token
+	var tokenPayload Request
 	err = json.Unmarshal(payload, &tokenPayload)
 	if err != nil {
 		return nil, fmt.Errorf("invalid app2app JWT payload: %w", err)
