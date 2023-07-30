@@ -6,6 +6,7 @@ import React, {
   lazy,
   useMemo,
 } from "react";
+import { init as sentryInit } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
@@ -67,6 +68,13 @@ async function loadSystemConfig(): Promise<SystemConfig> {
 }
 
 async function initApp(systemConfig: SystemConfig) {
+  if (systemConfig.sentryDSN !== "") {
+    sentryInit({
+      dsn: systemConfig.sentryDSN,
+      tracesSampleRate: 0.0,
+    });
+  }
+
   loadTheme(systemConfig.themes.main);
   await authgear.configure({
     sessionType: "cookie",
