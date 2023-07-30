@@ -33,6 +33,7 @@ import { loadTheme, ILinkProps } from "@fluentui/react";
 import ExternalLink from "./ExternalLink";
 import Link from "./Link";
 import Authenticated from "./graphql/portal/Authenticated";
+import InternalRedirect from "./InternalRedirect";
 import { LoadingContextProvider } from "./hook/loading";
 import { ErrorContextProvider } from "./hook/error";
 import ShowLoading from "./ShowLoading";
@@ -148,6 +149,8 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             </Suspense>
           }
         />
+
+        <Route path="/internal-redirect" element={<InternalRedirect />} />
 
         <Route
           path="/onboarding-redirect"

@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useCallback, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   DetailsList,
   IColumn,
@@ -138,6 +138,8 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
       return items;
     }, [locale, adminAPISecrets]);
 
+    const navigate = useNavigate();
+
     const downloadItem = useCallback(
       (keyID: string) => {
         const item = items.find((a) => a.keyID === keyID);
@@ -158,11 +160,11 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           shouldRefreshSecretToken: true,
         };
 
-        startReauthentication(state).catch((e) => {
+        startReauthentication(navigate, state).catch((e) => {
           console.error(e);
         });
       },
-      [items]
+      [navigate, items]
     );
 
     useLocationEffect((state: LocationState) => {

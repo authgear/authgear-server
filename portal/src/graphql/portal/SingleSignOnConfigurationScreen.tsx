@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { produce } from "immer";
 import { MessageBar, MessageBarType, Text } from "@fluentui/react";
 import {
@@ -368,16 +368,18 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
       return isAnySecretPresent || isNoExistingSecret;
     }, [state.providers]);
 
+    const navigate = useNavigate();
+
     const onRevealSecrets = useCallback(() => {
       const locationState: LocationState = {
         isRevealSecrets: true,
       };
 
-      startReauthentication(locationState).catch((e) => {
+      startReauthentication(navigate, locationState).catch((e) => {
         // Normally there should not be any error.
         console.error(e);
       });
-    }, []);
+    }, [navigate]);
 
     return (
       <ScreenContent className={styles.screenContent}>

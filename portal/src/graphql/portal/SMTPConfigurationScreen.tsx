@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useState, useMemo } from "react";
 import cn from "classnames";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import produce from "immer";
 import {
   Text,
@@ -355,19 +355,24 @@ const SMTPConfigurationScreenContent: React.VFC<SMTPConfigurationScreenContentPr
       [setState]
     );
 
-    const onClickEdit = useCallback((e: React.MouseEvent<unknown>) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const navigate = useNavigate();
 
-      const state: LocationState = {
-        isEdit: true,
-      };
+    const onClickEdit = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-      startReauthentication(state).catch((e) => {
-        // Normally there should not be any error.
-        console.error(e);
-      });
-    }, []);
+        const state: LocationState = {
+          isEdit: true,
+        };
+
+        startReauthentication(navigate, state).catch((e) => {
+          // Normally there should not be any error.
+          console.error(e);
+        });
+      },
+      [navigate]
+    );
 
     const onClickSendTestEmail = useCallback(
       (e: React.MouseEvent<unknown>) => {
