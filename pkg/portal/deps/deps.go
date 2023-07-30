@@ -63,6 +63,7 @@ var DependencySet = wire.NewSet(
 		"AnalyticConfig",
 		"StripeConfig",
 		"GoogleTagManagerConfig",
+		"PortalFrontendSentryConfig",
 		"SentryHub",
 		"LoggerFactory",
 		"Database",

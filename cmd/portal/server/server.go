@@ -41,6 +41,7 @@ func (c *Controller) Start() {
 		&cfg.Analytic,
 		&cfg.Stripe,
 		&cfg.GoogleTagManager,
+		&cfg.PortalFrontendSentry,
 	)
 
 	if err != nil {

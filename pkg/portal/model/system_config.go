@@ -7,6 +7,7 @@ import (
 type SystemConfig struct {
 	AuthgearClientID   string         `json:"authgearClientID"`
 	AuthgearEndpoint   string         `json:"authgearEndpoint"`
+	SentryDSN          string         `json:"sentryDSN,omitempty"`
 	AppHostSuffix      string         `json:"appHostSuffix"`
 	AvailableLanguages []string       `json:"availableLanguages"`
 	BuiltinLanguages   []string       `json:"builtinLanguages"`
