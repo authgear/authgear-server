@@ -52,6 +52,32 @@ func signupFlowCurrent(deps *workflow.Dependencies, id string, pointer jsonpoint
 	return current, nil
 }
 
+func loginFlowCurrent(deps *workflow.Dependencies, id string, pointer jsonpointer.T) (config.WorkflowObject, error) {
+	var root config.WorkflowObject
+	for _, f := range deps.Config.Workflow.LoginFlows {
+		f := f
+		if f.ID == id {
+			root = f
+			break
+		}
+	}
+	if root == nil {
+		return nil, ErrFlowNotFound
+	}
+
+	entries, err := Traverse(root, pointer)
+	if err != nil {
+		return nil, err
+	}
+
+	current, err := GetCurrentObject(entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return current, nil
+}
+
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {
 	details := errorutil.Details{}
 
