@@ -17,7 +17,7 @@ func init() {
 	workflow.RegisterPublicIntent(&IntentSignupFlow{})
 }
 
-var IntentSignupSchema = validation.NewSimpleSchema(`
+var IntentSignupFlowSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -40,7 +40,7 @@ func (*IntentSignupFlow) Kind() string {
 }
 
 func (*IntentSignupFlow) JSONSchema() *validation.SimpleSchema {
-	return IntentSignupSchema
+	return IntentSignupFlowSchema
 }
 
 func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
