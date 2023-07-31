@@ -67,8 +67,8 @@ func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *workflo
 			TOTP: &authenticator.TOTPSpec{
 				Code: inputSetupTOTP.GetCode(),
 			},
-		})
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		}, nil)
+		if errors.Is(err, api.ErrInvalidCredentials) {
 			return nil, api.ErrInvalidCredentials
 		} else if err != nil {
 			return nil, err
