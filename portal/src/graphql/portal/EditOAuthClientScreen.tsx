@@ -434,6 +434,8 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     } = props;
     const theme = useTheme();
 
+    const navigate = useNavigate();
+
     const client =
       state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
 
@@ -454,11 +456,11 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       const state: LocationState = {
         isClientSecretRevealed: true,
       };
-      startReauthentication(state).catch((e) => {
+      startReauthentication(navigate, state).catch((e) => {
         // Normally there should not be any error.
         console.error(e);
       });
-    }, []);
+    }, [navigate]);
 
     if (client == null) {
       return (

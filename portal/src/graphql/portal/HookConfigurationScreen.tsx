@@ -1,7 +1,7 @@
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import {
   Dropdown,
   IDropdownOption,
@@ -1047,6 +1047,8 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       [setState]
     );
 
+    const navigate = useNavigate();
+
     const onClickReveal = useCallback(
       (e: React.MouseEvent<unknown>) => {
         e.preventDefault();
@@ -1061,12 +1063,12 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           isOAuthRedirect: true,
         };
 
-        startReauthentication(locationState).catch((e) => {
+        startReauthentication(navigate, locationState).catch((e) => {
           // Normally there should not be any error.
           console.error(e);
         });
       },
-      [state.secret]
+      [navigate, state.secret]
     );
 
     const { copyButtonProps, Feedback } = useCopyFeedback({

@@ -1,8 +1,10 @@
 import React, { useEffect } from "react";
 import authgear from "@authgear/web";
+import { useNavigate } from "react-router-dom";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useViewerQuery } from "./query/viewerQuery";
+import { InternalRedirectState } from "../../InternalRedirect";
 
 interface ShowQueryResultProps {
   isAuthenticated: boolean;
@@ -67,10 +69,27 @@ const Authenticated: React.VFC<Props> = function Authenticated(
   return <ShowQueryResult isAuthenticated={viewer != null} {...ownProps} />;
 };
 
-export async function startReauthentication<S>(state?: S): Promise<void> {
-  await authgear.refreshIDToken();
-  const redirectURI = window.location.origin + "/oauth-redirect";
+export async function startReauthentication<S>(
+  navigate: ReturnType<typeof useNavigate>,
+  state?: S
+): Promise<void> {
   const originalPath = `${window.location.pathname}${window.location.search}`;
+
+  await authgear.refreshIDToken();
+  // If the user cannot reauthenticate, we perform a internal-redirect
+  // to emulate the effect of redirection after reauthentication.
+  if (!authgear.canReauthenticate()) {
+    navigate("/internal-redirect", {
+      state: {
+        originalPath,
+        state,
+      } as InternalRedirectState,
+      replace: true,
+    });
+    return;
+  }
+
+  const redirectURI = window.location.origin + "/oauth-redirect";
   await authgear.startReauthentication({
     redirectURI,
     state: encodeOAuthState({
