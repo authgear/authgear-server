@@ -5,6 +5,7 @@ import { DEFAULT_TEMPLATE_LOCALE } from "./resources";
 export interface SystemConfig {
   authgearClientID: string;
   authgearEndpoint: string;
+  sentryDSN: string;
   appHostSuffix: string;
   availableLanguages: string[];
   builtinLanguages: string[];
@@ -245,6 +246,7 @@ export function instantiateSystemConfig(
   return {
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
+    sentryDSN: config.sentryDSN ?? "",
     appHostSuffix: config.appHostSuffix ?? "",
     availableLanguages: config.availableLanguages ?? [DEFAULT_TEMPLATE_LOCALE],
     builtinLanguages: config.builtinLanguages ?? [DEFAULT_TEMPLATE_LOCALE],
