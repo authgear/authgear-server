@@ -199,6 +199,8 @@ signup_flows:
     - authentication: secondary_oob_otp_sms
   - type: verify
     target_step: setup_phone_2fa
+  # Generate and show the recovery code.
+  - type: recovery_code
   - type: user_profile
     user_profile:
     - pointer: /given_name
@@ -642,6 +644,7 @@ login_flows:
             "identify",
             "authenticate",
             "verify",
+            "recovery_code",
             "user_profile"
           ]
         }
