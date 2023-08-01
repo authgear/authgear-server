@@ -85,7 +85,10 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 			case config.WorkflowAuthenticationMethodPrimaryPassword:
 				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryPassword:
-				// FIXME(workflow): authenticate with password
+				return workflow.NewNodeSimple(&NodeUseAuthenticatorPassword{
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			case config.WorkflowAuthenticationMethodPrimaryPasskey:
 				// FIXME(workflow): authenticate with passkey
 			case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
