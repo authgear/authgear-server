@@ -5,3 +5,4 @@ import (
 )
 
 var SignupPerIPRateLimitBucketSpec = interaction.SignupPerIPRateLimitBucketSpec
+var AccountEnumerationPerIPRateLimitBucketSpec = interaction.AccountEnumerationPerIPRateLimitBucketSpec
