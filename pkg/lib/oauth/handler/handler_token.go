@@ -279,14 +279,14 @@ func (h *TokenHandler) updateApp2AppDeviceKeyIfNeeded(
 		if err != nil {
 			return err
 		}
-		isSameKey := subtle.ConstantTimeCompare(newKeyJson, []byte(offlineGrant.App2AppDeviceKey)) != 0
+		isSameKey := subtle.ConstantTimeCompare(newKeyJson, []byte(offlineGrant.App2AppDeviceKeyJSON)) != 0
 		if isSameKey {
 			// If same key was provided, do nothing
 		} else {
 			if !client.App2appInsecureDeviceKeyBindingEnabled {
 				return protocol.NewError("invalid_request", "x_app2app_insecure_device_key_binding_enabled must be true to allow updating x_app2app_device_key_jwt")
 			}
-			if offlineGrant.App2AppDeviceKey != "" {
+			if offlineGrant.App2AppDeviceKeyJSON != "" {
 				return protocol.NewError("invalid_grant", "app2app device key cannot be changed")
 			}
 			expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
@@ -803,7 +803,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 	scopes := originalOfflineGrant.Scopes
 
-	if originalOfflineGrant.App2AppDeviceKey == "" {
+	if originalOfflineGrant.App2AppDeviceKeyJSON == "" {
 		return nil, protocol.NewError("invalid_grant", "app2app is not allowed in current session")
 	}
 	app2appjwt := r.JWT()
@@ -811,7 +811,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	if err != nil {
 		return nil, err
 	}
-	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKey))
+	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKeyJSON))
 	if err != nil {
 		return nil, err
 	}
