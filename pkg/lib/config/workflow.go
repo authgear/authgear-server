@@ -1,5 +1,11 @@
 package config
 
+import (
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
+
 var _ = Schema.Add("WorkflowConfig", `
 {
 	"type": "object",
@@ -464,6 +470,29 @@ const (
 	WorkflowAuthenticationMethodSecondaryOOBOTPEmail WorkflowAuthenticationMethod = "secondary_oob_otp_email"
 	WorkflowAuthenticationMethodSecondaryOOBOTPSMS   WorkflowAuthenticationMethod = "secondary_oob_otp_sms"
 )
+
+func (m WorkflowAuthenticationMethod) AuthenticatorKind() model.AuthenticatorKind {
+	switch m {
+	case WorkflowAuthenticationMethodPrimaryPassword:
+		fallthrough
+	case WorkflowAuthenticationMethodPrimaryPasskey:
+		fallthrough
+	case WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+		fallthrough
+	case WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+		return model.AuthenticatorKindPrimary
+	case WorkflowAuthenticationMethodSecondaryPassword:
+		fallthrough
+	case WorkflowAuthenticationMethodSecondaryTOTP:
+		fallthrough
+	case WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+		fallthrough
+	case WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+		return model.AuthenticatorKindSecondary
+	default:
+		panic(fmt.Errorf("unknown authentication method: %v", m))
+	}
+}
 
 type WorkflowConfig struct {
 	SignupFlows      []*WorkflowSignupFlow      `json:"signup_flows,omitempty"`
