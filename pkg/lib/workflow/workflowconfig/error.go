@@ -12,3 +12,6 @@ var InvalidAuthenticationMethod = apierrors.BadRequest.WithReason("WorkflowConfi
 var InvalidTargetStep = apierrors.InternalError.WithReason("WorkflowConfigInvalidTargetStep")
 var InvalidOOBOTPChannel = apierrors.BadRequest.WithReason("WorkflowConfigInvalidOOBOTPChannel")
 var InvalidUserProfile = apierrors.BadRequest.WithReason("WorkflowConfigInvalidUserProfile")
+
+var ErrDifferentUserID = apierrors.BadRequest.WithReason("WorkflowConfigDifferentUserID").New("different user ID")
+var ErrNoUserID = apierrors.BadRequest.WithReason("WorkflowConfigNoUserID").New("no user ID")

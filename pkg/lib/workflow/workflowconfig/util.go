@@ -78,6 +78,43 @@ func loginFlowCurrent(deps *workflow.Dependencies, id string, pointer jsonpointe
 	return current, nil
 }
 
+func getUserID(workflows workflow.Workflows) (userID string, err error) {
+	err = workflows.Root.Traverse(workflow.WorkflowTraverser{
+		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
+			if n, ok := nodeSimple.(UserIDGetter); ok {
+				id := n.GetUserID()
+				if userID == "" {
+					userID = id
+				} else if userID != "" && id != userID {
+					return ErrDifferentUserID
+				}
+			}
+			return nil
+		},
+		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
+			if i, ok := intent.(UserIDGetter); ok {
+				id := i.GetUserID()
+				if userID == "" {
+					userID = id
+				} else if userID != "" && id != userID {
+					return ErrDifferentUserID
+				}
+			}
+			return nil
+		},
+	})
+
+	if userID == "" {
+		err = ErrNoUserID
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {
 	details := errorutil.Details{}
 
