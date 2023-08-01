@@ -52,6 +52,15 @@ func (*IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *workfl
 		}, nil
 	}
 
+	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
+	if lastNode.Type == workflow.NodeTypeSimple {
+		switch lastNode.Simple.(type) {
+		case *NodeDoUseIdentity:
+			// Handle nested steps.
+			return nil, nil
+		}
+	}
+
 	return nil, workflow.ErrEOF
 }
 
@@ -91,6 +100,18 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *workflo
 			}
 		}
 		return nil, workflow.ErrIncompatibleInput
+	}
+
+	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
+	if lastNode.Type == workflow.NodeTypeSimple {
+		switch lastNode.Simple.(type) {
+		case *NodeDoUseIdentity:
+			identification := i.identificationMethod(workflows.Nearest)
+			return workflow.NewSubWorkflow(&IntentLoginFlowSteps{
+				LoginFlow:   i.LoginFlow,
+				JSONPointer: i.jsonPointer(step, identification),
+			}), nil
+		}
 	}
 
 	return nil, workflow.ErrIncompatibleInput
@@ -133,4 +154,28 @@ func (*IntentLoginFlowStepIdentify) checkIdentificationMethod(step *config.Workf
 		"expected": allAllowed,
 		"actual":   im,
 	})
+}
+
+func (*IntentLoginFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
+	if len(w.Nodes) == 0 {
+		panic(fmt.Errorf("workflow: identification method not yet selected"))
+	}
+
+	switch n := w.Nodes[0].Simple.(type) {
+	case *NodeUseIdentityLoginID:
+		return n.Identification
+	default:
+		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
+	}
+}
+
+func (i *IntentLoginFlowStepIdentify) jsonPointer(step *config.WorkflowLoginFlowStep, im config.WorkflowIdentificationMethod) jsonpointer.T {
+	for idx, branch := range step.OneOf {
+		branch := branch
+		if branch.Identification == im {
+			return JSONPointerForOneOf(i.JSONPointer, idx)
+		}
+	}
+
+	panic(fmt.Errorf("workflow: selected identification method is not allowed"))
 }
