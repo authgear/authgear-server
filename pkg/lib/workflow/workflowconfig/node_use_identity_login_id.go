@@ -29,6 +29,18 @@ func (*NodeUseIdentityLoginID) CanReactTo(ctx context.Context, deps *workflow.De
 func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if workflow.AsInput(input, &inputTakeLoginID) {
+		bucketSpec := AccountEnumerationPerIPRateLimitBucketSpec(
+			deps.Config.Authentication,
+			string(deps.RemoteIP),
+		)
+
+		reservation := deps.RateLimiter.Reserve(bucketSpec)
+		err := reservation.Error()
+		if err != nil {
+			return nil, err
+		}
+		defer deps.RateLimiter.Cancel(reservation)
+
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,
@@ -42,9 +54,10 @@ func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.Dep
 			return nil, err
 		}
 
-		// FIXME(workflow): rate limit on account enumeration
-
 		if exactMatch == nil {
+			// Consume the reservation if exact match is not found.
+			reservation.Consume()
+
 			var otherSpec *identity.Spec
 			if len(otherMatches) > 0 {
 				s := otherMatches[0].ToSpec()
