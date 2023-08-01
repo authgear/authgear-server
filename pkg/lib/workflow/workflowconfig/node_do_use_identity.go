@@ -2,6 +2,7 @@ package workflowconfig
 
 import (
 	"context"
+	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -11,8 +12,34 @@ func init() {
 	workflow.RegisterNode(&NodeDoUseIdentity{})
 }
 
+type UserIDGetter interface {
+	GetUserID() string
+}
+
 type NodeDoUseIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
+}
+
+var _ UserIDGetter = &NodeDoUseIdentity{}
+
+func (n *NodeDoUseIdentity) GetUserID() string {
+	return n.Identity.UserID
+}
+
+func NewNodeDoUseIdentity(workflows workflow.Workflows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
+	userID, err := getUserID(workflows)
+	if errors.Is(err, ErrNoUserID) {
+		err = nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if userID != "" && userID != n.Identity.UserID {
+		return nil, ErrDifferentUserID
+	}
+
+	return n, nil
 }
 
 func (*NodeDoUseIdentity) Kind() string {

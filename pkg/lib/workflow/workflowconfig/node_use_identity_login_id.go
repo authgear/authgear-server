@@ -53,9 +53,14 @@ func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.Dep
 			return nil, identityFillDetails(api.ErrUserNotFound, spec, otherSpec)
 		}
 
-		return workflow.NewNodeSimple(&NodeDoUseIdentity{
+		n, err := NewNodeDoUseIdentity(workflows, &NodeDoUseIdentity{
 			Identity: exactMatch,
-		}), nil
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return workflow.NewNodeSimple(n), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
