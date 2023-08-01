@@ -65,7 +65,15 @@ func (*IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *wo
 		}, nil
 	}
 
-	// FIXME(workflow): handle nested steps.
+	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
+	if lastNode.Type == workflow.NodeTypeSimple {
+		switch lastNode.Simple.(type) {
+		case *NodeDoUseAuthenticator:
+			// Handle nested steps.
+			return nil, nil
+		}
+	}
+
 	return nil, workflow.ErrEOF
 }
 
@@ -107,7 +115,24 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	// FIXME(workflow): handle nested steps.
+	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
+	if lastNode.Type == workflow.NodeTypeSimple {
+		switch lastNode.Simple.(type) {
+		case *NodeDoUseAuthenticator:
+			identification := i.authenticationMethod(workflows.Nearest)
+			return workflow.NewSubWorkflow(&IntentLoginFlowSteps{
+				LoginFlow:   i.LoginFlow,
+				JSONPointer: i.jsonPointer(step, identification),
+			}), nil
+		}
+	}
+
 	return nil, workflow.ErrIncompatibleInput
 }
 
@@ -185,4 +210,28 @@ func (*IntentLoginFlowStepAuthenticate) step(o config.WorkflowObject) *config.Wo
 	}
 
 	return step
+}
+
+func (*IntentLoginFlowStepAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
+	if len(w.Nodes) == 0 {
+		panic(fmt.Errorf("workflow: authentication method not yet selected"))
+	}
+
+	switch n := w.Nodes[0].Simple.(type) {
+	case *NodeUseAuthenticatorPassword:
+		return n.Authentication
+	default:
+		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
+	}
+}
+
+func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.WorkflowLoginFlowStep, am config.WorkflowAuthenticationMethod) jsonpointer.T {
+	for idx, branch := range step.OneOf {
+		branch := branch
+		if branch.Authentication == am {
+			return JSONPointerForOneOf(i.JSONPointer, idx)
+		}
+	}
+
+	panic(fmt.Errorf("workflow: selected authentication method is not allowed"))
 }
