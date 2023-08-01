@@ -295,6 +295,24 @@ login_flows:
     # If device_token is present, the end-user can use device token.
     - authentication: device_token
 
+# Sign in with an email address, a password. Require the end-user to change password,
+# if the password does not fulfill password requirements.
+- id: forced_password_update
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: authenticate
+    id: step1
+    one_of:
+    - authentication: primary_password
+  # Require the end-user to change the password,
+  # if the actual authenticator used in target_step is a password authenticator,
+  # and the password does not fulfill password requirements.
+  # If the condition does not hold, this step is no-op.
+  - type: change_password
+    target_step: step1
+
 - id: account_linking
   account_linking:
     conditions:
@@ -819,7 +837,8 @@ login_flows:
           "type": "string",
           "enum": [
             "identify",
-            "authenticate"
+            "authenticate",
+            "change_password"
           ]
         }
       },
@@ -856,6 +875,20 @@ login_flows:
                 "type": "array",
                 "items": { "$ref": "#/$defs/WorkflowLoginFlowAuthenticate" }
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["type"],
+            "properties": {
+              "type": { "const": "change_password" }
+            }
+          },
+          "then": {
+            "required": ["target_step"],
+            "properties": {
+              "target_step": { "type": "string" }
             }
           }
         }
