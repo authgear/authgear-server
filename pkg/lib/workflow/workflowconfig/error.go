@@ -15,3 +15,4 @@ var InvalidUserProfile = apierrors.BadRequest.WithReason("WorkflowConfigInvalidU
 
 var ErrDifferentUserID = apierrors.BadRequest.WithReason("WorkflowConfigDifferentUserID").New("different user ID")
 var ErrNoUserID = apierrors.BadRequest.WithReason("WorkflowConfigNoUserID").New("no user ID")
+var NoUsableAuthenticationMethod = apierrors.BadRequest.WithReason("WorkflowConfigNoUsableAuthenticationMethod")

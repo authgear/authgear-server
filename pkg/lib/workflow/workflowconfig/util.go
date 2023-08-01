@@ -115,6 +115,36 @@ func getUserID(workflows workflow.Workflows) (userID string, err error) {
 	return
 }
 
+func getAuthenticationMethodsOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []config.WorkflowAuthenticationMethod, err error) {
+	available := make(map[config.WorkflowAuthenticationMethod]struct{})
+
+	as, err := deps.Authenticators.List(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, a := range as {
+		am := a.GetAuthenticationMethod()
+		available[am] = struct{}{}
+	}
+
+	for _, allowed := range allAllowed {
+		_, usable := available[allowed]
+		if usable {
+			allUsable = append(allUsable, allowed)
+		}
+	}
+
+	if len(allUsable) == 0 {
+		err = NoUsableAuthenticationMethod.NewWithInfo("no usable authentication method", apierrors.Details{
+			"allowed": allAllowed,
+		})
+		return
+	}
+
+	return
+}
+
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {
 	details := errorutil.Details{}
 

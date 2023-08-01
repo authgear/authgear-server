@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type Info struct {
@@ -226,4 +227,33 @@ func (i *Info) ToModel() model.Authenticator {
 		IsDefault: i.IsDefault,
 		Kind:      model.AuthenticatorKind(i.Kind),
 	}
+}
+
+func (i *Info) GetAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	switch i.Kind {
+	case model.AuthenticatorKindPrimary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			return config.WorkflowAuthenticationMethodPrimaryPassword
+		case model.AuthenticatorTypePasskey:
+			return config.WorkflowAuthenticationMethodPrimaryPasskey
+		case model.AuthenticatorTypeOOBEmail:
+			return config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail
+		case model.AuthenticatorTypeOOBSMS:
+			return config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS
+		}
+	case model.AuthenticatorKindSecondary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			return config.WorkflowAuthenticationMethodSecondaryPassword
+		case model.AuthenticatorTypeOOBEmail:
+			return config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail
+		case model.AuthenticatorTypeOOBSMS:
+			return config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS
+		case model.AuthenticatorTypeTOTP:
+			return config.WorkflowAuthenticationMethodSecondaryTOTP
+		}
+	}
+
+	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
 }
