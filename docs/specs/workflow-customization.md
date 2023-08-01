@@ -290,6 +290,10 @@ login_flows:
     optional: true
     one_of:
     - authentication: secondary_totp
+    # If recovery_code is present, the end-user can use recovery_code.
+    - authentication: recovery_code
+    # If device_token is present, the end-user can use device token.
+    - authentication: device_token
 
 - id: account_linking
   account_linking:
@@ -1009,7 +1013,9 @@ login_flows:
         "secondary_password",
         "secondary_totp",
         "secondary_oob_otp_email",
-        "secondary_oob_otp_sms"
+        "secondary_oob_otp_sms",
+        "recovery_code",
+        "device_token"
       ]
     }
   },
