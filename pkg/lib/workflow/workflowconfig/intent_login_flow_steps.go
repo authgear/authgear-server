@@ -62,7 +62,17 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depen
 			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		}), nil
 	case config.WorkflowLoginFlowStepTypeAuthenticate:
-		// FIXME
+		n, err := NewIntentLoginFlowStepAuthenticate(ctx, deps, workflows, &IntentLoginFlowStepAuthenticate{
+			LoginFlow:   i.LoginFlow,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(workflows),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return workflow.NewSubWorkflow(n), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
@@ -83,4 +93,12 @@ func (*IntentLoginFlowSteps) steps(o config.WorkflowObject) []config.WorkflowObj
 	}
 
 	return steps
+}
+
+func (*IntentLoginFlowSteps) userID(workflows workflow.Workflows) string {
+	userID, err := getUserID(workflows)
+	if err != nil {
+		panic(err)
+	}
+	return userID
 }
