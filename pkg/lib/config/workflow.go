@@ -277,7 +277,7 @@ var _ = Schema.Add("WorkflowLoginFlowStep", `
 					"optional": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
-						"items": { "$ref": "#/$defs/WorkflowSignupFlowAuthenticate" }
+						"items": { "$ref": "#/$defs/WorkflowLoginFlowAuthenticate" }
 					}
 				}
 			}
@@ -300,7 +300,7 @@ var _ = Schema.Add("WorkflowLoginFlowIdentify", `
 }
 `)
 
-var _ = Schema.Add("WorkflowSignupFlowAuthenticate", `
+var _ = Schema.Add("WorkflowLoginFlowAuthenticate", `
 {
 	"type": "object",
 	"required": ["authentication"],
