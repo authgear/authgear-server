@@ -7,12 +7,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
+
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
 var KeyIDFormat = regexp.MustCompile(`^[-\w]{8,64}$`)
