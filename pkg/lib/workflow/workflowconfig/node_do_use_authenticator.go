@@ -12,7 +12,8 @@ func init() {
 }
 
 type NodeDoUseAuthenticator struct {
-	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
+	Authenticator          *authenticator.Info `json:"authenticator,omitempty"`
+	PasswordChangeRequired bool                `json:"password_change_required,omitempty"`
 }
 
 func (*NodeDoUseAuthenticator) Kind() string {

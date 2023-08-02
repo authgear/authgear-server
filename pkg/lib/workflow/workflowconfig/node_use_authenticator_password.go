@@ -47,8 +47,7 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *workfl
 			},
 		}
 
-		// FIXME(workflow): handle password forced change.
-		info, _, err := deps.Authenticators.VerifyOneWithSpec(
+		info, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
 			as,
 			spec,
 			&facade.VerifyOptions{
@@ -64,7 +63,8 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *workfl
 		}
 
 		return workflow.NewNodeSimple(&NodeDoUseAuthenticator{
-			Authenticator: info,
+			Authenticator:          info,
+			PasswordChangeRequired: requireUpdate,
 		}), nil
 	}
 

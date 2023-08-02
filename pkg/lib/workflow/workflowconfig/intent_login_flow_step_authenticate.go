@@ -6,6 +6,8 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -32,6 +34,26 @@ func (i *IntentLoginFlowStepAuthenticate) GetID() string {
 
 func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
+
+func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (info *authenticator.Info, ok bool) {
+	var n *NodeDoUseAuthenticator
+	n, ok = workflow.FindSingleNode[*NodeDoUseAuthenticator](workflows.Nearest)
+	if !ok {
+		return
+	}
+	ok = false
+
+	if n.Authenticator.Type == model.AuthenticatorTypePassword {
+		if n.PasswordChangeRequired {
+			info = n.Authenticator
+			ok = true
+		}
+	}
+
+	return
 }
 
 var _ workflow.Intent = &IntentLoginFlowStepAuthenticate{}

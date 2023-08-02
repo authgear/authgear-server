@@ -16,7 +16,7 @@ type NodeDoCreateAuthenticator struct {
 }
 
 func (n *NodeDoCreateAuthenticator) Kind() string {
-	return "workflow.NodeDoCreateAuthenticator"
+	return "workflowconfig.NodeDoCreateAuthenticator"
 }
 
 func (n *NodeDoCreateAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
