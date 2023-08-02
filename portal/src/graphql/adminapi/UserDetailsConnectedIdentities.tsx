@@ -87,9 +87,9 @@ interface OAuthIdentityListItem {
   id: string;
   type: "oauth";
   providerType: OAuthSSOProviderType;
-  claimName: string;
-  claimValue: string;
-  verified: boolean;
+  claimName?: string;
+  claimValue?: string;
+  verified?: boolean;
   connectedOn: string;
 }
 
@@ -184,22 +184,28 @@ function getIdentityName(
   item: IdentityListItem,
   renderToString: (id: string) => string
 ): string {
-  if (item.type === "biometric") {
-    return item.formattedDeviceInfo
-      ? item.formattedDeviceInfo
-      : renderToString(
-          "UserDetails.connected-identities.biometric.unknown-device"
-        );
+  switch (item.type) {
+    case "oauth":
+      return (
+        item.claimValue ?? renderToString("oauth-provider." + item.providerType)
+      );
+    case "login_id":
+      return item.claimValue;
+    case "biometric":
+      return item.formattedDeviceInfo
+        ? item.formattedDeviceInfo
+        : renderToString(
+            "UserDetails.connected-identities.biometric.unknown-device"
+          );
+    case "anonymous":
+      return renderToString(
+        "UserDetails.connected-identities.anonymous.anonymous-user"
+      );
+    case "siwe":
+      return createEIP681URL({ chainId: item.chainId, address: item.address });
+    default:
+      return "";
   }
-  if (item.type === "anonymous") {
-    return renderToString(
-      "UserDetails.connected-identities.anonymous.anonymous-user"
-    );
-  }
-  if (item.type === "siwe") {
-    return createEIP681URL({ chainId: item.chainId, address: item.address });
-  }
-  return item.claimValue;
 }
 
 function checkIsClaimVerified(
@@ -892,7 +898,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             identity.claims["https://authgear.com/claims/oauth/provider_type"]!;
 
           const claimName = "email";
-          const claimValue = identity.claims.email!;
+          const claimValue = identity.claims.email;
 
           oauthIdentityList.push({
             id: identity.id,
@@ -900,11 +906,10 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             claimName,
             claimValue,
             providerType: providerType,
-            verified: checkIsClaimVerified(
-              verifiedClaims,
-              claimName,
-              claimValue
-            ),
+            verified:
+              claimValue == null
+                ? undefined
+                : checkIsClaimVerified(verifiedClaims, claimName, claimValue),
             connectedOn: createdAtStr,
           });
         }

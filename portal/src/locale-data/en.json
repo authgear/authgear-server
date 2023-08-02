@@ -64,6 +64,16 @@
   "azureadv2": "Microsoft Azure AD",
   "azureadb2c": "Microsoft Azure AD B2C",
 
+  "oauth-provider.apple": "Apple",
+  "oauth-provider.google": "Google",
+  "oauth-provider.facebook": "Facebook",
+  "oauth-provider.github": "GitHub",
+  "oauth-provider.linkedin": "LinkedIn",
+  "oauth-provider.adfs": "Microsoft AD FS",
+  "oauth-provider.azureadv2": "Microsoft Azure AD",
+  "oauth-provider.azureadb2c": "Microsoft Azure AD B2C",
+  "oauth-provider.wechat": "Wechat",
+
   "login-id-key.username": "Username",
   "login-id-key.email": "Email",
   "login-id-key.phone": "Phone",
