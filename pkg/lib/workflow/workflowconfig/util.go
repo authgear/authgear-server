@@ -115,23 +115,52 @@ func getUserID(workflows workflow.Workflows) (userID string, err error) {
 	return
 }
 
-func getAuthenticationMethodsOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []config.WorkflowAuthenticationMethod, err error) {
-	available := make(map[config.WorkflowAuthenticationMethod]struct{})
-
-	as, err := deps.Authenticators.List(userID)
+func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []authenticator.Candidate, err error) {
+	as, err := deps.Authenticators.List(userID, authenticator.KeepAuthenticationMethod(allAllowed...))
 	if err != nil {
 		return nil, err
 	}
 
-	for _, a := range as {
-		am := a.GetAuthenticationMethod()
-		available[am] = struct{}{}
+	addOne := func() {
+		added := false
+		for _, a := range as {
+			candidate := a.ToCandidate()
+			if !added {
+				allUsable = append(allUsable, candidate)
+				added = true
+			}
+		}
+	}
+
+	addAll := func() {
+		for _, a := range as {
+			candidate := a.ToCandidate()
+			allUsable = append(allUsable, candidate)
+		}
 	}
 
 	for _, allowed := range allAllowed {
-		_, usable := available[allowed]
-		if usable {
-			allUsable = append(allUsable, allowed)
+		switch allowed {
+		case config.WorkflowAuthenticationMethodPrimaryPassword:
+			addOne()
+		case config.WorkflowAuthenticationMethodPrimaryPasskey:
+			addOne()
+		case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+			addAll()
+		case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+			addAll()
+		case config.WorkflowAuthenticationMethodSecondaryPassword:
+			addOne()
+		case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+			addAll()
+		case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+			addAll()
+		case config.WorkflowAuthenticationMethodSecondaryTOTP:
+			addOne()
+		case config.WorkflowAuthenticationMethodRecoveryCode:
+			allUsable = append(allUsable, authenticator.NewCandidateRecoveryCode())
+		case config.WorkflowAuthenticationMethodDeviceToken:
+			allUsable = append(allUsable, authenticator.NewCandidateDeviceToken())
 		}
 	}
 

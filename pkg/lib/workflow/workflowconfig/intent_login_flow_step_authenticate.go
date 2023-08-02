@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -173,14 +172,14 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	step := i.step(current)
 
 	allAllowed := i.getAllAllowed(step)
-	allUsable, err := getAuthenticationMethodsOfUser(deps, i.UserID, allAllowed)
+	candidates, err := getAuthenticationCandidatesOfUser(deps, i.UserID, allAllowed)
 	if err != nil {
 		return nil, err
 	}
 
 	return map[string]interface{}{
-		"json_pointer":           i.JSONPointer.String(),
-		"authentication_methods": allUsable,
+		"json_pointer": i.JSONPointer.String(),
+		"candidates":   candidates,
 	}, nil
 }
 
@@ -194,14 +193,17 @@ func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(deps *workfl
 	step := i.step(current)
 
 	allAllowed := i.getAllAllowed(step)
-	allUsable, err := getAuthenticationMethodsOfUser(deps, i.UserID, allAllowed)
+	candidates, err := getAuthenticationCandidatesOfUser(deps, i.UserID, allAllowed)
 	if err != nil {
 		return
 	}
 
-	for i, usable := range allUsable {
-		if am == usable {
-			idx = i
+	for i, allowed := range allAllowed {
+		for _, a := range candidates {
+			am := a[authenticator.CandidateKeyAuthenticationMethod].(config.WorkflowAuthenticationMethod)
+			if allowed == am {
+				idx = i
+			}
 		}
 	}
 
@@ -209,10 +211,7 @@ func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(deps *workfl
 		return
 	}
 
-	err = InvalidAuthenticationMethod.NewWithInfo("invalid authentication method", apierrors.Details{
-		"expected": allUsable,
-		"actual":   am,
-	})
+	err = InvalidAuthenticationMethod.New("invalid authentication method")
 	return
 }
 
