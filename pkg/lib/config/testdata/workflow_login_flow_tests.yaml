@@ -17,6 +17,23 @@ value:
         optional: true
         one_of:
         - authentication: secondary_totp
+---
+part: WorkflowLoginFlow
+name: change-password
+error: null
+value:
+  id: id
+  steps:
+  - type: identify
+    id: my_step
+    one_of:
+    - identification: email
+  - type: authenticate
+    id: step1
+    one_of:
+    - authentication: primary_password
+  - type: change_password
+    target_step: step1
 
 ---
 part: WorkflowLoginFlow
