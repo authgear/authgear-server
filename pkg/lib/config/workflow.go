@@ -238,7 +238,8 @@ var _ = Schema.Add("WorkflowLoginFlowStep", `
 			"type": "string",
 			"enum": [
 				"identify",
-				"authenticate"
+				"authenticate",
+				"change_password"
 			]
 		}
 	},
@@ -275,6 +276,20 @@ var _ = Schema.Add("WorkflowLoginFlowStep", `
 						"type": "array",
 						"items": { "$ref": "#/$defs/WorkflowLoginFlowAuthenticate" }
 					}
+				}
+			}
+		},
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "change_password" }
+				}
+			},
+			"then": {
+				"required": ["target_step"],
+				"properties": {
+					"target_step": { "$ref": "#/$defs/WorkflowObjectID" }
 				}
 			}
 		}
@@ -657,8 +672,9 @@ func (f *WorkflowLoginFlow) GetOneOf() ([]WorkflowObject, bool) {
 type WorkflowLoginFlowStepType string
 
 const (
-	WorkflowLoginFlowStepTypeIdentify     WorkflowLoginFlowStepType = "identify"
-	WorkflowLoginFlowStepTypeAuthenticate WorkflowLoginFlowStepType = "authenticate"
+	WorkflowLoginFlowStepTypeIdentify       WorkflowLoginFlowStepType = "identify"
+	WorkflowLoginFlowStepTypeAuthenticate   WorkflowLoginFlowStepType = "authenticate"
+	WorkflowLoginFlowStepTypeChangePassword WorkflowLoginFlowStepType = "change_password"
 )
 
 type WorkflowLoginFlowStep struct {
@@ -670,6 +686,9 @@ type WorkflowLoginFlowStep struct {
 
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*WorkflowLoginFlowOneOf `json:"one_of,omitempty"`
+
+	// TargetStep is relevant when Type is change_password.
+	TargetStep string `json:"target_step,omitempty"`
 }
 
 func (s *WorkflowLoginFlowStep) GetID() (string, bool) {
