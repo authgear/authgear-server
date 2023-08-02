@@ -23,7 +23,7 @@ type IntentLoginFlowSteps struct {
 }
 
 func (*IntentLoginFlowSteps) Kind() string {
-	return "workflow.IntentLoginFlowSteps"
+	return "workflowconfig.IntentLoginFlowSteps"
 }
 
 func (*IntentLoginFlowSteps) JSONSchema() *validation.SimpleSchema {
@@ -73,6 +73,13 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depen
 		}
 
 		return workflow.NewSubWorkflow(n), nil
+	case config.WorkflowLoginFlowStepTypeChangePassword:
+		return workflow.NewSubWorkflow(&IntentLoginFlowStepChangePassword{
+			LoginFlow:   i.LoginFlow,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(workflows),
+		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
