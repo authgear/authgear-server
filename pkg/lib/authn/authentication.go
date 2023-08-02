@@ -43,6 +43,12 @@ func AuthenticationStageFromAuthenticationMethod(am config.WorkflowAuthenticatio
 	case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
 		fallthrough
 	case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+		fallthrough
+	case config.WorkflowAuthenticationMethodRecoveryCode:
+		// recovery code is considered as secondary
+		fallthrough
+	case config.WorkflowAuthenticationMethodDeviceToken:
+		// recovery code is considered as secondary
 		return AuthenticationStageSecondary
 	default:
 		panic(fmt.Errorf("unknown authentication method: %v", am))
