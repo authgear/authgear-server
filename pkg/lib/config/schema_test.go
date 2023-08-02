@@ -41,7 +41,6 @@ func TestAppConfigSchema(t *testing.T) {
 		"testdata/rate_limit_tests.yaml",
 		"testdata/workflow_workflow_object_id_tests.yaml",
 		"testdata/workflow_identification_method_tests.yaml",
-		"testdata/workflow_authentication_method_tests.yaml",
 		"testdata/workflow_signup_flow_tests.yaml",
 		"testdata/workflow_login_flow_tests.yaml",
 		"testdata/workflow_signup_login_flow_tests.yaml",

@@ -83,7 +83,6 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) &&
 			inputTakeAuthenticationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-			// FIXME(workflow): handle recovery code and device token.
 			_, err := i.checkAuthenticationMethod(deps, authentication)
 			if err != nil {
 				return nil, err
@@ -109,6 +108,10 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 				// FIXME(workflow): authenticate with oob otp
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
 				// FIXME(workflow): authenticate with totp
+			case config.WorkflowAuthenticationMethodRecoveryCode:
+				// FIXME(workflow): authenticate with recovery code
+			case config.WorkflowAuthenticationMethodDeviceToken:
+				// FIXME(workflow): authenticate with device token
 			}
 		}
 
