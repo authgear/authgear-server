@@ -70,14 +70,15 @@ sequenceDiagram
 
 
     rect rgb(191, 223, 255)
-    note right of B: authgear.startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)
+    note right of B: authgear.startApp2AppAuthentication(options: App2AppAuthenticateOptions)
     B ->> O: Intent (authorizeUri)
     end
 
     O ->> A: Applink (authorizeUri)
+    A ->> A: authgear.parseApp2AppAuthenticationRequest(uri: Uri)
 
     rect rgb(191, 223, 255)
-    note right of A: authgear.handleApp2AppAuthenticationRequest(uri: Uri)
+    note right of A: authgear.approveApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest)
     A ->> S: Request new authorization code
     S ->> A: Authorization code
     A ->> O: Intent (redirectUri + authCode)
@@ -146,18 +147,25 @@ The following parameter will be added to constructor of `Authgear`:
 - `app2appOptions: App2AppOptions?`
   - App2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
-    - `userAuthenticationRequired: Boolean`: Whether the user has to pass an authentiction process during the app2app flow. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationRequired(boolean)>) for details.
-    - `allowedAuthenticators: Int?`: Type of user authenticators can be used. Read [this doc](<https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationParameters(int,%20int)>) for details.
+    - `isEnabled`: If true, new sessions will be prepared for participating in app2app authentication.
+    - `isInsecureDeviceKeyBindingEnabled`: If true, the sdk will try to create and bind device key during refresh tokens to "migrate" to app2app sessions.
 
 The following methods will be added in android sdk to support the app2app flow:
 
-- `startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)`
-  - This method should be called to trigger a new app2app authorization through another client through `authorizationEndpoint`, and receive the result through `redirectURI`.
-- `handleApp2AppAuthenticationRequest(uri: Uri)`
-  - This method should be called by the app which receive and handles the app2app authentication intent. `uri` should be the URI of the intent.
-  - This method must be called when then sdk session state is `AUTHENTICATED`, and the current session supported app2app authentication by providing a `device_key`, else an error will be thrown.
-- `handleApp2AppAuthenticationResult(uri: Uri)`
-  - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URI of the intent.
+- `startApp2AppAuthentication(options: App2AppAuthenticateOptions)`
+  - This method should be called to trigger a new app2app authorization request through another client.
+  - `App2AppAuthenticateOptions.authorizationEndpoint` should be an url of an applink pointing to another client which handles the app2app authentication request.
+  - `App2AppAuthenticateOptions.redirectUri` should be an uri for the another client to return the authentication result. It must be an applink which opens the current app.
+- `parseApp2AppAuthenticationRequest(uri: Uri): App2AppAuthenticateRequest?`
+  - Parse an url into an `App2AppAuthenticateRequest`, or `null` if the uri is not a valid app2app request.
+- `approveApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest)`
+  - Approves an app2app request received from another client, returning a result through the redirect uri.
+  - `request` should be the return value of `parseApp2AppAuthenticationRequest`.
+  - This method must be called when then sdk session state is `AUTHENTICATED`, and the current session supported app2app authentication by providing a device key, else an error will be thrown.
+- `rejectApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest, error: Error)`
+  - Rejects an app2app request received from another client, returning an error through the redirect uri.
+  - `request` should be the return value of `parseApp2AppAuthenticationRequest`.
+  - `error` is the reason to reject the request.
 
 ### iOS
 
@@ -169,10 +177,11 @@ sequenceDiagram
     participant A as App A
     participant S as Authgear Server
 
-    B ->> O: authgear.startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)
+    B ->> O: authgear.startApp2AppAuthentication(options: App2AppAuthenticateOptions)
     O ->> A: Universal link (authorizeUri)
+    A ->> A: authgear.parseApp2AppAuthenticationRequest(url: URL)
     rect rgb(191, 223, 255)
-    note right of A: authgear.handleApp2AppAuthenticationRequest(uri: URL)
+    note right of A: authgear.approveApp2AppAuthenticationRequest(request)
     A ->> S: Request new authorization code
     S ->> A: Authorization code
     A ->> O: open (redirectUri + authCode)
@@ -234,16 +243,25 @@ The following parameters will be added to constuctor of `Authgear`:
 - `app2appOptions: App2AppOptions?`
   - app2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
-    - `accessContraints`: [`BiometricAccessConstraint?`](https://github.com/authgear/authgear-sdk-ios/blob/master/Sources/Biometric.swift#L6): The authentication the user must perform on authenticating another app through app2app flow.
-    - `authenticatePolicy`: [`BiometricLAPolicy?`](https://github.com/authgear/authgear-sdk-ios/blob/master/Sources/Biometric.swift#L23): The authentication policy used for app2app flow.
+    - `isEnabled`: If true, new sessions will be prepared for participating in app2app authentication.
+    - `isInsecureDeviceKeyBindingEnabled`: If true, the sdk will try to create and bind device key during refresh tokens to "migrate" to app2app sessions.
 
 The following methods will be added in android sdk to support the app2app flow:
 
-- `startApp2AppAuthentication(authorizationEndpoint: String, clientID: string, redirectURI: string)`
-  - This method should be called to trigger a new app2app authorization through another client through `authorizationEndpoint`, and receive the result through `redirectURI`.
-- `handleApp2AppAuthenticationRequest(uri: URL)`
-  - This method should be called by the app which receive and handles the app2app authentication universal link. `uri` should be the URL of the universal link received.
+- `startApp2AppAuthentication(options: App2AppAuthenticateOptions)`
+  - This method should be called to trigger a new app2app authorization request through another client.
+  - `App2AppAuthenticateOptions.authorizationEndpoint` should be an url of an universal link pointing to another client which handles the app2app authentication request.
+  - `App2AppAuthenticateOptions.redirectUri` should be an uri for the another client to return the authentication result. It must be an universal link which opens the current app.
+- `parseApp2AppAuthenticationRequest(url: URL): App2AppAuthenticateRequest?`
+  - Parse an url into an `App2AppAuthenticateRequest`, or `null` if the url is not a valid app2app request.
+- `approveApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest)`
+  - Approves an app2app request received from another client, returning a result through the redirect uri.
+  - `request` should be the return value of `parseApp2AppAuthenticationRequest`.
   - This method must be called when then sdk session state is `AUTHENTICATED`, and the current session supported app2app authentication by providing a `device_key`, else an error will be thrown.
+- `rejectApp2AppAuthenticationRequest(request: App2AppAuthenticateRequest, error: Error)`
+  - Rejects an app2app request received from another client, returning an error through the redirect uri.
+  - `request` should be the return value of `parseApp2AppAuthenticationRequest`.
+  - `error` is the reason to reject the request.
 - `handleApp2AppAuthenticationResult(uri: URL)`
   - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URL of the universal link received.
 
