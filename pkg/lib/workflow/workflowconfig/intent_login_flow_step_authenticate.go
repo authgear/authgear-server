@@ -7,10 +7,15 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+type IntentLoginFlowStepAuthenticateTarget interface {
+	GetIdentity(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) *identity.Info
+}
 
 func init() {
 	workflow.RegisterPrivateIntent(&IntentLoginFlowStepAuthenticate{})
@@ -104,6 +109,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) &&
 			inputTakeAuthenticationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
+			var idx int
 			_, err := i.checkAuthenticationMethod(deps, authentication)
 			if err != nil {
 				return nil, err
@@ -126,7 +132,12 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 			case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
 				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
-				// FIXME(workflow): authenticate with oob otp
+				return workflow.NewNodeSimple(&NodeUseAuthenticatorOOBOTP{
+					LoginFlow:      i.LoginFlow,
+					JSONPointer:    JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
 				// FIXME(workflow): authenticate with totp
 			case config.WorkflowAuthenticationMethodRecoveryCode:
@@ -243,6 +254,8 @@ func (*IntentLoginFlowStepAuthenticate) authenticationMethod(w *workflow.Workflo
 
 	switch n := w.Nodes[0].Simple.(type) {
 	case *NodeUseAuthenticatorPassword:
+		return n.Authentication
+	case *NodeUseAuthenticatorOOBOTP:
 		return n.Authentication
 	default:
 		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
