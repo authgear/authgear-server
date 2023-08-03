@@ -54,6 +54,7 @@ interface IdentityClaim extends Record<string, unknown> {
   phone_number?: string;
   preferred_username?: string;
   "https://authgear.com/claims/oauth/provider_type"?: OAuthSSOProviderType;
+  "https://authgear.com/claims/oauth/subject_id"?: string;
   "https://authgear.com/claims/login_id/type"?: LoginIDIdentityType;
 }
 
@@ -87,6 +88,7 @@ interface OAuthIdentityListItem {
   id: string;
   type: "oauth";
   providerType: OAuthSSOProviderType;
+  subjectID?: string;
   claimName?: string;
   claimValue?: string;
   verified?: boolean;
@@ -187,7 +189,9 @@ function getIdentityName(
   switch (item.type) {
     case "oauth":
       return (
-        item.claimValue ?? renderToString("oauth-provider." + item.providerType)
+        item.claimValue ??
+        item.subjectID ??
+        renderToString("oauth-provider." + item.providerType)
       );
     case "login_id":
       return item.claimValue;
@@ -896,6 +900,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         if (identity.type === "OAUTH") {
           const providerType =
             identity.claims["https://authgear.com/claims/oauth/provider_type"]!;
+          const subjectID =
+            identity.claims["https://authgear.com/claims/oauth/subject_id"];
 
           const claimName = "email";
           const claimValue = identity.claims.email;
@@ -903,9 +909,10 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
           oauthIdentityList.push({
             id: identity.id,
             type: "oauth",
+            providerType,
+            subjectID,
             claimName,
             claimValue,
-            providerType: providerType,
             verified:
               claimValue == null
                 ? undefined
