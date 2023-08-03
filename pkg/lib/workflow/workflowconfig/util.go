@@ -115,12 +115,25 @@ func getUserID(workflows workflow.Workflows) (userID string, err error) {
 	return
 }
 
-func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []authenticator.Candidate, err error) {
+func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *identity.Info, am config.WorkflowAuthenticationMethod) ([]authenticator.Candidate, error) {
+	as, err := deps.Authenticators.List(info.UserID, authenticator.KeepAuthenticationMethod(am))
+	if err != nil {
+		return nil, err
+	}
+
+	return getAuthenticationCandidates(as, []config.WorkflowAuthenticationMethod{am})
+}
+
+func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) ([]authenticator.Candidate, error) {
 	as, err := deps.Authenticators.List(userID, authenticator.KeepAuthenticationMethod(allAllowed...))
 	if err != nil {
 		return nil, err
 	}
 
+	return getAuthenticationCandidates(as, allAllowed)
+}
+
+func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []authenticator.Candidate, err error) {
 	addOne := func() {
 		added := false
 		for _, a := range as {

@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -32,6 +33,18 @@ func (i *IntentLoginFlowStepIdentify) GetID() string {
 
 func (i *IntentLoginFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
+}
+
+var _ IntentLoginFlowStepAuthenticateTarget = &IntentLoginFlowStepIdentify{}
+
+func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) *identity.Info {
+	var n *NodeDoUseIdentity
+	n, ok := workflow.FindSingleNode[*NodeDoUseIdentity](workflows.Nearest)
+	if !ok {
+		panic(fmt.Errorf("workflow: NodeDoUseIdentity is absent"))
+	}
+
+	return n.Identity
 }
 
 var _ workflow.Intent = &IntentLoginFlowStepIdentify{}
