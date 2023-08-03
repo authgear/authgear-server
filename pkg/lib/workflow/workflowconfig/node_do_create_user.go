@@ -14,6 +14,13 @@ type NodeDoCreateUser struct {
 	UserID string `json:"user_id"`
 }
 
+var _ workflow.NodeSimple = &NodeDoCreateUser{}
+
+var _ MilestoneDoCreateUser = &NodeDoCreateUser{}
+
+func (*NodeDoCreateUser) Milestone()                              {}
+func (n *NodeDoCreateUser) MilestoneDoCreateUser() (string, bool) { return n.UserID, true }
+
 func (n *NodeDoCreateUser) Kind() string {
 	return "workflowconfig.NodeDoCreateUser"
 }

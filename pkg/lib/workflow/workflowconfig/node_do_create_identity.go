@@ -15,6 +15,15 @@ type NodeDoCreateIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
+var _ workflow.NodeSimple = &NodeDoCreateIdentity{}
+
+var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
+
+func (*NodeDoCreateIdentity) Milestone() {}
+func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() (*identity.Info, bool) {
+	return n.Identity, true
+}
+
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "workflowconfig.NodeDoCreateIdentity"
 }

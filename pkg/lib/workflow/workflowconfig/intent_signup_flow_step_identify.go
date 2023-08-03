@@ -41,11 +41,16 @@ func (i *IntentSignupFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
-	n, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
 	if !ok {
-		return nil, fmt.Errorf("NodeDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
+		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
-	return n.Identity.IdentityAwareStandardClaims(), nil
+	info, ok := m.MilestoneDoCreateIdentity()
+	if !ok {
+		return nil, fmt.Errorf("MilestoneDoCreateIdentity does not have identity")
+	}
+
+	return info.IdentityAwareStandardClaims(), nil
 }
 
 func (*IntentSignupFlowStepIdentify) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
@@ -219,9 +224,14 @@ func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.WorkflowSignupFl
 }
 
 func (*IntentSignupFlowStepIdentify) identityInfo(w *workflow.Workflow) *identity.Info {
-	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
+	m, ok := FindMilestone[MilestoneDoCreateIdentity](w)
 	if !ok {
-		panic(fmt.Errorf("workflow: expected NodeCreateIdentity"))
+		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
 	}
-	return node.Identity
+	info, ok := m.MilestoneDoCreateIdentity()
+	if !ok {
+		panic(fmt.Errorf("MilestoneDoCreateIdentity does not have identity"))
+	}
+
+	return info
 }

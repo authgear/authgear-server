@@ -212,3 +212,20 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 
 	return errorutil.WithDetails(err, details)
 }
+
+func FindMilestone[T Milestone](w *workflow.Workflow) (T, bool) {
+	for _, n := range w.Nodes {
+		switch n.Type {
+		case workflow.NodeTypeSimple:
+			if node, ok := n.Simple.(T); ok {
+				return node, true
+			}
+		case workflow.NodeTypeSubWorkflow:
+			if intent, ok := n.SubWorkflow.Intent.(T); ok {
+				return intent, true
+			}
+		}
+	}
+
+	return *new(T), false
+}
