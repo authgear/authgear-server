@@ -43,8 +43,12 @@ func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
 
 func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (info *authenticator.Info, ok bool) {
-	var n *NodeDoUseAuthenticator
-	n, ok = workflow.FindSingleNode[*NodeDoUseAuthenticator](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	if !ok {
+		return
+	}
+
+	n, ok := m.MilestoneDoUseAuthenticator()
 	if !ok {
 		return
 	}

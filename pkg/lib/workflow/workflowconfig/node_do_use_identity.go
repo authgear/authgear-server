@@ -20,11 +20,18 @@ type NodeDoUseIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
+var _ workflow.NodeSimple = &NodeDoUseIdentity{}
+
 var _ UserIDGetter = &NodeDoUseIdentity{}
 
 func (n *NodeDoUseIdentity) GetUserID() string {
 	return n.Identity.UserID
 }
+
+var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
+
+func (*NodeDoUseIdentity) Milestone()                                       {}
+func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() (*identity.Info, bool) { return n.Identity, true }
 
 func NewNodeDoUseIdentity(workflows workflow.Workflows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
 	userID, err := getUserID(workflows)

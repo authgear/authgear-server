@@ -28,6 +28,11 @@ type NodeDoCreateSession struct {
 	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
 }
 
+var _ MilestoneDoCreateSession = &NodeDoCreateSession{}
+
+func (*NodeDoCreateSession) Milestone()                     {}
+func (*NodeDoCreateSession) MilestoneDoCreateSession() bool { return true }
+
 func NewNodeDoCreateSession(deps *workflow.Dependencies, n *NodeDoCreateSession) *NodeDoCreateSession {
 	attrs := session.NewAttrs(n.UserID)
 	// FIXME(workflow): Set AMR in authentication

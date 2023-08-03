@@ -38,13 +38,17 @@ func (i *IntentLoginFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepAuthenticateTarget = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) *identity.Info {
-	var n *NodeDoUseIdentity
-	n, ok := workflow.FindSingleNode[*NodeDoUseIdentity](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
 	if !ok {
-		panic(fmt.Errorf("workflow: NodeDoUseIdentity is absent"))
+		panic(fmt.Errorf("MilestoneDoUseIdentity is absent in IntentLoginFlowStepIdentify"))
 	}
 
-	return n.Identity
+	info, ok := m.MilestoneDoUseIdentity()
+	if !ok {
+		panic(fmt.Errorf("MilestoneDoUseIdentity does not return identity"))
+	}
+
+	return info
 }
 
 var _ workflow.Intent = &IntentLoginFlowStepIdentify{}

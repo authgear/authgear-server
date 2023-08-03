@@ -44,11 +44,17 @@ func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepAuthenticate{}
 
 func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
-	n, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
 	if !ok {
-		return nil, fmt.Errorf("NodeDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
+		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
 	}
-	return n.Authenticator.StandardClaims(), nil
+
+	info, ok := m.MilestoneDoCreateAuthenticator()
+	if !ok {
+		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator does not return authenticator")
+	}
+
+	return info.StandardClaims(), nil
 }
 
 func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {

@@ -41,9 +41,9 @@ func (*IntentLoginFlow) JSONSchema() *validation.SimpleSchema {
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	// The last node is NodeDoCreateSession.
-	// So if NodeDoCreateSession is found, this workflow has finished.
-	_, ok := workflow.FindSingleNode[*NodeDoCreateSession](workflows.Nearest)
-	if ok {
+	// So if MilestoneDoCreateSession is found, this workflow has finished.
+	m, ok := FindMilestone[MilestoneDoCreateSession](workflows.Nearest)
+	if ok && m.MilestoneDoCreateSession() {
 		return nil, workflow.ErrEOF
 	}
 	return nil, nil
