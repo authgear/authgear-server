@@ -62,7 +62,7 @@ type VerificationService interface {
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 	DeleteClaim(claim *verification.Claim) error
-	RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error
+	RemoveOrphanedClaims(userID string, identities []*identity.Info, authenticators []*authenticator.Info) error
 	ResetVerificationStatus(userID string) error
 }
 
@@ -479,7 +479,7 @@ func (c *Coordinator) removeOrphans(userID string) error {
 		return err
 	}
 
-	err = c.Verification.RemoveOrphanedClaims(identities, authenticators)
+	err = c.Verification.RemoveOrphanedClaims(userID, identities, authenticators)
 	if err != nil {
 		return err
 	}

@@ -197,9 +197,7 @@ func (s *Service) ResetVerificationStatus(userID string) error {
 	return s.ClaimStore.DeleteAll(userID)
 }
 
-func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticators []*authenticator.Info) error {
-	// Assuming user ID of all identities is same
-	userID := identities[0].UserID
+func (s *Service) RemoveOrphanedClaims(userID string, identities []*identity.Info, authenticators []*authenticator.Info) error {
 	claims, err := s.ClaimStore.ListByUser(userID)
 	if err != nil {
 		return err
