@@ -3,6 +3,7 @@ package workflowconfig
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // A Milestone is a marker.
@@ -15,6 +16,16 @@ type Milestone interface {
 type MilestoneNestedSteps interface {
 	Milestone
 	MilestoneNestedSteps()
+}
+
+type MilestoneIdentificationMethod interface {
+	Milestone
+	MilestoneIdentificationMethod() (config.WorkflowIdentificationMethod, bool)
+}
+
+type MilestoneAuthenticationMethod interface {
+	Milestone
+	MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool)
 }
 
 type MilestoneDoCreateSession interface {

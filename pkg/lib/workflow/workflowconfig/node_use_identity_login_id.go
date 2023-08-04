@@ -18,6 +18,15 @@ type NodeUseIdentityLoginID struct {
 	Identification config.WorkflowIdentificationMethod `json:"identification,omitempty"`
 }
 
+var _ MilestoneIdentificationMethod = &NodeUseIdentityLoginID{}
+
+func (*NodeUseIdentityLoginID) Milestone() {}
+func (n *NodeUseIdentityLoginID) MilestoneIdentificationMethod() (config.WorkflowIdentificationMethod, bool) {
+	return n.Identification, true
+}
+
+var _ workflow.NodeSimple = &NodeUseIdentityLoginID{}
+
 func (*NodeUseIdentityLoginID) Kind() string {
 	return "workflowconfig.NodeUseIdentityLoginID"
 }

@@ -252,18 +252,17 @@ func (*IntentLoginFlowStepAuthenticate) step(o config.WorkflowObject) *config.Wo
 }
 
 func (*IntentLoginFlowStepAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
-	if len(w.Nodes) == 0 {
+	m, ok := FindMilestone[MilestoneAuthenticationMethod](w)
+	if !ok {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}
 
-	switch n := w.Nodes[0].Simple.(type) {
-	case *NodeUseAuthenticatorPassword:
-		return n.Authentication
-	case *NodeUseAuthenticatorOOBOTP:
-		return n.Authentication
-	default:
-		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
+	am, ok := m.MilestoneAuthenticationMethod()
+	if !ok {
+		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}
+
+	return am
 }
 
 func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.WorkflowLoginFlowStep, am config.WorkflowAuthenticationMethod) jsonpointer.T {

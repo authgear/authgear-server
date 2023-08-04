@@ -23,6 +23,15 @@ type NodeCreateAuthenticatorTOTP struct {
 	Authenticator  *authenticator.Info                 `json:"authenticator,omitempty"`
 }
 
+var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
+
+func (*NodeCreateAuthenticatorTOTP) Milestone() {}
+func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
+	return n.Authentication, true
+}
+
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorTOTP{}
+
 func NewNodeCreateAuthenticatorTOTP(deps *workflow.Dependencies, n *NodeCreateAuthenticatorTOTP) (*NodeCreateAuthenticatorTOTP, error) {
 	authenticatorKind := n.authenticatorKind()
 

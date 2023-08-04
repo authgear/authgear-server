@@ -202,16 +202,17 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(step *config.Work
 }
 
 func (*IntentSignupFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
-	if len(w.Nodes) == 0 {
+	m, ok := FindMilestone[MilestoneIdentificationMethod](w)
+	if !ok {
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
 
-	switch n := w.Nodes[0].Simple.(type) {
-	case *NodeCreateIdentityLoginID:
-		return n.Identification
-	default:
-		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
+	im, ok := m.MilestoneIdentificationMethod()
+	if !ok {
+		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
+
+	return im
 }
 
 func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) jsonpointer.T {
