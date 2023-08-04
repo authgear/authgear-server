@@ -10,37 +10,44 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
-	workflow.RegisterNode(&NodeUseAuthenticatorOOBOTP{})
+	workflow.RegisterPrivateIntent(&IntentUseAuthenticatorOOBOTP{})
 }
 
-type NodeUseAuthenticatorOOBOTP struct {
+var IntentUseAuthenticatorOOBOTPSchema = validation.NewSimpleSchema(`{}`)
+
+type IntentUseAuthenticatorOOBOTP struct {
 	LoginFlow      string                              `json:"login_flow,omitempty"`
 	JSONPointer    jsonpointer.T                       `json:"json_pointer,omitempty"`
 	UserID         string                              `json:"user_id,omitempty"`
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorOOBOTP{}
+var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
 
-func (*NodeUseAuthenticatorOOBOTP) Milestone() {}
-func (n *NodeUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
+func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
+func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
 	return n.Authentication, true
 }
 
-var _ workflow.NodeSimple = &NodeUseAuthenticatorOOBOTP{}
+var _ workflow.NodeSimple = &IntentUseAuthenticatorOOBOTP{}
 
-func (*NodeUseAuthenticatorOOBOTP) Kind() string {
-	return "workflowconfig.NodeUseAuthenticatorOOBOTP"
+func (*IntentUseAuthenticatorOOBOTP) Kind() string {
+	return "workflowconfig.IntentUseAuthenticatorOOBOTP"
 }
 
-func (*NodeUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentUseAuthenticatorOOBOTP) JSONSchema() *validation.SimpleSchema {
+	return IntentUseAuthenticatorOOBOTPSchema
+}
+
+func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{&InputTakeAuthenticatorID{}}, nil
 }
 
-func (n *NodeUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	candidates, err := n.getCandidates(ctx, deps, workflows)
 	if err != nil {
 		return nil, err
@@ -60,11 +67,11 @@ func (n *NodeUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeUseAuthenticatorOOBOTP) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
+func (*IntentUseAuthenticatorOOBOTP) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	candidates, err := n.getCandidates(ctx, deps, workflows)
 	if err != nil {
 		return nil, err
@@ -75,7 +82,7 @@ func (n *NodeUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workf
 	}, nil
 }
 
-func (*NodeUseAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.WorkflowLoginFlowOneOf {
+func (*IntentUseAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.WorkflowLoginFlowOneOf {
 	oneOf, ok := o.(*config.WorkflowLoginFlowOneOf)
 	if !ok {
 		panic(fmt.Errorf("workflow: workflow object is %T", o))
@@ -84,7 +91,7 @@ func (*NodeUseAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.Workfl
 	return oneOf
 }
 
-func (n *NodeUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]authenticator.Candidate, error) {
+func (n *IntentUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]authenticator.Candidate, error) {
 
 	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointer)
 	if err != nil {
@@ -125,7 +132,7 @@ func (n *NodeUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *wo
 	return candidates, nil
 }
 
-func (n *NodeUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []authenticator.Candidate, authenticatorID string) (*authenticator.Info, error) {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []authenticator.Candidate, authenticatorID string) (*authenticator.Info, error) {
 	for _, c := range candidates {
 		id := c[authenticator.CandidateKeyAuthenticatorID].(string)
 		if id == authenticatorID {
