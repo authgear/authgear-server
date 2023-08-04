@@ -136,7 +136,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 			case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
 				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
-				return workflow.NewNodeSimple(&NodeUseAuthenticatorOOBOTP{
+				return workflow.NewSubWorkflow(&IntentUseAuthenticatorOOBOTP{
 					LoginFlow:      i.LoginFlow,
 					JSONPointer:    JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
