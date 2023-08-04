@@ -26,6 +26,11 @@ type IntentVerifyClaim struct {
 	ClaimValue  string          `json:"claim_value,omitempty"`
 }
 
+var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
+
+func (*IntentVerifyClaim) Milestone()                    {}
+func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
+
 var _ workflow.Intent = &IntentVerifyClaim{}
 
 func (*IntentVerifyClaim) Kind() string {

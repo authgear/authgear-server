@@ -7,7 +7,9 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -44,7 +46,20 @@ func (*IntentUseAuthenticatorOOBOTP) JSONSchema() *validation.SimpleSchema {
 }
 
 func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputTakeAuthenticatorID{}}, nil
+	if len(workflows.Nearest.Nodes) == 0 {
+		return []workflow.Input{&InputTakeAuthenticatorID{}}, nil
+	}
+
+	_, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
+
+	switch {
+	case authenticatorUsed && !claimVerified:
+		// Verify claim
+		return nil, nil
+	default:
+		return nil, workflow.ErrEOF
+	}
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -53,15 +68,37 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 		return nil, err
 	}
 
-	var inputTakeAuthenticatorID inputTakeAuthenticatorID
-	if workflow.AsInput(input, &inputTakeAuthenticatorID) {
-		authenticatorID := inputTakeAuthenticatorID.GetAuthenticatorID()
-		_, err := n.pickAuthenticator(deps, candidates, authenticatorID)
-		if err != nil {
-			return nil, err
-		}
+	if len(workflows.Nearest.Nodes) == 0 {
+		var inputTakeAuthenticatorID inputTakeAuthenticatorID
+		if workflow.AsInput(input, &inputTakeAuthenticatorID) {
+			authenticatorID := inputTakeAuthenticatorID.GetAuthenticatorID()
+			info, err := n.pickAuthenticator(deps, candidates, authenticatorID)
+			if err != nil {
+				return nil, err
+			}
 
-		// FIXME(workflow): verify OTP.
+			return workflow.NewNodeSimple(&NodeDoUseAuthenticator{
+				Authenticator: info,
+			}), nil
+		}
+	}
+
+	m, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
+
+	switch {
+	case authenticatorUsed && !claimVerified:
+		if nn, ok := m.MilestoneDoUseAuthenticator(); ok {
+			info := nn.Authenticator
+			claimName, claimValue := info.OOBOTP.ToClaimPair()
+			return workflow.NewSubWorkflow(&IntentVerifyClaim{
+				UserID:      n.UserID,
+				Purpose:     otp.PurposeOOBOTP,
+				MessageType: n.otpMessageType(info),
+				ClaimName:   claimName,
+				ClaimValue:  claimValue,
+			}), nil
+		}
 	}
 
 	return nil, workflow.ErrIncompatibleInput
@@ -98,7 +135,7 @@ func (n *IntentUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *
 		return nil, err
 	}
 
-	candidates := []authenticator.Candidate{}
+	var candidates []authenticator.Candidate
 
 	oneOf := n.oneOf(current)
 	targetStepID := oneOf.TargetStep
@@ -145,4 +182,15 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependen
 	}
 
 	return nil, InvalidAuthenticatorID.New("invalid authenticator ID")
+}
+
+func (*IntentUseAuthenticatorOOBOTP) otpMessageType(info *authenticator.Info) otp.MessageType {
+	switch info.Kind {
+	case model.AuthenticatorKindPrimary:
+		return otp.MessageTypeAuthenticatePrimaryOOB
+	case model.AuthenticatorKindSecondary:
+		return otp.MessageTypeAuthenticateSecondaryOOB
+	default:
+		panic(fmt.Errorf("workflow: unexpected OOB OTP authenticator kind: %v", info.Kind))
+	}
 }
