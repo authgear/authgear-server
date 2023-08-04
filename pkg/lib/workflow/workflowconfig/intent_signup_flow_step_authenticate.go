@@ -95,16 +95,16 @@ func (*IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *w
 		}, nil
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateAuthenticator:
-			// Handle nested steps.
-			return nil, nil
-		}
-	}
+	_, authenticatorCreated := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrEOF
+	switch {
+	case authenticatorCreated && !nestedStepsHandled:
+		// Handle nested steps.
+		return nil, nil
+	default:
+		return nil, workflow.ErrEOF
+	}
 }
 
 func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -166,20 +166,20 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateAuthenticator:
-			authentication := i.authenticationMethod(workflows.Nearest)
-			return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
-				SignupFlow:  i.SignupFlow,
-				JSONPointer: i.jsonPointer(step, authentication),
-				UserID:      i.UserID,
-			}), nil
-		}
-	}
+	_, authenticatorCreated := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrIncompatibleInput
+	switch {
+	case authenticatorCreated && !nestedStepsHandled:
+		authentication := i.authenticationMethod(workflows.Nearest)
+		return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
+			SignupFlow:  i.SignupFlow,
+			JSONPointer: i.jsonPointer(step, authentication),
+			UserID:      i.UserID,
+		}), nil
+	default:
+		return nil, workflow.ErrIncompatibleInput
+	}
 }
 
 func (*IntentSignupFlowStepAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {

@@ -85,19 +85,20 @@ func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workf
 		}, nil
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateIdentity:
-			// Populate standard attributes
-			return nil, nil
-		case *NodeDoPopulateStandardAttributes:
-			// Handle nested steps.
-			return nil, nil
-		}
-	}
+	_, identityCreated := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	_, standardAttributesPopulated := FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
+	_, nestedStepHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrEOF
+	switch {
+	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
+		// Populate standard attributes
+		return nil, nil
+	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
+		// Handle nested steps.
+		return nil, nil
+	default:
+		return nil, workflow.ErrEOF
+	}
 }
 
 func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -139,25 +140,26 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateIdentity:
-			iden := i.identityInfo(workflows.Nearest)
-			return workflow.NewNodeSimple(&NodeDoPopulateStandardAttributes{
-				Identity: iden,
-			}), nil
-		case *NodeDoPopulateStandardAttributes:
-			identification := i.identificationMethod(workflows.Nearest)
-			return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
-				SignupFlow:  i.SignupFlow,
-				JSONPointer: i.jsonPointer(step, identification),
-				UserID:      i.UserID,
-			}), nil
-		}
-	}
+	_, identityCreated := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	_, standardAttributesPopulated := FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
+	_, nestedStepHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrIncompatibleInput
+	switch {
+	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
+		iden := i.identityInfo(workflows.Nearest)
+		return workflow.NewNodeSimple(&NodeDoPopulateStandardAttributes{
+			Identity: iden,
+		}), nil
+	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
+		identification := i.identificationMethod(workflows.Nearest)
+		return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
+			SignupFlow:  i.SignupFlow,
+			JSONPointer: i.jsonPointer(step, identification),
+			UserID:      i.UserID,
+		}), nil
+	default:
+		return nil, workflow.ErrIncompatibleInput
+	}
 }
 
 func (*IntentSignupFlowStepIdentify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {

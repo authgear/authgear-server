@@ -23,6 +23,13 @@ type IntentSignupFlowSteps struct {
 	UserID      string        `json:"user_id,omitempty"`
 }
 
+var _ MilestoneNestedSteps = &IntentSignupFlowSteps{}
+
+func (*IntentSignupFlowSteps) Milestone()            {}
+func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
+
+var _ workflow.Intent = &IntentSignupFlowSteps{}
+
 func (*IntentSignupFlowSteps) Kind() string {
 	return "workflowconfig.IntentSignupFlowSteps"
 }

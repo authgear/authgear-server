@@ -12,6 +12,11 @@ type Milestone interface {
 	Milestone()
 }
 
+type MilestoneNestedSteps interface {
+	Milestone
+	MilestoneNestedSteps()
+}
+
 type MilestoneDoCreateSession interface {
 	Milestone
 	MilestoneDoCreateSession() bool
@@ -40,4 +45,9 @@ type MilestoneDoUseIdentity interface {
 type MilestoneDoUseAuthenticator interface {
 	Milestone
 	MilestoneDoUseAuthenticator() (*NodeDoUseAuthenticator, bool)
+}
+
+type MilestoneDoPopulateStandardAttributes interface {
+	Milestone
+	MilestoneDoPopulateStandardAttributes()
 }

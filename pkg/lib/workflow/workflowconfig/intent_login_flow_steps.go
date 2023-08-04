@@ -22,6 +22,13 @@ type IntentLoginFlowSteps struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 }
 
+var _ MilestoneNestedSteps = &IntentLoginFlowSteps{}
+
+func (*IntentLoginFlowSteps) Milestone()            {}
+func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
+
+var _ workflow.Intent = &IntentLoginFlowSteps{}
+
 func (*IntentLoginFlowSteps) Kind() string {
 	return "workflowconfig.IntentLoginFlowSteps"
 }
