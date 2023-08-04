@@ -91,7 +91,7 @@ func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workf
 		case *NodeDoCreateIdentity:
 			// Populate standard attributes
 			return nil, nil
-		case *NodePopulateStandardAttributes:
+		case *NodeDoPopulateStandardAttributes:
 			// Handle nested steps.
 			return nil, nil
 		}
@@ -144,10 +144,10 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 		switch lastNode.Simple.(type) {
 		case *NodeDoCreateIdentity:
 			iden := i.identityInfo(workflows.Nearest)
-			return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
+			return workflow.NewNodeSimple(&NodeDoPopulateStandardAttributes{
 				Identity: iden,
 			}), nil
-		case *NodePopulateStandardAttributes:
+		case *NodeDoPopulateStandardAttributes:
 			identification := i.identificationMethod(workflows.Nearest)
 			return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
 				SignupFlow:  i.SignupFlow,
