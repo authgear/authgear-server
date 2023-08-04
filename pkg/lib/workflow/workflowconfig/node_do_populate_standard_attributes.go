@@ -16,6 +16,13 @@ type NodeDoPopulateStandardAttributes struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
+var _ MilestoneDoPopulateStandardAttributes = &NodeDoPopulateStandardAttributes{}
+
+func (*NodeDoPopulateStandardAttributes) Milestone()                             {}
+func (*NodeDoPopulateStandardAttributes) MilestoneDoPopulateStandardAttributes() {}
+
+var _ workflow.NodeSimple = &NodeDoPopulateStandardAttributes{}
+
 func (n *NodeDoPopulateStandardAttributes) Kind() string {
 	return "workflowconfig.NodeDoPopulateStandardAttributes"
 }

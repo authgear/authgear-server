@@ -95,16 +95,16 @@ func (*IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *wo
 		}, nil
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoUseAuthenticator:
-			// Handle nested steps.
-			return nil, nil
-		}
-	}
+	_, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrEOF
+	switch {
+	case authenticatorUsed && !nestedStepsHandled:
+		// Handle nested steps.
+		return nil, nil
+	default:
+		return nil, workflow.ErrEOF
+	}
 }
 
 func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -160,19 +160,19 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 	}
 	step := i.step(current)
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoUseAuthenticator:
-			identification := i.authenticationMethod(workflows.Nearest)
-			return workflow.NewSubWorkflow(&IntentLoginFlowSteps{
-				LoginFlow:   i.LoginFlow,
-				JSONPointer: i.jsonPointer(step, identification),
-			}), nil
-		}
-	}
+	_, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrIncompatibleInput
+	switch {
+	case authenticatorUsed && !nestedStepsHandled:
+		identification := i.authenticationMethod(workflows.Nearest)
+		return workflow.NewSubWorkflow(&IntentLoginFlowSteps{
+			LoginFlow:   i.LoginFlow,
+			JSONPointer: i.jsonPointer(step, identification),
+		}), nil
+	default:
+		return nil, workflow.ErrIncompatibleInput
+	}
 }
 
 func (*IntentLoginFlowStepAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
