@@ -20,6 +20,15 @@ type NodeUseAuthenticatorPassword struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
+var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorPassword{}
+
+func (*NodeUseAuthenticatorPassword) Milestone() {}
+func (n *NodeUseAuthenticatorPassword) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
+	return n.Authentication, true
+}
+
+var _ workflow.NodeSimple = &NodeUseAuthenticatorPassword{}
+
 func (*NodeUseAuthenticatorPassword) Kind() string {
 	return "workflowconfig.NodeUseAuthenticatorPassword"
 }

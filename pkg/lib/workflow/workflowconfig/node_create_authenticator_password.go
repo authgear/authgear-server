@@ -19,6 +19,15 @@ type NodeCreateAuthenticatorPassword struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
+var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
+
+func (*NodeCreateAuthenticatorPassword) Milestone() {}
+func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
+	return n.Authentication, true
+}
+
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
+
 func (*NodeCreateAuthenticatorPassword) Kind() string {
 	return "workflowconfig.NodeCreateAuthenticatorPassword"
 }
