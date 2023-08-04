@@ -143,7 +143,10 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 					Authentication: authentication,
 				}), nil
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
-				// FIXME(workflow): authenticate with totp
+				return workflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			case config.WorkflowAuthenticationMethodRecoveryCode:
 				// FIXME(workflow): authenticate with recovery code
 			case config.WorkflowAuthenticationMethodDeviceToken:
