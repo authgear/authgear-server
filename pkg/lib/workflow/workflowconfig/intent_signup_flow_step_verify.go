@@ -120,7 +120,7 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *workflow
 	purpose := target.GetPurpose(ctx, deps, workflows.Replace(targetStepWorkflow))
 	messageType := target.GetMessageType(ctx, deps, workflows.Replace(targetStepWorkflow))
 	claimValue := claims[claimName]
-	return workflow.NewNodeSimple(&NodeVerifyClaimSelectChannel{
+	return workflow.NewSubWorkflow(&IntentVerifyClaim{
 		UserID:      i.UserID,
 		Purpose:     purpose,
 		MessageType: messageType,
