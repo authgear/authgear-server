@@ -62,3 +62,8 @@ type MilestoneDoPopulateStandardAttributes interface {
 	Milestone
 	MilestoneDoPopulateStandardAttributes()
 }
+
+type MilestoneDoMarkClaimVerified interface {
+	Milestone
+	MilestoneDoMarkClaimVerified()
+}
