@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
@@ -168,6 +169,43 @@ func (s *AppService) GetProjectQuota(userID string) (int, error) {
 	}
 
 	return quota, nil
+}
+
+func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
+	q := s.SQLBuilder.Select(
+		"user_id",
+		"max_own_apps",
+	).
+		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
+		Where("user_id = ANY (?)", pq.Array(userIDs))
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	m := make(map[string]int)
+	for rows.Next() {
+		var userID string
+		var count int
+		err = rows.Scan(&userID, &count)
+		if err != nil {
+			return nil, err
+		}
+		m[userID] = count
+	}
+
+	out := make([]int, len(userIDs))
+	for i, userID := range userIDs {
+		if count, ok := m[userID]; ok {
+			out[i] = count
+		} else {
+			out[i] = s.AppConfig.MaxOwnedApps
+		}
+	}
+
+	return out, nil
 }
 
 func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {

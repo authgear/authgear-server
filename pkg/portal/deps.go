@@ -91,6 +91,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.DomainLoaderDomainService), new(*service.DomainService)),
 	wire.Bind(new(loader.CollaboratorLoaderCollaboratorService), new(*service.CollaboratorService)),
 	wire.Bind(new(loader.AuthzService), new(*service.AuthzService)),
+	wire.Bind(new(loader.UserLoaderAppService), new(*service.AppService)),
+	wire.Bind(new(loader.UserLoaderCollaboratorService), new(*service.CollaboratorService)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),

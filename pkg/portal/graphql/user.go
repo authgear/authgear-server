@@ -23,6 +23,12 @@ var nodeUser = node(
 			"email": &graphql.Field{
 				Type: graphql.String,
 			},
+			"projectQuota": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"projectOwnerCount": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Int),
+			},
 		},
 	}),
 	&model.User{},

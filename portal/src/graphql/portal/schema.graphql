@@ -1010,6 +1010,12 @@ type User implements Node {
 
   """The ID of an object"""
   id: ID!
+
+  """"""
+  projectOwnerCount: Int!
+
+  """"""
+  projectQuota: Int
 }
 
 """"""
