@@ -327,6 +327,20 @@ The idea is to add a second app2app device key which is biometric protected in t
 
 Same as iOS, with platform specific biometric authentication options in `App2AppBiometricOptions`.
 
+### Configuration Summary
+
+This is a summary of combination of different settings and the expected result.
+
+| Is new offline grant | x_app2app_enabled | x_app2app_insecure_device_key_binding_enabled | x_app2app_biometric_protection_required | Result                                                                                                                                                                 |
+| -------------------- | ----------------- | --------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Yes                  | Yes               | No                                            | No                                      | App2App can be used without prblem                                                                                                                                     |
+| No                   | Yes               | No                                            | No                                      | Should return error during `approveApp2AppAuthenticationRequest`                                                                                                       |
+| Yes                  | Yes               | Yes                                           | No                                      | App2App can be used without problem                                                                                                                                    |
+| No                   | Yes               | Yes                                           | No                                      | New device key bind during `approveApp2AppAuthenticationRequest`. App2App can be used without problem.                                                                 |
+| Yes                  | Yes               | No                                            | Yes                                     | App2App can be used without problem with biometric prompt in `approveApp2AppAuthenticationRequest`                                                                     |
+| No                   | Yes               | No                                            | Yes                                     | Should return error during `approveApp2AppAuthenticationRequest`                                                                                                       |
+| Yes                  | Yes               | Yes                                           | Yes                                     | New device key bind during `approveApp2AppAuthenticationRequest` . App2App can be used without problem with biometric prompt in `approveApp2AppAuthenticationRequest`. |
+
 ## Related Readings
 
 - [OpenID Connect Client-Initiated Backchannel Authentication Flow - Core 1.0](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#rfc.section.7.1.1)
