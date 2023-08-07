@@ -636,7 +636,7 @@ var _ = registerMutationField(
 )
 
 func checkAppQuota(ctx *Context, userID string) error {
-	quota, err := ctx.AppService.GetMaxOwnedApps(userID)
+	quota, err := ctx.AppService.GetProjectQuota(userID)
 	if err != nil {
 		return err
 	}
