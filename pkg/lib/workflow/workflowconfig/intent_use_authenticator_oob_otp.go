@@ -28,12 +28,19 @@ type IntentUseAuthenticatorOOBOTP struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
+var _ Milestone = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
+
+var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
+
 func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
 	return n.Authentication, true
 }
+
+var _ MilestoneAuthenticated = &IntentUseAuthenticatorOOBOTP{}
+
+func (*IntentUseAuthenticatorOOBOTP) MilestoneAuthenticated() {}
 
 var _ workflow.NodeSimple = &IntentUseAuthenticatorOOBOTP{}
 

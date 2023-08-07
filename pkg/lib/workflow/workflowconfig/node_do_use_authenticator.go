@@ -16,14 +16,21 @@ type NodeDoUseAuthenticator struct {
 	PasswordChangeRequired bool                `json:"password_change_required,omitempty"`
 }
 
-var _ workflow.NodeSimple = &NodeDoUseAuthenticator{}
+var _ Milestone = &NodeDoUseAuthenticator{}
+
+func (*NodeDoUseAuthenticator) Milestone() {}
 
 var _ MilestoneDoUseAuthenticator = &NodeDoUseAuthenticator{}
 
-func (*NodeDoUseAuthenticator) Milestone() {}
 func (n *NodeDoUseAuthenticator) MilestoneDoUseAuthenticator() (*NodeDoUseAuthenticator, bool) {
 	return n, true
 }
+
+var _ MilestoneAuthenticated = &NodeDoUseAuthenticator{}
+
+func (*NodeDoUseAuthenticator) MilestoneAuthenticated() {}
+
+var _ workflow.NodeSimple = &NodeDoUseAuthenticator{}
 
 func (*NodeDoUseAuthenticator) Kind() string {
 	return "workflowconfig.NodeDoUseAuthenticator"

@@ -95,11 +95,14 @@ func (*IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *wo
 		}, nil
 	}
 
-	_, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
 	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
-	case authenticatorUsed && !nestedStepsHandled:
+	case !authenticated:
+		// Stick to this workflow if not authenticated.
+		return nil, nil
+	case authenticated && !nestedStepsHandled:
 		// Handle nested steps.
 		return nil, nil
 	default:
@@ -148,7 +151,10 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 					Authentication: authentication,
 				}), nil
 			case config.WorkflowAuthenticationMethodRecoveryCode:
-				// FIXME(workflow): authenticate with recovery code
+				return workflow.NewNodeSimple(&NodeUseRecoveryCode{
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			case config.WorkflowAuthenticationMethodDeviceToken:
 				// FIXME(workflow): authenticate with device token
 			}
@@ -163,11 +169,11 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 	}
 	step := i.step(current)
 
-	_, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
 	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
-	case authenticatorUsed && !nestedStepsHandled:
+	case authenticated && !nestedStepsHandled:
 		identification := i.authenticationMethod(workflows.Nearest)
 		return workflow.NewSubWorkflow(&IntentLoginFlowSteps{
 			LoginFlow:   i.LoginFlow,

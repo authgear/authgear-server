@@ -28,6 +28,11 @@ type MilestoneAuthenticationMethod interface {
 	MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool)
 }
 
+type MilestoneAuthenticated interface {
+	Milestone
+	MilestoneAuthenticated()
+}
+
 type MilestoneDoCreateSession interface {
 	Milestone
 	MilestoneDoCreateSession() bool
