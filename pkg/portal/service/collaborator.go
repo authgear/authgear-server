@@ -137,6 +137,26 @@ func (s *CollaboratorService) ListCollaboratorsByUser(userID string) ([]*model.C
 	return cs, nil
 }
 
+func (s *CollaboratorService) GetProjectOwnerCount(userID string) (int, error) {
+	q := s.SQLBuilder.Select("count(1)").
+		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
+		Where("user_id = ?", userID).
+		Where("role = ?", string(model.CollaboratorRoleOwner))
+
+	row, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return 0, err
+	}
+
+	var count int
+	err = row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 func (s *CollaboratorService) NewCollaborator(appID string, userID string, role model.CollaboratorRole) *model.Collaborator {
 	now := s.Clock.NowUTC()
 	c := &model.Collaborator{

@@ -70,6 +70,8 @@ type CollaboratorService interface {
 	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
 	DeleteCollaborator(c *model.Collaborator) error
 
+	GetProjectOwnerCount(userID string) (int, error)
+
 	GetInvitation(id string) (*model.CollaboratorInvitation, error)
 	GetInvitationWithCode(id string) (*model.CollaboratorInvitation, error)
 	ListInvitations(appID string) ([]*model.CollaboratorInvitation, error)
