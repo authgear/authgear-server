@@ -1,5 +1,3 @@
 {{ .Code }} is your {{ template "app.name" }} verification code.
 
 Ignore this if you didn't sign in or sign up.
-
-@{{ .Host }} #{{ .Code }}
