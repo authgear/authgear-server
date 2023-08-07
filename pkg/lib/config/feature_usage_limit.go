@@ -7,7 +7,7 @@ var _ = FeatureConfigSchema.Add("UsageLimitConfig", `
 	"properties": {
 		"enabled": { "type": "boolean" },
 		"period": { "$ref": "#/$defs/UsageLimitPeriod" },
-		"quota": { "type": "integer", "minimum": 1 }
+		"quota": { "type": "integer", "minimum": 0 }
 	},
 	"if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
 	"then": { "required": ["period", "quota"] }
