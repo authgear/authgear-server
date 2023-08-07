@@ -245,6 +245,7 @@ var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorizat
 func (h *TokenHandler) parseApp2AppTokenRequest(jwt string, verifyChallenge bool) (*app2app.Request, error) {
 	app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
 	if err != nil {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt payload")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
 	}
 	if !verifyChallenge {
@@ -252,6 +253,7 @@ func (h *TokenHandler) parseApp2AppTokenRequest(jwt string, verifyChallenge bool
 	}
 	purpose, err := h.Challenges.Consume(app2appToken.Challenge)
 	if err != nil || *purpose != challenge.PurposeApp2AppRequest {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt challenge")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
 	}
 	return app2appToken, nil
@@ -265,6 +267,7 @@ func (h *TokenHandler) getApp2AppDeviceKey(jwt string, verifyChallenge bool) (jw
 	key := app2appToken.Key
 	_, err = h.App2App.ParseToken(jwt, key)
 	if err != nil {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt signature")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 	return key, nil
@@ -831,6 +834,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 	_, err = h.App2App.ParseToken(app2appjwt, parsedKey)
 	if err != nil {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt signature")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
 	}
 
