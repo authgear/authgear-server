@@ -8,6 +8,10 @@
     - [Android SDK](#android-sdk)
   - [iOS](#ios)
     - [iOS SDK](#ios-sdk)
+- [Biometric Support](#biometric-support)
+  - [Server-side](#biometric-server-side)
+  - [iOS](#biometric-ios)
+  - [Android](#biometric-android)
 - [Related Readings](#related-readings)
 
 ## Abstract
@@ -42,19 +46,17 @@ An app can start the authentication flow by opening a link to another app, inste
   ```
 
   - `x_app2app_enabled`: boolean. Whether the client is able to handle app2app authentication requests from other clients.
-  - `x_app2app_insecure_device_key_binding_enabled`: boolean. Default `false`. If `true`, refresh tokens of this client without a bound device key can be bound to a new device key during refreshing the tokens. This option is for allowing existing logged in users to use app2app without requiring them to re-login. However this also allows sessions without a bound device key to be bound with any key and participate in app2app authentication which might be a security concern.
+  - `x_app2app_insecure_device_key_binding_enabled`: boolean. Default `false`. If `true`, offline grant of this client without a bound device key can be bound to a new device key when using the new grant type `urn:authgear:params:oauth:grant-type:app2app`. This option is for allowing existing logged in users to use app2app without requiring them to re-login. However this also allows sessions without a bound device key to be bound with any key and participate in app2app authentication which might be a security concern.
 
 - Token Endpoint
 
   - For `grant_type=authorization_code`, a new parameter `x_app2app_device_key_jwt` is supported. This value can be specified by the client to enable app2app login. If specified, it should be a jwt signed by the private key of the device key, and containing the public key of that key pair in header, with a `challenge` obtained from server in payload. `x_app2app_device_key_jwt` will be ignored if `x_app2app_enabled` of the client configuration is not `true`.
 
-  - For `grant_type=refresh_token`, a new parameter `x_app2app_device_key_jwt` is supported if `x_app2app_insecure_device_key_binding_enabled` is `true`. The provided public key in the jwt will be bound to the provided refresh token if the refresh token isn't already bound to another device key. If the refresh token was already bound to another device key which doesn't match the one provided in this parameter, an error will be returned.
-
   - A new grant_type `urn:authgear:params:oauth:grant-type:app2app` is supported. When using such grant_type, The following must be provided in the request:
     - `refresh_token`: a valid refresh token.
     - `client_id`: current client id.
     - `app2app_client_id`: the authenticating client id.
-    - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key of the device key bound to the refresh token.
+    - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key of the device key bound to the refresh token. If `x_app2app_insecure_device_key_binding_enabled` is `true`, a jwt with a new device key will be allowed if there were no device key bound in the current offline grant. In this case the new key will be bound to the offline grant after the request.
     - `app2app_redirect_uri`: the redirect uri used to return the result used by the app. The server is reponsible to check the provided uri is in the whitelist of at least one of the configured client redirect uri.
   - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authorization_code` and obtain a new set of refresh token and access tokens.
 
@@ -148,7 +150,7 @@ The following parameter will be added to constructor of `Authgear`:
   - App2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
     - `isEnabled`: If true, new sessions will be prepared for participating in app2app authentication.
-    - `isInsecureDeviceKeyBindingEnabled`: If true, the sdk will try to create and bind device key during refresh tokens to "migrate" to app2app sessions.
+    - `isInsecureDeviceKeyBindingEnabled`: If true, the sdk will try to create and bind device key during `approveApp2AppAuthenticationRequest` to "migrate" to app2app sessions.
 
 The following methods will be added in android sdk to support the app2app flow:
 
@@ -244,7 +246,7 @@ The following parameters will be added to constuctor of `Authgear`:
   - app2app options. If `null`, this app cannot authenticate other apps through app2app.
   - `App2AppOptions` contains the following fields:
     - `isEnabled`: If true, new sessions will be prepared for participating in app2app authentication.
-    - `isInsecureDeviceKeyBindingEnabled`: If true, the sdk will try to create and bind device key during refresh tokens to "migrate" to app2app sessions.
+    - `isInsecureDeviceKeyBindingEnabled`: If true, the sdk will try to create and bind device key during `approveApp2AppAuthenticationRequest` to "migrate" to app2app sessions.
 
 The following methods will be added in android sdk to support the app2app flow:
 
@@ -262,8 +264,68 @@ The following methods will be added in android sdk to support the app2app flow:
   - Rejects an app2app request received from another client, returning an error through the redirect uri.
   - `request` should be the return value of `parseApp2AppAuthenticationRequest`.
   - `error` is the reason to reject the request.
-- `handleApp2AppAuthenticationResult(uri: URL)`
-  - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `uri` should be the URL of the universal link received.
+- `handleApp2AppAuthenticationResult(url: URL)`
+  - This method should be called by the app which triggers the app2app authentication flow, and received the result through the redirect uri as an intent. `url` should be the URL of the universal link received.
+
+## Biometric Support
+
+Considering using app2app together with biometric authentication could be a common use case of app2app, we are going to support app2app with biometric authentication.
+
+The idea is to add a second app2app device key which is biometric protected in the device, so that if the user need to make a app2app authentication, he must pass the authentication process configured for the biometric protected device key.
+
+<a id="biometric-server-side"></a>
+
+### Server-side
+
+- Support requiring biometric protected app2app device key in client config
+
+  ```yaml
+  oauth:
+    clients:
+      - client_id: CLIENT_ID
+        # ...Other configs
+        x_app2app_biometric_protection_required: true
+  ```
+
+  `x_app2app_biometric_protection_required` will be added to the client config. If it was set to `true`, the client is unable to issue new authorization code in `grant_type=urn:authgear:params:oauth:grant-type:app2app` if the current app2app device key is not protected by biometric authentication. See below for detailed implementation.
+
+- Support biometric protected app2app device key in offline grant
+
+  Add a field in the stored offline grant `app2app_biometric_device_key_json: string`.
+
+  By default the field is empty. It can only be changed during token request with `grant_type=urn:authgear:params:oauth:grant-type:app2app`. See below.
+
+- Migrating to a biometric protected app2app device key
+
+  When handling token request with `grant_type=urn:authgear:params:oauth:grant-type:app2app`, a new parameter `x_app2app_biometric_device_key_jwt` will be accepted.
+
+  If `x_app2app_biometric_device_key_jwt` was specified, it must be a jwt generated by the same process of generating `x_app2app_device_key_jwt` described above in this article, signed by the _biometric protected_ app2app device key.
+
+  If `x_app2app_biometric_device_key_jwt` was provided, we do the followings:
+
+  1. Verify `jwt` with the existing app2app device key found in the current offline grant. If the jwt cannot be verified, an error should be returned.
+  2. In case of no existing app2app device key found in the current offline grant, we must check `x_app2app_insecure_device_key_binding_enabled` of the client config. If it is not `true`, an error should be returned.
+  3. Verify the challenge and signature of `x_app2app_biometric_device_key_jwt`.
+  4. After verified, set `app2app_biometric_device_key_json` to the serialized key inside `x_app2app_biometric_device_key_jwt`.
+
+- Reject app2app authentication requests according to new configs
+
+  In token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:app2app`, if `x_app2app_biometric_protection_required` of _the client of the current offline grant_ is `true`,
+
+  1. The client must provide `x_app2app_biometric_device_key_jwt` in every request, else an error should be returned.
+  2. If `app2app_biometric_device_key_json` already exist for the current offline grant, `x_app2app_biometric_device_key_jwt` will be verified using the this key. An error should be returned if the verification failed.
+
+<a id="biometric-ios"></a>
+
+#### iOS
+
+- In the `approveApp2AppAuthenticationRequest` method, add a parameter `biometricOptions?: App2AppBiometricOptions`.
+
+  If `biometricOptions` is provided, the sdk should include `x_app2app_biometric_protection_required` in the request. Check [Server-side](#biometric-server-side) section for description of this parameter. If the biometric device key does not exist at the moment, the sdk should generate one. The sdk should also prompt the user for biometric authentication according to the user config.
+
+#### Android
+
+Same as iOS, with platform specific biometric authentication options in `App2AppBiometricOptions`.
 
 ## Related Readings
 
