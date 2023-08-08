@@ -19,6 +19,7 @@ import { DateTime } from "luxon";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { formatDatetime } from "../../util/formatDatetime";
 import LinkButton from "../../LinkButton";
+import BlueMessageBar from "../../BlueMessageBar";
 import styles from "./SubscriptionCurrentPlanSummary.module.css";
 
 export interface SubscriptionCurrentPlanSummaryProps {
@@ -34,6 +35,7 @@ export interface SubscriptionCurrentPlanSummaryProps {
   onClickManageSubscription?: IButtonProps["onClick"];
   manageSubscriptionLoading?: boolean;
   manageSubscriptionDisabled?: boolean;
+  showFreePlanWarning?: boolean;
   children?: React.ReactNode;
 }
 
@@ -306,6 +308,7 @@ function SubscriptionCurrentPlanSummary(
     manageSubscriptionLoading,
     manageSubscriptionDisabled,
     isCustomPlan,
+    showFreePlanWarning,
     children,
   } = props;
   return (
@@ -344,6 +347,11 @@ function SubscriptionCurrentPlanSummary(
           />
         ) : null}
       </div>
+      {showFreePlanWarning === true ? (
+        <BlueMessageBar className="mt-4 max-w-2xl">
+          <FormattedMessage id="warnings.free-plan" />
+        </BlueMessageBar>
+      ) : null}
     </div>
   );
 }

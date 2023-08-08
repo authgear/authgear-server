@@ -1,5 +1,6 @@
 fragment AppFragment on App {
   id
+  effectiveAppConfig
   effectiveFeatureConfig
   isProcessingSubscription
   lastStripeError

@@ -35,6 +35,7 @@ import {
   SubscriptionPlan,
   SubscriptionUsage,
 } from "./globalTypes.generated";
+import { PortalAPIAppConfig } from "../../types";
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
@@ -72,6 +73,7 @@ import {
   isCustomPlan,
   isStripePlan,
   isFreePlan,
+  isLimitedFreePlan,
   getPreviousPlan,
   getCTAVariant,
   getMAULimit,
@@ -91,6 +93,33 @@ const CONTACT_US_BUTTON_THEME: PartialTheme = {
     linkHovered: "#c8c8c8",
   },
 };
+
+function shouldShowFreePlanWarning(
+  planName: string,
+  effectiveAppConfig: PortalAPIAppConfig | undefined
+): boolean {
+  if (effectiveAppConfig == null) {
+    return false;
+  }
+
+  if (!isLimitedFreePlan(planName)) {
+    return false;
+  }
+
+  const loginIDEnabled =
+    effectiveAppConfig.authentication?.identities?.includes("login_id") ??
+    false;
+  const phoneEnabled =
+    effectiveAppConfig.identity?.login_id?.keys?.find(
+      (a) => a.type === "phone"
+    ) != null;
+  const oobOTPSMSEnabled =
+    effectiveAppConfig.authentication?.primary_authenticators?.includes(
+      "oob_otp_sms"
+    ) ?? false;
+
+  return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
+}
 
 interface PlanDetailsLinesProps {
   planName: string;
@@ -373,6 +402,7 @@ interface SubscriptionScreenContentProps {
   subscriptionPlans: SubscriptionPlan[];
   thisMonthUsage?: SubscriptionUsage;
   previousMonthUsage?: SubscriptionUsage;
+  effectiveAppConfig?: PortalAPIAppConfig;
 }
 
 function getTotalCost(
@@ -518,8 +548,14 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     subscriptionPlans,
     thisMonthUsage,
     previousMonthUsage,
+    effectiveAppConfig,
   } = props;
   const { themes } = useSystemConfig();
+
+  const showFreePlanWarning = useMemo(
+    () => shouldShowFreePlanWarning(planName, effectiveAppConfig),
+    [planName, effectiveAppConfig]
+  );
 
   const subscriptionEndedAt = useMemo(() => {
     if (subscription?.endedAt != null) {
@@ -777,6 +813,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           onClickManageSubscription={onClickManageSubscription}
           manageSubscriptionLoading={manageSubscriptionLoading}
           manageSubscriptionDisabled={isLoading}
+          showFreePlanWarning={showFreePlanWarning}
         >
           <CostItem
             title={
@@ -1090,6 +1127,10 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     subscriptionScreenQuery.data?.node as AppFragmentFragment
   ).previousMonth;
 
+  const effectiveAppConfig = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).effectiveAppConfig as PortalAPIAppConfig | null | undefined;
+
   return (
     <ScreenLayoutScrollView>
       <SubscriptionScreenContent
@@ -1099,6 +1140,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
         subscriptionPlans={subscriptionPlans}
         thisMonthUsage={thisMonthUsage ?? undefined}
         previousMonthUsage={previousMonthUsage ?? undefined}
+        effectiveAppConfig={effectiveAppConfig ?? undefined}
       />
     </ScreenLayoutScrollView>
   );
