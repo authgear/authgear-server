@@ -1107,6 +1107,7 @@
   "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
+  "SubscriptionPlanCard.label.non-applicable": "Disabled",
   "SubscriptionPlanCard.label.reactivate": "Reactivate",
   "SubscriptionPlanCard.label.contact-us": "Contact Us",
   "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
@@ -1173,6 +1174,7 @@
   "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
+  "SubscriptionScreen.plan-name.free-approved": "Free",
   "SubscriptionScreen.plan-name.developers": "Developers",
   "SubscriptionScreen.plan-name.startups": "Startups",
   "SubscriptionScreen.plan-name.business": "Business",
