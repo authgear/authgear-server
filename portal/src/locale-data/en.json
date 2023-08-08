@@ -161,6 +161,7 @@
 
   "AppsScreen.title": "Select Project",
   "AppsScreen.create-app": "Create Project",
+  "AppsScreen.project-quota-reached": "You have reached the maximum number of projects in your account, please apply for an increase by completing{ExternalLink, react, href{https://go.authgear.com/portal-support} children{this form}}.",
 
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",

@@ -796,6 +796,8 @@ export type User = Node & {
   email?: Maybe<Scalars['String']>;
   /** The ID of an object */
   id: Scalars['ID'];
+  projectOwnerCount: Scalars['Int'];
+  projectQuota?: Maybe<Scalars['Int']>;
 };
 
 export type VerifyDomainInput = {
