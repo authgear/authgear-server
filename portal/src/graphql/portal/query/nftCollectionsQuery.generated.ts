@@ -8,7 +8,7 @@ export type NftCollectionsQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type NftCollectionsQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, nftCollections: Array<{ __typename?: 'NFTCollection', name: string, blockchain: string, network: string, contractAddress: string, totalSupply?: string | null, tokenType: string, createdAt: any }> } | { __typename: 'User' } | null };
+export type NftCollectionsQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, nftCollections: Array<{ __typename?: 'NFTCollection', name: string, blockchain: string, network: string, contractAddress: string, totalSupply?: string | null, tokenType: string, createdAt: any }> } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
 
 
 export const NftCollectionsQueryDocument = gql`

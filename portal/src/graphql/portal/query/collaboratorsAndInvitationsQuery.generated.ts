@@ -8,7 +8,7 @@ export type CollaboratorsAndInvitationsQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type CollaboratorsAndInvitationsQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, collaborators: Array<{ __typename?: 'Collaborator', id: string, role: Types.CollaboratorRole, createdAt: any, user: { __typename?: 'User', id: string, email?: string | null } }>, collaboratorInvitations: Array<{ __typename?: 'CollaboratorInvitation', id: string, createdAt: any, expireAt: any, inviteeEmail: string, invitedBy: { __typename?: 'User', id: string, email?: string | null } }> } | { __typename: 'User' } | null };
+export type CollaboratorsAndInvitationsQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, collaborators: Array<{ __typename?: 'Collaborator', id: string, role: Types.CollaboratorRole, createdAt: any, user: { __typename?: 'User', id: string, email?: string | null } }>, collaboratorInvitations: Array<{ __typename?: 'CollaboratorInvitation', id: string, createdAt: any, expireAt: any, inviteeEmail: string, invitedBy: { __typename?: 'User', id: string, email?: string | null } }> } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
 
 
 export const CollaboratorsAndInvitationsQueryDocument = gql`

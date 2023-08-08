@@ -10,7 +10,7 @@ import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import BlueMessageBar from "../../BlueMessageBar";
 import { useAppListQuery } from "./query/appListQuery";
 import { useViewerQuery } from "./query/viewerQuery";
-import { AppListItem, User } from "./globalTypes.generated";
+import { AppListItem, Viewer } from "./globalTypes.generated";
 import styles from "./AppsScreen.module.css";
 import { toTypedID } from "../../util/graphql";
 
@@ -35,7 +35,7 @@ const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   );
 };
 
-function isProjectQuotaReached(viewer: User | null): boolean {
+function isProjectQuotaReached(viewer: Viewer | null): boolean {
   if (viewer == null) {
     return false;
   }
@@ -50,7 +50,7 @@ function isProjectQuotaReached(viewer: User | null): boolean {
 }
 
 interface ProjectQuotaMessageBarProps {
-  viewer: User | null;
+  viewer: Viewer | null;
 }
 
 function ProjectQuotaMessageBar(
@@ -70,7 +70,7 @@ function ProjectQuotaMessageBar(
 
 interface AppListProps {
   apps: AppListItem[] | null;
-  viewer: User | null;
+  viewer: Viewer | null;
 }
 
 const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {

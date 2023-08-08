@@ -8,7 +8,7 @@ export type DomainsQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type DomainsQueryQuery = { __typename?: 'Query', node?: { __typename?: 'App', id: string, domains: Array<{ __typename?: 'Domain', id: string, createdAt: any, apexDomain: string, domain: string, cookieDomain: string, isCustom: boolean, isVerified: boolean, verificationDNSRecord: string }> } | { __typename?: 'User' } | null };
+export type DomainsQueryQuery = { __typename?: 'Query', node?: { __typename?: 'App', id: string, domains: Array<{ __typename?: 'Domain', id: string, createdAt: any, apexDomain: string, domain: string, cookieDomain: string, isCustom: boolean, isVerified: boolean, verificationDNSRecord: string }> } | { __typename?: 'User' } | { __typename?: 'Viewer' } | null };
 
 
 export const DomainsQueryDocument = gql`

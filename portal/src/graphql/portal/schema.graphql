@@ -661,7 +661,7 @@ type Query {
   ): Chart
 
   """The current viewer"""
-  viewer: User
+  viewer: Viewer
 }
 
 """SMTP secret"""
@@ -1010,12 +1010,6 @@ type User implements Node {
 
   """The ID of an object"""
   id: ID!
-
-  """"""
-  projectOwnerCount: Int!
-
-  """"""
-  projectQuota: Int
 }
 
 """"""
@@ -1034,6 +1028,21 @@ type VerifyDomainPayload {
 
   """"""
   domain: Domain!
+}
+
+"""The viewer"""
+type Viewer implements Node {
+  """"""
+  email: String
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  projectOwnerCount: Int!
+
+  """"""
+  projectQuota: Int
 }
 
 """Webhook secret"""

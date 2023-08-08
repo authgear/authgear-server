@@ -8,7 +8,7 @@ export type AuthenticatedForInvitationQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type AuthenticatedForInvitationQueryQuery = { __typename?: 'Query', viewer?: { __typename?: 'User', email?: string | null } | null, checkCollaboratorInvitation?: { __typename?: 'CheckCollaboratorInvitationPayload', isInvitee: boolean, appID: string } | null };
+export type AuthenticatedForInvitationQueryQuery = { __typename?: 'Query', viewer?: { __typename?: 'Viewer', email?: string | null } | null, checkCollaboratorInvitation?: { __typename?: 'CheckCollaboratorInvitationPayload', isInvitee: boolean, appID: string } | null };
 
 
 export const AuthenticatedForInvitationQueryDocument = gql`

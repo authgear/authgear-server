@@ -23,17 +23,10 @@ var nodeUser = node(
 			"email": &graphql.Field{
 				Type: graphql.String,
 			},
-			"projectQuota": &graphql.Field{
-				Type: graphql.Int,
-			},
-			"projectOwnerCount": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.Int),
-			},
 		},
 	}),
 	&model.User{},
 	func(ctx context.Context, id string) (interface{}, error) {
-		// FIXME(portal): How can we determine if the viewer can access this user?
 		gqlCtx := GQLContext(ctx)
 		return gqlCtx.Users.Load(id).Value, nil
 	},
