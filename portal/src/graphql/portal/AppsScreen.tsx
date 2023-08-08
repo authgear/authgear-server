@@ -109,18 +109,20 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
           <Text as="h1" variant="xLarge" block={true}>
             <FormattedMessage id="AppsScreen.title" />
           </Text>
-          <ProjectQuotaMessageBar viewer={viewer} />
           <section className={styles.cardsContainer}>
             {appCardsData.map((appCardData) => {
               return <AppCard key={appCardData.appID} {...appCardData} />;
             })}
           </section>
-          <PrimaryButton
-            className={styles.createButton}
-            onClick={onCreateClick}
-            text={<FormattedMessage id="AppsScreen.create-app" />}
-            disabled={projectQuotaReached}
-          />
+          <div className="space-y-4">
+            <PrimaryButton
+              className={styles.createButton}
+              onClick={onCreateClick}
+              text={<FormattedMessage id="AppsScreen.create-app" />}
+              disabled={projectQuotaReached}
+            />
+            <ProjectQuotaMessageBar viewer={viewer} />
+          </div>
         </section>
       </ScreenLayoutScrollView>
     </main>
