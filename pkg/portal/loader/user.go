@@ -88,7 +88,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 		return nil, fmt.Errorf("unexpected graphql errors: %v", result.Errors)
 	}
 
-	qoutas, err := l.Apps.GetManyProjectQuota(ids)
+	quotas, err := l.Apps.GetManyProjectQuota(ids)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 				userModel.Email = email
 			}
 
-			quota := qoutas[idx]
+			quota := quotas[idx]
 			if quota < 0 {
 				userModel.ProjectQuota = nil
 			} else {
