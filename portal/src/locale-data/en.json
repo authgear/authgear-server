@@ -122,6 +122,8 @@
   "errors.alchemy-protocol": "We have some problem with this NFT collection. Please contact us at {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}}.",
   "errors.deno-hook.typecheck": "{pre, react, children{{message}}}",
 
+  "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
+
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
 

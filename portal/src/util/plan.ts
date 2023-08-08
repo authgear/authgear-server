@@ -32,6 +32,10 @@ export function isCustomPlan(planName: string): boolean {
   return !isPlan(planName);
 }
 
+export function isLimitedFreePlan(planName: string): planName is Plan {
+  return planName === "free";
+}
+
 export function isFreePlan(planName: string): planName is Plan {
   return planName === "free" || planName === "free-approved";
 }
