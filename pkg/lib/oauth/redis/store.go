@@ -333,7 +333,7 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 		return nil, err
 	}
 
-	grant.App2AppDeviceKeyJSON = newKey
+	grant.App2AppDeviceKeyJWKJSON = newKey
 
 	err = s.updateOfflineGrant(grant, expireAt)
 	if err != nil {
