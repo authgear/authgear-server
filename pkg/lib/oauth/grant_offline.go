@@ -34,7 +34,7 @@ type OfflineGrant struct {
 
 	SSOEnabled bool `json:"sso_enabled,omitempty"`
 
-	App2AppDeviceKeyJSON string `json:"app2app_device_key_json"`
+	App2AppDeviceKeyJWKJSON string `json:"app2app_device_key_jwk_json"`
 }
 
 func (g *OfflineGrant) SessionID() string         { return g.ID }
