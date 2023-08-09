@@ -17,13 +17,15 @@ var InputTakeRecoveryCodeSchema = validation.NewSimpleSchema(`
 	"properties": {
 		"recovery_code": {
 			"type": "string"
-		}
+		},
+		"request_device_token": { "type": "boolean" }
 	}
 }
 `)
 
 type InputTakeRecoveryCode struct {
-	RecoveryCode string `json:"recovery_code,omitempty"`
+	RecoveryCode       string `json:"recovery_code,omitempty"`
+	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
 }
 
 func (*InputTakeRecoveryCode) Kind() string {
@@ -38,8 +40,14 @@ func (i *InputTakeRecoveryCode) GetRecoveryCode() string {
 	return i.RecoveryCode
 }
 
+func (i *InputTakeRecoveryCode) GetDeviceTokenRequested() bool {
+	return i.RequestDeviceToken
+}
+
 type inputTakeRecoveryCode interface {
 	GetRecoveryCode() string
 }
 
 var _ inputTakeRecoveryCode = &InputTakeRecoveryCode{}
+
+var _ inputDeviceTokenRequested = &InputTakeRecoveryCode{}

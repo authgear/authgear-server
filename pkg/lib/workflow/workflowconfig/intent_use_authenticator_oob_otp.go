@@ -34,15 +34,11 @@ func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
 
 var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
 
-func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
-	return n.Authentication, true
+func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
-var _ MilestoneAuthenticated = &IntentUseAuthenticatorOOBOTP{}
-
-func (*IntentUseAuthenticatorOOBOTP) MilestoneAuthenticated() {}
-
-var _ workflow.NodeSimple = &IntentUseAuthenticatorOOBOTP{}
+var _ workflow.Intent = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Kind() string {
 	return "workflowconfig.IntentUseAuthenticatorOOBOTP"
@@ -95,17 +91,15 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 
 	switch {
 	case authenticatorUsed && !claimVerified:
-		if nn, ok := m.MilestoneDoUseAuthenticator(); ok {
-			info := nn.Authenticator
-			claimName, claimValue := info.OOBOTP.ToClaimPair()
-			return workflow.NewSubWorkflow(&IntentVerifyClaim{
-				UserID:      n.UserID,
-				Purpose:     otp.PurposeOOBOTP,
-				MessageType: n.otpMessageType(info),
-				ClaimName:   claimName,
-				ClaimValue:  claimValue,
-			}), nil
-		}
+		info := m.MilestoneDoUseAuthenticator().Authenticator
+		claimName, claimValue := info.OOBOTP.ToClaimPair()
+		return workflow.NewSubWorkflow(&IntentVerifyClaim{
+			UserID:      n.UserID,
+			Purpose:     otp.PurposeOOBOTP,
+			MessageType: n.otpMessageType(info),
+			ClaimName:   claimName,
+			ClaimValue:  claimValue,
+		}), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput

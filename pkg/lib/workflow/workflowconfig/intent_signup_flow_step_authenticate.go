@@ -49,10 +49,7 @@ func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, 
 		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
 	}
 
-	info, ok := m.MilestoneDoCreateAuthenticator()
-	if !ok {
-		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator does not return authenticator")
-	}
+	info := m.MilestoneDoCreateAuthenticator()
 
 	return info.StandardClaims(), nil
 }
@@ -62,7 +59,7 @@ func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *workfl
 }
 
 func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType {
-	authenticationMethod := i.authenticationMethod(workflows.Nearest)
+	authenticationMethod := i.authenticationMethod(workflows)
 	switch authenticationMethod {
 	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
 		return otp.MessageTypeSetupPrimaryOOB
@@ -171,7 +168,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 
 	switch {
 	case authenticatorCreated && !nestedStepsHandled:
-		authentication := i.authenticationMethod(workflows.Nearest)
+		authentication := i.authenticationMethod(workflows)
 		return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
 			SignupFlow:  i.SignupFlow,
 			JSONPointer: i.jsonPointer(step, authentication),
@@ -224,16 +221,13 @@ func (*IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *config.
 	return
 }
 
-func (*IntentSignupFlowStepAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
-	m, ok := FindMilestone[MilestoneAuthenticationMethod](w)
+func (*IntentSignupFlowStepAuthenticate) authenticationMethod(workflows workflow.Workflows) config.WorkflowAuthenticationMethod {
+	m, ok := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 	if !ok {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}
 
-	am, ok := m.MilestoneAuthenticationMethod()
-	if !ok {
-		panic(fmt.Errorf("workflow: authentication method not yet selected"))
-	}
+	am := m.MilestoneAuthenticationMethod()
 
 	return am
 }

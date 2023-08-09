@@ -15,13 +15,15 @@ var InputTakeTOTPSchema = validation.NewSimpleSchema(`
 	"additionalProperties": false,
 	"required": ["code"],
 	"properties": {
-		"code": { "type": "string" }
+		"code": { "type": "string" },
+		"request_device_token": { "type": "boolean" }
 	}
 }
 `)
 
 type InputTakeTOTP struct {
-	Code string `json:"code,omitempty"`
+	Code               string `json:"code,omitempty"`
+	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
 }
 
 func (*InputTakeTOTP) Kind() string {
@@ -36,8 +38,14 @@ func (i *InputTakeTOTP) GetCode() string {
 	return i.Code
 }
 
+func (i *InputTakeTOTP) GetDeviceTokenRequested() bool {
+	return i.RequestDeviceToken
+}
+
 type inputTakeTOTP interface {
 	GetCode() string
 }
 
 var _ inputTakeTOTP = &InputTakeTOTP{}
+
+var _ inputDeviceTokenRequested = &InputTakeTOTP{}

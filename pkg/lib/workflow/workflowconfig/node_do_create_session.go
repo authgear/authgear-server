@@ -30,8 +30,8 @@ type NodeDoCreateSession struct {
 
 var _ MilestoneDoCreateSession = &NodeDoCreateSession{}
 
-func (*NodeDoCreateSession) Milestone()                     {}
-func (*NodeDoCreateSession) MilestoneDoCreateSession() bool { return true }
+func (*NodeDoCreateSession) Milestone()                {}
+func (*NodeDoCreateSession) MilestoneDoCreateSession() {}
 
 func NewNodeDoCreateSession(deps *workflow.Dependencies, n *NodeDoCreateSession) *NodeDoCreateSession {
 	attrs := session.NewAttrs(n.UserID)

@@ -18,8 +18,8 @@ var _ workflow.NodeSimple = &NodeDoCreateUser{}
 
 var _ MilestoneDoCreateUser = &NodeDoCreateUser{}
 
-func (*NodeDoCreateUser) Milestone()                              {}
-func (n *NodeDoCreateUser) MilestoneDoCreateUser() (string, bool) { return n.UserID, true }
+func (*NodeDoCreateUser) Milestone()                      {}
+func (n *NodeDoCreateUser) MilestoneDoCreateUser() string { return n.UserID }
 
 func (n *NodeDoCreateUser) Kind() string {
 	return "workflowconfig.NodeDoCreateUser"

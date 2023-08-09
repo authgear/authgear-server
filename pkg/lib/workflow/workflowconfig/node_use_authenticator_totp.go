@@ -23,8 +23,8 @@ type NodeUseAuthenticatorTOTP struct {
 var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorTOTP{}
 
 func (*NodeUseAuthenticatorTOTP) Milestone() {}
-func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
-	return n.Authentication, true
+func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
 var _ workflow.NodeSimple = &NodeUseAuthenticatorTOTP{}
