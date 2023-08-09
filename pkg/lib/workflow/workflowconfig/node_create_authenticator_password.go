@@ -22,8 +22,8 @@ type NodeCreateAuthenticatorPassword struct {
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
 
 func (*NodeCreateAuthenticatorPassword) Milestone() {}
-func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
-	return n.Authentication, true
+func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
 var _ workflow.NodeSimple = &NodeCreateAuthenticatorPassword{}

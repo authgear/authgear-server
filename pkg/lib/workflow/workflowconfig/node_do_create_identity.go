@@ -20,8 +20,8 @@ var _ workflow.NodeSimple = &NodeDoCreateIdentity{}
 var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
 
 func (*NodeDoCreateIdentity) Milestone() {}
-func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() (*identity.Info, bool) {
-	return n.Identity, true
+func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() *identity.Info {
+	return n.Identity
 }
 
 func (n *NodeDoCreateIdentity) Kind() string {

@@ -15,6 +15,15 @@ type NodeDoCreateAuthenticator struct {
 	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
+var _ MilestoneDoCreateAuthenticator = &NodeDoCreateAuthenticator{}
+
+func (n *NodeDoCreateAuthenticator) Milestone() {}
+func (n *NodeDoCreateAuthenticator) MilestoneDoCreateAuthenticator() *authenticator.Info {
+	return n.Authenticator
+}
+
+var _ workflow.NodeSimple = &NodeDoCreateAuthenticator{}
+
 func (n *NodeDoCreateAuthenticator) Kind() string {
 	return "workflowconfig.NodeDoCreateAuthenticator"
 }

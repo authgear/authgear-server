@@ -19,9 +19,3 @@ func NewCandidateRecoveryCode() Candidate {
 		CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodRecoveryCode,
 	}
 }
-
-func NewCandidateDeviceToken() Candidate {
-	return Candidate{
-		CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodDeviceToken,
-	}
-}

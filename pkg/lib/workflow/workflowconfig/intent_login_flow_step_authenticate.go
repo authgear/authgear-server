@@ -48,11 +48,8 @@ func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Conte
 		return
 	}
 
-	n, ok := m.MilestoneDoUseAuthenticator()
-	if !ok {
-		return
-	}
 	ok = false
+	n := m.MilestoneDoUseAuthenticator()
 
 	if n.Authenticator.Type == model.AuthenticatorTypePassword {
 		if n.PasswordChangeRequired {
@@ -87,22 +84,44 @@ func (*IntentLoginFlowStepAuthenticate) JSONSchema() *validation.SimpleSchema {
 	return IntentLoginFlowStepAuthenticateSchema
 }
 
-func (*IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	// Let the input to select which authentication method to use.
-	if len(workflows.Nearest.Nodes) == 0 {
-		return []workflow.Input{
-			&InputTakeAuthenticationMethod{},
-		}, nil
+func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	if err != nil {
+		return nil, err
 	}
+	step := i.step(current)
+
+	deviceTokenEnabled := i.deviceTokenEnabled(step)
+
+	_, deviceTokenInspected := FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
+
+	_, authenticationMethodSelected := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 
 	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
+
+	_, deviceTokenCreatedIfRequested := FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
+
 	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
-	case !authenticated:
-		// Stick to this workflow if not authenticated.
+	case deviceTokenEnabled && !deviceTokenInspected:
+		// Inspect the device token
 		return nil, nil
-	case authenticated && !nestedStepsHandled:
+	case !authenticationMethodSelected:
+		// Let the input to select which authentication method to use.
+		return []workflow.Input{
+			&InputTakeAuthenticationMethod{},
+		}, nil
+	case !authenticated:
+		// This branch is only reached when there is a programming error.
+		// We expect the selected authentication method to be authenticated before this intent becomes input reactor again.
+		panic(fmt.Errorf("workflow: unauthenticated"))
+
+	case deviceTokenEnabled && !deviceTokenCreatedIfRequested:
+		// We look at the current input to see if device token is request.
+		// So we do not need to take another input.
+		return nil, nil
+	case !nestedStepsHandled:
 		// Handle nested steps.
 		return nil, nil
 	default:
@@ -111,7 +130,30 @@ func (*IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *wo
 }
 
 func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	if len(workflows.Nearest.Nodes) == 0 {
+	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	deviceTokenEnabled := i.deviceTokenEnabled(step)
+
+	_, deviceTokenInspected := FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
+
+	_, authenticationMethodSelected := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
+
+	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
+
+	_, deviceTokenCreatedIfRequested := FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
+
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+
+	switch {
+	case deviceTokenEnabled && !deviceTokenInspected:
+		return workflow.NewSubWorkflow(&IntentInspectDeviceToken{
+			UserID: i.UserID,
+		}), nil
+	case !authenticationMethodSelected:
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) &&
 			inputTakeAuthenticationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
@@ -156,28 +198,23 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 					Authentication: authentication,
 				}), nil
 			case config.WorkflowAuthenticationMethodDeviceToken:
-				// FIXME(workflow): authenticate with device token
+				// Device token is handled transparently.
+				return nil, workflow.ErrIncompatibleInput
 			}
 		}
 
 		return nil, workflow.ErrIncompatibleInput
-	}
-
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-
-	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
-
-	switch {
-	case authenticated && !nestedStepsHandled:
-		identification := i.authenticationMethod(workflows.Nearest)
+	case !authenticated:
+		panic(fmt.Errorf("workflow: unauthenticated"))
+	case deviceTokenEnabled && !deviceTokenCreatedIfRequested:
+		return workflow.NewSubWorkflow(&IntentCreateDeviceTokenIfRequested{
+			UserID: i.UserID,
+		}), nil
+	case !nestedStepsHandled:
+		authentication := i.authenticationMethod(workflows)
 		return workflow.NewSubWorkflow(&IntentLoginFlowSteps{
 			LoginFlow:   i.LoginFlow,
-			JSONPointer: i.jsonPointer(step, identification),
+			JSONPointer: i.jsonPointer(step, authentication),
 		}), nil
 	default:
 		return nil, workflow.ErrIncompatibleInput
@@ -251,6 +288,16 @@ func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.WorkflowLogin
 	return allAllowed
 }
 
+func (i *IntentLoginFlowStepAuthenticate) deviceTokenEnabled(step *config.WorkflowLoginFlowStep) bool {
+	allAllowed := i.getAllAllowed(step)
+	for _, am := range allAllowed {
+		if am == config.WorkflowAuthenticationMethodDeviceToken {
+			return true
+		}
+	}
+	return false
+}
+
 func (*IntentLoginFlowStepAuthenticate) step(o config.WorkflowObject) *config.WorkflowLoginFlowStep {
 	step, ok := o.(*config.WorkflowLoginFlowStep)
 	if !ok {
@@ -260,16 +307,13 @@ func (*IntentLoginFlowStepAuthenticate) step(o config.WorkflowObject) *config.Wo
 	return step
 }
 
-func (*IntentLoginFlowStepAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
-	m, ok := FindMilestone[MilestoneAuthenticationMethod](w)
+func (*IntentLoginFlowStepAuthenticate) authenticationMethod(workflows workflow.Workflows) config.WorkflowAuthenticationMethod {
+	m, ok := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 	if !ok {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}
 
-	am, ok := m.MilestoneAuthenticationMethod()
-	if !ok {
-		panic(fmt.Errorf("workflow: authentication method not yet selected"))
-	}
+	am := m.MilestoneAuthenticationMethod()
 
 	return am
 }

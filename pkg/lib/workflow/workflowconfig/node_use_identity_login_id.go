@@ -21,8 +21,8 @@ type NodeUseIdentityLoginID struct {
 var _ MilestoneIdentificationMethod = &NodeUseIdentityLoginID{}
 
 func (*NodeUseIdentityLoginID) Milestone() {}
-func (n *NodeUseIdentityLoginID) MilestoneIdentificationMethod() (config.WorkflowIdentificationMethod, bool) {
-	return n.Identification, true
+func (n *NodeUseIdentityLoginID) MilestoneIdentificationMethod() config.WorkflowIdentificationMethod {
+	return n.Identification
 }
 
 var _ workflow.NodeSimple = &NodeUseIdentityLoginID{}

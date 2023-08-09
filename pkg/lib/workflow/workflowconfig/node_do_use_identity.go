@@ -30,8 +30,8 @@ func (n *NodeDoUseIdentity) GetUserID() string {
 
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
 
-func (*NodeDoUseIdentity) Milestone()                                       {}
-func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() (*identity.Info, bool) { return n.Identity, true }
+func (*NodeDoUseIdentity) Milestone()                               {}
+func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
 
 func NewNodeDoUseIdentity(workflows workflow.Workflows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
 	userID, err := getUserID(workflows)

@@ -125,6 +125,7 @@ type AuthenticationInfoService interface {
 }
 
 type CookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
@@ -146,6 +147,10 @@ type MFAService interface {
 	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
 	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
 	ConsumeRecoveryCode(c *mfa.RecoveryCode) error
+
+	GenerateDeviceToken() string
+	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(userID string, deviceToken string) error
 }
 
 type Dependencies struct {
@@ -154,6 +159,8 @@ type Dependencies struct {
 
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
+
+	HTTPRequest *http.Request
 
 	Users              UserService
 	Identities         IdentityService
@@ -169,10 +176,11 @@ type Dependencies struct {
 	AccountMigrations  AccountMigrationService
 	Captcha            CaptchaService
 
-	IDPSessions         IDPSessionService
-	Sessions            SessionService
-	AuthenticationInfos AuthenticationInfoService
-	SessionCookie       session.CookieDef
+	IDPSessions          IDPSessionService
+	Sessions             SessionService
+	AuthenticationInfos  AuthenticationInfoService
+	SessionCookie        session.CookieDef
+	MFADeviceTokenCookie mfa.CookieDef
 
 	Cookies CookieManager
 

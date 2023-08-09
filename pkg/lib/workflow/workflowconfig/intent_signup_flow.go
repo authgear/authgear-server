@@ -49,8 +49,8 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Depend
 	// 1 IntentSignupFlowSteps
 	// 1 NodeDoCreateSession
 	// So if MarkerDoCreateSession is found, this workflow has finished.
-	m, ok := FindMilestone[MilestoneDoCreateSession](workflows.Nearest)
-	if ok && m.MilestoneDoCreateSession() {
+	_, ok := FindMilestone[MilestoneDoCreateSession](workflows.Nearest)
+	if ok {
 		return nil, workflow.ErrEOF
 	}
 	return nil, nil
@@ -137,10 +137,7 @@ func (i *IntentSignupFlow) userID(w *workflow.Workflow) string {
 		panic(fmt.Errorf("expected userID"))
 	}
 
-	id, ok := m.MilestoneDoCreateUser()
-	if !ok {
-		panic(fmt.Errorf("expected userID"))
-	}
+	id := m.MilestoneDoCreateUser()
 
 	return id
 }

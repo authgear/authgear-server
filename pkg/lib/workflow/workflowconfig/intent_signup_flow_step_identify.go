@@ -45,10 +45,7 @@ func (*IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *w
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
-	info, ok := m.MilestoneDoCreateIdentity()
-	if !ok {
-		return nil, fmt.Errorf("MilestoneDoCreateIdentity does not have identity")
-	}
+	info := m.MilestoneDoCreateIdentity()
 
 	return info.IdentityAwareStandardClaims(), nil
 }
@@ -207,10 +204,7 @@ func (*IntentSignupFlowStepIdentify) identificationMethod(w *workflow.Workflow) 
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
 
-	im, ok := m.MilestoneIdentificationMethod()
-	if !ok {
-		panic(fmt.Errorf("workflow: identification method not yet selected"))
-	}
+	im := m.MilestoneIdentificationMethod()
 
 	return im
 }
@@ -231,10 +225,6 @@ func (*IntentSignupFlowStepIdentify) identityInfo(w *workflow.Workflow) *identit
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
 	}
-	info, ok := m.MilestoneDoCreateIdentity()
-	if !ok {
-		panic(fmt.Errorf("MilestoneDoCreateIdentity does not have identity"))
-	}
-
+	info := m.MilestoneDoCreateIdentity()
 	return info
 }

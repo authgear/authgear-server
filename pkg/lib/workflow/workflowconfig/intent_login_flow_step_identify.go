@@ -43,11 +43,7 @@ func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *workflow.D
 		panic(fmt.Errorf("MilestoneDoUseIdentity is absent in IntentLoginFlowStepIdentify"))
 	}
 
-	info, ok := m.MilestoneDoUseIdentity()
-	if !ok {
-		panic(fmt.Errorf("MilestoneDoUseIdentity does not return identity"))
-	}
-
+	info := m.MilestoneDoUseIdentity()
 	return info
 }
 
@@ -179,10 +175,7 @@ func (*IntentLoginFlowStepIdentify) identificationMethod(w *workflow.Workflow) c
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
 
-	im, ok := m.MilestoneIdentificationMethod()
-	if !ok {
-		panic(fmt.Errorf("workflow: identification method not yet selected"))
-	}
+	im := m.MilestoneIdentificationMethod()
 
 	return im
 }

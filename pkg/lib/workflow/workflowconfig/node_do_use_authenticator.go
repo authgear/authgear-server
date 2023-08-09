@@ -22,8 +22,8 @@ func (*NodeDoUseAuthenticator) Milestone() {}
 
 var _ MilestoneDoUseAuthenticator = &NodeDoUseAuthenticator{}
 
-func (n *NodeDoUseAuthenticator) MilestoneDoUseAuthenticator() (*NodeDoUseAuthenticator, bool) {
-	return n, true
+func (n *NodeDoUseAuthenticator) MilestoneDoUseAuthenticator() *NodeDoUseAuthenticator {
+	return n
 }
 
 var _ MilestoneAuthenticated = &NodeDoUseAuthenticator{}

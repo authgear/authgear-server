@@ -4,13 +4,45 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
-// A Milestone is a marker.
-// The current use case that a workflow find if a particular milestone exists,
-// to determine whether the workflow has finished.
+// Milestone is a marker.
+// The designed use case is to find out whether a particular milestone exists
+// in the workflow, or any of its subworkflows.
 type Milestone interface {
 	Milestone()
+}
+
+func FindMilestone[T Milestone](w *workflow.Workflow) (T, bool) {
+	var t T
+	found := false
+
+	err := w.Traverse(workflow.WorkflowTraverser{
+		NodeSimple: func(nodeSimple workflow.NodeSimple, _ *workflow.Workflow) error {
+			if m, ok := nodeSimple.(T); ok {
+				t = m
+				found = true
+			}
+			return nil
+		},
+		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
+			if m, ok := intent.(T); ok {
+				t = m
+				found = true
+			}
+			return nil
+		},
+	})
+	if err != nil {
+		return *new(T), false
+	}
+
+	if !found {
+		return *new(T), false
+	}
+
+	return t, true
 }
 
 type MilestoneNestedSteps interface {
@@ -20,12 +52,12 @@ type MilestoneNestedSteps interface {
 
 type MilestoneIdentificationMethod interface {
 	Milestone
-	MilestoneIdentificationMethod() (config.WorkflowIdentificationMethod, bool)
+	MilestoneIdentificationMethod() config.WorkflowIdentificationMethod
 }
 
 type MilestoneAuthenticationMethod interface {
 	Milestone
-	MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool)
+	MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod
 }
 
 type MilestoneAuthenticated interface {
@@ -35,32 +67,32 @@ type MilestoneAuthenticated interface {
 
 type MilestoneDoCreateSession interface {
 	Milestone
-	MilestoneDoCreateSession() bool
+	MilestoneDoCreateSession()
 }
 
 type MilestoneDoCreateUser interface {
 	Milestone
-	MilestoneDoCreateUser() (string, bool)
+	MilestoneDoCreateUser() string
 }
 
 type MilestoneDoCreateIdentity interface {
 	Milestone
-	MilestoneDoCreateIdentity() (*identity.Info, bool)
+	MilestoneDoCreateIdentity() *identity.Info
 }
 
 type MilestoneDoCreateAuthenticator interface {
 	Milestone
-	MilestoneDoCreateAuthenticator() (*authenticator.Info, bool)
+	MilestoneDoCreateAuthenticator() *authenticator.Info
 }
 
 type MilestoneDoUseIdentity interface {
 	Milestone
-	MilestoneDoUseIdentity() (*identity.Info, bool)
+	MilestoneDoUseIdentity() *identity.Info
 }
 
 type MilestoneDoUseAuthenticator interface {
 	Milestone
-	MilestoneDoUseAuthenticator() (*NodeDoUseAuthenticator, bool)
+	MilestoneDoUseAuthenticator() *NodeDoUseAuthenticator
 }
 
 type MilestoneDoPopulateStandardAttributes interface {
@@ -71,4 +103,14 @@ type MilestoneDoPopulateStandardAttributes interface {
 type MilestoneDoMarkClaimVerified interface {
 	Milestone
 	MilestoneDoMarkClaimVerified()
+}
+
+type MilestoneDeviceTokenInspected interface {
+	Milestone
+	MilestoneDeviceTokenInspected()
+}
+
+type MilestoneDoCreateDeviceTokenIfRequested interface {
+	Milestone
+	MilestoneDoCreateDeviceTokenIfRequested()
 }

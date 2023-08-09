@@ -19,8 +19,8 @@ type NodeUseRecoveryCode struct {
 var _ MilestoneAuthenticationMethod = &NodeUseRecoveryCode{}
 
 func (*NodeUseRecoveryCode) Milestone() {}
-func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() (config.WorkflowAuthenticationMethod, bool) {
-	return n.Authentication, true
+func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
 var _ workflow.NodeSimple = &NodeUseRecoveryCode{}
