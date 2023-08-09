@@ -63,16 +63,16 @@ func (s *TokenService) IssueOfflineGrant(
 			LastAccess:    accessEvent,
 		},
 
-		DeviceInfo:           opts.DeviceInfo,
-		SSOEnabled:           opts.SSOEnabled,
-		App2AppDeviceKeyJSON: "",
+		DeviceInfo:              opts.DeviceInfo,
+		SSOEnabled:              opts.SSOEnabled,
+		App2AppDeviceKeyJWKJSON: "",
 	}
 	if opts.App2AppDeviceKey != nil {
 		keyStr, err := json.Marshal(opts.App2AppDeviceKey)
 		if err != nil {
 			return nil, err
 		}
-		offlineGrant.App2AppDeviceKeyJSON = string(keyStr)
+		offlineGrant.App2AppDeviceKeyJWKJSON = string(keyStr)
 	}
 
 	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
