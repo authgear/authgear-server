@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -67,7 +68,7 @@ type MilestoneAuthenticated interface {
 
 type MilestoneDoCreateSession interface {
 	Milestone
-	MilestoneDoCreateSession()
+	MilestoneDoCreateSession() (*idpsession.IDPSession, bool)
 }
 
 type MilestoneDoCreateUser interface {
