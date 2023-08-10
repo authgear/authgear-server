@@ -34,7 +34,9 @@ func (n *NodeDidVerifyAuthenticator) MilestoneDidSelectAuthenticator() *authenti
 
 var _ MilestoneDidAuthenticate = &NodeDidVerifyAuthenticator{}
 
-func (*NodeDidVerifyAuthenticator) MilestoneDidAuthenticate() {}
+func (n *NodeDidVerifyAuthenticator) MilestoneDidAuthenticate() (amr []string) {
+	return n.Authenticator.AMR()
+}
 
 var _ workflow.NodeSimple = &NodeDidVerifyAuthenticator{}
 
