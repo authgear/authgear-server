@@ -15,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -636,7 +635,7 @@ var _ = registerMutationField(
 )
 
 func checkAppQuota(ctx *Context, userID string) error {
-	quota, err := ctx.AppService.GetMaxOwnedApps(userID)
+	quota, err := ctx.AppService.GetProjectQuota(userID)
 	if err != nil {
 		return err
 	}
@@ -646,16 +645,9 @@ func checkAppQuota(ctx *Context, userID string) error {
 		return nil
 	}
 
-	collaborators, err := ctx.CollaboratorService.ListCollaboratorsByUser(userID)
+	numOwnedApps, err := ctx.CollaboratorService.GetProjectOwnerCount(userID)
 	if err != nil {
 		return err
-	}
-
-	numOwnedApps := 0
-	for _, c := range collaborators {
-		if c.Role == model.CollaboratorRoleOwner {
-			numOwnedApps++
-		}
 	}
 
 	if numOwnedApps >= quota {

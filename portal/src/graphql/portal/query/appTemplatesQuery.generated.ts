@@ -9,7 +9,7 @@ export type AppTemplatesQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type AppTemplatesQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, resources: Array<{ __typename?: 'AppResource', path: string, languageTag?: string | null, data?: string | null, effectiveData?: string | null }> } | { __typename: 'User' } | null };
+export type AppTemplatesQueryQuery = { __typename?: 'Query', node?: { __typename: 'App', id: string, resources: Array<{ __typename?: 'AppResource', path: string, languageTag?: string | null, data?: string | null, effectiveData?: string | null }> } | { __typename: 'User' } | { __typename: 'Viewer' } | null };
 
 
 export const AppTemplatesQueryDocument = gql`

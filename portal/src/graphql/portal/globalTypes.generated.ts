@@ -544,7 +544,7 @@ export type Query = {
   /** Total users count chart dataset */
   totalUserCountChart?: Maybe<Chart>;
   /** The current viewer */
-  viewer?: Maybe<User>;
+  viewer?: Maybe<Viewer>;
 };
 
 
@@ -809,6 +809,16 @@ export type VerifyDomainPayload = {
   __typename?: 'VerifyDomainPayload';
   app: App;
   domain: Domain;
+};
+
+/** The viewer */
+export type Viewer = Node & {
+  __typename?: 'Viewer';
+  email?: Maybe<Scalars['String']>;
+  /** The ID of an object */
+  id: Scalars['ID'];
+  projectOwnerCount: Scalars['Int'];
+  projectQuota?: Maybe<Scalars['Int']>;
 };
 
 /** Webhook secret */

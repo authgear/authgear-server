@@ -7,14 +7,12 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ScreenHeader from "../../ScreenHeader";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import BlueMessageBar from "../../BlueMessageBar";
 import { useAppListQuery } from "./query/appListQuery";
-import { AppListItem } from "./globalTypes.generated";
+import { useViewerQuery } from "./query/viewerQuery";
+import { AppListItem, Viewer } from "./globalTypes.generated";
 import styles from "./AppsScreen.module.css";
 import { toTypedID } from "../../util/graphql";
-
-interface AppListProps {
-  apps: AppListItem[] | null;
-}
 
 interface AppCardData {
   appName: string;
@@ -37,8 +35,47 @@ const AppCard: React.VFC<AppCardData> = function AppCard(props: AppCardData) {
   );
 };
 
+function isProjectQuotaReached(viewer: Viewer | null): boolean {
+  if (viewer == null) {
+    return false;
+  }
+  const { projectQuota, projectOwnerCount } = viewer;
+  // The viewer does not have quota.
+  if (projectQuota == null) {
+    return false;
+  }
+
+  const reached = projectOwnerCount >= projectQuota;
+  return reached;
+}
+
+interface ProjectQuotaMessageBarProps {
+  viewer: Viewer | null;
+}
+
+function ProjectQuotaMessageBar(
+  props: ProjectQuotaMessageBarProps
+): React.ReactElement | null {
+  const { viewer } = props;
+  const reached = isProjectQuotaReached(viewer);
+  if (!reached) {
+    return null;
+  }
+  return (
+    <BlueMessageBar>
+      <FormattedMessage id="AppsScreen.project-quota-reached" />
+    </BlueMessageBar>
+  );
+}
+
+interface AppListProps {
+  apps: AppListItem[] | null;
+  viewer: Viewer | null;
+}
+
 const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
-  const { apps } = props;
+  const { apps, viewer } = props;
+  const projectQuotaReached = isProjectQuotaReached(viewer);
   const navigate = useNavigate();
 
   const onCreateClick = useCallback(
@@ -77,11 +114,15 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
               return <AppCard key={appCardData.appID} {...appCardData} />;
             })}
           </section>
-          <PrimaryButton
-            className={styles.createButton}
-            onClick={onCreateClick}
-            text={<FormattedMessage id="AppsScreen.create-app" />}
-          />
+          <div className="space-y-4">
+            <PrimaryButton
+              className={styles.createButton}
+              onClick={onCreateClick}
+              text={<FormattedMessage id="AppsScreen.create-app" />}
+              disabled={projectQuotaReached}
+            />
+            <ProjectQuotaMessageBar viewer={viewer} />
+          </div>
         </section>
       </ScreenLayoutScrollView>
     </main>
@@ -89,17 +130,33 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
 };
 
 const AppsScreen: React.VFC = function AppsScreen() {
-  const { loading, error, apps, refetch } = useAppListQuery();
+  const {
+    viewer,
+    loading: loadingViewer,
+    error: errorViewer,
+    refetch: refetchViewer,
+  } = useViewerQuery();
 
-  if (loading) {
+  const {
+    apps,
+    loading: loadingAppList,
+    error: errorAppList,
+    refetch: refetchAppList,
+  } = useAppListQuery();
+
+  if (loadingViewer || loadingAppList) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (errorViewer != null) {
+    return <ShowError error={errorViewer} onRetry={refetchViewer} />;
   }
 
-  return <AppList apps={apps ?? null} />;
+  if (errorAppList != null) {
+    return <ShowError error={errorAppList} onRetry={refetchAppList} />;
+  }
+
+  return <AppList apps={apps ?? null} viewer={viewer ?? null} />;
 };
 
 export default AppsScreen;

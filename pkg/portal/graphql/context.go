@@ -46,7 +46,7 @@ type AppService interface {
 	GetAppList(userID string) ([]*model.AppListItem, error)
 	Create(userID string, id string) (*model.App, error)
 	UpdateResources(app *model.App, updates []appresource.Update) error
-	GetMaxOwnedApps(userID string) (int, error)
+	GetProjectQuota(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, error)
 	GenerateSecretVisitToken(
@@ -69,6 +69,8 @@ type CollaboratorService interface {
 	ListCollaborators(appID string) ([]*model.Collaborator, error)
 	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
 	DeleteCollaborator(c *model.Collaborator) error
+
+	GetProjectOwnerCount(userID string) (int, error)
 
 	GetInvitation(id string) (*model.CollaboratorInvitation, error)
 	GetInvitationWithCode(id string) (*model.CollaboratorInvitation, error)

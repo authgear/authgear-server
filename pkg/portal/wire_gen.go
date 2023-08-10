@@ -140,7 +140,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 		DefaultDomains: defaultDomainService,
 	}
-	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
@@ -248,6 +247,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clock,
 		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
 	}
+	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService)
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)

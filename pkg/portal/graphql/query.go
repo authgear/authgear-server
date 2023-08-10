@@ -28,7 +28,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"nodes": nodeDefs.NodesField,
 		"viewer": &graphql.Field{
 			Description: "The current viewer",
-			Type:        nodeUser,
+			Type:        nodeViewer,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
 

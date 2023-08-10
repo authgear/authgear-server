@@ -1,6 +1,7 @@
 package service
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
@@ -17,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -149,24 +150,62 @@ func (s *AppService) GetAppList(userID string) ([]*model.AppListItem, error) {
 	return appList, nil
 }
 
-func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
-	// On errors: ignore and return default quota.
-
+func (s *AppService) GetProjectQuota(userID string) (int, error) {
 	q := s.SQLBuilder.Select("max_own_apps").
 		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
 		Where("user_id = ?", userID)
 	row, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
-		return s.AppConfig.MaxOwnedApps, nil
+		return 0, err
 	}
 
 	var quota int
 	err = row.Scan(&quota)
-	if err != nil {
+	// Use the default quota if this user has no specific quota.
+	if errors.Is(err, sql.ErrNoRows) {
 		return s.AppConfig.MaxOwnedApps, nil
+	} else if err != nil {
+		return 0, err
 	}
 
 	return quota, nil
+}
+
+func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
+	q := s.SQLBuilder.Select(
+		"user_id",
+		"max_own_apps",
+	).
+		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
+		Where("user_id = ANY (?)", pq.Array(userIDs))
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	m := make(map[string]int)
+	for rows.Next() {
+		var userID string
+		var count int
+		err = rows.Scan(&userID, &count)
+		if err != nil {
+			return nil, err
+		}
+		m[userID] = count
+	}
+
+	out := make([]int, len(userIDs))
+	for i, userID := range userIDs {
+		if count, ok := m[userID]; ok {
+			out[i] = count
+		} else {
+			out[i] = s.AppConfig.MaxOwnedApps
+		}
+	}
+
+	return out, nil
 }
 
 func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {
