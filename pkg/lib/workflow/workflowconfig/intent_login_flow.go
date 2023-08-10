@@ -5,7 +5,10 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -79,9 +82,40 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *workflow.Dependenci
 }
 
 func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
-	// FIXME(workflow): reset lockout attempts
-	// FIXME(workflow): dispatch UserAuthenticatedEventPayload
-	return nil, nil
+	return []workflow.Effect{
+		// FIXME(workflow): reset lockout attempts
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			// FIXME(workflow): determine isAdminAPI
+			isAdminAPI := false
+			userID := i.userID(workflows)
+			var idpSession *idpsession.IDPSession
+			if m, ok := FindMilestone[MilestoneDoCreateSession](workflows.Nearest); ok {
+				idpSession, _ = m.MilestoneDoCreateSession()
+			}
+
+			// ref: https://github.com/authgear/authgear-server/issues/2930
+			// For authentication that involves IDP session will dispatch user.authenticated event here
+			// For authentication that suppresses IDP session. e.g. biometric login
+			// They are handled in their own node.
+			if idpSession == nil {
+				return nil
+			}
+
+			err := deps.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
+				UserRef: model.UserRef{
+					Meta: model.Meta{
+						ID: userID,
+					},
+				},
+				Session:  *idpSession.ToAPIModel(),
+				AdminAPI: isAdminAPI,
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
+	}, nil
 }
 
 func (*IntentLoginFlow) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
