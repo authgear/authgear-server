@@ -49,16 +49,18 @@ func (*IntentUseAuthenticatorOOBOTP) JSONSchema() *validation.SimpleSchema {
 }
 
 func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	if len(workflows.Nearest.Nodes) == 0 {
-		return []workflow.Input{&InputTakeAuthenticatorID{}}, nil
-	}
-
-	_, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	_, authenticatorSelected := FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
 	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
+	_, authenticatorVerified := FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 
 	switch {
-	case authenticatorUsed && !claimVerified:
-		// Verify claim
+	case !authenticatorSelected:
+		return []workflow.Input{&InputTakeAuthenticatorID{}}, nil
+	case !claimVerified:
+		// Verify the claim
+		return nil, nil
+	case !authenticatorVerified:
+		// Achieve the milestone.
 		return nil, nil
 	default:
 		return nil, workflow.ErrEOF
@@ -71,7 +73,12 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 		return nil, err
 	}
 
-	if len(workflows.Nearest.Nodes) == 0 {
+	m, authenticatorSelected := FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
+	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
+	_, authenticatorVerified := FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
+
+	switch {
+	case !authenticatorSelected:
 		var inputTakeAuthenticatorID inputTakeAuthenticatorID
 		if workflow.AsInput(input, &inputTakeAuthenticatorID) {
 			authenticatorID := inputTakeAuthenticatorID.GetAuthenticatorID()
@@ -80,18 +87,12 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 				return nil, err
 			}
 
-			return workflow.NewNodeSimple(&NodeDoUseAuthenticator{
+			return workflow.NewNodeSimple(&NodeDidSelectAuthenticator{
 				Authenticator: info,
 			}), nil
 		}
-	}
-
-	m, authenticatorUsed := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
-	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
-
-	switch {
-	case authenticatorUsed && !claimVerified:
-		info := m.MilestoneDoUseAuthenticator().Authenticator
+	case !claimVerified:
+		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
 		return workflow.NewSubWorkflow(&IntentVerifyClaim{
 			UserID:      n.UserID,
@@ -99,6 +100,11 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 			MessageType: n.otpMessageType(info),
 			ClaimName:   claimName,
 			ClaimValue:  claimValue,
+		}), nil
+	case !authenticatorVerified:
+		info := m.MilestoneDidSelectAuthenticator()
+		return workflow.NewNodeSimple(&NodeDidVerifyAuthenticator{
+			Authenticator: info,
 		}), nil
 	}
 

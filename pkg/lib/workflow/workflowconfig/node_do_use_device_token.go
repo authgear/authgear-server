@@ -23,9 +23,9 @@ func (*NodeDoUseDeviceToken) MilestoneAuthenticationMethod() config.WorkflowAuth
 	return config.WorkflowAuthenticationMethodDeviceToken
 }
 
-var _ MilestoneAuthenticated = &NodeDoUseDeviceToken{}
+var _ MilestoneDidAuthenticate = &NodeDoUseDeviceToken{}
 
-func (*NodeDoUseDeviceToken) MilestoneAuthenticated() {}
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() {}
 
 var _ workflow.NodeSimple = &NodeDoUseDeviceToken{}
 
