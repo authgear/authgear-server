@@ -71,7 +71,7 @@ func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *workfl
 			return nil, err
 		}
 
-		return workflow.NewNodeSimple(&NodeDoUseAuthenticator{
+		return workflow.NewNodeSimple(&NodeDidVerifyAuthenticator{
 			Authenticator:          info,
 			PasswordChangeRequired: requireUpdate,
 		}), nil

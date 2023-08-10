@@ -43,13 +43,13 @@ func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
 
 func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (info *authenticator.Info, ok bool) {
-	m, ok := FindMilestone[MilestoneDoUseAuthenticator](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 	if !ok {
 		return
 	}
 
 	ok = false
-	n := m.MilestoneDoUseAuthenticator()
+	n := m.MilestoneDidVerifyAuthenticator()
 
 	if n.Authenticator.Type == model.AuthenticatorTypePassword {
 		if n.PasswordChangeRequired {
@@ -97,7 +97,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	_, authenticationMethodSelected := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 
-	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
+	_, authenticated := FindMilestone[MilestoneDidAuthenticate](workflows.Nearest)
 
 	_, deviceTokenCreatedIfRequested := FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
 
@@ -142,7 +142,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 
 	_, authenticationMethodSelected := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 
-	_, authenticated := FindMilestone[MilestoneAuthenticated](workflows.Nearest)
+	_, authenticated := FindMilestone[MilestoneDidAuthenticate](workflows.Nearest)
 
 	_, deviceTokenCreatedIfRequested := FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
 

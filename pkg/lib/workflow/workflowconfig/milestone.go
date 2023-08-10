@@ -61,9 +61,9 @@ type MilestoneAuthenticationMethod interface {
 	MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod
 }
 
-type MilestoneAuthenticated interface {
+type MilestoneDidAuthenticate interface {
 	Milestone
-	MilestoneAuthenticated()
+	MilestoneDidAuthenticate()
 }
 
 type MilestoneDoCreateSession interface {
@@ -91,9 +91,14 @@ type MilestoneDoUseIdentity interface {
 	MilestoneDoUseIdentity() *identity.Info
 }
 
-type MilestoneDoUseAuthenticator interface {
+type MilestoneDidSelectAuthenticator interface {
 	Milestone
-	MilestoneDoUseAuthenticator() *NodeDoUseAuthenticator
+	MilestoneDidSelectAuthenticator() *authenticator.Info
+}
+
+type MilestoneDidVerifyAuthenticator interface {
+	Milestone
+	MilestoneDidVerifyAuthenticator() *NodeDidVerifyAuthenticator
 }
 
 type MilestoneDoPopulateStandardAttributes interface {

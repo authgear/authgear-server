@@ -15,10 +15,10 @@ type NodeDoConsumeRecoveryCode struct {
 	RecoveryCode *mfa.RecoveryCode `json:"recovery_code,omitempty"`
 }
 
-var _ MilestoneAuthenticated = &NodeDoConsumeRecoveryCode{}
+var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
 
-func (*NodeDoConsumeRecoveryCode) Milestone()              {}
-func (*NodeDoConsumeRecoveryCode) MilestoneAuthenticated() {}
+func (*NodeDoConsumeRecoveryCode) Milestone()                {}
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() {}
 
 var _ workflow.NodeSimple = &NodeDoConsumeRecoveryCode{}
 
