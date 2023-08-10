@@ -53884,6 +53884,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 		RateLimiter:          limiter,
 		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -54657,6 +54658,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 		RateLimiter:          limiter,
 		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -55401,6 +55403,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 		RateLimiter:          limiter,
 		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -56180,6 +56183,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Events:               eventService,
 		RateLimiter:          limiter,
 		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
