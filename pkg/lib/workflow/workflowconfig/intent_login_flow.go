@@ -57,9 +57,16 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *workflow.Dependenci
 			LoginFlow:   i.LoginFlow,
 			JSONPointer: i.JSONPointer,
 		}), nil
-		// FIXME(workflow): check account status
 	case len(workflows.Nearest.Nodes) == 1:
-		// FIXME(workflow): create session
+		return workflow.NewNodeSimple(&NodeDoCheckAccountStatus{
+			UserID: i.userID(workflows),
+		}), nil
+	case len(workflows.Nearest.Nodes) == 2:
+		return workflow.NewSubWorkflow(&IntentConfirmTerminateOtherSessions{
+			UserID: i.userID(workflows),
+		}), nil
+		// FIXME(workflow): prompt passkey creation
+	case len(workflows.Nearest.Nodes) == 3:
 		node := NewNodeDoCreateSession(deps, &NodeDoCreateSession{
 			UserID:       i.userID(workflows),
 			CreateReason: session.CreateReasonLogin,
@@ -72,7 +79,8 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *workflow.Dependenci
 }
 
 func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
-	// FIXME(workflow): login effects.
+	// FIXME(workflow): reset lockout attempts
+	// FIXME(workflow): dispatch UserAuthenticatedEventPayload
 	return nil, nil
 }
 

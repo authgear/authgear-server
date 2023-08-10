@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -154,6 +155,10 @@ type MFAService interface {
 	VerifyDeviceToken(userID string, deviceToken string) error
 }
 
+type OfflineGrantStore interface {
+	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -188,4 +193,6 @@ type Dependencies struct {
 	Events         EventService
 	RateLimiter    RateLimiter
 	WorkflowEvents EventStore
+
+	OfflineGrants OfflineGrantStore
 }
