@@ -35,6 +35,7 @@ import {
   SubscriptionPlan,
   SubscriptionUsage,
 } from "./globalTypes.generated";
+import { PortalAPIAppConfig } from "../../types";
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
@@ -68,29 +69,18 @@ import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSub
 import ExternalLink from "../../ExternalLink";
 import { SubscriptionEnterprisePlan } from "./SubscriptionEnterprisePlan";
 import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
-
-type Plan = "free" | "developers" | "startups" | "business" | "enterprise";
-
-const ENTERPRISE_PLAN: Plan = "enterprise";
-const PAID_PLANS: Plan[] = [
-  "developers",
-  "startups",
-  "business",
+import {
+  isCustomPlan,
+  isStripePlan,
+  isFreePlan,
+  isLimitedFreePlan,
+  getPreviousPlan,
+  getCTAVariant,
+  getMAULimit,
+  shouldShowRecommendedTag,
+  SUBSCRIPTABLE_PLANS,
   ENTERPRISE_PLAN,
-];
-const STANDARD_PLANS: Plan[] = ["free", ...PAID_PLANS];
-const SUBSCRIPTABLE_PLANS: Plan[] = ["startups", "business"];
-const ALL_KNOWN_PLANS: Plan[] = [
-  "free",
-  ...SUBSCRIPTABLE_PLANS,
-  ENTERPRISE_PLAN,
-];
-
-const MAU_LIMIT: Record<string, number> = {
-  free: 5000,
-  startups: 5000,
-  business: 10000,
-};
+} from "../../util/plan";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -104,42 +94,31 @@ const CONTACT_US_BUTTON_THEME: PartialTheme = {
   },
 };
 
-function previousPlan(planName: string): string | null {
-  const idx = ALL_KNOWN_PLANS.indexOf(planName as Plan);
-  if (idx >= 1) {
-    return ALL_KNOWN_PLANS[idx - 1];
-  }
-  return null;
-}
-
-function isKnownPlan(planName: string): boolean {
-  return ALL_KNOWN_PLANS.indexOf(planName as Plan) >= 0;
-}
-
-function isPaidPlan(planName: string): boolean {
-  return PAID_PLANS.indexOf(planName as Plan) >= 0;
-}
-
-function isCustomPlan(planName: string): boolean {
-  return STANDARD_PLANS.indexOf(planName as Plan) === -1;
-}
-
-function isRecommendedPlan(planName: string): boolean {
-  return planName === "startups";
-}
-
-function isFreePlan(planName: string): boolean {
-  return planName === "free";
-}
-
-function showRecommendedTag(
+function shouldShowFreePlanWarning(
   planName: string,
-  currentPlanName: string
+  effectiveAppConfig: PortalAPIAppConfig | undefined
 ): boolean {
-  const a = isRecommendedPlan(planName);
-  const i = ALL_KNOWN_PLANS.indexOf(planName as Plan);
-  const j = ALL_KNOWN_PLANS.indexOf(currentPlanName as Plan);
-  return a && i >= 0 && j >= 0 && j < i;
+  if (effectiveAppConfig == null) {
+    return false;
+  }
+
+  if (!isLimitedFreePlan(planName)) {
+    return false;
+  }
+
+  const loginIDEnabled =
+    effectiveAppConfig.authentication?.identities?.includes("login_id") ??
+    false;
+  const phoneEnabled =
+    effectiveAppConfig.identity?.login_id?.keys?.find(
+      (a) => a.type === "phone"
+    ) != null;
+  const oobOTPSMSEnabled =
+    effectiveAppConfig.authentication?.primary_authenticators?.includes(
+      "oob_otp_sms"
+    ) ?? false;
+
+  return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
 }
 
 interface PlanDetailsLinesProps {
@@ -148,10 +127,6 @@ interface PlanDetailsLinesProps {
 
 function PlanDetailsLines(props: PlanDetailsLinesProps) {
   const { planName } = props;
-  const isKnown = isPaidPlan(planName);
-  if (!isKnown) {
-    return null;
-  }
   let length = 0;
   switch (planName) {
     case "startups":
@@ -159,6 +134,9 @@ function PlanDetailsLines(props: PlanDetailsLinesProps) {
       break;
     case "business":
       length = 6;
+      break;
+    default:
+      length = 0;
       break;
   }
   const children = [];
@@ -205,29 +183,15 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
 
   const isLoading = useIsLoading();
 
-  const ctaVariant = useMemo(() => {
-    if (!isKnownPlan(currentPlanName)) {
-      return "non-applicable";
-    }
-    if (!isPaidPlan(currentPlanName)) {
-      return "subscribe";
-    }
-    const targetPlan = subscriptionPlan.name;
-    const currentPlanIdx = ALL_KNOWN_PLANS.indexOf(currentPlanName as Plan);
-    const targetPlanIdx = ALL_KNOWN_PLANS.indexOf(targetPlan as Plan);
-    if (subscriptionCancelled) {
-      if (currentPlanIdx === targetPlanIdx) {
-        return "reactivate";
-      }
-      return "non-applicable";
-    }
-    if (currentPlanIdx > targetPlanIdx) {
-      return "downgrade";
-    } else if (currentPlanIdx < targetPlanIdx) {
-      return "upgrade";
-    }
-    return "current";
-  }, [currentPlanName, subscriptionPlan.name, subscriptionCancelled]);
+  const ctaVariant = useMemo(
+    () =>
+      getCTAVariant({
+        cardPlanName: subscriptionPlan.name,
+        currentPlanName,
+        subscriptionCancelled,
+      }),
+    [currentPlanName, subscriptionPlan.name, subscriptionCancelled]
+  );
 
   const onClickSubscribe = useCallback(
     (planName: string) => {
@@ -270,10 +234,6 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
     await setSubscriptionCancelledStatus(false);
   }, [setSubscriptionCancelledStatus]);
 
-  const isKnown = isPaidPlan(subscriptionPlan.name);
-  if (!isKnown) {
-    return null;
-  }
   const { name } = subscriptionPlan;
 
   const basePrice = subscriptionPlan.prices.find(
@@ -309,8 +269,8 @@ function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
       price.usageType === SubscriptionItemPriceUsageType.Mau
   );
 
-  const previousPlanName = previousPlan(name);
-  const cardTag = showRecommendedTag(name, currentPlanName) ? (
+  const previousPlanName = getPreviousPlan(name);
+  const cardTag = shouldShowRecommendedTag(name, currentPlanName) ? (
     <CardTag>
       <FormattedMessage id="SubscriptionScreen.recommended" />
     </CardTag>
@@ -442,6 +402,7 @@ interface SubscriptionScreenContentProps {
   subscriptionPlans: SubscriptionPlan[];
   thisMonthUsage?: SubscriptionUsage;
   previousMonthUsage?: SubscriptionUsage;
+  effectiveAppConfig?: PortalAPIAppConfig;
 }
 
 function getTotalCost(
@@ -449,7 +410,7 @@ function getTotalCost(
   subscriptionUsage: SubscriptionUsage,
   skipFixedPriceType: boolean
 ): number | undefined {
-  if (!isPaidPlan(planName)) {
+  if (!isStripePlan(planName)) {
     return undefined;
   }
 
@@ -473,7 +434,7 @@ function getSMSCost(
   planName: string,
   subscriptionUsage: SubscriptionUsage
 ): SMSCost | undefined {
-  if (!isPaidPlan(planName)) {
+  if (!isStripePlan(planName)) {
     return undefined;
   }
 
@@ -511,7 +472,7 @@ function getWhatsappCost(
   planName: string,
   subscriptionUsage: SubscriptionUsage
 ): SMSCost | undefined {
-  if (!isPaidPlan(planName)) {
+  if (!isStripePlan(planName)) {
     return undefined;
   }
 
@@ -552,7 +513,7 @@ function getMAUCost(
   planName: string,
   subscriptionUsage: SubscriptionUsage
 ): MAUCost | undefined {
-  if (!isPaidPlan(planName)) {
+  if (!isStripePlan(planName)) {
     return undefined;
   }
 
@@ -587,8 +548,14 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     subscriptionPlans,
     thisMonthUsage,
     previousMonthUsage,
+    effectiveAppConfig,
   } = props;
   const { themes } = useSystemConfig();
+
+  const showFreePlanWarning = useMemo(
+    () => shouldShowFreePlanWarning(planName, effectiveAppConfig),
+    [planName, effectiveAppConfig]
+  );
 
   const subscriptionEndedAt = useMemo(() => {
     if (subscription?.endedAt != null) {
@@ -631,7 +598,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, [planName, thisMonthUsage]);
 
   const baseAmount = useMemo(() => {
-    if (!isPaidPlan(planName)) {
+    if (!isStripePlan(planName)) {
       return undefined;
     }
 
@@ -651,11 +618,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, [thisMonthUsage]);
 
   const mauLimit = useMemo(() => {
-    if (!isKnownPlan(planName)) {
-      return undefined;
-    }
-
-    return MAU_LIMIT[planName];
+    return getMAULimit(planName);
   }, [planName]);
 
   const mauPrevious = useMemo(() => {
@@ -667,7 +630,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, [previousMonthUsage]);
 
   const nextBillingDate = useMemo(() => {
-    if (!isPaidPlan(planName)) {
+    if (!isStripePlan(planName)) {
       return undefined;
     }
 
@@ -850,6 +813,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           onClickManageSubscription={onClickManageSubscription}
           manageSubscriptionLoading={manageSubscriptionLoading}
           manageSubscriptionDisabled={isLoading}
+          showFreePlanWarning={showFreePlanWarning}
         >
           <CostItem
             title={
@@ -951,7 +915,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             })}
             <SubscriptionEnterprisePlan
               key={ENTERPRISE_PLAN}
-              previousPlanName={previousPlan(ENTERPRISE_PLAN)}
+              previousPlanName={getPreviousPlan(ENTERPRISE_PLAN)}
               onClickContactUs={onClickEnterprisePlanContactUs}
             />
           </div>
@@ -961,7 +925,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           onClickEnterprisePlan={onClickEnterprisePlan}
           onClickCancel={onClickCancel}
           subscriptionCancelled={subscriptionCancelled}
-          isKnownPaidPlan={isPaidPlan(planName)}
+          isStripePlan={isStripePlan(planName)}
           subscriptionEndedAt={subscription?.endedAt ?? undefined}
         />
       </div>
@@ -1163,6 +1127,10 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
     subscriptionScreenQuery.data?.node as AppFragmentFragment
   ).previousMonth;
 
+  const effectiveAppConfig = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).effectiveAppConfig as PortalAPIAppConfig | null | undefined;
+
   return (
     <ScreenLayoutScrollView>
       <SubscriptionScreenContent
@@ -1172,6 +1140,7 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
         subscriptionPlans={subscriptionPlans}
         thisMonthUsage={thisMonthUsage ?? undefined}
         previousMonthUsage={previousMonthUsage ?? undefined}
+        effectiveAppConfig={effectiveAppConfig ?? undefined}
       />
     </ScreenLayoutScrollView>
   );

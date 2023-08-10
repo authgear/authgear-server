@@ -469,7 +469,7 @@ function CTA_(props: CTAProps): React.ReactElement {
             className={styles.cta}
             disabled={true}
             text={
-              <FormattedMessage id="SubscriptionPlanCard.label.subscribe" />
+              <FormattedMessage id="SubscriptionPlanCard.label.non-applicable" />
             }
           />
         </ThemeProvider>

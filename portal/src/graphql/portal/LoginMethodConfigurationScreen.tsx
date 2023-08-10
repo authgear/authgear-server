@@ -58,6 +58,7 @@ import {
   expandSpecifier,
 } from "../../util/resource";
 import { clearEmptyObject } from "../../util/misc";
+import { isLimitedFreePlan } from "../../util/plan";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -85,6 +86,7 @@ import LabelWithTooltip from "../../LabelWithTooltip";
 import PhoneInputListWidget from "./PhoneInputListWidget";
 import PasswordSettings from "./PasswordSettings";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
+import BlueMessageBar from "../../BlueMessageBar";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { fixTagPickerStyles } from "../../bugs";
 import { useResourceForm } from "../../hook/useResourceForm";
@@ -495,6 +497,7 @@ interface ConfigFormState {
 }
 
 interface FeatureConfigFormState {
+  planName: string | null;
   phoneLoginIDDisabled: boolean;
   passwordPolicyFeatureConfig: PasswordPolicyFeatureConfig;
 }
@@ -515,6 +518,35 @@ interface FormModel {
   reload: () => void;
   reset: () => void;
   save: () => Promise<void>;
+}
+
+function shouldShowFreePlanWarning(formState: FormState): boolean {
+  const {
+    identitiesControl,
+    loginIDKeyConfigsControl,
+    primaryAuthenticatorsControl,
+    planName,
+  } = formState;
+
+  if (planName == null) {
+    return false;
+  }
+
+  if (!isLimitedFreePlan(planName)) {
+    return false;
+  }
+
+  // For our purpose, controlListUnwrap is sufficient here.
+  const identities = controlListUnwrap(identitiesControl);
+  const loginIDKeyConfigs = controlListUnwrap(loginIDKeyConfigsControl);
+  const primaryAuthenticators = controlListUnwrap(primaryAuthenticatorsControl);
+
+  const loginIDEnabled = identities.includes("login_id");
+  const phoneEnabled =
+    loginIDKeyConfigs.find((a) => a.type === "phone") != null;
+  const oobOTPSMSEnabled = primaryAuthenticators.includes("oob_otp_sms");
+
+  return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
 }
 
 // eslint-disable-next-line complexity
@@ -1548,6 +1580,7 @@ function AuthenticationButton(props: AuthenticationButtonProps) {
 
 interface LoginMethodChooserProps {
   loginMethod: LoginMethod;
+  showFreePlanWarning: boolean;
   phoneLoginIDDisabled: boolean;
   passkeyChecked: boolean;
   appID: string;
@@ -1558,6 +1591,7 @@ interface LoginMethodChooserProps {
 function LoginMethodChooser(props: LoginMethodChooserProps) {
   const {
     loginMethod,
+    showFreePlanWarning,
     phoneLoginIDDisabled,
     appID,
     onChangeLoginMethod,
@@ -1716,6 +1750,11 @@ function LoginMethodChooser(props: LoginMethodChooserProps) {
           onChange={onChangePasskeyChecked}
         />
       )}
+      {showFreePlanWarning ? (
+        <BlueMessageBar>
+          <FormattedMessage id="warnings.free-plan" />
+        </BlueMessageBar>
+      ) : null}
     </Widget>
   );
 }
@@ -2905,6 +2944,11 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       resources,
     } = state;
 
+    const showFreePlanWarning = useMemo(
+      () => shouldShowFreePlanWarning(state),
+      [state]
+    );
+
     const isPasswordlessEnabled = useMemo(() => {
       return primaryAuthenticatorsControl
         .filter((c) => c.value === "oob_otp_email" || c.value === "oob_otp_sms")
@@ -3059,6 +3103,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             passkeyChecked={passkeyChecked}
           />
           <LoginMethodChooser
+            showFreePlanWarning={showFreePlanWarning}
             loginMethod={loginMethod}
             phoneLoginIDDisabled={phoneLoginIDDisabled}
             passkeyChecked={passkeyChecked}
@@ -3260,6 +3305,7 @@ const LoginMethodConfigurationScreen: React.VFC =
     const state = useMemo<FormState>(() => {
       return {
         resources: resourceForm.state.resources,
+        planName: featureConfig.planName,
         phoneLoginIDDisabled:
           featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
             ?.disabled ?? false,
@@ -3268,6 +3314,7 @@ const LoginMethodConfigurationScreen: React.VFC =
         ...configForm.state,
       };
     }, [
+      featureConfig.planName,
       resourceForm.state.resources,
       featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
         ?.disabled,

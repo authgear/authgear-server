@@ -48,7 +48,7 @@ interface SubscriptionScreenFooterProps {
   className?: string;
   onClickEnterprisePlan: (e: React.MouseEvent) => void;
   onClickCancel: (e: React.MouseEvent) => void;
-  isKnownPaidPlan: boolean;
+  isStripePlan: boolean;
   subscriptionCancelled: boolean;
   subscriptionEndedAt?: string;
 }
@@ -58,7 +58,7 @@ export const SubscriptionScreenFooter: React.VFC<SubscriptionScreenFooterProps> 
     className,
     onClickEnterprisePlan,
     onClickCancel,
-    isKnownPaidPlan,
+    isStripePlan,
     subscriptionCancelled,
     subscriptionEndedAt,
   }) {
@@ -89,7 +89,7 @@ export const SubscriptionScreenFooter: React.VFC<SubscriptionScreenFooterProps> 
           <Text block={true}>
             <FormattedMessage id="SubscriptionScreen.footer.tax" />
           </Text>
-          {isKnownPaidPlan ? (
+          {isStripePlan ? (
             <>
               <Text block={true}>
                 <FormattedMessage id="SubscriptionScreen.footer.usage-delay-disclaimer" />
