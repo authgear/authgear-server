@@ -12,25 +12,24 @@ func init() {
 	workflow.RegisterNode(&NodeDoUseIdentity{})
 }
 
-type UserIDGetter interface {
-	GetUserID() string
-}
-
 type NodeDoUseIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
 var _ workflow.NodeSimple = &NodeDoUseIdentity{}
 
-var _ UserIDGetter = &NodeDoUseIdentity{}
+var _ Milestone = &NodeDoUseIdentity{}
 
-func (n *NodeDoUseIdentity) GetUserID() string {
+func (*NodeDoUseIdentity) Milestone() {}
+
+var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
+
+func (n *NodeDoUseIdentity) MilestoneDoUseUser() string {
 	return n.Identity.UserID
 }
 
 var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
 
-func (*NodeDoUseIdentity) Milestone()                               {}
 func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
 
 func NewNodeDoUseIdentity(workflows workflow.Workflows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
