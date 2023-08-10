@@ -69,12 +69,15 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependenc
 			UserID:      i.userID(workflows.Nearest),
 		}), nil
 	case len(workflows.Nearest.Nodes) == 2:
-		node := NewNodeDoCreateSession(deps, &NodeDoCreateSession{
+		n, err := NewNodeDoCreateSession(ctx, deps, workflows, &NodeDoCreateSession{
 			UserID:       i.userID(workflows.Nearest),
 			CreateReason: session.CreateReasonSignup,
 			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
 		})
-		return workflow.NewNodeSimple(node), nil
+		if err != nil {
+			return nil, err
+		}
+		return workflow.NewNodeSimple(n), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput

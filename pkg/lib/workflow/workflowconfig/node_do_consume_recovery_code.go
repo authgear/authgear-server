@@ -17,8 +17,8 @@ type NodeDoConsumeRecoveryCode struct {
 
 var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
 
-func (*NodeDoConsumeRecoveryCode) Milestone()                {}
-func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() {}
+func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
 
 var _ workflow.NodeSimple = &NodeDoConsumeRecoveryCode{}
 

@@ -70,12 +70,15 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *workflow.Dependenci
 		}), nil
 		// FIXME(workflow): prompt passkey creation
 	case len(workflows.Nearest.Nodes) == 3:
-		node := NewNodeDoCreateSession(deps, &NodeDoCreateSession{
+		n, err := NewNodeDoCreateSession(ctx, deps, workflows, &NodeDoCreateSession{
 			UserID:       i.userID(workflows),
 			CreateReason: session.CreateReasonLogin,
 			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
 		})
-		return workflow.NewNodeSimple(node), nil
+		if err != nil {
+			return nil, err
+		}
+		return workflow.NewNodeSimple(n), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput

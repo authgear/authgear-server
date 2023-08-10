@@ -1,11 +1,15 @@
 package workflowconfig
 
 import (
+	"context"
+	"sort"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 // Milestone is a marker.
@@ -83,6 +87,31 @@ func getUserID(workflows workflow.Workflows) (userID string, err error) {
 	return
 }
 
+func collectAMR(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (amr []string, err error) {
+	err = workflows.Root.Traverse(workflow.WorkflowTraverser{
+		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
+			if n, ok := nodeSimple.(MilestoneDidAuthenticate); ok {
+				amr = append(amr, n.MilestoneDidAuthenticate()...)
+			}
+			return nil
+		},
+		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
+			if i, ok := intent.(MilestoneDidAuthenticate); ok {
+				amr = append(amr, i.MilestoneDidAuthenticate()...)
+			}
+			return nil
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	amr = slice.Deduplicate(amr)
+	sort.Strings(amr)
+
+	return
+}
+
 type MilestoneNestedSteps interface {
 	Milestone
 	MilestoneNestedSteps()
@@ -100,7 +129,7 @@ type MilestoneAuthenticationMethod interface {
 
 type MilestoneDidAuthenticate interface {
 	Milestone
-	MilestoneDidAuthenticate()
+	MilestoneDidAuthenticate() (amr []string)
 }
 
 type MilestoneDoCreateSession interface {
