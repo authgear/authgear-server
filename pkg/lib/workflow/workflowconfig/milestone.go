@@ -46,6 +46,43 @@ func FindMilestone[T Milestone](w *workflow.Workflow) (T, bool) {
 	return t, true
 }
 
+func getUserID(workflows workflow.Workflows) (userID string, err error) {
+	err = workflows.Root.Traverse(workflow.WorkflowTraverser{
+		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
+			if n, ok := nodeSimple.(MilestoneDoUseUser); ok {
+				id := n.MilestoneDoUseUser()
+				if userID == "" {
+					userID = id
+				} else if userID != "" && id != userID {
+					return ErrDifferentUserID
+				}
+			}
+			return nil
+		},
+		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
+			if i, ok := intent.(MilestoneDoUseUser); ok {
+				id := i.MilestoneDoUseUser()
+				if userID == "" {
+					userID = id
+				} else if userID != "" && id != userID {
+					return ErrDifferentUserID
+				}
+			}
+			return nil
+		},
+	})
+
+	if userID == "" {
+		err = ErrNoUserID
+	}
+
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 type MilestoneNestedSteps interface {
 	Milestone
 	MilestoneNestedSteps()
@@ -84,6 +121,11 @@ type MilestoneDoCreateIdentity interface {
 type MilestoneDoCreateAuthenticator interface {
 	Milestone
 	MilestoneDoCreateAuthenticator() *authenticator.Info
+}
+
+type MilestoneDoUseUser interface {
+	Milestone
+	MilestoneDoUseUser() string
 }
 
 type MilestoneDoUseIdentity interface {
