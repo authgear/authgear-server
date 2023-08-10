@@ -2,6 +2,7 @@ package handler
 
 import (
 	"crypto/subtle"
+	"encoding/json"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -62,8 +63,16 @@ func (s *TokenService) IssueOfflineGrant(
 			LastAccess:    accessEvent,
 		},
 
-		DeviceInfo: opts.DeviceInfo,
-		SSOEnabled: opts.SSOEnabled,
+		DeviceInfo:              opts.DeviceInfo,
+		SSOEnabled:              opts.SSOEnabled,
+		App2AppDeviceKeyJWKJSON: "",
+	}
+	if opts.App2AppDeviceKey != nil {
+		keyStr, err := json.Marshal(opts.App2AppDeviceKey)
+		if err != nil {
+			return nil, err
+		}
+		offlineGrant.App2AppDeviceKeyJWKJSON = string(keyStr)
 	}
 
 	expiry, err := s.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)

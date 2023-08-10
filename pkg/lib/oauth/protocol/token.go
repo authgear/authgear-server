@@ -13,13 +13,14 @@ type TokenResponse map[string]interface{}
 
 // OAuth 2.0
 
-func (r TokenRequest) GrantType() string    { return r["grant_type"] }
-func (r TokenRequest) Code() string         { return r["code"] }
-func (r TokenRequest) RedirectURI() string  { return r["redirect_uri"] }
-func (r TokenRequest) ClientID() string     { return r["client_id"] }
-func (r TokenRequest) RefreshToken() string { return r["refresh_token"] }
-func (r TokenRequest) JWT() string          { return r["jwt"] }
-func (r TokenRequest) ClientSecret() string { return r["client_secret"] }
+func (r TokenRequest) GrantType() string           { return r["grant_type"] }
+func (r TokenRequest) Code() string                { return r["code"] }
+func (r TokenRequest) RedirectURI() string         { return r["redirect_uri"] }
+func (r TokenRequest) ClientID() string            { return r["client_id"] }
+func (r TokenRequest) RefreshToken() string        { return r["refresh_token"] }
+func (r TokenRequest) JWT() string                 { return r["jwt"] }
+func (r TokenRequest) App2AppDeviceKeyJWT() string { return r["x_app2app_device_key_jwt"] }
+func (r TokenRequest) ClientSecret() string        { return r["client_secret"] }
 
 func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
@@ -33,7 +34,9 @@ func (r TokenResponse) IDToken(v string) { r["id_token"] = v }
 
 // PKCE extension
 
-func (r TokenRequest) CodeVerifier() string { return r["code_verifier"] }
+func (r TokenRequest) CodeVerifier() string        { return r["code_verifier"] }
+func (r TokenRequest) CodeChallenge() string       { return r["code_challenge"] }
+func (r TokenRequest) CodeChallengeMethod() string { return r["code_challenge_method"] }
 
 // Proprietary
 func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
@@ -60,3 +63,7 @@ func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
 
 	return deviceInfo, nil
 }
+
+// App2App
+
+func (r TokenResponse) Code(v string) { r["code"] = v }

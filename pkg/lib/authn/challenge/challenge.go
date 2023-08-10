@@ -13,6 +13,7 @@ type Purpose string
 const (
 	PurposeAnonymousRequest Purpose = "anonymous_request"
 	PurposeBiometricRequest Purpose = "biometric_request"
+	PurposeApp2AppRequest   Purpose = "app2app_request"
 )
 
 func (p Purpose) IsValid() bool {
@@ -20,6 +21,8 @@ func (p Purpose) IsValid() bool {
 	case PurposeAnonymousRequest:
 		return true
 	case PurposeBiometricRequest:
+		return true
+	case PurposeApp2AppRequest:
 		return true
 	}
 	return false
@@ -30,6 +33,8 @@ func (p Purpose) ValidityPeriod() time.Duration {
 	case PurposeAnonymousRequest:
 		return duration.Short
 	case PurposeBiometricRequest:
+		return duration.Short
+	case PurposeApp2AppRequest:
 		return duration.Short
 	default:
 		panic("challenge: unknown purpose: " + p)
