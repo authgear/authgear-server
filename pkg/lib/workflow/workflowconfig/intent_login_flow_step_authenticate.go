@@ -259,9 +259,9 @@ func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(deps *workfl
 		return
 	}
 
-	for i, allowed := range allAllowed {
+	for i := range allAllowed {
 		for _, a := range candidates {
-			am := a[authenticator.CandidateKeyAuthenticationMethod].(config.WorkflowAuthenticationMethod)
+			allowed := a[authenticator.CandidateKeyAuthenticationMethod].(config.WorkflowAuthenticationMethod)
 			if allowed == am {
 				idx = i
 			}
