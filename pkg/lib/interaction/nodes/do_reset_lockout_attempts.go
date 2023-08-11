@@ -27,8 +27,9 @@ func (n *NodeDoResetLockoutAttempts) Prepare(ctx *interaction.Context, graph *in
 func (n *NodeDoResetLockoutAttempts) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			authenticators := graph.GetUsedAuthenticators()
-			err := ctx.Authenticators.ClearLockoutAttempts(authenticators)
+			userID := graph.MustGetUserID()
+			methods := graph.GetUsedAuthenticationLockoutMethods()
+			err := ctx.Authenticators.ClearLockoutAttempts(userID, methods)
 
 			return err
 		}),

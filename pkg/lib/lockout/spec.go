@@ -53,7 +53,7 @@ func (s LockoutSpec) Key() string {
 	return strings.Join(append([]string{string(s.Name)}, s.Arguments...), ":")
 }
 
-func NewAccountAuthenticationSpec(cfg *config.AuthenticationLockoutConfig, userID string) LockoutSpec {
+func NewAccountAuthenticationSpecForCheck(cfg *config.AuthenticationLockoutConfig, userID string) LockoutSpec {
 	isGlobal := cfg.LockoutType == config.AuthenticationLockoutTypePerUser
 	if !cfg.IsEnabled() {
 		return newDisabledLockoutSpec()
@@ -69,4 +69,33 @@ func NewAccountAuthenticationSpec(cfg *config.AuthenticationLockoutConfig, userI
 		isGlobal,
 		userID,
 	)
+}
+
+func NewAccountAuthenticationSpecForAttempt(cfg *config.AuthenticationLockoutConfig, userID string, methods []config.AuthenticationLockoutMethod) LockoutSpec {
+	enabled := false
+	for _, m := range methods {
+		switch m {
+		case config.AuthenticationLockoutMethodPassword:
+			if cfg.Password.Enabled {
+				enabled = true
+			}
+		case config.AuthenticationLockoutMethodOOBOTP:
+			if cfg.OOBOTP.Enabled {
+				enabled = true
+			}
+		case config.AuthenticationLockoutMethodTOTP:
+			if cfg.Totp.Enabled {
+				enabled = true
+			}
+		case config.AuthenticationLockoutMethodRecoveryCode:
+			if cfg.RecoveryCode.Enabled {
+				enabled = true
+			}
+		}
+	}
+	if !enabled {
+		return newDisabledLockoutSpec()
+	}
+
+	return NewAccountAuthenticationSpecForCheck(cfg, userID)
 }

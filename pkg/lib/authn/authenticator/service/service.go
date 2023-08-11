@@ -650,19 +650,6 @@ func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 	return nil
 }
 
-func (s *Service) ClearLockoutAttempts(authenticators []*authenticator.Info) error {
-	userIDToTypes := map[string][]model.AuthenticatorType{}
-	for _, a := range authenticators {
-		userID := a.UserID
-		types := userIDToTypes[userID]
-		types = append(types, a.Type)
-		userIDToTypes[userID] = types
-	}
-	for userID, types := range userIDToTypes {
-		err := s.Lockout.ClearAttempts(userID, types)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func (s *Service) ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error {
+	return s.Lockout.ClearAttempts(userID, usedMethods)
 }
