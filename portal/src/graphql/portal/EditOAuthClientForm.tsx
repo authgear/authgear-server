@@ -211,6 +211,28 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onApp2AppEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "x_app2app_enabled", value ?? false)
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
+    const onApp2AppMigrationChange = useCallback(
+      (_, value?: boolean) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "x_app2app_insecure_device_key_binding_enabled",
+            value ?? false
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
     const { onChange: onPolicyURIChange } = useTextField((value) => {
       onClientConfigChange(
         updateClientConfig(
@@ -287,6 +309,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
+
+    const showApp2AppSettings = clientConfig.x_application_type === "native";
 
     const showConsentScreenSettings = useMemo(
       () => clientConfig.x_application_type === "third_party_app",
@@ -658,6 +682,33 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 }}
               />
             </WidgetDescription>
+          </Widget>
+        ) : null}
+        {showApp2AppSettings ? (
+          <Widget className={className}>
+            <WidgetTitle>
+              <FormattedMessage id="EditOAuthClientForm.app2app.title" />
+            </WidgetTitle>
+            <Toggle
+              checked={clientConfig.x_app2app_enabled}
+              onChange={onApp2AppEnabledChange}
+              label={renderToString("EditOAuthClientForm.app2app.enable.label")}
+              description={renderToString(
+                "EditOAuthClientForm.app2app.enable.description"
+              )}
+            />
+            <Toggle
+              checked={
+                clientConfig.x_app2app_insecure_device_key_binding_enabled
+              }
+              onChange={onApp2AppMigrationChange}
+              label={renderToString(
+                "EditOAuthClientForm.app2app.migration.label"
+              )}
+              description={renderToString(
+                "EditOAuthClientForm.app2app.migration.description"
+              )}
+            />
           </Widget>
         ) : null}
       </>
