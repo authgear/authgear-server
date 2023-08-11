@@ -48,7 +48,7 @@ type AuthenticatorService interface {
 	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
-	ClearLockoutAttempts(authenticators []*authenticator.Info) error
+	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type OTPCodeService interface {

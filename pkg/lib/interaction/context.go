@@ -53,7 +53,7 @@ type AuthenticatorService interface {
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
-	ClearLockoutAttempts(authenticators []*authenticator.Info) error
+	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type OTPCodeService interface {
@@ -180,10 +180,6 @@ type AuthenticationInfoService interface {
 
 type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
-}
-
-type AuthenticatorLockout interface {
-	ClearLockoutAttempts(userID string, authenticatorTypes []model.AuthenticatorType) error
 }
 
 type Context struct {

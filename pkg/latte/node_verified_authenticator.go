@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
@@ -62,11 +63,11 @@ func (n *NodeVerifiedAuthenticator) GetAMR() []string {
 	return n.Authenticator.AMR()
 }
 
-var _ VerifiedAuthenticatorGetter = &NodeVerifiedAuthenticator{}
+var _ VerifiedAuthenticationLockoutMethodGetter = &NodeVerifiedAuthenticator{}
 
-func (n *NodeVerifiedAuthenticator) GetVerifiedAuthenticator() (*authenticator.Info, bool) {
+func (n *NodeVerifiedAuthenticator) GetVerifiedAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	if n.Authenticator != nil {
-		return n.Authenticator, true
+		return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)
 	}
-	return nil, false
+	return "", false
 }

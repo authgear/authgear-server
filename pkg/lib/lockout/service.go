@@ -51,5 +51,9 @@ func (s *Service) MakeAttempts(spec LockoutSpec, contributor string, attempts in
 }
 
 func (s *Service) ClearAttempts(spec LockoutSpec, contributor string) error {
+	if !spec.Enabled {
+		return nil
+	}
+
 	return s.Storage.Clear(spec, contributor)
 }

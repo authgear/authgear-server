@@ -53,7 +53,7 @@ type AuthenticatorService interface {
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
 	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
-	ClearLockoutAttempts(authenticators []*authenticator.Info) error
+	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type VerificationService interface {
@@ -996,8 +996,8 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorClearLockoutAttempts(authenticators []*authenticator.Info) error {
-	return c.Authenticators.ClearLockoutAttempts(authenticators)
+func (c *Coordinator) AuthenticatorClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error {
+	return c.Authenticators.ClearLockoutAttempts(userID, usedMethods)
 }
 
 func (c *Coordinator) MFAGenerateDeviceToken() string {
