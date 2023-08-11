@@ -85,7 +85,6 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
     } = props;
 
     const { renderToString } = useContext(Context);
-    const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
 
@@ -459,7 +458,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         </Widget>
 
         <Widget className={className}>
-          <WidgetTitle>
+          <WidgetTitle id="uris">
             <FormattedMessage id="EditOAuthClientForm.uris.title" />
           </WidgetTitle>
           <FormTextFieldList
@@ -618,18 +617,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
               }
             />
-            <Text
-              block={true}
-              styles={{
-                root: {
-                  background: theme.palette.neutralLighter,
-                  lineHeight: "20px",
-                  padding: "8px 12px",
-                },
-              }}
-            >
-              {refreshTokenHelpText}
-            </Text>
+            <HelpText>{refreshTokenHelpText}</HelpText>
             <Toggle
               checked={clientConfig.x_max_concurrent_session === 1}
               onChange={onChangeExpireWhenLoginOnOtherDevice}
@@ -709,6 +697,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 "EditOAuthClientForm.app2app.migration.description"
               )}
             />
+            <HelpText>
+              <FormattedMessage id="EditOAuthClientForm.app2app.uris.description" />
+            </HelpText>
           </Widget>
         ) : null}
       </>
@@ -716,3 +707,22 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
   };
 
 export default EditOAuthClientForm;
+
+function HelpText(props: { children: React.ReactNode }) {
+  const { children } = props;
+  const theme = useTheme();
+  return (
+    <Text
+      block={true}
+      styles={{
+        root: {
+          background: theme.palette.neutralLighter,
+          lineHeight: "20px",
+          padding: "8px 12px",
+        },
+      }}
+    >
+      {children}
+    </Text>
+  );
+}

@@ -15,6 +15,7 @@ export interface ReactRouterLinkProps
   extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   replace?: boolean;
   state?: any;
+  preserveDefault?: boolean;
   component?: React.ElementType;
   to: To;
 }
@@ -34,6 +35,7 @@ export const ReactRouterLink = React.forwardRef<
     target,
     to,
     component,
+    preserveDefault,
     ...rest
   },
   ref
@@ -52,7 +54,10 @@ export const ReactRouterLink = React.forwardRef<
         (!target || target === "_self") && // Let browser handle "target=_blank" etc.
         !isModifiedEvent(event) // Ignore clicks with modifier keys
       ) {
-        event.preventDefault();
+        if (!preserveDefault) {
+          // We do not want to prevent default in some cases, such as scrolling to a section by fragment.
+          event.preventDefault();
+        }
 
         // If the URL hasn't changed, a regular <a> will do a replace instead of
         // a push, so do the same here.
@@ -62,7 +67,17 @@ export const ReactRouterLink = React.forwardRef<
         navigate(to, { replace, state });
       }
     },
-    [onClick, location, navigate, path, replaceProp, state, target, to]
+    [
+      onClick,
+      target,
+      preserveDefault,
+      replaceProp,
+      location,
+      path,
+      navigate,
+      to,
+      state,
+    ]
   );
 
   const C = component ? component : "a";
