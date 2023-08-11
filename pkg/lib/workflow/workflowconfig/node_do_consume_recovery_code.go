@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -15,10 +16,19 @@ type NodeDoConsumeRecoveryCode struct {
 	RecoveryCode *mfa.RecoveryCode `json:"recovery_code,omitempty"`
 }
 
+var _ Milestone = &NodeDoConsumeRecoveryCode{}
+
+func (*NodeDoConsumeRecoveryCode) Milestone() {}
+
 var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
 
-func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
 func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
+
+var _ MilestoneDidUseAuthenticationLockoutMethod = &NodeDoConsumeRecoveryCode{}
+
+func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
+	return config.AuthenticationLockoutMethodRecoveryCode, true
+}
 
 var _ workflow.NodeSimple = &NodeDoConsumeRecoveryCode{}
 

@@ -112,6 +112,33 @@ func collectAMR(ctx context.Context, deps *workflow.Dependencies, workflows work
 	return
 }
 
+func collectAuthenticationLockoutMethod(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (methods []config.AuthenticationLockoutMethod, err error) {
+	err = workflows.Root.Traverse(workflow.WorkflowTraverser{
+		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
+			if n, ok := nodeSimple.(MilestoneDidUseAuthenticationLockoutMethod); ok {
+				if m, ok := n.MilestoneDidUseAuthenticationLockoutMethod(); ok {
+					methods = append(methods, m)
+				}
+
+			}
+			return nil
+		},
+		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
+			if i, ok := intent.(MilestoneDidUseAuthenticationLockoutMethod); ok {
+				if m, ok := i.MilestoneDidUseAuthenticationLockoutMethod(); ok {
+					methods = append(methods, m)
+				}
+			}
+			return nil
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 type MilestoneNestedSteps interface {
 	Milestone
 	MilestoneNestedSteps()
@@ -190,4 +217,9 @@ type MilestoneDeviceTokenInspected interface {
 type MilestoneDoCreateDeviceTokenIfRequested interface {
 	Milestone
 	MilestoneDoCreateDeviceTokenIfRequested()
+}
+
+type MilestoneDidUseAuthenticationLockoutMethod interface {
+	Milestone
+	MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool)
 }

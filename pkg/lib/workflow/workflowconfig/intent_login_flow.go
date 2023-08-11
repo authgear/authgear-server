@@ -86,7 +86,20 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *workflow.Dependenci
 
 func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
 	return []workflow.Effect{
-		// FIXME(workflow): reset lockout attempts
+		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
+			userID := i.userID(workflows)
+			usedMethods, err := collectAuthenticationLockoutMethod(ctx, deps, workflows)
+			if err != nil {
+				return err
+			}
+
+			err = deps.Authenticators.ClearLockoutAttempts(userID, usedMethods)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// FIXME(workflow): determine isAdminAPI
 			isAdminAPI := false

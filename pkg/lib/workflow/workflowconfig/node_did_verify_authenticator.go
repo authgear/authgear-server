@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -36,6 +37,12 @@ var _ MilestoneDidAuthenticate = &NodeDidVerifyAuthenticator{}
 
 func (n *NodeDidVerifyAuthenticator) MilestoneDidAuthenticate() (amr []string) {
 	return n.Authenticator.AMR()
+}
+
+var _ MilestoneDidUseAuthenticationLockoutMethod = &NodeDidVerifyAuthenticator{}
+
+func (n *NodeDidVerifyAuthenticator) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
+	return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)
 }
 
 var _ workflow.NodeSimple = &NodeDidVerifyAuthenticator{}
