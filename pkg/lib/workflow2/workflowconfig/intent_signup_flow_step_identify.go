@@ -38,7 +38,7 @@ func (i *IntentSignupFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
-	m, ok := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	m, ok := workflow.FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
@@ -76,9 +76,9 @@ func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workf
 		}, nil
 	}
 
-	_, identityCreated := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
-	_, standardAttributesPopulated := FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
-	_, nestedStepHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, identityCreated := workflow.FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	_, standardAttributesPopulated := workflow.FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
+	_, nestedStepHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
@@ -131,9 +131,9 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	_, identityCreated := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
-	_, standardAttributesPopulated := FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
-	_, nestedStepHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, identityCreated := workflow.FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	_, standardAttributesPopulated := workflow.FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
+	_, nestedStepHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
@@ -189,7 +189,7 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(step *config.Work
 }
 
 func (*IntentSignupFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
-	m, ok := FindMilestone[MilestoneIdentificationMethod](w)
+	m, ok := workflow.FindMilestone[MilestoneIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
@@ -211,7 +211,7 @@ func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.WorkflowSignupFl
 }
 
 func (*IntentSignupFlowStepIdentify) identityInfo(w *workflow.Workflow) *identity.Info {
-	m, ok := FindMilestone[MilestoneDoCreateIdentity](w)
+	m, ok := workflow.FindMilestone[MilestoneDoCreateIdentity](w)
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
 	}

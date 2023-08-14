@@ -14,16 +14,16 @@ type IntentCreateDeviceTokenIfRequested struct {
 	UserID string `json:"user_id,omitempty"`
 }
 
-var _ MilestoneDoCreateDeviceTokenIfRequested = &IntentCreateDeviceTokenIfRequested{}
-
-func (*IntentCreateDeviceTokenIfRequested) Milestone()                               {}
-func (*IntentCreateDeviceTokenIfRequested) MilestoneDoCreateDeviceTokenIfRequested() {}
-
 var _ workflow.Intent = &IntentCreateDeviceTokenIfRequested{}
+var _ workflow.Milestone = &IntentCreateDeviceTokenIfRequested{}
+var _ MilestoneDoCreateDeviceTokenIfRequested = &IntentCreateDeviceTokenIfRequested{}
 
 func (*IntentCreateDeviceTokenIfRequested) Kind() string {
 	return "workflowconfig.IntentCreateDeviceTokenIfRequested"
 }
+
+func (*IntentCreateDeviceTokenIfRequested) Milestone()                               {}
+func (*IntentCreateDeviceTokenIfRequested) MilestoneDoCreateDeviceTokenIfRequested() {}
 
 func (*IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	if len(workflows.Nearest.Nodes) == 0 {

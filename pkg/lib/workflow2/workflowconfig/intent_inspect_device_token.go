@@ -17,19 +17,16 @@ type IntentInspectDeviceToken struct {
 	UserID string `json:"user_id,omitempty"`
 }
 
-var _ Milestone = &IntentInspectDeviceToken{}
-
-func (*IntentInspectDeviceToken) Milestone() {}
-
-var _ MilestoneDeviceTokenInspected = &IntentInspectDeviceToken{}
-
-func (*IntentInspectDeviceToken) MilestoneDeviceTokenInspected() {}
-
 var _ workflow.Intent = &IntentInspectDeviceToken{}
+var _ workflow.Milestone = &IntentInspectDeviceToken{}
+var _ MilestoneDeviceTokenInspected = &IntentInspectDeviceToken{}
 
 func (*IntentInspectDeviceToken) Kind() string {
 	return "workflowconfig.IntentInspectDeviceToken"
 }
+
+func (*IntentInspectDeviceToken) Milestone()                     {}
+func (*IntentInspectDeviceToken) MilestoneDeviceTokenInspected() {}
 
 func (*IntentInspectDeviceToken) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	if len(workflows.Nearest.Nodes) == 0 {

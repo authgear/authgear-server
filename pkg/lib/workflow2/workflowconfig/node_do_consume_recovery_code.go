@@ -16,25 +16,20 @@ type NodeDoConsumeRecoveryCode struct {
 	RecoveryCode *mfa.RecoveryCode `json:"recovery_code,omitempty"`
 }
 
-var _ Milestone = &NodeDoConsumeRecoveryCode{}
-
-func (*NodeDoConsumeRecoveryCode) Milestone() {}
-
-var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
-
-func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
-
-var _ MilestoneDidUseAuthenticationLockoutMethod = &NodeDoConsumeRecoveryCode{}
-
-func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
-	return config.AuthenticationLockoutMethodRecoveryCode, true
-}
-
 var _ workflow.NodeSimple = &NodeDoConsumeRecoveryCode{}
+var _ workflow.Milestone = &NodeDoConsumeRecoveryCode{}
+var _ MilestoneDidAuthenticate = &NodeDoConsumeRecoveryCode{}
+var _ MilestoneDidUseAuthenticationLockoutMethod = &NodeDoConsumeRecoveryCode{}
 var _ workflow.EffectGetter = &NodeDoConsumeRecoveryCode{}
 
 func (*NodeDoConsumeRecoveryCode) Kind() string {
 	return "workflowconfig.NodeDoConsumeRecoveryCode"
+}
+
+func (*NodeDoConsumeRecoveryCode) Milestone()                               {}
+func (*NodeDoConsumeRecoveryCode) MilestoneDidAuthenticate() (amr []string) { return }
+func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
+	return config.AuthenticationLockoutMethodRecoveryCode, true
 }
 
 func (n *NodeDoConsumeRecoveryCode) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {

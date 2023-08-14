@@ -20,18 +20,19 @@ type NodeCreateIdentityLoginID struct {
 	Identification config.WorkflowIdentificationMethod `json:"identification,omitempty"`
 }
 
-var _ MilestoneIdentificationMethod = &NodeCreateIdentityLoginID{}
-
-func (*NodeCreateIdentityLoginID) Milestone() {}
-func (n *NodeCreateIdentityLoginID) MilestoneIdentificationMethod() config.WorkflowIdentificationMethod {
-	return n.Identification
-}
 
 var _ workflow.NodeSimple = &NodeCreateIdentityLoginID{}
+var _ workflow.Milestone = &NodeCreateIdentityLoginID{}
+var _ MilestoneIdentificationMethod = &NodeCreateIdentityLoginID{}
 var _ workflow.InputReactor = &NodeCreateIdentityLoginID{}
 
 func (*NodeCreateIdentityLoginID) Kind() string {
 	return "workflowconfig.NodeCreateIdentityLoginID"
+}
+
+func (*NodeCreateIdentityLoginID) Milestone() {}
+func (n *NodeCreateIdentityLoginID) MilestoneIdentificationMethod() config.WorkflowIdentificationMethod {
+	return n.Identification
 }
 
 func (*NodeCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

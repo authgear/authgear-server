@@ -23,16 +23,16 @@ type IntentVerifyClaim struct {
 	ClaimValue  string          `json:"claim_value,omitempty"`
 }
 
-var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
-
-func (*IntentVerifyClaim) Milestone()                    {}
-func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
-
 var _ workflow.Intent = &IntentVerifyClaim{}
+var _ workflow.Milestone = &IntentVerifyClaim{}
+var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
 
 func (*IntentVerifyClaim) Kind() string {
 	return "workflowconfig.IntentVerifyClaim"
 }
+
+func (*IntentVerifyClaim) Milestone()                    {}
+func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
 
 func (*IntentVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	if len(workflows.Nearest.Nodes) == 0 {

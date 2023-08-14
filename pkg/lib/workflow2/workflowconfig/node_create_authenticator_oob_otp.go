@@ -25,18 +25,18 @@ type NodeCreateAuthenticatorOOBOTP struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorOOBOTP{}
+var _ workflow.InputReactor = &NodeCreateAuthenticatorOOBOTP{}
+var _ workflow.Milestone = &NodeCreateAuthenticatorOOBOTP{}
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorOOBOTP{}
+
+func (*NodeCreateAuthenticatorOOBOTP) Kind() string {
+	return "workflowconfig.NodeCreateAuthenticatorOOBOTP"
+}
 
 func (*NodeCreateAuthenticatorOOBOTP) Milestone() {}
 func (n *NodeCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
 	return n.Authentication
-}
-
-var _ workflow.NodeSimple = &NodeCreateAuthenticatorOOBOTP{}
-var _ workflow.InputReactor = &NodeCreateAuthenticatorOOBOTP{}
-
-func (*NodeCreateAuthenticatorOOBOTP) Kind() string {
-	return "workflowconfig.NodeCreateAuthenticatorOOBOTP"
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

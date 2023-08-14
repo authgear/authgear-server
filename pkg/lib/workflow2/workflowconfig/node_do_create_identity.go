@@ -15,18 +15,18 @@ type NodeDoCreateIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
-var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
-
-func (*NodeDoCreateIdentity) Milestone() {}
-func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() *identity.Info {
-	return n.Identity
-}
-
 var _ workflow.NodeSimple = &NodeDoCreateIdentity{}
+var _ workflow.Milestone = &NodeDoCreateIdentity{}
+var _ MilestoneDoCreateIdentity = &NodeDoCreateIdentity{}
 var _ workflow.EffectGetter = &NodeDoCreateIdentity{}
 
 func (n *NodeDoCreateIdentity) Kind() string {
 	return "workflowconfig.NodeDoCreateIdentity"
+}
+
+func (*NodeDoCreateIdentity) Milestone() {}
+func (n *NodeDoCreateIdentity) MilestoneDoCreateIdentity() *identity.Info {
+	return n.Identity
 }
 
 func (n *NodeDoCreateIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {

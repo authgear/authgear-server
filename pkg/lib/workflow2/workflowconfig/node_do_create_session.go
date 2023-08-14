@@ -26,17 +26,6 @@ type NodeDoCreateSession struct {
 	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
 }
 
-var _ MilestoneDoCreateSession = &NodeDoCreateSession{}
-
-func (*NodeDoCreateSession) Milestone() {}
-func (n *NodeDoCreateSession) MilestoneDoCreateSession() (*idpsession.IDPSession, bool) {
-	if n.Session != nil {
-		return n.Session, true
-	}
-
-	return nil, false
-}
-
 func NewNodeDoCreateSession(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
 	attrs := session.NewAttrs(n.UserID)
 	amr, err := collectAMR(ctx, deps, workflows)
@@ -75,11 +64,22 @@ func NewNodeDoCreateSession(ctx context.Context, deps *workflow.Dependencies, wo
 }
 
 var _ workflow.NodeSimple = &NodeDoCreateSession{}
+var _ workflow.Milestone = &NodeDoCreateSession{}
+var _ MilestoneDoCreateSession = &NodeDoCreateSession{}
 var _ workflow.EffectGetter = &NodeDoCreateSession{}
 var _ workflow.CookieGetter = &NodeDoCreateSession{}
 
 func (*NodeDoCreateSession) Kind() string {
 	return "workflowconfig.NodeDoCreateSession"
+}
+
+func (*NodeDoCreateSession) Milestone() {}
+func (n *NodeDoCreateSession) MilestoneDoCreateSession() (*idpsession.IDPSession, bool) {
+	if n.Session != nil {
+		return n.Session, true
+	}
+
+	return nil, false
 }
 
 func (n *NodeDoCreateSession) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {

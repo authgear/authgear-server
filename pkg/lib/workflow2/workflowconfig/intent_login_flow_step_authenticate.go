@@ -40,7 +40,7 @@ func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
 
 func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (info *authenticator.Info, ok bool) {
-	m, ok := FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
+	m, ok := workflow.FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 	if !ok {
 		return
 	}
@@ -87,15 +87,15 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
-	_, deviceTokenInspected := FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
+	_, deviceTokenInspected := workflow.FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
 
-	_, authenticationMethodSelected := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
+	_, authenticationMethodSelected := workflow.FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 
-	_, authenticated := FindMilestone[MilestoneDidAuthenticate](workflows.Nearest)
+	_, authenticated := workflow.FindMilestone[MilestoneDidAuthenticate](workflows.Nearest)
 
-	_, deviceTokenCreatedIfRequested := FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
+	_, deviceTokenCreatedIfRequested := workflow.FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
 
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, nestedStepsHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case deviceTokenEnabled && !deviceTokenInspected:
@@ -132,15 +132,15 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
-	_, deviceTokenInspected := FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
+	_, deviceTokenInspected := workflow.FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
 
-	_, authenticationMethodSelected := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
+	_, authenticationMethodSelected := workflow.FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 
-	_, authenticated := FindMilestone[MilestoneDidAuthenticate](workflows.Nearest)
+	_, authenticated := workflow.FindMilestone[MilestoneDidAuthenticate](workflows.Nearest)
 
-	_, deviceTokenCreatedIfRequested := FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
+	_, deviceTokenCreatedIfRequested := workflow.FindMilestone[MilestoneDoCreateDeviceTokenIfRequested](workflows.Nearest)
 
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, nestedStepsHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case deviceTokenEnabled && !deviceTokenInspected:
@@ -298,7 +298,7 @@ func (*IntentLoginFlowStepAuthenticate) step(o config.WorkflowObject) *config.Wo
 }
 
 func (*IntentLoginFlowStepAuthenticate) authenticationMethod(workflows workflow.Workflows) config.WorkflowAuthenticationMethod {
-	m, ok := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
+	m, ok := workflow.FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 	if !ok {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}

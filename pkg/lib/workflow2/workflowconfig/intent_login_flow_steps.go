@@ -19,16 +19,16 @@ type IntentLoginFlowSteps struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 }
 
-var _ MilestoneNestedSteps = &IntentLoginFlowSteps{}
-
-func (*IntentLoginFlowSteps) Milestone()            {}
-func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
-
 var _ workflow.Intent = &IntentLoginFlowSteps{}
+var _ workflow.Milestone = &IntentLoginFlowSteps{}
+var _ MilestoneNestedSteps = &IntentLoginFlowSteps{}
 
 func (*IntentLoginFlowSteps) Kind() string {
 	return "workflowconfig.IntentLoginFlowSteps"
 }
+
+func (*IntentLoginFlowSteps) Milestone()            {}
+func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)

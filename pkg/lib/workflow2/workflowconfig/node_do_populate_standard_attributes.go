@@ -16,17 +16,17 @@ type NodeDoPopulateStandardAttributes struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
-var _ MilestoneDoPopulateStandardAttributes = &NodeDoPopulateStandardAttributes{}
-
-func (*NodeDoPopulateStandardAttributes) Milestone()                             {}
-func (*NodeDoPopulateStandardAttributes) MilestoneDoPopulateStandardAttributes() {}
-
 var _ workflow.NodeSimple = &NodeDoPopulateStandardAttributes{}
+var _ workflow.Milestone = &NodeDoPopulateStandardAttributes{}
+var _ MilestoneDoPopulateStandardAttributes = &NodeDoPopulateStandardAttributes{}
 var _ workflow.EffectGetter = &NodeDoPopulateStandardAttributes{}
 
 func (n *NodeDoPopulateStandardAttributes) Kind() string {
 	return "workflowconfig.NodeDoPopulateStandardAttributes"
 }
+
+func (*NodeDoPopulateStandardAttributes) Milestone()                             {}
+func (*NodeDoPopulateStandardAttributes) MilestoneDoPopulateStandardAttributes() {}
 
 func (n *NodeDoPopulateStandardAttributes) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{

@@ -35,7 +35,7 @@ func (i *IntentLoginFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepAuthenticateTarget = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) *identity.Info {
-	m, ok := FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
+	m, ok := workflow.FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
 	if !ok {
 		panic(fmt.Errorf("MilestoneDoUseIdentity is absent in IntentLoginFlowStepIdentify"))
 	}
@@ -59,8 +59,8 @@ func (*IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *workfl
 		}, nil
 	}
 
-	_, identityUsed := FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, identityUsed := workflow.FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
+	_, nestedStepsHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case identityUsed && !nestedStepsHandled:
@@ -109,8 +109,8 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *workflo
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	_, identityUsed := FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, identityUsed := workflow.FindMilestone[MilestoneDoUseIdentity](workflows.Nearest)
+	_, nestedStepsHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case identityUsed && !nestedStepsHandled:
@@ -160,7 +160,7 @@ func (*IntentLoginFlowStepIdentify) checkIdentificationMethod(step *config.Workf
 }
 
 func (*IntentLoginFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
-	m, ok := FindMilestone[MilestoneIdentificationMethod](w)
+	m, ok := workflow.FindMilestone[MilestoneIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
