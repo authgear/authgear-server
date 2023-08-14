@@ -26,6 +26,7 @@ interface EditOAuthClientFormProps {
   clientConfig: OAuthClientConfig;
   clientSecret?: string;
   customUIEnabled: boolean;
+  app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
 }
@@ -80,6 +81,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       clientSecret,
       publicOrigin,
       customUIEnabled,
+      app2appEnabled,
       onClientConfigChange,
       onRevealSecret,
     } = props;
@@ -309,7 +311,8 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [clientConfig.x_application_type]
     );
 
-    const showApp2AppSettings = clientConfig.x_application_type === "native";
+    const showApp2AppSettings =
+      clientConfig.x_application_type === "native" && app2appEnabled;
 
     const showConsentScreenSettings = useMemo(
       () => clientConfig.x_application_type === "third_party_app",

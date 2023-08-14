@@ -9,6 +9,7 @@ import {
   ScreenNavQueryDocument,
 } from "./graphql/portal/query/screenNavQuery.generated";
 import { client } from "./graphql/portal/apollo";
+import { useAppFeatureConfigQuery } from "./graphql/portal/query/appFeatureConfigQuery";
 
 function getStyles(props: INavStyleProps) {
   return {
@@ -110,6 +111,8 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
       id: appID,
     },
   });
+  const { effectiveFeatureConfig } = useAppFeatureConfigQuery(appID);
+
   const app =
     queryResult.data?.node?.__typename === "App" ? queryResult.data.node : null;
   const showIntegrations =
@@ -118,6 +121,13 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
   const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
   const { auditLogEnabled, analyticEnabled, web3Enabled } = useSystemConfig();
+
+  const app2appEnabled = useMemo(() => {
+    if (effectiveFeatureConfig != null) {
+      return effectiveFeatureConfig.oauth?.client?.app2app_enabled ?? false;
+    }
+    return false;
+  }, [effectiveFeatureConfig]);
 
   const label = renderToString("ScreenNav.label");
 
@@ -194,11 +204,15 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.anonymous-users",
             url: `/project/${appID}/configuration/authentication/anonymous-users`,
           },
-          {
-            type: "link" as const,
-            textKey: "ScreenNav.app2app",
-            url: `/project/${appID}/configuration/authentication/app2app`,
-          },
+          ...(app2appEnabled
+            ? [
+                {
+                  type: "link" as const,
+                  textKey: "ScreenNav.app2app",
+                  url: `/project/${appID}/configuration/authentication/app2app`,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -307,13 +321,14 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
 
     return links;
   }, [
-    analyticEnabled,
-    appID,
-    auditLogEnabled,
-    web3Enabled,
     mobileView,
-    showIntegrations,
     skippedTutorial,
+    appID,
+    analyticEnabled,
+    web3Enabled,
+    app2appEnabled,
+    showIntegrations,
+    auditLogEnabled,
   ]);
 
   const [expandState, setExpandState] = useState<Record<string, boolean>>(
