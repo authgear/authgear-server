@@ -15,17 +15,17 @@ type NodeDoMarkClaimVerified struct {
 	Claim *verification.Claim `json:"verified_claim,omitempty"`
 }
 
-var _ MilestoneDoMarkClaimVerified = &NodeDoMarkClaimVerified{}
-
-func (*NodeDoMarkClaimVerified) Milestone()                      {}
-func (n *NodeDoMarkClaimVerified) MilestoneDoMarkClaimVerified() {}
-
 var _ workflow.NodeSimple = &NodeDoMarkClaimVerified{}
+var _ workflow.Milestone = &NodeDoMarkClaimVerified{}
+var _ MilestoneDoMarkClaimVerified = &NodeDoMarkClaimVerified{}
 var _ workflow.EffectGetter = &NodeDoMarkClaimVerified{}
 
 func (n *NodeDoMarkClaimVerified) Kind() string {
 	return "latte.NodeDoMarkClaimVerified"
 }
+
+func (*NodeDoMarkClaimVerified) Milestone()                      {}
+func (n *NodeDoMarkClaimVerified) MilestoneDoMarkClaimVerified() {}
 
 func (n *NodeDoMarkClaimVerified) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{

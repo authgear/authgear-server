@@ -41,7 +41,7 @@ func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepAuthenticate{}
 
 func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
-	m, ok := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	m, ok := workflow.FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
 	if !ok {
 		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
 	}
@@ -86,8 +86,8 @@ func (*IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *w
 		}, nil
 	}
 
-	_, authenticatorCreated := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, authenticatorCreated := workflow.FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case authenticatorCreated && !nestedStepsHandled:
@@ -157,8 +157,8 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	_, authenticatorCreated := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
-	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
+	_, authenticatorCreated := workflow.FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := workflow.FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
 	switch {
 	case authenticatorCreated && !nestedStepsHandled:
@@ -212,7 +212,7 @@ func (*IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *config.
 }
 
 func (*IntentSignupFlowStepAuthenticate) authenticationMethod(workflows workflow.Workflows) config.WorkflowAuthenticationMethod {
-	m, ok := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
+	m, ok := workflow.FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
 	if !ok {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}

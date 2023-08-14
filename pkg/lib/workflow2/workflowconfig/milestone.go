@@ -12,44 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-// Milestone is a marker.
-// The designed use case is to find out whether a particular milestone exists
-// in the workflow, or any of its subworkflows.
-type Milestone interface {
-	Milestone()
-}
-
-func FindMilestone[T Milestone](w *workflow.Workflow) (T, bool) {
-	var t T
-	found := false
-
-	err := workflow.TraverseWorkflow(workflow.WorkflowTraverser{
-		NodeSimple: func(nodeSimple workflow.NodeSimple, _ *workflow.Workflow) error {
-			if m, ok := nodeSimple.(T); ok {
-				t = m
-				found = true
-			}
-			return nil
-		},
-		Intent: func(intent workflow.Intent, w *workflow.Workflow) error {
-			if m, ok := intent.(T); ok {
-				t = m
-				found = true
-			}
-			return nil
-		},
-	}, w)
-	if err != nil {
-		return *new(T), false
-	}
-
-	if !found {
-		return *new(T), false
-	}
-
-	return t, true
-}
-
 func getUserID(workflows workflow.Workflows) (userID string, err error) {
 	err = workflow.TraverseWorkflow(workflow.WorkflowTraverser{
 		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
@@ -140,86 +102,86 @@ func collectAuthenticationLockoutMethod(ctx context.Context, deps *workflow.Depe
 }
 
 type MilestoneNestedSteps interface {
-	Milestone
+	workflow.Milestone
 	MilestoneNestedSteps()
 }
 
 type MilestoneIdentificationMethod interface {
-	Milestone
+	workflow.Milestone
 	MilestoneIdentificationMethod() config.WorkflowIdentificationMethod
 }
 
 type MilestoneAuthenticationMethod interface {
-	Milestone
+	workflow.Milestone
 	MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod
 }
 
 type MilestoneDidAuthenticate interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDidAuthenticate() (amr []string)
 }
 
 type MilestoneDoCreateSession interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoCreateSession() (*idpsession.IDPSession, bool)
 }
 
 type MilestoneDoCreateUser interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoCreateUser() string
 }
 
 type MilestoneDoCreateIdentity interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoCreateIdentity() *identity.Info
 }
 
 type MilestoneDoCreateAuthenticator interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoCreateAuthenticator() *authenticator.Info
 }
 
 type MilestoneDoUseUser interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoUseUser() string
 }
 
 type MilestoneDoUseIdentity interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoUseIdentity() *identity.Info
 }
 
 type MilestoneDidSelectAuthenticator interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDidSelectAuthenticator() *authenticator.Info
 }
 
 type MilestoneDidVerifyAuthenticator interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDidVerifyAuthenticator() *NodeDidVerifyAuthenticator
 }
 
 type MilestoneDoPopulateStandardAttributes interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoPopulateStandardAttributes()
 }
 
 type MilestoneDoMarkClaimVerified interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoMarkClaimVerified()
 }
 
 type MilestoneDeviceTokenInspected interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDeviceTokenInspected()
 }
 
 type MilestoneDoCreateDeviceTokenIfRequested interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDoCreateDeviceTokenIfRequested()
 }
 
 type MilestoneDidUseAuthenticationLockoutMethod interface {
-	Milestone
+	workflow.Milestone
 	MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool)
 }

@@ -25,27 +25,24 @@ type IntentUseAuthenticatorOOBOTP struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-var _ Milestone = &IntentUseAuthenticatorOOBOTP{}
-
-func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
-
-var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
-
-func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
-	return n.Authentication
-}
-
 var _ workflow.Intent = &IntentUseAuthenticatorOOBOTP{}
+var _ workflow.Milestone = &IntentUseAuthenticatorOOBOTP{}
+var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
 var _ workflow.DataOutputer = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Kind() string {
 	return "workflowconfig.IntentUseAuthenticatorOOBOTP"
 }
 
+func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
+func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
+}
+
 func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	_, authenticatorSelected := FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
-	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
-	_, authenticatorVerified := FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
+	_, authenticatorSelected := workflow.FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
+	_, claimVerified := workflow.FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
+	_, authenticatorVerified := workflow.FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 
 	switch {
 	case !authenticatorSelected:
@@ -67,9 +64,9 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 		return nil, err
 	}
 
-	m, authenticatorSelected := FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
-	_, claimVerified := FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
-	_, authenticatorVerified := FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
+	m, authenticatorSelected := workflow.FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
+	_, claimVerified := workflow.FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
+	_, authenticatorVerified := workflow.FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 
 	switch {
 	case !authenticatorSelected:

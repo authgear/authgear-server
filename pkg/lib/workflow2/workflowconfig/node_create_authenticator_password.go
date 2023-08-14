@@ -19,18 +19,18 @@ type NodeCreateAuthenticatorPassword struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
+var _ workflow.InputReactor = &NodeCreateAuthenticatorPassword{}
+var _ workflow.Milestone = &NodeCreateAuthenticatorPassword{}
 var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
+
+func (*NodeCreateAuthenticatorPassword) Kind() string {
+	return "workflowconfig.NodeCreateAuthenticatorPassword"
+}
 
 func (*NodeCreateAuthenticatorPassword) Milestone() {}
 func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
 	return n.Authentication
-}
-
-var _ workflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
-var _ workflow.InputReactor = &NodeCreateAuthenticatorPassword{}
-
-func (*NodeCreateAuthenticatorPassword) Kind() string {
-	return "workflowconfig.NodeCreateAuthenticatorPassword"
 }
 
 func (*NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

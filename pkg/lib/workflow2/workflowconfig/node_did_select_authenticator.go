@@ -13,16 +13,15 @@ type NodeDidSelectAuthenticator struct {
 	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
-var _ MilestoneDidSelectAuthenticator = &NodeDidSelectAuthenticator{}
-
-func (n *NodeDidSelectAuthenticator) Milestone() {}
-
-func (n *NodeDidSelectAuthenticator) MilestoneDidSelectAuthenticator() *authenticator.Info {
-	return n.Authenticator
-}
-
 var _ workflow.NodeSimple = &NodeDidSelectAuthenticator{}
+var _ workflow.Milestone = &NodeDidSelectAuthenticator{}
+var _ MilestoneDidSelectAuthenticator = &NodeDidSelectAuthenticator{}
 
 func (*NodeDidSelectAuthenticator) Kind() string {
 	return "workflowconfig.NodeDidSelectAuthenticator"
+}
+
+func (n *NodeDidSelectAuthenticator) Milestone() {}
+func (n *NodeDidSelectAuthenticator) MilestoneDidSelectAuthenticator() *authenticator.Info {
+	return n.Authenticator
 }

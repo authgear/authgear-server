@@ -20,18 +20,18 @@ type NodeUseAuthenticatorTOTP struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorTOTP{}
-
-func (*NodeUseAuthenticatorTOTP) Milestone() {}
-func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
-	return n.Authentication
-}
-
 var _ workflow.NodeSimple = &NodeUseAuthenticatorTOTP{}
+var _ workflow.Milestone = &NodeUseAuthenticatorTOTP{}
+var _ MilestoneAuthenticationMethod = &NodeUseAuthenticatorTOTP{}
 var _ workflow.InputReactor = &NodeUseAuthenticatorTOTP{}
 
 func (*NodeUseAuthenticatorTOTP) Kind() string {
 	return "workflowconfig.NodeUseAuthenticatorTOTP"
+}
+
+func (*NodeUseAuthenticatorTOTP) Milestone() {}
+func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
 func (*NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

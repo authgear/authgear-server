@@ -23,14 +23,9 @@ type NodeCreateAuthenticatorTOTP struct {
 	Authenticator  *authenticator.Info                 `json:"authenticator,omitempty"`
 }
 
-var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
-
-func (*NodeCreateAuthenticatorTOTP) Milestone() {}
-func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
-	return n.Authentication
-}
-
 var _ workflow.NodeSimple = &NodeCreateAuthenticatorTOTP{}
+var _ workflow.Milestone = &NodeCreateAuthenticatorTOTP{}
+var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
 var _ workflow.InputReactor = &NodeCreateAuthenticatorTOTP{}
 var _ workflow.DataOutputer = &NodeCreateAuthenticatorTOTP{}
 
@@ -65,6 +60,11 @@ func NewNodeCreateAuthenticatorTOTP(deps *workflow.Dependencies, n *NodeCreateAu
 
 func (*NodeCreateAuthenticatorTOTP) Kind() string {
 	return "workflowconfig.NodeCreateAuthenticatorTOTP"
+}
+
+func (*NodeCreateAuthenticatorTOTP) Milestone() {}
+func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
 func (*NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

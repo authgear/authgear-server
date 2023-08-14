@@ -20,16 +20,16 @@ type IntentSignupFlowSteps struct {
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ MilestoneNestedSteps = &IntentSignupFlowSteps{}
-
-func (*IntentSignupFlowSteps) Milestone()            {}
-func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
-
 var _ workflow.Intent = &IntentSignupFlowSteps{}
+var _ workflow.Milestone = &IntentSignupFlowSteps{}
+var _ MilestoneNestedSteps = &IntentSignupFlowSteps{}
 
 func (*IntentSignupFlowSteps) Kind() string {
 	return "workflowconfig.IntentSignupFlowSteps"
 }
+
+func (*IntentSignupFlowSteps) Milestone()            {}
+func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)

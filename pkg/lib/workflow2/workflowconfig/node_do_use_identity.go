@@ -15,20 +15,6 @@ type NodeDoUseIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
-var _ Milestone = &NodeDoUseIdentity{}
-
-func (*NodeDoUseIdentity) Milestone() {}
-
-var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
-
-func (n *NodeDoUseIdentity) MilestoneDoUseUser() string {
-	return n.Identity.UserID
-}
-
-var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
-
-func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }
-
 func NewNodeDoUseIdentity(workflows workflow.Workflows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
 	userID, err := getUserID(workflows)
 	if errors.Is(err, ErrNoUserID) {
@@ -46,7 +32,16 @@ func NewNodeDoUseIdentity(workflows workflow.Workflows, n *NodeDoUseIdentity) (*
 }
 
 var _ workflow.NodeSimple = &NodeDoUseIdentity{}
+var _ workflow.Milestone = &NodeDoUseIdentity{}
+var _ MilestoneDoUseUser = &NodeDoUseIdentity{}
+var _ MilestoneDoUseIdentity = &NodeDoUseIdentity{}
 
 func (*NodeDoUseIdentity) Kind() string {
 	return "workflowconfig.NodeDoUseIdentity"
 }
+
+func (*NodeDoUseIdentity) Milestone() {}
+func (n *NodeDoUseIdentity) MilestoneDoUseUser() string {
+	return n.Identity.UserID
+}
+func (n *NodeDoUseIdentity) MilestoneDoUseIdentity() *identity.Info { return n.Identity }

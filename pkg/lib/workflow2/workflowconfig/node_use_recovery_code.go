@@ -16,18 +16,18 @@ type NodeUseRecoveryCode struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
-var _ MilestoneAuthenticationMethod = &NodeUseRecoveryCode{}
-
-func (*NodeUseRecoveryCode) Milestone() {}
-func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
-	return n.Authentication
-}
-
 var _ workflow.NodeSimple = &NodeUseRecoveryCode{}
+var _ workflow.Milestone = &NodeUseRecoveryCode{}
+var _ MilestoneAuthenticationMethod = &NodeUseRecoveryCode{}
 var _ workflow.InputReactor = &NodeUseRecoveryCode{}
 
 func (*NodeUseRecoveryCode) Kind() string {
 	return "workflowconfig.NodeUseRecoveryCode"
+}
+
+func (*NodeUseRecoveryCode) Milestone() {}
+func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
 }
 
 func (*NodeUseRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

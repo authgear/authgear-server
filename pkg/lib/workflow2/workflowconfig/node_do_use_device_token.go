@@ -11,22 +11,17 @@ func init() {
 
 type NodeDoUseDeviceToken struct{}
 
-var _ Milestone = &NodeDoUseDeviceToken{}
-
-func (*NodeDoUseDeviceToken) Milestone() {}
-
-var _ MilestoneAuthenticationMethod = &NodeDoUseDeviceToken{}
-
-func (*NodeDoUseDeviceToken) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
-	return config.WorkflowAuthenticationMethodDeviceToken
-}
-
-var _ MilestoneDidAuthenticate = &NodeDoUseDeviceToken{}
-
-func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) { return }
-
 var _ workflow.NodeSimple = &NodeDoUseDeviceToken{}
+var _ workflow.Milestone = &NodeDoUseDeviceToken{}
+var _ MilestoneAuthenticationMethod = &NodeDoUseDeviceToken{}
+var _ MilestoneDidAuthenticate = &NodeDoUseDeviceToken{}
 
 func (*NodeDoUseDeviceToken) Kind() string {
 	return "workflowconfig.NodeDoUseDeviceToken"
 }
+
+func (*NodeDoUseDeviceToken) Milestone() {}
+func (*NodeDoUseDeviceToken) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return config.WorkflowAuthenticationMethodDeviceToken
+}
+func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) { return }
