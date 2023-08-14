@@ -44,11 +44,14 @@ func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepAuthenticate{}
 
 func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
-	n, ok := workflow.FindSingleNode[*NodeDoCreateAuthenticator](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
 	if !ok {
-		return nil, fmt.Errorf("NodeDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
+		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
 	}
-	return n.Authenticator.StandardClaims(), nil
+
+	info := m.MilestoneDoCreateAuthenticator()
+
+	return info.StandardClaims(), nil
 }
 
 func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
@@ -56,7 +59,7 @@ func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *workfl
 }
 
 func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) otp.MessageType {
-	authenticationMethod := i.authenticationMethod(workflows.Nearest)
+	authenticationMethod := i.authenticationMethod(workflows)
 	switch authenticationMethod {
 	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
 		return otp.MessageTypeSetupPrimaryOOB
@@ -89,16 +92,16 @@ func (*IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *w
 		}, nil
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateAuthenticator:
-			// Handle nested steps.
-			return nil, nil
-		}
-	}
+	_, authenticatorCreated := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrEOF
+	switch {
+	case authenticatorCreated && !nestedStepsHandled:
+		// Handle nested steps.
+		return nil, nil
+	default:
+		return nil, workflow.ErrEOF
+	}
 }
 
 func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -160,20 +163,20 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateAuthenticator:
-			authentication := i.authenticationMethod(workflows.Nearest)
-			return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
-				SignupFlow:  i.SignupFlow,
-				JSONPointer: i.jsonPointer(step, authentication),
-				UserID:      i.UserID,
-			}), nil
-		}
-	}
+	_, authenticatorCreated := FindMilestone[MilestoneDoCreateAuthenticator](workflows.Nearest)
+	_, nestedStepsHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrIncompatibleInput
+	switch {
+	case authenticatorCreated && !nestedStepsHandled:
+		authentication := i.authenticationMethod(workflows)
+		return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
+			SignupFlow:  i.SignupFlow,
+			JSONPointer: i.jsonPointer(step, authentication),
+			UserID:      i.UserID,
+		}), nil
+	default:
+		return nil, workflow.ErrIncompatibleInput
+	}
 }
 
 func (*IntentSignupFlowStepAuthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
@@ -218,21 +221,15 @@ func (*IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *config.
 	return
 }
 
-func (*IntentSignupFlowStepAuthenticate) authenticationMethod(w *workflow.Workflow) config.WorkflowAuthenticationMethod {
-	if len(w.Nodes) == 0 {
+func (*IntentSignupFlowStepAuthenticate) authenticationMethod(workflows workflow.Workflows) config.WorkflowAuthenticationMethod {
+	m, ok := FindMilestone[MilestoneAuthenticationMethod](workflows.Nearest)
+	if !ok {
 		panic(fmt.Errorf("workflow: authentication method not yet selected"))
 	}
 
-	switch n := w.Nodes[0].Simple.(type) {
-	case *NodeCreateAuthenticatorPassword:
-		return n.Authentication
-	case *NodeCreateAuthenticatorOOBOTP:
-		return n.Authentication
-	case *NodeCreateAuthenticatorTOTP:
-		return n.Authentication
-	default:
-		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
-	}
+	am := m.MilestoneAuthenticationMethod()
+
+	return am
 }
 
 func (i *IntentSignupFlowStepAuthenticate) jsonPointer(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) jsonpointer.T {

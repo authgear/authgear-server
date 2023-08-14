@@ -7,6 +7,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type Info struct {
@@ -226,4 +229,83 @@ func (i *Info) ToModel() model.Authenticator {
 		IsDefault: i.IsDefault,
 		Kind:      model.AuthenticatorKind(i.Kind),
 	}
+}
+
+func (i *Info) ToAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	candidate := i.ToCandidate()
+	am := candidate[CandidateKeyAuthenticationMethod].(config.WorkflowAuthenticationMethod)
+	return am
+}
+
+func (i *Info) ToCandidate() Candidate {
+	switch i.Kind {
+	case model.AuthenticatorKindPrimary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPassword,
+				// No ID is needed.
+				CandidateKeyAuthenticatorKind: i.Kind,
+				CandidateKeyAuthenticatorType: i.Type,
+			}
+		case model.AuthenticatorTypePasskey:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPasskey,
+				// No ID is needed.
+				CandidateKeyAuthenticatorKind: i.Kind,
+				CandidateKeyAuthenticatorType: i.Type,
+			}
+		case model.AuthenticatorTypeOOBEmail:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
+				CandidateKeyAuthenticatorID:      i.ID,
+				CandidateKeyAuthenticatorKind:    i.Kind,
+				CandidateKeyAuthenticatorType:    i.Type,
+				CandidateKeyMaskedDisplayID:      mail.MaskAddress(i.OOBOTP.Email),
+			}
+		case model.AuthenticatorTypeOOBSMS:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
+				CandidateKeyAuthenticatorID:      i.ID,
+				CandidateKeyAuthenticatorKind:    i.Kind,
+				CandidateKeyAuthenticatorType:    i.Type,
+				CandidateKeyMaskedDisplayID:      phone.Mask(i.OOBOTP.Phone),
+			}
+		}
+	case model.AuthenticatorKindSecondary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryPassword,
+				// No ID is needed.
+				CandidateKeyAuthenticatorKind: i.Kind,
+				CandidateKeyAuthenticatorType: i.Type,
+			}
+		case model.AuthenticatorTypeOOBEmail:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
+				CandidateKeyAuthenticatorID:      i.ID,
+				CandidateKeyAuthenticatorKind:    i.Kind,
+				CandidateKeyAuthenticatorType:    i.Type,
+				CandidateKeyMaskedDisplayID:      mail.MaskAddress(i.OOBOTP.Email),
+			}
+		case model.AuthenticatorTypeOOBSMS:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
+				CandidateKeyAuthenticatorID:      i.ID,
+				CandidateKeyAuthenticatorKind:    i.Kind,
+				CandidateKeyAuthenticatorType:    i.Type,
+				CandidateKeyMaskedDisplayID:      phone.Mask(i.OOBOTP.Phone),
+			}
+		case model.AuthenticatorTypeTOTP:
+			return Candidate{
+				CandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryTOTP,
+				// No ID is needed.
+				CandidateKeyAuthenticatorKind: i.Kind,
+				CandidateKeyAuthenticatorType: i.Type,
+			}
+		}
+	}
+
+	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
 }

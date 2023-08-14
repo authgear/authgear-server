@@ -165,7 +165,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		mfa.DependencySet,
 
-		wire.Bind(new(workflow.MFAService), new(*mfa.Service)),
 		wire.Bind(new(facade.MFAService), new(*mfa.Service)),
 	),
 
@@ -226,6 +225,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.VerificationService), new(facade.WorkflowVerificationFacade)),
+		wire.Bind(new(workflow.MFAService), new(*facade.MFAFacade)),
 		wire.Bind(new(interaction.MFAService), new(*facade.MFAFacade)),
 	),
 
@@ -288,6 +288,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
 		wire.Bind(new(interaction.OfflineGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(workflow.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oidc.UIInfoResolverPromptResolver), new(*oauth.PromptResolver)),
 
 		oauthhandler.DependencySet,

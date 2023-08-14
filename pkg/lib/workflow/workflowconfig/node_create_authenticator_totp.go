@@ -23,6 +23,15 @@ type NodeCreateAuthenticatorTOTP struct {
 	Authenticator  *authenticator.Info                 `json:"authenticator,omitempty"`
 }
 
+var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorTOTP{}
+
+func (*NodeCreateAuthenticatorTOTP) Milestone() {}
+func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
+}
+
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorTOTP{}
+
 func NewNodeCreateAuthenticatorTOTP(deps *workflow.Dependencies, n *NodeCreateAuthenticatorTOTP) (*NodeCreateAuthenticatorTOTP, error) {
 	authenticatorKind := n.authenticatorKind()
 
@@ -67,8 +76,8 @@ func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *workflo
 			TOTP: &authenticator.TOTPSpec{
 				Code: inputSetupTOTP.GetCode(),
 			},
-		})
-		if errors.Is(err, authenticator.ErrInvalidCredentials) {
+		}, nil)
+		if errors.Is(err, api.ErrInvalidCredentials) {
 			return nil, api.ErrInvalidCredentials
 		} else if err != nil {
 			return nil, err

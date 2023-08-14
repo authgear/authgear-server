@@ -1,5 +1,11 @@
 package config
 
+import (
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
+
 var _ = Schema.Add("WorkflowConfig", `
 {
 	"type": "object",
@@ -46,22 +52,6 @@ var _ = Schema.Add("WorkflowIdentificationMethod", `
 		"oauth",
 		"passkey",
 		"siwe"
-	]
-}
-`)
-
-var _ = Schema.Add("WorkflowAuthenticationMethod", `
-{
-	"type": "string",
-	"enum": [
-		"primary_password",
-		"primary_passkey",
-		"primary_oob_otp_email",
-		"primary_oob_otp_sms",
-		"secondary_password",
-		"secondary_totp",
-		"secondary_oob_otp_email",
-		"secondary_oob_otp_sms"
 	]
 }
 `)
@@ -187,7 +177,19 @@ var _ = Schema.Add("WorkflowSignupFlowAuthenticate", `
 	"type": "object",
 	"required": ["authentication"],
 	"properties": {
-		"authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+		"authentication": {
+			"type": "string",
+			"enum": [
+				"primary_password",
+				"primary_passkey",
+				"primary_oob_otp_email",
+				"primary_oob_otp_sms",
+				"secondary_password",
+				"secondary_totp",
+				"secondary_oob_otp_email",
+				"secondary_oob_otp_sms"
+			]
+		},
 		"target_step": { "$ref": "#/$defs/WorkflowObjectID" },
 		"steps": {
 			"type": "array",
@@ -236,7 +238,8 @@ var _ = Schema.Add("WorkflowLoginFlowStep", `
 			"type": "string",
 			"enum": [
 				"identify",
-				"authenticate"
+				"authenticate",
+				"change_password"
 			]
 		}
 	},
@@ -271,8 +274,22 @@ var _ = Schema.Add("WorkflowLoginFlowStep", `
 					"optional": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
-						"items": { "$ref": "#/$defs/WorkflowSignupFlowAuthenticate" }
+						"items": { "$ref": "#/$defs/WorkflowLoginFlowAuthenticate" }
 					}
+				}
+			}
+		},
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "change_password" }
+				}
+			},
+			"then": {
+				"required": ["target_step"],
+				"properties": {
+					"target_step": { "$ref": "#/$defs/WorkflowObjectID" }
 				}
 			}
 		}
@@ -294,12 +311,26 @@ var _ = Schema.Add("WorkflowLoginFlowIdentify", `
 }
 `)
 
-var _ = Schema.Add("WorkflowSignupFlowAuthenticate", `
+var _ = Schema.Add("WorkflowLoginFlowAuthenticate", `
 {
 	"type": "object",
 	"required": ["authentication"],
 	"properties": {
-		"authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+		"authentication": {
+			"type": "string",
+			"enum": [
+				"primary_password",
+				"primary_passkey",
+				"primary_oob_otp_email",
+				"primary_oob_otp_sms",
+				"secondary_password",
+				"secondary_totp",
+				"secondary_oob_otp_email",
+				"secondary_oob_otp_sms",
+				"recovery_code",
+				"device_token"
+			]
+		},
 		"target_step": { "$ref": "#/$defs/WorkflowObjectID" },
 		"steps": {
 			"type": "array",
@@ -425,7 +456,19 @@ var _ = Schema.Add("WorkflowReauthFlowAuthenticate", `
 	"type": "object",
 	"required": ["authentication"],
 	"properties": {
-		"authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+		"authentication": {
+			"type": "string",
+			"enum": [
+				"primary_password",
+				"primary_passkey",
+				"primary_oob_otp_email",
+				"primary_oob_otp_sms",
+				"secondary_password",
+				"secondary_totp",
+				"secondary_oob_otp_email",
+				"secondary_oob_otp_sms"
+			]
+		},
 		"target_step": { "$ref": "#/$defs/WorkflowObjectID" },
 		"steps": {
 			"type": "array",
@@ -463,7 +506,36 @@ const (
 	WorkflowAuthenticationMethodSecondaryTOTP        WorkflowAuthenticationMethod = "secondary_totp"
 	WorkflowAuthenticationMethodSecondaryOOBOTPEmail WorkflowAuthenticationMethod = "secondary_oob_otp_email"
 	WorkflowAuthenticationMethodSecondaryOOBOTPSMS   WorkflowAuthenticationMethod = "secondary_oob_otp_sms"
+	WorkflowAuthenticationMethodRecoveryCode         WorkflowAuthenticationMethod = "recovery_code"
+	WorkflowAuthenticationMethodDeviceToken          WorkflowAuthenticationMethod = "device_token"
 )
+
+func (m WorkflowAuthenticationMethod) AuthenticatorKind() model.AuthenticatorKind {
+	switch m {
+	case WorkflowAuthenticationMethodPrimaryPassword:
+		fallthrough
+	case WorkflowAuthenticationMethodPrimaryPasskey:
+		fallthrough
+	case WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+		fallthrough
+	case WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+		return model.AuthenticatorKindPrimary
+	case WorkflowAuthenticationMethodSecondaryPassword:
+		fallthrough
+	case WorkflowAuthenticationMethodSecondaryTOTP:
+		fallthrough
+	case WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+		fallthrough
+	case WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+		return model.AuthenticatorKindSecondary
+	case WorkflowAuthenticationMethodRecoveryCode:
+		panic(fmt.Errorf("%v is not an authenticator", m))
+	case WorkflowAuthenticationMethodDeviceToken:
+		panic(fmt.Errorf("%v is not an authenticator", m))
+	default:
+		panic(fmt.Errorf("unknown authentication method: %v", m))
+	}
+}
 
 type WorkflowConfig struct {
 	SignupFlows      []*WorkflowSignupFlow      `json:"signup_flows,omitempty"`
@@ -600,8 +672,9 @@ func (f *WorkflowLoginFlow) GetOneOf() ([]WorkflowObject, bool) {
 type WorkflowLoginFlowStepType string
 
 const (
-	WorkflowLoginFlowStepTypeIdentify     WorkflowLoginFlowStepType = "identify"
-	WorkflowLoginFlowStepTypeAuthenticate WorkflowLoginFlowStepType = "authenticate"
+	WorkflowLoginFlowStepTypeIdentify       WorkflowLoginFlowStepType = "identify"
+	WorkflowLoginFlowStepTypeAuthenticate   WorkflowLoginFlowStepType = "authenticate"
+	WorkflowLoginFlowStepTypeChangePassword WorkflowLoginFlowStepType = "change_password"
 )
 
 type WorkflowLoginFlowStep struct {
@@ -613,6 +686,9 @@ type WorkflowLoginFlowStep struct {
 
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*WorkflowLoginFlowOneOf `json:"one_of,omitempty"`
+
+	// TargetStep is relevant when Type is change_password.
+	TargetStep string `json:"target_step,omitempty"`
 }
 
 func (s *WorkflowLoginFlowStep) GetID() (string, bool) {

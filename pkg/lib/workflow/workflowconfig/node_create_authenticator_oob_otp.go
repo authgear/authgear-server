@@ -25,6 +25,15 @@ type NodeCreateAuthenticatorOOBOTP struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
+var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorOOBOTP{}
+
+func (*NodeCreateAuthenticatorOOBOTP) Milestone() {}
+func (n *NodeCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
+}
+
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorOOBOTP{}
+
 func (*NodeCreateAuthenticatorOOBOTP) Kind() string {
 	return "workflowconfig.NodeCreateAuthenticatorOOBOTP"
 }

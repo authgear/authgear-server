@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type AuthenticatorFacade struct {
@@ -51,8 +52,8 @@ func (a AuthenticatorFacade) VerifyOneWithSpec(infos []*authenticator.Info, spec
 	return a.Coordinator.AuthenticatorVerifyOneWithSpec(infos, spec, options)
 }
 
-func (a AuthenticatorFacade) ClearLockoutAttempts(authenticators []*authenticator.Info) error {
-	return a.Coordinator.AuthenticatorClearLockoutAttempts(authenticators)
+func (a AuthenticatorFacade) ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error {
+	return a.Coordinator.AuthenticatorClearLockoutAttempts(userID, usedMethods)
 }
 
 type VerifyOptions struct {

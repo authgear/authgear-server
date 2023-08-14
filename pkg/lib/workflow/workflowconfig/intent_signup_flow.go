@@ -17,7 +17,7 @@ func init() {
 	workflow.RegisterPublicIntent(&IntentSignupFlow{})
 }
 
-var IntentSignupSchema = validation.NewSimpleSchema(`
+var IntentSignupFlowSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -40,7 +40,7 @@ func (*IntentSignupFlow) Kind() string {
 }
 
 func (*IntentSignupFlow) JSONSchema() *validation.SimpleSchema {
-	return IntentSignupSchema
+	return IntentSignupFlowSchema
 }
 
 func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
@@ -48,8 +48,8 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Depend
 	// 1 NodeDoCreateUser
 	// 1 IntentSignupFlowSteps
 	// 1 NodeDoCreateSession
-	// So if NodeDoCreateSession is found, this workflow has finished.
-	_, ok := workflow.FindSingleNode[*NodeDoCreateSession](workflows.Nearest)
+	// So if MarkerDoCreateSession is found, this workflow has finished.
+	_, ok := FindMilestone[MilestoneDoCreateSession](workflows.Nearest)
 	if ok {
 		return nil, workflow.ErrEOF
 	}
@@ -69,12 +69,15 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependenc
 			UserID:      i.userID(workflows.Nearest),
 		}), nil
 	case len(workflows.Nearest.Nodes) == 2:
-		node := NewNodeDoCreateSession(deps, &NodeDoCreateSession{
+		n, err := NewNodeDoCreateSession(ctx, deps, workflows, &NodeDoCreateSession{
 			UserID:       i.userID(workflows.Nearest),
 			CreateReason: session.CreateReasonSignup,
 			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
 		})
-		return workflow.NewNodeSimple(node), nil
+		if err != nil {
+			return nil, err
+		}
+		return workflow.NewNodeSimple(n), nil
 	}
 
 	return nil, workflow.ErrIncompatibleInput
@@ -132,9 +135,12 @@ func (*IntentSignupFlow) OutputData(ctx context.Context, deps *workflow.Dependen
 }
 
 func (i *IntentSignupFlow) userID(w *workflow.Workflow) string {
-	node, ok := workflow.FindSingleNode[*NodeDoCreateUser](w)
+	m, ok := FindMilestone[MilestoneDoCreateUser](w)
 	if !ok {
 		panic(fmt.Errorf("expected userID"))
 	}
-	return node.UserID
+
+	id := m.MilestoneDoCreateUser()
+
+	return id
 }

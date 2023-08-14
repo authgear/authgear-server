@@ -53726,6 +53726,9 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	customattrsService := &customattrs.Service{
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
@@ -53846,6 +53849,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -53853,31 +53857,34 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:              appConfig,
-		FeatureConfig:       featureConfig,
-		Clock:               clockClock,
-		RemoteIP:            remoteIP,
-		Users:               userProvider,
-		Identities:          identityFacade,
-		Authenticators:      authenticatorFacade,
-		MFA:                 mfaService,
-		StdAttrsService:     stdattrsService,
-		CustomAttrsService:  customattrsService,
-		OTPCodes:            otpService,
-		OTPSender:           messageSender,
-		Verification:        workflowVerificationFacade,
-		ForgotPassword:      forgotpasswordService,
-		ResetPassword:       forgotpasswordService,
-		AccountMigrations:   accountmigrationService,
-		Captcha:             captchaProvider,
-		IDPSessions:         idpsessionProvider,
-		Sessions:            manager2,
-		AuthenticationInfos: authenticationinfoStoreRedis,
-		SessionCookie:       cookieDef,
-		Cookies:             cookieManager,
-		Events:              eventService,
-		RateLimiter:         limiter,
-		WorkflowEvents:      eventStoreImpl,
+		Config:               appConfig,
+		FeatureConfig:        featureConfig,
+		Clock:                clockClock,
+		RemoteIP:             remoteIP,
+		HTTPRequest:          request,
+		Users:                userProvider,
+		Identities:           identityFacade,
+		Authenticators:       authenticatorFacade,
+		MFA:                  mfaFacade,
+		StdAttrsService:      stdattrsService,
+		CustomAttrsService:   customattrsService,
+		OTPCodes:             otpService,
+		OTPSender:            messageSender,
+		Verification:         workflowVerificationFacade,
+		ForgotPassword:       forgotpasswordService,
+		ResetPassword:        forgotpasswordService,
+		AccountMigrations:    accountmigrationService,
+		Captcha:              captchaProvider,
+		IDPSessions:          idpsessionProvider,
+		Sessions:             manager2,
+		AuthenticationInfos:  authenticationinfoStoreRedis,
+		SessionCookie:        cookieDef,
+		MFADeviceTokenCookie: mfaCookieDef,
+		Cookies:              cookieManager,
+		Events:               eventService,
+		RateLimiter:          limiter,
+		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -54493,6 +54500,9 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	customattrsService := &customattrs.Service{
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
@@ -54613,6 +54623,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -54620,31 +54631,34 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:              appConfig,
-		FeatureConfig:       featureConfig,
-		Clock:               clockClock,
-		RemoteIP:            remoteIP,
-		Users:               userProvider,
-		Identities:          identityFacade,
-		Authenticators:      authenticatorFacade,
-		MFA:                 mfaService,
-		StdAttrsService:     stdattrsService,
-		CustomAttrsService:  customattrsService,
-		OTPCodes:            otpService,
-		OTPSender:           messageSender,
-		Verification:        workflowVerificationFacade,
-		ForgotPassword:      forgotpasswordService,
-		ResetPassword:       forgotpasswordService,
-		AccountMigrations:   accountmigrationService,
-		Captcha:             captchaProvider,
-		IDPSessions:         idpsessionProvider,
-		Sessions:            manager2,
-		AuthenticationInfos: authenticationinfoStoreRedis,
-		SessionCookie:       cookieDef,
-		Cookies:             cookieManager,
-		Events:              eventService,
-		RateLimiter:         limiter,
-		WorkflowEvents:      eventStoreImpl,
+		Config:               appConfig,
+		FeatureConfig:        featureConfig,
+		Clock:                clockClock,
+		RemoteIP:             remoteIP,
+		HTTPRequest:          request,
+		Users:                userProvider,
+		Identities:           identityFacade,
+		Authenticators:       authenticatorFacade,
+		MFA:                  mfaFacade,
+		StdAttrsService:      stdattrsService,
+		CustomAttrsService:   customattrsService,
+		OTPCodes:             otpService,
+		OTPSender:            messageSender,
+		Verification:         workflowVerificationFacade,
+		ForgotPassword:       forgotpasswordService,
+		ResetPassword:        forgotpasswordService,
+		AccountMigrations:    accountmigrationService,
+		Captcha:              captchaProvider,
+		IDPSessions:          idpsessionProvider,
+		Sessions:             manager2,
+		AuthenticationInfos:  authenticationinfoStoreRedis,
+		SessionCookie:        cookieDef,
+		MFADeviceTokenCookie: mfaCookieDef,
+		Cookies:              cookieManager,
+		Events:               eventService,
+		RateLimiter:          limiter,
+		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -55231,6 +55245,9 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	customattrsService := &customattrs.Service{
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
@@ -55351,6 +55368,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -55358,31 +55376,34 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:              appConfig,
-		FeatureConfig:       featureConfig,
-		Clock:               clockClock,
-		RemoteIP:            remoteIP,
-		Users:               userProvider,
-		Identities:          identityFacade,
-		Authenticators:      authenticatorFacade,
-		MFA:                 mfaService,
-		StdAttrsService:     stdattrsService,
-		CustomAttrsService:  customattrsService,
-		OTPCodes:            otpService,
-		OTPSender:           messageSender,
-		Verification:        workflowVerificationFacade,
-		ForgotPassword:      forgotpasswordService,
-		ResetPassword:       forgotpasswordService,
-		AccountMigrations:   accountmigrationService,
-		Captcha:             captchaProvider,
-		IDPSessions:         idpsessionProvider,
-		Sessions:            manager2,
-		AuthenticationInfos: authenticationinfoStoreRedis,
-		SessionCookie:       cookieDef,
-		Cookies:             cookieManager,
-		Events:              eventService,
-		RateLimiter:         limiter,
-		WorkflowEvents:      eventStoreImpl,
+		Config:               appConfig,
+		FeatureConfig:        featureConfig,
+		Clock:                clockClock,
+		RemoteIP:             remoteIP,
+		HTTPRequest:          request,
+		Users:                userProvider,
+		Identities:           identityFacade,
+		Authenticators:       authenticatorFacade,
+		MFA:                  mfaFacade,
+		StdAttrsService:      stdattrsService,
+		CustomAttrsService:   customattrsService,
+		OTPCodes:             otpService,
+		OTPSender:            messageSender,
+		Verification:         workflowVerificationFacade,
+		ForgotPassword:       forgotpasswordService,
+		ResetPassword:        forgotpasswordService,
+		AccountMigrations:    accountmigrationService,
+		Captcha:              captchaProvider,
+		IDPSessions:          idpsessionProvider,
+		Sessions:             manager2,
+		AuthenticationInfos:  authenticationinfoStoreRedis,
+		SessionCookie:        cookieDef,
+		MFADeviceTokenCookie: mfaCookieDef,
+		Cookies:              cookieManager,
+		Events:               eventService,
+		RateLimiter:          limiter,
+		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{
@@ -56004,6 +56025,9 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
 	customattrsService := &customattrs.Service{
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
@@ -56124,6 +56148,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	workflowStoreImpl := &workflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
@@ -56131,31 +56156,34 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, appredisHandle, workflowStoreImpl)
 	dependencies := &workflow.Dependencies{
-		Config:              appConfig,
-		FeatureConfig:       featureConfig,
-		Clock:               clockClock,
-		RemoteIP:            remoteIP,
-		Users:               userProvider,
-		Identities:          identityFacade,
-		Authenticators:      authenticatorFacade,
-		MFA:                 mfaService,
-		StdAttrsService:     stdattrsService,
-		CustomAttrsService:  customattrsService,
-		OTPCodes:            otpService,
-		OTPSender:           messageSender,
-		Verification:        workflowVerificationFacade,
-		ForgotPassword:      forgotpasswordService,
-		ResetPassword:       forgotpasswordService,
-		AccountMigrations:   accountmigrationService,
-		Captcha:             captchaProvider,
-		IDPSessions:         idpsessionProvider,
-		Sessions:            manager2,
-		AuthenticationInfos: authenticationinfoStoreRedis,
-		SessionCookie:       cookieDef,
-		Cookies:             cookieManager,
-		Events:              eventService,
-		RateLimiter:         limiter,
-		WorkflowEvents:      eventStoreImpl,
+		Config:               appConfig,
+		FeatureConfig:        featureConfig,
+		Clock:                clockClock,
+		RemoteIP:             remoteIP,
+		HTTPRequest:          request,
+		Users:                userProvider,
+		Identities:           identityFacade,
+		Authenticators:       authenticatorFacade,
+		MFA:                  mfaFacade,
+		StdAttrsService:      stdattrsService,
+		CustomAttrsService:   customattrsService,
+		OTPCodes:             otpService,
+		OTPSender:            messageSender,
+		Verification:         workflowVerificationFacade,
+		ForgotPassword:       forgotpasswordService,
+		ResetPassword:        forgotpasswordService,
+		AccountMigrations:    accountmigrationService,
+		Captcha:              captchaProvider,
+		IDPSessions:          idpsessionProvider,
+		Sessions:             manager2,
+		AuthenticationInfos:  authenticationinfoStoreRedis,
+		SessionCookie:        cookieDef,
+		MFADeviceTokenCookie: mfaCookieDef,
+		Cookies:              cookieManager,
+		Events:               eventService,
+		RateLimiter:          limiter,
+		WorkflowEvents:       eventStoreImpl,
+		OfflineGrants:        redisStore,
 	}
 	workflowServiceLogger := workflow.NewServiceLogger(factory)
 	workflowService := &workflow.Service{

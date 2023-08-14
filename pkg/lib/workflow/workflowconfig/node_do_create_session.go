@@ -28,10 +28,24 @@ type NodeDoCreateSession struct {
 	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
 }
 
-func NewNodeDoCreateSession(deps *workflow.Dependencies, n *NodeDoCreateSession) *NodeDoCreateSession {
+var _ MilestoneDoCreateSession = &NodeDoCreateSession{}
+
+func (*NodeDoCreateSession) Milestone() {}
+func (n *NodeDoCreateSession) MilestoneDoCreateSession() (*idpsession.IDPSession, bool) {
+	if n.Session != nil {
+		return n.Session, true
+	}
+
+	return nil, false
+}
+
+func NewNodeDoCreateSession(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
 	attrs := session.NewAttrs(n.UserID)
-	// FIXME(workflow): Set AMR in authentication
-	// attrs.SetAMR(n.AMR)
+	amr, err := collectAMR(ctx, deps, workflows)
+	if err != nil {
+		return nil, err
+	}
+	attrs.SetAMR(amr)
 	s, token := deps.IDPSessions.MakeSession(attrs)
 	sessionCookie := deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
 
@@ -59,7 +73,7 @@ func NewNodeDoCreateSession(deps *workflow.Dependencies, n *NodeDoCreateSession)
 	n.AuthenticationInfoCookie = authnInfoCookie
 	n.SameSiteStrictCookie = sameSiteStrictCookie
 
-	return n
+	return n, nil
 }
 
 func (*NodeDoCreateSession) Kind() string {

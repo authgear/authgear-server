@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -40,13 +41,14 @@ type IdentityService interface {
 
 type AuthenticatorService interface {
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	Get(authenticatorID string) (*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Update(authenticatorInfo *authenticator.Info) error
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
-	ClearLockoutAttempts(authenticators []*authenticator.Info) error
+	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type OTPCodeService interface {
@@ -124,6 +126,7 @@ type AuthenticationInfoService interface {
 }
 
 type CookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
@@ -143,6 +146,16 @@ type CaptchaService interface {
 type MFAService interface {
 	GenerateRecoveryCodes() []string
 	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(c *mfa.RecoveryCode) error
+
+	GenerateDeviceToken() string
+	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(userID string, deviceToken string) error
+}
+
+type OfflineGrantStore interface {
+	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
 type Dependencies struct {
@@ -151,6 +164,8 @@ type Dependencies struct {
 
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
+
+	HTTPRequest *http.Request
 
 	Users              UserService
 	Identities         IdentityService
@@ -166,14 +181,17 @@ type Dependencies struct {
 	AccountMigrations  AccountMigrationService
 	Captcha            CaptchaService
 
-	IDPSessions         IDPSessionService
-	Sessions            SessionService
-	AuthenticationInfos AuthenticationInfoService
-	SessionCookie       session.CookieDef
+	IDPSessions          IDPSessionService
+	Sessions             SessionService
+	AuthenticationInfos  AuthenticationInfoService
+	SessionCookie        session.CookieDef
+	MFADeviceTokenCookie mfa.CookieDef
 
 	Cookies CookieManager
 
 	Events         EventService
 	RateLimiter    RateLimiter
 	WorkflowEvents EventStore
+
+	OfflineGrants OfflineGrantStore
 }

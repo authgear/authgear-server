@@ -9,13 +9,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
-	workflow.RegisterNode(&NodeVerifyClaimSelectChannel{})
+	workflow.RegisterPrivateIntent(&IntentVerifyClaim{})
 }
 
-type NodeVerifyClaimSelectChannel struct {
+var IntentVerifyClaimSchema = validation.NewSimpleSchema(`{}`)
+
+type IntentVerifyClaim struct {
 	UserID      string          `json:"user_id,omitempty"`
 	Purpose     otp.Purpose     `json:"purpose,omitempty"`
 	MessageType otp.MessageType `json:"message_type,omitempty"`
@@ -23,36 +26,45 @@ type NodeVerifyClaimSelectChannel struct {
 	ClaimValue  string          `json:"claim_value,omitempty"`
 }
 
-func (n *NodeVerifyClaimSelectChannel) Kind() string {
-	return "workflowconfig.NodeVerifyClaimSelectChannel"
+var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
+
+func (*IntentVerifyClaim) Milestone()                    {}
+func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
+
+var _ workflow.Intent = &IntentVerifyClaim{}
+
+func (*IntentVerifyClaim) Kind() string {
+	return "workflowconfig.IntentVerifyClaim"
 }
 
-func (n *NodeVerifyClaimSelectChannel) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
-	return nil, nil
+func (*IntentVerifyClaim) JSONSchema() *validation.SimpleSchema {
+	return IntentVerifyClaimSchema
 }
 
-func (n *NodeVerifyClaimSelectChannel) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{
-		&InputTakeOOBOTPChannel{},
-	}, nil
+func (*IntentVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
+		return []workflow.Input{
+			&InputTakeOOBOTPChannel{},
+		}, nil
+	}
+
+	return nil, workflow.ErrEOF
 }
 
-func (n *NodeVerifyClaimSelectChannel) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
-
-	switch {
-	case workflow.AsInput(input, &inputTakeOOBOTPChannel):
+	if workflow.AsInput(input, &inputTakeOOBOTPChannel) {
 		channel := inputTakeOOBOTPChannel.GetChannel()
-		err := n.check(deps, channel)
+		err := i.check(deps, channel)
 		if err != nil {
 			return nil, err
 		}
 		node := &NodeVerifyClaim{
-			UserID:      n.UserID,
-			Purpose:     n.Purpose,
-			MessageType: n.MessageType,
-			ClaimName:   n.ClaimName,
-			ClaimValue:  n.ClaimValue,
+			UserID:      i.UserID,
+			Purpose:     i.Purpose,
+			MessageType: i.MessageType,
+			ClaimName:   i.ClaimName,
+			ClaimValue:  i.ClaimValue,
 			Channel:     channel,
 		}
 		kind := node.otpKind(deps)
@@ -64,19 +76,23 @@ func (n *NodeVerifyClaimSelectChannel) ReactTo(ctx context.Context, deps *workfl
 		}
 
 		return workflow.NewNodeSimple(node), nil
-	default:
-		return nil, workflow.ErrIncompatibleInput
 	}
+
+	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeVerifyClaimSelectChannel) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (*IntentVerifyClaim) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeVerifyClaimSelectChannel) check(deps *workflow.Dependencies, channel model.AuthenticatorOOBChannel) error {
+func (*IntentVerifyClaim) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+	return nil, nil
+}
+
+func (i *IntentVerifyClaim) check(deps *workflow.Dependencies, channel model.AuthenticatorOOBChannel) error {
 	// 1. Check if the channel is compatible with the claim name.
 	// 2. Check if the channel is compatible with the config.
-	switch n.ClaimName {
+	switch i.ClaimName {
 	case model.ClaimEmail:
 		if channel == model.AuthenticatorOOBChannelEmail {
 			return nil
@@ -100,7 +116,7 @@ func (n *NodeVerifyClaimSelectChannel) check(deps *workflow.Dependencies, channe
 		}
 	}
 	return InvalidOOBOTPChannel.NewWithInfo("invalid channel", apierrors.Details{
-		"claim_name":     n.ClaimName,
+		"claim_name":     i.ClaimName,
 		"phone_otp_mode": deps.Config.Authenticator.OOB.SMS.PhoneOTPMode,
 		"channel":        channel,
 	})

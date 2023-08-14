@@ -41,11 +41,13 @@ func (i *IntentSignupFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) GetVerifiableClaims(_ context.Context, _ *workflow.Dependencies, workflows workflow.Workflows) (map[model.ClaimName]string, error) {
-	n, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](workflows.Nearest)
+	m, ok := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
 	if !ok {
-		return nil, fmt.Errorf("NodeDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
+		return nil, fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify")
 	}
-	return n.Identity.IdentityAwareStandardClaims(), nil
+	info := m.MilestoneDoCreateIdentity()
+
+	return info.IdentityAwareStandardClaims(), nil
 }
 
 func (*IntentSignupFlowStepIdentify) GetPurpose(_ context.Context, _ *workflow.Dependencies, _ workflow.Workflows) otp.Purpose {
@@ -80,19 +82,20 @@ func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workf
 		}, nil
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateIdentity:
-			// Populate standard attributes
-			return nil, nil
-		case *NodePopulateStandardAttributes:
-			// Handle nested steps.
-			return nil, nil
-		}
-	}
+	_, identityCreated := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	_, standardAttributesPopulated := FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
+	_, nestedStepHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrEOF
+	switch {
+	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
+		// Populate standard attributes
+		return nil, nil
+	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
+		// Handle nested steps.
+		return nil, nil
+	default:
+		return nil, workflow.ErrEOF
+	}
 }
 
 func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -134,25 +137,26 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 		return nil, workflow.ErrIncompatibleInput
 	}
 
-	lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-	if lastNode.Type == workflow.NodeTypeSimple {
-		switch lastNode.Simple.(type) {
-		case *NodeDoCreateIdentity:
-			iden := i.identityInfo(workflows.Nearest)
-			return workflow.NewNodeSimple(&NodePopulateStandardAttributes{
-				Identity: iden,
-			}), nil
-		case *NodePopulateStandardAttributes:
-			identification := i.identificationMethod(workflows.Nearest)
-			return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
-				SignupFlow:  i.SignupFlow,
-				JSONPointer: i.jsonPointer(step, identification),
-				UserID:      i.UserID,
-			}), nil
-		}
-	}
+	_, identityCreated := FindMilestone[MilestoneDoCreateIdentity](workflows.Nearest)
+	_, standardAttributesPopulated := FindMilestone[MilestoneDoPopulateStandardAttributes](workflows.Nearest)
+	_, nestedStepHandled := FindMilestone[MilestoneNestedSteps](workflows.Nearest)
 
-	return nil, workflow.ErrIncompatibleInput
+	switch {
+	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
+		iden := i.identityInfo(workflows.Nearest)
+		return workflow.NewNodeSimple(&NodeDoPopulateStandardAttributes{
+			Identity: iden,
+		}), nil
+	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
+		identification := i.identificationMethod(workflows.Nearest)
+		return workflow.NewSubWorkflow(&IntentSignupFlowSteps{
+			SignupFlow:  i.SignupFlow,
+			JSONPointer: i.jsonPointer(step, identification),
+			UserID:      i.UserID,
+		}), nil
+	default:
+		return nil, workflow.ErrIncompatibleInput
+	}
 }
 
 func (*IntentSignupFlowStepIdentify) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
@@ -195,16 +199,14 @@ func (*IntentSignupFlowStepIdentify) checkIdentificationMethod(step *config.Work
 }
 
 func (*IntentSignupFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
-	if len(w.Nodes) == 0 {
+	m, ok := FindMilestone[MilestoneIdentificationMethod](w)
+	if !ok {
 		panic(fmt.Errorf("workflow: identification method not yet selected"))
 	}
 
-	switch n := w.Nodes[0].Simple.(type) {
-	case *NodeCreateIdentityLoginID:
-		return n.Identification
-	default:
-		panic(fmt.Errorf("workflow: unexpected node: %T", w.Nodes[0].Simple))
-	}
+	im := m.MilestoneIdentificationMethod()
+
+	return im
 }
 
 func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) jsonpointer.T {
@@ -219,9 +221,10 @@ func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.WorkflowSignupFl
 }
 
 func (*IntentSignupFlowStepIdentify) identityInfo(w *workflow.Workflow) *identity.Info {
-	node, ok := workflow.FindSingleNode[*NodeDoCreateIdentity](w)
+	m, ok := FindMilestone[MilestoneDoCreateIdentity](w)
 	if !ok {
-		panic(fmt.Errorf("workflow: expected NodeCreateIdentity"))
+		panic(fmt.Errorf("MilestoneDoCreateIdentity cannot be found in IntentSignupFlowStepIdentify"))
 	}
-	return node.Identity
+	info := m.MilestoneDoCreateIdentity()
+	return info
 }

@@ -15,6 +15,13 @@ type NodeDoMarkClaimVerified struct {
 	Claim *verification.Claim `json:"verified_claim,omitempty"`
 }
 
+var _ MilestoneDoMarkClaimVerified = &NodeDoMarkClaimVerified{}
+
+func (*NodeDoMarkClaimVerified) Milestone()                      {}
+func (n *NodeDoMarkClaimVerified) MilestoneDoMarkClaimVerified() {}
+
+var _ workflow.NodeSimple = &NodeDoMarkClaimVerified{}
+
 func (n *NodeDoMarkClaimVerified) Kind() string {
 	return "latte.NodeDoMarkClaimVerified"
 }

@@ -2,7 +2,6 @@ package workflowconfig
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -20,6 +19,15 @@ type NodeCreateAuthenticatorPassword struct {
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
+var _ MilestoneAuthenticationMethod = &NodeCreateAuthenticatorPassword{}
+
+func (*NodeCreateAuthenticatorPassword) Milestone() {}
+func (n *NodeCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.WorkflowAuthenticationMethod {
+	return n.Authentication
+}
+
+var _ workflow.NodeSimple = &NodeCreateAuthenticatorPassword{}
+
 func (*NodeCreateAuthenticatorPassword) Kind() string {
 	return "workflowconfig.NodeCreateAuthenticatorPassword"
 }
@@ -31,7 +39,7 @@ func (*NodeCreateAuthenticatorPassword) CanReactTo(ctx context.Context, deps *wo
 func (i *NodeCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeNewPassword inputTakeNewPassword
 	if workflow.AsInput(input, &inputTakeNewPassword) {
-		authenticatorKind := i.authenticatorKind()
+		authenticatorKind := i.Authentication.AuthenticatorKind()
 		newPassword := inputTakeNewPassword.GetNewPassword()
 		isDefault, err := authenticatorIsDefault(deps, i.UserID, authenticatorKind)
 		if err != nil {
@@ -68,15 +76,4 @@ func (*NodeCreateAuthenticatorPassword) GetEffects(ctx context.Context, deps *wo
 
 func (*NodeCreateAuthenticatorPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
-}
-
-func (i *NodeCreateAuthenticatorPassword) authenticatorKind() model.AuthenticatorKind {
-	switch i.Authentication {
-	case config.WorkflowAuthenticationMethodPrimaryPassword:
-		return model.AuthenticatorKindPrimary
-	case config.WorkflowAuthenticationMethodSecondaryPassword:
-		return model.AuthenticatorKindSecondary
-	default:
-		panic(fmt.Errorf("workflow: unexpected authentication method: %v", i.Authentication))
-	}
 }

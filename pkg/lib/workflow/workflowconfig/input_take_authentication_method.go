@@ -28,7 +28,9 @@ var InputTakeAuthenticationMethodSchema = validation.NewSimpleSchema(`
 				"secondary_password",
 				"secondary_totp",
 				"secondary_oob_otp_email",
-				"secondary_oob_otp_sms"
+				"secondary_oob_otp_sms",
+				"recovery_code",
+				"device_token"
 			]
 		},
 		"json_pointer": {

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -18,8 +19,8 @@ func init() {
 	workflow.RegisterPrivateIntent(&IntentLogin{})
 }
 
-type VerifiedAuthenticatorGetter interface {
-	GetVerifiedAuthenticator() (*authenticator.Info, bool)
+type VerifiedAuthenticationLockoutMethodGetter interface {
+	GetVerifiedAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool)
 }
 
 var IntentLoginSchema = validation.NewSimpleSchema(`{}`)
@@ -134,11 +135,12 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			return nil
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			authenticators, err := i.getVerifiedAuthenticators(workflows.Nearest)
+			userID := i.userID()
+			methods, err := i.getVerifiedAuthenticationLockoutMethods(workflows.Nearest)
 			if err != nil {
 				return err
 			}
-			err = deps.Authenticators.ClearLockoutAttempts(authenticators)
+			err = deps.Authenticators.ClearLockoutAttempts(userID, methods)
 			if err != nil {
 				return err
 			}
@@ -164,14 +166,14 @@ func (i *IntentLogin) getAuthenticator(deps *workflow.Dependencies, filters ...a
 	return ais[0], nil
 }
 
-func (i *IntentLogin) getVerifiedAuthenticators(w *workflow.Workflow) ([]*authenticator.Info, error) {
-	result := []*authenticator.Info{}
+func (i *IntentLogin) getVerifiedAuthenticationLockoutMethods(w *workflow.Workflow) ([]config.AuthenticationLockoutMethod, error) {
+	result := []config.AuthenticationLockoutMethod{}
 	err := w.Traverse(workflow.WorkflowTraverser{
 		NodeSimple: func(nodeSimple workflow.NodeSimple, w *workflow.Workflow) error {
-			if n, ok := nodeSimple.(VerifiedAuthenticatorGetter); ok {
-				info, ok := n.GetVerifiedAuthenticator()
-				if ok && info != nil {
-					result = append(result, info)
+			if n, ok := nodeSimple.(VerifiedAuthenticationLockoutMethodGetter); ok {
+				m, ok := n.GetVerifiedAuthenticationLockoutMethod()
+				if ok {
+					result = append(result, m)
 				}
 			}
 

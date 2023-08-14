@@ -1,5 +1,11 @@
 package authn
 
+import (
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
+)
+
 type AuthenticationType string
 
 const (
@@ -19,3 +25,32 @@ const (
 	AuthenticationStagePrimary   AuthenticationStage = "primary"
 	AuthenticationStageSecondary AuthenticationStage = "secondary"
 )
+
+func AuthenticationStageFromAuthenticationMethod(am config.WorkflowAuthenticationMethod) AuthenticationStage {
+	switch am {
+	case config.WorkflowAuthenticationMethodPrimaryPassword:
+		fallthrough
+	case config.WorkflowAuthenticationMethodPrimaryPasskey:
+		fallthrough
+	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+		fallthrough
+	case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+		return AuthenticationStagePrimary
+	case config.WorkflowAuthenticationMethodSecondaryPassword:
+		fallthrough
+	case config.WorkflowAuthenticationMethodSecondaryTOTP:
+		fallthrough
+	case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+		fallthrough
+	case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+		fallthrough
+	case config.WorkflowAuthenticationMethodRecoveryCode:
+		// recovery code is considered as secondary
+		fallthrough
+	case config.WorkflowAuthenticationMethodDeviceToken:
+		// recovery code is considered as secondary
+		return AuthenticationStageSecondary
+	default:
+		panic(fmt.Errorf("unknown authentication method: %v", am))
+	}
+}
