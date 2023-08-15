@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -148,7 +149,30 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 }
 
 func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
-	return nil, nil
+	verifiedAuthns, err := i.getVerifiedAuthenticators(w)
+	if err != nil {
+		return nil, err
+	}
+	if len(verifiedAuthns) == 0 {
+		return nil, nil
+	}
+	userID := verifiedAuthns[0].UserID
+	identities, err := deps.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	maskedEmails := []string{}
+	for _, identity := range identities {
+		if identity.Type != model.IdentityTypeLoginID || identity.LoginID.LoginIDType != model.LoginIDKeyTypeEmail {
+			continue
+		}
+		maskedEmails = append(maskedEmails, mail.MaskAddress(identity.LoginID.LoginID))
+	}
+
+	output := map[string]interface{}{}
+	output["masked_emails"] = maskedEmails
+
+	return output, nil
 }
 
 func (i *IntentLogin) getAuthenticator(deps *workflow.Dependencies, filters ...authenticator.Filter) (*authenticator.Info, error) {
