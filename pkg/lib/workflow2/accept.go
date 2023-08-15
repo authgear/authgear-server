@@ -6,12 +6,25 @@ import (
 	"fmt"
 )
 
+// Boundary confines the input in Accept.
+// Boundary is identified by a string.
+// Initially boundary is an empty string.
+// Accept records the last boundary it saw.
+// When Accept detects a different boundary,
+// it stops as if the input reactor does not react to the input.
+type Boundary interface {
+	InputReactor
+	Boundary() string
+}
+
 // Accept executes the workflow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
 func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (err error) {
 	var newWorkflows Workflows
 	var inputReactor InputReactor
+
+	var lastSeenBoundary string
 
 	var changed bool
 	defer func() {
@@ -24,9 +37,21 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 	}()
 
 	for {
-		newWorkflows, inputReactor, err = FindInputReactorForWorkflow(ctx, deps, workflows)
+		var boundary Boundary
+		newWorkflows, inputReactor, boundary, err = FindInputReactor(ctx, deps, workflows)
 		if err != nil {
 			return
+		}
+
+		if boundary != nil {
+			b := boundary.Boundary()
+			if lastSeenBoundary == "" {
+				lastSeenBoundary = b
+			} else if lastSeenBoundary != b {
+				// Boundary cross detected.
+				// End the loop.
+				return
+			}
 		}
 
 		// Otherwise we found an InputReactor that we can feed input to.

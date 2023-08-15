@@ -465,4 +465,128 @@ func TestAccept(t *testing.T) {
 }
 		`)
 	})
+
+	Convey("boundary is respected", t, func() {
+		rng = rand.New(rand.NewSource(0))
+
+		w := NewWorkflow(newWorkflowID(), &intentTestBoundarySteps{})
+
+		err := Accept(ctx, deps, NewWorkflows(w), &inputTestBoundary{})
+		So(err, ShouldBeNil)
+
+		bytes, err := json.Marshal(w)
+		So(err, ShouldBeNil)
+		So(string(bytes), ShouldEqualJSON, `
+{
+    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+    "instance_id": "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+    "intent": {
+        "data": {},
+        "kind": "intentTestBoundarySteps"
+    },
+    "nodes": [
+        {
+            "type": "SUB_WORKFLOW",
+            "workflow": {
+                "intent": {
+                    "data": {
+                        "Name": "0"
+                    },
+                    "kind": "intentTestBoundaryStep"
+                },
+                "nodes": [
+                    {
+                        "simple": {
+                            "data": {},
+                            "kind": "nodeTestBoundary"
+                        },
+                        "type": "SIMPLE"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "SUB_WORKFLOW",
+            "workflow": {
+                "intent": {
+                    "data": {
+                        "Name": "1"
+                    },
+                    "kind": "intentTestBoundaryStep"
+                }
+            }
+        }
+    ]
+}
+		`)
+
+		err = Accept(ctx, deps, NewWorkflows(w), &inputTestBoundary{})
+		So(err, ShouldBeNil)
+
+		bytes, err = json.Marshal(w)
+		So(err, ShouldBeNil)
+		So(string(bytes), ShouldEqualJSON, `
+{
+    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+    "instance_id": "1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
+    "intent": {
+        "data": {},
+        "kind": "intentTestBoundarySteps"
+    },
+    "nodes": [
+        {
+            "type": "SUB_WORKFLOW",
+            "workflow": {
+                "intent": {
+                    "data": {
+                        "Name": "0"
+                    },
+                    "kind": "intentTestBoundaryStep"
+                },
+                "nodes": [
+                    {
+                        "simple": {
+                            "data": {},
+                            "kind": "nodeTestBoundary"
+                        },
+                        "type": "SIMPLE"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "SUB_WORKFLOW",
+            "workflow": {
+                "intent": {
+                    "data": {
+                        "Name": "1"
+                    },
+                    "kind": "intentTestBoundaryStep"
+                },
+                "nodes": [
+                    {
+                        "simple": {
+                            "data": {},
+                            "kind": "nodeTestBoundary"
+                        },
+                        "type": "SIMPLE"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "SUB_WORKFLOW",
+            "workflow": {
+                "intent": {
+                    "data": {
+                        "Name": "2"
+                    },
+                    "kind": "intentTestBoundaryStep"
+                }
+            }
+        }
+    ]
+}
+		`)
+	})
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -21,9 +22,14 @@ func init() {
 	RegisterIntent(&intentCreatePassword{})
 	RegisterIntent(&intentFinishSignup{})
 
+	RegisterIntent(&intentTestBoundarySteps{})
+	RegisterIntent(&intentTestBoundaryStep{})
+
 	RegisterNode(&nodeCreatePassword{})
 	RegisterNode(&nodeVerifyLoginID{})
 	RegisterNode(&nodeLoginIDVerified{})
+
+	RegisterNode(&nodeTestBoundary{})
 }
 
 type intentAuthenticate struct {
@@ -412,3 +418,83 @@ func (*intentFinishSignup) CanReactTo(ctx context.Context, deps *Dependencies, w
 func (*intentFinishSignup) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	return nil, ErrIncompatibleInput
 }
+
+type intentTestBoundarySteps struct{}
+
+var _ Intent = &intentTestBoundarySteps{}
+
+func (*intentTestBoundarySteps) Kind() string {
+	return "intentTestBoundarySteps"
+}
+
+func (*intentTestBoundarySteps) CanReactTo(ctx context.Context, deps *Dependencies, workflow Workflows) ([]Input, error) {
+	return nil, nil
+}
+
+func (*intentTestBoundarySteps) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
+	name := strconv.Itoa(len(workflows.Nearest.Nodes))
+	return NewSubWorkflow(&intentTestBoundaryStep{
+		Name: name,
+	}), nil
+}
+
+type intentTestBoundaryStep struct {
+	Name string
+}
+
+var _ Intent = &intentTestBoundaryStep{}
+var _ Boundary = &intentTestBoundaryStep{}
+
+func (*intentTestBoundaryStep) Kind() string {
+	return "intentTestBoundaryStep"
+}
+
+func (i *intentTestBoundaryStep) Boundary() string {
+	return i.Name
+}
+
+func (i *intentTestBoundaryStep) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	switch len(workflows.Nearest.Nodes) {
+	case 0:
+		return []Input{&inputTestBoundary{}}, nil
+	default:
+		return nil, ErrEOF
+	}
+}
+
+func (i *intentTestBoundaryStep) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
+	switch len(workflows.Nearest.Nodes) {
+	case 0:
+		return NewNodeSimple(&nodeTestBoundary{}), nil
+	default:
+		return nil, ErrIncompatibleInput
+	}
+}
+
+type nodeTestBoundary struct{}
+
+var _ NodeSimple = &nodeTestBoundary{}
+
+func (*nodeTestBoundary) Kind() string {
+	return "nodeTestBoundary"
+}
+
+type InputTestBoundary interface {
+	InputTestBoundary()
+}
+
+type inputTestBoundary struct {
+}
+
+var _ Input = &inputTestBoundary{}
+var _ InputTestBoundary = &inputTestBoundary{}
+
+func (*inputTestBoundary) Kind() string {
+	return "inputTestBoundary"
+}
+
+func (*inputTestBoundary) JSONSchema() *validation.SimpleSchema {
+	return EmptyJSONSchema
+}
+
+func (i *inputTestBoundary) InputTestBoundary() {}
