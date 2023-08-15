@@ -65,14 +65,7 @@ func TestService(t *testing.T) {
 					InstanceID: "1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
-				WorkflowOutput: &WorkflowOutput{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
-					Intent: IntentOutput{
-						Kind: "intentAuthenticate",
-						Data: nil,
-					},
-				},
+				Data: EmptyData,
 				Session: &Session{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -112,23 +105,7 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				WorkflowOutput: &WorkflowOutput{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
-					Intent: IntentOutput{
-						Kind: "intentNilInput",
-						Data: nil,
-					},
-					Nodes: []NodeOutput{
-						{
-							Type: NodeTypeSimple,
-							Simple: &NodeSimpleOutput{
-								Kind: "nodeNilInput",
-								Data: nil,
-							},
-						},
-					},
-				},
+				Data: EmptyData,
 				Session: &Session{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -203,45 +180,7 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				WorkflowOutput: &WorkflowOutput{
-					WorkflowID: "workflow-id",
-					InstanceID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					Intent: IntentOutput{
-						Kind: "intentAuthenticate",
-						Data: nil,
-					},
-					Nodes: []NodeOutput{
-						{
-							Type: NodeTypeSubWorkflow,
-							SubWorkflow: &WorkflowOutput{
-								Intent: IntentOutput{
-									Kind: "intentSignup",
-									Data: nil,
-								},
-								Nodes: []NodeOutput{
-									{
-										Type: NodeTypeSubWorkflow,
-										SubWorkflow: &WorkflowOutput{
-											Intent: IntentOutput{
-												Kind: "intentAddLoginID",
-												Data: nil,
-											},
-											Nodes: []NodeOutput{
-												{
-													Type: NodeTypeSimple,
-													Simple: &NodeSimpleOutput{
-														Kind: "nodeVerifyLoginID",
-														Data: nil,
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
+				Data: EmptyData,
 				Session: &Session{
 					WorkflowID: "workflow-id",
 				},
@@ -444,23 +383,7 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
-				WorkflowOutput: &WorkflowOutput{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
-					Intent: IntentOutput{
-						Kind: "intentServiceContext",
-						Data: nil,
-					},
-					Nodes: []NodeOutput{
-						{
-							Type: NodeTypeSimple,
-							Simple: &NodeSimpleOutput{
-								Kind: "nodeServiceContext",
-								Data: nil,
-							},
-						},
-					},
-				},
+				Data: EmptyData,
 				Session: &Session{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID:   "client-id",

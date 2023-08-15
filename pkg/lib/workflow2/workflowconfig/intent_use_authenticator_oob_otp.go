@@ -18,6 +18,14 @@ func init() {
 	workflow.RegisterIntent(&IntentUseAuthenticatorOOBOTP{})
 }
 
+type IntentUseAuthenticatorOOBOTPData struct {
+	Candidates []authenticator.Candidate `json:"candidates"`
+}
+
+var _ workflow.Data = IntentUseAuthenticatorOOBOTPData{}
+
+func (m IntentUseAuthenticatorOOBOTPData) Data() {}
+
 type IntentUseAuthenticatorOOBOTP struct {
 	LoginFlow      string                              `json:"login_flow,omitempty"`
 	JSONPointer    jsonpointer.T                       `json:"json_pointer,omitempty"`
@@ -102,14 +110,14 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
 	candidates, err := n.getCandidates(ctx, deps, workflows)
 	if err != nil {
 		return nil, err
 	}
 
-	return map[string]interface{}{
-		"candidates": candidates,
+	return IntentUseAuthenticatorOOBOTPData{
+		Candidates: candidates,
 	}, nil
 }
 

@@ -17,6 +17,14 @@ func init() {
 	workflow.RegisterNode(&NodeCreateAuthenticatorTOTP{})
 }
 
+type NodeCreateAuthenticatorTOTPData struct {
+	Secret string `json:"secret"`
+}
+
+var _ workflow.Data = NodeCreateAuthenticatorTOTPData{}
+
+func (m NodeCreateAuthenticatorTOTPData) Data() {}
+
 type NodeCreateAuthenticatorTOTP struct {
 	UserID         string                              `json:"user_id,omitempty"`
 	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
@@ -95,10 +103,10 @@ func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *workflo
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
 	secret := n.Authenticator.TOTP.Secret
-	return map[string]interface{}{
-		"secret": secret,
+	return NodeCreateAuthenticatorTOTPData{
+		Secret: secret,
 	}, nil
 }
 

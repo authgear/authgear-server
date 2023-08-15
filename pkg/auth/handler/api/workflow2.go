@@ -8,8 +8,10 @@ import (
 )
 
 type Workflow2Response struct {
-	Action   *workflow.WorkflowAction `json:"action"`
-	Workflow *workflow.WorkflowOutput `json:"workflow"`
+	Action     *workflow.WorkflowAction `json:"action"`
+	WorkflowID string                   `json:"workflow_id"`
+	InstanceID string                   `json:"instance_id"`
+	Data       workflow.Data            `json:"data"`
 }
 
 type Workflow2UserAgentCookieManager interface {

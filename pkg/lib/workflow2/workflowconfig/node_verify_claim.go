@@ -20,6 +20,18 @@ func init() {
 	workflow.RegisterNode(&NodeVerifyClaim{})
 }
 
+type NodeVerifyClaimData struct {
+	OTPForm                        otp.Form  `json:"otp_form,omitempty"`
+	MaskedClaimValue               string    `json:"masked_claim_value,omitempty"`
+	CodeLength                     int       `json:"code_length,omitempty"`
+	CanResendAt                    time.Time `json:"can_resend_at,omitempty"`
+	FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
+}
+
+var _ workflow.Data = &NodeVerifyClaimData{}
+
+func (m NodeVerifyClaimData) Data() {}
+
 type NodeVerifyClaim struct {
 	UserID      string                        `json:"user_id,omitempty"`
 	Purpose     otp.Purpose                   `json:"purpose,omitempty"`
@@ -114,23 +126,15 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependenci
 	}
 }
 
-func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
 	state, err := deps.OTPCodes.InspectState(n.otpKind(deps), n.otpTarget())
 	if err != nil {
 		return nil, err
 	}
 
-	type NodeVerifyClaimOutput struct {
-		OTPForm                        otp.Form  `json:"otp_form,omitempty"`
-		MaskedClaimValue               string    `json:"masked_claim_value,omitempty"`
-		CodeLength                     int       `json:"code_length,omitempty"`
-		CanResendAt                    time.Time `json:"can_resend_at,omitempty"`
-		FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
-	}
-
 	otpForm := n.otpForm(deps)
 
-	return NodeVerifyClaimOutput{
+	return NodeVerifyClaimData{
 		OTPForm:                        otpForm,
 		MaskedClaimValue:               n.maskedOTPTarget(),
 		CodeLength:                     otpForm.CodeLength(),

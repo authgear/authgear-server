@@ -72,17 +72,6 @@ func FindInputReactorForWorkflow(ctx context.Context, deps *Dependencies, workfl
 	return workflows, nil, nil, err
 }
 
-func IsEOF(ctx context.Context, deps *Dependencies, workflows Workflows) (bool, error) {
-	_, _, _, err := FindInputReactorForWorkflow(ctx, deps, workflows, nil)
-	if err != nil {
-		if errors.Is(err, ErrEOF) {
-			return true, nil
-		}
-		return false, err
-	}
-	return false, nil
-}
-
 func FindInputReactorForNode(ctx context.Context, deps *Dependencies, workflows Workflows, boundary Boundary, n *Node) (Workflows, InputReactor, Boundary, error) {
 	switch n.Type {
 	case NodeTypeSimple:
