@@ -20,6 +20,14 @@ func init() {
 	workflow.RegisterIntent(&IntentLoginFlowStepAuthenticate{})
 }
 
+type IntentLoginFlowStepAuthenticateData struct {
+	Candidates []authenticator.Candidate `json:"candidates"`
+}
+
+var _ workflow.Data = IntentLoginFlowStepAuthenticateData{}
+
+func (m IntentLoginFlowStepAuthenticateData) Data() {}
+
 type IntentLoginFlowStepAuthenticate struct {
 	LoginFlow   string        `json:"login_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -219,7 +227,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 	}
 }
 
-func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
 	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -232,8 +240,8 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 		return nil, err
 	}
 
-	return map[string]interface{}{
-		"candidates": candidates,
+	return IntentLoginFlowStepAuthenticateData{
+		Candidates: candidates,
 	}, nil
 }
 

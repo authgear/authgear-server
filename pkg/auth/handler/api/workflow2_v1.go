@@ -237,8 +237,10 @@ func (h *Workflow2V1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result := Workflow2Response{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
+			Action:     output.Action,
+			WorkflowID: output.Workflow.WorkflowID,
+			InstanceID: output.Workflow.InstanceID,
+			Data:       output.Data,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	case Workflow2V1ActionInput:
@@ -263,8 +265,10 @@ func (h *Workflow2V1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result := Workflow2Response{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
+			Action:     output.Action,
+			WorkflowID: output.Workflow.WorkflowID,
+			InstanceID: output.Workflow.InstanceID,
+			Data:       output.Data,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	case Workflow2V1ActionBatchInput:
@@ -289,8 +293,10 @@ func (h *Workflow2V1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result := Workflow2Response{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
+			Action:     output.Action,
+			WorkflowID: output.Workflow.WorkflowID,
+			InstanceID: output.Workflow.InstanceID,
+			Data:       output.Data,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	case Workflow2V1ActionGet:
@@ -305,8 +311,10 @@ func (h *Workflow2V1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result := Workflow2Response{
-			Action:   output.Action,
-			Workflow: output.WorkflowOutput,
+			Action:     output.Action,
+			WorkflowID: output.Workflow.WorkflowID,
+			InstanceID: output.Workflow.InstanceID,
+			Data:       output.Data,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	}
@@ -466,8 +474,10 @@ func (h *Workflow2V1Handler) prepareErrorResponse(
 	}
 
 	result := Workflow2Response{
-		Action:   output.Action,
-		Workflow: output.WorkflowOutput,
+		Action:     output.Action,
+		WorkflowID: output.Workflow.WorkflowID,
+		InstanceID: output.Workflow.InstanceID,
+		Data:       output.Data,
 	}
 	return &api.Response{
 		Error:  workflowErr,

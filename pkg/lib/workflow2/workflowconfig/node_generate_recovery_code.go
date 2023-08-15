@@ -10,6 +10,14 @@ func init() {
 	workflow.RegisterNode(&NodeGenerateRecoveryCode{})
 }
 
+type NodeGenerateRecoveryCodeData struct {
+	RecoveryCodes []string `json:"recovery_codes"`
+}
+
+var _ workflow.Data = &NodeGenerateRecoveryCodeData{}
+
+func (m NodeGenerateRecoveryCodeData) Data() {}
+
 type NodeGenerateRecoveryCode struct {
 	UserID        string   `json:"user_id,omitempty"`
 	RecoveryCodes []string `json:"recovery_codes,omitempty"`
@@ -46,8 +54,8 @@ func (n *NodeGenerateRecoveryCode) ReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeGenerateRecoveryCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{
-		"recovery_codes": n.RecoveryCodes,
+func (n *NodeGenerateRecoveryCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
+	return NodeGenerateRecoveryCodeData{
+		RecoveryCodes: n.RecoveryCodes,
 	}, nil
 }

@@ -53,8 +53,8 @@ func (testMarshalIntent0) ReactTo(ctx context.Context, deps *Dependencies, workf
 	panic("unreachable")
 }
 
-func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalIntent0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (Data, error) {
+	return mapData{
 		"intent0": i.Intent0,
 	}, nil
 }
@@ -90,8 +90,8 @@ func (testMarshalIntent1) ReactTo(ctx context.Context, deps *Dependencies, workf
 	panic("unreachable")
 }
 
-func (i *testMarshalIntent1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalIntent1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (Data, error) {
+	return mapData{
 		"intent1": i.Intent1,
 	}, nil
 }
@@ -125,8 +125,16 @@ func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies, w
 	}, nil
 }
 
-func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalNode0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	return nil, ErrEOF
+}
+
+func (i *testMarshalNode0) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
+}
+
+func (i *testMarshalNode0) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (Data, error) {
+	return mapData{
 		"node0": i.Node0,
 	}, nil
 }
@@ -160,8 +168,16 @@ func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies, w
 	}, nil
 }
 
-func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return map[string]interface{}{
+func (i *testMarshalNode1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+	return nil, ErrEOF
+}
+
+func (i *testMarshalNode1) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
+	return nil, ErrIncompatibleInput
+}
+
+func (i *testMarshalNode1) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (Data, error) {
+	return mapData{
 		"node1": i.Node1,
 	}, nil
 }

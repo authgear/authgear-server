@@ -24,12 +24,18 @@ const (
 )
 
 type ServiceOutput struct {
-	Session        *Session
-	SessionOutput  *SessionOutput
-	Workflow       *Workflow
-	WorkflowOutput *WorkflowOutput
-	Action         *WorkflowAction
-	Cookies        []*http.Cookie
+	Session       *Session
+	SessionOutput *SessionOutput
+	Workflow      *Workflow
+	Data          Data
+	Action        *WorkflowAction
+	Cookies       []*http.Cookie
+}
+
+func (o *ServiceOutput) EnsureDataIsNonNil() {
+	if o.Data == nil {
+		o.Data = EmptyData
+	}
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -71,10 +77,10 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	var workflow *Workflow
-	var workflowOutput *WorkflowOutput
+	var data Data
 	var action *WorkflowAction
 	err = s.Database.ReadOnly(func() error {
-		workflow, workflowOutput, action, err = s.createNewWorkflow(ctx, session, intent)
+		workflow, data, action, err = s.createNewWorkflow(ctx, session, intent)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -108,18 +114,20 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	if isEOF {
 		err = ErrEOF
 	}
+
 	output = &ServiceOutput{
-		Session:        session,
-		SessionOutput:  sessionOutput,
-		Workflow:       workflow,
-		WorkflowOutput: workflowOutput,
-		Action:         action,
-		Cookies:        cookies,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Workflow:      workflow,
+		Data:          data,
+		Action:        action,
+		Cookies:       cookies,
 	}
+	output.EnsureDataIsNonNil()
 	return
 }
 
-func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
+func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, data Data, action *WorkflowAction, err error) {
 	workflow = NewWorkflow(session.WorkflowID, intent)
 
 	// A new workflow does not have any nodes.
@@ -146,12 +154,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 		return
 	}
 
-	output, err = WorkflowToOutput(ctx, s.Deps, NewWorkflows(workflow))
-	if err != nil {
-		return
-	}
-
-	action, err = s.determineAction(ctx, session, workflow)
+	action, data, err = s.determineAction(ctx, session, workflow)
 	if err != nil {
 		return
 	}
@@ -199,12 +202,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 		return
 	}
 
-	workflowOutput, err := WorkflowToOutput(ctx, s.Deps, NewWorkflows(w))
-	if err != nil {
-		return
-	}
-
-	action, err := s.determineAction(ctx, session, w)
+	action, data, err := s.determineAction(ctx, session, w)
 	if err != nil {
 		return
 	}
@@ -212,12 +210,13 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 	sessionOutput := session.ToOutput()
 
 	output = &ServiceOutput{
-		Session:        session,
-		SessionOutput:  sessionOutput,
-		Workflow:       w,
-		WorkflowOutput: workflowOutput,
-		Action:         action,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Workflow:      w,
+		Data:          data,
+		Action:        action,
 	}
+	output.EnsureDataIsNonNil()
 	return
 }
 
@@ -244,10 +243,10 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
-	var workflowOutput *WorkflowOutput
+	var data Data
 	var action *WorkflowAction
 	err = s.Database.ReadOnly(func() error {
-		workflow, workflowOutput, action, err = s.feedInput(ctx, session, instanceID, input)
+		workflow, data, action, err = s.feedInput(ctx, session, instanceID, input)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -282,17 +281,18 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 		err = ErrEOF
 	}
 	output = &ServiceOutput{
-		Session:        session,
-		SessionOutput:  sessionOutput,
-		Workflow:       workflow,
-		WorkflowOutput: workflowOutput,
-		Action:         action,
-		Cookies:        cookies,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Workflow:      workflow,
+		Data:          data,
+		Action:        action,
+		Cookies:       cookies,
 	}
+	output.EnsureDataIsNonNil()
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, input Input) (workflow *Workflow, output *WorkflowOutput, action *WorkflowAction, err error) {
+func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, input Input) (workflow *Workflow, data Data, action *WorkflowAction, err error) {
 	workflow, err = s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -317,12 +317,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 		return
 	}
 
-	output, err = WorkflowToOutput(ctx, s.Deps, NewWorkflows(workflow))
-	if err != nil {
-		return
-	}
-
-	action, err = s.determineAction(ctx, session, workflow)
+	action, data, err = s.determineAction(ctx, session, workflow)
 	if err != nil {
 		return
 	}
@@ -350,19 +345,27 @@ func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cooki
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, error) {
-	isEOF, err := IsEOF(ctx, s.Deps, NewWorkflows(workflow))
-	if err != nil {
-		return nil, err
-	}
-	if isEOF {
+func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, Data, error) {
+	workflows, inputReactor, _, err := FindInputReactor(ctx, s.Deps, NewWorkflows(workflow))
+	if errors.Is(err, ErrEOF) {
 		return &WorkflowAction{
 			Type:        WorkflowActionTypeFinish,
 			RedirectURI: session.RedirectURI,
-		}, nil
+		}, nil, nil
 	}
-	// TODO(workflow): handle oauth redirect.
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var data Data
+	if dataOutputer, ok := inputReactor.(DataOutputer); ok {
+		data, err = dataOutputer.OutputData(ctx, s.Deps, workflows)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
 	return &WorkflowAction{
 		Type: WorkflowActionTypeContinue,
-	}, nil
+	}, data, nil
 }
