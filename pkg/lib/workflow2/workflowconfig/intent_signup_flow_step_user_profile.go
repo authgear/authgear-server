@@ -35,10 +35,14 @@ func (i *IntentSignupFlowStepUserProfile) GetJSONPointer() jsonpointer.T {
 }
 
 var _ workflow.Intent = &IntentSignupFlowStepUserProfile{}
-var _ workflow.DataOutputer = &IntentSignupFlowStepUserProfile{}
+var _ workflow.Boundary = &IntentSignupFlowStepUserProfile{}
 
 func (*IntentSignupFlowStepUserProfile) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepUserProfile"
+}
+
+func (i *IntentSignupFlowStepUserProfile) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
@@ -50,8 +54,7 @@ func (*IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *wo
 
 func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputFillUserProfile inputFillUserProfile
-	if workflow.AsInput(input, &inputFillUserProfile) &&
-		inputFillUserProfile.GetJSONPointer().String() == i.JSONPointer.String() {
+	if workflow.AsInput(input, &inputFillUserProfile) {
 		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
 		if err != nil {
 			return nil, err
@@ -83,12 +86,6 @@ func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *wor
 	}
 
 	return nil, workflow.ErrIncompatibleInput
-}
-
-func (i *IntentSignupFlowStepUserProfile) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{
-		"json_pointer": i.JSONPointer.String(),
-	}, nil
 }
 
 func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlowStep, attributes []attrs.T) (absent []string, err error) {

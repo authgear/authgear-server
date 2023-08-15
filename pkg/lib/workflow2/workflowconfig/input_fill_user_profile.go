@@ -1,8 +1,6 @@
 package workflowconfig
 
 import (
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -30,19 +28,14 @@ var InputFillUserProfileSchema = validation.NewSimpleSchema(`
 					"value": {}
 				}
 			}
-		},
-		"json_pointer": {
-			"type": "string",
-			"format": "json-pointer"
 		}
 	},
-	"required": ["attributes", "json_pointer"]
+	"required": ["attributes"]
 }
 `)
 
 type InputFillUserProfile struct {
-	Attributes  []attrs.T     `json:"attributes,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	Attributes []attrs.T `json:"attributes,omitempty"`
 }
 
 func (*InputFillUserProfile) Kind() string {
@@ -57,13 +50,8 @@ func (i *InputFillUserProfile) GetAttributes() []attrs.T {
 	return i.Attributes
 }
 
-func (i *InputFillUserProfile) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
 type inputFillUserProfile interface {
 	GetAttributes() []attrs.T
-	GetJSONPointer() jsonpointer.T
 }
 
 var _ inputFillUserProfile = &InputFillUserProfile{}

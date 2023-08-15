@@ -59,6 +59,7 @@ func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Conte
 }
 
 var _ workflow.Intent = &IntentLoginFlowStepAuthenticate{}
+var _ workflow.Boundary = &IntentLoginFlowStepAuthenticate{}
 var _ workflow.DataOutputer = &IntentLoginFlowStepAuthenticate{}
 
 func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, i *IntentLoginFlowStepAuthenticate) (*IntentLoginFlowStepAuthenticate, error) {
@@ -76,6 +77,10 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *workflow.Depe
 
 func (*IntentLoginFlowStepAuthenticate) Kind() string {
 	return "workflowconfig.IntentLoginFlowStepAuthenticate"
+}
+
+func (i *IntentLoginFlowStepAuthenticate) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
@@ -149,8 +154,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 		}), nil
 	case !authenticationMethodSelected:
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
-		if workflow.AsInput(input, &inputTakeAuthenticationMethod) &&
-			inputTakeAuthenticationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
+		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 			var idx int
 			_, err := i.checkAuthenticationMethod(deps, authentication)
@@ -229,8 +233,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}
 
 	return map[string]interface{}{
-		"json_pointer": i.JSONPointer.String(),
-		"candidates":   candidates,
+		"candidates": candidates,
 	}, nil
 }
 

@@ -72,10 +72,14 @@ func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *
 }
 
 var _ workflow.Intent = &IntentSignupFlowStepAuthenticate{}
-var _ workflow.DataOutputer = &IntentSignupFlowStepAuthenticate{}
+var _ workflow.Boundary = &IntentSignupFlowStepAuthenticate{}
 
 func (*IntentSignupFlowStepAuthenticate) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepAuthenticate"
+}
+
+func (i *IntentSignupFlowStepAuthenticate) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
@@ -107,11 +111,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 
 	if len(workflows.Nearest.Nodes) == 0 {
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
-		if workflow.AsInput(input, &inputTakeAuthenticationMethod) &&
-			// NodeCreateAuthenticatorOOBOTP sometimes does not take any input to proceed when it has target_step.
-			// In that case, if the next step is also type: authenticate, then the input will be incorrectly fed to the next step.
-			// To protect against this, we require the first input of each step to provide the json pointer to indicate the audience of the input.
-			inputTakeAuthenticationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
+		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
 
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 			var idx int
@@ -171,12 +171,6 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}
-}
-
-func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{
-		"json_pointer": i.JSONPointer.String(),
-	}, nil
 }
 
 func (*IntentSignupFlowStepAuthenticate) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {

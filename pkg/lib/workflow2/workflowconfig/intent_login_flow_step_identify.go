@@ -45,10 +45,14 @@ func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *workflow.D
 }
 
 var _ workflow.Intent = &IntentLoginFlowStepIdentify{}
-var _ workflow.DataOutputer = &IntentLoginFlowStepIdentify{}
+var _ workflow.Boundary = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) Kind() string {
 	return "workflowconfig.IntentLoginFlowStepIdentify"
+}
+
+func (i *IntentLoginFlowStepIdentify) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
@@ -80,8 +84,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *workflo
 
 	if len(workflows.Nearest.Nodes) == 0 {
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
-		if workflow.AsInput(input, &inputTakeIdentificationMethod) &&
-			inputTakeIdentificationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
+		if workflow.AsInput(input, &inputTakeIdentificationMethod) {
 
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
 			err = i.checkIdentificationMethod(step, identification)
@@ -122,12 +125,6 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *workflo
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}
-}
-
-func (i *IntentLoginFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{
-		"json_pointer": i.JSONPointer.String(),
-	}, nil
 }
 
 func (*IntentLoginFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowLoginFlowStep {

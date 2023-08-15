@@ -62,10 +62,14 @@ func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps
 }
 
 var _ workflow.Intent = &IntentSignupFlowStepIdentify{}
-var _ workflow.DataOutputer = &IntentSignupFlowStepIdentify{}
+var _ workflow.Boundary = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepIdentify"
+}
+
+func (i *IntentSignupFlowStepIdentify) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
@@ -101,9 +105,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 
 	if len(workflows.Nearest.Nodes) == 0 {
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
-		if workflow.AsInput(input, &inputTakeIdentificationMethod) &&
-			inputTakeIdentificationMethod.GetJSONPointer().String() == i.JSONPointer.String() {
-
+		if workflow.AsInput(input, &inputTakeIdentificationMethod) {
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
 			err = i.checkIdentificationMethod(step, identification)
 			if err != nil {
@@ -151,12 +153,6 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 	default:
 		return nil, workflow.ErrIncompatibleInput
 	}
-}
-
-func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return map[string]interface{}{
-		"json_pointer": i.JSONPointer.String(),
-	}, nil
 }
 
 func (*IntentSignupFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
