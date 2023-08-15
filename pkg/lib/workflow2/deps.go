@@ -14,5 +14,4 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UIParamMiddleware), "*"),
 	wire.Struct(new(IntlMiddleware), "*"),
 	NewEventStore,
-	NewUserAgentIDCookieDef,
 )
