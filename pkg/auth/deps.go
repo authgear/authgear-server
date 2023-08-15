@@ -50,6 +50,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -84,6 +85,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowV2CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerapi.WorkflowV2OAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(handlerapi.WorkflowV2UIInfoResolver), new(*oidc.UIInfoResolver)),
+	wire.Bind(new(handlerapi.Workflow2V1CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerapi.Workflow2V1OAuthSessionService), new(*oauthsession.StoreRedis)),
+	wire.Bind(new(handlerapi.Workflow2V1UIInfoResolver), new(*oidc.UIInfoResolver)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
@@ -138,6 +142,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowV2WorkflowService), new(*workflow.Service)),
+	wire.Bind(new(handlerapi.Workflow2V1WorkflowService), new(*workflow2.Service)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 
