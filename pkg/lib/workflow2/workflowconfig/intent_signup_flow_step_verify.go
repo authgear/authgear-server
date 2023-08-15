@@ -41,9 +41,14 @@ func (i *IntentSignupFlowStepVerify) GetJSONPointer() jsonpointer.T {
 }
 
 var _ workflow.Intent = &IntentSignupFlowStepVerify{}
+var _ workflow.Boundary = &IntentSignupFlowStepVerify{}
 
 func (*IntentSignupFlowStepVerify) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepVerify"
+}
+
+func (i *IntentSignupFlowStepVerify) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

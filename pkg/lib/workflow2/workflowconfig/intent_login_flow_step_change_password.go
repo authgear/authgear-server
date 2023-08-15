@@ -38,9 +38,14 @@ func (i *IntentLoginFlowStepChangePassword) GetJSONPointer() jsonpointer.T {
 }
 
 var _ workflow.Intent = &IntentLoginFlowStepChangePassword{}
+var _ workflow.Boundary = &IntentLoginFlowStepChangePassword{}
 
 func (*IntentLoginFlowStepChangePassword) Kind() string {
 	return "workflowconfig.IntentLoginFlowStepChangePassword"
+}
+
+func (i *IntentLoginFlowStepChangePassword) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

@@ -29,8 +29,15 @@ func (i *IntentSignupFlowStepRecoveryCode) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
+var _ workflow.Intent = &IntentSignupFlowStepRecoveryCode{}
+var _ workflow.Boundary = &IntentSignupFlowStepRecoveryCode{}
+
 func (*IntentSignupFlowStepRecoveryCode) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepRecoveryCode"
+}
+
+func (i *IntentSignupFlowStepRecoveryCode) Boundary() string {
+	return i.JSONPointer.String()
 }
 
 func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
