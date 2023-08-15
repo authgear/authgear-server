@@ -10,7 +10,7 @@ import (
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
 func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (err error) {
-	var workflowInQuestion *Workflow
+	var newWorkflows Workflows
 	var inputReactor InputReactor
 
 	var changed bool
@@ -24,14 +24,14 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 	}()
 
 	for {
-		workflowInQuestion, inputReactor, err = FindInputReactorForWorkflow(ctx, deps, workflows)
+		newWorkflows, inputReactor, err = FindInputReactorForWorkflow(ctx, deps, workflows)
 		if err != nil {
 			return
 		}
 
 		// Otherwise we found an InputReactor that we can feed input to.
 		var nextNode *Node
-		nextNode, err = inputReactor.ReactTo(ctx, deps, workflows.Replace(workflowInQuestion), input)
+		nextNode, err = inputReactor.ReactTo(ctx, deps, newWorkflows, input)
 
 		// Handle err == ErrIncompatibleInput
 		if errors.Is(err, ErrIncompatibleInput) {
@@ -58,12 +58,12 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 			nodeToReplace := nextNode
 
 			// precondition: ErrUpdateNode requires at least one node.
-			if len(workflowInQuestion.Nodes) == 0 {
+			if len(newWorkflows.Nearest.Nodes) == 0 {
 				panic(fmt.Errorf("input reactor %T returned ErrUpdateNode, but there are no nodes", inputReactor))
 			}
 
 			// Update the node inplace.
-			workflowInQuestion.Nodes[len(workflowInQuestion.Nodes)-1] = *nodeToReplace
+			newWorkflows.Nearest.Nodes[len(newWorkflows.Nearest.Nodes)-1] = *nodeToReplace
 
 			// We have to stop and return here because this edge will react to this input indefinitely.
 			return
@@ -75,7 +75,7 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 		}
 
 		// We need to append the nextNode to the closest workflow.
-		err = appendNode(ctx, deps, workflows.Replace(workflowInQuestion), *nextNode)
+		err = appendNode(ctx, deps, newWorkflows, *nextNode)
 		if err != nil {
 			return
 		}
