@@ -13,8 +13,8 @@ module.exports = {
       colors: {
         grey: { white7: "#F4F4F4" },
         status: {
-          green: "#33BA89",
-          grey: "#595653",
+          green: "#10B070",
+          grey: "#605E5C",
         },
       },
     },
