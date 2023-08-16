@@ -7,6 +7,7 @@ import (
 func CloneWorkflow(w *Workflow) *Workflow {
 	nodes := make([]Node, len(w.Nodes))
 	for i, node := range w.Nodes {
+		node := node
 		nodes[i] = *CloneNode(&node)
 	}
 
