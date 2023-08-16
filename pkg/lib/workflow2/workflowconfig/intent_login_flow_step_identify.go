@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
@@ -15,6 +14,12 @@ import (
 func init() {
 	workflow.RegisterIntent(&IntentLoginFlowStepIdentify{})
 }
+
+type IntentLoginFlowStepIdentifyData struct {
+	Candidates []IdentificationCandidate `json:"candidates"`
+}
+
+func (IntentLoginFlowStepIdentifyData) Data() {}
 
 type IntentLoginFlowStepIdentify struct {
 	LoginFlow   string        `json:"login_flow,omitempty"`
@@ -46,6 +51,7 @@ func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *workflow.D
 
 var _ workflow.Intent = &IntentLoginFlowStepIdentify{}
 var _ workflow.Boundary = &IntentLoginFlowStepIdentify{}
+var _ workflow.DataOutputer = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) Kind() string {
 	return "workflowconfig.IntentLoginFlowStepIdentify"
@@ -127,6 +133,20 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *workflo
 	}
 }
 
+func (i *IntentLoginFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
+	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	candidates := i.getAllowedCandidates(step)
+
+	return IntentLoginFlowStepIdentifyData{
+		Candidates: candidates,
+	}, nil
+}
+
 func (*IntentLoginFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowLoginFlowStep {
 	step, ok := o.(*config.WorkflowLoginFlowStep)
 	if !ok {
@@ -136,24 +156,27 @@ func (*IntentLoginFlowStepIdentify) step(o config.WorkflowObject) *config.Workfl
 	return step
 }
 
-func (*IntentLoginFlowStepIdentify) checkIdentificationMethod(step *config.WorkflowLoginFlowStep, im config.WorkflowIdentificationMethod) error {
-	var allAllowed []config.WorkflowIdentificationMethod
+func (i *IntentLoginFlowStepIdentify) checkIdentificationMethod(step *config.WorkflowLoginFlowStep, im config.WorkflowIdentificationMethod) error {
+	candidates := i.getAllowedCandidates(step)
 
-	for _, branch := range step.OneOf {
-		branch := branch
-		allAllowed = append(allAllowed, branch.Identification)
-	}
-
-	for _, allowed := range allAllowed {
-		if im == allowed {
+	for _, candidate := range candidates {
+		if im == candidate.IdentificationMethod() {
 			return nil
 		}
 	}
 
-	return InvalidIdentificationMethod.NewWithInfo("invalid identification method", apierrors.Details{
-		"expected": allAllowed,
-		"actual":   im,
-	})
+	return InvalidIdentificationMethod.New("invalid identification method")
+}
+
+func (*IntentLoginFlowStepIdentify) getAllowedCandidates(step *config.WorkflowLoginFlowStep) []IdentificationCandidate {
+	var candidates []IdentificationCandidate
+
+	for _, branch := range step.OneOf {
+		branch := branch
+		candidates = append(candidates, NewIdentificationCandidateFromMethod(branch.Identification))
+	}
+
+	return candidates
 }
 
 func (*IntentLoginFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
