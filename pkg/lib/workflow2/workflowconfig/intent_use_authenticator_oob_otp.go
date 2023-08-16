@@ -19,7 +19,7 @@ func init() {
 }
 
 type IntentUseAuthenticatorOOBOTPData struct {
-	Candidates []AuthenticationCandidate `json:"candidates"`
+	Candidates []UseAuthenticationCandidate `json:"candidates"`
 }
 
 var _ workflow.Data = IntentUseAuthenticatorOOBOTPData{}
@@ -143,7 +143,7 @@ func (*IntentUseAuthenticatorOOBOTP) step(o config.WorkflowObject) *config.Workf
 	return step
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []AuthenticationCandidate, index int) (*authenticator.Info, error) {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []UseAuthenticationCandidate, index int) (*authenticator.Info, error) {
 	for idx, c := range candidates {
 		if idx == index {
 			id := c.AuthenticatorID

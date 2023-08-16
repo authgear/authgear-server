@@ -14,7 +14,7 @@ func init() {
 }
 
 type NodeLoginFlowChangePasswordData struct {
-	Candidates []AuthenticationCandidate `json:"candidates"`
+	Candidates []CreateAuthenticationCandidate `json:"candidates"`
 }
 
 func (NodeLoginFlowChangePasswordData) Data() {}
@@ -64,15 +64,21 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *workflo
 }
 
 func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
-	var candidate AuthenticationCandidate
+	var candidate CreateAuthenticationCandidate
 	switch n.Authenticator.Kind {
 	case model.AuthenticatorKindPrimary:
-		candidate = NewAuthenticationCandidateFromMethod(config.WorkflowAuthenticationMethodPrimaryPassword)
+		candidate = NewCreateAuthenticationCandidate(
+			deps.Config.Authenticator.Password.Policy,
+			config.WorkflowAuthenticationMethodPrimaryPassword,
+		)
 	case model.AuthenticatorKindSecondary:
-		candidate = NewAuthenticationCandidateFromMethod(config.WorkflowAuthenticationMethodSecondaryPassword)
+		candidate = NewCreateAuthenticationCandidate(
+			deps.Config.Authenticator.Password.Policy,
+			config.WorkflowAuthenticationMethodSecondaryPassword,
+		)
 	}
 
 	return NodeLoginFlowChangePasswordData{
-		Candidates: []AuthenticationCandidate{candidate},
+		Candidates: []CreateAuthenticationCandidate{candidate},
 	}, nil
 }

@@ -80,7 +80,7 @@ func loginFlowCurrent(deps *workflow.Dependencies, id string, pointer jsonpointe
 	return current, nil
 }
 
-func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *identity.Info, am config.WorkflowAuthenticationMethod) ([]AuthenticationCandidate, error) {
+func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *identity.Info, am config.WorkflowAuthenticationMethod) ([]UseAuthenticationCandidate, error) {
 	as, err := deps.Authenticators.List(info.UserID, KeepAuthenticationMethod(am))
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *id
 	return getAuthenticationCandidates(as, []config.WorkflowAuthenticationMethod{am})
 }
 
-func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) ([]AuthenticationCandidate, error) {
+func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) ([]UseAuthenticationCandidate, error) {
 	as, err := deps.Authenticators.List(userID, KeepAuthenticationMethod(allAllowed...))
 	if err != nil {
 		return nil, err
@@ -98,8 +98,8 @@ func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID strin
 	return getAuthenticationCandidates(as, allAllowed)
 }
 
-func getAuthenticationCandidatesForStep(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, userID string, step *config.WorkflowLoginFlowStep) ([]AuthenticationCandidate, error) {
-	var candidates []AuthenticationCandidate
+func getAuthenticationCandidatesForStep(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, userID string, step *config.WorkflowLoginFlowStep) ([]UseAuthenticationCandidate, error) {
+	var candidates []UseAuthenticationCandidate
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
@@ -141,19 +141,22 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *workflow.Depe
 
 				candidates = append(candidates, moreCandidates...)
 			}
+		case config.WorkflowAuthenticationMethodDeviceToken:
+			// Device token is handled transparently.
+			break
 		default:
-			candidates = append(candidates, NewAuthenticationCandidateFromMethod(branch.Authentication))
+			candidates = append(candidates, NewUseAuthenticationCandidateFromMethod(branch.Authentication))
 		}
 	}
 
 	return candidates, nil
 }
 
-func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []AuthenticationCandidate, err error) {
+func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []UseAuthenticationCandidate, err error) {
 	addOne := func() {
 		added := false
 		for _, a := range as {
-			candidate := NewAuthenticationCandidateFromInfo(a)
+			candidate := NewUseAuthenticationCandidateFromInfo(a)
 			if !added {
 				allUsable = append(allUsable, candidate)
 				added = true
@@ -163,7 +166,7 @@ func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.W
 
 	addAll := func() {
 		for _, a := range as {
-			candidate := NewAuthenticationCandidateFromInfo(a)
+			candidate := NewUseAuthenticationCandidateFromInfo(a)
 			allUsable = append(allUsable, candidate)
 		}
 	}
@@ -187,7 +190,7 @@ func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.W
 		case config.WorkflowAuthenticationMethodSecondaryTOTP:
 			addOne()
 		case config.WorkflowAuthenticationMethodRecoveryCode:
-			allUsable = append(allUsable, NewAuthenticationCandidateRecoveryCode())
+			allUsable = append(allUsable, NewUseAuthenticationCandidateFromMethod(config.WorkflowAuthenticationMethodRecoveryCode))
 		case config.WorkflowAuthenticationMethodDeviceToken:
 			// Device token is handled transparently.
 			break
