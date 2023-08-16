@@ -11,6 +11,7 @@ type WorkflowTraverser struct {
 
 func TraverseWorkflow(t WorkflowTraverser, w *Workflow) error {
 	for _, node := range w.Nodes {
+		node := node
 		err := TraverseNode(t, w, &node)
 		if err != nil {
 			return err
