@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Candidates []authenticator.Candidate `json:"candidates"`
+	Candidates []AuthenticationCandidate `json:"candidates"`
 }
 
 var _ workflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -262,7 +262,7 @@ func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(deps *workfl
 
 	for i := range allAllowed {
 		for _, a := range candidates {
-			allowed := a[authenticator.CandidateKeyAuthenticationMethod].(config.WorkflowAuthenticationMethod)
+			allowed := a.AuthenticationMethod()
 			if allowed == am {
 				idx = i
 			}
