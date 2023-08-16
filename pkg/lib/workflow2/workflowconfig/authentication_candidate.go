@@ -22,10 +22,15 @@ const (
 	AuthenticationCandidateKeyMaskedDisplayID      AuthenticationCandidateKey = "masked_display_id"
 )
 
-func NewAuthenticationCandidateRecoveryCode() AuthenticationCandidate {
+func NewAuthenticationCandidateFromMethod(m config.WorkflowAuthenticationMethod) AuthenticationCandidate {
 	return AuthenticationCandidate{
-		AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodRecoveryCode,
+		AuthenticationCandidateKeyAuthenticationMethod: m,
 	}
+
+}
+
+func NewAuthenticationCandidateRecoveryCode() AuthenticationCandidate {
+	return NewAuthenticationCandidateFromMethod(config.WorkflowAuthenticationMethodRecoveryCode)
 }
 
 func NewAuthenticationCandidateFromInfo(i *authenticator.Info) AuthenticationCandidate {
