@@ -1179,6 +1179,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	featureConfig := config.FeatureConfig
+	oAuthFeatureConfig := featureConfig.OAuth
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
@@ -1940,6 +1941,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                  appID,
 		Config:                 oAuthConfig,
 		HTTPConfig:             httpConfig,
+		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
 		Logger:                 handlerTokenHandlerLogger,
@@ -3797,6 +3799,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	featureConfig := config.FeatureConfig
+	oAuthFeatureConfig := featureConfig.OAuth
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
@@ -4558,6 +4561,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                  appID,
 		Config:                 oAuthConfig,
 		HTTPConfig:             httpConfig,
+		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
 		Logger:                 tokenHandlerLogger,

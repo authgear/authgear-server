@@ -20,7 +20,8 @@ var _ = FeatureConfigSchema.Add("OAuthClientFeatureConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"maximum": { "type": "integer" },
-		"custom_ui_enabled": { "type": "boolean" }
+		"custom_ui_enabled": { "type": "boolean" },
+		"app2app_enabled": { "type": "boolean" }
 	}
 }
 `)
@@ -28,6 +29,7 @@ var _ = FeatureConfigSchema.Add("OAuthClientFeatureConfig", `
 type OAuthClientFeatureConfig struct {
 	Maximum         *int `json:"maximum,omitempty"`
 	CustomUIEnabled bool `json:"custom_ui_enabled,omitempty"`
+	App2AppEnabled  bool `json:"app2app_enabled,omitempty"`
 }
 
 func (c *OAuthClientFeatureConfig) SetDefaults() {

@@ -92,6 +92,7 @@ type TokenHandler struct {
 	AppID                  config.AppID
 	Config                 *config.OAuthConfig
 	HTTPConfig             *config.HTTPConfig
+	OAuthFeatureConfig     *config.OAuthFeatureConfig
 	IdentityFeatureConfig  *config.IdentityFeatureConfig
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
@@ -179,7 +180,7 @@ func (h *TokenHandler) doHandle(
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
 	case App2AppRequestGrantType:
-		return h.handleApp2AppRequest(rw, req, client, r)
+		return h.handleApp2AppRequest(rw, req, client, h.OAuthFeatureConfig, r)
 	case IDTokenGrantType:
 		return h.handleIDToken(rw, req, client, r)
 	default:
@@ -782,12 +783,20 @@ func (h *TokenHandler) handleApp2AppRequest(
 	rw http.ResponseWriter,
 	req *http.Request,
 	client *config.OAuthClientConfig,
+	feature *config.OAuthFeatureConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	if !client.App2appEnabled {
 		return nil, protocol.NewError(
 			"unauthorized_client",
 			"this client may not use app2app authentication",
+		)
+	}
+
+	if !feature.Client.App2AppEnabled {
+		return nil, protocol.NewError(
+			"invalid_request",
+			"app2app disabled",
 		)
 	}
 
