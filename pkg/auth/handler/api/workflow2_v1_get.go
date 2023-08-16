@@ -1,0 +1,68 @@
+package api
+
+import (
+	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/validation"
+)
+
+func ConfigureWorkflow2V1GetRoute(route httproute.Route) httproute.Route {
+	return route.
+		WithMethods("POST", "OPTIONS").
+		WithPathPattern("/api/v1/workflow2s/get")
+}
+
+var Workflow2V1GetRequestSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"workflow_id": { "type": "string" },
+			"instance_id": { "type": "string" }
+		},
+		"required": ["workflow_id", "instance_id"]
+	}
+`)
+
+type Workflow2V1GetRequest struct {
+	WorkflowID string `json:"workflow_id,omitempty"`
+	InstanceID string `json:"instance_id,omitempty"`
+}
+
+type Workflow2V1GetHandler struct {
+	JSON           JSONResponseWriter
+	Cookies        Workflow2V1CookieManager
+	Workflows      Workflow2V1WorkflowService
+	OAuthSessions  Workflow2V1OAuthSessionService
+	UIInfoResolver Workflow2V1UIInfoResolver
+}
+
+func (h *Workflow2V1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var request Workflow2V1GetRequest
+	err = httputil.BindJSONBody(r, w, Workflow2V1GetRequestSchema.Validator(), &request)
+	if err != nil {
+		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		return
+	}
+
+	workflowID := request.WorkflowID
+	instanceID := request.InstanceID
+	userAgentID := workflow2getOrCreateUserAgentID(h.Cookies, w, r)
+
+	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
+	if err != nil {
+		h.JSON.WriteResponse(w, &api.Response{Error: err})
+		return
+	}
+
+	result := Workflow2Response{
+		Action:     output.Action,
+		WorkflowID: output.Workflow.WorkflowID,
+		InstanceID: output.Workflow.InstanceID,
+		Data:       output.Data,
+	}
+	h.JSON.WriteResponse(w, &api.Response{Result: result})
+}

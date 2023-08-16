@@ -27,6 +27,8 @@ var _ workflow.Intent = &IntentVerifyClaim{}
 var _ workflow.Milestone = &IntentVerifyClaim{}
 var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
 
+// FIXME
+
 func (*IntentVerifyClaim) Kind() string {
 	return "workflowconfig.IntentVerifyClaim"
 }
