@@ -2,11 +2,11 @@ package workflowconfig
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -27,10 +27,11 @@ var _ workflow.Data = IntentUseAuthenticatorOOBOTPData{}
 func (m IntentUseAuthenticatorOOBOTPData) Data() {}
 
 type IntentUseAuthenticatorOOBOTP struct {
-	LoginFlow      string                              `json:"login_flow,omitempty"`
-	JSONPointer    jsonpointer.T                       `json:"json_pointer,omitempty"`
-	UserID         string                              `json:"user_id,omitempty"`
-	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
+	LoginFlow         string                              `json:"login_flow,omitempty"`
+	JSONPointer       jsonpointer.T                       `json:"json_pointer,omitempty"`
+	JSONPointerToStep jsonpointer.T                       `json:"json_pointer_to_step,omitempty"`
+	UserID            string                              `json:"user_id,omitempty"`
+	Authentication    config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 }
 
 var _ workflow.Intent = &IntentUseAuthenticatorOOBOTP{}
@@ -54,7 +55,7 @@ func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workf
 
 	switch {
 	case !authenticatorSelected:
-		return []workflow.Input{&InputTakeAuthenticatorID{}}, nil
+		return []workflow.Input{&InputTakeAuthenticationCandidateIndex{}}, nil
 	case !claimVerified:
 		// Verify the claim
 		return nil, nil
@@ -67,21 +68,27 @@ func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workf
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	candidates, err := n.getCandidates(ctx, deps, workflows)
-	if err != nil {
-		return nil, err
-	}
-
 	m, authenticatorSelected := workflow.FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
 	_, claimVerified := workflow.FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
 	_, authenticatorVerified := workflow.FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 
 	switch {
 	case !authenticatorSelected:
-		var inputTakeAuthenticatorID inputTakeAuthenticatorID
-		if workflow.AsInput(input, &inputTakeAuthenticatorID) {
-			authenticatorID := inputTakeAuthenticatorID.GetAuthenticatorID()
-			info, err := n.pickAuthenticator(deps, candidates, authenticatorID)
+		var inputTakeAuthenticationCandidateIndex inputTakeAuthenticationCandidateIndex
+		if workflow.AsInput(input, &inputTakeAuthenticationCandidateIndex) {
+			current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointerToStep)
+			if err != nil {
+				return nil, err
+			}
+			step := n.step(current)
+
+			candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, n.UserID, step)
+			if err != nil {
+				return nil, err
+			}
+
+			index := inputTakeAuthenticationCandidateIndex.GetIndex()
+			info, err := n.pickAuthenticator(deps, candidates, index)
 			if err != nil {
 				return nil, err
 			}
@@ -111,7 +118,13 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workfl
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
-	candidates, err := n.getCandidates(ctx, deps, workflows)
+	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointerToStep)
+	if err != nil {
+		return nil, err
+	}
+	step := n.step(current)
+
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, n.UserID, step)
 	if err != nil {
 		return nil, err
 	}
@@ -121,61 +134,24 @@ func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *wor
 	}, nil
 }
 
-func (*IntentUseAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.WorkflowLoginFlowOneOf {
-	oneOf, ok := o.(*config.WorkflowLoginFlowOneOf)
+func (*IntentUseAuthenticatorOOBOTP) step(o config.WorkflowObject) *config.WorkflowLoginFlowStep {
+	step, ok := o.(*config.WorkflowLoginFlowStep)
 	if !ok {
 		panic(fmt.Errorf("workflow: workflow object is %T", o))
 	}
 
-	return oneOf
+	return step
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]AuthenticationCandidate, error) {
-
-	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-
-	var candidates []AuthenticationCandidate
-
-	oneOf := n.oneOf(current)
-	targetStepID := oneOf.TargetStep
-	if targetStepID != "" {
-		// Find the target step from the root.
-		targetStepWorkflow, err := FindTargetStep(workflows.Root, targetStepID)
-		if err != nil {
-			return nil, err
-		}
-
-		target, ok := targetStepWorkflow.Intent.(IntentLoginFlowStepAuthenticateTarget)
-		if !ok {
-			return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-				"target_step": targetStepID,
-			})
-		}
-
-		identityInfo := target.GetIdentity(ctx, deps, workflows.Replace(targetStepWorkflow))
-
-		candidates, err = getAuthenticationCandidatesOfIdentity(deps, identityInfo, n.Authentication)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		candidates, err = getAuthenticationCandidatesOfUser(deps, n.UserID, []config.WorkflowAuthenticationMethod{n.Authentication})
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return candidates, nil
-}
-
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []AuthenticationCandidate, authenticatorID string) (*authenticator.Info, error) {
-	for _, c := range candidates {
-		id := c[AuthenticationCandidateKeyAuthenticatorID].(string)
-		if id == authenticatorID {
-			info, err := deps.Authenticators.Get(authenticatorID)
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []AuthenticationCandidate, index int) (*authenticator.Info, error) {
+	for idx, c := range candidates {
+		if idx == index {
+			id := c.AuthenticatorID
+			info, err := deps.Authenticators.Get(id)
+			if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
+				// Break the loop and use the return statement at the end.
+				break
+			}
 			if err != nil {
 				return nil, err
 			}
@@ -183,7 +159,7 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependen
 		}
 	}
 
-	return nil, InvalidAuthenticatorID.New("invalid authenticator ID")
+	return nil, InvalidAuthenticationCandidateIndex.New("invalid authentication candidate index")
 }
 
 func (*IntentUseAuthenticatorOOBOTP) otpMessageType(info *authenticator.Info) otp.MessageType {

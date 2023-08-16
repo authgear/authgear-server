@@ -206,7 +206,7 @@ func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *confi
 	candidates := i.getAllowedCandidates(step)
 
 	for index, candidate := range candidates {
-		if am == candidate.AuthenticationMethod() {
+		if am == candidate.AuthenticationMethod {
 			idx = index
 		}
 	}

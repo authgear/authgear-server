@@ -1,6 +1,8 @@
 package workflowconfig
 
 import (
+	"context"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -94,6 +96,57 @@ func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID strin
 	}
 
 	return getAuthenticationCandidates(as, allAllowed)
+}
+
+func getAuthenticationCandidatesForStep(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, userID string, step *config.WorkflowLoginFlowStep) ([]AuthenticationCandidate, error) {
+	var candidates []AuthenticationCandidate
+
+	for _, branch := range step.OneOf {
+		switch branch.Authentication {
+		case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+			fallthrough
+		case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+			fallthrough
+		case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+			fallthrough
+		case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+			targetStepID := branch.TargetStep
+			if targetStepID != "" {
+				// Find the target step from the root.
+				targetStepWorkflow, err := FindTargetStep(workflows.Root, targetStepID)
+				if err != nil {
+					return nil, err
+				}
+
+				target, ok := targetStepWorkflow.Intent.(IntentLoginFlowStepAuthenticateTarget)
+				if !ok {
+					return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
+						"target_step": targetStepID,
+					})
+				}
+
+				identityInfo := target.GetIdentity(ctx, deps, workflows.Replace(targetStepWorkflow))
+
+				moreCandidates, err := getAuthenticationCandidatesOfIdentity(deps, identityInfo, branch.Authentication)
+				if err != nil {
+					return nil, err
+				}
+
+				candidates = append(candidates, moreCandidates...)
+			} else {
+				moreCandidates, err := getAuthenticationCandidatesOfUser(deps, userID, []config.WorkflowAuthenticationMethod{branch.Authentication})
+				if err != nil {
+					return nil, err
+				}
+
+				candidates = append(candidates, moreCandidates...)
+			}
+		default:
+			candidates = append(candidates, NewAuthenticationCandidateFromMethod(branch.Authentication))
+		}
+	}
+
+	return candidates, nil
 }
 
 func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []AuthenticationCandidate, err error) {
