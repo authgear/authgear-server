@@ -3,7 +3,6 @@ package authenticator
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type Filter interface {
@@ -46,18 +45,6 @@ func KeepType(types ...model.AuthenticatorType) Filter {
 	return FilterFunc(func(ai *Info) bool {
 		for _, t := range types {
 			if ai.Type == t {
-				return true
-			}
-		}
-		return false
-	})
-}
-
-func KeepAuthenticationMethod(ams ...config.WorkflowAuthenticationMethod) Filter {
-	return FilterFunc(func(ai *Info) bool {
-		am := ai.ToAuthenticationMethod()
-		for _, t := range ams {
-			if t == am {
 				return true
 			}
 		}

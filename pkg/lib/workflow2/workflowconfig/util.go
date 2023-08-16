@@ -78,8 +78,8 @@ func loginFlowCurrent(deps *workflow.Dependencies, id string, pointer jsonpointe
 	return current, nil
 }
 
-func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *identity.Info, am config.WorkflowAuthenticationMethod) ([]authenticator.Candidate, error) {
-	as, err := deps.Authenticators.List(info.UserID, authenticator.KeepAuthenticationMethod(am))
+func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *identity.Info, am config.WorkflowAuthenticationMethod) ([]AuthenticationCandidate, error) {
+	as, err := deps.Authenticators.List(info.UserID, KeepAuthenticationMethod(am))
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +87,8 @@ func getAuthenticationCandidatesOfIdentity(deps *workflow.Dependencies, info *id
 	return getAuthenticationCandidates(as, []config.WorkflowAuthenticationMethod{am})
 }
 
-func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) ([]authenticator.Candidate, error) {
-	as, err := deps.Authenticators.List(userID, authenticator.KeepAuthenticationMethod(allAllowed...))
+func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID string, allAllowed []config.WorkflowAuthenticationMethod) ([]AuthenticationCandidate, error) {
+	as, err := deps.Authenticators.List(userID, KeepAuthenticationMethod(allAllowed...))
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +96,11 @@ func getAuthenticationCandidatesOfUser(deps *workflow.Dependencies, userID strin
 	return getAuthenticationCandidates(as, allAllowed)
 }
 
-func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []authenticator.Candidate, err error) {
+func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.WorkflowAuthenticationMethod) (allUsable []AuthenticationCandidate, err error) {
 	addOne := func() {
 		added := false
 		for _, a := range as {
-			candidate := a.ToCandidate()
+			candidate := NewAuthenticationCandidateFromInfo(a)
 			if !added {
 				allUsable = append(allUsable, candidate)
 				added = true
@@ -110,7 +110,7 @@ func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.W
 
 	addAll := func() {
 		for _, a := range as {
-			candidate := a.ToCandidate()
+			candidate := NewAuthenticationCandidateFromInfo(a)
 			allUsable = append(allUsable, candidate)
 		}
 	}
@@ -134,7 +134,7 @@ func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.W
 		case config.WorkflowAuthenticationMethodSecondaryTOTP:
 			addOne()
 		case config.WorkflowAuthenticationMethodRecoveryCode:
-			allUsable = append(allUsable, authenticator.NewCandidateRecoveryCode())
+			allUsable = append(allUsable, NewAuthenticationCandidateRecoveryCode())
 		case config.WorkflowAuthenticationMethodDeviceToken:
 			// Device token is handled transparently.
 			break

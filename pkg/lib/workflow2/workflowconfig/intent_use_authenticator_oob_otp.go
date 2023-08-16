@@ -19,7 +19,7 @@ func init() {
 }
 
 type IntentUseAuthenticatorOOBOTPData struct {
-	Candidates []authenticator.Candidate `json:"candidates"`
+	Candidates []AuthenticationCandidate `json:"candidates"`
 }
 
 var _ workflow.Data = IntentUseAuthenticatorOOBOTPData{}
@@ -130,14 +130,14 @@ func (*IntentUseAuthenticatorOOBOTP) oneOf(o config.WorkflowObject) *config.Work
 	return oneOf
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]authenticator.Candidate, error) {
+func (n *IntentUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]AuthenticationCandidate, error) {
 
 	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
 
-	var candidates []authenticator.Candidate
+	var candidates []AuthenticationCandidate
 
 	oneOf := n.oneOf(current)
 	targetStepID := oneOf.TargetStep
@@ -171,9 +171,9 @@ func (n *IntentUseAuthenticatorOOBOTP) getCandidates(ctx context.Context, deps *
 	return candidates, nil
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []authenticator.Candidate, authenticatorID string) (*authenticator.Info, error) {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependencies, candidates []AuthenticationCandidate, authenticatorID string) (*authenticator.Info, error) {
 	for _, c := range candidates {
-		id := c[authenticator.CandidateKeyAuthenticatorID].(string)
+		id := c[AuthenticationCandidateKeyAuthenticatorID].(string)
 		if id == authenticatorID {
 			info, err := deps.Authenticators.Get(authenticatorID)
 			if err != nil {
