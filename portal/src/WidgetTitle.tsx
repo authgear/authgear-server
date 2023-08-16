@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Text } from "@fluentui/react";
+import { useLocation } from "react-router-dom";
 
 export interface WidgetTitleProps {
   className?: string;
@@ -11,6 +12,23 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
   props: WidgetTitleProps
 ) {
   const { className, children, id } = props;
+  const location = useLocation();
+  const anchorRef = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => {
+    // Scroll to the section if the current fragment matches the id
+    // It is needed because usually we have loading states in the screen
+    // therefore this component won't be mounted initially
+    if (id && location.hash === `#${id}`) {
+      requestAnimationFrame(() => {
+        if (anchorRef.current != null) {
+          anchorRef.current.scrollIntoView();
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const element = (
     <Text
       as="h2"
@@ -29,7 +47,7 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
 
   if (id != null) {
     return (
-      <a id={id} href={"#" + id} className={className}>
+      <a id={id} href={"#" + id} className={className} ref={anchorRef}>
         {element}
       </a>
     );

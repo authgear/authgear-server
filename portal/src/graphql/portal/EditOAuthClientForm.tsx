@@ -677,7 +677,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         ) : null}
         {showApp2AppSettings ? (
           <Widget className={className}>
-            <WidgetTitle>
+            <WidgetTitle id="app2app">
               <FormattedMessage id="EditOAuthClientForm.app2app.title" />
             </WidgetTitle>
             <Toggle

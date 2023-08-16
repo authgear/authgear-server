@@ -65,7 +65,7 @@ function App2AppConfigurationScreenLoaded(props: {
         onRender: (item: App2AppRowViewModel) => {
           return (
             <Link
-              to={`/project/${appID}/configuration/apps/${item.cliendID}/edit`}
+              to={`/project/${appID}/configuration/apps/${item.cliendID}/edit#app2app`}
             >
               <FormattedMessage id="App2AppConfigurationScreen.action.setup"></FormattedMessage>
             </Link>
