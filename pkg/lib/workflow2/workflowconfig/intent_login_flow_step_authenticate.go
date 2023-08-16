@@ -165,7 +165,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 			var idx int
-			_, err := i.checkAuthenticationMethod(deps, authentication)
+
+			candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, i.UserID, step)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = i.checkAuthenticationMethod(step, candidates, authentication)
 			if err != nil {
 				return nil, err
 			}
@@ -188,10 +194,11 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 				fallthrough
 			case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
 				return workflow.NewSubWorkflow(&IntentUseAuthenticatorOOBOTP{
-					LoginFlow:      i.LoginFlow,
-					JSONPointer:    JSONPointerForOneOf(i.JSONPointer, idx),
-					UserID:         i.UserID,
-					Authentication: authentication,
+					LoginFlow:         i.LoginFlow,
+					JSONPointer:       JSONPointerForOneOf(i.JSONPointer, idx),
+					JSONPointerToStep: i.JSONPointer,
+					UserID:            i.UserID,
+					Authentication:    authentication,
 				}), nil
 			case config.WorkflowAuthenticationMethodSecondaryTOTP:
 				return workflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
@@ -234,8 +241,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}
 	step := i.step(current)
 
-	allAllowed := i.getAllAllowed(step)
-	candidates, err := getAuthenticationCandidatesOfUser(deps, i.UserID, allAllowed)
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, i.UserID, step)
 	if err != nil {
 		return nil, err
 	}
@@ -245,25 +251,15 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(deps *workflow.Dependencies, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(step *config.WorkflowLoginFlowStep, candidates []AuthenticationCandidate, am config.WorkflowAuthenticationMethod) (idx int, err error) {
 	idx = -1
 
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
-	if err != nil {
-		return
-	}
-	step := i.step(current)
-
 	allAllowed := i.getAllAllowed(step)
-	candidates, err := getAuthenticationCandidatesOfUser(deps, i.UserID, allAllowed)
-	if err != nil {
-		return
-	}
 
 	for i := range allAllowed {
-		for _, a := range candidates {
-			allowed := a.AuthenticationMethod()
-			if allowed == am {
+		thisMethod := allAllowed[i]
+		for _, candidate := range candidates {
+			if thisMethod == candidate.AuthenticationMethod && thisMethod == am {
 				idx = i
 			}
 		}

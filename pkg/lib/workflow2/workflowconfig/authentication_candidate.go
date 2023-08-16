@@ -10,19 +10,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
-type AuthenticationCandidateKey string
-
-type AuthenticationCandidate map[AuthenticationCandidateKey]interface{}
-
-const (
-	AuthenticationCandidateKeyAuthenticationMethod AuthenticationCandidateKey = "authentication_method"
-	AuthenticationCandidateKeyAuthenticatorID      AuthenticationCandidateKey = "authenticator_id"
-	AuthenticationCandidateKeyMaskedDisplayName    AuthenticationCandidateKey = "masked_display_name"
-)
+type AuthenticationCandidate struct {
+	AuthenticationMethod config.WorkflowAuthenticationMethod `json:"authentication_method"`
+	MaskedDisplayName    string                              `json:"masked_display_name,omitempty"`
+	// AuthenticatorID is omitted from the output.
+	// The caller must use index to select a candidate.
+	AuthenticatorID string `json:"-"`
+}
 
 func NewAuthenticationCandidateFromMethod(m config.WorkflowAuthenticationMethod) AuthenticationCandidate {
 	return AuthenticationCandidate{
-		AuthenticationCandidateKeyAuthenticationMethod: m,
+		AuthenticationMethod: m,
 	}
 
 }
@@ -37,46 +35,46 @@ func NewAuthenticationCandidateFromInfo(i *authenticator.Info) AuthenticationCan
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPassword,
+				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPassword,
 			}
 		case model.AuthenticatorTypePasskey:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPasskey,
+				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPasskey,
 			}
 		case model.AuthenticatorTypeOOBEmail:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
-				AuthenticationCandidateKeyAuthenticatorID:      i.ID,
-				AuthenticationCandidateKeyMaskedDisplayName:    mail.MaskAddress(i.OOBOTP.Email),
+				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
+				MaskedDisplayName:    mail.MaskAddress(i.OOBOTP.Email),
+				AuthenticatorID:      i.ID,
 			}
 		case model.AuthenticatorTypeOOBSMS:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
-				AuthenticationCandidateKeyAuthenticatorID:      i.ID,
-				AuthenticationCandidateKeyMaskedDisplayName:    phone.Mask(i.OOBOTP.Phone),
+				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
+				MaskedDisplayName:    phone.Mask(i.OOBOTP.Phone),
+				AuthenticatorID:      i.ID,
 			}
 		}
 	case model.AuthenticatorKindSecondary:
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryPassword,
+				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryPassword,
 			}
 		case model.AuthenticatorTypeOOBEmail:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
-				AuthenticationCandidateKeyAuthenticatorID:      i.ID,
-				AuthenticationCandidateKeyMaskedDisplayName:    mail.MaskAddress(i.OOBOTP.Email),
+				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
+				MaskedDisplayName:    mail.MaskAddress(i.OOBOTP.Email),
+				AuthenticatorID:      i.ID,
 			}
 		case model.AuthenticatorTypeOOBSMS:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
-				AuthenticationCandidateKeyAuthenticatorID:      i.ID,
-				AuthenticationCandidateKeyMaskedDisplayName:    phone.Mask(i.OOBOTP.Phone),
+				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
+				MaskedDisplayName:    phone.Mask(i.OOBOTP.Phone),
+				AuthenticatorID:      i.ID,
 			}
 		case model.AuthenticatorTypeTOTP:
 			return AuthenticationCandidate{
-				AuthenticationCandidateKeyAuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryTOTP,
+				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryTOTP,
 			}
 		}
 	}
@@ -84,13 +82,9 @@ func NewAuthenticationCandidateFromInfo(i *authenticator.Info) AuthenticationCan
 	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
 }
 
-func (c AuthenticationCandidate) AuthenticationMethod() config.WorkflowAuthenticationMethod {
-	return c[AuthenticationCandidateKeyAuthenticationMethod].(config.WorkflowAuthenticationMethod)
-}
-
 func KeepAuthenticationMethod(ams ...config.WorkflowAuthenticationMethod) authenticator.Filter {
 	return authenticator.FilterFunc(func(ai *authenticator.Info) bool {
-		am := NewAuthenticationCandidateFromInfo(ai).AuthenticationMethod()
+		am := NewAuthenticationCandidateFromInfo(ai).AuthenticationMethod
 		for _, t := range ams {
 			if t == am {
 				return true
