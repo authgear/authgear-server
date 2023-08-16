@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Candidates []AuthenticationCandidate `json:"candidates"`
+	Candidates []UseAuthenticationCandidate `json:"candidates"`
 }
 
 var _ workflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -251,7 +251,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(step *config.WorkflowLoginFlowStep, candidates []AuthenticationCandidate, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(step *config.WorkflowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.WorkflowAuthenticationMethod) (idx int, err error) {
 	idx = -1
 
 	allAllowed := i.getAllAllowed(step)

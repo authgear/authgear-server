@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentSignupFlowStepAuthenticateData struct {
-	Candidates []AuthenticationCandidate `json:"candidates"`
+	Candidates []CreateAuthenticationCandidate `json:"candidates"`
 }
 
 func (m IntentSignupFlowStepAuthenticateData) Data() {}
@@ -121,7 +121,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 			var idx int
-			idx, err = i.checkAuthenticationMethod(step, authentication)
+			idx, err = i.checkAuthenticationMethod(deps, step, authentication)
 			if err != nil {
 				return nil, err
 			}
@@ -185,7 +185,7 @@ func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps 
 		return nil, err
 	}
 	step := i.step(current)
-	candidates := i.getAllowedCandidates(step)
+	candidates := i.getAllowedCandidates(deps, step)
 
 	return IntentSignupFlowStepAuthenticateData{
 		Candidates: candidates,
@@ -201,9 +201,9 @@ func (*IntentSignupFlowStepAuthenticate) step(o config.WorkflowObject) *config.W
 	return step
 }
 
-func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *workflow.Dependencies, step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int, err error) {
 	idx = -1
-	candidates := i.getAllowedCandidates(step)
+	candidates := i.getAllowedCandidates(deps, step)
 
 	for index, candidate := range candidates {
 		if am == candidate.AuthenticationMethod {
@@ -219,12 +219,12 @@ func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(step *confi
 	return
 }
 
-func (*IntentSignupFlowStepAuthenticate) getAllowedCandidates(step *config.WorkflowSignupFlowStep) []AuthenticationCandidate {
-	var candidates []AuthenticationCandidate
+func (*IntentSignupFlowStepAuthenticate) getAllowedCandidates(deps *workflow.Dependencies, step *config.WorkflowSignupFlowStep) []CreateAuthenticationCandidate {
+	var candidates []CreateAuthenticationCandidate
 
 	for _, branch := range step.OneOf {
 		branch := branch
-		candidates = append(candidates, NewAuthenticationCandidateFromMethod(branch.Authentication))
+		candidates = append(candidates, NewCreateAuthenticationCandidate(deps.Config.Authenticator.Password.Policy, branch.Authentication))
 	}
 
 	return candidates
