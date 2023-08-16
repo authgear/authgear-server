@@ -1,6 +1,9 @@
 package service
 
 import (
+	"database/sql"
+	"errors"
+
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -107,7 +110,9 @@ func (s *Store) scan(scanner db.Scanner) (*authenticator.Ref, error) {
 		&ref.CreatedAt,
 		&ref.UpdatedAt,
 	)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, authenticator.ErrAuthenticatorNotFound
+	} else if err != nil {
 		return nil, err
 	}
 
