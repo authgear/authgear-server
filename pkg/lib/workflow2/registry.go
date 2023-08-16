@@ -8,10 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type Kinder interface {
-	Kind() string
-}
-
 type JSONSchemaGetter interface {
 	JSONSchema() *validation.SimpleSchema
 }
@@ -28,15 +24,9 @@ type InputJSON struct {
 
 type publicIntentFactory func() PublicIntent
 
-type intentFactory func() Intent
-
-type nodeFactory func() NodeSimple
-
 type inputFactory func() Input
 
 var publicIntentRegistry = map[string]publicIntentFactory{}
-var intentRegistry = map[string]intentFactory{}
-var nodeRegistry = map[string]nodeFactory{}
 var publicInputRegistry = map[string]inputFactory{}
 
 func RegisterPublicIntent(intent PublicIntent) {
@@ -69,58 +59,6 @@ func InstantiateIntentFromPublicRegistry(j IntentJSON) (PublicIntent, error) {
 	}
 
 	return intent, nil
-}
-
-func RegisterIntent(intent Intent) {
-	intentType := reflect.TypeOf(intent).Elem()
-
-	intentKind := intent.Kind()
-	factory := intentFactory(func() Intent {
-		return reflect.New(intentType).Interface().(Intent)
-	})
-
-	if _, hasKind := intentRegistry[intentKind]; hasKind {
-		panic(fmt.Errorf("workflow: duplicated intent kind: %v", intentKind))
-	}
-
-	intentRegistry[intentKind] = factory
-}
-
-func InstantiateIntentFromPrivateRegistry(j IntentJSON) (Intent, error) {
-	factory, ok := intentRegistry[j.Kind]
-	if !ok {
-		return nil, ErrUnknownIntent
-	}
-	intent := factory()
-
-	err := json.Unmarshal(j.Data, intent)
-	if err != nil {
-		return nil, err
-	}
-
-	return intent, nil
-}
-
-func RegisterNode(node NodeSimple) {
-	nodeType := reflect.TypeOf(node).Elem()
-
-	nodeKind := node.Kind()
-	factory := nodeFactory(func() NodeSimple {
-		return reflect.New(nodeType).Interface().(NodeSimple)
-	})
-
-	if _, hasKind := nodeRegistry[nodeKind]; hasKind {
-		panic(fmt.Errorf("workflow: duplicated node kind: %v", nodeKind))
-	}
-	nodeRegistry[nodeKind] = factory
-}
-
-func InstantiateNode(kind string) (NodeSimple, error) {
-	factory, ok := nodeRegistry[kind]
-	if !ok {
-		return nil, fmt.Errorf("workflow: unknown node kind: %v", kind)
-	}
-	return factory(), nil
 }
 
 func RegisterPublicInput(input Input) {

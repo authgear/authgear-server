@@ -3,12 +3,28 @@ package workflow2
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"reflect"
 )
+
+// This file deals with the serialization / deserialization of data structures.
+
+type Kinder interface {
+	Kind() string
+}
+
+type intentFactory func() Intent
+
+type nodeFactory func() NodeSimple
+
+var intentRegistry = map[string]intentFactory{}
+
+var nodeRegistry = map[string]nodeFactory{}
 
 type workflowJSON struct {
 	WorkflowID string     `json:"workflow_id,omitempty"`
 	InstanceID string     `json:"instance_id,omitempty"`
-	Intent     IntentJSON `json:"intent"`
+	Intent     intentJSON `json:"intent"`
 	Nodes      []Node     `json:"nodes,omitempty"`
 }
 
@@ -23,6 +39,11 @@ type nodeSimpleJSON struct {
 	Data json.RawMessage `json:"data"`
 }
 
+type intentJSON struct {
+	Kind string          `json:"kind"`
+	Data json.RawMessage `json:"data"`
+}
+
 func (w *Workflow) MarshalJSON() ([]byte, error) {
 	var err error
 
@@ -31,7 +52,7 @@ func (w *Workflow) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	intentJSON := IntentJSON{
+	intentJSON := intentJSON{
 		Kind: w.Intent.Kind(),
 		Data: intentBytes,
 	}
@@ -55,7 +76,12 @@ func (w *Workflow) UnmarshalJSON(d []byte) (err error) {
 		return
 	}
 
-	intent, err := InstantiateIntentFromPrivateRegistry(workflowJSON.Intent)
+	intent, err := InstantiateIntent(workflowJSON.Intent.Kind)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(workflowJSON.Intent.Data, intent)
 	if err != nil {
 		return
 	}
@@ -127,4 +153,49 @@ func (n *Node) UnmarshalJSON(d []byte) (err error) {
 	}
 
 	return nil
+}
+
+func RegisterIntent(intent Intent) {
+	intentType := reflect.TypeOf(intent).Elem()
+
+	intentKind := intent.Kind()
+	factory := intentFactory(func() Intent {
+		return reflect.New(intentType).Interface().(Intent)
+	})
+
+	if _, hasKind := intentRegistry[intentKind]; hasKind {
+		panic(fmt.Errorf("workflow: duplicated intent kind: %v", intentKind))
+	}
+
+	intentRegistry[intentKind] = factory
+}
+
+func InstantiateIntent(kind string) (Intent, error) {
+	factory, ok := intentRegistry[kind]
+	if !ok {
+		return nil, ErrUnknownIntent
+	}
+	return factory(), nil
+}
+
+func RegisterNode(node NodeSimple) {
+	nodeType := reflect.TypeOf(node).Elem()
+
+	nodeKind := node.Kind()
+	factory := nodeFactory(func() NodeSimple {
+		return reflect.New(nodeType).Interface().(NodeSimple)
+	})
+
+	if _, hasKind := nodeRegistry[nodeKind]; hasKind {
+		panic(fmt.Errorf("workflow: duplicated node kind: %v", nodeKind))
+	}
+	nodeRegistry[nodeKind] = factory
+}
+
+func InstantiateNode(kind string) (NodeSimple, error) {
+	factory, ok := nodeRegistry[kind]
+	if !ok {
+		return nil, fmt.Errorf("workflow: unknown node kind: %v", kind)
+	}
+	return factory(), nil
 }

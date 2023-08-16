@@ -157,15 +157,17 @@ func (intentNoValidateDuringUnmarshal) ReactTo(ctx context.Context, deps *Depend
 
 func TestPublicPrivateIntentMarshal(t *testing.T) {
 	Convey("Instantiate intent from private registry, add something internal, and then marshal and unmarshal", t, func() {
-		intentJSON := IntentJSON{
+		intentJSON := intentJSON{
 			Kind: "intentNoValidateDuringUnmarshal",
 			Data: json.RawMessage("{}"),
 		}
-		intent, err := InstantiateIntentFromPrivateRegistry(intentJSON)
+		intent, err := InstantiateIntent(intentJSON.Kind)
+		So(err, ShouldBeNil)
+		err = json.Unmarshal(intentJSON.Data, intent)
+		So(err, ShouldBeNil)
+
 		i, _ := intent.(*intentNoValidateDuringUnmarshal)
 		i.SomethingInternal = "secret"
-
-		So(err, ShouldBeNil)
 
 		workflow := &Workflow{
 			Intent: intent,
