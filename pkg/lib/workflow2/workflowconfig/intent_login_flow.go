@@ -10,38 +10,30 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
-	workflow.RegisterPublicIntent(&IntentLoginFlow{})
+	workflow.RegisterFlow(&IntentLoginFlow{})
 }
-
-var IntentLoginFlowSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["login_flow"],
-	"properties": {
-		"login_flow": { "type": "string" }
-	}
-}
-`)
 
 type IntentLoginFlow struct {
 	LoginFlow   string        `json:"login_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 }
 
-var _ workflow.PublicIntent = &IntentLoginFlow{}
+var _ workflow.Flow = &IntentLoginFlow{}
 var _ workflow.EffectGetter = &IntentLoginFlow{}
 
 func (*IntentLoginFlow) Kind() string {
 	return "workflowconfig.IntentLoginFlow"
 }
 
-func (*IntentLoginFlow) JSONSchema() *validation.SimpleSchema {
-	return IntentLoginFlowSchema
+func (*IntentLoginFlow) FlowType() workflow.FlowType {
+	return workflow.FlowTypeLogin
+}
+
+func (i *IntentLoginFlow) FlowInit(r workflow.FlowReference) {
+	i.LoginFlow = r.ID
 }
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
