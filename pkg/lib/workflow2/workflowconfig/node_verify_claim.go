@@ -49,22 +49,21 @@ func (n *NodeVerifyClaim) Kind() string {
 	return "workflowconfig.NodeVerifyClaim"
 }
 
-func (n *NodeVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{
-		&InputTakeOOBOTPCode{},
-		&InputCheckOOBOTPCodeVerified{},
-		&InputResendOOBOTPCode{},
+func (n *NodeVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputSchemaNodeVerifyClaim{
+		OTPForm: n.otpForm(deps),
 	}, nil
 }
 
 func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	var inputTakeOOBOTPCode inputTakeOOBOTPCode
-	var inputCheckOOBOTPCodeVerified inputCheckOOBOTPCodeVerified
-	var inputResendOOBOTPCode inputResendOOBOTPCode
+	var inputNodeVerifyClaim inputNodeVerifyClaim
+	if !workflow.AsInput(input, &inputNodeVerifyClaim) {
+		return nil, workflow.ErrIncompatibleInput
+	}
 
 	switch {
-	case workflow.AsInput(input, &inputTakeOOBOTPCode):
-		code := inputTakeOOBOTPCode.GetCode()
+	case inputNodeVerifyClaim.IsCode():
+		code := inputNodeVerifyClaim.GetCode()
 
 		err := deps.OTPCodes.VerifyOTP(
 			n.otpKind(deps),
@@ -88,7 +87,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependenci
 		return workflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
 		}), nil
-	case workflow.AsInput(input, &inputCheckOOBOTPCodeVerified):
+	case inputNodeVerifyClaim.IsCheck():
 		emptyCode := ""
 
 		err := deps.OTPCodes.VerifyOTP(
@@ -115,7 +114,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependenci
 		return workflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
 		}), nil
-	case workflow.AsInput(input, &inputResendOOBOTPCode):
+	case inputNodeVerifyClaim.IsResend():
 		err := n.SendCode(ctx, deps)
 		if err != nil {
 			return nil, err

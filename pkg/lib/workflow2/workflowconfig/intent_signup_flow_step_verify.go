@@ -51,7 +51,7 @@ func (i *IntentSignupFlowStepVerify) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// Look up the claim to verify
 	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
@@ -59,7 +59,7 @@ func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *workflo
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, _ workflow.Input) (*workflow.Node, error) {
 	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err

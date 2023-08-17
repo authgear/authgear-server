@@ -1,51 +1,49 @@
 package workflowconfig
 
 import (
+	"encoding/json"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func init() {
-	workflow.RegisterPublicInput(&InputTakeOOBOTPChannel{})
+type InputSchemaTakeOOBOTPChannel struct {
+	Channels []model.AuthenticatorOOBChannel
 }
 
-var InputTakeOOBOTPChannelSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"channel": {
-			"type": "string",
-			"enum": [
-				"sms",
-				"email",
-				"whatsapp"
-			]
-		}
-	},
-	"required": ["channel"]
+var _ workflow.InputSchema = &InputSchemaTakeOOBOTPChannel{}
+
+func (s *InputSchemaTakeOOBOTPChannel) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("channel")
+	b.Properties().Property("channel", validation.SchemaBuilder{}.
+		Type(validation.TypeString).
+		Enum(slice.Cast[model.AuthenticatorOOBChannel, interface{}](s.Channels)...))
+
+	return b
 }
-`)
+
+func (s *InputSchemaTakeOOBOTPChannel) MakeInput(rawMessage json.RawMessage) (workflow.Input, error) {
+	var input InputTakeOOBOTPChannel
+	err := s.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
+}
 
 type InputTakeOOBOTPChannel struct {
 	Channel model.AuthenticatorOOBChannel `json:"channel,omitempty"`
 }
 
-func (*InputTakeOOBOTPChannel) Kind() string {
-	return "workflowconfig.InputTakeOOBOTPChannel"
-}
+var _ workflow.Input = &InputTakeOOBOTPChannel{}
+var _ inputTakeOOBOTPChannel = &InputTakeOOBOTPChannel{}
 
-func (*InputTakeOOBOTPChannel) JSONSchema() *validation.SimpleSchema {
-	return InputTakeOOBOTPChannelSchema
-}
+func (*InputTakeOOBOTPChannel) Input() {}
 
 func (i *InputTakeOOBOTPChannel) GetChannel() model.AuthenticatorOOBChannel {
 	return i.Channel
 }
-
-type inputTakeOOBOTPChannel interface {
-	GetChannel() model.AuthenticatorOOBChannel
-}
-
-var _ inputTakeOOBOTPChannel = &InputTakeOOBOTPChannel{}

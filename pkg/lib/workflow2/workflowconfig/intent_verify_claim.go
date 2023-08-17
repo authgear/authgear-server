@@ -3,7 +3,6 @@ package workflowconfig
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -27,8 +26,6 @@ var _ workflow.Intent = &IntentVerifyClaim{}
 var _ workflow.Milestone = &IntentVerifyClaim{}
 var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
 
-// FIXME
-
 func (*IntentVerifyClaim) Kind() string {
 	return "workflowconfig.IntentVerifyClaim"
 }
@@ -36,10 +33,11 @@ func (*IntentVerifyClaim) Kind() string {
 func (*IntentVerifyClaim) Milestone()                    {}
 func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
 
-func (*IntentVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []workflow.Input{
-			&InputTakeOOBOTPChannel{},
+		channels := i.getChannels(deps)
+		return &InputSchemaTakeOOBOTPChannel{
+			Channels: channels,
 		}, nil
 	}
 
@@ -50,10 +48,6 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependen
 	var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
 	if workflow.AsInput(input, &inputTakeOOBOTPChannel) {
 		channel := inputTakeOOBOTPChannel.GetChannel()
-		err := i.check(deps, channel)
-		if err != nil {
-			return nil, err
-		}
 		node := &NodeVerifyClaim{
 			UserID:      i.UserID,
 			Purpose:     i.Purpose,
@@ -63,7 +57,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependen
 			Channel:     channel,
 		}
 		kind := node.otpKind(deps)
-		err = node.SendCode(ctx, deps)
+		err := node.SendCode(ctx, deps)
 		if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.otpTarget()).Name) {
 			// Ignore trigger cooldown rate limit error; continue the workflow
 		} else if err != nil {
@@ -76,35 +70,36 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependen
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (i *IntentVerifyClaim) check(deps *workflow.Dependencies, channel model.AuthenticatorOOBChannel) error {
-	// 1. Check if the channel is compatible with the claim name.
-	// 2. Check if the channel is compatible with the config.
+func (i *IntentVerifyClaim) getChannels(deps *workflow.Dependencies) []model.AuthenticatorOOBChannel {
+	email := false
+	sms := false
+	whatsapp := false
+
 	switch i.ClaimName {
 	case model.ClaimEmail:
-		if channel == model.AuthenticatorOOBChannelEmail {
-			return nil
-		}
+		email = true
 	case model.ClaimPhoneNumber:
-		switch channel {
-		case model.AuthenticatorOOBChannelSMS:
-			switch deps.Config.Authenticator.OOB.SMS.PhoneOTPMode {
-			case config.AuthenticatorPhoneOTPModeWhatsappSMS:
-				return nil
-			case config.AuthenticatorPhoneOTPModeSMSOnly:
-				return nil
-			}
-		case model.AuthenticatorOOBChannelWhatsapp:
-			switch deps.Config.Authenticator.OOB.SMS.PhoneOTPMode {
-			case config.AuthenticatorPhoneOTPModeWhatsappSMS:
-				return nil
-			case config.AuthenticatorPhoneOTPModeWhatsappOnly:
-				return nil
-			}
+		switch deps.Config.Authenticator.OOB.SMS.PhoneOTPMode {
+		case config.AuthenticatorPhoneOTPModeSMSOnly:
+			sms = true
+		case config.AuthenticatorPhoneOTPModeWhatsappOnly:
+			whatsapp = true
+		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
+			sms = true
+			whatsapp = true
 		}
 	}
-	return InvalidOOBOTPChannel.NewWithInfo("invalid channel", apierrors.Details{
-		"claim_name":     i.ClaimName,
-		"phone_otp_mode": deps.Config.Authenticator.OOB.SMS.PhoneOTPMode,
-		"channel":        channel,
-	})
+
+	channels := []model.AuthenticatorOOBChannel{}
+	if email {
+		channels = append(channels, model.AuthenticatorOOBChannelEmail)
+	}
+	if sms {
+		channels = append(channels, model.AuthenticatorOOBChannelSMS)
+	}
+	if whatsapp {
+		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+	}
+
+	return channels
 }
