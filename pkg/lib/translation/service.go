@@ -196,7 +196,12 @@ func (s *Service) smsMessageHeader(name string, args interface{}) (sender string
 
 func (s *Service) SMSMessageData(msg *MessageSpec, args interface{}) (*SMSMessageData, error) {
 	uiParam := uiparam.GetUIParam(s.Context)
-	data := map[string]interface{}{"ClientID": uiParam.ClientID}
+	data := map[string]interface{}{
+		"ClientID":  htmltemplate.URLQueryEscaper(uiParam.ClientID),
+		"State":     htmltemplate.URLQueryEscaper(uiParam.State),
+		"XState":    htmltemplate.URLQueryEscaper(uiParam.XState),
+		"UILocales": htmltemplate.URLQueryEscaper(uiParam.UILocales),
+	}
 	template.Embed(data, args)
 
 	sender, err := s.smsMessageHeader(msg.Name, data)
