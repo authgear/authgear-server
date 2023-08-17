@@ -39,7 +39,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.W
 	return n.Authentication
 }
 
-func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	current, err := signupFlowCurrent(deps, n.SignupFlow, n.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *wo
 		return nil, nil
 	}
 
-	return []workflow.Input{&InputTakeOOBOTPTarget{}}, nil
+	return &InputTakeOOBOTPTarget{}, nil
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {

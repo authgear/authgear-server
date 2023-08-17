@@ -1,43 +1,48 @@
 package workflowconfig
 
 import (
+	"encoding/json"
+
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func init() {
-	workflow.RegisterPublicInput(&InputTakeOOBOTPTarget{})
-}
+var InputTakeOOBOTPTargetSchemaBuilder validation.SchemaBuilder
 
-var InputTakeOOBOTPTargetSchema = validation.NewSimpleSchema(`
-	{
-		"type": "object",
-		"additionalProperties": false,
-		"properties": {
-			"target": { "type": "string" }
-		},
-		"required": ["target"]
-	}
-`)
+func init() {
+	InputTakeOOBOTPTargetSchemaBuilder = validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("target")
+
+	InputTakeOOBOTPTargetSchemaBuilder.Properties().Property(
+		"target",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+}
 
 type InputTakeOOBOTPTarget struct {
 	Target string `json:"target"`
 }
 
-func (*InputTakeOOBOTPTarget) Kind() string {
-	return "workflowconfig.InputTakeOOBOTPTarget"
+var _ workflow.InputSchema = &InputTakeOOBOTPTarget{}
+var _ workflow.Input = &InputTakeOOBOTPTarget{}
+var _ inputTakeOOBOTPTarget = &InputTakeOOBOTPTarget{}
+
+func (*InputTakeOOBOTPTarget) SchemaBuilder() validation.SchemaBuilder {
+	return InputTakeOOBOTPTargetSchemaBuilder
 }
 
-func (*InputTakeOOBOTPTarget) JSONSchema() *validation.SimpleSchema {
-	return InputTakeOOBOTPTargetSchema
+func (i *InputTakeOOBOTPTarget) MakeInput(rawMessage json.RawMessage) (workflow.Input, error) {
+	var input InputTakeOOBOTPTarget
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
 }
+
+func (*InputTakeOOBOTPTarget) Input() {}
 
 func (i *InputTakeOOBOTPTarget) GetTarget() string {
 	return i.Target
 }
-
-type inputTakeOOBOTPTarget interface {
-	GetTarget() string
-}
-
-var _ inputTakeOOBOTPTarget = &InputTakeOOBOTPTarget{}
