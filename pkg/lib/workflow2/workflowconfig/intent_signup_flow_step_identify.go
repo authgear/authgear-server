@@ -17,12 +17,6 @@ func init() {
 	workflow.RegisterIntent(&IntentSignupFlowStepIdentify{})
 }
 
-type IntentSignupFlowStepIdentifyData struct {
-	Candidates []IdentificationCandidate `json:"candidates"`
-}
-
-func (m IntentSignupFlowStepIdentifyData) Data() {}
-
 type IntentSignupFlowStepIdentify struct {
 	SignupFlow  string        `json:"signup_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -68,7 +62,6 @@ func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps
 
 var _ workflow.Intent = &IntentSignupFlowStepIdentify{}
 var _ workflow.Boundary = &IntentSignupFlowStepIdentify{}
-var _ workflow.DataOutputer = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepIdentify"
@@ -78,11 +71,17 @@ func (i *IntentSignupFlowStepIdentify) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (*IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
 	// Let the input to select which identification method to use.
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []workflow.Input{
-			&InputTakeIdentificationMethod{},
+		return &InputSchemaSignupFlowStepIdentify{
+			OneOf: step.OneOf,
 		}, nil
 	}
 
@@ -113,10 +112,6 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
 		if workflow.AsInput(input, &inputTakeIdentificationMethod) {
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
-			err = i.checkIdentificationMethod(step, identification)
-			if err != nil {
-				return nil, err
-			}
 
 			switch identification {
 			case config.WorkflowIdentificationMethodEmail:
@@ -161,20 +156,6 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *workfl
 	}
 }
 
-func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-
-	candidates := i.getAllowedCandidates(step)
-
-	return IntentSignupFlowStepIdentifyData{
-		Candidates: candidates,
-	}, nil
-}
-
 func (*IntentSignupFlowStepIdentify) step(o config.WorkflowObject) *config.WorkflowSignupFlowStep {
 	step, ok := o.(*config.WorkflowSignupFlowStep)
 	if !ok {
@@ -182,29 +163,6 @@ func (*IntentSignupFlowStepIdentify) step(o config.WorkflowObject) *config.Workf
 	}
 
 	return step
-}
-
-func (i *IntentSignupFlowStepIdentify) checkIdentificationMethod(step *config.WorkflowSignupFlowStep, im config.WorkflowIdentificationMethod) error {
-	candidates := i.getAllowedCandidates(step)
-
-	for _, candidate := range candidates {
-		if im == candidate.IdentificationMethod() {
-			return nil
-		}
-	}
-
-	return InvalidIdentificationMethod.New("invalid identification method")
-}
-
-func (*IntentSignupFlowStepIdentify) getAllowedCandidates(step *config.WorkflowSignupFlowStep) []IdentificationCandidate {
-	var candidates []IdentificationCandidate
-
-	for _, branch := range step.OneOf {
-		branch := branch
-		candidates = append(candidates, NewIdentificationCandidateFromMethod(branch.Identification))
-	}
-
-	return candidates
 }
 
 func (*IntentSignupFlowStepIdentify) identificationMethod(w *workflow.Workflow) config.WorkflowIdentificationMethod {
