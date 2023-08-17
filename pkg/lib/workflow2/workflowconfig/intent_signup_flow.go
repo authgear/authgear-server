@@ -36,7 +36,7 @@ func (i *IntentSignupFlow) FlowInit(r workflow.FlowReference) {
 	i.SignupFlow = r.ID
 }
 
-func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// The list of nodes looks like
 	// 1 NodeDoCreateUser
 	// 1 IntentSignupFlowSteps
@@ -49,7 +49,7 @@ func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *workflow.Depend
 	return nil, nil
 }
 
-func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, _ workflow.Input) (*workflow.Node, error) {
 	switch {
 	case len(workflows.Nearest.Nodes) == 0:
 		return workflow.NewNodeSimple(&NodeDoCreateUser{
