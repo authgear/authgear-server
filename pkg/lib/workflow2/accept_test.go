@@ -32,9 +32,9 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
-			LoginID: "user@example.com",
-		})
+		err := Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"login_id": "user@example.com"
+		}`))
 
 		So(err, ShouldBeNil)
 
@@ -150,18 +150,18 @@ func TestAccept(t *testing.T) {
 }
 		`
 
-		err := Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
-			LoginID: "user@example.com",
-		})
+		err := Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"login_id": "user@example.com"
+		}`))
 		So(err, ShouldBeNil)
 
 		bytes, err := json.Marshal(w)
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, jsonStr)
 
-		err = Accept(ctx, deps, NewWorkflows(w), &inputOTP{
-			OTP: "nonsense",
-		})
+		err = Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"otp": "nonsense"
+		}`))
 		So(errors.Is(err, ErrInvalidOTP), ShouldBeTrue)
 		bytes, err = json.Marshal(w)
 		So(err, ShouldBeNil)
@@ -175,12 +175,14 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
-			LoginID: "user@example.com",
-		})
+		err := Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"login_id": "user@example.com"
+		}`))
 		So(err, ShouldBeNil)
 
-		err = Accept(ctx, deps, NewWorkflows(w), &inputResendOTP{})
+		err = Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"resend": true
+		}`))
 		So(err, ShouldBeNil)
 
 		bytes, err := json.Marshal(w)
@@ -245,23 +247,25 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		err := Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
-			LoginID: "user@example.com",
-		})
+		err := Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"login_id": "user@example.com"
+		}`))
 		So(err, ShouldBeNil)
 
-		err = Accept(ctx, deps, NewWorkflows(w), &inputOTP{
-			OTP: "123456",
-		})
+		err = Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"otp": "123456"
+		}`))
 		So(err, ShouldBeNil)
 
-		err = Accept(ctx, deps, NewWorkflows(w), &inputCreatePasswordFlow{})
+		err = Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"create_password": true
+		}`))
 		So(err, ShouldBeNil)
 
-		err = Accept(ctx, deps, NewWorkflows(w), &inputNewPassword{
-			NewPassword: "password",
-		})
-		So(err, ShouldBeNil)
+		err = Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{
+			"new_password": "password"
+		}`))
+		So(errors.Is(err, ErrEOF), ShouldBeTrue)
 
 		bytes, err := json.Marshal(w)
 		So(err, ShouldBeNil)
@@ -346,132 +350,12 @@ func TestAccept(t *testing.T) {
 		`)
 	})
 
-	Convey("A workflow can be ended at wish", t, func() {
-		rng = rand.New(rand.NewSource(0))
-
-		w := NewWorkflow(newWorkflowID(), &intentAuthenticate{
-			PretendLoginIDExists: false,
-		})
-
-		err := Accept(ctx, deps, NewWorkflows(w), &inputLoginID{
-			LoginID: "user@example.com",
-		})
-		So(err, ShouldBeNil)
-
-		err = Accept(ctx, deps, NewWorkflows(w), &inputOTP{
-			OTP: "123456",
-		})
-		So(err, ShouldBeNil)
-
-		err = Accept(ctx, deps, NewWorkflows(w), &inputCreatePasswordFlow{})
-		So(err, ShouldBeNil)
-
-		err = Accept(ctx, deps, NewWorkflows(w), &inputNewPassword{
-			NewPassword: "password",
-		})
-		So(err, ShouldBeNil)
-
-		err = Accept(ctx, deps, NewWorkflows(w), &inputFinishSignup{})
-		So(errors.Is(err, ErrEOF), ShouldBeTrue)
-
-		bytes, err := json.Marshal(w)
-		So(err, ShouldBeNil)
-		So(string(bytes), ShouldEqualJSON, `
-{
-    "instance_id": "P44Q4ZP6CA6VCAGEHTM9PH5Y845Y0ZNE",
-    "intent": {
-        "data": {
-            "PretendLoginIDExists": false
-        },
-        "kind": "intentAuthenticate"
-    },
-    "nodes": [
-        {
-            "type": "SUB_WORKFLOW",
-            "workflow": {
-                "intent": {
-                    "data": {
-                        "LoginID": "user@example.com"
-                    },
-                    "kind": "intentSignup"
-                },
-                "nodes": [
-                    {
-                        "type": "SUB_WORKFLOW",
-                        "workflow": {
-                            "intent": {
-                                "data": {
-                                    "LoginID": "user@example.com"
-                                },
-                                "kind": "intentAddLoginID"
-                            },
-                            "nodes": [
-                                {
-                                    "simple": {
-                                        "data": {
-                                            "LoginID": "user@example.com",
-                                            "OTP": "123456"
-                                        },
-                                        "kind": "nodeVerifyLoginID"
-                                    },
-                                    "type": "SIMPLE"
-                                },
-                                {
-                                    "simple": {
-                                        "data": {
-                                            "LoginID": "user@example.com"
-                                        },
-                                        "kind": "nodeLoginIDVerified"
-                                    },
-                                    "type": "SIMPLE"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "SUB_WORKFLOW",
-                        "workflow": {
-                            "intent": {
-                                "data": {},
-                                "kind": "intentCreatePassword"
-                            },
-                            "nodes": [
-                                {
-                                    "simple": {
-                                        "data": {
-                                            "HashedNewPassword": "password"
-                                        },
-                                        "kind": "nodeCreatePassword"
-                                    },
-                                    "type": "SIMPLE"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "SUB_WORKFLOW",
-                        "workflow": {
-                            "intent": {
-                                "data": {},
-                                "kind": "intentFinishSignup"
-                            }
-                        }
-                    }
-                ]
-            }
-        }
-    ],
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
-}
-		`)
-	})
-
 	Convey("boundary is respected", t, func() {
 		rng = rand.New(rand.NewSource(0))
 
 		w := NewWorkflow(newWorkflowID(), &intentTestBoundarySteps{})
 
-		err := Accept(ctx, deps, NewWorkflows(w), &inputTestBoundary{})
+		err := Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{}`))
 		So(err, ShouldBeNil)
 
 		bytes, err := json.Marshal(w)
@@ -520,7 +404,7 @@ func TestAccept(t *testing.T) {
 }
 		`)
 
-		err = Accept(ctx, deps, NewWorkflows(w), &inputTestBoundary{})
+		err = Accept(ctx, deps, NewWorkflows(w), json.RawMessage(`{}`))
 		So(err, ShouldBeNil)
 
 		bytes, err = json.Marshal(w)

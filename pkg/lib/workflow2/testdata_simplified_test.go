@@ -9,9 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-// EmptyJSONSchema always validate successfully.
-var EmptyJSONSchema = validation.NewSimpleSchema(`{}`)
-
 var ErrInvalidOTP = errors.New("invalid OTP")
 
 func init() {
@@ -20,7 +17,6 @@ func init() {
 	RegisterIntent(&intentSignup{})
 	RegisterIntent(&intentAddLoginID{})
 	RegisterIntent(&intentCreatePassword{})
-	RegisterIntent(&intentFinishSignup{})
 
 	RegisterIntent(&intentTestBoundarySteps{})
 	RegisterIntent(&intentTestBoundaryStep{})
@@ -42,11 +38,9 @@ func (*intentAuthenticate) Kind() string {
 	return "intentAuthenticate"
 }
 
-func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []Input{
-			&inputLoginID{},
-		}, nil
+		return &InputIntentAuthenticate{}, nil
 	}
 
 	return nil, ErrEOF
@@ -71,28 +65,6 @@ func (i *intentAuthenticate) ReactTo(ctx context.Context, deps *Dependencies, wo
 	}
 }
 
-type InputLoginID interface {
-	GetLoginID() string
-}
-
-type inputLoginID struct {
-	LoginID string
-}
-
-var _ Input = &inputLoginID{}
-
-func (*inputLoginID) Kind() string {
-	return "inputLoginID"
-}
-
-func (*inputLoginID) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (i *inputLoginID) GetLoginID() string {
-	return i.LoginID
-}
-
 type intentLogin struct {
 	LoginID string
 }
@@ -103,11 +75,7 @@ func (*intentLogin) Kind() string {
 	return "intentLogin"
 }
 
-func (*intentLogin) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (*intentLogin) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*intentLogin) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	return nil, ErrEOF
 }
 
@@ -125,44 +93,26 @@ func (*intentSignup) Kind() string {
 	return "intentSignup"
 }
 
-func (*intentSignup) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
-	if len(workflows.Nearest.Nodes) > 0 {
-		lastNode := workflows.Nearest.Nodes[len(workflows.Nearest.Nodes)-1]
-		if lastNode.Type == NodeTypeSubWorkflow {
-			intent := lastNode.SubWorkflow.Intent
-			_, ok := intent.(*intentFinishSignup)
-			if ok {
-				return nil, ErrEOF
-			}
-		}
+func (i *intentSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
+	if len(workflows.Nearest.Nodes) >= 2 {
+		return nil, ErrEOF
 	}
 
-	return []Input{
-		&inputLoginID{},
-		&inputCreatePasswordFlow{},
-		&inputFinishSignup{},
-	}, nil
+	return &InputIntentSignup{}, nil
 }
 
 func (i *intentSignup) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
 	var inputLoginID InputLoginID
 	var passwordInput InputCreatePasswordFlow
-	var inputFinishSignup InputFinishSignup
 
 	switch {
-	case AsInput(input, &inputLoginID):
+	case AsInput(input, &inputLoginID) && inputLoginID.GetLoginID() != "":
 		return NewSubWorkflow(&intentAddLoginID{
 			LoginID: i.LoginID,
 		}), nil
-	case AsInput(input, &passwordInput):
+	case AsInput(input, &passwordInput) && passwordInput.IsCreatePassword():
 		// In actual case, we check if the new password is valid against the password policy.
 		return NewSubWorkflow(&intentCreatePassword{}), nil
-	case AsInput(input, &inputFinishSignup):
-		return NewSubWorkflow(&intentFinishSignup{}), nil
 	default:
 		return nil, ErrIncompatibleInput
 	}
@@ -178,15 +128,9 @@ func (*intentAddLoginID) Kind() string {
 	return "intentAddLoginID"
 }
 
-func (*intentAddLoginID) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (i *intentAddLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []Input{
-			&inputLoginID{},
-		}, nil
+		return &InputIntentAddLoginID{}, nil
 	}
 
 	return nil, ErrEOF
@@ -217,11 +161,8 @@ func (*nodeVerifyLoginID) Kind() string {
 	return "nodeVerifyLoginID"
 }
 
-func (n *nodeVerifyLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
-	return []Input{
-		&inputOTP{},
-		&inputResendOTP{},
-	}, nil
+func (n *nodeVerifyLoginID) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
+	return &InputNodeVerifyLoginID{}, nil
 }
 
 func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
@@ -229,7 +170,7 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, wor
 	var resendInput InputResendOTP
 
 	switch {
-	case AsInput(input, &otpInput):
+	case AsInput(input, &otpInput) && otpInput.GetOTP() != "":
 		if n.OTP != otpInput.GetOTP() {
 			return nil, ErrInvalidOTP
 		}
@@ -237,7 +178,7 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, wor
 		return NewNodeSimple(&nodeLoginIDVerified{
 			LoginID: n.LoginID,
 		}), nil
-	case AsInput(input, &resendInput):
+	case AsInput(input, &resendInput) && resendInput.IsResend():
 		return NewNodeSimple(&nodeVerifyLoginID{
 			LoginID: n.LoginID,
 			OTP:     "654321",
@@ -245,28 +186,6 @@ func (n *nodeVerifyLoginID) ReactTo(ctx context.Context, deps *Dependencies, wor
 	default:
 		return nil, ErrIncompatibleInput
 	}
-}
-
-type InputOTP interface {
-	GetOTP() string
-}
-
-type inputOTP struct {
-	OTP string
-}
-
-var _ Input = &inputOTP{}
-
-func (*inputOTP) Kind() string {
-	return "inputOTP"
-}
-
-func (i *inputOTP) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (i *inputOTP) GetOTP() string {
-	return i.OTP
 }
 
 type nodeLoginIDVerified struct {
@@ -279,64 +198,6 @@ func (*nodeLoginIDVerified) Kind() string {
 	return "nodeLoginIDVerified"
 }
 
-type InputResendOTP interface {
-	ResendOTP()
-}
-
-type inputResendOTP struct{}
-
-var _ Input = &inputResendOTP{}
-
-func (*inputResendOTP) Kind() string {
-	return "inputResendOTP"
-}
-
-func (i *inputResendOTP) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (*inputResendOTP) ResendOTP() {}
-
-type InputCreatePasswordFlow interface {
-	CreatePassword()
-}
-
-type inputCreatePasswordFlow struct{}
-
-var _ Input = &inputCreatePasswordFlow{}
-
-func (*inputCreatePasswordFlow) Kind() string {
-	return "inputCreatePasswordFlow"
-}
-
-func (i *inputCreatePasswordFlow) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (i *inputCreatePasswordFlow) CreatePassword() {}
-
-type InputNewPassword interface {
-	GetNewPassword() string
-}
-
-type inputNewPassword struct {
-	NewPassword string
-}
-
-var _ Input = &inputNewPassword{}
-
-func (*inputNewPassword) Kind() string {
-	return "inputNewPassword"
-}
-
-func (*inputNewPassword) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (i *inputNewPassword) GetNewPassword() string {
-	return i.NewPassword
-}
-
 type intentCreatePassword struct{}
 
 var _ Intent = &intentCreatePassword{}
@@ -345,11 +206,9 @@ func (*intentCreatePassword) Kind() string {
 	return "intentCreatePassword"
 }
 
-func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*intentCreatePassword) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []Input{
-			&inputNewPassword{},
-		}, nil
+		return &InputIntentCreatePassword{}, nil
 	}
 
 	return nil, ErrEOF
@@ -378,45 +237,209 @@ func (*nodeCreatePassword) Kind() string {
 	return "nodeCreatePassword"
 }
 
-type InputFinishSignup interface {
-	FinishSignup()
+type InputLoginID interface {
+	GetLoginID() string
 }
 
-type inputFinishSignup struct{}
-
-var _ Input = &inputFinishSignup{}
-
-func (*inputFinishSignup) Kind() string {
-	return "inputFinishSignup"
+type InputOTP interface {
+	GetOTP() string
 }
 
-func (i *inputFinishSignup) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
+type InputResendOTP interface {
+	IsResend() bool
 }
 
-func (i *inputFinishSignup) Instantiate(data json.RawMessage) error {
-	return json.Unmarshal(data, i)
+type InputCreatePasswordFlow interface {
+	IsCreatePassword() bool
 }
 
-func (*inputFinishSignup) FinishSignup() {}
-
-type intentFinishSignup struct{}
-
-var _ Intent = &intentFinishSignup{}
-
-func (*intentFinishSignup) Kind() string {
-	return "intentFinishSignup"
+type InputNewPassword interface {
+	GetNewPassword() string
 }
 
-func (*intentFinishSignup) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
-	// In actual case, we have a lot to do in this workflow.
-	// We have to check if the user has required identity, authenticator, 2FA set up.
-	// And create session.
-	return nil, ErrEOF
+type InputIntentAuthenticate struct {
+	LoginID string `json:"login_id"`
 }
 
-func (*intentFinishSignup) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
-	return nil, ErrIncompatibleInput
+var _ InputSchema = &InputIntentAuthenticate{}
+var _ Input = &InputIntentAuthenticate{}
+var _ InputLoginID = &InputIntentAuthenticate{}
+
+func (*InputIntentAuthenticate) Input() {}
+
+func (*InputIntentAuthenticate) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("login_id")
+	b.Properties().Property("login_id", validation.SchemaBuilder{}.Type(validation.TypeString))
+	return b
+}
+
+func (i *InputIntentAuthenticate) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input InputIntentAuthenticate
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
+}
+
+func (i *InputIntentAuthenticate) GetLoginID() string {
+	return i.LoginID
+}
+
+type InputIntentSignup struct {
+	LoginID        string `json:"login_id,omitempty"`
+	CreatePassword bool   `json:"create_password,omitempty"`
+}
+
+var _ InputSchema = &InputIntentSignup{}
+var _ Input = &InputIntentSignup{}
+var _ InputLoginID = &InputIntentSignup{}
+var _ InputCreatePasswordFlow = &InputIntentSignup{}
+
+func (*InputIntentSignup) Input() {}
+
+func (*InputIntentSignup) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
+
+	loginID := validation.SchemaBuilder{}.
+		Required("login_id")
+	loginID.Properties().Property("login_id", validation.SchemaBuilder{}.Type(validation.TypeString))
+
+	createPassword := validation.SchemaBuilder{}.
+		Required("create_password")
+	createPassword.Properties().Property("create_password", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+
+	b.OneOf(loginID, createPassword)
+
+	return b
+}
+
+func (i *InputIntentSignup) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input InputIntentSignup
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
+}
+
+func (i *InputIntentSignup) GetLoginID() string {
+	return i.LoginID
+}
+
+func (i *InputIntentSignup) IsCreatePassword() bool {
+	return i.CreatePassword
+}
+
+type InputIntentAddLoginID struct {
+	LoginID string `json:"login_id,omitempty"`
+}
+
+var _ InputSchema = &InputIntentAddLoginID{}
+var _ Input = &InputIntentAddLoginID{}
+var _ InputLoginID = &InputIntentAddLoginID{}
+
+func (*InputIntentAddLoginID) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("login_id")
+	b.Properties().Property("login_id", validation.SchemaBuilder{}.Type(validation.TypeString))
+	return b
+}
+
+func (*InputIntentAddLoginID) Input() {}
+
+func (i *InputIntentAddLoginID) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input InputIntentAddLoginID
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
+}
+
+func (i *InputIntentAddLoginID) GetLoginID() string {
+	return i.LoginID
+}
+
+type InputNodeVerifyLoginID struct {
+	OTP    string `json:"otp,omitempty"`
+	Resend bool   `json:"resend,omitempty"`
+}
+
+var _ InputSchema = &InputNodeVerifyLoginID{}
+var _ Input = &InputNodeVerifyLoginID{}
+var _ InputOTP = &InputNodeVerifyLoginID{}
+var _ InputResendOTP = &InputNodeVerifyLoginID{}
+
+func (*InputNodeVerifyLoginID) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
+
+	otp := validation.SchemaBuilder{}.
+		Required("otp")
+	otp.Properties().Property("otp", validation.SchemaBuilder{}.Type(validation.TypeString))
+
+	resend := validation.SchemaBuilder{}.
+		Required("resend")
+	resend.Properties().Property("resend", validation.SchemaBuilder{}.Type(validation.TypeBoolean))
+
+	b.OneOf(otp, resend)
+
+	return b
+}
+
+func (i *InputNodeVerifyLoginID) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input InputNodeVerifyLoginID
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
+}
+
+func (*InputNodeVerifyLoginID) Input() {}
+
+func (i *InputNodeVerifyLoginID) GetOTP() string {
+	return i.OTP
+}
+
+func (i *InputNodeVerifyLoginID) IsResend() bool {
+	return i.Resend
+}
+
+type InputIntentCreatePassword struct {
+	NewPassword string `json:"new_password,omitempty"`
+}
+
+var _ InputSchema = &InputIntentCreatePassword{}
+var _ Input = &InputIntentCreatePassword{}
+var _ InputNewPassword = &InputIntentCreatePassword{}
+
+func (*InputIntentCreatePassword) SchemaBuilder() validation.SchemaBuilder {
+	b := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("new_password")
+	b.Properties().Property("new_password", validation.SchemaBuilder{}.Type(validation.TypeString))
+	return b
+}
+
+func (i *InputIntentCreatePassword) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input InputIntentCreatePassword
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
+}
+
+func (*InputIntentCreatePassword) Input() {}
+
+func (i *InputIntentCreatePassword) GetNewPassword() string {
+	return i.NewPassword
 }
 
 type intentTestBoundarySteps struct{}
@@ -427,7 +450,7 @@ func (*intentTestBoundarySteps) Kind() string {
 	return "intentTestBoundarySteps"
 }
 
-func (*intentTestBoundarySteps) CanReactTo(ctx context.Context, deps *Dependencies, workflow Workflows) ([]Input, error) {
+func (*intentTestBoundarySteps) CanReactTo(ctx context.Context, deps *Dependencies, workflow Workflows) (InputSchema, error) {
 	return nil, nil
 }
 
@@ -453,10 +476,10 @@ func (i *intentTestBoundaryStep) Boundary() string {
 	return i.Name
 }
 
-func (i *intentTestBoundaryStep) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (i *intentTestBoundaryStep) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	switch len(workflows.Nearest.Nodes) {
 	case 0:
-		return []Input{&inputTestBoundary{}}, nil
+		return &inputTestBoundary{}, nil
 	default:
 		return nil, ErrEOF
 	}
@@ -483,18 +506,22 @@ type InputTestBoundary interface {
 	InputTestBoundary()
 }
 
-type inputTestBoundary struct {
-}
+type inputTestBoundary struct{}
 
 var _ Input = &inputTestBoundary{}
+var _ InputSchema = &inputTestBoundary{}
 var _ InputTestBoundary = &inputTestBoundary{}
 
-func (*inputTestBoundary) Kind() string {
-	return "inputTestBoundary"
+func (*inputTestBoundary) Input() {}
+func (*inputTestBoundary) SchemaBuilder() validation.SchemaBuilder {
+	return validation.SchemaBuilder{}
 }
-
-func (*inputTestBoundary) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
+func (i *inputTestBoundary) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input inputTestBoundary
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
 }
-
 func (i *inputTestBoundary) InputTestBoundary() {}
