@@ -20,42 +20,45 @@ func ConfigureWorkflow2V1CreateRoute(route httproute.Route) httproute.Route {
 }
 
 var Workflow2V1CreateRequestSchema = validation.NewSimpleSchema(`
-	{
-		"type": "object",
-		"properties": {
-			"url_query": { "type": "string" },
-			"intent": {
+{
+	"type": "object",
+	"required": ["flow"],
+	"properties": {
+		"flow": {
+			"type": "object",
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": ["signup_flow", "login_flow"]
+				},
+				"id": {
+					"type": "string"
+				}
+			},
+			"required": ["type", "id"]
+		},
+		"url_query": { "type": "string" },
+		"bind_user_agent": { "type": "boolean" },
+		"batch_input": {
+			"type": "array",
+			"items": {
 				"type": "object",
 				"properties": {
 					"kind": { "type": "string" },
 					"data": { "type": "object" }
 				},
 				"required": ["kind", "data"]
-			},
-			"bind_user_agent": { "type": "boolean" },
-			"batch_input": {
-				"type": "array",
-				"items": {
-					"type": "object",
-					"properties": {
-						"kind": { "type": "string" },
-						"data": { "type": "object" }
-					},
-					"required": ["kind", "data"]
-				}
 			}
-		},
-		"required": ["intent"]
+		}
 	}
+}
 `)
 
 type Workflow2V1CreateRequest struct {
-	// Create
-	URLQuery      string               `json:"url_query,omitempty"`
-	Intent        *workflow.IntentJSON `json:"intent,omitempty"`
-	BindUserAgent *bool                `json:"bind_user_agent,omitempty"`
-
-	BatchInput []*workflow.InputJSON `json:"batch_input,omitempty"`
+	FlowReference *workflow.FlowReference `json:"flow,omitempty"`
+	URLQuery      string                  `json:"url_query,omitempty"`
+	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
+	BatchInput    []*workflow.InputJSON   `json:"batch_input,omitempty"`
 }
 
 func (r *Workflow2V1CreateRequest) SetDefaults() {
@@ -120,7 +123,7 @@ func (h *Workflow2V1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *Workflow2V1CreateHandler) create(w http.ResponseWriter, r *http.Request, request Workflow2V1CreateRequest) (*workflow.ServiceOutput, error) {
-	intent, err := workflow.InstantiateIntentFromPublicRegistry(*request.Intent)
+	flow, err := workflow.InstantiateFlow(*request.FlowReference)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +157,7 @@ func (h *Workflow2V1CreateHandler) create(w http.ResponseWriter, r *http.Request
 		sessionOptions.UserAgentID = userAgentID
 	}
 
-	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
+	output, err := h.Workflows.CreateNewWorkflow(flow, sessionOptions)
 	if err != nil {
 		return nil, err
 	}

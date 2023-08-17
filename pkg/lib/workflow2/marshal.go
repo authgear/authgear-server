@@ -173,7 +173,7 @@ func RegisterIntent(intent Intent) {
 func InstantiateIntent(kind string) (Intent, error) {
 	factory, ok := intentRegistry[kind]
 	if !ok {
-		return nil, ErrUnknownIntent
+		return nil, fmt.Errorf("workflow: unknown intent kind: %v", kind)
 	}
 	return factory(), nil
 }

@@ -30,7 +30,7 @@ var ErrEOF = errors.New("eof")
 
 var ErrWorkflowNotFound = apierrors.NotFound.WithReason("WorkflowNotFound").New("workflow not found")
 
-var ErrUnknownIntent = apierrors.BadRequest.WithReason("WorkflowUnknownIntent").New("unknown intent")
+var ErrUnknownFlow = apierrors.BadRequest.WithReason("WorkflowUnknownFlow").New("unknown flow")
 
 var ErrUnknownInput = apierrors.BadRequest.WithReason("WorkflowUnknownInput").New("unknown input")
 
