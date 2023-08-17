@@ -31,7 +31,7 @@ func (*IntentSignupFlowSteps) Kind() string {
 func (*IntentSignupFlowSteps) Milestone()            {}
 func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
 
-func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, _ workflow.Input) (*workflow.Node, error) {
 	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err
