@@ -32,8 +32,4 @@ var ErrWorkflowNotFound = apierrors.NotFound.WithReason("WorkflowNotFound").New(
 
 var ErrUnknownFlow = apierrors.BadRequest.WithReason("WorkflowUnknownFlow").New("unknown flow")
 
-var ErrUnknownInput = apierrors.BadRequest.WithReason("WorkflowUnknownInput").New("unknown input")
-
-var ErrInvalidInputKind = apierrors.BadRequest.WithReason("WorkflowInvalidInputKind").New("invalid input kind")
-
 var ErrUserAgentUnmatched = apierrors.Forbidden.WithReason("UserAgentUnmatched").New("workflow cannot be used in other user agent")

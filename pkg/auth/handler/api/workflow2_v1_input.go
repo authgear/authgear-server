@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -29,12 +30,7 @@ var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 			{
 				"properties": {
 					"input": {
-						"type": "object",
-						"properties": {
-							"kind": { "type": "string" },
-							"data": { "type": "object" }
-						},
-						"required": ["kind", "data"]
+						"type": "object"
 					}
 				},
 				"required": ["input"]
@@ -44,12 +40,7 @@ var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 					"batch_input": {
 						"type": "array",
 						"items": {
-							"type": "object",
-							"properties": {
-								"kind": { "type": "string" },
-								"data": { "type": "object" }
-							},
-							"required": ["kind", "data"]
+							"type": "object"
 						},
 						"minItems": 1
 					}
@@ -61,10 +52,10 @@ var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 `)
 
 type Workflow2V1InputRequest struct {
-	WorkflowID string                `json:"workflow_id,omitempty"`
-	InstanceID string                `json:"instance_id,omitempty"`
-	Input      *workflow.InputJSON   `json:"input,omitempty"`
-	BatchInput []*workflow.InputJSON `json:"batch_input,omitempty"`
+	WorkflowID string            `json:"workflow_id,omitempty"`
+	InstanceID string            `json:"instance_id,omitempty"`
+	Input      json.RawMessage   `json:"input,omitempty"`
+	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
 }
 
 type Workflow2V1InputHandler struct {
@@ -110,6 +101,7 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			WorkflowID: output.Workflow.WorkflowID,
 			InstanceID: output.Workflow.InstanceID,
 			Data:       output.Data,
+			Schema:     output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	} else {
@@ -138,6 +130,7 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			WorkflowID: output.Workflow.WorkflowID,
 			InstanceID: output.Workflow.InstanceID,
 			Data:       output.Data,
+			Schema:     output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	}
@@ -151,15 +144,7 @@ func (h *Workflow2V1InputHandler) input(
 	userAgentID string,
 	request Workflow2V1InputRequest,
 ) (*workflow.ServiceOutput, error) {
-	input, err := workflow.InstantiateInputFromPublicRegistry(*request.Input)
-	if err != nil {
-		return nil, err
-	}
-
-	output, err := h.Workflows.FeedInput(workflowID, instanceID, userAgentID, input)
-	if err != nil && errors.Is(err, workflow.ErrNoChange) {
-		err = workflow.ErrInvalidInputKind
-	}
+	output, err := h.Workflows.FeedInput(workflowID, instanceID, userAgentID, request.Input)
 	if err != nil && !errors.Is(err, workflow.ErrEOF) {
 		return nil, err
 	}
@@ -177,17 +162,8 @@ func (h *Workflow2V1InputHandler) batchInput(
 ) (output *workflow.ServiceOutput, err error) {
 	// Collect all cookies
 	var cookies []*http.Cookie
-	var input workflow.Input
-	for _, inputJSON := range request.BatchInput {
-		input, err = workflow.InstantiateInputFromPublicRegistry(*inputJSON)
-		if err != nil {
-			return nil, err
-		}
-
-		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, input)
-		if err != nil && errors.Is(err, workflow.ErrNoChange) {
-			err = workflow.ErrInvalidInputKind
-		}
+	for _, rawMessage := range request.BatchInput {
+		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, rawMessage)
 		if err != nil && !errors.Is(err, workflow.ErrEOF) {
 			return nil, err
 		}
@@ -224,6 +200,7 @@ func (h *Workflow2V1InputHandler) prepareErrorResponse(
 		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
+		Schema:     output.SchemaBuilder,
 	}
 	return &api.Response{
 		Error:  workflowErr,

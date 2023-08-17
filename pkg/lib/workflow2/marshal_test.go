@@ -143,11 +143,13 @@ type intentNoValidateDuringUnmarshal struct {
 	SomethingInternal string `json:"something_internal"`
 }
 
+var _ Intent = &intentNoValidateDuringUnmarshal{}
+
 func (*intentNoValidateDuringUnmarshal) Kind() string {
 	return "intentNoValidateDuringUnmarshal"
 }
 
-func (*intentNoValidateDuringUnmarshal) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*intentNoValidateDuringUnmarshal) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	return nil, ErrEOF
 }
 

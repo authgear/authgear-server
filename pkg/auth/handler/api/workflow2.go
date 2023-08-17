@@ -5,12 +5,14 @@ import (
 
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type Workflow2Response struct {
 	Action     *workflow.WorkflowAction `json:"action"`
 	WorkflowID string                   `json:"workflow_id"`
 	InstanceID string                   `json:"instance_id"`
+	Schema     validation.SchemaBuilder `json:"schema,omitempty"`
 	Data       workflow.Data            `json:"data"`
 }
 

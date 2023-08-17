@@ -2,6 +2,7 @@ package workflow2
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"net/http"
@@ -56,6 +57,15 @@ func TestService(t *testing.T) {
 
 			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
 			So(err, ShouldBeNil)
+			schemaBuilder := validation.SchemaBuilder{}.
+				Type(validation.TypeObject).
+				Required("login_id")
+
+			schemaBuilder.Properties().Property(
+				"login_id",
+				validation.SchemaBuilder{}.Type(validation.TypeString),
+			)
+
 			So(output, ShouldResemble, &ServiceOutput{
 				Action: &WorkflowAction{
 					Type: WorkflowActionTypeContinue,
@@ -65,7 +75,8 @@ func TestService(t *testing.T) {
 					InstanceID: "1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
-				Data: EmptyData,
+				Data:          EmptyData,
+				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -137,9 +148,9 @@ func TestService(t *testing.T) {
 				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
 			)
 
-			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, "", &inputLoginID{
-				LoginID: "user@example.com",
-			})
+			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, "", json.RawMessage(`{
+				"login_id": "user@example.com"
+			}`))
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
 				Action: &WorkflowAction{
@@ -194,19 +205,13 @@ func TestService(t *testing.T) {
 
 type intentNilInput struct{}
 
+var _ Intent = &intentNilInput{}
+
 func (*intentNilInput) Kind() string {
 	return "intentNilInput"
 }
 
-func (*intentNilInput) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
-}
-
-func (*intentNilInput) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
-	return nil, nil
-}
-
-func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
@@ -217,32 +222,12 @@ func (*intentNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflow
 	return NewNodeSimple(&nodeNilInput{}), nil
 }
 
-func (*intentNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return nil, nil
-}
-
 type nodeNilInput struct {
 	ClientID string
 }
 
 func (*nodeNilInput) Kind() string {
 	return "nodeNilInput"
-}
-
-func (*nodeNilInput) GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Effect, error) {
-	return nil, nil
-}
-
-func (*nodeNilInput) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
-	return nil, ErrEOF
-}
-
-func (*nodeNilInput) ReactTo(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (*Node, error) {
-	return nil, ErrIncompatibleInput
-}
-
-func (*nodeNilInput) OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error) {
-	return nil, nil
 }
 
 type intentServiceContext struct{}
@@ -254,11 +239,9 @@ func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
 }
 
-func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []Input{
-			&inputServiceContext{},
-		}, nil
+		return &inputServiceContext{}, nil
 	}
 	return nil, ErrEOF
 }
@@ -288,13 +271,24 @@ func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies,
 
 type inputServiceContext struct{}
 
-func (*inputServiceContext) Kind() string {
-	return "inputServiceContext"
+var _ InputSchema = &inputServiceContext{}
+var _ Input = &inputServiceContext{}
+var _ InputServiceContext = &inputServiceContext{}
+
+func (*inputServiceContext) SchemaBuilder() validation.SchemaBuilder {
+	return validation.SchemaBuilder{}
 }
 
-func (*inputServiceContext) JSONSchema() *validation.SimpleSchema {
-	return EmptyJSONSchema
+func (*inputServiceContext) MakeInput(rawMessage json.RawMessage) (Input, error) {
+	var input inputServiceContext
+	err := json.Unmarshal(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
 }
+
+func (*inputServiceContext) Input() {}
 
 func (*inputServiceContext) Marker() {}
 
@@ -363,7 +357,7 @@ func TestServiceContext(t *testing.T) {
 				output.Session.WorkflowID,
 				output.Workflow.InstanceID,
 				"",
-				&inputServiceContext{},
+				json.RawMessage(`{}`),
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -42,12 +43,7 @@ var Workflow2V1CreateRequestSchema = validation.NewSimpleSchema(`
 		"batch_input": {
 			"type": "array",
 			"items": {
-				"type": "object",
-				"properties": {
-					"kind": { "type": "string" },
-					"data": { "type": "object" }
-				},
-				"required": ["kind", "data"]
+				"type": "object"
 			}
 		}
 	}
@@ -58,7 +54,7 @@ type Workflow2V1CreateRequest struct {
 	FlowReference *workflow.FlowReference `json:"flow,omitempty"`
 	URLQuery      string                  `json:"url_query,omitempty"`
 	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
-	BatchInput    []*workflow.InputJSON   `json:"batch_input,omitempty"`
+	BatchInput    []json.RawMessage       `json:"batch_input,omitempty"`
 }
 
 func (r *Workflow2V1CreateRequest) SetDefaults() {
@@ -118,6 +114,7 @@ func (h *Workflow2V1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
+		Schema:     output.SchemaBuilder,
 	}
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
@@ -209,17 +206,8 @@ func (h *Workflow2V1CreateHandler) batchInput(
 ) (output *workflow.ServiceOutput, err error) {
 	// Collect all cookies
 	var cookies []*http.Cookie
-	var input workflow.Input
-	for _, inputJSON := range request.BatchInput {
-		input, err = workflow.InstantiateInputFromPublicRegistry(*inputJSON)
-		if err != nil {
-			return nil, err
-		}
-
-		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, input)
-		if err != nil && errors.Is(err, workflow.ErrNoChange) {
-			err = workflow.ErrInvalidInputKind
-		}
+	for _, rawMessage := range request.BatchInput {
+		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, rawMessage)
 		if err != nil && !errors.Is(err, workflow.ErrEOF) {
 			return nil, err
 		}
@@ -256,6 +244,7 @@ func (h *Workflow2V1CreateHandler) prepareErrorResponse(
 		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
+		Schema:     output.SchemaBuilder,
 	}
 	return &api.Response{
 		Error:  workflowErr,

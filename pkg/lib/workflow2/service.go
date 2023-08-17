@@ -2,10 +2,12 @@ package workflow2
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package workflow2
@@ -29,6 +31,7 @@ type ServiceOutput struct {
 	Workflow      *Workflow
 	Data          Data
 	Action        *WorkflowAction
+	SchemaBuilder validation.SchemaBuilder
 	Cookies       []*http.Cookie
 }
 
@@ -36,6 +39,12 @@ func (o *ServiceOutput) EnsureDataIsNonNil() {
 	if o.Data == nil {
 		o.Data = EmptyData
 	}
+}
+
+type determineActionResult struct {
+	WorkflowAction *WorkflowAction
+	Data           Data
+	SchemaBuilder  validation.SchemaBuilder
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -77,10 +86,9 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
 	var workflow *Workflow
-	var data Data
-	var action *WorkflowAction
+	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		workflow, data, action, err = s.createNewWorkflow(ctx, session, intent)
+		workflow, determineActionResult, err = s.createNewWorkflow(ctx, session, intent)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -119,15 +127,16 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Workflow:      workflow,
-		Data:          data,
-		Action:        action,
+		Data:          determineActionResult.Data,
+		Action:        determineActionResult.WorkflowAction,
+		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
 	output.EnsureDataIsNonNil()
 	return
 }
 
-func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, data Data, action *WorkflowAction, err error) {
+func (s *Service) createNewWorkflow(ctx context.Context, session *Session, intent Intent) (workflow *Workflow, determineActionResult *determineActionResult, err error) {
 	workflow = NewWorkflow(session.WorkflowID, intent)
 
 	// A new workflow does not have any nodes.
@@ -135,8 +144,8 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 	// So we do not have to apply effects on a new workflow.
 
 	// Feed an nil input to the workflow to let it proceed.
-	var input Input
-	err = Accept(ctx, s.Deps, NewWorkflows(workflow), input)
+	var rawMessage json.RawMessage
+	err = Accept(ctx, s.Deps, NewWorkflows(workflow), rawMessage)
 	// As a special case, we do not treat ErrNoChange as error because
 	// Not every workflow can react to nil input.
 	if errors.Is(err, ErrNoChange) {
@@ -154,7 +163,7 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 		return
 	}
 
-	action, data, err = s.determineAction(ctx, session, workflow)
+	determineActionResult, err = s.determineAction(ctx, session, workflow)
 	if err != nil {
 		return
 	}
@@ -202,7 +211,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 		return
 	}
 
-	action, data, err := s.determineAction(ctx, session, w)
+	determineActionResult, err := s.determineAction(ctx, session, w)
 	if err != nil {
 		return
 	}
@@ -213,14 +222,15 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Workflow:      w,
-		Data:          data,
-		Action:        action,
+		Data:          determineActionResult.Data,
+		Action:        determineActionResult.WorkflowAction,
+		SchemaBuilder: determineActionResult.SchemaBuilder,
 	}
 	output.EnsureDataIsNonNil()
 	return
 }
 
-func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID string, input Input) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
 	workflow, err := s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -243,10 +253,9 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 
 	ctx := session.Context(s.ContextDoNotUseDirectly)
 
-	var data Data
-	var action *WorkflowAction
+	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		workflow, data, action, err = s.feedInput(ctx, session, instanceID, input)
+		workflow, determineActionResult, err = s.feedInput(ctx, session, instanceID, rawMessage)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -284,15 +293,16 @@ func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID st
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Workflow:      workflow,
-		Data:          data,
-		Action:        action,
+		Data:          determineActionResult.Data,
+		Action:        determineActionResult.WorkflowAction,
+		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
 	output.EnsureDataIsNonNil()
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, input Input) (workflow *Workflow, data Data, action *WorkflowAction, err error) {
+func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, rawMessage json.RawMessage) (workflow *Workflow, determineActionResult *determineActionResult, err error) {
 	workflow, err = s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -304,7 +314,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 		return
 	}
 
-	err = Accept(ctx, s.Deps, NewWorkflows(workflow), input)
+	err = Accept(ctx, s.Deps, NewWorkflows(workflow), rawMessage)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
@@ -317,7 +327,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 		return
 	}
 
-	action, data, err = s.determineAction(ctx, session, workflow)
+	determineActionResult, err = s.determineAction(ctx, session, workflow)
 	if err != nil {
 		return
 	}
@@ -345,27 +355,38 @@ func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cooki
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, Data, error) {
-	workflows, inputReactor, _, err := FindInputReactor(ctx, s.Deps, NewWorkflows(workflow))
+func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*determineActionResult, error) {
+	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewWorkflows(workflow))
 	if errors.Is(err, ErrEOF) {
-		return &WorkflowAction{
-			Type:        WorkflowActionTypeFinish,
-			RedirectURI: session.RedirectURI,
-		}, nil, nil
+		return &determineActionResult{
+			WorkflowAction: &WorkflowAction{
+				Type:        WorkflowActionTypeFinish,
+				RedirectURI: session.RedirectURI,
+			},
+		}, nil
 	}
 	if err != nil {
-		return nil, nil, err
+		return nil, err
+	}
+
+	var schemaBuilder validation.SchemaBuilder
+	if findInputReactorResult.InputSchema != nil {
+		schemaBuilder = findInputReactorResult.InputSchema.SchemaBuilder()
 	}
 
 	var data Data
-	if dataOutputer, ok := inputReactor.(DataOutputer); ok {
-		data, err = dataOutputer.OutputData(ctx, s.Deps, workflows)
+	if dataOutputer, ok := findInputReactorResult.InputReactor.(DataOutputer); ok {
+		data, err = dataOutputer.OutputData(ctx, s.Deps, findInputReactorResult.Workflows)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
-	return &WorkflowAction{
-		Type: WorkflowActionTypeContinue,
-	}, data, nil
+	return &determineActionResult{
+		WorkflowAction: &WorkflowAction{
+			Type: WorkflowActionTypeContinue,
+		},
+		Data:          data,
+		SchemaBuilder: schemaBuilder,
+	}, nil
 }

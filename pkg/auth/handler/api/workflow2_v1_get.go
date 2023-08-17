@@ -63,6 +63,7 @@ func (h *Workflow2V1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
+		Schema:     output.SchemaBuilder,
 	}
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }

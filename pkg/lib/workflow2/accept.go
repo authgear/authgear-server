@@ -2,8 +2,11 @@ package workflow2
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // Boundary confines the input in Accept.
@@ -20,10 +23,7 @@ type Boundary interface {
 // Accept executes the workflow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
-func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input Input) (err error) {
-	var newWorkflows Workflows
-	var inputReactor InputReactor
-
+func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, rawMessage json.RawMessage) (err error) {
 	var lastSeenBoundary string
 
 	var changed bool
@@ -37,14 +37,14 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 	}()
 
 	for {
-		var boundary Boundary
-		newWorkflows, inputReactor, boundary, err = FindInputReactor(ctx, deps, workflows)
+		var findInputReactorResult *FindInputReactorResult
+		findInputReactorResult, err = FindInputReactor(ctx, deps, workflows)
 		if err != nil {
 			return
 		}
 
-		if boundary != nil {
-			b := boundary.Boundary()
+		if findInputReactorResult.Boundary != nil {
+			b := findInputReactorResult.Boundary.Boundary()
 			if lastSeenBoundary == "" {
 				lastSeenBoundary = b
 			} else if lastSeenBoundary != b {
@@ -55,8 +55,27 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 		}
 
 		// Otherwise we found an InputReactor that we can feed input to.
+
+		// input by default is nil.
+		var input Input
+		if rawMessage != nil && findInputReactorResult.InputSchema != nil {
+			input, err = findInputReactorResult.InputSchema.MakeInput(rawMessage)
+			// As a special case, if this loop has iterated at least once,
+			// then we treat the validation error as ErrIncompatibleInput,
+			// by setting err = nil.
+			var valiationError *validation.AggregatedError
+			if errors.As(err, &valiationError) {
+				if changed {
+					err = nil
+				}
+				return
+			} else if err != nil {
+				return
+			}
+		}
+
 		var nextNode *Node
-		nextNode, err = inputReactor.ReactTo(ctx, deps, newWorkflows, input)
+		nextNode, err = findInputReactorResult.InputReactor.ReactTo(ctx, deps, findInputReactorResult.Workflows, input)
 
 		// Handle err == ErrIncompatibleInput
 		if errors.Is(err, ErrIncompatibleInput) {
@@ -83,12 +102,12 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 			nodeToReplace := nextNode
 
 			// precondition: ErrUpdateNode requires at least one node.
-			if len(newWorkflows.Nearest.Nodes) == 0 {
-				panic(fmt.Errorf("input reactor %T returned ErrUpdateNode, but there are no nodes", inputReactor))
+			if len(findInputReactorResult.Workflows.Nearest.Nodes) == 0 {
+				panic(fmt.Errorf("input reactor %T returned ErrUpdateNode, but there are no nodes", findInputReactorResult.InputReactor))
 			}
 
 			// Update the node inplace.
-			newWorkflows.Nearest.Nodes[len(newWorkflows.Nearest.Nodes)-1] = *nodeToReplace
+			findInputReactorResult.Workflows.Nearest.Nodes[len(findInputReactorResult.Workflows.Nearest.Nodes)-1] = *nodeToReplace
 
 			// We have to stop and return here because this edge will react to this input indefinitely.
 			return
@@ -100,7 +119,7 @@ func Accept(ctx context.Context, deps *Dependencies, workflows Workflows, input 
 		}
 
 		// We need to append the nextNode to the closest workflow.
-		err = appendNode(ctx, deps, newWorkflows, *nextNode)
+		err = appendNode(ctx, deps, findInputReactorResult.Workflows, *nextNode)
 		if err != nil {
 			return
 		}

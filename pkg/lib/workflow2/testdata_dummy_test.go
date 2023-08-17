@@ -45,7 +45,7 @@ func (i *testMarshalIntent0) GetEffects(ctx context.Context, deps *Dependencies,
 	}, nil
 }
 
-func (*testMarshalIntent0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*testMarshalIntent0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	return nil, ErrEOF
 }
 
@@ -82,7 +82,7 @@ func (i *testMarshalIntent1) GetEffects(ctx context.Context, deps *Dependencies,
 	}, nil
 }
 
-func (*testMarshalIntent1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (*testMarshalIntent1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	return nil, ErrEOF
 }
 
@@ -125,7 +125,7 @@ func (n *testMarshalNode0) GetEffects(ctx context.Context, deps *Dependencies, w
 	}, nil
 }
 
-func (i *testMarshalNode0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (i *testMarshalNode0) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	return nil, ErrEOF
 }
 
@@ -168,7 +168,7 @@ func (n *testMarshalNode1) GetEffects(ctx context.Context, deps *Dependencies, w
 	}, nil
 }
 
-func (i *testMarshalNode1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) ([]Input, error) {
+func (i *testMarshalNode1) CanReactTo(ctx context.Context, deps *Dependencies, workflows Workflows) (InputSchema, error) {
 	return nil, ErrEOF
 }
 
