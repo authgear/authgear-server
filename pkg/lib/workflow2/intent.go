@@ -4,4 +4,3 @@ type Intent interface {
 	Kinder
 	InputReactor
 }
-

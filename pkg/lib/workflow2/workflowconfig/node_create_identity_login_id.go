@@ -20,7 +20,6 @@ type NodeCreateIdentityLoginID struct {
 	Identification config.WorkflowIdentificationMethod `json:"identification,omitempty"`
 }
 
-
 var _ workflow.NodeSimple = &NodeCreateIdentityLoginID{}
 var _ workflow.Milestone = &NodeCreateIdentityLoginID{}
 var _ MilestoneIdentificationMethod = &NodeCreateIdentityLoginID{}
