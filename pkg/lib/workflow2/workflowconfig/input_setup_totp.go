@@ -1,38 +1,52 @@
 package workflowconfig
 
 import (
+	"encoding/json"
+
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func init() {
-	workflow.RegisterPublicInput(&InputSetupTOTP{})
-}
+var InputSetupTOTPSchemaBuilder validation.SchemaBuilder
 
-var InputSetupTOTPSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["code", "display_name"],
-	"properties": {
-		"code": { "type": "string" },
-		"display_name": { "type": "string" }
-	}
+func init() {
+	InputSetupTOTPSchemaBuilder = validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("code", "display_name")
+
+	InputSetupTOTPSchemaBuilder.Properties().Property(
+		"code",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+	InputSetupTOTPSchemaBuilder.Properties().Property(
+		"display_name",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
 }
-`)
 
 type InputSetupTOTP struct {
 	Code        string `json:"code,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
 }
 
-func (*InputSetupTOTP) Kind() string {
-	return "workflowconfig.InputSetupTOTP"
+var _ workflow.InputSchema = &InputSetupTOTP{}
+var _ workflow.Input = &InputSetupTOTP{}
+var _ inputSetupTOTP = &InputSetupTOTP{}
+
+func (*InputSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
+	return InputSetupTOTPSchemaBuilder
 }
 
-func (*InputSetupTOTP) JSONSchema() *validation.SimpleSchema {
-	return InputSetupTOTPSchema
+func (i *InputSetupTOTP) MakeInput(rawMessage json.RawMessage) (workflow.Input, error) {
+	var input InputSetupTOTP
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
 }
+
+func (*InputSetupTOTP) Input() {}
 
 func (i *InputSetupTOTP) GetCode() string {
 	return i.Code
@@ -41,10 +55,3 @@ func (i *InputSetupTOTP) GetCode() string {
 func (i *InputSetupTOTP) GetDisplayName() string {
 	return i.DisplayName
 }
-
-type inputSetupTOTP interface {
-	GetCode() string
-	GetDisplayName() string
-}
-
-var _ inputSetupTOTP = &InputSetupTOTP{}

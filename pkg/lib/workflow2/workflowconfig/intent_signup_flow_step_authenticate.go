@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentSignupFlowStepAuthenticateData struct {
-	Candidates []CreateAuthenticationCandidate `json:"candidates"`
+	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
 }
 
 func (m IntentSignupFlowStepAuthenticateData) Data() {}
@@ -88,11 +88,16 @@ func (i *IntentSignupFlowStepAuthenticate) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (*IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// Let the input to select which authentication method to use.
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []workflow.Input{
-			&InputTakeAuthenticationMethod{},
+		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+		step := i.step(current)
+		return &InputSchemaSignupFlowStepAuthenticate{
+			OneOf: step.OneOf,
 		}, nil
 	}
 
@@ -120,11 +125,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
 
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-			var idx int
-			idx, err = i.checkAuthenticationMethod(deps, step, authentication)
-			if err != nil {
-				return nil, err
-			}
+			idx := i.checkAuthenticationMethod(deps, step, authentication)
 
 			switch authentication {
 			case config.WorkflowAuthenticationMethodPrimaryPassword:
@@ -180,15 +181,8 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wo
 }
 
 func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-	candidates := i.getAllowedCandidates(deps, step)
-
 	return IntentSignupFlowStepAuthenticateData{
-		Candidates: candidates,
+		PasswordPolicy: NewPasswordPolicy(deps.Config.Authenticator.Password.Policy),
 	}, nil
 }
 
@@ -201,12 +195,12 @@ func (*IntentSignupFlowStepAuthenticate) step(o config.WorkflowObject) *config.W
 	return step
 }
 
-func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *workflow.Dependencies, step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *workflow.Dependencies, step *config.WorkflowSignupFlowStep, am config.WorkflowAuthenticationMethod) (idx int) {
 	idx = -1
-	candidates := i.getAllowedCandidates(deps, step)
 
-	for index, candidate := range candidates {
-		if am == candidate.AuthenticationMethod {
+	for index, branch := range step.OneOf {
+		branch := branch
+		if am == branch.Authentication {
 			idx = index
 		}
 	}
@@ -215,19 +209,7 @@ func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *workf
 		return
 	}
 
-	err = InvalidAuthenticationMethod.New("invalid authentication method")
-	return
-}
-
-func (*IntentSignupFlowStepAuthenticate) getAllowedCandidates(deps *workflow.Dependencies, step *config.WorkflowSignupFlowStep) []CreateAuthenticationCandidate {
-	var candidates []CreateAuthenticationCandidate
-
-	for _, branch := range step.OneOf {
-		branch := branch
-		candidates = append(candidates, NewCreateAuthenticationCandidate(deps.Config.Authenticator.Password.Policy, branch.Authentication))
-	}
-
-	return candidates
+	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
 }
 
 func (*IntentSignupFlowStepAuthenticate) authenticationMethod(workflows workflow.Workflows) config.WorkflowAuthenticationMethod {
