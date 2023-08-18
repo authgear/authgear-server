@@ -40,7 +40,7 @@ func (i *IntentSignupFlowStepRecoveryCode) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// Generate a new set of recovery codes.
 	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
@@ -49,7 +49,7 @@ func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *w
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentSignupFlowStepRecoveryCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentSignupFlowStepRecoveryCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, _ workflow.Input) (*workflow.Node, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
 		node := NewNodeGenerateRecoveryCode(deps, &NodeGenerateRecoveryCode{
 			UserID: i.UserID,

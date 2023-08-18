@@ -36,10 +36,8 @@ func (*NodeGenerateRecoveryCode) Kind() string {
 	return "workflowconfig.NodeGenerateRecoveryCode"
 }
 
-func (*NodeGenerateRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{
-		&InputConfirmRecoveryCode{},
-	}, nil
+func (*NodeGenerateRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputConfirmRecoveryCode{}, nil
 }
 
 func (n *NodeGenerateRecoveryCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
