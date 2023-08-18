@@ -17,12 +17,6 @@ func init() {
 	workflow.RegisterIntent(&IntentSignupFlowStepUserProfile{})
 }
 
-type IntentSignupFlowStepUserProfileData struct {
-	Attributes []*config.WorkflowSignupFlowUserProfile `json:"attributes"`
-}
-
-func (m IntentSignupFlowStepUserProfileData) Data() {}
-
 type IntentSignupFlowStepUserProfile struct {
 	SignupFlow  string        `json:"signup_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -42,7 +36,6 @@ func (i *IntentSignupFlowStepUserProfile) GetJSONPointer() jsonpointer.T {
 
 var _ workflow.Intent = &IntentSignupFlowStepUserProfile{}
 var _ workflow.Boundary = &IntentSignupFlowStepUserProfile{}
-var _ workflow.DataOutputer = &IntentSignupFlowStepUserProfile{}
 
 func (*IntentSignupFlowStepUserProfile) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepUserProfile"
@@ -52,9 +45,21 @@ func (i *IntentSignupFlowStepUserProfile) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (*IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
-		return []workflow.Input{&InputFillUserProfile{}}, nil
+		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+
+		step := i.step(current)
+		if err != nil {
+			return nil, err
+		}
+		return &InputSchemaFillUserProfile{
+			Attributes:       step.UserProfile,
+			CustomAttributes: deps.Config.UserProfile.CustomAttributes.Attributes,
+		}, nil
 	}
 	return nil, workflow.ErrEOF
 }
@@ -93,19 +98,6 @@ func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *wor
 	}
 
 	return nil, workflow.ErrIncompatibleInput
-}
-
-func (i *IntentSignupFlowStepUserProfile) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-
-	step := i.step(current)
-
-	return IntentSignupFlowStepUserProfileData{
-		Attributes: step.UserProfile,
-	}, nil
 }
 
 func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlowStep, attributes []attrs.T) (absent []string, err error) {
