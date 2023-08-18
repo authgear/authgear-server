@@ -28,7 +28,7 @@ func (*IntentInspectDeviceToken) Kind() string {
 func (*IntentInspectDeviceToken) Milestone()                     {}
 func (*IntentInspectDeviceToken) MilestoneDeviceTokenInspected() {}
 
-func (*IntentInspectDeviceToken) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentInspectDeviceToken) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
 	}
@@ -36,7 +36,7 @@ func (*IntentInspectDeviceToken) CanReactTo(ctx context.Context, deps *workflow.
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentInspectDeviceToken) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentInspectDeviceToken) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, _ workflow.Input) (*workflow.Node, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
 		deviceTokenCookie, err := deps.Cookies.GetCookie(deps.HTTPRequest, deps.MFADeviceTokenCookie.Def)
 		// End this workflow if there is no cookie.

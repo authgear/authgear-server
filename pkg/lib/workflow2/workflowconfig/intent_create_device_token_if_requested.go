@@ -25,7 +25,7 @@ func (*IntentCreateDeviceTokenIfRequested) Kind() string {
 func (*IntentCreateDeviceTokenIfRequested) Milestone()                               {}
 func (*IntentCreateDeviceTokenIfRequested) MilestoneDoCreateDeviceTokenIfRequested() {}
 
-func (*IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
 		// Take the previous input.
 		return nil, nil

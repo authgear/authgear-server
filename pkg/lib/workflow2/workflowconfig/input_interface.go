@@ -53,3 +53,19 @@ type inputFillUserProfile interface {
 type inputConfirmTerminateOtherSessions interface {
 	ConfirmTerminateOtherSessions()
 }
+
+type inputTakePassword interface {
+	GetPassword() string
+}
+
+type inputTakeAuthenticationCandidateIndex interface {
+	GetIndex() int
+}
+
+type inputTakeTOTP interface {
+	GetCode() string
+}
+
+type inputTakeRecoveryCode interface {
+	GetRecoveryCode() string
+}

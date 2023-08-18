@@ -34,8 +34,8 @@ func (n *NodeUseAuthenticatorPassword) MilestoneAuthenticationMethod() config.Wo
 	return n.Authentication
 }
 
-func (*NodeUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputTakePassword{}}, nil
+func (*NodeUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputTakePassword{}, nil
 }
 
 func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {

@@ -34,8 +34,8 @@ func (n *NodeUseAuthenticatorTOTP) MilestoneAuthenticationMethod() config.Workfl
 	return n.Authentication
 }
 
-func (*NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputTakeTOTP{}}, nil
+func (*NodeUseAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputTakeTOTP{}, nil
 }
 
 func (n *NodeUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {

@@ -2,7 +2,6 @@ package workflowconfig
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -48,14 +47,26 @@ func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.Wo
 	return n.Authentication
 }
 
-func (*IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointerToStep)
+	if err != nil {
+		return nil, err
+	}
+	step := n.step(current)
+
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, n.UserID, step)
+	if err != nil {
+		return nil, err
+	}
 	_, authenticatorSelected := workflow.FindMilestone[MilestoneDidSelectAuthenticator](workflows.Nearest)
 	_, claimVerified := workflow.FindMilestone[MilestoneDoMarkClaimVerified](workflows.Nearest)
 	_, authenticatorVerified := workflow.FindMilestone[MilestoneDidVerifyAuthenticator](workflows.Nearest)
 
 	switch {
 	case !authenticatorSelected:
-		return []workflow.Input{&InputTakeAuthenticationCandidateIndex{}}, nil
+		return &InputSchemaUseAuthenticatorOOBOTP{
+			Candidates: candidates,
+		}, nil
 	case !claimVerified:
 		// Verify the claim
 		return nil, nil
@@ -148,10 +159,6 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependen
 		if idx == index {
 			id := c.AuthenticatorID
 			info, err := deps.Authenticators.Get(id)
-			if errors.Is(err, authenticator.ErrAuthenticatorNotFound) {
-				// Break the loop and use the return statement at the end.
-				break
-			}
 			if err != nil {
 				return nil, err
 			}
@@ -159,7 +166,7 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *workflow.Dependen
 		}
 	}
 
-	return nil, InvalidAuthenticationCandidateIndex.New("invalid authentication candidate index")
+	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
 }
 
 func (*IntentUseAuthenticatorOOBOTP) otpMessageType(info *authenticator.Info) otp.MessageType {
