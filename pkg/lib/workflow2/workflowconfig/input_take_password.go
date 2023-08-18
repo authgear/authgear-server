@@ -1,40 +1,53 @@
 package workflowconfig
 
 import (
+	"encoding/json"
+
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func init() {
-	workflow.RegisterPublicInput(&InputTakePassword{})
-}
+var InputTakePasswordSchemaBuilder validation.SchemaBuilder
 
-var InputTakePasswordSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["password"],
-	"properties": {
-		"password": {
-			"type": "string"
-		},
-		"request_device_token": { "type": "boolean" }
-	}
+func init() {
+	InputTakePasswordSchemaBuilder = validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("password")
+
+	InputTakePasswordSchemaBuilder.Properties().Property(
+		"password",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+	InputTakePasswordSchemaBuilder.Properties().Property(
+		"request_device_token",
+		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
+	)
 }
-`)
 
 type InputTakePassword struct {
 	Password           string `json:"password,omitempty"`
 	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
 }
 
-func (*InputTakePassword) Kind() string {
-	return "workflowconfig.InputTakePassword"
+var _ workflow.InputSchema = &InputTakePassword{}
+var _ workflow.Input = &InputTakePassword{}
+var _ inputTakePassword = &InputTakePassword{}
+var _ inputDeviceTokenRequested = &InputTakePassword{}
+
+func (*InputTakePassword) SchemaBuilder() validation.SchemaBuilder {
+	return InputTakePasswordSchemaBuilder
 }
 
-func (*InputTakePassword) JSONSchema() *validation.SimpleSchema {
-	return InputTakePasswordSchema
+func (i *InputTakePassword) MakeInput(rawMessage json.RawMessage) (workflow.Input, error) {
+	var input InputTakePassword
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
 }
+
+func (*InputTakePassword) Input() {}
 
 func (i *InputTakePassword) GetPassword() string {
 	return i.Password
@@ -43,11 +56,3 @@ func (i *InputTakePassword) GetPassword() string {
 func (i *InputTakePassword) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
 }
-
-type inputTakePassword interface {
-	GetPassword() string
-}
-
-var _ inputTakePassword = &InputTakePassword{}
-
-var _ inputDeviceTokenRequested = &InputTakePassword{}

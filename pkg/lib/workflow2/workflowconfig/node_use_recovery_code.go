@@ -30,8 +30,8 @@ func (n *NodeUseRecoveryCode) MilestoneAuthenticationMethod() config.WorkflowAut
 	return n.Authentication
 }
 
-func (*NodeUseRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputTakeRecoveryCode{}}, nil
+func (*NodeUseRecoveryCode) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputTakeRecoveryCode{}, nil
 }
 
 func (n *NodeUseRecoveryCode) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {

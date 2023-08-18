@@ -1,38 +1,53 @@
 package workflowconfig
 
 import (
+	"encoding/json"
+
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func init() {
-	workflow.RegisterPublicInput(&InputTakeTOTP{})
-}
+var InputTakeTOTPSchemaBuilder validation.SchemaBuilder
 
-var InputTakeTOTPSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"required": ["code"],
-	"properties": {
-		"code": { "type": "string" },
-		"request_device_token": { "type": "boolean" }
-	}
+func init() {
+	InputTakeTOTPSchemaBuilder = validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("code")
+
+	InputTakeTOTPSchemaBuilder.Properties().Property(
+		"code",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+	InputTakeTOTPSchemaBuilder.Properties().Property(
+		"request_device_token",
+		validation.SchemaBuilder{}.Type(validation.TypeBoolean),
+	)
 }
-`)
 
 type InputTakeTOTP struct {
 	Code               string `json:"code,omitempty"`
 	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
 }
 
-func (*InputTakeTOTP) Kind() string {
-	return "workflowconfig.InputTakeTOTP"
+var _ workflow.InputSchema = &InputTakeTOTP{}
+var _ workflow.Input = &InputTakeTOTP{}
+var _ inputTakeTOTP = &InputTakeTOTP{}
+var _ inputDeviceTokenRequested = &InputTakeTOTP{}
+
+func (*InputTakeTOTP) SchemaBuilder() validation.SchemaBuilder {
+	return InputTakeTOTPSchemaBuilder
 }
 
-func (*InputTakeTOTP) JSONSchema() *validation.SimpleSchema {
-	return InputTakeTOTPSchema
+func (i *InputTakeTOTP) MakeInput(rawMessage json.RawMessage) (workflow.Input, error) {
+	var input InputTakeTOTP
+	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
+	if err != nil {
+		return nil, err
+	}
+	return &input, nil
 }
+
+func (*InputTakeTOTP) Input() {}
 
 func (i *InputTakeTOTP) GetCode() string {
 	return i.Code
@@ -41,11 +56,3 @@ func (i *InputTakeTOTP) GetCode() string {
 func (i *InputTakeTOTP) GetDeviceTokenRequested() bool {
 	return i.RequestDeviceToken
 }
-
-type inputTakeTOTP interface {
-	GetCode() string
-}
-
-var _ inputTakeTOTP = &InputTakeTOTP{}
-
-var _ inputDeviceTokenRequested = &InputTakeTOTP{}

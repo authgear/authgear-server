@@ -91,7 +91,7 @@ func (i *IntentLoginFlowStepAuthenticate) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -99,6 +99,11 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	step := i.step(current)
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
+
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, i.UserID, step)
+	if err != nil {
+		return nil, err
+	}
 
 	_, deviceTokenInspected := workflow.FindMilestone[MilestoneDeviceTokenInspected](workflows.Nearest)
 
@@ -116,8 +121,9 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		return nil, nil
 	case !authenticationMethodSelected:
 		// Let the input to select which authentication method to use.
-		return []workflow.Input{
-			&InputTakeAuthenticationMethod{},
+		return &InputSchemaLoginFlowStepAuthenticate{
+			Candidates:         candidates,
+			DeviceTokenEnabled: deviceTokenEnabled,
 		}, nil
 	case !authenticated:
 		// This branch is only reached when there is a programming error.
@@ -164,17 +170,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *wor
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if workflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-			var idx int
 
 			candidates, err := getAuthenticationCandidatesForStep(ctx, deps, workflows, i.UserID, step)
 			if err != nil {
 				return nil, err
 			}
 
-			_, err = i.checkAuthenticationMethod(step, candidates, authentication)
-			if err != nil {
-				return nil, err
-			}
+			idx := i.getIndex(step, candidates, authentication)
 
 			switch authentication {
 			case config.WorkflowAuthenticationMethodPrimaryPassword:
@@ -251,7 +253,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(step *config.WorkflowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.WorkflowAuthenticationMethod) (idx int, err error) {
+func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.WorkflowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.WorkflowAuthenticationMethod) (idx int) {
 	idx = -1
 
 	allAllowed := i.getAllAllowed(step)
@@ -269,8 +271,7 @@ func (i *IntentLoginFlowStepAuthenticate) checkAuthenticationMethod(step *config
 		return
 	}
 
-	err = InvalidAuthenticationMethod.New("invalid authentication method")
-	return
+	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
 }
 
 func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.WorkflowLoginFlowStep) []config.WorkflowAuthenticationMethod {
