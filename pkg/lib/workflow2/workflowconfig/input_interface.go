@@ -49,3 +49,7 @@ type inputConfirmRecoveryCode interface {
 type inputFillUserProfile interface {
 	GetAttributes() []attrs.T
 }
+
+type inputConfirmTerminateOtherSessions interface {
+	ConfirmTerminateOtherSessions()
+}
