@@ -132,3 +132,54 @@ func Validate(t T) error {
 	a := t.ToClaims()
 	return Schema.Validator().ValidateValue(a)
 }
+
+func SchemaBuilderForPointerString(ptrStr string) (validation.SchemaBuilder, bool) {
+	switch ptrStr {
+	case "/email":
+		return SchemaBuilderEmail, true
+	case "/phone_number":
+		return SchemaBuilderPhoneNumber, true
+	case "/preferred_username":
+		return SchemaBuilderPreferredUsername, true
+	case "/family_name":
+		return SchemaBuilderFamilyName, true
+	case "/given_name":
+		return SchemaBuilderGivenName, true
+	case "/middle_name":
+		return SchemaBuilderMiddleName, true
+	case "/name":
+		return SchemaBuilderName, true
+	case "/nickname":
+		return SchemaBuilderNickName, true
+	case "/picture":
+		return SchemaBuilderPicture, true
+	case "/profile":
+		return SchemaBuilderProfile, true
+	case "/website":
+		return SchemaBuilderWebsite, true
+	case "/gender":
+		return SchemaBuilderGender, true
+	case "/birthdate":
+		return SchemaBuilderBirthdate, true
+	case "/zoneinfo":
+		return SchemaBuilderZoneinfo, true
+	case "/locale":
+		return SchemaBuilderLocale, true
+	case "/address":
+		return SchemaBuilderAddress, true
+	case "/address/formatted":
+		return SchemaBuilderAddressFormatted, true
+	case "/address/street_address":
+		return SchemaBuilderAddressStreetAddress, true
+	case "/address/locality":
+		return SchemaBuilderAddressLocality, true
+	case "/address/region":
+		return SchemaBuilderAddressRegion, true
+	case "/address/postal_code":
+		return SchemaBuilderAddressPostalCode, true
+	case "/address/country":
+		return SchemaBuilderAddressCountry, true
+	default:
+		return nil, false
+	}
+}
