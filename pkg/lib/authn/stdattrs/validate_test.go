@@ -1,6 +1,7 @@
 package stdattrs
 
 import (
+	"encoding/json"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -34,6 +35,111 @@ func makeValid() T {
 			"country":        "HK",
 		},
 	}
+}
+
+func TestSchema(t *testing.T) {
+	Convey("Schema", t, func() {
+		expected := `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"email": {
+			"type": "string",
+			"format": "email"
+		},
+		"phone_number": {
+			"type": "string",
+			"format": "phone"
+		},
+		"preferred_username": {
+			"type": "string",
+			"minLength": 1
+		},
+		"family_name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"given_name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"middle_name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"name": {
+			"type": "string",
+			"minLength": 1
+		},
+		"nickname": {
+			"type": "string",
+			"minLength": 1
+		},
+		"picture": {
+			"type": "string",
+			"format": "x_picture"
+		},
+		"profile": {
+			"type": "string",
+			"format": "uri"
+		},
+		"website": {
+			"type": "string",
+			"format": "uri"
+		},
+		"gender": {
+			"type": "string",
+			"minLength": 1
+		},
+		"birthdate": {
+			"type": "string",
+			"format": "birthdate"
+		},
+		"zoneinfo": {
+			"type": "string",
+			"format": "timezone"
+		},
+		"locale": {
+			"type": "string",
+			"format": "bcp47"
+		},
+		"address": {
+			"type": "object",
+			"properties": {
+				"formatted": {
+					"type": "string",
+					"minLength": 1
+				},
+				"street_address": {
+					"type": "string",
+					"minLength": 1
+				},
+				"locality": {
+					"type": "string",
+					"minLength": 1
+				},
+				"region": {
+					"type": "string",
+					"minLength": 1
+				},
+				"postal_code": {
+					"type": "string",
+					"minLength": 1
+				},
+				"country": {
+					"type": "string",
+					"minLength": 1
+				}
+			}
+		}
+	}
+}
+`
+		bytes, err := json.Marshal(SchemaBuilder)
+		So(err, ShouldBeNil)
+		So(string(bytes), ShouldEqualJSON, expected)
+	})
 }
 
 func TestValidate(t *testing.T) {
