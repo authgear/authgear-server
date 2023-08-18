@@ -32,8 +32,8 @@ func (n *NodeUseIdentityLoginID) MilestoneIdentificationMethod() config.Workflow
 	return n.Identification
 }
 
-func (*NodeUseIdentityLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputTakeLoginID{}}, nil
+func (*NodeUseIdentityLoginID) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputTakeLoginID{}, nil
 }
 
 func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
