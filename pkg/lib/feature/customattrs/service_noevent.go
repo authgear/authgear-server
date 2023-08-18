@@ -64,7 +64,10 @@ func (s *ServiceNoEvent) toStorageForm(t customattrs.T) (map[string]interface{},
 }
 
 func (s *ServiceNoEvent) generateSchemaString(pointers []string) (schemaStr string, err error) {
-	properties := make(map[string]interface{})
+	rootBuilder := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
+
+	properties := rootBuilder.Properties()
 
 	for _, ptrStr := range pointers {
 		for _, customAttr := range s.Config.CustomAttributes.Attributes {
@@ -79,22 +82,17 @@ func (s *ServiceNoEvent) generateSchemaString(pointers []string) (schemaStr stri
 			}
 			head := ptr[0]
 
-			var schema map[string]interface{}
-			schema, err = customAttr.ToJSONSchema()
+			var builder validation.SchemaBuilder
+			builder, err = customAttr.ToSchemaBuilder()
 			if err != nil {
 				return
 			}
 
-			properties[head] = schema
+			properties.Property(head, builder)
 		}
 	}
 
-	schemaObj := map[string]interface{}{
-		"type":       "object",
-		"properties": properties,
-	}
-
-	schemaBytes, err := json.MarshalIndent(schemaObj, "", "  ")
+	schemaBytes, err := json.MarshalIndent(rootBuilder, "", "  ")
 	if err != nil {
 		return
 	}
