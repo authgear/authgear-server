@@ -48,7 +48,7 @@ func (i *IntentLoginFlowStepChangePassword) Boundary() string {
 	return i.JSONPointer.String()
 }
 
-func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// Look up the password authenticator to change.
 	if len(workflows.Nearest.Nodes) == 0 {
 		return nil, nil
@@ -56,7 +56,7 @@ func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, _ workflow.Input) (*workflow.Node, error) {
 	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
 	if err != nil {
 		return nil, err
