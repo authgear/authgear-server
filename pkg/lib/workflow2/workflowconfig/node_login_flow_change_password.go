@@ -3,9 +3,7 @@ package workflowconfig
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 )
 
@@ -14,7 +12,7 @@ func init() {
 }
 
 type NodeLoginFlowChangePasswordData struct {
-	Candidates []CreateAuthenticationCandidate `json:"candidates"`
+	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
 }
 
 func (NodeLoginFlowChangePasswordData) Data() {}
@@ -31,8 +29,8 @@ func (*NodeLoginFlowChangePassword) Kind() string {
 	return "workflowconfig.NodeLoginFlowChangePassword"
 }
 
-func (*NodeLoginFlowChangePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
-	return []workflow.Input{&InputTakeNewPassword{}}, nil
+func (*NodeLoginFlowChangePassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
+	return &InputTakeNewPassword{}, nil
 }
 
 func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
@@ -64,21 +62,7 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *workflo
 }
 
 func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.Data, error) {
-	var candidate CreateAuthenticationCandidate
-	switch n.Authenticator.Kind {
-	case model.AuthenticatorKindPrimary:
-		candidate = NewCreateAuthenticationCandidate(
-			deps.Config.Authenticator.Password.Policy,
-			config.WorkflowAuthenticationMethodPrimaryPassword,
-		)
-	case model.AuthenticatorKindSecondary:
-		candidate = NewCreateAuthenticationCandidate(
-			deps.Config.Authenticator.Password.Policy,
-			config.WorkflowAuthenticationMethodSecondaryPassword,
-		)
-	}
-
 	return NodeLoginFlowChangePasswordData{
-		Candidates: []CreateAuthenticationCandidate{candidate},
+		PasswordPolicy: NewPasswordPolicy(deps.Config.Authenticator.Password.Policy),
 	}, nil
 }
