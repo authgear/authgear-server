@@ -36,7 +36,7 @@ func (i *IntentLoginFlow) FlowInit(r workflow.FlowReference) {
 	i.LoginFlow = r.ID
 }
 
-func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// The last node is NodeDoCreateSession.
 	// So if MilestoneDoCreateSession is found, this workflow has finished.
 	_, ok := workflow.FindMilestone[MilestoneDoCreateSession](workflows.Nearest)
