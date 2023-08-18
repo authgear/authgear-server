@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -57,11 +58,18 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		return i
 	}
 
-	Convey("ToJSONSchema", t, func() {
-		test := func(c *CustomAttributesAttributeConfig, schema map[string]interface{}) {
-			actual, err := c.ToJSONSchema()
+	Convey("ToSchemaBuilder", t, func() {
+		test := func(c *CustomAttributesAttributeConfig, expected map[string]interface{}) {
+			builder, err := c.ToSchemaBuilder()
 			So(err, ShouldBeNil)
-			So(actual, ShouldResemble, schema)
+
+			builderBytes, err := json.Marshal(builder)
+			So(err, ShouldBeNil)
+
+			expectedBytes, err := json.Marshal(expected)
+			So(err, ShouldBeNil)
+
+			So(string(builderBytes), ShouldEqualJSON, string(expectedBytes))
 		}
 
 		test(&CustomAttributesAttributeConfig{
