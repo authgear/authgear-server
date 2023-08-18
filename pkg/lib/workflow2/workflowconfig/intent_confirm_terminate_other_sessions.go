@@ -21,7 +21,7 @@ func (*IntentConfirmTerminateOtherSessions) Kind() string {
 	return "workflowconfig.IntentConfirmTerminateOtherSessions"
 }
 
-func (i *IntentConfirmTerminateOtherSessions) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+func (i *IntentConfirmTerminateOtherSessions) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
 		uiParam := uiparam.GetUIParam(ctx)
 		clientID := uiParam.ClientID
@@ -33,7 +33,7 @@ func (i *IntentConfirmTerminateOtherSessions) CanReactTo(ctx context.Context, de
 			}
 
 			if len(existingGrants) != 0 {
-				return []workflow.Input{&InputConfirmTerminateOtherSessions{}}, nil
+				return &InputConfirmTerminateOtherSessions{}, nil
 			}
 		}
 	}
