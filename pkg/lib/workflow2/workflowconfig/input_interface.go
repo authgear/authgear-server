@@ -2,6 +2,7 @@ package workflowconfig
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -43,4 +44,8 @@ type inputSetupTOTP interface {
 
 type inputConfirmRecoveryCode interface {
 	ConfirmRecoveryCode()
+}
+
+type inputFillUserProfile interface {
+	GetAttributes() []attrs.T
 }
