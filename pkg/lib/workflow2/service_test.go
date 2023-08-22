@@ -67,9 +67,6 @@ func TestService(t *testing.T) {
 			)
 
 			So(output, ShouldResemble, &ServiceOutput{
-				Action: &WorkflowAction{
-					Type: WorkflowActionTypeContinue,
-				},
 				Workflow: &Workflow{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "flow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
@@ -102,9 +99,6 @@ func TestService(t *testing.T) {
 			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
-				Action: &WorkflowAction{
-					Type: WorkflowActionTypeFinish,
-				},
 				Workflow: &Workflow{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
@@ -116,7 +110,9 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				Data: EmptyData,
+				Data: &DataRedirectURI{
+					RedirectURI: "",
+				},
 				Session: &Session{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -153,9 +149,6 @@ func TestService(t *testing.T) {
 			}`))
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
-				Action: &WorkflowAction{
-					Type: WorkflowActionTypeContinue,
-				},
 				Workflow: &Workflow{
 					WorkflowID: "workflow-id",
 					InstanceID: "flow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -360,9 +353,6 @@ func TestServiceContext(t *testing.T) {
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
-				Action: &WorkflowAction{
-					Type: WorkflowActionTypeFinish,
-				},
 				Workflow: &Workflow{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					InstanceID: "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
@@ -376,7 +366,9 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
-				Data: EmptyData,
+				Data: &DataRedirectURI{
+					RedirectURI: "",
+				},
 				Session: &Session{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID:   "client-id",

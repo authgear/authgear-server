@@ -29,8 +29,13 @@ type FlowReference struct {
 }
 
 // FlowResponse is an API object.
+// When schema is present, this means the flow is not finished.
+// When schema is absent, the flow is finished.
+// When data contains "redirect_uri", the driver of the flow must perform redirect.
+// A very common case is:
+// 1. schema is absent
+// 2. redirect_uri is present in data.
 type FlowResponse struct {
-	Action *WorkflowAction          `json:"action"`
 	ID     string                   `json:"id"`
 	Schema validation.SchemaBuilder `json:"schema,omitempty"`
 	Data   Data                     `json:"data"`

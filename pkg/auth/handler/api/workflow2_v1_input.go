@@ -94,7 +94,6 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 
 		result := workflow.FlowResponse{
-			Action: output.Action,
 			ID:     output.Workflow.InstanceID,
 			Data:   output.Data,
 			Schema: output.SchemaBuilder,
@@ -121,7 +120,6 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 
 		result := workflow.FlowResponse{
-			Action: output.Action,
 			ID:     output.Workflow.InstanceID,
 			Data:   output.Data,
 			Schema: output.SchemaBuilder,
@@ -187,7 +185,6 @@ func (h *Workflow2V1InputHandler) prepareErrorResponse(
 	}
 
 	result := workflow.FlowResponse{
-		Action: output.Action,
 		ID:     output.Workflow.InstanceID,
 		Data:   output.Data,
 		Schema: output.SchemaBuilder,
