@@ -109,10 +109,10 @@ func (h *Workflow2V1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 
 	result := workflow.FlowResponse{
-		Action:     output.Action,
-		InstanceID: output.Workflow.InstanceID,
-		Data:       output.Data,
-		Schema:     output.SchemaBuilder,
+		Action: output.Action,
+		ID:     output.Workflow.InstanceID,
+		Data:   output.Data,
+		Schema: output.SchemaBuilder,
 	}
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
@@ -236,10 +236,10 @@ func (h *Workflow2V1CreateHandler) prepareErrorResponse(
 	}
 
 	result := workflow.FlowResponse{
-		Action:     output.Action,
-		InstanceID: output.Workflow.InstanceID,
-		Data:       output.Data,
-		Schema:     output.SchemaBuilder,
+		Action: output.Action,
+		ID:     output.Workflow.InstanceID,
+		Data:   output.Data,
+		Schema: output.SchemaBuilder,
 	}
 	return &api.Response{
 		Error:  workflowErr,
