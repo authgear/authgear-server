@@ -23,9 +23,9 @@ func ConfigureWorkflow2V1CreateRoute(route httproute.Route) httproute.Route {
 var Workflow2V1CreateRequestSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"required": ["flow"],
+	"required": ["flow_reference"],
 	"properties": {
-		"flow": {
+		"flow_reference": {
 			"type": "object",
 			"properties": {
 				"type": {
@@ -51,7 +51,7 @@ var Workflow2V1CreateRequestSchema = validation.NewSimpleSchema(`
 `)
 
 type Workflow2V1CreateRequest struct {
-	FlowReference *workflow.FlowReference `json:"flow,omitempty"`
+	FlowReference *workflow.FlowReference `json:"flow_reference,omitempty"`
 	URLQuery      string                  `json:"url_query,omitempty"`
 	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
 	BatchInput    []json.RawMessage       `json:"batch_input,omitempty"`
