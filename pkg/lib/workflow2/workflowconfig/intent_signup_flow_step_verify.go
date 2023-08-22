@@ -41,15 +41,17 @@ func (i *IntentSignupFlowStepVerify) GetJSONPointer() jsonpointer.T {
 }
 
 var _ workflow.Intent = &IntentSignupFlowStepVerify{}
-var _ workflow.Boundary = &IntentSignupFlowStepVerify{}
 
 func (*IntentSignupFlowStepVerify) Kind() string {
 	return "workflowconfig.IntentSignupFlowStepVerify"
 }
 
-func (i *IntentSignupFlowStepVerify) Boundary() string {
-	return i.JSONPointer.String()
-}
+// This intent is NOT a boundary because it reacts to nil input.
+// If it were a boundary, the returned flow would stick at wait for nil input.
+// var _ workflow.Boundary = &IntentSignupFlowStepVerify{}
+// func (i *IntentSignupFlowStepVerify) Boundary() string {
+// 	return i.JSONPointer.String()
+// }
 
 func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	// Look up the claim to verify
