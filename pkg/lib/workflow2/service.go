@@ -16,9 +16,13 @@ type ServiceOutput struct {
 	Session       *Session
 	SessionOutput *SessionOutput
 	Workflow      *Workflow
-	Data          Data
+
+	Finished      bool
 	SchemaBuilder validation.SchemaBuilder
-	Cookies       []*http.Cookie
+
+	Data Data
+
+	Cookies []*http.Cookie
 }
 
 func (o *ServiceOutput) EnsureDataIsNonNil() {
@@ -28,6 +32,7 @@ func (o *ServiceOutput) EnsureDataIsNonNil() {
 }
 
 type determineActionResult struct {
+	Finished      bool
 	Data          Data
 	SchemaBuilder validation.SchemaBuilder
 }
@@ -113,6 +118,7 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 		SessionOutput: sessionOutput,
 		Workflow:      workflow,
 		Data:          determineActionResult.Data,
+		Finished:      determineActionResult.Finished,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
@@ -203,6 +209,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 		Workflow:      w,
 		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
+		Finished:      determineActionResult.Finished,
 	}
 	output.EnsureDataIsNonNil()
 	return
@@ -268,6 +275,7 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		Workflow:      workflow,
 		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
+		Finished:      determineActionResult.Finished,
 		Cookies:       cookies,
 	}
 	output.EnsureDataIsNonNil()
@@ -331,6 +339,7 @@ func (s *Service) determineAction(ctx context.Context, session *Session, workflo
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewWorkflows(workflow))
 	if errors.Is(err, ErrEOF) {
 		return &determineActionResult{
+			Finished: true,
 			Data: &DataRedirectURI{
 				RedirectURI: session.RedirectURI,
 			},

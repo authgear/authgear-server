@@ -29,16 +29,15 @@ type FlowReference struct {
 }
 
 // FlowResponse is an API object.
-// When json_schema is present, this means the flow is not finished.
-// When json_schema is absent, the flow is finished.
+// When the flow finished, `json_schema` is absent and `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.
-// A very common case is:
-// 1. json_schema is absent
-// 2. redirect_uri is present in data.
 type FlowResponse struct {
-	ID         string                   `json:"id"`
+	ID string `json:"id"`
+
+	Finished   bool                     `json:"finished,omitempty"`
 	JSONSchema validation.SchemaBuilder `json:"json_schema,omitempty"`
-	Data       Data                     `json:"data"`
+
+	Data Data `json:"data"`
 }
 
 type flowFactory func() Flow

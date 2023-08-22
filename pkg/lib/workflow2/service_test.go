@@ -110,6 +110,7 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
+				Finished: true,
 				Data: &DataRedirectURI{
 					RedirectURI: "",
 				},
@@ -366,6 +367,7 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
+				Finished: true,
 				Data: &DataRedirectURI{
 					RedirectURI: "",
 				},
