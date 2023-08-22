@@ -174,14 +174,9 @@ func (s *Service) createNewWorkflow(ctx context.Context, session *Session, inten
 	return
 }
 
-func (s *Service) Get(workflowID string, instanceID string, userAgentID string) (output *ServiceOutput, err error) {
+func (s *Service) Get(instanceID string, userAgentID string) (output *ServiceOutput, err error) {
 	w, err := s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
-		return
-	}
-
-	if w.WorkflowID != workflowID {
-		err = ErrWorkflowNotFound
 		return
 	}
 
@@ -230,14 +225,9 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 	return
 }
 
-func (s *Service) FeedInput(workflowID string, instanceID string, userAgentID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
 	workflow, err := s.Store.GetWorkflowByInstanceID(instanceID)
 	if err != nil {
-		return
-	}
-
-	if workflow.WorkflowID != workflowID {
-		err = ErrWorkflowNotFound
 		return
 	}
 

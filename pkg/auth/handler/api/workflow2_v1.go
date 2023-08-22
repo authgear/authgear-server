@@ -13,8 +13,8 @@ import (
 
 type Workflow2V1WorkflowService interface {
 	CreateNewWorkflow(intent workflow.Intent, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
-	Get(workflowID string, instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
-	FeedInput(workflowID string, instanceID string, userAgentID string, rawMessage json.RawMessage) (*workflow.ServiceOutput, error)
+	Get(instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
+	FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (*workflow.ServiceOutput, error)
 }
 
 type Workflow2V1CookieManager interface {

@@ -88,13 +88,12 @@ func (h *Workflow2V1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 
 	if len(request.BatchInput) > 0 {
-		workflowID := output.Workflow.WorkflowID
 		instanceID := output.Workflow.InstanceID
 		userAgentID := output.Session.UserAgentID
 
-		output, err = h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+		output, err = h.batchInput(w, r, instanceID, userAgentID, request)
 		if err != nil {
-			apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+			apiResp, apiRespErr := h.prepareErrorResponse(instanceID, userAgentID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -111,7 +110,6 @@ func (h *Workflow2V1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	result := Workflow2Response{
 		Action:     output.Action,
-		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
 		Schema:     output.SchemaBuilder,
@@ -199,7 +197,6 @@ func (h *Workflow2V1CreateHandler) makeSessionOptionsFromQuery(urlQuery string) 
 func (h *Workflow2V1CreateHandler) batchInput(
 	w http.ResponseWriter,
 	r *http.Request,
-	workflowID string,
 	instanceID string,
 	userAgentID string,
 	request Workflow2V1CreateRequest,
@@ -207,7 +204,7 @@ func (h *Workflow2V1CreateHandler) batchInput(
 	// Collect all cookies
 	var cookies []*http.Cookie
 	for _, rawMessage := range request.BatchInput {
-		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, rawMessage)
+		output, err = h.Workflows.FeedInput(instanceID, userAgentID, rawMessage)
 		if err != nil && !errors.Is(err, workflow.ErrEOF) {
 			return nil, err
 		}
@@ -229,19 +226,17 @@ func (h *Workflow2V1CreateHandler) batchInput(
 }
 
 func (h *Workflow2V1CreateHandler) prepareErrorResponse(
-	workflowID string,
 	instanceID string,
 	userAgentID string,
 	workflowErr error,
 ) (*api.Response, error) {
-	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
+	output, err := h.Workflows.Get(instanceID, userAgentID)
 	if err != nil {
 		return nil, err
 	}
 
 	result := Workflow2Response{
 		Action:     output.Action,
-		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
 		Schema:     output.SchemaBuilder,

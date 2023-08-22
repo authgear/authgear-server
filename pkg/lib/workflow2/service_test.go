@@ -148,7 +148,7 @@ func TestService(t *testing.T) {
 				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
 			)
 
-			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, "", json.RawMessage(`{
+			output, err := service.FeedInput(workflow.InstanceID, "", json.RawMessage(`{
 				"login_id": "user@example.com"
 			}`))
 			So(err, ShouldBeNil)
@@ -354,7 +354,6 @@ func TestServiceContext(t *testing.T) {
 			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(2).Return(output.Workflow, nil)
 
 			output, err = service.FeedInput(
-				output.Session.WorkflowID,
 				output.Workflow.InstanceID,
 				"",
 				json.RawMessage(`{}`),

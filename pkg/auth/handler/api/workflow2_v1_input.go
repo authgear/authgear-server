@@ -21,9 +21,8 @@ func ConfigureWorkflow2V1InputRoute(route httproute.Route) httproute.Route {
 var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
-		"required": ["workflow_id", "instance_id"],
+		"required": ["instance_id"],
 		"properties": {
-			"workflow_id": { "type": "string" },
 			"instance_id": { "type": "string" }
 		},
 		"oneOf": [
@@ -52,7 +51,6 @@ var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 `)
 
 type Workflow2V1InputRequest struct {
-	WorkflowID string            `json:"workflow_id,omitempty"`
 	InstanceID string            `json:"instance_id,omitempty"`
 	Input      json.RawMessage   `json:"input,omitempty"`
 	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
@@ -76,13 +74,12 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	if request.Input != nil {
-		workflowID := request.WorkflowID
 		instanceID := request.InstanceID
 		userAgentID := workflow2getOrCreateUserAgentID(h.Cookies, w, r)
 
-		output, err := h.input(w, r, workflowID, instanceID, userAgentID, request)
+		output, err := h.input(w, r, instanceID, userAgentID, request)
 		if err != nil {
-			apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+			apiResp, apiRespErr := h.prepareErrorResponse(instanceID, userAgentID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -98,20 +95,18 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 		result := Workflow2Response{
 			Action:     output.Action,
-			WorkflowID: output.Workflow.WorkflowID,
 			InstanceID: output.Workflow.InstanceID,
 			Data:       output.Data,
 			Schema:     output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	} else {
-		workflowID := request.WorkflowID
 		instanceID := request.InstanceID
 		userAgentID := workflow2getOrCreateUserAgentID(h.Cookies, w, r)
 
-		output, err := h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+		output, err := h.batchInput(w, r, instanceID, userAgentID, request)
 		if err != nil {
-			apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+			apiResp, apiRespErr := h.prepareErrorResponse(instanceID, userAgentID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -127,7 +122,6 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 		result := Workflow2Response{
 			Action:     output.Action,
-			WorkflowID: output.Workflow.WorkflowID,
 			InstanceID: output.Workflow.InstanceID,
 			Data:       output.Data,
 			Schema:     output.SchemaBuilder,
@@ -139,12 +133,11 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 func (h *Workflow2V1InputHandler) input(
 	w http.ResponseWriter,
 	r *http.Request,
-	workflowID string,
 	instanceID string,
 	userAgentID string,
 	request Workflow2V1InputRequest,
 ) (*workflow.ServiceOutput, error) {
-	output, err := h.Workflows.FeedInput(workflowID, instanceID, userAgentID, request.Input)
+	output, err := h.Workflows.FeedInput(instanceID, userAgentID, request.Input)
 	if err != nil && !errors.Is(err, workflow.ErrEOF) {
 		return nil, err
 	}
@@ -155,7 +148,6 @@ func (h *Workflow2V1InputHandler) input(
 func (h *Workflow2V1InputHandler) batchInput(
 	w http.ResponseWriter,
 	r *http.Request,
-	workflowID string,
 	instanceID string,
 	userAgentID string,
 	request Workflow2V1InputRequest,
@@ -163,7 +155,7 @@ func (h *Workflow2V1InputHandler) batchInput(
 	// Collect all cookies
 	var cookies []*http.Cookie
 	for _, rawMessage := range request.BatchInput {
-		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, rawMessage)
+		output, err = h.Workflows.FeedInput(instanceID, userAgentID, rawMessage)
 		if err != nil && !errors.Is(err, workflow.ErrEOF) {
 			return nil, err
 		}
@@ -185,19 +177,17 @@ func (h *Workflow2V1InputHandler) batchInput(
 }
 
 func (h *Workflow2V1InputHandler) prepareErrorResponse(
-	workflowID string,
 	instanceID string,
 	userAgentID string,
 	workflowErr error,
 ) (*api.Response, error) {
-	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
+	output, err := h.Workflows.Get(instanceID, userAgentID)
 	if err != nil {
 		return nil, err
 	}
 
 	result := Workflow2Response{
 		Action:     output.Action,
-		WorkflowID: output.Workflow.WorkflowID,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
 		Schema:     output.SchemaBuilder,
