@@ -30,3 +30,17 @@ type Workflow2V1OAuthSessionService interface {
 type Workflow2V1UIInfoResolver interface {
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
+
+func workflow2getOrCreateUserAgentID(cookies Workflow2V1CookieManager, w http.ResponseWriter, r *http.Request) string {
+	var userAgentID string
+	userAgentIDCookie, err := cookies.GetCookie(r, workflow.UserAgentIDCookieDef)
+	if err == nil {
+		userAgentID = userAgentIDCookie.Value
+	}
+	if userAgentID == "" {
+		userAgentID = workflow.NewUserAgentID()
+	}
+	cookie := cookies.ValueCookie(workflow.UserAgentIDCookieDef, userAgentID)
+	httputil.UpdateCookie(w, cookie)
+	return userAgentID
+}

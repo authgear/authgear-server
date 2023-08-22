@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -55,7 +56,7 @@ func (h *Workflow2V1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	result := Workflow2Response{
+	result := workflow.FlowResponse{
 		Action:     output.Action,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
