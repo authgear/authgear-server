@@ -35,7 +35,14 @@ func (*IntentVerifyClaim) MilestoneDoMarkClaimVerified() {}
 
 func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (workflow.InputSchema, error) {
 	if len(workflows.Nearest.Nodes) == 0 {
+		// We have a special case here.
+		// If there is only one channel, we do not take any input.
+		// The rationale is that the only possible input is that channel.
+		// So it is trivial that we can proceed without the input.
 		channels := i.getChannels(deps)
+		if len(channels) == 1 {
+			return nil, nil
+		}
 		return &InputSchemaTakeOOBOTPChannel{
 			Channels: channels,
 		}, nil
@@ -45,29 +52,36 @@ func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *workflow.Depen
 }
 
 func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	channels := i.getChannels(deps)
 	var inputTakeOOBOTPChannel inputTakeOOBOTPChannel
-	if workflow.AsInput(input, &inputTakeOOBOTPChannel) {
-		channel := inputTakeOOBOTPChannel.GetChannel()
-		node := &NodeVerifyClaim{
-			UserID:      i.UserID,
-			Purpose:     i.Purpose,
-			MessageType: i.MessageType,
-			ClaimName:   i.ClaimName,
-			ClaimValue:  i.ClaimValue,
-			Channel:     channel,
-		}
-		kind := node.otpKind(deps)
-		err := node.SendCode(ctx, deps)
-		if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.otpTarget()).Name) {
-			// Ignore trigger cooldown rate limit error; continue the workflow
-		} else if err != nil {
-			return nil, err
-		}
+	var channel model.AuthenticatorOOBChannel
 
-		return workflow.NewNodeSimple(node), nil
+	switch {
+	case len(channels) == 1:
+		channel = channels[0]
+	case workflow.AsInput(input, &inputTakeOOBOTPChannel):
+		channel = inputTakeOOBOTPChannel.GetChannel()
+	default:
+		return nil, workflow.ErrIncompatibleInput
 	}
 
-	return nil, workflow.ErrIncompatibleInput
+	node := &NodeVerifyClaim{
+		UserID:      i.UserID,
+		Purpose:     i.Purpose,
+		MessageType: i.MessageType,
+		ClaimName:   i.ClaimName,
+		ClaimValue:  i.ClaimValue,
+		Channel:     channel,
+	}
+	kind := node.otpKind(deps)
+	err := node.SendCode(ctx, deps)
+	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.otpTarget()).Name) {
+		// Ignore trigger cooldown rate limit error; continue the workflow
+	} else if err != nil {
+		return nil, err
+	}
+
+	return workflow.NewNodeSimple(node), nil
 }
 
 func (i *IntentVerifyClaim) getChannels(deps *workflow.Dependencies) []model.AuthenticatorOOBChannel {
