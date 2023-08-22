@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	workflow "github.com/authgear/authgear-server/pkg/lib/workflow2"
@@ -85,10 +84,7 @@ func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *wor
 
 		attributes = i.addAbsent(attributes, allAbsent)
 
-		stdAttrs, customAttrs, err := i.separate(deps, attributes)
-		if err != nil {
-			return nil, err
-		}
+		stdAttrs, customAttrs := i.separate(deps, attributes)
 
 		return workflow.NewNodeSimple(&NodeDoUpdateUserProfile{
 			UserID:             i.UserID,
@@ -123,14 +119,7 @@ func (*IntentSignupFlowStepUserProfile) validate(step *config.WorkflowSignupFlow
 	allAbsent := slice.ExceptStrings(allAllowed, allPresent)
 
 	if len(allMissing) > 0 || len(allDisallowed) > 0 {
-		return nil, InvalidUserProfile.NewWithInfo("invalid attributes", apierrors.Details{
-			"allowed":    allAllowed,
-			"required":   allRequired,
-			"present":    allPresent,
-			"absent":     allAbsent,
-			"missing":    allMissing,
-			"disallowed": allDisallowed,
-		})
+		panic(fmt.Errorf("the input schema should have ensured there are missing or disallowed attributes"))
 	}
 
 	absent = allAbsent
@@ -141,12 +130,10 @@ func (*IntentSignupFlowStepUserProfile) addAbsent(attributes []attrs.T, allAbsen
 	return attrs.List(attributes).AddAbsent(allAbsent)
 }
 
-func (*IntentSignupFlowStepUserProfile) separate(deps *workflow.Dependencies, attributes attrs.List) (stdAttrs attrs.List, customAttrs attrs.List, err error) {
+func (*IntentSignupFlowStepUserProfile) separate(deps *workflow.Dependencies, attributes attrs.List) (stdAttrs attrs.List, customAttrs attrs.List) {
 	stdAttrs, customAttrs, unknownAttrs := attrs.List(attributes).Separate(deps.Config.UserProfile)
 	if len(unknownAttrs) > 0 {
-		err = InvalidUserProfile.NewWithInfo("unknown attributes", apierrors.Details{
-			"unknown": unknownAttrs,
-		})
+		panic(fmt.Errorf("the input schema should have ensured there are no unknown attributes"))
 	}
 	return
 }
