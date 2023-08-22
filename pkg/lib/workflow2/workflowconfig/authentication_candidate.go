@@ -36,26 +36,6 @@ func NewPasswordPolicy(c *config.PasswordPolicyConfig) *PasswordPolicy {
 	return policy
 }
 
-type CreateAuthenticationCandidate struct {
-	AuthenticationMethod config.WorkflowAuthenticationMethod `json:"authentication_method"`
-	PasswordPolicy       *PasswordPolicy                     `json:"password_policy,omitempty"`
-}
-
-func NewCreateAuthenticationCandidate(c *config.PasswordPolicyConfig, m config.WorkflowAuthenticationMethod) CreateAuthenticationCandidate {
-	candidate := CreateAuthenticationCandidate{
-		AuthenticationMethod: m,
-	}
-	switch m {
-	case config.WorkflowAuthenticationMethodPrimaryPassword:
-		fallthrough
-	case config.WorkflowAuthenticationMethodSecondaryPassword:
-		candidate.PasswordPolicy = NewPasswordPolicy(c)
-	default:
-		break
-	}
-	return candidate
-}
-
 type UseAuthenticationCandidate struct {
 	AuthenticationMethod config.WorkflowAuthenticationMethod `json:"authentication_method"`
 	MaskedDisplayName    string                              `json:"masked_display_name,omitempty"`
