@@ -57,7 +57,6 @@ func (h *Workflow2V1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	result := workflow.FlowResponse{
-		Action: output.Action,
 		ID:     output.Workflow.InstanceID,
 		Data:   output.Data,
 		Schema: output.SchemaBuilder,

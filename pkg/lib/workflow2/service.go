@@ -12,25 +12,11 @@ import (
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package workflow2
 
-type WorkflowAction struct {
-	Type        WorkflowActionType `json:"type"`
-	RedirectURI string             `json:"redirect_uri,omitempty"`
-}
-
-type WorkflowActionType string
-
-const (
-	WorkflowActionTypeContinue WorkflowActionType = "continue"
-	WorkflowActionTypeFinish   WorkflowActionType = "finish"
-	WorkflowActionTypeRedirect WorkflowActionType = "redirect"
-)
-
 type ServiceOutput struct {
 	Session       *Session
 	SessionOutput *SessionOutput
 	Workflow      *Workflow
 	Data          Data
-	Action        *WorkflowAction
 	SchemaBuilder validation.SchemaBuilder
 	Cookies       []*http.Cookie
 }
@@ -42,9 +28,8 @@ func (o *ServiceOutput) EnsureDataIsNonNil() {
 }
 
 type determineActionResult struct {
-	WorkflowAction *WorkflowAction
-	Data           Data
-	SchemaBuilder  validation.SchemaBuilder
+	Data          Data
+	SchemaBuilder validation.SchemaBuilder
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -128,7 +113,6 @@ func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOption
 		SessionOutput: sessionOutput,
 		Workflow:      workflow,
 		Data:          determineActionResult.Data,
-		Action:        determineActionResult.WorkflowAction,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
@@ -218,7 +202,6 @@ func (s *Service) get(ctx context.Context, session *Session, w *Workflow) (outpu
 		SessionOutput: sessionOutput,
 		Workflow:      w,
 		Data:          determineActionResult.Data,
-		Action:        determineActionResult.WorkflowAction,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 	}
 	output.EnsureDataIsNonNil()
@@ -284,7 +267,6 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		SessionOutput: sessionOutput,
 		Workflow:      workflow,
 		Data:          determineActionResult.Data,
-		Action:        determineActionResult.WorkflowAction,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
@@ -349,8 +331,7 @@ func (s *Service) determineAction(ctx context.Context, session *Session, workflo
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewWorkflows(workflow))
 	if errors.Is(err, ErrEOF) {
 		return &determineActionResult{
-			WorkflowAction: &WorkflowAction{
-				Type:        WorkflowActionTypeFinish,
+			Data: &DataRedirectURI{
 				RedirectURI: session.RedirectURI,
 			},
 		}, nil
@@ -373,9 +354,6 @@ func (s *Service) determineAction(ctx context.Context, session *Session, workflo
 	}
 
 	return &determineActionResult{
-		WorkflowAction: &WorkflowAction{
-			Type: WorkflowActionTypeContinue,
-		},
 		Data:          data,
 		SchemaBuilder: schemaBuilder,
 	}, nil
