@@ -11,8 +11,8 @@ import (
 )
 
 type UseAuthenticationCandidate struct {
-	AuthenticationMethod config.WorkflowAuthenticationMethod `json:"authentication_method"`
-	MaskedDisplayName    string                              `json:"masked_display_name,omitempty"`
+	Authentication    config.WorkflowAuthenticationMethod `json:"authentication"`
+	MaskedDisplayName string                              `json:"masked_display_name,omitempty"`
 	// AuthenticatorID is omitted from the output.
 	// The caller must use index to select a candidate.
 	AuthenticatorID string `json:"-"`
@@ -32,7 +32,7 @@ func NewUseAuthenticationCandidateFromMethod(m config.WorkflowAuthenticationMeth
 		fallthrough
 	case config.WorkflowAuthenticationMethodRecoveryCode:
 		return UseAuthenticationCandidate{
-			AuthenticationMethod: m,
+			Authentication: m,
 		}
 	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
 		fallthrough
@@ -55,46 +55,46 @@ func NewUseAuthenticationCandidateFromInfo(i *authenticator.Info) UseAuthenticat
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPassword,
+				Authentication: config.WorkflowAuthenticationMethodPrimaryPassword,
 			}
 		case model.AuthenticatorTypePasskey:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPasskey,
+				Authentication: config.WorkflowAuthenticationMethodPrimaryPasskey,
 			}
 		case model.AuthenticatorTypeOOBEmail:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
-				MaskedDisplayName:    mail.MaskAddress(i.OOBOTP.Email),
-				AuthenticatorID:      i.ID,
+				Authentication:    config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
+				MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
+				AuthenticatorID:   i.ID,
 			}
 		case model.AuthenticatorTypeOOBSMS:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
-				MaskedDisplayName:    phone.Mask(i.OOBOTP.Phone),
-				AuthenticatorID:      i.ID,
+				Authentication:    config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
+				MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
+				AuthenticatorID:   i.ID,
 			}
 		}
 	case model.AuthenticatorKindSecondary:
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryPassword,
+				Authentication: config.WorkflowAuthenticationMethodSecondaryPassword,
 			}
 		case model.AuthenticatorTypeOOBEmail:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
-				MaskedDisplayName:    mail.MaskAddress(i.OOBOTP.Email),
-				AuthenticatorID:      i.ID,
+				Authentication:    config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
+				MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
+				AuthenticatorID:   i.ID,
 			}
 		case model.AuthenticatorTypeOOBSMS:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
-				MaskedDisplayName:    phone.Mask(i.OOBOTP.Phone),
-				AuthenticatorID:      i.ID,
+				Authentication:    config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
+				MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
+				AuthenticatorID:   i.ID,
 			}
 		case model.AuthenticatorTypeTOTP:
 			return UseAuthenticationCandidate{
-				AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryTOTP,
+				Authentication: config.WorkflowAuthenticationMethodSecondaryTOTP,
 			}
 		}
 	}
@@ -104,7 +104,7 @@ func NewUseAuthenticationCandidateFromInfo(i *authenticator.Info) UseAuthenticat
 
 func KeepAuthenticationMethod(ams ...config.WorkflowAuthenticationMethod) authenticator.Filter {
 	return authenticator.FilterFunc(func(ai *authenticator.Info) bool {
-		am := NewUseAuthenticationCandidateFromInfo(ai).AuthenticationMethod
+		am := NewUseAuthenticationCandidateFromInfo(ai).Authentication
 		for _, t := range ams {
 			if t == am {
 				return true

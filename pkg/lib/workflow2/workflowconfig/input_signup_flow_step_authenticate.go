@@ -20,8 +20,8 @@ func (i *InputSchemaSignupFlowStepAuthenticate) SchemaBuilder() validation.Schem
 	for _, branch := range i.OneOf {
 		branch := branch
 		b := validation.SchemaBuilder{}
-		required := []string{"authentication_method"}
-		b.Properties().Property("authentication_method", validation.SchemaBuilder{}.Const(branch.Authentication))
+		required := []string{"authentication"}
+		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(branch.Authentication))
 
 		switch branch.Authentication {
 		case config.WorkflowAuthenticationMethodPrimaryPassword:
@@ -68,7 +68,7 @@ func (i *InputSchemaSignupFlowStepAuthenticate) MakeInput(rawMessage json.RawMes
 }
 
 type InputSignupFlowStepAuthenticate struct {
-	Authentication config.WorkflowAuthenticationMethod `json:"authentication_method,omitempty"`
+	Authentication config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 	NewPassword    string                              `json:"new_password,omitempty"`
 	Target         string                              `json:"target,omitempty"`
 }

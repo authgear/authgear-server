@@ -261,7 +261,7 @@ func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.WorkflowLoginFlo
 	for i := range allAllowed {
 		thisMethod := allAllowed[i]
 		for _, candidate := range candidates {
-			if thisMethod == candidate.AuthenticationMethod && thisMethod == am {
+			if thisMethod == candidate.Authentication && thisMethod == am {
 				idx = i
 			}
 		}

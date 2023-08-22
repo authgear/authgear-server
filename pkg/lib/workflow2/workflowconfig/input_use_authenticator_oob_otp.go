@@ -21,7 +21,7 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBui
 		index := index
 		candidate := candidate
 
-		switch candidate.AuthenticationMethod {
+		switch candidate.Authentication {
 		case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
 			fallthrough
 		case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
