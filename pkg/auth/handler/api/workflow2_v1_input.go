@@ -21,9 +21,9 @@ func ConfigureWorkflow2V1InputRoute(route httproute.Route) httproute.Route {
 var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
-		"required": ["instance_id"],
+		"required": ["id"],
 		"properties": {
-			"instance_id": { "type": "string" }
+			"id": { "type": "string" }
 		},
 		"oneOf": [
 			{
@@ -51,7 +51,7 @@ var Workflow2V1InputRequestSchema = validation.NewSimpleSchema(`
 `)
 
 type Workflow2V1InputRequest struct {
-	InstanceID string            `json:"instance_id,omitempty"`
+	ID         string            `json:"id,omitempty"`
 	Input      json.RawMessage   `json:"input,omitempty"`
 	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
 }
@@ -74,7 +74,7 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	if request.Input != nil {
-		instanceID := request.InstanceID
+		instanceID := request.ID
 		userAgentID := workflow2getOrCreateUserAgentID(h.Cookies, w, r)
 
 		output, err := h.input(w, r, instanceID, userAgentID, request)
@@ -94,14 +94,14 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 
 		result := workflow.FlowResponse{
-			Action:     output.Action,
-			InstanceID: output.Workflow.InstanceID,
-			Data:       output.Data,
-			Schema:     output.SchemaBuilder,
+			Action: output.Action,
+			ID:     output.Workflow.InstanceID,
+			Data:   output.Data,
+			Schema: output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	} else {
-		instanceID := request.InstanceID
+		instanceID := request.ID
 		userAgentID := workflow2getOrCreateUserAgentID(h.Cookies, w, r)
 
 		output, err := h.batchInput(w, r, instanceID, userAgentID, request)
@@ -121,10 +121,10 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 
 		result := workflow.FlowResponse{
-			Action:     output.Action,
-			InstanceID: output.Workflow.InstanceID,
-			Data:       output.Data,
-			Schema:     output.SchemaBuilder,
+			Action: output.Action,
+			ID:     output.Workflow.InstanceID,
+			Data:   output.Data,
+			Schema: output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	}
@@ -187,10 +187,10 @@ func (h *Workflow2V1InputHandler) prepareErrorResponse(
 	}
 
 	result := workflow.FlowResponse{
-		Action:     output.Action,
-		InstanceID: output.Workflow.InstanceID,
-		Data:       output.Data,
-		Schema:     output.SchemaBuilder,
+		Action: output.Action,
+		ID:     output.Workflow.InstanceID,
+		Data:   output.Data,
+		Schema: output.SchemaBuilder,
 	}
 	return &api.Response{
 		Error:  workflowErr,

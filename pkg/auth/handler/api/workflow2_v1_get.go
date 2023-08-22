@@ -20,14 +20,14 @@ var Workflow2V1GetRequestSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"instance_id": { "type": "string" }
+			"id": { "type": "string" }
 		},
-		"required": ["instance_id"]
+		"required": ["id"]
 	}
 `)
 
 type Workflow2V1GetRequest struct {
-	InstanceID string `json:"instance_id,omitempty"`
+	ID string `json:"id,omitempty"`
 }
 
 type Workflow2V1GetHandler struct {
@@ -47,7 +47,7 @@ func (h *Workflow2V1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	instanceID := request.InstanceID
+	instanceID := request.ID
 	userAgentID := workflow2getOrCreateUserAgentID(h.Cookies, w, r)
 
 	output, err := h.Workflows.Get(instanceID, userAgentID)
@@ -57,10 +57,10 @@ func (h *Workflow2V1GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 
 	result := workflow.FlowResponse{
-		Action:     output.Action,
-		InstanceID: output.Workflow.InstanceID,
-		Data:       output.Data,
-		Schema:     output.SchemaBuilder,
+		Action: output.Action,
+		ID:     output.Workflow.InstanceID,
+		Data:   output.Data,
+		Schema: output.SchemaBuilder,
 	}
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }

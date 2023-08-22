@@ -30,10 +30,10 @@ type FlowReference struct {
 
 // FlowResponse is an API object.
 type FlowResponse struct {
-	Action     *WorkflowAction          `json:"action"`
-	InstanceID string                   `json:"instance_id"`
-	Schema     validation.SchemaBuilder `json:"schema,omitempty"`
-	Data       Data                     `json:"data"`
+	Action *WorkflowAction          `json:"action"`
+	ID     string                   `json:"id"`
+	Schema validation.SchemaBuilder `json:"schema,omitempty"`
+	Data   Data                     `json:"data"`
 }
 
 type flowFactory func() Flow
