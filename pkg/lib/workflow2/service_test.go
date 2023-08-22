@@ -111,8 +111,8 @@ func TestService(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data: &DataRedirectURI{
-					RedirectURI: "",
+				Data: &DataFinishRedirectURI{
+					FinishRedirectURI: "",
 				},
 				Session: &Session{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -368,8 +368,8 @@ func TestServiceContext(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data: &DataRedirectURI{
-					RedirectURI: "",
+				Data: &DataFinishRedirectURI{
+					FinishRedirectURI: "",
 				},
 				Session: &Session{
 					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",

@@ -25,10 +25,10 @@ func (m mapData) Data() {}
 
 var EmptyData = make(mapData)
 
-type DataRedirectURI struct {
-	RedirectURI string `json:"redirect_uri,omitempty"`
+type DataFinishRedirectURI struct {
+	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
 }
 
-var _ Data = &DataRedirectURI{}
+var _ Data = &DataFinishRedirectURI{}
 
-func (*DataRedirectURI) Data() {}
+func (*DataFinishRedirectURI) Data() {}
