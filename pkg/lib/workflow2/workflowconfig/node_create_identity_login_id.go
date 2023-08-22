@@ -3,6 +3,7 @@ package workflowconfig
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -42,10 +43,7 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.
 	var inputTakeLoginID inputTakeLoginID
 	if workflow.AsInput(input, &inputTakeLoginID) {
 		loginID := inputTakeLoginID.GetLoginID()
-		spec, err := n.makeLoginIDSpec(loginID)
-		if err != nil {
-			return nil, err
-		}
+		spec := n.makeLoginIDSpec(loginID)
 
 		// FIXME(workflow): allow bypassing email blocklist for Admin API.
 		info, err := deps.Identities.New(n.UserID, spec, identity.NewIdentityOptions{})
@@ -72,7 +70,7 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *workflow.
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeCreateIdentityLoginID) makeLoginIDSpec(loginID string) (*identity.Spec, error) {
+func (n *NodeCreateIdentityLoginID) makeLoginIDSpec(loginID string) *identity.Spec {
 	spec := &identity.Spec{
 		Type: model.IdentityTypeLoginID,
 		LoginID: &identity.LoginIDSpec{
@@ -90,7 +88,8 @@ func (n *NodeCreateIdentityLoginID) makeLoginIDSpec(loginID string) (*identity.S
 		spec.LoginID.Type = model.LoginIDKeyTypeUsername
 		spec.LoginID.Key = string(spec.LoginID.Type)
 	default:
-		return nil, InvalidIdentificationMethod.New("unexpected identification method")
+		panic(fmt.Errorf("unexpected identification method: %v", n.Identification))
 	}
-	return spec, nil
+
+	return spec
 }
