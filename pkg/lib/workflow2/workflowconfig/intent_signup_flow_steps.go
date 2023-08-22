@@ -78,12 +78,12 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *workflow.Depe
 			UserID:      i.UserID,
 		}), nil
 	case config.WorkflowSignupFlowStepTypeRecoveryCode:
-		return workflow.NewSubWorkflow(&IntentSignupFlowStepRecoveryCode{
+		return workflow.NewSubWorkflow(NewIntentSignupFlowStepRecoveryCode(deps, &IntentSignupFlowStepRecoveryCode{
 			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
 			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
-		}), nil
+		})), nil
 	case config.WorkflowSignupFlowStepTypeUserProfile:
 		return workflow.NewSubWorkflow(&IntentSignupFlowStepUserProfile{
 			SignupFlow:  i.SignupFlow,
