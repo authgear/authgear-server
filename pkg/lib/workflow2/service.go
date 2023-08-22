@@ -340,8 +340,8 @@ func (s *Service) determineAction(ctx context.Context, session *Session, workflo
 	if errors.Is(err, ErrEOF) {
 		return &determineActionResult{
 			Finished: true,
-			Data: &DataRedirectURI{
-				RedirectURI: session.RedirectURI,
+			Data: &DataFinishRedirectURI{
+				FinishRedirectURI: session.RedirectURI,
 			},
 		}, nil
 	}
