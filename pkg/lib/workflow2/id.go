@@ -1,6 +1,7 @@
 package workflow2
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -15,13 +16,13 @@ const (
 var rng *rand.Rand = corerand.SecureRand
 
 func newWorkflowID() string {
-	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
+	return fmt.Sprintf("flowparent_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
 
 func newInstanceID() string {
-	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
+	return fmt.Sprintf("flow_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
 
 func NewUserAgentID() string {
-	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
+	return fmt.Sprintf("flowua_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }

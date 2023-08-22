@@ -71,17 +71,17 @@ func TestService(t *testing.T) {
 					Type: WorkflowActionTypeContinue,
 				},
 				Workflow: &Workflow{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "flow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
 				Data:          EmptyData,
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 				SessionOutput: &SessionOutput{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 			})
 		})
@@ -106,8 +106,8 @@ func TestService(t *testing.T) {
 					Type: WorkflowActionTypeFinish,
 				},
 				Workflow: &Workflow{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
 					Intent:     intent,
 					Nodes: []Node{
 						{
@@ -118,10 +118,10 @@ func TestService(t *testing.T) {
 				},
 				Data: EmptyData,
 				Session: &Session{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 				SessionOutput: &SessionOutput{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 			})
 		})
@@ -158,7 +158,7 @@ func TestService(t *testing.T) {
 				},
 				Workflow: &Workflow{
 					WorkflowID: "workflow-id",
-					InstanceID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "flow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					Intent:     intent,
 					Nodes: []Node{
 						{
@@ -364,8 +364,8 @@ func TestServiceContext(t *testing.T) {
 					Type: WorkflowActionTypeFinish,
 				},
 				Workflow: &Workflow{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
 					Intent:     intent,
 					Nodes: []Node{
 						{
@@ -378,11 +378,11 @@ func TestServiceContext(t *testing.T) {
 				},
 				Data: EmptyData,
 				Session: &Session{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID:   "client-id",
 				},
 				SessionOutput: &SessionOutput{
-					WorkflowID: "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					WorkflowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID:   "client-id",
 				},
 				Cookies: []*http.Cookie{

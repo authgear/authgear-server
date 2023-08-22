@@ -42,7 +42,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "instance_id": "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+    "instance_id": "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -87,7 +87,7 @@ func TestAccept(t *testing.T) {
             }
         }
     ],
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
+    "workflow_id": "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
 }
 		`)
 	})
@@ -101,7 +101,7 @@ func TestAccept(t *testing.T) {
 
 		jsonStr := `
 {
-    "instance_id": "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+    "instance_id": "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -146,7 +146,7 @@ func TestAccept(t *testing.T) {
             }
         }
     ],
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
+    "workflow_id": "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
 }
 		`
 
@@ -189,7 +189,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "instance_id": "1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
+    "instance_id": "flow_1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -234,7 +234,7 @@ func TestAccept(t *testing.T) {
             }
         }
     ],
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
+    "workflow_id": "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
 }
 		`)
 
@@ -271,7 +271,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "instance_id": "M4PEY3W99C69WACPPS9KWK5N09Y46XBC",
+    "instance_id": "flow_M4PEY3W99C69WACPPS9KWK5N09Y46XBC",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -345,7 +345,7 @@ func TestAccept(t *testing.T) {
             }
         }
     ],
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
+    "workflow_id": "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4"
 }
 		`)
 	})
@@ -362,8 +362,8 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-    "instance_id": "Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+    "workflow_id": "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+    "instance_id": "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
     "intent": {
         "data": {},
         "kind": "intentTestBoundarySteps"
@@ -411,8 +411,8 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "workflow_id": "TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-    "instance_id": "1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
+    "workflow_id": "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+    "instance_id": "flow_1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
     "intent": {
         "data": {},
         "kind": "intentTestBoundarySteps"
