@@ -97,7 +97,6 @@ func (i *IntentVerifyIdentity) ReactTo(ctx context.Context, deps *workflow.Depen
 			IdentityID:  i.Identity.ID,
 			PhoneNumber: status.Value,
 		}
-		// FIXME(workflow): verify phone via whatsapp
 	}
 
 	if node == nil {
