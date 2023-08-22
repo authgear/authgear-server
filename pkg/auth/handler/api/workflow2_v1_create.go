@@ -108,7 +108,7 @@ func (h *Workflow2V1CreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		httputil.UpdateCookie(w, c)
 	}
 
-	result := Workflow2Response{
+	result := workflow.FlowResponse{
 		Action:     output.Action,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,
@@ -235,7 +235,7 @@ func (h *Workflow2V1CreateHandler) prepareErrorResponse(
 		return nil, err
 	}
 
-	result := Workflow2Response{
+	result := workflow.FlowResponse{
 		Action:     output.Action,
 		InstanceID: output.Workflow.InstanceID,
 		Data:       output.Data,

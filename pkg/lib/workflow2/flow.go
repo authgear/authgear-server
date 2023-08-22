@@ -3,6 +3,8 @@ package workflow2
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // Flow is a instantiable intent by the public.
@@ -24,6 +26,14 @@ const (
 type FlowReference struct {
 	Type FlowType `json:"type"`
 	ID   string   `json:"id"`
+}
+
+// FlowResponse is an API object.
+type FlowResponse struct {
+	Action     *WorkflowAction          `json:"action"`
+	InstanceID string                   `json:"instance_id"`
+	Schema     validation.SchemaBuilder `json:"schema,omitempty"`
+	Data       Data                     `json:"data"`
 }
 
 type flowFactory func() Flow
