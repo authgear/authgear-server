@@ -58,7 +58,7 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
     "oneOf": [
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "primary_password"
                 },
                 "new_password": {
@@ -66,13 +66,13 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "new_password"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "primary_oob_otp_email"
                 },
                 "target": {
@@ -80,23 +80,23 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "target"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "primary_oob_otp_sms"
                 }
             },
             "required": [
-                "authentication_method"
+                "authentication"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_password"
                 },
                 "new_password": {
@@ -104,23 +104,23 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "new_password"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_totp"
                 }
             },
             "required": [
-                "authentication_method"
+                "authentication"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_oob_otp_email"
                 },
                 "target": {
@@ -128,13 +128,13 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "target"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_oob_otp_sms"
                 },
                 "target": {
@@ -142,7 +142,7 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "target"
             ]
         }

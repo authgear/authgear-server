@@ -23,8 +23,8 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 		candidate := candidate
 
 		b := validation.SchemaBuilder{}
-		required := []string{"authentication_method"}
-		b.Properties().Property("authentication_method", validation.SchemaBuilder{}.Const(candidate.AuthenticationMethod))
+		required := []string{"authentication"}
+		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(candidate.Authentication))
 
 		requireString := func(key string) {
 			required = append(required, key)
@@ -38,7 +38,7 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 			)
 		}
 
-		switch candidate.AuthenticationMethod {
+		switch candidate.Authentication {
 		case config.WorkflowAuthenticationMethodPrimaryPassword:
 			requireString("password")
 		case config.WorkflowAuthenticationMethodSecondaryPassword:
@@ -91,7 +91,7 @@ func (i *InputSchemaLoginFlowStepAuthenticate) MakeInput(rawMessage json.RawMess
 }
 
 type InputLoginFlowStepAuthenticate struct {
-	Authentication     config.WorkflowAuthenticationMethod `json:"authentication_method,omitempty"`
+	Authentication     config.WorkflowAuthenticationMethod `json:"authentication,omitempty"`
 	RequestDeviceToken bool                                `json:"request_device_token,omitempty"`
 	Password           string                              `json:"password,omitempty"`
 	Code               string                              `json:"code,omitempty"`

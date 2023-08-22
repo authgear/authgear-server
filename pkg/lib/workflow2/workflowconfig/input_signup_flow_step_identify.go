@@ -21,8 +21,8 @@ func (i *InputSchemaSignupFlowStepIdentify) SchemaBuilder() validation.SchemaBui
 		branch := branch
 
 		b := validation.SchemaBuilder{}
-		required := []string{"identification_method"}
-		b.Properties().Property("identification_method", validation.SchemaBuilder{}.Const(branch.Identification))
+		required := []string{"identification"}
+		b.Properties().Property("identification", validation.SchemaBuilder{}.Const(branch.Identification))
 
 		requireString := func(key string) {
 			required = append(required, key)
@@ -65,7 +65,7 @@ func (i *InputSchemaSignupFlowStepIdentify) MakeInput(rawMessage json.RawMessage
 }
 
 type InputSignupFlowStepIdentify struct {
-	IdentificationMethod config.WorkflowIdentificationMethod `json:"identification_method,omitempty"`
+	Identification config.WorkflowIdentificationMethod `json:"identification,omitempty"`
 
 	LoginID string `json:"login,omitempty"`
 }
@@ -77,7 +77,7 @@ var _ inputTakeLoginID = &InputSignupFlowStepIdentify{}
 func (*InputSignupFlowStepIdentify) Input() {}
 
 func (i *InputSignupFlowStepIdentify) GetIdentificationMethod() config.WorkflowIdentificationMethod {
-	return i.IdentificationMethod
+	return i.Identification
 }
 
 func (i *InputSignupFlowStepIdentify) GetLoginID() string {

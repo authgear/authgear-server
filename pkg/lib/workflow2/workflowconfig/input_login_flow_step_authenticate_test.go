@@ -50,31 +50,31 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 			test((&InputSchemaLoginFlowStepAuthenticate{
 				Candidates: []UseAuthenticationCandidate{
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryPassword,
+						Authentication: config.WorkflowAuthenticationMethodPrimaryPassword,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryPassword,
+						Authentication: config.WorkflowAuthenticationMethodSecondaryPassword,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryTOTP,
+						Authentication: config.WorkflowAuthenticationMethodSecondaryTOTP,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
+						Authentication: config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
+						Authentication: config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
+						Authentication: config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
+						Authentication: config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodRecoveryCode,
+						Authentication: config.WorkflowAuthenticationMethodRecoveryCode,
 					},
 					{
-						AuthenticationMethod: config.WorkflowAuthenticationMethodDeviceToken,
+						Authentication: config.WorkflowAuthenticationMethodDeviceToken,
 					},
 				},
 			}).SchemaBuilder(), `
@@ -89,7 +89,7 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
     "oneOf": [
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "primary_password"
                 },
                 "password": {
@@ -97,13 +97,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "password"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_password"
                 },
                 "password": {
@@ -111,13 +111,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "password"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_totp"
                 },
                 "code": {
@@ -125,13 +125,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "code"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "primary_oob_otp_email"
                 },
                 "index": {
@@ -140,13 +140,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "index"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "primary_oob_otp_sms"
                 },
                 "index": {
@@ -155,13 +155,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "index"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_oob_otp_email"
                 },
                 "index": {
@@ -170,13 +170,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "index"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "secondary_oob_otp_sms"
                 },
                 "index": {
@@ -185,13 +185,13 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "index"
             ]
         },
         {
             "properties": {
-                "authentication_method": {
+                "authentication": {
                     "const": "recovery_code"
                 },
                 "recovery_code": {
@@ -199,7 +199,7 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                 }
             },
             "required": [
-                "authentication_method",
+                "authentication",
                 "recovery_code"
             ]
         }
