@@ -94,9 +94,9 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		}
 
 		result := workflow.FlowResponse{
-			ID:     output.Workflow.InstanceID,
-			Data:   output.Data,
-			Schema: output.SchemaBuilder,
+			ID:         output.Workflow.InstanceID,
+			Data:       output.Data,
+			JSONSchema: output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	} else {
@@ -122,7 +122,7 @@ func (h *Workflow2V1InputHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result := workflow.FlowResponse{
 			ID:     output.Workflow.InstanceID,
 			Data:   output.Data,
-			Schema: output.SchemaBuilder,
+			JSONSchema: output.SchemaBuilder,
 		}
 		h.JSON.WriteResponse(w, &api.Response{Result: result})
 	}
@@ -185,9 +185,9 @@ func (h *Workflow2V1InputHandler) prepareErrorResponse(
 	}
 
 	result := workflow.FlowResponse{
-		ID:     output.Workflow.InstanceID,
-		Data:   output.Data,
-		Schema: output.SchemaBuilder,
+		ID:         output.Workflow.InstanceID,
+		Data:       output.Data,
+		JSONSchema: output.SchemaBuilder,
 	}
 	return &api.Response{
 		Error:  workflowErr,
