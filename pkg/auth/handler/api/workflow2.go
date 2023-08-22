@@ -10,7 +10,6 @@ import (
 
 type Workflow2Response struct {
 	Action     *workflow.WorkflowAction `json:"action"`
-	WorkflowID string                   `json:"workflow_id"`
 	InstanceID string                   `json:"instance_id"`
 	Schema     validation.SchemaBuilder `json:"schema,omitempty"`
 	Data       workflow.Data            `json:"data"`
