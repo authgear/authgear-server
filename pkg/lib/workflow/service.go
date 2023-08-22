@@ -361,7 +361,6 @@ func (s *Service) determineAction(ctx context.Context, session *Session, workflo
 			RedirectURI: session.RedirectURI,
 		}, nil
 	}
-	// TODO(workflow): handle oauth redirect.
 	return &WorkflowAction{
 		Type: WorkflowActionTypeContinue,
 	}, nil
