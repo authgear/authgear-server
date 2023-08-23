@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
 
@@ -85,35 +84,5 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 }
 
 func (i *IntentVerifyClaim) getChannels(deps *authflow.Dependencies) []model.AuthenticatorOOBChannel {
-	email := false
-	sms := false
-	whatsapp := false
-
-	switch i.ClaimName {
-	case model.ClaimEmail:
-		email = true
-	case model.ClaimPhoneNumber:
-		switch deps.Config.Authenticator.OOB.SMS.PhoneOTPMode {
-		case config.AuthenticatorPhoneOTPModeSMSOnly:
-			sms = true
-		case config.AuthenticatorPhoneOTPModeWhatsappOnly:
-			whatsapp = true
-		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
-			sms = true
-			whatsapp = true
-		}
-	}
-
-	channels := []model.AuthenticatorOOBChannel{}
-	if email {
-		channels = append(channels, model.AuthenticatorOOBChannelEmail)
-	}
-	if sms {
-		channels = append(channels, model.AuthenticatorOOBChannelSMS)
-	}
-	if whatsapp {
-		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
-	}
-
-	return channels
+	return getChannels(i.ClaimName, deps.Config.Authenticator.OOB)
 }

@@ -15,6 +15,8 @@ type UseAuthenticationCandidate struct {
 
 	// MaskedDisplayName is specific to OOBOTP.
 	MaskedDisplayName string `json:"masked_display_name,omitempty"`
+	// Channels is specific to OOBOTP.
+	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 
 	// AuthenticatorID is omitted from the output.
 	// The caller must use index to select a candidate.
@@ -81,11 +83,8 @@ func AuthenticationFromAuthenticator(i *authenticator.Info) config.Authenticatio
 	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
 }
 
-func NewUseAuthenticationCandidateFromInfo(i *authenticator.Info) UseAuthenticationCandidate {
+func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationCandidate {
 	am := AuthenticationFromAuthenticator(i)
-	candidate := UseAuthenticationCandidate{
-		Authentication: am,
-	}
 	switch am {
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
@@ -94,19 +93,29 @@ func NewUseAuthenticationCandidateFromInfo(i *authenticator.Info) UseAuthenticat
 	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-		return candidate
+		return UseAuthenticationCandidate{
+			Authentication: am,
+		}
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		candidate.MaskedDisplayName = mail.MaskAddress(i.OOBOTP.Email)
-		candidate.AuthenticatorID = i.ID
-		return candidate
+		channels := getChannels(model.ClaimEmail, oobConfig)
+		return UseAuthenticationCandidate{
+			Authentication:    am,
+			Channels:          channels,
+			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
+			AuthenticatorID:   i.ID,
+		}
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		candidate.MaskedDisplayName = phone.Mask(i.OOBOTP.Phone)
-		candidate.AuthenticatorID = i.ID
-		return candidate
+		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
+		return UseAuthenticationCandidate{
+			Authentication:    am,
+			Channels:          channels,
+			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
+			AuthenticatorID:   i.ID,
+		}
 	}
 
 	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))

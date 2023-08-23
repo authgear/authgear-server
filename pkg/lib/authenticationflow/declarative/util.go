@@ -86,7 +86,7 @@ func getAuthenticationCandidatesOfIdentity(deps *authflow.Dependencies, info *id
 		return nil, err
 	}
 
-	return getAuthenticationCandidates(as, []config.AuthenticationFlowAuthentication{am})
+	return getAuthenticationCandidates(deps.Config.Authenticator.OOB, as, []config.AuthenticationFlowAuthentication{am})
 }
 
 func getAuthenticationCandidatesOfUser(deps *authflow.Dependencies, userID string, allAllowed []config.AuthenticationFlowAuthentication) ([]UseAuthenticationCandidate, error) {
@@ -95,7 +95,7 @@ func getAuthenticationCandidatesOfUser(deps *authflow.Dependencies, userID strin
 		return nil, err
 	}
 
-	return getAuthenticationCandidates(as, allAllowed)
+	return getAuthenticationCandidates(deps.Config.Authenticator.OOB, as, allAllowed)
 }
 
 func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationCandidate, error) {
@@ -149,14 +149,18 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		}
 	}
 
+	if len(candidates) == 0 {
+		return nil, NoUsableAuthentication.New("no usable authentication method")
+	}
+
 	return candidates, nil
 }
 
-func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
+func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []*authenticator.Info, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
 	addOne := func() {
 		added := false
 		for _, a := range as {
-			candidate := NewUseAuthenticationCandidateFromInfo(a)
+			candidate := NewUseAuthenticationCandidateFromInfo(oobConfig, a)
 			if !added {
 				allUsable = append(allUsable, candidate)
 				added = true
@@ -166,7 +170,7 @@ func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.A
 
 	addAll := func() {
 		for _, a := range as {
-			candidate := NewUseAuthenticationCandidateFromInfo(a)
+			candidate := NewUseAuthenticationCandidateFromInfo(oobConfig, a)
 			allUsable = append(allUsable, candidate)
 		}
 	}
@@ -197,13 +201,6 @@ func getAuthenticationCandidates(as []*authenticator.Info, allAllowed []config.A
 		}
 	}
 
-	if len(allUsable) == 0 {
-		err = NoUsableAuthenticationMethod.NewWithInfo("no usable authentication method", apierrors.Details{
-			"allowed": allAllowed,
-		})
-		return
-	}
-
 	return
 }
 
@@ -231,4 +228,38 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 	}
 
 	return errorutil.WithDetails(err, details)
+}
+
+func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig) []model.AuthenticatorOOBChannel {
+	email := false
+	sms := false
+	whatsapp := false
+
+	switch claimName {
+	case model.ClaimEmail:
+		email = true
+	case model.ClaimPhoneNumber:
+		switch oobConfig.SMS.PhoneOTPMode {
+		case config.AuthenticatorPhoneOTPModeSMSOnly:
+			sms = true
+		case config.AuthenticatorPhoneOTPModeWhatsappOnly:
+			whatsapp = true
+		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
+			sms = true
+			whatsapp = true
+		}
+	}
+
+	channels := []model.AuthenticatorOOBChannel{}
+	if email {
+		channels = append(channels, model.AuthenticatorOOBChannelEmail)
+	}
+	if sms {
+		channels = append(channels, model.AuthenticatorOOBChannelSMS)
+	}
+	if whatsapp {
+		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+	}
+
+	return channels
 }
