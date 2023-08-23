@@ -135,7 +135,6 @@ func (s *Service) sendEmail(email string, userID string) error {
 		otp.FormLink,
 		&otp.GenerateOptions{
 			UserID: userID,
-			// TODO: workflow/session ID?
 		})
 	if err != nil {
 		return err
@@ -180,7 +179,6 @@ func (s *Service) sendSMS(phone string, userID string) (err error) {
 		otp.FormLink,
 		&otp.GenerateOptions{
 			UserID: userID,
-			// TODO: workflow/session ID?
 		})
 	if err != nil {
 		return err
