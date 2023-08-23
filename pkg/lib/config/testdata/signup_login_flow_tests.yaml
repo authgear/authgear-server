@@ -1,0 +1,32 @@
+part: AuthenticationFlowSignupLoginFlow
+name: valid
+error: null
+value:
+  id: id
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+      signup_flow: a
+      login_flow: b
+
+---
+part: AuthenticationFlowSignupLoginFlow
+name: invalid
+error: |-
+  invalid value:
+  /steps/0/type: enum
+    map[actual:foobar expected:[identify]]
+  /steps/1/one_of/0: required
+    map[actual:[identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
+  /steps/1/one_of/0/identification: enum
+    map[actual:foobar expected:[email phone username oauth passkey siwe]]
+value:
+  id: id
+  steps:
+  - type: foobar
+    one_of:
+    - identification: foobar
+  - type: identify
+    one_of:
+    - identification: foobar

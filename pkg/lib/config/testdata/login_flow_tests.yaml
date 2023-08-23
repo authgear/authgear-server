@@ -1,0 +1,66 @@
+part: AuthenticationFlowLoginFlow
+name: valid
+error: null
+value:
+  id: id
+  steps:
+  - type: identify
+    id: my_step
+    one_of:
+    - identification: email
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: primary_oob_otp_email
+          target_step: my_step
+      - type: authenticate
+        optional: true
+        one_of:
+        - authentication: secondary_totp
+---
+part: AuthenticationFlowLoginFlow
+name: change-password
+error: null
+value:
+  id: id
+  steps:
+  - type: identify
+    id: my_step
+    one_of:
+    - identification: email
+  - type: authenticate
+    id: step1
+    one_of:
+    - authentication: primary_password
+  - type: change_password
+    target_step: step1
+
+---
+part: AuthenticationFlowLoginFlow
+name: invalid
+error: |-
+  invalid value:
+  /steps/0/one_of/0/steps/0/one_of/0/authentication: enum
+    map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
+  /steps/0/one_of/0/steps/0/one_of/0/target_step: type
+    map[actual:[integer number] expected:[string]]
+  /steps/0/one_of/0/steps/1/one_of/0/authentication: enum
+    map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
+  /steps/0/one_of/0/steps/1/optional: type
+    map[actual:[string] expected:[boolean]]
+value:
+  id: id
+  steps:
+  - type: identify
+    id: my_step
+    one_of:
+    - identification: email
+      steps:
+      - type: authenticate
+        one_of:
+        - authentication: foobar
+          target_step: 1
+      - type: authenticate
+        optional: "a"
+        one_of:
+        - authentication: foobar

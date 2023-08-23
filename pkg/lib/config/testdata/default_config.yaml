@@ -637,4 +637,4 @@ account_migration:
   hook:
     timeout: 5
 captcha: {}
-workflow: {}
+authentication_flow: {}
