@@ -18,7 +18,7 @@ type T struct {
 	AMR             []string  `json:"amr,omitempty"`
 	AuthenticatedAt time.Time `json:"authenticated_at,omitempty"`
 	// ShouldFireAuthenticatedEventWhenIssueOfflineGrant indicates we should fire authenticated event during code exchange
-	// This value will be filled in during interaction / workflow
+	// This value will be filled in during interaction / workflow / authentication flow
 	ShouldFireAuthenticatedEventWhenIssueOfflineGrant bool `json:"should_fire_authenticated_event_when_issue_offline_grant,omitempty"`
 }
 

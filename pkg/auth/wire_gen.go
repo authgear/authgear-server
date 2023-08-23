@@ -17,6 +17,7 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -79,7 +80,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
-	"github.com/authgear/authgear-server/pkg/lib/workflow2"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -56231,7 +56231,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	return workflowV2Handler
 }
 
-func newAPIWorkflow2V1Handler(p *deps.RequestProvider) http.Handler {
+func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
@@ -56924,13 +56924,13 @@ func newAPIWorkflow2V1Handler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	workflow2StoreImpl := &workflow2.StoreImpl{
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Context: contextContext,
 	}
-	eventStoreImpl := workflow2.NewEventStore(appID, appredisHandle, workflow2StoreImpl)
-	dependencies := &workflow2.Dependencies{
+	eventStoreImpl := authenticationflow.NewEventStore(appID, appredisHandle, authenticationflowStoreImpl)
+	dependencies := &authenticationflow.Dependencies{
 		Config:               appConfig,
 		FeatureConfig:        featureConfig,
 		Clock:                clockClock,
@@ -56957,15 +56957,15 @@ func newAPIWorkflow2V1Handler(p *deps.RequestProvider) http.Handler {
 		Cookies:              cookieManager,
 		Events:               eventService,
 		RateLimiter:          limiter,
-		WorkflowEvents:       eventStoreImpl,
+		FlowEvents:           eventStoreImpl,
 		OfflineGrants:        redisStore,
 	}
-	workflow2ServiceLogger := workflow2.NewServiceLogger(factory)
-	workflow2Service := &workflow2.Service{
+	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowService := &authenticationflow.Service{
 		ContextDoNotUseDirectly: contextContext,
 		Deps:                    dependencies,
-		Logger:                  workflow2ServiceLogger,
-		Store:                   workflow2StoreImpl,
+		Logger:                  authenticationflowServiceLogger,
+		Store:                   authenticationflowStoreImpl,
 		Database:                handle,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
@@ -56995,14 +56995,14 @@ func newAPIWorkflow2V1Handler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 	}
-	workflow2V1Handler := &api.Workflow2V1Handler{
+	authenticationFlowV1Handler := &api.AuthenticationFlowV1Handler{
 		JSON:           jsonResponseWriter,
 		Cookies:        cookieManager,
-		Workflows:      workflow2Service,
+		Workflows:      authenticationflowService,
 		OAuthSessions:  oauthsessionStoreRedis,
 		UIInfoResolver: uiInfoResolver,
 	}
-	return workflow2V1Handler
+	return authenticationFlowV1Handler
 }
 
 // Injectors from wire_middleware.go:

@@ -26,28 +26,28 @@ const (
 	AuthenticationStageSecondary AuthenticationStage = "secondary"
 )
 
-func AuthenticationStageFromAuthenticationMethod(am config.WorkflowAuthenticationMethod) AuthenticationStage {
+func AuthenticationStageFromAuthenticationMethod(am config.AuthenticationFlowAuthentication) AuthenticationStage {
 	switch am {
-	case config.WorkflowAuthenticationMethodPrimaryPassword:
+	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
-	case config.WorkflowAuthenticationMethodPrimaryPasskey:
+	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
-	case config.WorkflowAuthenticationMethodPrimaryOOBOTPEmail:
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
-	case config.WorkflowAuthenticationMethodPrimaryOOBOTPSMS:
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		return AuthenticationStagePrimary
-	case config.WorkflowAuthenticationMethodSecondaryPassword:
+	case config.AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
-	case config.WorkflowAuthenticationMethodSecondaryTOTP:
+	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 		fallthrough
-	case config.WorkflowAuthenticationMethodSecondaryOOBOTPEmail:
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
-	case config.WorkflowAuthenticationMethodSecondaryOOBOTPSMS:
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		fallthrough
-	case config.WorkflowAuthenticationMethodRecoveryCode:
+	case config.AuthenticationFlowAuthenticationRecoveryCode:
 		// recovery code is considered as secondary
 		fallthrough
-	case config.WorkflowAuthenticationMethodDeviceToken:
+	case config.AuthenticationFlowAuthenticationDeviceToken:
 		// recovery code is considered as secondary
 		return AuthenticationStageSecondary
 	default:
