@@ -31,6 +31,15 @@ func (o *ServiceOutput) EnsureDataIsNonNil() {
 	}
 }
 
+func (o *ServiceOutput) ToFlowResponse() FlowResponse {
+	return FlowResponse{
+		ID:          o.Flow.InstanceID,
+		WebsocketID: o.Flow.FlowID,
+		JSONSchema:  o.SchemaBuilder,
+		Finished:    o.Finished,
+	}
+}
+
 type determineActionResult struct {
 	Finished      bool
 	Data          Data

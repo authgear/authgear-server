@@ -24925,6 +24925,12 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context: contextContext,
 	}
 	eventStoreImpl := workflow.NewEventStore(appID, handle, workflowStoreImpl)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	authenticationflowEventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	verifyLoginLinkOTPHandler := &webapp.VerifyLoginLinkOTPHandler{
 		LoginLinkOTPCodeService:     otpService,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -24933,6 +24939,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel:     authenticationViewModeler,
 		Renderer:                    responseRenderer,
 		WorkflowEvents:              eventStoreImpl,
+		AuthenticationFlowEvents:    authenticationflowEventStoreImpl,
 		Config:                      appConfig,
 	}
 	return verifyLoginLinkOTPHandler
@@ -56234,6 +56241,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
+	handle := appProvider.Redis
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
@@ -56255,8 +56263,8 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	handle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -56335,10 +56343,9 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -56389,14 +56396,14 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: appredisHandle,
+		Redis: handle,
 	}
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
@@ -56495,17 +56502,17 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -56530,7 +56537,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
-		Redis: appredisHandle,
+		Redis: handle,
 	}
 	lockoutService := &lockout.Service{
 		Logger:  lockoutLogger,
@@ -56665,9 +56672,9 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
 		Service:  elasticsearchService,
-		Database: handle,
+		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	commands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -56683,7 +56690,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Queries:  queries,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -56719,7 +56726,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
+		Redis:  handle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -56735,7 +56742,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       appredisHandle,
+		Redis:       handle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
@@ -56744,7 +56751,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -56756,7 +56763,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           appID,
-		Redis:           appredisHandle,
+		Redis:           handle,
 		Store:           idpsessionStoreRedis,
 		AccessEvents:    eventProvider,
 		TrustProxy:      trustProxy,
@@ -56818,7 +56825,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Logger: usageLogger,
 		Clock:  clockClock,
 		AppID:  appID,
-		Redis:  appredisHandle,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
@@ -56839,7 +56846,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	whatsappConfig := messagingConfig.Whatsapp
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -56920,16 +56927,16 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 		Context: contextContext,
 	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, appredisHandle, authenticationflowStoreImpl)
+	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:               appConfig,
 		FeatureConfig:        featureConfig,
@@ -56966,11 +56973,11 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Deps:                    dependencies,
 		Logger:                  authenticationflowServiceLogger,
 		Store:                   authenticationflowStoreImpl,
-		Database:                handle,
+		Database:                appdbHandle,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 	}
 	promptResolver := &oauth2.PromptResolver{
@@ -56995,12 +57002,22 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 	}
+	corsAllowedOrigins := environmentConfig.CORSAllowedOrigins
+	corsMatcher := &middleware.CORSMatcher{
+		Config:             httpConfig,
+		OAuthConfig:        oAuthConfig,
+		CORSAllowedOrigins: corsAllowedOrigins,
+	}
 	authenticationFlowV1Handler := &api.AuthenticationFlowV1Handler{
+		LoggerFactory:  factory,
+		RedisHandle:    handle,
 		JSON:           jsonResponseWriter,
 		Cookies:        cookieManager,
 		Workflows:      authenticationflowService,
 		OAuthSessions:  oauthsessionStoreRedis,
 		UIInfoResolver: uiInfoResolver,
+		OriginMatcher:  corsMatcher,
+		Events:         eventStoreImpl,
 	}
 	return authenticationFlowV1Handler
 }

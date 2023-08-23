@@ -32,7 +32,10 @@ type FlowReference struct {
 // When the flow finished, `json_schema` is absent and `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.
 type FlowResponse struct {
+	// ID is the instance ID.
 	ID string `json:"id"`
+	// WebsocketID is actually the flow ID.
+	WebsocketID string `json:"websocket_id"`
 
 	Finished   bool                     `json:"finished,omitempty"`
 	JSONSchema validation.SchemaBuilder `json:"json_schema,omitempty"`

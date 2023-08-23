@@ -216,8 +216,8 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		n.otpTarget(),
 		n.otpForm(deps),
 		&otp.GenerateOptions{
-			UserID:     n.UserID,
-			WorkflowID: authflow.GetFlowID(ctx),
+			UserID:               n.UserID,
+			AuthenticationFlowID: authflow.GetFlowID(ctx),
 		},
 	)
 	if err != nil {
