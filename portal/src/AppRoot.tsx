@@ -44,6 +44,9 @@ const GetStartedScreen = lazy(
 const AnonymousUsersConfigurationScreen = lazy(
   async () => import("./graphql/portal/AnonymousUsersConfigurationScreen")
 );
+const App2AppConfigurationScreen = lazy(
+  async () => import("./graphql/portal/App2AppConfigurationScreen")
+);
 const SingleSignOnConfigurationScreen = lazy(
   async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
 );
@@ -374,6 +377,14 @@ const AppRoot: React.VFC = function AppRoot() {
                   element={
                     <Suspense fallback={<ShowLoading />}>
                       <AnonymousUsersConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="app2app"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <App2AppConfigurationScreen />
                     </Suspense>
                   }
                 />

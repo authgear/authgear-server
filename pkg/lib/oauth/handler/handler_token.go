@@ -4,16 +4,21 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -33,8 +38,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
-const BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
+const (
+	AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
+	BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
+	App2AppRequestGrantType   = "urn:authgear:params:oauth:grant-type:app2app-request"
+)
 
 // nolint: gosec
 const IDTokenGrantType = "urn:authgear:params:oauth:grant-type:id-token"
@@ -65,6 +73,15 @@ type TokenHandlerUserFacade interface {
 	GetRaw(id string) (*user.User, error)
 }
 
+type App2AppService interface {
+	ParseTokenUnverified(requestJWT string) (t *app2app.Request, err error)
+	ParseToken(requestJWT string, key jwk.Key) (*app2app.Request, error)
+}
+
+type ChallengeProvider interface {
+	Consume(token string) (*challenge.Purpose, error)
+}
+
 type TokenHandlerLogger struct{ *log.Logger }
 
 func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
@@ -74,6 +91,8 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 type TokenHandler struct {
 	AppID                  config.AppID
 	Config                 *config.OAuthConfig
+	HTTPConfig             *config.HTTPConfig
+	OAuthFeatureConfig     *config.OAuthFeatureConfig
 	IdentityFeatureConfig  *config.IdentityFeatureConfig
 	OAuthClientCredentials *config.OAuthClientCredentials
 	Logger                 TokenHandlerLogger
@@ -89,6 +108,9 @@ type TokenHandler struct {
 	TokenService        TokenService
 	Events              EventService
 	SessionManager      SessionManager
+	App2App             App2AppService
+	Challenges          ChallengeProvider
+	CodeGrantService    CodeGrantService
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -157,6 +179,8 @@ func (h *TokenHandler) doHandle(
 		return h.handleAnonymousRequest(client, r)
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
+	case App2AppRequestGrantType:
+		return h.handleApp2AppRequest(rw, req, client, h.OAuthFeatureConfig, r)
 	case IDTokenGrantType:
 		return h.handleIDToken(rw, req, client, r)
 	default:
@@ -192,6 +216,22 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
+	case App2AppRequestGrantType:
+		if r.JWT() == "" {
+			return protocol.NewError("invalid_request", "jwt is required")
+		}
+		if r.RefreshToken() == "" {
+			return protocol.NewError("invalid_request", "refresh token is required")
+		}
+		if r.ClientID() == "" {
+			return protocol.NewError("invalid_request", "client id is required")
+		}
+		if r.RedirectURI() == "" {
+			return protocol.NewError("invalid_request", "redirect uri is required")
+		}
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
+			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
+		}
 	case IDTokenGrantType:
 		break
 	default:
@@ -202,6 +242,70 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 }
 
 var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
+
+func (h *TokenHandler) app2appVerifyAndConsumeChallenge(jwt string) (*app2app.Request, error) {
+	app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
+	if err != nil {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt payload")
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
+	}
+	if err != nil {
+		return nil, err
+	}
+	purpose, err := h.Challenges.Consume(app2appToken.Challenge)
+	if err != nil || *purpose != challenge.PurposeApp2AppRequest {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt challenge")
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
+	}
+	return app2appToken, nil
+}
+
+func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(jwt string) (jwk.Key, error) {
+	app2appToken, err := h.app2appVerifyAndConsumeChallenge(jwt)
+	if err != nil {
+		return nil, err
+	}
+	key := app2appToken.Key
+	_, err = h.App2App.ParseToken(jwt, key)
+	if err != nil {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt signature")
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
+	}
+	return key, nil
+}
+
+func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
+	client *config.OAuthClientConfig,
+	offlineGrant *oauth.OfflineGrant,
+	app2AppDeviceKey jwk.Key) (*oauth.OfflineGrant, error) {
+	if app2AppDeviceKey != nil && client.App2appEnabled {
+		newKeyJson, err := json.Marshal(app2AppDeviceKey)
+		if err != nil {
+			return nil, err
+		}
+		isSameKey := subtle.ConstantTimeCompare(newKeyJson, []byte(offlineGrant.App2AppDeviceKeyJWKJSON)) != 0
+		if isSameKey {
+			// If same key was provided, do nothing
+		} else {
+			if !client.App2appInsecureDeviceKeyBindingEnabled {
+				return nil, protocol.NewError("invalid_request", "x_app2app_insecure_device_key_binding_enabled must be true to allow updating x_app2app_device_key_jwt")
+			}
+			if offlineGrant.App2AppDeviceKeyJWKJSON != "" {
+				return nil, protocol.NewError("invalid_grant", "app2app device key cannot be changed")
+			}
+			expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
+			if err != nil {
+				return nil, err
+			}
+			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), expiry)
+			if err != nil {
+				return nil, err
+			}
+			return newGrant, err
+		}
+	}
+	return offlineGrant, nil
+}
 
 func (h *TokenHandler) handleAuthorizationCode(
 	client *config.OAuthClientConfig,
@@ -266,7 +370,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo)
+	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -675,6 +779,102 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	return tokenResultOK{Response: resp}, nil
 }
 
+func (h *TokenHandler) handleApp2AppRequest(
+	rw http.ResponseWriter,
+	req *http.Request,
+	client *config.OAuthClientConfig,
+	feature *config.OAuthFeatureConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	if !client.App2appEnabled {
+		return nil, protocol.NewError(
+			"unauthorized_client",
+			"this client may not use app2app authentication",
+		)
+	}
+
+	if !feature.Client.App2AppEnabled {
+		return nil, protocol.NewError(
+			"invalid_request",
+			"app2app disabled",
+		)
+	}
+
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
+	if errResp != nil {
+		return nil, protocol.NewErrorWithErrorResponse(errResp)
+	}
+
+	_, originalOfflineGrant, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	if err != nil {
+		return nil, err
+	}
+	scopes := originalOfflineGrant.Scopes
+	originalClient, ok := h.Config.GetClient(originalOfflineGrant.ClientID)
+	if !ok {
+		return nil, protocol.NewError("server_error", "cannot find original client for app2app")
+	}
+
+	app2appjwt := r.JWT()
+	verifiedToken, err := h.app2appVerifyAndConsumeChallenge(app2appjwt)
+	if err != nil {
+		return nil, err
+	}
+
+	if originalOfflineGrant.App2AppDeviceKeyJWKJSON == "" {
+		if !originalClient.App2appInsecureDeviceKeyBindingEnabled {
+			return nil, protocol.NewError("invalid_grant", "app2app is not allowed in current session")
+		}
+		// The challenge must be verified in previous steps
+		originalOfflineGrant, err = h.app2appUpdateDeviceKeyIfNeeded(originalClient, originalOfflineGrant, verifiedToken.Key)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	parsedKey, err := jwk.ParseKey([]byte(originalOfflineGrant.App2AppDeviceKeyJWKJSON))
+	if err != nil {
+		return nil, err
+	}
+	_, err = h.App2App.ParseToken(app2appjwt, parsedKey)
+	if err != nil {
+		h.Logger.WithError(err).Debugln("invalid app2app jwt signature")
+		return nil, protocol.NewError("invalid_request", "invalid app2app jwt signature")
+	}
+
+	authz, err := h.Authorizations.CheckAndGrant(
+		client.ClientID,
+		originalOfflineGrant.GetUserID(),
+		scopes,
+	)
+	if err != nil {
+		return nil, err
+	}
+	info := authenticationinfo.T{
+		UserID:          originalOfflineGrant.GetUserID(),
+		AuthenticatedAt: h.Clock.NowUTC(),
+	}
+	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
+		Authorization:      authz,
+		IDPSessionID:       originalOfflineGrant.IDPSessionID,
+		AuthenticationInfo: info,
+		IDTokenHintSID:     "",
+		Scopes:             authz.Scopes,
+		RedirectURI:        redirectURI.String(),
+		// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
+		OIDCNonce:     "",
+		PKCEChallenge: r.CodeChallenge(),
+		SSOEnabled:    originalOfflineGrant.SSOEnabled,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp := protocol.TokenResponse{}
+	resp.Code(code)
+	return tokenResultOK{Response: resp}, nil
+}
+
 func (h *TokenHandler) handleIDToken(
 	w http.ResponseWriter,
 	req *http.Request,
@@ -752,6 +952,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
 	deviceInfo map[string]interface{},
+	app2appDeviceKeyJWT string,
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
@@ -794,9 +995,28 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 					if err != nil {
 						return nil, err
 					}
+					if app2appDeviceKeyJWT != "" {
+						k, err := h.app2appGetDeviceKeyJWKVerified(app2appDeviceKeyJWT)
+						if err != nil {
+							return nil, err
+						}
+						_, err = h.app2appUpdateDeviceKeyIfNeeded(client, offlineGrant, k)
+						if err != nil {
+							return nil, err
+						}
+					}
 				}
 			}
 		}
+	}
+
+	var app2appDevicePublicKey jwk.Key = nil
+	if app2appDeviceKeyJWT != "" && client.App2appEnabled {
+		k, err := h.app2appGetDeviceKeyJWKVerified(app2appDeviceKeyJWT)
+		if err != nil {
+			return nil, err
+		}
+		app2appDevicePublicKey = k
 	}
 
 	resp := protocol.TokenResponse{}
@@ -816,6 +1036,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		IDPSessionID:       code.IDPSessionID,
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         code.SSOEnabled,
+		App2AppDeviceKey:   app2appDevicePublicKey,
 	}
 	if issueRefreshToken {
 		offlineGrant, err := h.issueOfflineGrant(
@@ -959,6 +1180,7 @@ type IssueOfflineGrantOptions struct {
 	DeviceInfo         map[string]interface{}
 	IdentityID         string
 	SSOEnabled         bool
+	App2AppDeviceKey   jwk.Key
 }
 
 func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {

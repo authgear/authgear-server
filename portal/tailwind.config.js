@@ -12,6 +12,10 @@ module.exports = {
     extend: {
       colors: {
         grey: { white7: "#F4F4F4" },
+        status: {
+          green: "#10B070",
+          grey: "#605E5C",
+        },
       },
     },
   },

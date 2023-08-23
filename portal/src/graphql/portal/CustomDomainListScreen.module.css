@@ -41,5 +41,5 @@
 }
 
 .activeStatus {
-  color: #10b070;
+  @apply text-status-green;
 }

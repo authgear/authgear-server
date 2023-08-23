@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -562,7 +563,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	scopesValidator := _wireScopesValidatorValue
-	tokenGenerator := _wireTokenGeneratorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
 		Clock:       clock,
@@ -587,6 +587,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	tokenGenerator := _wireTokenGeneratorValue
+	codeGrantService := handler.CodeGrantService{
+		AppID:         appID,
+		CodeGenerator: tokenGenerator,
+		Clock:         clock,
+		CodeGrants:    redisStore,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		Context:                   contextContext,
 		AppID:                     appID,
@@ -596,14 +603,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
 		Authorizations:            authorizationService,
-		CodeGrants:                redisStore,
 		ValidateScopes:            scopesValidator,
-		CodeGenerator:             tokenGenerator,
 		AppSessionTokenService:    appSessionTokenService,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Clock:                     clock,
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
+		CodeGrantService:          codeGrantService,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
@@ -1067,7 +1073,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	scopesValidator := _wireScopesValidatorValue
-	tokenGenerator := _wireTokenGeneratorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,
 		Clock:       clockClock,
@@ -1092,6 +1097,13 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	tokenGenerator := _wireTokenGeneratorValue
+	codeGrantService := handler.CodeGrantService{
+		AppID:         appID,
+		CodeGenerator: tokenGenerator,
+		Clock:         clockClock,
+		CodeGrants:    redisStore,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		Context:                   contextContext,
 		AppID:                     appID,
@@ -1101,14 +1113,13 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
 		Authorizations:            authorizationService,
-		CodeGrants:                redisStore,
 		ValidateScopes:            scopesValidator,
-		CodeGenerator:             tokenGenerator,
 		AppSessionTokenService:    appSessionTokenService,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
 		Clock:                     clockClock,
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
+		CodeGrantService:          codeGrantService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
@@ -1166,7 +1177,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	httpConfig := appConfig.HTTP
 	featureConfig := config.FeatureConfig
+	oAuthFeatureConfig := featureConfig.OAuth
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
@@ -1330,7 +1343,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -1916,9 +1928,20 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		Users:               queries,
 	}
+	app2appProvider := &app2app.Provider{
+		Clock: clockClock,
+	}
+	codeGrantService := handler.CodeGrantService{
+		AppID:         appID,
+		CodeGenerator: tokenGenerator,
+		Clock:         clockClock,
+		CodeGrants:    store,
+	}
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
+		HTTPConfig:             httpConfig,
+		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
 		Logger:                 handlerTokenHandlerLogger,
@@ -1933,6 +1956,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:           tokenService,
 		Events:                 eventService,
 		SessionManager:         manager2,
+		App2App:                app2appProvider,
+		Challenges:             challengeProvider,
+		CodeGrantService:       codeGrantService,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -3771,7 +3797,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	httpConfig := appConfig.HTTP
 	featureConfig := config.FeatureConfig
+	oAuthFeatureConfig := featureConfig.OAuth
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
@@ -3935,7 +3963,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -4521,9 +4548,20 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:               clockClock,
 		Users:               queries,
 	}
+	app2appProvider := &app2app.Provider{
+		Clock: clockClock,
+	}
+	codeGrantService := handler.CodeGrantService{
+		AppID:         appID,
+		CodeGenerator: tokenGenerator,
+		Clock:         clockClock,
+		CodeGrants:    store,
+	}
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
+		HTTPConfig:             httpConfig,
+		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
 		Logger:                 tokenHandlerLogger,
@@ -4538,6 +4576,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TokenService:           tokenService,
 		Events:                 eventService,
 		SessionManager:         manager2,
+		App2App:                app2appProvider,
+		Challenges:             challengeProvider,
+		CodeGrantService:       codeGrantService,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,

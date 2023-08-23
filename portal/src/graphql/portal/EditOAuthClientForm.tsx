@@ -26,6 +26,7 @@ interface EditOAuthClientFormProps {
   clientConfig: OAuthClientConfig;
   clientSecret?: string;
   customUIEnabled: boolean;
+  app2appEnabled: boolean;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
   onRevealSecret: () => void;
 }
@@ -80,12 +81,12 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       clientSecret,
       publicOrigin,
       customUIEnabled,
+      app2appEnabled,
       onClientConfigChange,
       onRevealSecret,
     } = props;
 
     const { renderToString } = useContext(Context);
-    const theme = useTheme();
 
     const { appID } = useParams() as { appID: string };
 
@@ -211,6 +212,28 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const onApp2AppEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "x_app2app_enabled", value ?? false)
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
+    const onApp2AppMigrationChange = useCallback(
+      (_, value?: boolean) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "x_app2app_insecure_device_key_binding_enabled",
+            value ?? false
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
     const { onChange: onPolicyURIChange } = useTextField((value) => {
       onClientConfigChange(
         updateClientConfig(
@@ -287,6 +310,9 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         clientConfig.x_application_type === "third_party_app",
       [clientConfig.x_application_type]
     );
+
+    const showApp2AppSettings =
+      clientConfig.x_application_type === "native" && app2appEnabled;
 
     const showConsentScreenSettings = useMemo(
       () => clientConfig.x_application_type === "third_party_app",
@@ -435,7 +461,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
         </Widget>
 
         <Widget className={className}>
-          <WidgetTitle>
+          <WidgetTitle id="uris">
             <FormattedMessage id="EditOAuthClientForm.uris.title" />
           </WidgetTitle>
           <FormTextFieldList
@@ -594,18 +620,7 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
                 !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
               }
             />
-            <Text
-              block={true}
-              styles={{
-                root: {
-                  background: theme.palette.neutralLighter,
-                  lineHeight: "20px",
-                  padding: "8px 12px",
-                },
-              }}
-            >
-              {refreshTokenHelpText}
-            </Text>
+            <HelpText>{refreshTokenHelpText}</HelpText>
             <Toggle
               checked={clientConfig.x_max_concurrent_session === 1}
               onChange={onChangeExpireWhenLoginOnOtherDevice}
@@ -660,8 +675,57 @@ const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
             </WidgetDescription>
           </Widget>
         ) : null}
+        {showApp2AppSettings ? (
+          <Widget className={className}>
+            <WidgetTitle id="app2app">
+              <FormattedMessage id="EditOAuthClientForm.app2app.title" />
+            </WidgetTitle>
+            <Toggle
+              checked={clientConfig.x_app2app_enabled}
+              onChange={onApp2AppEnabledChange}
+              label={renderToString("EditOAuthClientForm.app2app.enable.label")}
+              description={renderToString(
+                "EditOAuthClientForm.app2app.enable.description"
+              )}
+            />
+            <Toggle
+              checked={
+                clientConfig.x_app2app_insecure_device_key_binding_enabled
+              }
+              onChange={onApp2AppMigrationChange}
+              label={renderToString(
+                "EditOAuthClientForm.app2app.migration.label"
+              )}
+              description={renderToString(
+                "EditOAuthClientForm.app2app.migration.description"
+              )}
+            />
+            <HelpText>
+              <FormattedMessage id="EditOAuthClientForm.app2app.uris.description" />
+            </HelpText>
+          </Widget>
+        ) : null}
       </>
     );
   };
 
 export default EditOAuthClientForm;
+
+function HelpText(props: { children: React.ReactNode }) {
+  const { children } = props;
+  const theme = useTheme();
+  return (
+    <Text
+      block={true}
+      styles={{
+        root: {
+          background: theme.palette.neutralLighter,
+          lineHeight: "20px",
+          padding: "8px 12px",
+        },
+      }}
+    >
+      {children}
+    </Text>
+  );
+}

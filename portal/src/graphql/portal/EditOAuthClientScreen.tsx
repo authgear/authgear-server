@@ -423,6 +423,7 @@ interface EditOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
   clientID: string;
   customUIEnabled: boolean;
+  app2appEnabled: boolean;
 }
 
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
@@ -431,6 +432,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       clientID,
       form: { state, setState },
       customUIEnabled,
+      app2appEnabled,
     } = props;
     const theme = useTheme();
 
@@ -482,6 +484,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             clientConfig={client}
             clientSecret={clientSecret}
             customUIEnabled={customUIEnabled}
+            app2appEnabled={app2appEnabled}
             onClientConfigChange={onClientConfigChange}
             onRevealSecret={onRevealSecret}
           />
@@ -659,6 +662,13 @@ const EditOAuthClientScreen1: React.VFC<{
     featureConfig.effectiveFeatureConfig?.oauth?.client?.custom_ui_enabled,
   ]);
 
+  const app2appEnabled = useMemo(() => {
+    if (featureConfig.loading) {
+      return false;
+    }
+    return featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled;
+  }, [featureConfig]);
+
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -677,6 +687,7 @@ const EditOAuthClientScreen1: React.VFC<{
         form={form}
         clientID={clientID}
         customUIEnabled={customUIEnabled}
+        app2appEnabled={app2appEnabled}
       />
       <Dialog
         hidden={!isRemoveDialogVisible}
