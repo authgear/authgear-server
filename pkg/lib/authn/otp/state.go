@@ -7,7 +7,9 @@ type State struct {
 	CanResendAt     time.Time
 	SubmittedCode   string
 	UserID          string
-	WorkflowID      string
-	WebSessionID    string
 	TooManyAttempts bool
+
+	WebSessionID         string
+	WorkflowID           string
+	AuthenticationFlowID string
 }

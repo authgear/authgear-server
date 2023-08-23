@@ -12,10 +12,11 @@ import (
 )
 
 type GenerateOptions struct {
-	UserID         string
-	WorkflowID     string
-	WebSessionID   string
-	SkipRateLimits bool
+	UserID               string
+	WebSessionID         string
+	WorkflowID           string
+	AuthenticationFlowID string
+	SkipRateLimits       bool
 }
 
 type VerifyOptions struct {
@@ -146,9 +147,10 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 		Code:     form.GenerateCode(s.TestModeFeatureConfig, opts.UserID),
 		ExpireAt: s.Clock.NowUTC().Add(kind.ValidPeriod()),
 
-		UserID:       opts.UserID,
-		WorkflowID:   opts.WorkflowID,
-		WebSessionID: opts.WebSessionID,
+		UserID:               opts.UserID,
+		WorkflowID:           opts.WorkflowID,
+		AuthenticationFlowID: opts.AuthenticationFlowID,
+		WebSessionID:         opts.WebSessionID,
 	}
 
 	err := s.CodeStore.Create(kind.Purpose(), code)
@@ -325,6 +327,7 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		state.SubmittedCode = code.UserInputtedCode
 		state.UserID = code.UserID
 		state.WorkflowID = code.WorkflowID
+		state.AuthenticationFlowID = code.AuthenticationFlowID
 		state.WebSessionID = code.WebSessionID
 	}
 

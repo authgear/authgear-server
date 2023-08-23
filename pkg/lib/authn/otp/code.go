@@ -20,6 +20,13 @@ type Code struct {
 
 	UserInputtedCode string `json:"user_inputted_code,omitempty"`
 	UserID           string `json:"user_id,omitempty"`
-	WebSessionID     string `json:"web_session_id,omitempty"`
-	WorkflowID       string `json:"workflow_id,omitempty"`
+
+	// For interaction
+	WebSessionID string `json:"web_session_id,omitempty"`
+
+	// For legacy workflow
+	WorkflowID string `json:"workflow_id,omitempty"`
+
+	// For authentication flow
+	AuthenticationFlowID string `json:"authentication_flow_id,omitempty"`
 }

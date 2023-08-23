@@ -68,17 +68,17 @@ func TestService(t *testing.T) {
 
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:     "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "flow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
+					FlowID:     "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "authflow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
 				Data:          EmptyData,
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
-					FlowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 				SessionOutput: &SessionOutput{
-					FlowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 			})
 		})
@@ -100,8 +100,8 @@ func TestService(t *testing.T) {
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:     "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					FlowID:     "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "authflow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
 					Intent:     intent,
 					Nodes: []Node{
 						{
@@ -115,10 +115,10 @@ func TestService(t *testing.T) {
 					FinishRedirectURI: "",
 				},
 				Session: &Session{
-					FlowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 				SessionOutput: &SessionOutput{
-					FlowID: "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
 			})
 		})
@@ -152,7 +152,7 @@ func TestService(t *testing.T) {
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
 					FlowID:     "flow-id",
-					InstanceID: "flow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					Intent:     intent,
 					Nodes: []Node{
 						{
@@ -355,8 +355,8 @@ func TestServiceContext(t *testing.T) {
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:     "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					InstanceID: "flow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					FlowID:     "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					InstanceID: "authflow_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
 					Intent:     intent,
 					Nodes: []Node{
 						{
@@ -372,11 +372,11 @@ func TestServiceContext(t *testing.T) {
 					FinishRedirectURI: "",
 				},
 				Session: &Session{
-					FlowID:   "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					FlowID:   "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID: "client-id",
 				},
 				SessionOutput: &SessionOutput{
-					FlowID:   "flowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					FlowID:   "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID: "client-id",
 				},
 				Cookies: []*http.Cookie{

@@ -6,13 +6,18 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/iawaknahc/originmatcher"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	workflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pubsub"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -34,6 +39,14 @@ type AuthenticationFlowV1OAuthSessionService interface {
 
 type AuthenticationFlowV1UIInfoResolver interface {
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
+}
+
+type AuthenticationFlowV1WebsocketEventStore interface {
+	ChannelName(authenticationFlowID string) (string, error)
+}
+
+type AuthenticationFlowV1WebsocketOriginMatcher interface {
+	PrepareOriginMatcher(r *http.Request) (*originmatcher.T, error)
 }
 
 func authenticationFlowGetOrCreateUserAgentID(cookies AuthenticationFlowV1CookieManager, w http.ResponseWriter, r *http.Request) string {
@@ -247,20 +260,30 @@ func (r AuthenticationFlowV1RestfulInputRequest) ToNonRestful(instanceID string)
 }
 
 type AuthenticationFlowV1Handler struct {
+	LoggerFactory  *log.Factory
+	RedisHandle    *appredis.Handle
 	JSON           JSONResponseWriter
 	Cookies        AuthenticationFlowV1CookieManager
 	Workflows      AuthenticationFlowV1WorkflowService
 	OAuthSessions  AuthenticationFlowV1OAuthSessionService
 	UIInfoResolver AuthenticationFlowV1UIInfoResolver
+	OriginMatcher  AuthenticationFlowV1WebsocketOriginMatcher
+	Events         AuthenticationFlowV1WebsocketEventStore
 }
 
 func (h *AuthenticationFlowV1Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	slug := httproute.GetParam(r, "slug")
 	switch r.Method {
 	case "GET":
-		// RESTful get
-		instanceID := slug
-		h.get(w, r, instanceID)
+		switch slug {
+		case "ws":
+			// websocket
+			h.websocket(w, r)
+		default:
+			// RESTful get
+			instanceID := slug
+			h.get(w, r, instanceID)
+		}
 	case "POST":
 		switch slug {
 		case "get":
@@ -378,12 +401,7 @@ func (h *AuthenticationFlowV1Handler) get(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	result := workflow.FlowResponse{
-		ID:         output.Flow.InstanceID,
-		Data:       output.Data,
-		JSONSchema: output.SchemaBuilder,
-		Finished:   output.Finished,
-	}
+	result := output.ToFlowResponse()
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
@@ -415,12 +433,7 @@ func (h *AuthenticationFlowV1Handler) create(w http.ResponseWriter, r *http.Requ
 		httputil.UpdateCookie(w, c)
 	}
 
-	result := workflow.FlowResponse{
-		ID:         output.Flow.InstanceID,
-		Data:       output.Data,
-		Finished:   output.Finished,
-		JSONSchema: output.SchemaBuilder,
-	}
+	result := output.ToFlowResponse()
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
@@ -487,12 +500,7 @@ func (h *AuthenticationFlowV1Handler) input(w http.ResponseWriter, r *http.Reque
 		httputil.UpdateCookie(w, c)
 	}
 
-	result := workflow.FlowResponse{
-		ID:         output.Flow.InstanceID,
-		Data:       output.Data,
-		JSONSchema: output.SchemaBuilder,
-		Finished:   output.Finished,
-	}
+	result := output.ToFlowResponse()
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
@@ -531,12 +539,7 @@ func (h *AuthenticationFlowV1Handler) batchInput(w http.ResponseWriter, r *http.
 		httputil.UpdateCookie(w, c)
 	}
 
-	result := workflow.FlowResponse{
-		ID:         output.Flow.InstanceID,
-		Data:       output.Data,
-		JSONSchema: output.SchemaBuilder,
-		Finished:   output.Finished,
-	}
+	result := output.ToFlowResponse()
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
@@ -581,14 +584,35 @@ func (h *AuthenticationFlowV1Handler) prepareErrorResponse(
 		return nil, err
 	}
 
-	result := workflow.FlowResponse{
-		ID:         output.Flow.InstanceID,
-		Data:       output.Data,
-		Finished:   output.Finished,
-		JSONSchema: output.SchemaBuilder,
-	}
+	result := output.ToFlowResponse()
 	return &api.Response{
 		Error:  workflowErr,
 		Result: result,
 	}, nil
+}
+
+func (h *AuthenticationFlowV1Handler) websocket(w http.ResponseWriter, r *http.Request) {
+	matcher, err := h.OriginMatcher.PrepareOriginMatcher(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	handler := &pubsub.HTTPHandler{
+		RedisHub:      h.RedisHandle,
+		Delegate:      h,
+		LoggerFactory: h.LoggerFactory,
+		OriginMatcher: matcher,
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+func (h *AuthenticationFlowV1Handler) Accept(r *http.Request) (string, error) {
+	websocketID := r.FormValue("websocket_id")
+	return h.Events.ChannelName(websocketID)
+}
+
+func (h *AuthenticationFlowV1Handler) OnRedisSubscribe(r *http.Request) error {
+	return nil
 }
