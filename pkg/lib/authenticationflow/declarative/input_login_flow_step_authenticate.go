@@ -3,8 +3,10 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -37,6 +39,15 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 				Const(index),
 			)
 		}
+		mayRequireChannel := func() {
+			if len(candidate.Channels) > 1 {
+				required = append(required, "channel")
+				b.Properties().Property("channel", validation.SchemaBuilder{}.
+					Type(validation.TypeString).
+					Enum(slice.Cast[model.AuthenticatorOOBChannel, interface{}](candidate.Channels)...),
+				)
+			}
+		}
 
 		switch candidate.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -47,12 +58,16 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 			requireString("code")
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			requireIndex()
+			mayRequireChannel()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			requireIndex()
+			mayRequireChannel()
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			requireIndex()
+			mayRequireChannel()
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			requireIndex()
+			mayRequireChannel()
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			requireString("recovery_code")
 		default:
@@ -97,6 +112,7 @@ type InputLoginFlowStepAuthenticate struct {
 	Code               string                                  `json:"code,omitempty"`
 	RecoveryCode       string                                  `json:"recovery_code,omitempty"`
 	Index              int                                     `json:"index,omitempty"`
+	Channel            model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
 }
 
 var _ authflow.Input = &InputLoginFlowStepAuthenticate{}
@@ -106,6 +122,7 @@ var _ inputTakePassword = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeTOTP = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeRecoveryCode = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeAuthenticationCandidateIndex = &InputLoginFlowStepAuthenticate{}
+var _ inputTakeOOBOTPChannel = &InputLoginFlowStepAuthenticate{}
 
 func (*InputLoginFlowStepAuthenticate) Input() {}
 
@@ -131,4 +148,8 @@ func (i *InputLoginFlowStepAuthenticate) GetRecoveryCode() string {
 
 func (i *InputLoginFlowStepAuthenticate) GetIndex() int {
 	return i.Index
+}
+
+func (i *InputLoginFlowStepAuthenticate) GetChannel() model.AuthenticatorOOBChannel {
+	return i.Channel
 }

@@ -11,4 +11,4 @@ var InvalidTargetStep = apierrors.InternalError.WithReason("AuthenticationFlowIn
 
 var ErrDifferentUserID = apierrors.BadRequest.WithReason("AuthenticationFlowDifferentUserID").New("different user ID")
 var ErrNoUserID = apierrors.BadRequest.WithReason("AuthenticationFlowNoUserID").New("no user ID")
-var NoUsableAuthenticationMethod = apierrors.BadRequest.WithReason("AuthenticationFlowNoUsableAuthenticationMethod")
+var NoUsableAuthentication = apierrors.InternalError.WithReason("AuthenticationFlowNoUsableAuthentication")
