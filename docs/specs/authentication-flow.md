@@ -51,7 +51,7 @@ Before we get down to the design, we first
 1. Review the authentication UI / UX of existing consumer apps
 2. Review the design of various competitors
 
-That will provide us insights into how to design our workflow
+That will provide us insights into how to design the Authentication Flow
 
 ## Review the authentication UI / UX of existing consumer apps
 
@@ -644,18 +644,18 @@ login_flows:
 ```
 {
   "$defs": {
-    "WorkflowSignupFlowConfig": {
+    "AuthenticationFlowSignupFlowConfig": {
       "type": "object",
       "required": ["id", "steps"],
       "properties": {
         "id": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowSignupFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
         }
       }
     },
-    "WorkflowSignupFlowStep": {
+    "AuthenticationFlowSignupFlowStep": {
       "type": "object",
       "required": ["type"],
       "properties": {
@@ -684,7 +684,7 @@ login_flows:
             "properties": {
               "one_of": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowSignupFlowIdentify" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowIdentify" }
               }
             }
           }
@@ -701,7 +701,7 @@ login_flows:
             "properties": {
               "one_of": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowSignupFlowAuthenticate" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowAuthenticate" }
               }
             }
           }
@@ -732,37 +732,37 @@ login_flows:
             "properties": {
               "user_profile": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowSignupFlowUserProfile" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowUserProfile" }
               }
             }
           }
         }
       ]
     },
-    "WorkflowSignupFlowIdentify": {
+    "AuthenticationFlowSignupFlowIdentify": {
       "type": "object",
       "required": ["identification"],
       "properties": {
-        "identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+        "identification": { "$ref": "#/$defs/AuthenticationFlowIdentificationMethod" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowSignupFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
         }
       }
     },
-    "WorkflowSignupFlowAuthenticate": {
+    "AuthenticationFlowSignupFlowAuthenticate": {
       "type": "object",
       "required": ["authentication"],
       "properties": {
-        "authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+        "authentication": { "$ref": "#/$defs/AuthenticationFlowAuthenticationMethod" },
         "target_step": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowSignupFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
         }
       }
     },
-    "WorkflowSignupFlowUserProfile": {
+    "AuthenticationFlowSignupFlowUserProfile": {
       "type": "object",
       "required": ["pointer", "required"],
       "properties": {
@@ -770,29 +770,29 @@ login_flows:
         "required": { "type": "boolean" }
       }
     },
-    "WorkflowLoginFlowConfig": {
+    "AuthenticationFlowLoginFlowConfig": {
       "type": "object",
       "required": ["id", "steps"],
       "properties": {
         "id": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowStep" }
         },
-        "account_linking": { "$ref": "#/$defs/WorkflowLoginFlowAccountLinking" }
+        "account_linking": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAccountLinking" }
       }
     },
-    "WorkflowLoginFlowAccountLinking": {
+    "AuthenticationFlowLoginFlowAccountLinking": {
       "type": "object",
       "required": ["conditions"],
       "properties": {
         "conditions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowLoginFlowAccountLinkingCondition" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAccountLinkingCondition" }
         }
       }
     },
-    "WorkflowLoginFlowAccountLinkingCondition": {
+    "AuthenticationFlowLoginFlowAccountLinkingCondition": {
       "type": "object",
       "required": ["standard_attribute", "existing", "incoming"],
       "properties": {
@@ -828,7 +828,7 @@ login_flows:
         }
       }
     },
-    "WorkflowLoginFlowStep": {
+    "AuthenticationFlowLoginFlowStep": {
       "type": "object",
       "required": ["type"],
       "properties": {
@@ -855,7 +855,7 @@ login_flows:
             "properties": {
               "one_of": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowLoginFlowIdentify" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowIdentify" }
               }
             }
           }
@@ -873,7 +873,7 @@ login_flows:
               "optional": { "type": "boolean" },
               "one_of": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowLoginFlowAuthenticate" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
               }
             }
           }
@@ -894,41 +894,41 @@ login_flows:
         }
       ]
     },
-    "WorkflowLoginFlowIdentify": {
+    "AuthenticationFlowLoginFlowIdentify": {
       "type": "object",
       "required": ["identification"],
       "properties": {
-        "identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+        "identification": { "$ref": "#/$defs/AuthenticationFlowIdentificationMethod" },
         "steps": {
           "type": "array",
-          "items": { "$def": "#/$defs/WorkflowLoginFlowStep" }
+          "items": { "$def": "#/$defs/AuthenticationFlowLoginFlowStep" }
         }
       }
     },
-    "WorkflowLoginFlowAuthenticate": {
+    "AuthenticationFlowLoginFlowAuthenticate": {
       "type": "object",
       "required": ["authentication"],
       "properties": {
-        "authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+        "authentication": { "$ref": "#/$defs/AuthenticationFlowAuthenticationMethod" },
         "target_step": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowLoginFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowStep" }
         }
       }
     },
-    "WorkflowSignupLoginFlowConfig": {
+    "AuthenticationFlowSignupLoginFlowConfig": {
       "type": "object",
       "required": ["id", "steps"],
       "properties": {
         "id": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowSignupLoginFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowSignupLoginFlowStep" }
         }
       }
     },
-    "WorkflowSignupLoginFlowStep": {
+    "AuthenticationFlowSignupLoginFlowStep": {
       "type": "object",
       "required": ["type"],
       "properties": {
@@ -953,34 +953,34 @@ login_flows:
             "properties": {
               "one_of": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowSignupLoginFlowIdentify" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowSignupLoginFlowIdentify" }
               }
             }
           }
         }
       ]
     },
-    "WorkflowSignupLoginFlowIdentify": {
+    "AuthenticationFlowSignupLoginFlowIdentify": {
       "type": "object",
       "required": ["identification", "signup_flow", "login_flow"],
       "properties": {
-        "identification": { "$ref": "#/$defs/WorkflowIdentificationMethod" },
+        "identification": { "$ref": "#/$defs/AuthenticationFlowIdentificationMethod" },
         "signup_flow": { "type": "string" },
         "login_flow": { "type": "string" }
       }
     },
-    "WorkflowReauthFlowConfig": {
+    "AuthenticationFlowReauthFlowConfig": {
       "type": "object",
       "required": ["id", "steps"],
       "properties": {
         "id": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowReauthFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowStep" }
         }
       }
     },
-    "WorkflowReauthFlowStep": {
+    "AuthenticationFlowReauthFlowStep": {
       "type": "object",
       "required": ["type"],
       "properties": {
@@ -1006,26 +1006,26 @@ login_flows:
               "optional": { "type": "boolean" },
               "one_of": {
                 "type": "array",
-                "items": { "$ref": "#/$defs/WorkflowReauthFlowAuthenticate" }
+                "items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowAuthenticate" }
               }
             }
           }
         }
       ]
     },
-    "WorkflowReauthFlowAuthenticate": {
+    "AuthenticationFlowReauthFlowAuthenticate": {
       "type": "object",
       "required": ["authentication"],
       "properties": {
-        "authentication": { "$ref": "#/$defs/WorkflowAuthenticationMethod" },
+        "authentication": { "$ref": "#/$defs/AuthenticationFlowAuthenticationMethod" },
         "target_step": { "type": "string" },
         "steps": {
           "type": "array",
-          "items": { "$ref": "#/$defs/WorkflowReauthFlowStep" }
+          "items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowStep" }
         }
       }
     },
-    "WorkflowIdentificationMethod": {
+    "AuthenticationFlowIdentificationMethod": {
       "type": "string",
       "enum": [
         "email",
@@ -1036,7 +1036,7 @@ login_flows:
         "siwe"
       ]
     },
-    "WorkflowAuthenticationMethod": {
+    "AuthenticationFlowAuthenticationMethod": {
       "type": "string",
       "enum": [
         "primary_password",
@@ -1055,19 +1055,19 @@ login_flows:
   "properties": {
     "signup_flows": {
       "type": "array",
-      "items": { "$ref": "#/$defs/WorkflowSignupFlowConfig" }
+      "items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowConfig" }
     },
     "login_flows": {
       "type": "array",
-      "items": { "$ref": "#/$defs/WorkflowLoginFlowConfig" }
+      "items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowConfig" }
     },
     "signup_login_flows": {
       "type": "array",
-      "items": { "$ref": "#/$defs/WorkflowSignupLoginFlowConfig" }
+      "items": { "$ref": "#/$defs/AuthenticationFlowSignupLoginFlowConfig" }
     },
     "reauth_flows": {
       "type": "array",
-      "items": { "$ref": "#/$defs/WorkflowReauthFlowConfig" }
+      "items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowConfig" }
     }
   }
 }
