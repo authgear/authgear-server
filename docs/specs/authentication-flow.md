@@ -1,133 +1,71 @@
-- [Goals](#goals)
-- [Non-goals](#non-goals)
-- [Overview](#overview)
-- [Review the authentication UI / UX of existing consumer apps](#review-the-authentication-ui--ux-of-existing-consumer-apps)
-- [Review the design of various competitors](#review-the-design-of-various-competitors)
-  * [Auth0](#auth0)
-  * [Okta](#okta)
-  * [Azure AD B2C](#azure-ad-b2c)
-  * [Zitadel](#zitadel)
-  * [Supertokens](#supertokens)
-- [Design](#design)
-  * [Design Principles](#design-principles)
-  * [What is a signup flow](#what-is-a-signup-flow)
-  * [What is a login flow](#what-is-a-login-flow)
-  * [What is a reauth flow](#what-is-a-reauth-flow)
-  * [What is account linking](#what-is-account-linking)
-  * [Design of the configuration](#design-of-the-configuration)
-    + [Design overview](#design-overview)
+- [Authentication Flow](#authentication-flow)
+  * [Goals](#goals)
+  * [Non-goals](#non-goals)
+  * [Concepts](#concepts)
+    + [Signup Flow in essence](#signup-flow-in-essence)
+    + [Login Flow in essence](#login-flow-in-essence)
+    + [Reauth Flow in essence](#reauth-flow-in-essence)
+    + [AccountLinking Flow in essence](#accountlinking-flow-in-essence)
+  * [Design](#design)
+    + [Design Principles](#design-principles)
+    + [Design of the configuration](#design-of-the-configuration)
     + [SignupFlow](#signupflow)
     + [LoginFlow](#loginflow)
     + [SignupLoginFlow](#signuploginflow)
     + [ReauthFlow](#reauthflow)
+  * [Use case examples](#use-case-examples)
     + [Use case example 1: Latte](#use-case-example-1-latte)
     + [Use case example 2: Uber](#use-case-example-2-uber)
     + [Use case example 3: Google](#use-case-example-3-google)
     + [Use case example 4: The Club](#use-case-example-4-the-club)
     + [Use case example 5: Manulife MPF](#use-case-example-5-manulife-mpf)
     + [Use case example 6: Comprehensive example](#use-case-example-6-comprehensive-example)
-- [Appendix](#appendix)
-  * [JSON schema](#json-schema)
+  * [Appendix](#appendix)
+    + [Review on the authentication UI / UX of existing consumer apps](#review-on-the-authentication-ui--ux-of-existing-consumer-apps)
+    + [Review on the design of various competitors](#review-on-the-design-of-various-competitors)
+      - [Auth0](#auth0)
+      - [Okta](#okta)
+      - [Azure AD B2C](#azure-ad-b2c)
+      - [Zitadel](#zitadel)
+      - [Supertokens](#supertokens)
+    + [JSON schema](#json-schema)
+
+# Authentication Flow
+
+Authentication Flow allows the developer to specify the authentication in a declarative way.
+
+The primary way to create and execute an Authentication Flow is via its HTTP API.
+
+How Authentication Flow is implemented is intentionally left unspecified in this document. Instead, this document specifies the public API of Authentication Flow.
 
 ## Goals
 
-- Support customized signup flow
-- Support customized login flow
-- Support customized reauth flow
-- Support more than 1 flows for signup / login / reauth
-- Support combined signup and login flow
-- The customized flows are supported by Default UI out of the box
-- If Default UI does not suit the taste of the developer, the customized flows can be executed by a custom UI.
-- (Future works) Support account linking
+- Support Signup Flow.
+- Support Login Flow.
+- Support Reauth Flow.
+- Support more than 1 Signup Flow, Login Flow, or Reauth Flow.
+- Support SignupLogin Flow, a flow which switches to a Signup Flow, or a Login Flow, depending on the claimed Identity.
+- The Default UI is driven by generated Authentication Flows, according to the configuration of the app.
+- The developer can use the HTTP API on both the Web platform, and the mobile platforms (iOS and Android).
+- (Future works) Support AccountLink Flow.
 
 ## Non-goals
 
-- Build a generic workflow engine
+- Build a generic workflow engine.
 
-## Overview
+## Concepts
 
-Before we get down to the design, we first
+This section clarifies how Authentication Flow is related to our core concepts, like User, Identity, and Authenticator.
 
-1. Review the authentication UI / UX of existing consumer apps
-2. Review the design of various competitors
-
-That will provide us insights into how to design the Authentication Flow
-
-## Review the authentication UI / UX of existing consumer apps
-
-This notion records the authentication flows of existing consumer apps in Hong Kong.
-https://www.notion.so/oursky/Common-Signup-Login-Flows-f62e48724dc041d29aa0a77ec1dae806
-
-Some important observations drawn from this review.
-- Most consumer apps do not support 2FA.
-- The authentication method is not necessarily tied to the identification method. For example, in The Club app, user can first enter their email address, and then receive a Phone OTP to sign in.
-
-## Review the design of various competitors
-
-### Auth0
-
-Auth0 offers Triggers, Actions and Flows. https://auth0.com/docs/customize/actions/flows-and-triggers Auth0 does not support fully customized flows. Instead, it defines some Triggers, and allow the developer to write their own Actions to build Flows.
-
-### Okta
-
-Okta is based on Workflows. But the Workflows it offer are mainly for building business workflows, instead of customizing the authentication flow. In the documentation, it only documents how to customize a step in the authentication flow. https://help.okta.com/wf/en-us/Content/Topics/Workflows/connector-builder/authentication-custom.htm
-
-### Azure AD B2C
-
-Azure AD B2C allows customization via custom policy. Custom policy is configured by configuration files. The custom policy has a few key concepts.
-
-- Claims are the foundation of a custom policy.
-- User Journey defines how the user authenticates themselves.
-- A User Journey contains several Orchestration Steps.
-- Each Orchestration Step can be executed conditionally.
-- An Orchestration Step must refer to a Technical profile.
-- A Technical Profile defines its input Claims and output Claims.
-
-Therefore, the end-user goes through the User Journey, with more and more Claims being collected in each Orchestration Step.
-
-https://learn.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview
-
-### Zitadel
-
-Zitadel is experimenting with a new Resource-based API. The Resource-based API has a Session API. The Session API is data-driven. For example, the developer can ask Zitadel to authenticate the user and verify the password by creating a session of the following shape
-
-```json
-{
-  "checks": {
-    "user": {
-      "loginName": "mini@mouse.com"
-    },
-    "password": {
-      "password": "V3ryS3cure!"
-    }
-  }
-}
-```
-
-More complicated flows could be supported by supporting more `checks`, as proposed by [this comment](https://github.com/zitadel/zitadel/discussions/5875#discussioncomment-5985323)
-
-https://github.com/zitadel/zitadel/discussions/5922
-
-### Supertokens
-
-Supertokens requires the developer to host a backend server to interactive with the Core Driver Interface (CDI) https://app.swaggerhub.com/apis/supertokens/CDI/2.21.1 The CDI is not very flexible. For example, it only supports some pre-defined recipe like EmailPassword Recipe, Passwordless Recipe.
-
-## Design
-
-### Design Principles
-
-- We want to design a configuration such that the default UI can just read the configuration and execute the customized flows.
-- We want to keep the guarantee that the existing configuration ensures every new user has some certain identities and authenticators.
-- We want to be able to fulfill the authentication flows in existing consumer apps
-
-### What is a signup flow
+### Signup Flow in essence
+- Generate a new user ID for the User.
 - Create 1 or more Identities. Later on, the User identify themselves with one of the Identities.
 - Create 0 or more Authenticators. The User authenticates themselves with one of the Authenticators if needed.
 - (Optional) Collect user profile (i.e. standard attributes and custom attributes)
 
-### What is a login flow
-- Identify the User with an Identity
-- Depending on the Identity, authenticator the User with the Authenticators. Note that the pre-selected Authenticator is usually associated with the Identity.
+### Login Flow in essence
+- Identify the User with an Identity.
+- Depending on the Identity, authenticate the User with their Authenticators.
 - (Optional) Further authenticate the User with **other** Authenticators.
 
 Suppose the User has a Email Login ID Identity `johndoe@gmail.com`, a Email OOB-OTP Authenticator `johndoe@gmail.com`, a Phone Login ID Identity `+85298765432`, a Phone OOB-OTP Authenticator `+85298765432`, a Password Authenticator, and a OAuth Identity `johndoe@gmail.com`.
@@ -139,22 +77,27 @@ If the User identifies themselves with the Email Login ID Identity `johndoe@gmai
 
 If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, then the User DOES NOT need to authenticate themselves. This is how most other applications work.
 
-### What is a reauth flow
+### Reauth Flow in essence
 - Authenticate the User with any Authenticators.
 
-### What is account linking
+### AccountLinking Flow in essence
 
-Account linking happens in a login flow.
-Each login flow can optionally specify the conditions when account linking can occur.
-If no conditions are specified or no conditions are matched, an error is returned, telling the end-user to sign in with the existing identity instead.
+AccountLink Flow happens within a Login Flow.
+Each Login Flow can optionally specify the conditions when a AccountLinking Flow can happen.
+If no conditions are specified or no conditions are matched, an error is returned, telling the User to sign in with the existing Identity instead.
 
-The login flow is then proceeded as if the existing identity were selected.
+The Login Flow is then proceeded as if the existing Identity is selected.
 
-At the end of the flow, the new identity is added to the account.
+At the end of the flow, the new Identity is added to the User.
+
+## Design
+
+### Design Principles
+
+- We want to keep the existing configuration. The Default UI is driven by on-the-fly generated Authentication Flows.
+- We want to be able to fulfill the authentication flows in existing consumer apps
 
 ### Design of the configuration
-
-#### Design overview
 
 - A flow has one or more `steps`.
 - A step MAY optionally have an `id`.
@@ -163,7 +106,7 @@ At the end of the flow, the new identity is added to the account.
 - Some steps allow branching. Those steps have `one_of`.
 - The branch of a step MAY optionally have zero or more `steps`.
 
-#### SignupFlow
+### SignupFlow
 
 Example:
 
@@ -214,7 +157,7 @@ signup_flows:
       required: true
 ```
 
-#### LoginFlow
+### LoginFlow
 
 ```yaml
 login_flows:
@@ -342,7 +285,7 @@ login_flows:
         - authentication: primary_password
 ```
 
-#### SignupLoginFlow
+### SignupLoginFlow
 
 Example:
 
@@ -360,7 +303,7 @@ signup_login_flows:
       login_flow: default_login_flow
 ```
 
-#### ReauthFlow
+### ReauthFlow
 
 Example:
 
@@ -393,7 +336,9 @@ reauth_flows:
     - authentication: secondary_sms_code
 ```
 
-#### Use case example 1: Latte
+## Use case examples
+
+### Use case example 1: Latte
 
 ```yaml
 signup_flows:
@@ -436,7 +381,7 @@ login_flows:
     - authentication: primary_password
 ```
 
-#### Use case example 2: Uber
+### Use case example 2: Uber
 
 ```yaml
 signup_flows:
@@ -516,7 +461,7 @@ signup_login_flows:
       signup_flow: default_signup_flow
 ```
 
-#### Use case example 3: Google
+### Use case example 3: Google
 
 ```yaml
 signup_flows:
@@ -544,7 +489,7 @@ login_flows:
     - authentication: secondary_oob_otp_sms
 ```
 
-#### Use case example 4: The Club
+### Use case example 4: The Club
 
 ```yaml
 # signup_flows is omitted here because the exact signup flow is unknown.
@@ -563,7 +508,7 @@ login_flows:
     - authentication: primary_oob_otp_sms
 ```
 
-#### Use case example 5: Manulife MPF
+### Use case example 5: Manulife MPF
 
 ```yaml
 # signup_flows are omitted because it does not have public signup.
@@ -583,7 +528,7 @@ login_flows:
     - authentication: primary_oob_otp_email
 ```
 
-#### Use case example 6: Comprehensive example
+### Use case example 6: Comprehensive example
 
 ```yaml
 signup_flows:
@@ -638,6 +583,65 @@ login_flows:
 ```
 
 ## Appendix
+
+### Review on the authentication UI / UX of existing consumer apps
+
+This notion records the authentication flows of existing consumer apps in Hong Kong.
+https://www.notion.so/oursky/Common-Signup-Login-Flows-f62e48724dc041d29aa0a77ec1dae806
+
+Some important observations drawn from this review.
+- Most consumer apps do not support 2FA.
+- The authentication method is not necessarily tied to the identification method. For example, in The Club app, user can first enter their email address, and then receive a Phone OTP to sign in.
+
+### Review on the design of various competitors
+
+#### Auth0
+
+Auth0 offers Triggers, Actions and Flows. https://auth0.com/docs/customize/actions/flows-and-triggers Auth0 does not support fully customized flows. Instead, it defines some Triggers, and allow the developer to write their own Actions to build Flows.
+
+#### Okta
+
+Okta is based on Workflows. But the Workflows it offer are mainly for building business workflows, instead of customizing the authentication flow. In the documentation, it only documents how to customize a step in the authentication flow. https://help.okta.com/wf/en-us/Content/Topics/Workflows/connector-builder/authentication-custom.htm
+
+#### Azure AD B2C
+
+Azure AD B2C allows customization via custom policy. Custom policy is configured by configuration files. The custom policy has a few key concepts.
+
+- Claims are the foundation of a custom policy.
+- User Journey defines how the user authenticates themselves.
+- A User Journey contains several Orchestration Steps.
+- Each Orchestration Step can be executed conditionally.
+- An Orchestration Step must refer to a Technical profile.
+- A Technical Profile defines its input Claims and output Claims.
+
+Therefore, the end-user goes through the User Journey, with more and more Claims being collected in each Orchestration Step.
+
+https://learn.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview
+
+#### Zitadel
+
+Zitadel is experimenting with a new Resource-based API. The Resource-based API has a Session API. The Session API is data-driven. For example, the developer can ask Zitadel to authenticate the user and verify the password by creating a session of the following shape
+
+```json
+{
+  "checks": {
+    "user": {
+      "loginName": "mini@mouse.com"
+    },
+    "password": {
+      "password": "V3ryS3cure!"
+    }
+  }
+}
+```
+
+More complicated flows could be supported by supporting more `checks`, as proposed by [this comment](https://github.com/zitadel/zitadel/discussions/5875#discussioncomment-5985323)
+
+https://github.com/zitadel/zitadel/discussions/5922
+
+#### Supertokens
+
+Supertokens requires the developer to host a backend server to interactive with the Core Driver Interface (CDI) https://app.swaggerhub.com/apis/supertokens/CDI/2.21.1 The CDI is not very flexible. For example, it only supports some pre-defined recipe like EmailPassword Recipe, Passwordless Recipe.
 
 ### JSON schema
 
