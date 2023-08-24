@@ -179,8 +179,6 @@ func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []
 		switch allowed {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			addOne()
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			addOne()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			addAll()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:

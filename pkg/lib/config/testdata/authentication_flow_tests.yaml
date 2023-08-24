@@ -48,10 +48,9 @@ value:
     steps:
     - type: authenticate
       one_of:
-      - authentication: primary_passkey
+      - authentication: primary_password
         steps:
         - type: authenticate
           optional: true
           one_of:
           - authentication: secondary_totp
-      - authentication: primary_password

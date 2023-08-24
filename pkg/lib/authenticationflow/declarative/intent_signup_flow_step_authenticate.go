@@ -135,8 +135,6 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
-			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-				// FIXME(authflow): create primary passkey
 			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:

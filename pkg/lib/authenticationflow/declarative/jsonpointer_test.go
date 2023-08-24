@@ -43,9 +43,6 @@ var fixtureSignupFlow *config.AuthenticationFlowSignupFlow = &config.Authenticat
 						},
 					},
 				},
-				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
-				},
 			},
 		},
 		{
@@ -88,9 +85,6 @@ var fixtureLoginFlow *config.AuthenticationFlowLoginFlow = &config.Authenticatio
 						},
 					},
 				},
-				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
-				},
 			},
 		},
 	},
@@ -129,9 +123,6 @@ var fixtureReauthFlow *config.AuthenticationFlowReauthFlow = &config.Authenticat
 						},
 					},
 				},
-				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
-				},
 			},
 		},
 	},
@@ -158,7 +149,6 @@ func TestGetCurrentObject(t *testing.T) {
 			test(jp("/steps/2/one_of/0"), fixtureSignupFlow.Steps[2].OneOf[0])
 			test(jp("/steps/2/one_of/0/steps/0"), fixtureSignupFlow.Steps[2].OneOf[0].Steps[0])
 			test(jp("/steps/2/one_of/0/steps/0/one_of/0"), fixtureSignupFlow.Steps[2].OneOf[0].Steps[0].OneOf[0])
-			test(jp("/steps/2/one_of/1"), fixtureSignupFlow.Steps[2].OneOf[1])
 			test(jp("/steps/3"), fixtureSignupFlow.Steps[3])
 		})
 
@@ -180,7 +170,6 @@ func TestGetCurrentObject(t *testing.T) {
 			test(jp("/steps/1/one_of/0"), fixtureLoginFlow.Steps[1].OneOf[0])
 			test(jp("/steps/1/one_of/0/steps/0"), fixtureLoginFlow.Steps[1].OneOf[0].Steps[0])
 			test(jp("/steps/1/one_of/0/steps/0/one_of/0"), fixtureLoginFlow.Steps[1].OneOf[0].Steps[0].OneOf[0])
-			test(jp("/steps/1/one_of/1"), fixtureLoginFlow.Steps[1].OneOf[1])
 		})
 
 		Convey("SignupLoginFlow", func() {
@@ -215,7 +204,6 @@ func TestGetCurrentObject(t *testing.T) {
 			test(jp("/steps/0/one_of/0"), fixtureReauthFlow.Steps[0].OneOf[0])
 			test(jp("/steps/0/one_of/0/steps/0"), fixtureReauthFlow.Steps[0].OneOf[0].Steps[0])
 			test(jp("/steps/0/one_of/0/steps/0/one_of/0"), fixtureReauthFlow.Steps[0].OneOf[0].Steps[0].OneOf[0])
-			test(jp("/steps/0/one_of/1"), fixtureReauthFlow.Steps[0].OneOf[1])
 		})
 	})
 }
