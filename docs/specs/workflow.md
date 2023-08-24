@@ -1,5 +1,8 @@
 # Workflow
 
+> Warning: Workflow was an experiment and it was abandoned.
+> The replacement of it is [Authentication Flow](./authentication-flow.md).
+
 This document specifies the design of workflow.
 
 A workflow represents a user interaction that involves multiple steps.
