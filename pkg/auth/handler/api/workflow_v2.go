@@ -373,6 +373,7 @@ func (h *WorkflowV2Handler) makeSessionOptionsFromCookie(oauthSessionCookie *htt
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		State:                    uiInfo.State,
 		XState:                   uiInfo.XState,
+		UserIDHint:               uiInfo.UserIDHint,
 		UILocales:                req.UILocalesRaw(),
 	}
 
