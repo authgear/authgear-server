@@ -29,8 +29,6 @@ func NewUseAuthenticationCandidateFromMethod(m config.AuthenticationFlowAuthenti
 	switch m {
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
@@ -60,8 +58,6 @@ func AuthenticationFromAuthenticator(i *authenticator.Info) config.Authenticatio
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
 			return config.AuthenticationFlowAuthenticationPrimaryPassword
-		case model.AuthenticatorTypePasskey:
-			return config.AuthenticationFlowAuthenticationPrimaryPasskey
 		case model.AuthenticatorTypeOOBEmail:
 			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 		case model.AuthenticatorTypeOOBSMS:
@@ -89,8 +85,6 @@ func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBCon
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryPassword:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return UseAuthenticationCandidate{

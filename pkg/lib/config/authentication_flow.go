@@ -42,16 +42,13 @@ var _ = Schema.Add("AuthenticationFlowObjectID", `
 }
 `)
 
-var _ = Schema.Add("AuthenticationFlowIdentificationMethod", `
+var _ = Schema.Add("AuthenticationFlowIdentification", `
 {
 	"type": "string",
 	"enum": [
 		"email",
 		"phone",
-		"username",
-		"oauth",
-		"passkey",
-		"siwe"
+		"username"
 	]
 }
 `)
@@ -163,7 +160,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowIdentify", `
 	"type": "object",
 	"required": ["identification"],
 	"properties": {
-		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentificationMethod" },
+		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
@@ -181,7 +178,6 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowAuthenticate", `
 			"type": "string",
 			"enum": [
 				"primary_password",
-				"primary_passkey",
 				"primary_oob_otp_email",
 				"primary_oob_otp_sms",
 				"secondary_password",
@@ -302,7 +298,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowIdentify", `
 	"type": "object",
 	"required": ["identification"],
 	"properties": {
-		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentificationMethod" },
+		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowStep" }
@@ -320,7 +316,6 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 			"type": "string",
 			"enum": [
 				"primary_password",
-				"primary_passkey",
 				"primary_oob_otp_email",
 				"primary_oob_otp_sms",
 				"secondary_password",
@@ -393,7 +388,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 	"type": "object",
 	"required": ["identification", "signup_flow", "login_flow"],
 	"properties": {
-		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentificationMethod" },
+		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
 		"signup_flow": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
 		"login_flow": { "$ref": "#/$defs/AuthenticationFlowObjectID" }
 	}
@@ -460,7 +455,6 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 			"type": "string",
 			"enum": [
 				"primary_password",
-				"primary_passkey",
 				"primary_oob_otp_email",
 				"primary_oob_otp_sms",
 				"secondary_password",
@@ -490,16 +484,12 @@ const (
 	AuthenticationFlowIdentificationEmail    AuthenticationFlowIdentification = "email"
 	AuthenticationFlowIdentificationPhone    AuthenticationFlowIdentification = "phone"
 	AuthenticationFlowIdentificationUsername AuthenticationFlowIdentification = "username"
-	AuthenticationFlowIdentificationOAuth    AuthenticationFlowIdentification = "oauth"
-	AuthenticationFlowIdentificationPasskey  AuthenticationFlowIdentification = "passkey"
-	AuthenticationFlowIdentificationSiwe     AuthenticationFlowIdentification = "siwe"
 )
 
 type AuthenticationFlowAuthentication string
 
 const (
 	AuthenticationFlowAuthenticationPrimaryPassword      AuthenticationFlowAuthentication = "primary_password"
-	AuthenticationFlowAuthenticationPrimaryPasskey       AuthenticationFlowAuthentication = "primary_passkey"
 	AuthenticationFlowAuthenticationPrimaryOOBOTPEmail   AuthenticationFlowAuthentication = "primary_oob_otp_email"
 	AuthenticationFlowAuthenticationPrimaryOOBOTPSMS     AuthenticationFlowAuthentication = "primary_oob_otp_sms"
 	AuthenticationFlowAuthenticationSecondaryPassword    AuthenticationFlowAuthentication = "secondary_password"
@@ -513,8 +503,6 @@ const (
 func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.AuthenticatorKind {
 	switch m {
 	case AuthenticationFlowAuthenticationPrimaryPassword:
-		fallthrough
-	case AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
 	case AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
@@ -533,7 +521,7 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.Authenticato
 	case AuthenticationFlowAuthenticationDeviceToken:
 		panic(fmt.Errorf("%v is not an authenticator", m))
 	default:
-		panic(fmt.Errorf("unknown authentication method: %v", m))
+		panic(fmt.Errorf("unknown authentication: %v", m))
 	}
 }
 

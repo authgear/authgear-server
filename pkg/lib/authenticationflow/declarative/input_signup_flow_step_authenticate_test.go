@@ -24,9 +24,6 @@ func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 				},
 				{
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
-				},
-				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 				},
 				{
