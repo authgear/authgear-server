@@ -20,6 +20,12 @@
     + [Use case example 4: The Club](#use-case-example-4-the-club)
     + [Use case example 5: Manulife MPF](#use-case-example-5-manulife-mpf)
     + [Use case example 6: Comprehensive example](#use-case-example-6-comprehensive-example)
+  * [HTTP API](#http-api)
+    + [The response](#the-response)
+    + [Create a Authentication Flow](#create-a-authentication-flow)
+    + [Execute the Authentication Flow](#execute-the-authentication-flow)
+    + [Get the Authentication Flow](#get-the-authentication-flow)
+    + [Connect websocket](#connect-websocket)
   * [Appendix](#appendix)
     + [Review on the authentication UI / UX of existing consumer apps](#review-on-the-authentication-ui--ux-of-existing-consumer-apps)
     + [Review on the design of various competitors](#review-on-the-design-of-various-competitors)
@@ -581,6 +587,86 @@ login_flows:
             one_of:
             - authentication: secondary_totp
 ```
+
+## HTTP API
+
+### The response
+
+The HTTP API always return a JSON response.
+
+Example of a successful response.
+
+```json
+{
+  "result": {
+    "id": "authflow_blahblahblah",
+    "websocket_id": "blahblahblah",
+    "data": {},
+    "json_schema": {}
+  }
+}
+```
+
+- `result.id`: The ID of the Authentication Flow. You must keep this for the next request. This ID changes every time you give an input to the flow. As a result, you can back-track by associating the ID with your application navigation backstack very easily.
+- `result.websocket_id`: The ID you need to supply to the websocket endpoint. This ID is a constant for every created Authentication Flow.
+- `result.data`: The data associated with the current state of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
+- `result.json_schema`: The JSON schema the server is going to use to validate the next request.
+
+### Create a Authentication Flow
+
+To create a Authentication Flow, specify the type and the ID in the configuration.
+
+```
+POST /api/v1/authentication_flows
+Content-Type: application/json
+
+{
+  "flow_reference": {
+    "type": "login_flow",
+    "id": "default"
+  }
+}
+```
+
+### Execute the Authentication Flow
+
+To execute the Authentication Flow, specify a valid input.
+
+```
+POST /api/v1/authentication_flows/{{ id }}
+Content-Type: application/json
+
+{
+  "input": {}
+}
+```
+
+- `id`: The ID of the Authentication Flow. Typically this is the ID in the last response if you want to continue the flow. If you want to back-track, you must supply a suitable ID.
+- `input`: A JSON object that should be valid against the `json_schema`.
+- `batch_input`: An array of input. This allows you to execute the flow multiple steps in a single request. In order to do this, you must know in advance how the flow is going. 
+
+### Get the Authentication Flow
+
+In case you want to get the Authentication Flow again.
+
+```
+GET /api/v1/authentication_flows/{{ id }}
+```
+
+### Connect websocket
+
+Under some situation, you are not the only driver of the flow. For example, if your project is configured to use login link, you cannot proceed until the User has approved the login link.
+
+To be notified of the approval of the login link, you connect to the websocket.
+
+```
+GET /api/v1/authentication_flows/ws?websocket_id={{ websocket_id }}
+Connection: Upgrade
+```
+
+The only websocket message you will receive is the JSON object `{"kind": "refresh"}`.
+Its meaning is to tell you to call the GET endpoint to refresh the flow.
+The flow would have updated `data` or `schema`, which allows you to continue the flow.
 
 ## Appendix
 
