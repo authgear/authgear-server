@@ -2,7 +2,6 @@ package latte
 
 import (
 	"context"
-	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -101,7 +100,7 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 		return workflow.NewSubWorkflow(&IntentCreateSession{
 			UserID:       i.userID(),
 			CreateReason: session.CreateReasonLogin,
-			AMR:          i.GetAMR(w),
+			AMR:          GetAMR(w),
 			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
 		}), nil
 	}
@@ -211,38 +210,6 @@ func (i *IntentLogin) getVerifiedAuthenticators(w *workflow.Workflow) ([]*authen
 	return result, nil
 }
 
-func (i *IntentLogin) GetAMR(w *workflow.Workflow) []string {
-	amrSet := map[string]interface{}{}
-	workflows := workflow.FindSubWorkflows[AMRGetter](w)
-
-	authCount := 0
-	for _, perWorkflow := range workflows {
-		if amrs := perWorkflow.Intent.(AMRGetter).GetAMR(perWorkflow); len(amrs) > 0 {
-			authCount++
-			for _, value := range amrs {
-				amrSet[value] = struct{}{}
-			}
-		}
-	}
-
-	if authCount >= 2 {
-		amrSet[model.AMRMFA] = struct{}{}
-	}
-
-	amr := make([]string, 0, len(amrSet))
-	for k := range amrSet {
-		amr = append(amr, k)
-	}
-	sort.Strings(amr)
-
-	return amr
-}
-
 func (i *IntentLogin) userID() string {
 	return i.Identity.UserID
-}
-
-type AMRGetter interface {
-	workflow.Intent
-	GetAMR(w *workflow.Workflow) []string
 }
