@@ -48,6 +48,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.State = s.State
 		out.XState = s.XState
 		out.UILocales = s.UILocales
+		out.UserIDHint = s.UserIDHint
 	}
 	if o != nil {
 		if o.ClientID != "" {
@@ -61,6 +62,9 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		}
 		if o.UILocales != "" {
 			out.UILocales = o.UILocales
+		}
+		if o.UserIDHint != "" {
+			out.UserIDHint = o.UserIDHint
 		}
 	}
 	return out
