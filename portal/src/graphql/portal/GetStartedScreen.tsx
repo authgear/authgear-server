@@ -26,7 +26,7 @@ import {
   SkipAppTutorialProgressMutationDocument,
 } from "./mutations/skipAppTutorialProgressMutation.generated";
 
-import iconKey from "../../images/getting-started-icon-key.png";
+// import iconKey from "../../images/getting-started-icon-key.png";
 import iconCustomize from "../../images/getting-started-icon-customize.png";
 import iconApplication from "../../images/getting-started-icon-application.png";
 import iconSSO from "../../images/getting-started-icon-sso.png";
@@ -60,17 +60,18 @@ interface MakeCardSpecsOptions {
 }
 
 function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
-  const { publicOrigin, numberOfClients, tutorialStatusData } = options;
+  const { numberOfClients, tutorialStatusData } = options;
 
-  const authui: CardSpec = {
-    key: "authui",
-    iconSrc: iconKey,
-    internalHref: undefined,
-    externalHref:
-      publicOrigin != null ? `${publicOrigin}?x_tutorial=true` : undefined,
-    canSkip: false,
-    isDone: tutorialStatusData.progress["authui"] === true,
-  };
+  // This is disabled in https://github.com/authgear/authgear-server/issues/3319
+  // const authui: CardSpec = {
+  //   key: "authui",
+  //   iconSrc: iconKey,
+  //   internalHref: undefined,
+  //   externalHref:
+  //     publicOrigin != null ? `${publicOrigin}?x_tutorial=true` : undefined,
+  //   canSkip: false,
+  //   isDone: tutorialStatusData.progress["authui"] === true,
+  // };
 
   const customize_ui: CardSpec = {
     key: "customize_ui",
@@ -115,7 +116,7 @@ function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
     isDone: tutorialStatusData.progress["invite"] === true,
   };
 
-  return [authui, customize_ui, create_application, sso, invite];
+  return [/* authui, */ customize_ui, create_application, sso, invite];
 }
 
 function Title() {
