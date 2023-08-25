@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 )
 
@@ -49,7 +50,7 @@ func TestDefaultDomainService(t *testing.T) {
 
 			Convey("HostSuffix and HostSuffixes are the same", func() {
 				s.AppConfig.HostSuffix = ".localhost"
-				s.AppConfig.HostSuffixes = []string{".localhost"}
+				s.AppHostSuffixes = config.AppHostSuffixes([]string{".localhost"})
 
 				domains.EXPECT().CreateDomain("myapp", "myapp.localhost", true, false).Times(1)
 				err := s.CreateAllDefaultDomains("myapp")
@@ -58,7 +59,7 @@ func TestDefaultDomainService(t *testing.T) {
 
 			Convey("HostSuffix and HostSuffixes are different", func() {
 				s.AppConfig.HostSuffix = ".localhost"
-				s.AppConfig.HostSuffixes = []string{".local"}
+				s.AppHostSuffixes = config.AppHostSuffixes([]string{".local"})
 
 				gomock.InOrder(
 					domains.EXPECT().CreateDomain("myapp", "myapp.localhost", true, false).Times(1),

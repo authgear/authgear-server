@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -18,8 +19,9 @@ type DefaultDomainDomainService interface {
 }
 
 type DefaultDomainService struct {
-	AppConfig *portalconfig.AppConfig
-	Domains   DefaultDomainDomainService
+	AppHostSuffixes config.AppHostSuffixes
+	AppConfig       *portalconfig.AppConfig
+	Domains         DefaultDomainDomainService
 }
 
 func (s *DefaultDomainService) GetLatestAppHost(appID string) (string, error) {
@@ -47,7 +49,7 @@ func (s *DefaultDomainService) CreateAllDefaultDomains(appID string) error {
 	}
 
 	suffixes := []string{s.AppConfig.HostSuffix}
-	for _, hostSuffix := range s.AppConfig.HostSuffixes {
+	for _, hostSuffix := range s.AppHostSuffixes {
 		suffixes = append(suffixes, hostSuffix)
 	}
 

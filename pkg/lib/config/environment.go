@@ -20,6 +20,8 @@ type NFTIndexerAPIEndpoint string
 
 type DenoEndpoint string
 
+type AppHostSuffixes []string
+
 func (c *CORSAllowedOrigins) List() []string {
 	if string(*c) == "" {
 		return []string{}
@@ -61,4 +63,7 @@ type EnvironmentConfig struct {
 	DenoEndpoint DenoEndpoint `envconfig:"DENO_ENDPOINT"`
 
 	RateLimits RateLimitsEnvironmentConfig `envconfig:"RATE_LIMITS"`
+
+	// AppHostSuffixes originates from the portal config.
+	AppHostSuffixes AppHostSuffixes `envconfig:"APP_HOST_SUFFIXES"`
 }
