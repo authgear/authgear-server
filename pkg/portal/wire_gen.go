@@ -96,6 +96,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	adder := &authz.Adder{
 		Clock: clock,
 	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
 	appConfig := rootProvider.AppConfig
 	context := deps.ProvideRequestContext(request)
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
@@ -130,8 +131,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	defaultDomainService := &service.DefaultDomainService{
-		AppConfig: appConfig,
-		Domains:   domainService,
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+		Domains:         domainService,
 	}
 	adminAPIService := &service.AdminAPIService{
 		AuthgearConfig: authgearConfig,
@@ -473,6 +475,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	adder := &authz.Adder{
 		Clock: clockClock,
 	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
 	domainService := &service.DomainService{
 		Context:      context,
 		Clock:        clockClock,
@@ -481,8 +484,9 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	defaultDomainService := &service.DefaultDomainService{
-		AppConfig: appConfig,
-		Domains:   domainService,
+		AppHostSuffixes: appHostSuffixes,
+		AppConfig:       appConfig,
+		Domains:         domainService,
 	}
 	adminAPIService := &service.AdminAPIService{
 		AuthgearConfig: authgearConfig,

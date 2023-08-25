@@ -1,10 +1,9 @@
 package config
 
 type AppConfig struct {
-	HostSuffix   string              `envconfig:"HOST_SUFFIX" default:".localhost:3002"`
-	HostSuffixes []string            `envconfig:"HOST_SUFFIXES"`
-	IDPattern    string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
-	Kubernetes   AppKubernetesConfig `envconfig:"KUBERNETES"`
+	HostSuffix string              `envconfig:"HOST_SUFFIX" default:".localhost:3002"`
+	IDPattern  string              `envconfig:"ID_PATTERN" default:"^[a-z0-9][a-z0-9-]{2,30}[a-z0-9]$"`
+	Kubernetes AppKubernetesConfig `envconfig:"KUBERNETES"`
 
 	// BuiltinResourceDirectory sets the directory for built-in resource files
 	BuiltinResourceDirectory string `envconfig:"BUILTIN_RESOURCE_DIRECTORY" default:"resources/authgear"`
