@@ -15,7 +15,6 @@ import {
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 import ScreenNav from "./ScreenNav";
-import ExternalLink from "./ExternalLink";
 import Link from "./Link";
 
 import styles from "./ScreenHeader.module.css";
@@ -57,11 +56,10 @@ const MobileViewHeaderAppSection: React.VFC<MobileViewHeaderAppSectionProps> = (
   }
 
   const rawAppID = effectiveAppConfig?.id;
-  const endpoint = effectiveAppConfig?.http?.public_origin;
 
   return (
     <Text className={styles.headerAppID} theme={themes.inverted}>
-      {rawAppID != null && endpoint != null ? rawAppID : appID}
+      {rawAppID != null ? rawAppID : appID}
     </Text>
   );
 };
@@ -82,19 +80,14 @@ const DesktopViewHeaderAppSection: React.VFC<
   }
 
   const rawAppID = effectiveAppConfig?.id;
-  const endpoint = effectiveAppConfig?.http?.public_origin;
 
   return (
     <>
       <Icon className={styles.headerArrow} iconName="ChevronRight" />
-      {rawAppID != null && endpoint != null ? (
-        <ExternalLink
-          className={styles.headerAppID}
-          href={endpoint}
-          theme={themes.inverted}
-        >
-          {`${rawAppID} - ${endpoint}`}
-        </ExternalLink>
+      {rawAppID != null ? (
+        <Text className={styles.headerAppID} theme={themes.inverted}>
+          {rawAppID}
+        </Text>
       ) : (
         <Text className={styles.headerAppID} theme={themes.inverted}>
           {appID}
