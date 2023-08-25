@@ -22,6 +22,19 @@ type DenoEndpoint string
 
 type AppHostSuffixes []string
 
+func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
+	for _, suffix := range s {
+		if before, found := strings.CutSuffix(host, suffix); found {
+			if !strings.Contains(before, ".") {
+				// We have found a proof.
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (c *CORSAllowedOrigins) List() []string {
 	if string(*c) == "" {
 		return []string{}

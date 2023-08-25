@@ -56384,10 +56384,85 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
-	authEntryPointMiddleware := &webapp2.AuthEntryPointMiddleware{
-		TrustProxy:  trustProxy,
-		OAuthConfig: oAuthConfig,
-		UIConfig:    uiConfig,
+	featureConfig := config.FeatureConfig
+	uiFeatureConfig := featureConfig.UI
+	request := p.Request
+	contextContext := deps.ProvideRequestContext(request)
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	manager := appContext.Resources
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Config:            httpConfig,
+		Localization:      localizationConfig,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	authenticationConfig := appConfig.Authentication
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	clockClock := _wireSystemClockValue
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
+	}
+	factory := appProvider.LoggerFactory
+	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	appHostSuffixes := environmentConfig.AppHostSuffixes
+	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
+		BaseViewModel:   baseViewModeler,
+		Renderer:        responseRenderer,
+		AppHostSuffixes: appHostSuffixes,
+		TrustProxy:      trustProxy,
+		OAuthConfig:     oAuthConfig,
+		UIConfig:        uiConfig,
 	}
 	return authEntryPointMiddleware
 }
