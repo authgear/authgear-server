@@ -54,6 +54,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
@@ -274,12 +275,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Resolver: templateResolver,
 	}
 	localizationConfig := appConfig.Localization
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -329,7 +331,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clock,
@@ -751,15 +753,16 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -811,7 +814,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -976,7 +979,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		RateLimits:     rateLimits,
 		Lockout:        serviceLockout,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,

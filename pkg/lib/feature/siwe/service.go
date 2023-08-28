@@ -50,7 +50,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("siwe")} }
 
 type Service struct {
 	RemoteIP             httputil.RemoteIP
-	HTTPConfig           *config.HTTPConfig
+	HTTPOrigin           httputil.HTTPOrigin
 	Web3Config           *config.Web3Config
 	AuthenticationConfig *config.AuthenticationConfig
 
@@ -140,7 +140,7 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 		return nil, nil, err
 	}
 
-	publicOrigin, err := url.Parse(s.HTTPConfig.PublicOrigin)
+	publicOrigin, err := url.Parse(string(s.HTTPOrigin))
 	if err != nil {
 		return nil, nil, err
 	}

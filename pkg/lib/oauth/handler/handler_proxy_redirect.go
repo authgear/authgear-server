@@ -5,12 +5,12 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type ProxyRedirectHandler struct {
 	OAuthConfig *config.OAuthConfig
-
-	HTTPConfig *config.HTTPConfig
+	HTTPOrigin  httputil.HTTPOrigin
 }
 
 func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) error {
@@ -34,7 +34,7 @@ func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) error {
 
 	for _, c := range h.OAuthConfig.Clients {
 		client := c
-		err = validateRedirectURI(&client, h.HTTPConfig, redirectURI)
+		err = validateRedirectURI(&client, h.HTTPOrigin, redirectURI)
 		// pass the validation in one of the OAuth clients
 		if err == nil {
 			return nil

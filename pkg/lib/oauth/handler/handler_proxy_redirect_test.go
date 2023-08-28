@@ -22,9 +22,7 @@ func TestProxyRedirectHandler(t *testing.T) {
 				},
 			},
 		},
-		HTTPConfig: &config.HTTPConfig{
-			PublicOrigin: "http://auth.example.com",
-		},
+		HTTPOrigin: "http://auth.example.com",
 	}
 
 	Convey("ProxyRedirectHandler", t, func() {
