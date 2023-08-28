@@ -447,6 +447,9 @@
   "return-page-title": "返回你原來的位置",
   "return-page-description": "請返回以繼續。如你正使用移動應用程式，請返回該應用程式；如你正使用網頁，請返回該分頁。",
 
+  "require-oauth-page-title": "Direct access to this page is disallowed",
+  "require-oauth-page-description": "This page can only be accessed via the authorization endpoint.",
+
   "wechat-auth-title": "使用 WeChat 帳戶登入",
   "wechat-auth-with-qr-code-description": "請在你的 WeChat 內掃描此QR碼",
   "wechat-auth-with-app-description": "點擊以下按鈕以繼續 WeChat 登入",
