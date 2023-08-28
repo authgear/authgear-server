@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type oauthRequest interface {
@@ -21,7 +22,7 @@ func resolveClient(config *config.OAuthConfig, r oauthRequest) *config.OAuthClie
 	return nil
 }
 
-func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
+func parseRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
 	allowedURIs := client.RedirectURIs
 	redirectURIString := r.RedirectURI()
 	if len(allowedURIs) == 1 && redirectURIString == "" {
@@ -34,7 +35,7 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
 	}
 
-	err = validateRedirectURI(client, http, redirectURI)
+	err = validateRedirectURI(client, httpOrigin, redirectURI)
 	if err != nil {
 		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
 	}
@@ -42,7 +43,7 @@ func parseRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig,
 	return redirectURI, nil
 }
 
-func validateRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConfig, redirectURI *url.URL) error {
+func validateRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, redirectURI *url.URL) error {
 	allowed := false
 	redirectURIString := redirectURI.String()
 
@@ -57,7 +58,7 @@ func validateRedirectURI(client *config.OAuthClientConfig, http *config.HTTPConf
 	// NOTE: this is a willful violation of OAuth spec, since first-party apps
 	//       would often want to open pages on AS using OAuth mechanism.
 	redirectURIOrigin := fmt.Sprintf("%s://%s", redirectURI.Scheme, redirectURI.Host)
-	if redirectURIOrigin == http.PublicOrigin {
+	if redirectURIOrigin == string(httpOrigin) {
 		allowed = true
 	}
 

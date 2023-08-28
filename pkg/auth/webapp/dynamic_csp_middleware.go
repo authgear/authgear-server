@@ -29,7 +29,7 @@ type AllowFrameAncestors bool
 
 type DynamicCSPMiddleware struct {
 	Cookies             CookieManager
-	HTTPConfig          *config.HTTPConfig
+	HTTPOrigin          httputil.HTTPOrigin
 	OAuthConfig         *config.OAuthConfig
 	WebAppCDNHost       config.WebAppCDNHost
 	AuthUISentryDSN     config.AuthUISentryDSN
@@ -65,7 +65,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		cspDirectives, err := web.CSPDirectives(web.CSPDirectivesOptions{
-			PublicOrigin:      m.HTTPConfig.PublicOrigin,
+			PublicOrigin:      string(m.HTTPOrigin),
 			Nonce:             nonce,
 			CDNHost:           string(m.WebAppCDNHost),
 			AuthUISentryDSN:   string(m.AuthUISentryDSN),

@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type mockOAuthRequestImpl struct {
@@ -30,9 +31,7 @@ func TestParseRedirectURI(t *testing.T) {
 		CustomUIURI: "http://authui.example.com/auth",
 	}
 
-	httpConfig := &config.HTTPConfig{
-		PublicOrigin: "http://auth.example.com",
-	}
+	httpOrigin := httputil.HTTPOrigin("http://auth.example.com")
 
 	Convey("parseRedirectURI", t, func() {
 		Convey("should use default redirect uri", func() {
@@ -40,14 +39,14 @@ func TestParseRedirectURI(t *testing.T) {
 				RedirectURIs: []string{
 					"http://app.example.com/handle_auth",
 				},
-			}, httpConfig, &mockOAuthRequestImpl{})
+			}, httpOrigin, &mockOAuthRequestImpl{})
 
 			So(u.String(), ShouldResemble, "http://app.example.com/handle_auth")
 			So(err, ShouldBeNil)
 		})
 
 		Convey("should allow allowlisted redirect uri", func() {
-			u, err := parseRedirectURI(clientConfig, httpConfig, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(clientConfig, httpOrigin, &mockOAuthRequestImpl{
 				"com.example.myapp://host/path",
 			})
 
@@ -56,7 +55,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should exact match", func() {
-			_, err := parseRedirectURI(clientConfig, httpConfig, &mockOAuthRequestImpl{
+			_, err := parseRedirectURI(clientConfig, httpOrigin, &mockOAuthRequestImpl{
 				"http://app.example.com/handle_auth/",
 			})
 
@@ -64,7 +63,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs at same origin as the authgear server", func() {
-			u, err := parseRedirectURI(clientConfig, httpConfig, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(clientConfig, httpOrigin, &mockOAuthRequestImpl{
 				"http://auth.example.com/settings",
 			})
 
@@ -73,7 +72,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should allow URIs at same origin as the custom ui uri", func() {
-			u, err := parseRedirectURI(clientConfig, httpConfig, &mockOAuthRequestImpl{
+			u, err := parseRedirectURI(clientConfig, httpOrigin, &mockOAuthRequestImpl{
 				"http://authui.example.com/auth/complete",
 			})
 
@@ -82,7 +81,7 @@ func TestParseRedirectURI(t *testing.T) {
 		})
 
 		Convey("should reject URIs not in the allowlist", func() {
-			_, err := parseRedirectURI(clientConfig, httpConfig, &mockOAuthRequestImpl{
+			_, err := parseRedirectURI(clientConfig, httpOrigin, &mockOAuthRequestImpl{
 				"http://unknown.com",
 			})
 

@@ -79,6 +79,7 @@ type AuthorizationHandler struct {
 	AppID      config.AppID
 	Config     *config.OAuthConfig
 	HTTPConfig *config.HTTPConfig
+	HTTPOrigin httputil.HTTPOrigin
 	Logger     AuthorizationHandlerLogger
 
 	UIURLBuilder              UIURLBuilder
@@ -101,7 +102,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 			Response:     protocol.NewErrorResponse("unauthorized_client", "invalid client ID"),
 		}
 	}
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPOrigin, r)
 	if errResp != nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -315,7 +316,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 		return nil, err
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPOrigin, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
 		return nil, err
