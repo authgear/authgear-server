@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -82,6 +83,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
@@ -56133,6 +56135,89 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 }
 
 // Injectors from wire_middleware.go:
+
+func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
+	manager := p.BaseResources
+	defaultLanguageTag := _wireDefaultLanguageTagValue
+	supportedLanguageTags := _wireSupportedLanguageTagsValue
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	oAuthConfig := ProvideOAuthConfig()
+	uiConfig := ProvideUIConfig()
+	uiFeatureConfig := ProvideUIFeatureConfig()
+	contextContext := deps.ProvideRequestContext(r)
+	localizationConfig := ProvideLocalizationConfig(defaultLanguageTag, supportedLanguageTags)
+	httpProto := deps.ProvideHTTPProto(r, trustProxy)
+	httpHost := deps.ProvideHTTPHost(r, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := p.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	forgotPasswordConfig := ProvideForgotPasswordConfig()
+	authenticationConfig := ProvideAuthenticationConfig()
+	googleTagManagerConfig := ProvideGoogleTagManagerConfig()
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	cookieManager := ProvideCookieManager(r, trustProxy)
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	clockClock := _wireSystemClockValue
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
+	}
+	requestMiddleware := &deps.RequestMiddleware{
+		RootProvider:    p,
+		ConfigSource:    configSource,
+		TemplateEngine:  engine,
+		BaseViewModeler: baseViewModeler,
+	}
+	return requestMiddleware
+}
+
+var (
+	_wireDefaultLanguageTagValue    = template.DefaultLanguageTag(intl.BuiltinBaseLanguage)
+	_wireSupportedLanguageTagsValue = template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})
+)
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 	factory := p.LoggerFactory

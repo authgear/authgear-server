@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/api"
@@ -20,6 +22,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -45,8 +49,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.MetadataProvider) []handleroauth.MetadataProvider {
@@ -181,3 +188,109 @@ var DependencySet = wire.NewSet(
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 )
+
+func ProvideOAuthConfig() *config.OAuthConfig {
+	return &config.OAuthConfig{}
+}
+
+func ProvideUIConfig() *config.UIConfig {
+	return &config.UIConfig{
+		PhoneInput: &config.PhoneInputConfig{},
+	}
+}
+
+func ProvideUIFeatureConfig() *config.UIFeatureConfig {
+	return &config.UIFeatureConfig{
+		WhiteLabeling: &config.WhiteLabelingFeatureConfig{},
+	}
+}
+
+func ProvideForgotPasswordConfig() *config.ForgotPasswordConfig {
+	c := &config.ForgotPasswordConfig{}
+	c.SetDefaults()
+	return c
+}
+
+func ProvideAuthenticationConfig() *config.AuthenticationConfig {
+	c := &config.AuthenticationConfig{}
+	c.SetDefaults()
+	return c
+}
+
+func ProvideGoogleTagManagerConfig() *config.GoogleTagManagerConfig {
+	return &config.GoogleTagManagerConfig{}
+}
+
+func ProvideLocalizationConfig(defaultLang template.DefaultLanguageTag, supported template.SupportedLanguageTags) *config.LocalizationConfig {
+	defaultLangStr := string(defaultLang)
+	return &config.LocalizationConfig{
+		FallbackLanguage:   &defaultLangStr,
+		SupportedLanguages: []string(supported),
+	}
+}
+
+func ProvideCookieManager(r *http.Request, trustProxy config.TrustProxy) *httputil.CookieManager {
+	m := &httputil.CookieManager{
+		Request:    r,
+		TrustProxy: bool(trustProxy),
+	}
+	return m
+}
+
+var RequestMiddlewareDependencySet = wire.NewSet(
+	template.DependencySet,
+	web.DependencySet,
+	translation.DependencySet,
+	deps.RootDependencySet,
+	httputil.DependencySet,
+
+	ProvideOAuthConfig,
+	ProvideUIConfig,
+	ProvideUIFeatureConfig,
+	ProvideForgotPasswordConfig,
+	ProvideAuthenticationConfig,
+	ProvideGoogleTagManagerConfig,
+	ProvideLocalizationConfig,
+
+	ProvideCookieManager,
+
+	deps.ProvideRequestContext,
+	deps.ProvideRemoteIP,
+	deps.ProvideUserAgentString,
+	deps.ProvideHTTPHost,
+	deps.ProvideHTTPProto,
+
+	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
+	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),
+
+	wire.Struct(new(viewmodelswebapp.BaseViewModeler), "*"),
+	wire.Struct(new(deps.RequestMiddleware), "*"),
+
+	webapp.NewErrorCookieDef,
+	wire.Struct(new(webapp.ErrorCookie), "*"),
+
+	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
+
+	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
+	wire.Bind(new(translation.StaticAssetResolver), new(*web.StaticAssetResolver)),
+	wire.Bind(new(web.EmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
+
+	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
+
+	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+
+	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
+	wire.Bind(new(httputil.FlashMessageCookieManager), new(*httputil.CookieManager)),
+)
+
+func RequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSource, factory func(http.ResponseWriter, *http.Request, *deps.RootProvider, *configsource.ConfigSource) httproute.Middleware) httproute.Middleware {
+	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			m := factory(w, r, p, configSource)
+			h := m.Handle(next)
+			h.ServeHTTP(w, r)
+		})
+	})
+}

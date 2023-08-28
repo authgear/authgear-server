@@ -4,17 +4,27 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/api"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
+
+func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
+	panic(wire.Build(
+		RequestMiddlewareDependencySet,
+		wire.Bind(new(httproute.Middleware), new(*deps.RequestMiddleware)),
+	))
+}
 
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(

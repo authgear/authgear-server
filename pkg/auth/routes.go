@@ -55,10 +55,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		httproute.MiddlewareFunc(httputil.StaticSecurityHeaders),
-		&deps.RequestMiddleware{
-			RootProvider: p,
-			ConfigSource: configSource,
-		},
+		RequestMiddleware(p, configSource, newRequestMiddleware),
 	)
 
 	// This route is intentionally simple.
