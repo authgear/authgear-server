@@ -4,12 +4,16 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type RequestMiddleware struct {
-	RootProvider *RootProvider
-	ConfigSource *configsource.ConfigSource
+	RootProvider    *RootProvider
+	ConfigSource    *configsource.ConfigSource
+	TemplateEngine  *template.Engine
+	BaseViewModeler *viewmodels.BaseViewModeler
 }
 
 func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
