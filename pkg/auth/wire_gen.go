@@ -1155,10 +1155,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	consentHandler := &oauth.ConsentHandler{
 		Logger:        consentHandlerLogger,
@@ -6271,10 +6269,8 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	responseWriter := &webapp.ResponseWriter{
 		JSONResponseWriter: jsonResponseWriter,
@@ -7121,10 +7117,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -7953,10 +7947,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -8784,10 +8776,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -9603,10 +9593,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -10415,10 +10403,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -11217,10 +11203,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -12022,10 +12006,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -12830,10 +12812,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -13640,10 +13620,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -14448,10 +14426,8 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -15252,10 +15228,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -16060,10 +16034,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -16869,10 +16841,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -17677,10 +17647,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -18485,10 +18453,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -19295,10 +19261,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -20103,10 +20067,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -20911,10 +20873,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -21723,10 +21683,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -22531,10 +22489,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -23343,10 +23299,8 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -24151,10 +24105,8 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
@@ -24967,10 +24919,8 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
@@ -25786,10 +25736,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -26594,10 +26542,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -27398,10 +27344,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -28206,10 +28150,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -29010,10 +28952,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -29824,10 +29764,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -30628,10 +30566,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -31434,10 +31370,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -32238,10 +32172,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -33074,10 +33006,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -33889,10 +33819,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -34717,10 +34645,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -35529,10 +35455,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -36334,10 +36258,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -37147,10 +37069,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -37952,10 +37872,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -38757,10 +38675,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -39562,10 +39478,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -40368,10 +40282,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -41192,10 +41104,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -41997,10 +41907,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -42802,10 +42710,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -43607,10 +43513,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -44412,10 +44316,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -45224,10 +45126,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -46030,10 +45930,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -46834,10 +46732,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -47653,10 +47549,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -48457,10 +48351,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -49261,10 +49153,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -51618,10 +51508,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -52432,10 +52320,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -53237,10 +53123,8 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -56395,10 +56279,8 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	panicMiddleware := &webapp.PanicMiddleware{
 		Logger:        panicMiddlewareLogger,
@@ -56577,11 +56459,8 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
