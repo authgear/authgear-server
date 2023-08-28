@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html
+lang="{{ $.ResolvedLanguageTag }}"
+data-controller="format-date-relative"
+data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
+{{ template "__html_head.html" . }}
+
+{{ $lockedUntil := "" }}
+{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
+{{ $lockedUntil = (rfc3339 (ensureTime .Error.info.until)) }}
+{{ end }}
+
+<body
+class="page"
+data-controller="prevent-double-tap modal simple-modal xhr-submit-form lockout"
+data-action="dblclick->prevent-double-tap#action"
+data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
+data-lockout-lock-until-value="{{ $lockedUntil }}"
+data-lockout-action-button-selector-value="[data-action-button]">
+
+<!-- Google Tag Manager (noscript) -->
+{{ if $.GoogleTagManagerContainerID }}
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+{{ end }}
+<!-- End Google Tag Manager (noscript) -->
+
+{{ template "__message_bar.html" . }}
+<div id="loading-progress-bar"></div>
+{{ template "__tutorial.html" . }}
+<div class="max-w-90 m-auto">
+<div class="grid grid-cols-6 tablet:grid-cols-12 desktop:grid-cols-12 gap-x-4 auto-rows-auto mx-4 tablet:mx-4 desktop:mx-6 mb-8">
+<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4">
+<div class="page-header">
+{{ template "__header.html" . }}
+</div>
+</div>
+<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4 twc-container-vertical">
+<div class="primary-txt pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+
+<h2 class="primary-txt text-center m-0 text-xl font-bold">
+{{ template "error-app-not-found" (dict "host" $.HTTPHost) }}
+</h2>
+<a class="as-btn not-a btn primary-btn my-5" href="https://authgear.com" data-turbo="false">
+{{ template "error-app-not-found-action" }}
+</a>
+
+{{ template "__watermark.html" . }}
+</div>
+</div>
+</div>
+</div>
+{{ template "__modal.html" }}
+</body>
+</html>

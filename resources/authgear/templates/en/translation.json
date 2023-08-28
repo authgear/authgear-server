@@ -93,6 +93,8 @@
   "error-failed-to-connect-wallet": "Failed to connect to wallet.",
   "error-page-not-found": "The page cannot be found",
   "error-page-not-found-action": "Return to Home",
+  "error-app-not-found": "{host} a not valid project",
+  "error-app-not-found-action": "Try out authgear.com",
 
   "success-resend-code": "Resent code successfully!",
   "success-resend-login-link": "Login link successfully resent",
