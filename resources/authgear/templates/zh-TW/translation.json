@@ -93,6 +93,8 @@
   "error-failed-to-connect-wallet": "無法連接到錢包。",
   "error-page-not-found": "找不到頁面",
   "error-page-not-found-action": "返回主頁",
+  "error-app-not-found": "{host} a not valid project",
+  "error-app-not-found-action": "Try out authgear.com",
 
   "success-resend-code": "成功重發驗證碼！",
   "success-resend-login-link": "成功重發登錄鏈接",

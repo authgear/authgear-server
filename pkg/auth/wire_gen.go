@@ -56178,6 +56178,9 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 // Injectors from wire_middleware.go:
 
 func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(r, trustProxy)
 	manager := p.BaseResources
 	defaultLanguageTag := _wireDefaultLanguageTagValue
 	supportedLanguageTags := _wireSupportedLanguageTagsValue
@@ -56189,15 +56192,12 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	environmentConfig := p.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	oAuthConfig := ProvideOAuthConfig()
 	uiConfig := ProvideUIConfig()
 	uiFeatureConfig := ProvideUIFeatureConfig()
 	contextContext := deps.ProvideRequestContext(r)
 	localizationConfig := ProvideLocalizationConfig(defaultLanguageTag, supportedLanguageTags)
 	httpProto := deps.ProvideHTTPProto(r, trustProxy)
-	httpHost := deps.ProvideHTTPHost(r, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := p.EmbeddedResources
@@ -56247,6 +56247,7 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 		AuthUISentryDSN:       authUISentryDSN,
 	}
 	requestMiddleware := &deps.RequestMiddleware{
+		HTTPHost:        httpHost,
 		RootProvider:    p,
 		ConfigSource:    configSource,
 		TemplateEngine:  engine,
