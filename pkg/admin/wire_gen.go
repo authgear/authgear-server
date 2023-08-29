@@ -262,15 +262,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -321,7 +322,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -477,7 +478,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -668,6 +668,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{

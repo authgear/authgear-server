@@ -37,6 +37,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -83,6 +84,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
@@ -129,12 +131,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
-	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -242,8 +245,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -294,7 +297,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clock,
@@ -599,6 +602,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                     appID,
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
+		HTTPOrigin:                httpOrigin,
 		Logger:                    authorizationHandlerLogger,
 		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
@@ -639,12 +643,13 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
-	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
@@ -752,8 +757,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -804,7 +809,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -1109,6 +1114,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                     appID,
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
+		HTTPOrigin:                httpOrigin,
 		Logger:                    authorizationHandlerLogger,
 		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
@@ -1151,10 +1157,8 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	consentHandler := &oauth.ConsentHandler{
 		Logger:        consentHandlerLogger,
@@ -1177,7 +1181,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
-	httpConfig := appConfig.HTTP
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	featureConfig := config.FeatureConfig
 	oAuthFeatureConfig := featureConfig.OAuth
 	identityFeatureConfig := featureConfig.Identity
@@ -1186,7 +1196,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
@@ -1205,9 +1214,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -1343,13 +1349,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -1399,7 +1404,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -1555,7 +1560,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -1704,6 +1708,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:         userStore,
 		Events:            eventService,
 	}
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -1940,7 +1945,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
-		HTTPConfig:             httpConfig,
+		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
@@ -2139,12 +2144,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         resourceManager,
@@ -2194,7 +2201,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -2350,7 +2357,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -2609,14 +2615,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -2667,7 +2673,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -2982,14 +2988,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -3040,7 +3046,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -3422,12 +3428,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         resourceManager,
@@ -3477,7 +3484,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -3797,7 +3804,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
-	httpConfig := appConfig.HTTP
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	featureConfig := config.FeatureConfig
 	oAuthFeatureConfig := featureConfig.OAuth
 	identityFeatureConfig := featureConfig.Identity
@@ -3806,7 +3819,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
@@ -3825,9 +3837,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -3963,13 +3972,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -4019,7 +4027,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -4175,7 +4183,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -4324,6 +4331,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:         userStore,
 		Events:            eventService,
 	}
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -4560,7 +4568,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
-		HTTPConfig:             httpConfig,
+		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
 		OAuthClientCredentials: oAuthClientCredentials,
@@ -4594,10 +4602,16 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	config := appContext.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
-	httpConfig := appConfig.HTTP
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	proxyRedirectHandler := &handler.ProxyRedirectHandler{
 		OAuthConfig: oAuthConfig,
-		HTTPConfig:  httpConfig,
+		HTTPOrigin:  httpOrigin,
 	}
 	oauthProxyRedirectHandler := &oauth.ProxyRedirectHandler{
 		ProxyRedirectHandler: proxyRedirectHandler,
@@ -4614,10 +4628,12 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
-	httpConfig := appConfig.HTTP
 	web3Config := appConfig.Web3
 	authenticationConfig := appConfig.Authentication
 	clockClock := _wireSystemClockValue
@@ -4645,7 +4661,7 @@ func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -4793,14 +4809,15 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -4850,7 +4867,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -5006,7 +5023,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -5167,6 +5183,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -5577,14 +5594,15 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -5634,7 +5652,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -5790,7 +5808,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -5951,6 +5968,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -6253,10 +6271,8 @@ func newAPIPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	responseWriter := &webapp.ResponseWriter{
 		JSONResponseWriter: jsonResponseWriter,
@@ -6469,12 +6485,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -6524,7 +6542,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -6680,7 +6698,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -7102,10 +7119,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -7300,12 +7315,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -7355,7 +7372,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -7511,7 +7528,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -7933,10 +7949,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -8130,12 +8144,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -8185,7 +8201,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -8341,7 +8357,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -8763,10 +8778,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -8948,12 +8961,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -9003,7 +9018,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -9159,7 +9174,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -9581,10 +9595,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -9759,12 +9771,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -9814,7 +9828,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -9970,7 +9984,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -10392,10 +10405,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -10560,12 +10571,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -10615,7 +10628,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -10771,7 +10784,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -11193,10 +11205,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -11364,12 +11374,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -11419,7 +11431,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -11575,7 +11587,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -11997,10 +12008,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -12171,12 +12180,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -12226,7 +12237,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -12382,7 +12393,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -12804,10 +12814,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -12980,12 +12988,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -13035,7 +13045,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -13191,7 +13201,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -13613,10 +13622,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -13787,12 +13794,14 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -13842,7 +13851,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -13998,7 +14007,6 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -14420,10 +14428,8 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -14590,12 +14596,14 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -14645,7 +14653,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -14801,7 +14809,6 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -15223,10 +15230,8 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -15397,12 +15402,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -15452,7 +15459,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -15608,7 +15615,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -16030,10 +16036,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -16205,12 +16209,14 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -16260,7 +16266,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -16416,7 +16422,6 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -16838,10 +16843,8 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -17012,12 +17015,14 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -17067,7 +17072,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -17223,7 +17228,6 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -17645,10 +17649,8 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -17819,12 +17821,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -17874,7 +17878,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -18030,7 +18034,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -18452,10 +18455,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -18628,12 +18629,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -18683,7 +18686,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -18839,7 +18842,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -19261,10 +19263,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -19435,12 +19435,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -19490,7 +19492,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -19646,7 +19648,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -20068,10 +20069,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -20242,12 +20241,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -20297,7 +20298,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -20453,7 +20454,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -20875,10 +20875,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -21053,12 +21051,14 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -21108,7 +21108,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -21264,7 +21264,6 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -21686,10 +21685,8 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -21860,12 +21857,14 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -21915,7 +21914,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -22071,7 +22070,6 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -22493,10 +22491,8 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -22671,12 +22667,14 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -22726,7 +22724,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -22882,7 +22880,6 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -23304,10 +23301,8 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -23517,12 +23512,14 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -23561,7 +23558,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -23689,7 +23686,6 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -24111,10 +24107,8 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
@@ -24332,12 +24326,14 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -24376,7 +24372,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -24504,7 +24500,6 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -24926,10 +24921,8 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
@@ -25111,12 +25104,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -25166,7 +25161,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -25322,7 +25317,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -25744,10 +25738,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -25918,12 +25910,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -25973,7 +25967,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -26129,7 +26123,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -26551,10 +26544,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -26721,12 +26712,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -26776,7 +26769,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -26932,7 +26925,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -27354,10 +27346,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -27528,12 +27518,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -27583,7 +27575,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -27739,7 +27731,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -28161,10 +28152,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -28331,12 +28320,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -28386,7 +28377,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -28542,7 +28533,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -28964,10 +28954,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -29144,12 +29132,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -29199,7 +29189,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -29355,7 +29345,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -29777,10 +29766,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -29947,12 +29934,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -30002,7 +29991,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -30158,7 +30147,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -30580,10 +30568,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -30752,12 +30738,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -30807,7 +30795,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -30963,7 +30951,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -31385,10 +31372,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -31555,12 +31540,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -31610,7 +31597,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -31766,7 +31753,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -32188,10 +32174,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -32390,12 +32374,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -32445,7 +32431,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -32601,7 +32587,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -33023,10 +33008,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -33204,12 +33187,14 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -33259,7 +33244,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -33415,7 +33400,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -33837,10 +33821,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -34031,12 +34013,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -34086,7 +34070,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -34242,7 +34226,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -34664,10 +34647,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -34842,12 +34823,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -34897,7 +34880,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -35053,7 +35036,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -35475,10 +35457,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -35646,12 +35626,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -35701,7 +35683,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -35857,7 +35839,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -36279,10 +36260,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -36458,12 +36437,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -36513,7 +36494,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -36669,7 +36650,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -37091,10 +37071,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -37262,12 +37240,14 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -37317,7 +37297,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -37473,7 +37453,6 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -37895,10 +37874,8 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -38066,12 +38043,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -38121,7 +38100,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -38277,7 +38256,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -38699,10 +38677,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -38870,12 +38846,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -38925,7 +38903,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -39081,7 +39059,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -39503,10 +39480,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -39675,12 +39650,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -39730,7 +39707,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -39886,7 +39863,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -40308,10 +40284,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -40498,12 +40472,14 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -40553,7 +40529,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -40709,7 +40685,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -41131,10 +41106,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -41302,12 +41275,14 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -41357,7 +41332,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -41513,7 +41488,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -41935,10 +41909,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -42106,12 +42078,14 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -42161,7 +42135,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -42317,7 +42291,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -42739,10 +42712,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -42910,12 +42881,14 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -42965,7 +42938,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -43121,7 +43094,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -43543,10 +43515,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -43714,12 +43684,14 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -43769,7 +43741,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -43925,7 +43897,6 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -44347,10 +44318,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -44525,12 +44494,14 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -44580,7 +44551,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -44736,7 +44707,6 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -45158,10 +45128,8 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -45330,12 +45298,14 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -45385,7 +45355,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -45541,7 +45511,6 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -45963,10 +45932,8 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -46133,12 +46100,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -46188,7 +46157,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -46344,7 +46313,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -46766,10 +46734,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -46951,12 +46917,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -47006,7 +46974,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -47162,7 +47130,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -47584,10 +47551,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -47754,12 +47719,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -47809,7 +47776,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -47965,7 +47932,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -48387,10 +48353,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -48557,12 +48521,14 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -48612,7 +48578,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -48768,7 +48734,6 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -49190,10 +49155,8 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -49378,12 +49341,14 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -49433,7 +49398,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -49589,7 +49554,6 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -50145,12 +50109,14 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -50200,7 +50166,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -50356,7 +50322,6 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -50911,12 +50876,14 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -50966,7 +50933,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -51122,7 +51089,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -51544,10 +51510,8 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -51724,12 +51688,14 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -51779,7 +51745,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -51935,7 +51901,6 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -52357,10 +52322,8 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -52528,12 +52491,14 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -52583,7 +52548,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -52739,7 +52704,6 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -53161,10 +53125,8 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
@@ -53313,12 +53275,14 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -53368,7 +53332,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -53524,7 +53488,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -54070,14 +54033,15 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -54127,7 +54091,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -54283,7 +54247,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -54444,6 +54407,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -54801,14 +54765,15 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -54858,7 +54823,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -55014,7 +54979,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -55175,6 +55139,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -55570,12 +55535,14 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -55625,7 +55592,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -55781,7 +55748,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -56211,6 +56177,90 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 
 // Injectors from wire_middleware.go:
 
+func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootProvider, configSource *configsource.ConfigSource) httproute.Middleware {
+	environmentConfig := p.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(r, trustProxy)
+	manager := p.BaseResources
+	defaultLanguageTag := _wireDefaultLanguageTagValue
+	supportedLanguageTags := _wireSupportedLanguageTagsValue
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	oAuthConfig := ProvideOAuthConfig()
+	uiConfig := ProvideUIConfig()
+	uiFeatureConfig := ProvideUIFeatureConfig()
+	contextContext := deps.ProvideRequestContext(r)
+	localizationConfig := ProvideLocalizationConfig(defaultLanguageTag, supportedLanguageTags)
+	httpProto := deps.ProvideHTTPProto(r, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := p.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	forgotPasswordConfig := ProvideForgotPasswordConfig()
+	authenticationConfig := ProvideAuthenticationConfig()
+	googleTagManagerConfig := ProvideGoogleTagManagerConfig()
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	cookieManager := ProvideCookieManager(r, trustProxy)
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	clockClock := _wireSystemClockValue
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
+	}
+	requestMiddleware := &deps.RequestMiddleware{
+		HTTPHost:        httpHost,
+		RootProvider:    p,
+		ConfigSource:    configSource,
+		TemplateEngine:  engine,
+		BaseViewModeler: baseViewModeler,
+	}
+	return requestMiddleware
+}
+
+var (
+	_wireDefaultLanguageTagValue    = template.DefaultLanguageTag(intl.BuiltinBaseLanguage)
+	_wireSupportedLanguageTagsValue = template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})
+)
+
 func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
 	factory := p.LoggerFactory
 	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
@@ -56252,16 +56302,17 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	uiFeatureConfig := featureConfig.UI
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	manager := appContext.Resources
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -56271,6 +56322,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	errorCookieDef := webapp2.NewErrorCookieDef()
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
@@ -56313,10 +56365,8 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	panicMiddleware := &webapp.PanicMiddleware{
 		Logger:        panicMiddlewareLogger,
@@ -56380,12 +56430,15 @@ func newDynamicCSPMiddleware(p *deps.RequestProvider, allowInlineScript webapp2.
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	oAuthConfig := appConfig.OAuth
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
 	dynamicCSPMiddleware := &webapp2.DynamicCSPMiddleware{
 		Cookies:             cookieManager,
-		HTTPConfig:          httpConfig,
+		HTTPOrigin:          httpOrigin,
 		OAuthConfig:         oAuthConfig,
 		WebAppCDNHost:       webAppCDNHost,
 		AuthUISentryDSN:     authUISentryDSN,
@@ -56429,16 +56482,17 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	uiFeatureConfig := featureConfig.UI
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
-	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	manager := appContext.Resources
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -56448,6 +56502,7 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authenticationConfig := appConfig.Authentication
 	googleTagManagerConfig := appConfig.GoogleTagManager
 	errorCookieDef := webapp2.NewErrorCookieDef()
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp2.ErrorCookie{
 		Cookie:  errorCookieDef,
@@ -56490,11 +56545,8 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
 	}
-	factory := appProvider.LoggerFactory
-	responseRendererLogger := webapp.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
-		Logger:         responseRendererLogger,
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
@@ -56678,12 +56730,13 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		Resolver: templateResolver,
 	}
 	localizationConfig := appConfig.Localization
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -56733,7 +56786,7 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -57194,12 +57247,14 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -57249,7 +57304,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -57405,7 +57460,6 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -58043,14 +58097,15 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpConfig := appConfig.HTTP
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -58100,7 +58155,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -58256,7 +58311,6 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
@@ -58417,6 +58471,7 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{

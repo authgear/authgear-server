@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html
+lang="{{ $.ResolvedLanguageTag }}"
+data-controller="format-date-relative"
+data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
+<head>
+<meta charset="UTF-8">
+<title>{{ template "app.name" }}</title>
+<link rel="shortcut icon" href="{{ call $.GeneratedStaticAssetURL "favicon.png" }}">
+<meta name="x-authgear-page-loaded-at" content="{{ .PageLoadedAt }}">
+<meta name="x-intl-tel-input-only-countries" content="{{ $.AllowedPhoneCountryCodeJSON }}">
+<meta name="x-intl-tel-input-preferred-countries" content="{{ $.PinnedPhoneCountryCodeJSON }}">
+<meta name="x-geoip-country-code" content="{{ $.GeoIPCountryCode }}">
+<meta name="x-form-json" content="{{ $.FormJSON }}" data-controller="restore-form">
+<meta name="x-color-scheme" content="{{ $.ColorScheme }}">
+<meta name="x-sentry-dsn" content="{{ $.AuthUISentryDSN }}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Tell Turbo not to use stale page for application visit -->
+<!-- See https://turbo.hotwired.dev/handbook/building#opting-out-of-caching -->
+<!-- This issue is particularly noticeable in the following situation -->
+<!-- 1. Go to picture screen, see the profile picture screen -->
+<!-- 2. Remove the picture screen, be redirected to profile screen -->
+<!-- 3. Go back to picture screen, see the stale profile picture screen with the removed picture for a very short period -->
+<!-- Stale page is still available for navigating back -->
+<meta name="turbo-cache-control" content="no-preview">
+
+{{ template "__generated_asset.html" . }}
+
+</head>
+
+<body
+class="page"
+data-controller="prevent-double-tap modal simple-modal xhr-submit-form"
+data-action="dblclick->prevent-double-tap#action">
+
+{{ template "__message_bar.html" . }}
+<div id="loading-progress-bar"></div>
+{{ template "__tutorial.html" . }}
+<div class="max-w-90 m-auto">
+<div class="grid grid-cols-6 tablet:grid-cols-12 desktop:grid-cols-12 gap-x-4 auto-rows-auto mx-4 tablet:mx-4 desktop:mx-6 mb-8">
+<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4">
+<div class="page-header">
+
+<div class="banner-wrapper">
+<div class="banner-frame">
+<img class="banner" src="{{ call $.GeneratedStaticAssetURL "app_logo.png" }}">
+</div>
+</div>
+
+</div>
+</div>
+<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4 twc-container-vertical">
+<div class="primary-txt pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
+
+<h2 class="primary-txt text-center m-0 text-xl font-bold">
+{{ template "error-app-not-found" (dict "host" $.HTTPHost) }}
+</h2>
+<a class="as-btn not-a btn primary-btn my-5" href="https://authgear.com" data-turbo="false">
+{{ template "error-app-not-found-action" }}
+</a>
+
+{{ template "__watermark.html" . }}
+</div>
+</div>
+</div>
+</div>
+{{ template "__modal.html" }}
+</body>
+</html>

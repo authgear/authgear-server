@@ -91,7 +91,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 type TokenHandler struct {
 	AppID                  config.AppID
 	Config                 *config.OAuthConfig
-	HTTPConfig             *config.HTTPConfig
+	HTTPOrigin             httputil.HTTPOrigin
 	OAuthFeatureConfig     *config.OAuthFeatureConfig
 	IdentityFeatureConfig  *config.IdentityFeatureConfig
 	OAuthClientCredentials *config.OAuthClientCredentials
@@ -800,7 +800,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		)
 	}
 
-	redirectURI, errResp := parseRedirectURI(client, h.HTTPConfig, r)
+	redirectURI, errResp := parseRedirectURI(client, h.HTTPOrigin, r)
 	if errResp != nil {
 		return nil, protocol.NewErrorWithErrorResponse(errResp)
 	}

@@ -2,13 +2,15 @@ package template
 
 import (
 	"fmt"
+	"golang.org/x/text/language"
 	htmltemplate "html/template"
+	"net/http"
+	"strconv"
 	"strings"
 	texttemplate "text/template"
 	"text/template/parse"
 
-	"golang.org/x/text/language"
-
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/messageformat"
 )
 
@@ -181,4 +183,24 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 	}
 
 	return buf.String(), nil
+}
+
+func (e *Engine) RenderStatus(w http.ResponseWriter, r *http.Request, status int, tpl Resource, data interface{}) {
+	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
+	out, err := e.Render(
+		tpl,
+		preferredLanguageTags,
+		data,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	body := []byte(out)
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+	w.WriteHeader(status)
+	_, err = w.Write(body)
+	if err != nil {
+		panic(err)
+	}
 }

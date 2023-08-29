@@ -7,4 +7,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(JSONResponseWriter), "*"),
 	wire.Struct(new(FlashMessage), "*"),
 	wire.Struct(new(TutorialCookie), "*"),
+	MakeHTTPOrigin,
 )

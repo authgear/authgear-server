@@ -65,12 +65,10 @@ func TestAuthorizationHandler(t *testing.T) {
 
 		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
-			Context: context.Background(),
-			AppID:   appID,
-			Config:  &config.OAuthConfig{},
-			HTTPConfig: &config.HTTPConfig{
-				PublicOrigin: "http://accounts.example.com",
-			},
+			Context:    context.Background(),
+			AppID:      appID,
+			Config:     &config.OAuthConfig{},
+			HTTPOrigin: "http://accounts.example.com",
 
 			UIURLBuilder:              uiURLBuilder,
 			UIInfoResolver:            uiInfoResolver,

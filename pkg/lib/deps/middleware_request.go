@@ -4,12 +4,24 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/template"
+)
+
+var TemplateWebAppNotFoundHTML = template.RegisterHTML(
+	"web/app_not_found.html",
+	web.ComponentsHTML...,
 )
 
 type RequestMiddleware struct {
-	RootProvider *RootProvider
-	ConfigSource *configsource.ConfigSource
+	HTTPHost        httputil.HTTPHost
+	RootProvider    *RootProvider
+	ConfigSource    *configsource.ConfigSource
+	TemplateEngine  *template.Engine
+	BaseViewModeler *viewmodels.BaseViewModeler
 }
 
 func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
@@ -26,7 +38,12 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		appCtx, err := m.ConfigSource.ProvideContext(r)
 		if err != nil {
 			if errors.Is(err, configsource.ErrAppNotFound) {
-				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
+				data := map[string]interface{}{
+					"HTTPHost": string(m.HTTPHost),
+				}
+				baseViewModel := m.BaseViewModeler.ViewModel(r, w)
+				viewmodels.Embed(data, baseViewModel)
+				m.TemplateEngine.RenderStatus(w, r, http.StatusNotFound, TemplateWebAppNotFoundHTML, data)
 			} else {
 				logger.WithError(err).Error("failed to resolve config")
 				http.Error(w, "internal server error", http.StatusInternalServerError)

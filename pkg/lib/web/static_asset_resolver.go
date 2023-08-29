@@ -38,8 +38,8 @@ type EmbeddedResourceManager interface {
 
 type StaticAssetResolver struct {
 	Context           context.Context
-	Config            *config.HTTPConfig
 	Localization      *config.LocalizationConfig
+	HTTPOrigin        httputil.HTTPOrigin
 	HTTPProto         httputil.HTTPProto
 	WebAppCDNHost     config.WebAppCDNHost
 	Resources         ResourceManager
@@ -87,7 +87,7 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 	hash := md5.Sum(asset.Data)
 
 	hashPath := filepathutil.MakeHashedPath(asset.Path, fmt.Sprintf("%x", hash))
-	return staticAssetURL(r.Config.PublicOrigin, "", hashPath)
+	return staticAssetURL(string(r.HTTPOrigin), "", hashPath)
 }
 
 func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error) {
@@ -96,7 +96,7 @@ func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error
 		return "", err
 	}
 
-	origin := r.Config.PublicOrigin
+	origin := string(r.HTTPOrigin)
 	if r.WebAppCDNHost != "" {
 		origin = fmt.Sprintf("%s://%s", r.HTTPProto, r.WebAppCDNHost)
 	}
