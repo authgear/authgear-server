@@ -26,6 +26,15 @@
     + [Execute the Authentication Flow](#execute-the-authentication-flow)
     + [Get the Authentication Flow](#get-the-authentication-flow)
     + [Connect websocket](#connect-websocket)
+  * [Mobile apps using the Default UI](#mobile-apps-using-the-default-ui)
+    + [Ordinary Authentication Flow](#ordinary-authentication-flow)
+    + [Authentication Flow involving OAuth](#authentication-flow-involving-oauth)
+    + [Authentication Flow involving passkey](#authentication-flow-involving-passkey)
+  * [Mobile apps using their own UI](#mobile-apps-using-their-own-ui)
+    + [The start and the end of a Authentication Flow](#the-start-and-the-end-of-a-authentication-flow)
+    + [Facebook Login](#facebook-login)
+    + [Sign in with Apple](#sign-in-with-apple)
+    + [Any other OAuth providers supported by Authgear](#any-other-oauth-providers-supported-by-authgear)
   * [Appendix](#appendix)
     + [Review on the authentication UI / UX of existing consumer apps](#review-on-the-authentication-ui--ux-of-existing-consumer-apps)
     + [Review on the design of various competitors](#review-on-the-design-of-various-competitors)
@@ -667,6 +676,68 @@ Connection: Upgrade
 The only websocket message you will receive is the JSON object `{"kind": "refresh"}`.
 Its meaning is to tell you to call the GET endpoint to refresh the flow.
 The flow would have updated `data` or `schema`, which allows you to continue the flow.
+
+## Mobile apps using the Default UI
+
+### Ordinary Authentication Flow
+
+[![](https://mermaid.ink/img/pako:eNq1U11r3DAQ_CuLnhqSy0EfDQkcuUsJJaScLxSKISjS2hY9ax19tE1D_ntXvjvbObd9y4s_pJnZkXb2RSjSKDLh8SmiVbg0snKyKSxAK10wyrTSBli07fFSvvx8vHTv0S0qtGFCj6GuULq0zlIwu7xM_AwkbzDeKBnwg0NtHKpwv765KNhYc948Sy4sThKP8R2vL5JB9AiL_Cs-LgYZQzZH7_kF5OAq-kDNRj76JNFTO6GDqQw-rTYwp-Tl4zw9yZnf2HndQ2B2VHm9twqBYD6RPh1pr36higHhrUW43tJPCGYLaHXiW2KMM1UdgMoRfVMjLLGUccvXewPamR_ogaWgZIWJx9k_Tf7teO9zH0Pj3pbom77GEJ2Fg_LuQlIOx20e3Hy5ywc7gb6jnVoZ6zosHfr6oYOCtBqkUhyJh547rTE-MafKGVvS_6uMUZ1eJ9i2GezjlwfO9FUtbZWSLT3Zi1EGUJ-IM9Gga6TRPH8vSacQvN9gITL-1LuuF6KwrwyNrWbWSptATmSl3Ho8E2yY8merRBZcxANoP8M9ikfwG9Hwj53I7W7wu_l__QOnnGKP?type=png)](https://mermaid.live/edit#pako:eNq1U11r3DAQ_CuLnhqSy0EfDQkcuUsJJaScLxSKISjS2hY9ax19tE1D_ntXvjvbObd9y4s_pJnZkXb2RSjSKDLh8SmiVbg0snKyKSxAK10wyrTSBli07fFSvvx8vHTv0S0qtGFCj6GuULq0zlIwu7xM_AwkbzDeKBnwg0NtHKpwv765KNhYc948Sy4sThKP8R2vL5JB9AiL_Cs-LgYZQzZH7_kF5OAq-kDNRj76JNFTO6GDqQw-rTYwp-Tl4zw9yZnf2HndQ2B2VHm9twqBYD6RPh1pr36higHhrUW43tJPCGYLaHXiW2KMM1UdgMoRfVMjLLGUccvXewPamR_ogaWgZIWJx9k_Tf7teO9zH0Pj3pbom77GEJ2Fg_LuQlIOx20e3Hy5ywc7gb6jnVoZ6zosHfr6oYOCtBqkUhyJh547rTE-MafKGVvS_6uMUZ1eJ9i2GezjlwfO9FUtbZWSLT3Zi1EGUJ-IM9Gga6TRPH8vSacQvN9gITL-1LuuF6KwrwyNrWbWSptATmSl3Ho8E2yY8merRBZcxANoP8M9ikfwG9Hwj53I7W7wu_l__QOnnGKP)
+
+### Authentication Flow involving OAuth
+
+[![](https://mermaid.ink/img/pako:eNq1VF1r20AQ_CvLPTU0jqGPAqeY2A0hhBbLoVAE5nxaSUekO_U-mqYh_717kizLlh360hdLOs_OzO7t7isTOkUWMYs_PSqBC8lzw6tEAdTcOClkzZWDeV0fH8WL--OjR4tmnqNyo3Dvihy5OT6_1TovMZySAEyurwNrBJzgxCIFd_jBYCoNCve4upslZLe6ql442WEXIY7wTVwvHYG3CPP4O27nexqpVYzW0gO0gRtvna7WfGsDRR_aEO2sRnC7XMNUBy-fpuFXG_mn9dpBYHKkvOqsgtMwHVF_HHAvf6PwDuHQInwp9TM4WQKqNMQrTRgj88KBzgbh6wJhgRn3JRX9DlIjf6EFooKMGE4ot4Vuc8qb9yuqZJvd512FN97IGR9c1aF8z9E8Dy6p1abCN2EdgIQnZ6tjrZ4KXpZbLp6med8G5-7i29d4fTbon-7D6gqfCzQYPgxaX52s_ojvfAqnWuP_9NK-6Q8l-oFZofNGwY65TSdM9nBEjqvZ2XH6CdXYypDXYEYVKzYNFLhKgQtB47TpY8caw4xDY0iV6fdVhqiGryGs6wi60Y0dtdpNwVUetgK3Ws0GN4jpBbtkFZqKy5Q22mvgSRj9X2HCInpN24lJWKLeCOrrlKKWqXTasCjjpcVLRoZ1_KIEi5zxuAN1W7FH0fL6ofX-GxuSh3aVNhv17S9OzNoG?type=png)](https://mermaid.live/edit#pako:eNq1VF1r20AQ_CvLPTU0jqGPAqeY2A0hhBbLoVAE5nxaSUekO_U-mqYh_717kizLlh360hdLOs_OzO7t7isTOkUWMYs_PSqBC8lzw6tEAdTcOClkzZWDeV0fH8WL--OjR4tmnqNyo3Dvihy5OT6_1TovMZySAEyurwNrBJzgxCIFd_jBYCoNCve4upslZLe6ql442WEXIY7wTVwvHYG3CPP4O27nexqpVYzW0gO0gRtvna7WfGsDRR_aEO2sRnC7XMNUBy-fpuFXG_mn9dpBYHKkvOqsgtMwHVF_HHAvf6PwDuHQInwp9TM4WQKqNMQrTRgj88KBzgbh6wJhgRn3JRX9DlIjf6EFooKMGE4ot4Vuc8qb9yuqZJvd512FN97IGR9c1aF8z9E8Dy6p1abCN2EdgIQnZ6tjrZ4KXpZbLp6med8G5-7i29d4fTbon-7D6gqfCzQYPgxaX52s_ojvfAqnWuP_9NK-6Q8l-oFZofNGwY65TSdM9nBEjqvZ2XH6CdXYypDXYEYVKzYNFLhKgQtB47TpY8caw4xDY0iV6fdVhqiGryGs6wi60Y0dtdpNwVUetgK3Ws0GN4jpBbtkFZqKy5Q22mvgSRj9X2HCInpN24lJWKLeCOrrlKKWqXTasCjjpcVLRoZ1_KIEi5zxuAN1W7FH0fL6ofX-GxuSh3aVNhv17S9OzNoG)
+
+### Authentication Flow involving passkey
+
+[![](https://mermaid.ink/img/pako:eNq1lG9r2zAQxr_KoVcraxbYS0MLJslGGWMjThkMQ1Hksy1iS57-rMtKv_tOSpw4dte92hvHkZ_73aPT6Z6Y0AWyhFn84VEJXEpeGd7mCqDjxkkhO64cpF03XsqWn8ZL9xZNWqFyk3Dv6gq5eSkgrBEeZre3gZkAJzExpOAO3xgspEHh7td3NzmZbd-1e05m2FWII32MOyVOwFuENPuG2_SMkVplaC39gDaw8NbpdsO3NiBOoRHUG03g42oDcx28vJ-HpzbyN0avRwnMRpnXR6vgNMwn6LcD9uoXCu8QLi3Ch0Y_gpMNoCpCvNKkMbKqHehyEL6pEZZYct9QBe-gMPInWiAUlEToM48Ls2ik2MXydNzaHe5HFnt5MrSFEesD7lG6GrZSt-iMFK-V7uuXbAOppa9hW2u0nVb2X7WzvsWLPVxoZ38t9EtH9H_O9Nx808LFxl2j80ZBTz4carhfw1Ydlam34_QO1dTKkGuwNGjrhygFrgrgQlBbP5xipzmGOw6nKFWpX88yVEVeBHZdAscrlDlqi0XNVRVuJ7da3Qwbprhi16xF03JZ0Fx5Cpyc0fcWc5bQa3Ho3Jzl6pmkvisoalVIpw1LSt5YvGZkWGd7JVjijMdedJxNJxWNkO9an_9jhHw-DLQ4157_AKC6rcA?type=png)](https://mermaid.live/edit#pako:eNq1lG9r2zAQxr_KoVcraxbYS0MLJslGGWMjThkMQ1Hksy1iS57-rMtKv_tOSpw4dte92hvHkZ_73aPT6Z6Y0AWyhFn84VEJXEpeGd7mCqDjxkkhO64cpF03XsqWn8ZL9xZNWqFyk3Dv6gq5eSkgrBEeZre3gZkAJzExpOAO3xgspEHh7td3NzmZbd-1e05m2FWII32MOyVOwFuENPuG2_SMkVplaC39gDaw8NbpdsO3NiBOoRHUG03g42oDcx28vJ-HpzbyN0avRwnMRpnXR6vgNMwn6LcD9uoXCu8QLi3Ch0Y_gpMNoCpCvNKkMbKqHehyEL6pEZZYct9QBe-gMPInWiAUlEToM48Ls2ik2MXydNzaHe5HFnt5MrSFEesD7lG6GrZSt-iMFK-V7uuXbAOppa9hW2u0nVb2X7WzvsWLPVxoZ38t9EtH9H_O9Nx808LFxl2j80ZBTz4carhfw1Ydlam34_QO1dTKkGuwNGjrhygFrgrgQlBbP5xipzmGOw6nKFWpX88yVEVeBHZdAscrlDlqi0XNVRVuJ7da3Qwbprhi16xF03JZ0Fx5Cpyc0fcWc5bQa3Ho3Jzl6pmkvisoalVIpw1LSt5YvGZkWGd7JVjijMdedJxNJxWNkO9an_9jhHw-DLQ4157_AKC6rcA)
+
+## Mobile apps using their own UI
+
+When the mobile apps want to use their own UI, they can consume the HTTP API directly.
+This implies a user agent is **NOT** involved in this use case.
+
+Some authentication experience that involves third parties, however, require the mobile apps to cooperate.
+This section outlines each cooperation in details.
+
+### The start and the end of a Authentication Flow
+
+RFC 6749 defines [Resource Owner Password Credentials Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3).
+It requires the client to collect the username and the password from the end-user, and then call the token endpoint with the collected credentials.
+If we compare this grant type with Authentication Flow, we can see that Authentication Flow is doing the same thing,
+except that Authentication Flow is flexible enough to handle all kinds of authentication experience, not limited to username with password.
+
+It follows naturally that we need to support a new grant type in the token endpoint to facilitate the integration between Authentication Flow and OAuth2, without a user agent.
+
+When an Authentication Flow ends, it includes a `code` in the data.
+This `code` is one-time use, just like an ordinary `authorization_code`.
+The intended usage of this `code` is to call the token endpoint with grant type [`urn:authgear:params:oauth:grant-type:authorization_code`](./oidc.md#urnauthgearparamsoauthgrant-typeauthorization_code)
+
+### Facebook Login
+
+Mobile apps that use Facebook Login typically use Facebook SDK.
+
+> In addition to the default short-lived access token, Facebook also supports Session Info Access Token.
+> But getting a Session Info Access Token requires a long-lived token.
+> A long-lived token requires app secret.
+> Therefore, a long-lived token **CANNOT** be obtained in the mobile app.
+> So the approach outlined here requires the mobile app to send the short-lived access token to Authgear.
+
+[![](https://mermaid.ink/img/pako:eNp9UstqwzAQ_JVFZ-cHfAgE0pTQFkpDL8WXrbSORWxJlVYJJeTfK79SO6W5CHt3dnZmmbOQVpHIRaCvSEbSWuPeY1MYAIeetdQODcPKudvSBiV9WnvYrZ_-oCNXe0L_38ijR1etXrdtPzHDYrmc0uXwHuhagGe716aFTiCwaGfSbA5vxNEbCJX1vKj1kRSglBQCsD2Qme4YdeWwI5NgXYFM0oesLWxqe4KtcZHhpLmC1LtPO9DN9I_eehP3KNILJbGsIAby4LwtdU1ToyPX4PaqfrA8HcsAjUpPSK48hVhz1raOvYTZWh3giLVWcwu390QIsZsqYz2_k-kPlbY4awKJTDTkG9QqxejckhYioRsqRJ4-FZWY1BSiMJcEjU4h04PSbL3IS6wDZQIj2923kSJnH2kEDVG8olKEPqz9_aeO5KXPbxfjyw-yHfui?type=png)](https://mermaid.live/edit#pako:eNp9UstqwzAQ_JVFZ-cHfAgE0pTQFkpDL8WXrbSORWxJlVYJJeTfK79SO6W5CHt3dnZmmbOQVpHIRaCvSEbSWuPeY1MYAIeetdQODcPKudvSBiV9WnvYrZ_-oCNXe0L_38ijR1etXrdtPzHDYrmc0uXwHuhagGe716aFTiCwaGfSbA5vxNEbCJX1vKj1kRSglBQCsD2Qme4YdeWwI5NgXYFM0oesLWxqe4KtcZHhpLmC1LtPO9DN9I_eehP3KNILJbGsIAby4LwtdU1ToyPX4PaqfrA8HcsAjUpPSK48hVhz1raOvYTZWh3giLVWcwu390QIsZsqYz2_k-kPlbY4awKJTDTkG9QqxejckhYioRsqRJ4-FZWY1BSiMJcEjU4h04PSbL3IS6wDZQIj2923kSJnH2kEDVG8olKEPqz9_aeO5KXPbxfjyw-yHfui)
+
+### Sign in with Apple
+
+iOS apps that use Sign in with Apple typically use [ASAuthorizationController](https://developer.apple.com/documentation/authenticationservices/asauthorizationcontroller).
+
+[![](https://mermaid.ink/img/pako:eNqNVNtuEzEQ_ZWRn9N8wIpGQg2gPiCkBnhAkTbGns1aOLaxZ6lC1X9n7L00t6a8eb1njs-cuTwJ5TWKSiT83aFTuDRyG-Vu7QCCjGSUCdIRvA_h9Mp8WZ2hOmq3KOOFaIv5kg9ws1hMwApWaFExmUZHpjFKkvEO1kLmkNr4VDu--oNrUeKHOLgpLCFU8IDURQey_MskA8VH6x8hYgreJYRHQy1oSRI2znOam8wmFTNLwjE75_lssSHwTU_-CR3GjJCg4j6QZ29Cy09Yu4eEqosIUTrtd7BJxMDN_N3PuFgh57zKgnw0f4ueYsH98iHbnGheRAB5YM2jJDCu_8w6N_OsSOOpxtFBdr-Cb5xZjrj6Vp_7CeTOO4reWiy1YrJzRy-T3kUspZL2_xz8jtE0-9EduL19k3deoNezP-wfp18pvnGhu5z9-Zt9_9H-q_-F3EzM-WaIPPZT47EhB6NQXIlm2_a2TNoHb3IF75fcDPz0adoHLC-93xfKYgVLD3l-QbXSbYcuV9awwtro2XjkRo1IMzhSXOfAWUm1tN9gr8WhEyaVQztEbHia2pomh6RSmFI96b42nKkr4KbLg3NtUtdOzMQO404azWvpKROvBeN3vAIqPmpsZGcp74NnhnaBpwU_aEM-iqqRNuFMcKJ-tXdKVBQ7HEHDaptQvJp-eP_yjYXkc78Py1p8_gcFvtXb?type=png)](https://mermaid.live/edit#pako:eNqNVNtuEzEQ_ZWRn9N8wIpGQg2gPiCkBnhAkTbGns1aOLaxZ6lC1X9n7L00t6a8eb1njs-cuTwJ5TWKSiT83aFTuDRyG-Vu7QCCjGSUCdIRvA_h9Mp8WZ2hOmq3KOOFaIv5kg9ws1hMwApWaFExmUZHpjFKkvEO1kLmkNr4VDu--oNrUeKHOLgpLCFU8IDURQey_MskA8VH6x8hYgreJYRHQy1oSRI2znOam8wmFTNLwjE75_lssSHwTU_-CR3GjJCg4j6QZ29Cy09Yu4eEqosIUTrtd7BJxMDN_N3PuFgh57zKgnw0f4ueYsH98iHbnGheRAB5YM2jJDCu_8w6N_OsSOOpxtFBdr-Cb5xZjrj6Vp_7CeTOO4reWiy1YrJzRy-T3kUspZL2_xz8jtE0-9EduL19k3deoNezP-wfp18pvnGhu5z9-Zt9_9H-q_-F3EzM-WaIPPZT47EhB6NQXIlm2_a2TNoHb3IF75fcDPz0adoHLC-93xfKYgVLD3l-QbXSbYcuV9awwtro2XjkRo1IMzhSXOfAWUm1tN9gr8WhEyaVQztEbHia2pomh6RSmFI96b42nKkr4KbLg3NtUtdOzMQO404azWvpKROvBeN3vAIqPmpsZGcp74NnhnaBpwU_aEM-iqqRNuFMcKJ-tXdKVBQ7HEHDaptQvJp-eP_yjYXkc78Py1p8_gcFvtXb)
+
+### Any other OAuth providers supported by Authgear
+
+These providers include Google, GitHub, etc.
+
+Prerequisite
+- The developer visit the portal of the provider and set a `redirect_uri` of custom URI scheme, e.g. `com.myapp://callback`. This redirect approach is recommended in RFC 8252 Appendix B.
+
+[![](https://mermaid.ink/img/pako:eNqVVF1PGzEQ_CsrP7USkPdTSRXR9omKioAqVZHCxt5LrN7Zrj-gFPHfu_Yll9wF0fLmj_HMeLzrJyGtIlGJQL8SGUmfNK49tgsD4NBHLbVDE2Hm3HjpNpCfrcnEI2yKmzWhH69f5Y1v3t5rRWWTSeF0Ou0PVDCnhmQEBpioay0xamtgISwyZGl4ek8LUc5uz8BpYXCugmuKyRvAspcJtse_NPYBPAVnTSCIG4xAv13WQQPauBTB1iySk-jIUbIQRtpd21geN1QXYNG6YK7oE3OwFGR31us_nd7t9eXZh5Wf3vAOj6FNIYK0JqJmd5GJMC80mj0utWIXiu0p7dnSMnl9Lm171j5Wk4nEplmh_Jk9KBq72sXXP0QFV47My47gQccNZ5MYDJjR8G42_06rYVhzCiGfmMAFu7btDa7C-yzWixTJwVPm5Dv3RbooRFvGBQfu4M37SxxVQwnZ6_WmpDxSOHBJvcooliPGwUJXKAdZ7U1b6BJHftl96B9zPZwPglyWEhmmMS6_t1L9R601NuwvvX08XYMhUqRer43D1uIye7k3uh4oBXKXbd39q8FCkpILpU7Nq722MOJEtORb1Iq_mKdMuxCMb7nPKh4qqjE1MTfdM0OTU3yFz0pH60VVYxPoRHBqdv5opKi432gH2n5TPYo_mB_W7udUSL52f1v54p7_At9Ev6c?type=png)](https://mermaid.live/edit#pako:eNqVVF1PGzEQ_CsrP7USkPdTSRXR9omKioAqVZHCxt5LrN7Zrj-gFPHfu_Yll9wF0fLmj_HMeLzrJyGtIlGJQL8SGUmfNK49tgsD4NBHLbVDE2Hm3HjpNpCfrcnEI2yKmzWhH69f5Y1v3t5rRWWTSeF0Ou0PVDCnhmQEBpioay0xamtgISwyZGl4ek8LUc5uz8BpYXCugmuKyRvAspcJtse_NPYBPAVnTSCIG4xAv13WQQPauBTB1iySk-jIUbIQRtpd21geN1QXYNG6YK7oE3OwFGR31us_nd7t9eXZh5Wf3vAOj6FNIYK0JqJmd5GJMC80mj0utWIXiu0p7dnSMnl9Lm171j5Wk4nEplmh_Jk9KBq72sXXP0QFV47My47gQccNZ5MYDJjR8G42_06rYVhzCiGfmMAFu7btDa7C-yzWixTJwVPm5Dv3RbooRFvGBQfu4M37SxxVQwnZ6_WmpDxSOHBJvcooliPGwUJXKAdZ7U1b6BJHftl96B9zPZwPglyWEhmmMS6_t1L9R601NuwvvX08XYMhUqRer43D1uIye7k3uh4oBXKXbd39q8FCkpILpU7Nq722MOJEtORb1Iq_mKdMuxCMb7nPKh4qqjE1MTfdM0OTU3yFz0pH60VVYxPoRHBqdv5opKi432gH2n5TPYo_mB_W7udUSL52f1v54p7_At9Ev6c)
 
 ## Appendix
 
