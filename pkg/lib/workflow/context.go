@@ -19,3 +19,11 @@ var contextKeyWorkflowID = contextKeyTypeWorkflowID{}
 func GetWorkflowID(ctx context.Context) string {
 	return ctx.Value(contextKeyWorkflowID).(string)
 }
+
+type contextKeyTypeUserIDHint struct{}
+
+var contextKeyUserIDHint = contextKeyTypeUserIDHint{}
+
+func GetUserIDHint(ctx context.Context) string {
+	return ctx.Value(contextKeyUserIDHint).(string)
+}

@@ -102,6 +102,7 @@ type UserService interface {
 type IDPSessionService interface {
 	MakeSession(*session.Attrs) (*idpsession.IDPSession, string)
 	Create(*idpsession.IDPSession) error
+	Reauthenticate(idpSessionID string, amr []string) error
 }
 
 type SessionService interface {

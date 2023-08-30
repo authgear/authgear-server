@@ -160,6 +160,7 @@ func (h *WorkflowNewHandler) makeSessionOptionsFromCookie(oauthSessionCookie *ht
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		State:                    uiInfo.State,
 		XState:                   uiInfo.XState,
+		UserIDHint:               uiInfo.UserIDHint,
 		UILocales:                req.UILocalesRaw(),
 	}
 

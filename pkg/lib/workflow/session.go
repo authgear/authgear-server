@@ -17,6 +17,8 @@ type Session struct {
 	XState                   string `json:"x_state,omitempty"`
 	UILocales                string `json:"ui_locales,omitempty"`
 	UserAgentID              string `json:"user_agent_id,omitempty"`
+	// UserIDHint is for reauthentication.
+	UserIDHint string `json:"user_id_hint,omitempty"`
 }
 
 type SessionOutput struct {
@@ -33,6 +35,8 @@ type SessionOptions struct {
 	XState                   string
 	UILocales                string
 	UserAgentID              string
+	// UserIDHint is for reauthentication.
+	UserIDHint string
 }
 
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
@@ -44,6 +48,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.State = s.State
 		out.XState = s.XState
 		out.UILocales = s.UILocales
+		out.UserIDHint = s.UserIDHint
 	}
 	if o != nil {
 		if o.ClientID != "" {
@@ -57,6 +62,9 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		}
 		if o.UILocales != "" {
 			out.UILocales = o.UILocales
+		}
+		if o.UserIDHint != "" {
+			out.UserIDHint = o.UserIDHint
 		}
 	}
 	return out
@@ -72,6 +80,7 @@ func NewSession(opts *SessionOptions) *Session {
 		XState:                   opts.XState,
 		UILocales:                opts.UILocales,
 		UserAgentID:              opts.UserAgentID,
+		UserIDHint:               opts.UserIDHint,
 	}
 }
 
@@ -93,5 +102,6 @@ func (s *Session) Context(ctx context.Context) context.Context {
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyWorkflowID, s.WorkflowID)
+	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)
 	return ctx
 }
