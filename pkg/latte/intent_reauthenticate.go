@@ -51,9 +51,6 @@ func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Depen
 
 	switch len(w.Nodes) {
 	case 0:
-		if err != nil {
-			return nil, err
-		}
 		return workflow.NewSubWorkflow(&IntentAuthenticatePassword{
 			UserID:            userID,
 			AuthenticatorKind: authenticator.KindPrimary,
