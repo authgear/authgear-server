@@ -32,8 +32,8 @@ func (*IntentReauthenticate) JSONSchema() *validation.SimpleSchema {
 	return IntentReauthenticateSchema
 }
 
-func (*IntentReauthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	switch len(w.Nodes) {
+func (*IntentReauthenticate) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return nil, nil
 	case 1:
@@ -43,13 +43,13 @@ func (*IntentReauthenticate) CanReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	userID, err := i.userID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	switch len(w.Nodes) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return workflow.NewSubWorkflow(&IntentAuthenticatePassword{
 			UserID:            userID,
@@ -63,7 +63,7 @@ func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Depen
 		return workflow.NewSubWorkflow(&IntentEnsureSession{
 			UserID:       userID,
 			CreateReason: session.CreateReasonReauthenticate,
-			AMR:          GetAMR(w),
+			AMR:          GetAMR(workflows.Nearest),
 			Mode:         mode,
 		}), nil
 	}
@@ -72,11 +72,11 @@ func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Depen
 
 }
 
-func (*IntentReauthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentReauthenticate) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentReauthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentReauthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

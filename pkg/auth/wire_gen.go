@@ -56366,12 +56366,14 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
 		Context:           contextContext,
-		Config:            httpConfig,
 		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
 		WebAppCDNHost:     webAppCDNHost,
 		Resources:         manager,
@@ -56421,7 +56423,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	siweLogger := siwe2.NewLogger(factory)
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
-		HTTPConfig:           httpConfig,
+		HTTPOrigin:           httpOrigin,
 		Web3Config:           web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
@@ -56578,7 +56580,6 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 		ClaimStore:        storePQ,
 	}
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs.PictureTransformer{
 		HTTPProto:     httpProto,
