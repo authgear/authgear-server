@@ -56,11 +56,15 @@ func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Depen
 			AuthenticatorKind: authenticator.KindPrimary,
 		}), nil
 	case 1:
-		return workflow.NewSubWorkflow(&IntentCreateSession{
+		mode := EnsureSessionModeUpdateOrCreate
+		if workflow.GetSuppressIDPSessionCookie(ctx) {
+			mode = EnsureSessionModeNoop
+		}
+		return workflow.NewSubWorkflow(&IntentEnsureSession{
 			UserID:       userID,
 			CreateReason: session.CreateReasonReauthenticate,
 			AMR:          GetAMR(w),
-			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
+			Mode:         mode,
 		}), nil
 	}
 

@@ -97,11 +97,15 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 			}
 		}
 	case 2:
-		return workflow.NewSubWorkflow(&IntentCreateSession{
+		mode := EnsureSessionModeCreate
+		if workflow.GetSuppressIDPSessionCookie(ctx) {
+			mode = EnsureSessionModeNoop
+		}
+		return workflow.NewSubWorkflow(&IntentEnsureSession{
 			UserID:       i.userID(),
 			CreateReason: session.CreateReasonLogin,
 			AMR:          GetAMR(w),
-			SkipCreate:   workflow.GetSuppressIDPSessionCookie(ctx),
+			Mode:         mode,
 		}), nil
 	}
 	return nil, workflow.ErrIncompatibleInput
@@ -110,7 +114,7 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			createSession, workflow := workflow.MustFindSubWorkflow[*IntentCreateSession](w)
+			createSession, workflow := workflow.MustFindSubWorkflow[*IntentEnsureSession](w)
 			session := createSession.GetSession(workflow)
 			if session == nil {
 				return nil

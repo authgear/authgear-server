@@ -84,14 +84,18 @@ func (i *IntentMigrate) ReactTo(ctx context.Context, deps *workflow.Dependencies
 			AuthenticatorIsDefault: false,
 		}), nil
 	case 4:
-		return workflow.NewSubWorkflow(&IntentCreateSession{
+		mode := EnsureSessionModeCreate
+		if workflow.GetSuppressIDPSessionCookie(ctx) {
+			mode = EnsureSessionModeNoop
+		}
+		return workflow.NewSubWorkflow(&IntentEnsureSession{
 			UserID:       i.userID(w),
 			CreateReason: session.CreateReasonSignup,
 			// AMR is NOT populated because
 			// 1. Strictly speaking this is NOT an authentication. It is a sign up.
 			// 2. 3 authenticators were created. Should we report all 3?
-			AMR:        nil,
-			SkipCreate: workflow.GetSuppressIDPSessionCookie(ctx),
+			AMR:  nil,
+			Mode: mode,
 		}), nil
 	}
 
