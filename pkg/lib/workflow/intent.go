@@ -15,7 +15,7 @@ type Intent interface {
 	EffectGetter
 	Kind() string
 	JSONSchema() *validation.SimpleSchema
-	OutputData(ctx context.Context, deps *Dependencies, workflow *Workflow) (interface{}, error)
+	OutputData(ctx context.Context, deps *Dependencies, workflows Workflows) (interface{}, error)
 }
 
 type IntentOutput struct {

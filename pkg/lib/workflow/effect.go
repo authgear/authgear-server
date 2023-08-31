@@ -5,7 +5,7 @@ import (
 )
 
 type EffectGetter interface {
-	GetEffects(ctx context.Context, deps *Dependencies, workflow *Workflow) (effs []Effect, err error)
+	GetEffects(ctx context.Context, deps *Dependencies, workflows Workflows) (effs []Effect, err error)
 }
 
 type Effect interface {

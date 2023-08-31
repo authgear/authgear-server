@@ -16,30 +16,30 @@ func init() {
 	workflow.RegisterNode(&NodeVerifyEmail{})
 }
 
+var nodeVerifyEmailOTPForm = otp.FormCode
+
 type NodeVerifyEmail struct {
 	UserID     string `json:"user_id"`
 	IdentityID string `json:"identity_id"`
 	Email      string `json:"email"`
-
-	CodeLength int `json:"code_length"`
 }
 
 func (n *NodeVerifyEmail) Kind() string {
 	return "latte.NodeVerifyEmail"
 }
 
-func (n *NodeVerifyEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeVerifyEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeVerifyEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeVerifyEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakeOOBOTPCode{},
 		&InputResendOOBOTPCode{},
 	}, nil
 }
 
-func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPCode inputTakeOOBOTPCode
 	var inputResendOOBOTPCode inputResendOOBOTPCode
 
@@ -66,7 +66,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 		}), nil
 
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
-		err := n.sendCode(ctx, deps, w)
+		err := n.sendCode(ctx, deps)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 	}
 }
 
-func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Email
 	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target)
 	if err != nil {
@@ -93,7 +93,7 @@ func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Depende
 
 	return NodeVerifyEmailOutput{
 		MaskedEmail:                    mail.MaskAddress(target),
-		CodeLength:                     n.CodeLength,
+		CodeLength:                     nodeVerifyEmailOTPForm.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
@@ -107,8 +107,8 @@ func (n *NodeVerifyEmail) otpTarget() string {
 	return n.Email
 }
 
-func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, otp.FormCode, otp.MessageTypeVerification)
+func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, nodeVerifyEmailOTPForm, otp.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
 		n.Email,
-		otp.FormCode,
+		nodeVerifyEmailOTPForm,
 		&otp.GenerateOptions{
 			UserID:     n.UserID,
 			WorkflowID: workflow.GetWorkflowID(ctx),
@@ -126,7 +126,6 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 	if err != nil {
 		return err
 	}
-	n.CodeLength = len(code)
 
 	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {

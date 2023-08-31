@@ -1,0 +1,56 @@
+part: AuthenticationFlowConfig
+name: valid
+error: null
+value:
+  signup_flows:
+  - id: signup_flow
+    steps:
+    - type: identify
+      id: my_step
+      one_of:
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_password
+    - type: verify
+      target_step: my_step
+    - type: user_profile
+      user_profile:
+      - pointer: /given_name
+        required: true
+  login_flows:
+  - id: login_flow
+    steps:
+    - type: identify
+      id: my_step
+      one_of:
+      - identification: email
+        steps:
+        - type: authenticate
+          one_of:
+          - authentication: primary_oob_otp_email
+            target_step: my_step
+        - type: authenticate
+          optional: true
+          one_of:
+          - authentication: secondary_totp
+  signup_login_flows:
+  - id: signup_login_flow
+    steps:
+    - type: identify
+      one_of:
+      - identification: email
+        signup_flow: a
+        login_flow: b
+  reauth_flows:
+  - id: reauth_flow
+    steps:
+    - type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - type: authenticate
+          optional: true
+          one_of:
+          - authentication: secondary_totp

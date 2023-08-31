@@ -31,8 +31,8 @@ func (*IntentForgotPassword) JSONSchema() *validation.SimpleSchema {
 	return IntentForgotPasswordSchema
 }
 
-func (*IntentForgotPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (*IntentForgotPassword) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputTakeLoginID{},
 		}, nil
@@ -40,14 +40,14 @@ func (*IntentForgotPassword) CanReactTo(ctx context.Context, deps *workflow.Depe
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentForgotPassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentForgotPassword) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 
 	switch {
 	case workflow.AsInput(input, &inputTakeLoginID):
 		loginID := inputTakeLoginID.GetLoginID()
 		node := NodeSendForgotPasswordCode{LoginID: loginID}
-		err := node.sendCode(ctx, deps, w)
+		err := node.sendCode(ctx, deps)
 		// We do not tell the user if the login ID was found
 		if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
 			return nil, err
@@ -59,10 +59,10 @@ func (i *IntentForgotPassword) ReactTo(ctx context.Context, deps *workflow.Depen
 	}
 }
 
-func (*IntentForgotPassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentForgotPassword) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentForgotPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentForgotPassword) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }

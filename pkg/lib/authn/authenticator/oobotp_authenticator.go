@@ -42,3 +42,14 @@ func (a *OOBOTP) ToTarget() string {
 		panic("authenticator: incompatible authenticator type: " + a.OOBAuthenticatorType)
 	}
 }
+
+func (a *OOBOTP) ToClaimPair() (claimName model.ClaimName, claimValue string) {
+	switch a.OOBAuthenticatorType {
+	case model.AuthenticatorTypeOOBSMS:
+		return model.ClaimPhoneNumber, a.Phone
+	case model.AuthenticatorTypeOOBEmail:
+		return model.ClaimEmail, a.Email
+	default:
+		panic("authenticator: incompatible authenticator type: " + a.OOBAuthenticatorType)
+	}
+}

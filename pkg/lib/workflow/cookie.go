@@ -8,17 +8,12 @@ import (
 )
 
 type CookieGetter interface {
-	GetCookies(ctx context.Context, deps *Dependencies, workflow *Workflow) ([]*http.Cookie, error)
+	GetCookies(ctx context.Context, deps *Dependencies, workflows Workflows) ([]*http.Cookie, error)
 }
 
-func NewUserAgentIDCookieDef() *httputil.CookieDef {
-	def := &httputil.CookieDef{
-		NameSuffix:        "workflow_ua_id",
-		Path:              "/",
-		AllowScriptAccess: false,
-		SameSite:          http.SameSiteNoneMode,
-	}
-	return def
+var UserAgentIDCookieDef = &httputil.CookieDef{
+	NameSuffix:        "workflow_ua_id",
+	Path:              "/",
+	AllowScriptAccess: false,
+	SameSite:          http.SameSiteNoneMode,
 }
-
-var UserAgentIDCookieDef = NewUserAgentIDCookieDef()

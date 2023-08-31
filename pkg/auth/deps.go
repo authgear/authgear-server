@@ -12,6 +12,7 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -84,6 +85,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowV2CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerapi.WorkflowV2OAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(handlerapi.WorkflowV2UIInfoResolver), new(*oidc.UIInfoResolver)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1OAuthSessionService), new(*oauthsession.StoreRedis)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1UIInfoResolver), new(*oidc.UIInfoResolver)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
@@ -138,8 +142,11 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.WorkflowGetWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowInputWorkflowService), new(*workflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowV2WorkflowService), new(*workflow.Service)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1WorkflowService), new(*authenticationflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketOriginMatcher), new(*middleware.CORSMatcher)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketEventStore), new(*authenticationflow.EventStoreImpl)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
@@ -180,6 +187,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
+	wire.Bind(new(handlerwebapp.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.EventStoreImpl)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),

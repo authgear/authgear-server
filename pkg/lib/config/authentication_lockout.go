@@ -1,5 +1,33 @@
 package config
 
+import (
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
+
+type AuthenticationLockoutMethod string
+
+const (
+	AuthenticationLockoutMethodPassword     AuthenticationLockoutMethod = "password"
+	AuthenticationLockoutMethodOOBOTP       AuthenticationLockoutMethod = "oob_otp"
+	AuthenticationLockoutMethodTOTP         AuthenticationLockoutMethod = "totp"
+	AuthenticationLockoutMethodRecoveryCode AuthenticationLockoutMethod = "recovery_code"
+)
+
+func AuthenticationLockoutMethodFromAuthenticatorType(t model.AuthenticatorType) (AuthenticationLockoutMethod, bool) {
+	switch t {
+	case model.AuthenticatorTypePassword:
+		return AuthenticationLockoutMethodPassword, true
+	case model.AuthenticatorTypeOOBEmail:
+		return AuthenticationLockoutMethodOOBOTP, true
+	case model.AuthenticatorTypeOOBSMS:
+		return AuthenticationLockoutMethodOOBOTP, true
+	case model.AuthenticatorTypeTOTP:
+		return AuthenticationLockoutMethodTOTP, true
+	default:
+		return "", false
+	}
+}
+
 type AuthenticationLockoutType string
 
 const (

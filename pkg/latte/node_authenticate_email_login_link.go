@@ -25,18 +25,18 @@ func (n *NodeAuthenticateEmailLoginLink) Kind() string {
 	return "latte.NodeAuthenticateEmailLoginLink"
 }
 
-func (n *NodeAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeAuthenticateEmailLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticateEmailLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (n *NodeAuthenticateEmailLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputCheckLoginLinkVerified{},
 		&InputResendOOBOTPCode{},
 	}, nil
 }
 
-func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputCheckLoginLinkVerified inputCheckLoginLinkVerified
 	var inputResendOOBOTPCode inputResendOOBOTPCode
 	switch {
@@ -81,7 +81,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Authenticator.OOBOTP.Email
 	state, err := deps.OTPCodes.InspectState(
 		otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail),

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -27,6 +28,7 @@ var utilsDeps = wire.NewSet(
 		wire.Bind(new(oidchandler.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(interaction.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(workflow.CookieManager), new(*httputil.CookieManager)),
+		wire.Bind(new(authenticationflow.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(httputil.FlashMessageCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(httputil.TutorialCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(nonce.CookieManager), new(*httputil.CookieManager)),

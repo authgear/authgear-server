@@ -7,19 +7,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -38,13 +41,14 @@ type IdentityService interface {
 
 type AuthenticatorService interface {
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	Get(authenticatorID string) (*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Update(authenticatorInfo *authenticator.Info) error
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
-	ClearLockoutAttempts(authenticators []*authenticator.Info) error
+	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type OTPCodeService interface {
@@ -111,6 +115,11 @@ type SessionService interface {
 
 type StdAttrsService interface {
 	PopulateStandardAttributes(userID string, iden *identity.Info) error
+	UpdateStandardAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error
+}
+
+type CustomAttrsService interface {
+	UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error
 }
 
 type AuthenticationInfoService interface {
@@ -118,6 +127,7 @@ type AuthenticationInfoService interface {
 }
 
 type CookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
@@ -130,12 +140,23 @@ type AccountMigrationService interface {
 	Run(migrationTokenString string) (*accountmigration.HookResponse, error)
 }
 
-type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
-}
-
 type CaptchaService interface {
 	VerifyToken(token string) error
+}
+
+type MFAService interface {
+	GenerateRecoveryCodes() []string
+	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(c *mfa.RecoveryCode) error
+
+	GenerateDeviceToken() string
+	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(userID string, deviceToken string) error
+}
+
+type OfflineGrantStore interface {
+	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
 type Dependencies struct {
@@ -145,27 +166,33 @@ type Dependencies struct {
 	Clock    clock.Clock
 	RemoteIP httputil.RemoteIP
 
-	Users                    UserService
-	Identities               IdentityService
-	Authenticators           AuthenticatorService
-	StdAttrsService          StdAttrsService
-	OTPCodes                 OTPCodeService
-	OTPSender                OTPSender
-	Verification             VerificationService
-	ForgotPassword           ForgotPasswordService
-	ResetPassword            ResetPasswordService
-	AccountMigrations        AccountMigrationService
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
-	Captcha                  CaptchaService
+	HTTPRequest *http.Request
 
-	IDPSessions         IDPSessionService
-	Sessions            SessionService
-	AuthenticationInfos AuthenticationInfoService
-	SessionCookie       session.CookieDef
+	Users              UserService
+	Identities         IdentityService
+	Authenticators     AuthenticatorService
+	MFA                MFAService
+	StdAttrsService    StdAttrsService
+	CustomAttrsService CustomAttrsService
+	OTPCodes           OTPCodeService
+	OTPSender          OTPSender
+	Verification       VerificationService
+	ForgotPassword     ForgotPasswordService
+	ResetPassword      ResetPasswordService
+	AccountMigrations  AccountMigrationService
+	Captcha            CaptchaService
+
+	IDPSessions          IDPSessionService
+	Sessions             SessionService
+	AuthenticationInfos  AuthenticationInfoService
+	SessionCookie        session.CookieDef
+	MFADeviceTokenCookie mfa.CookieDef
 
 	Cookies CookieManager
 
 	Events         EventService
 	RateLimiter    RateLimiter
 	WorkflowEvents EventStore
+
+	OfflineGrants OfflineGrantStore
 }

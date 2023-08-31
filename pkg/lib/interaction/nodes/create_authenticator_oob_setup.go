@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
@@ -75,26 +74,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		target = input.GetOOBTarget()
 	}
 
-	// Validate target against channel
-	validationCtx := &validation.Context{}
-	switch channel {
-	case model.AuthenticatorOOBChannelEmail:
-		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
-		}
-	case model.AuthenticatorOOBChannelSMS:
-		err := validation.FormatPhone{}.CheckFormat(target)
-		if err != nil {
-			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
-		}
-	}
-
-	err := validationCtx.Error("invalid target")
-	if err != nil {
-		return nil, err
-	}
-
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
 	var oobAuthenticatorType model.AuthenticatorType
@@ -144,21 +123,10 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			OOBOTP:    &authenticator.OOBOTPSpec{},
 		}
 
-		// Normalize the target.
 		switch channel {
 		case model.AuthenticatorOOBChannelEmail:
-			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypeEmail).Normalize(target)
-			if err != nil {
-				return nil, err
-			}
 			oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
 		case model.AuthenticatorOOBChannelSMS:
-			var err error
-			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyTypePhone).Normalize(target)
-			if err != nil {
-				return nil, err
-			}
 			oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
 		default:
 			panic("interaction: creating OOB authenticator for invalid channel")
@@ -177,6 +145,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	if err != nil {
 		return nil, err
 	}
+	target = info.OOBOTP.ToTarget()
 
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {

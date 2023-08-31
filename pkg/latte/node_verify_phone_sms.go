@@ -17,30 +17,30 @@ func init() {
 	workflow.RegisterNode(&NodeVerifyPhoneSMS{})
 }
 
+var nodeVerifyPhoneSMSForm = otp.FormCode
+
 type NodeVerifyPhoneSMS struct {
 	UserID      string `json:"user_id"`
 	IdentityID  string `json:"identity_id"`
 	PhoneNumber string `json:"phone_number"`
-
-	CodeLength int `json:"code_length"`
 }
 
 func (n *NodeVerifyPhoneSMS) Kind() string {
 	return "latte.NodeVerifyPhoneSMS"
 }
 
-func (n *NodeVerifyPhoneSMS) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeVerifyPhoneSMS) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*NodeVerifyPhoneSMS) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*NodeVerifyPhoneSMS) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakeOOBOTPCode{},
 		&InputResendOOBOTPCode{},
 	}, nil
 }
 
-func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeOOBOTPCode inputTakeOOBOTPCode
 	var inputResendOOBOTPCode inputResendOOBOTPCode
 
@@ -67,7 +67,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 		}), nil
 
 	case workflow.AsInput(input, &inputResendOOBOTPCode):
-		err := n.sendCode(ctx, deps, w)
+		err := n.sendCode(ctx, deps)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +78,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 	}
 }
 
-func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.PhoneNumber
 	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), target)
 	if err != nil {
@@ -94,7 +94,7 @@ func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Depe
 
 	return NodeVerifyPhoneNumberOutput{
 		MaskedPhoneNumber:              phone.Mask(target),
-		CodeLength:                     n.CodeLength,
+		CodeLength:                     nodeVerifyPhoneSMSForm.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
@@ -108,14 +108,14 @@ func (n *NodeVerifyPhoneSMS) otpTarget() string {
 	return n.PhoneNumber
 }
 
-func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) error {
+func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
 	// disallow sending sms verification code if phone identity is disabled
 	fc := deps.FeatureConfig
 	if fc.Identity.LoginID.Types.Phone.Disabled {
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, otp.FormCode, otp.MessageTypeVerification)
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, nodeVerifyPhoneSMSForm, otp.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
 		n.PhoneNumber,
-		otp.FormCode,
+		nodeVerifyPhoneSMSForm,
 		&otp.GenerateOptions{
 			UserID:     n.UserID,
 			WorkflowID: workflow.GetWorkflowID(ctx),
@@ -133,7 +133,6 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 	if err != nil {
 		return err
 	}
-	n.CodeLength = len(code)
 
 	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
 	if err != nil {

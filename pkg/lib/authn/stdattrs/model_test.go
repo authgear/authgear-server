@@ -138,9 +138,9 @@ func TestT(t *testing.T) {
 			})
 		})
 
-		Convey("MergedWithJSONPointer", func() {
+		Convey("MergedWithForm", func() {
 			test := func(original T, ptrs map[string]string, expected T) {
-				actual, err := original.MergedWithJSONPointer(ptrs)
+				actual, err := original.MergedWithForm(ptrs)
 				So(err, ShouldBeNil)
 				So(actual, ShouldResemble, expected)
 			}

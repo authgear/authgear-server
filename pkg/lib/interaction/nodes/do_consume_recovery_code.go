@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -63,4 +64,8 @@ func (n *NodeDoConsumeRecoveryCode) DeriveEdges(graph *interaction.Graph) ([]int
 		AuthenticationType: authn.AuthenticationTypeRecoveryCode,
 		RecoveryCode:       n.RecoveryCode,
 	}}, nil
+}
+
+func (n *NodeDoConsumeRecoveryCode) UsedAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
+	return config.AuthenticationLockoutMethodRecoveryCode, true
 }

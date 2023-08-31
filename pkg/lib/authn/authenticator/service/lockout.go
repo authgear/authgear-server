@@ -19,7 +19,7 @@ type Lockout struct {
 }
 
 func (l *Lockout) Check(userID string) error {
-	bucket := lockout.NewAccountAuthenticationSpec(l.Config, userID)
+	bucket := lockout.NewAccountAuthenticationSpecForCheck(l.Config, userID)
 	_, err := l.Provider.MakeAttempts(bucket, string(l.RemoteIP), 0)
 	if err != nil {
 		return err
@@ -27,33 +27,13 @@ func (l *Lockout) Check(userID string) error {
 	return nil
 }
 
-func (l *Lockout) checkIsParticipant(authenticatorType model.AuthenticatorType) bool {
-	switch authenticatorType {
-	case model.AuthenticatorTypePassword:
-		if l.Config.Password.Enabled {
-			return true
-		}
-	case model.AuthenticatorTypeTOTP:
-		if l.Config.Totp.Enabled {
-			return true
-		}
-	case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
-		if l.Config.OOBOTP.Enabled {
-			return true
-		}
-	default:
-		// Not supported
-		return false
-	}
-	return false
-}
-
 func (l *Lockout) MakeAttempt(userID string, authenticatorType model.AuthenticatorType) error {
-	if !l.checkIsParticipant(authenticatorType) {
+	method, ok := config.AuthenticationLockoutMethodFromAuthenticatorType(authenticatorType)
+	if !ok {
 		return nil
 	}
-	bucket := lockout.NewAccountAuthenticationSpec(l.Config, userID)
-	r, err := l.Provider.MakeAttempts(bucket, string(l.RemoteIP), 1)
+	spec := lockout.NewAccountAuthenticationSpecForAttempt(l.Config, userID, []config.AuthenticationLockoutMethod{method})
+	r, err := l.Provider.MakeAttempts(spec, string(l.RemoteIP), 1)
 	if err != nil {
 		return err
 	}
@@ -64,17 +44,8 @@ func (l *Lockout) MakeAttempt(userID string, authenticatorType model.Authenticat
 	return nil
 }
 
-func (l *Lockout) ClearAttempts(userID string, authenticatorTypes []model.AuthenticatorType) error {
-	isParticipant := false
-	for _, t := range authenticatorTypes {
-		if l.checkIsParticipant(t) {
-			isParticipant = true
-		}
-	}
-	if !isParticipant {
-		return nil
-	}
-	bucket := lockout.NewAccountAuthenticationSpec(l.Config, userID)
+func (l *Lockout) ClearAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error {
+	bucket := lockout.NewAccountAuthenticationSpecForAttempt(l.Config, userID, usedMethods)
 	err := l.Provider.ClearAttempts(bucket, string(l.RemoteIP))
 	if err != nil {
 		return err

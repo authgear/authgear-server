@@ -35,7 +35,7 @@ type SettingsProfileEditStdAttrsService interface {
 }
 
 type SettingsProfileEditCustomAttrsService interface {
-	UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error
+	UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error
 }
 
 type SettingsProfileEditHandler struct {
@@ -100,12 +100,12 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 		variant := httproute.GetParam(r, "variant")
 		if variant == "custom_attributes" {
-			err = h.CustomAttrs.UpdateCustomAttributesWithJSONPointerMap(config.RoleEndUser, userID, m)
+			err = h.CustomAttrs.UpdateCustomAttributesWithForm(config.RoleEndUser, userID, m)
 			if err != nil {
 				return err
 			}
 		} else {
-			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithJSONPointer(m)
+			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithForm(m)
 			if err != nil {
 				return err
 			}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -78,6 +79,7 @@ var appRootDeps = wire.NewSet(
 
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
 	wire.Bind(new(workflow.ServiceDatabase), new(*appdb.Handle)),
+	wire.Bind(new(authenticationflow.ServiceDatabase), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),

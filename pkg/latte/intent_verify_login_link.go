@@ -26,8 +26,8 @@ func (i *IntentVerifyLoginLink) JSONSchema() *validation.SimpleSchema {
 	return IntentVerifyLoginLinkSchema
 }
 
-func (i *IntentVerifyLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
-	if len(w.Nodes) == 0 {
+func (i *IntentVerifyLoginLink) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
+	if len(workflows.Nearest.Nodes) == 0 {
 		return []workflow.Input{
 			&InputTakeLoginLinkCode{},
 		}, nil
@@ -36,7 +36,7 @@ func (i *IntentVerifyLoginLink) CanReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginLinkCode inputTakeLoginLinkCode
 
 	switch {
@@ -90,10 +90,10 @@ func (i *IntentVerifyLoginLink) setSubmittedCode(deps *workflow.Dependencies, co
 	return nil
 }
 
-func (i *IntentVerifyLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (i *IntentVerifyLoginLink) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (i *IntentVerifyLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (i *IntentVerifyLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }

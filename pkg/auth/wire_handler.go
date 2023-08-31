@@ -608,3 +608,10 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerapi.WorkflowV2Handler)),
 	))
 }
+
+func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1Handler)),
+	))
+}

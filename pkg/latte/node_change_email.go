@@ -21,17 +21,17 @@ func (n *NodeChangeEmail) Kind() string {
 	return "latte.NodeChangeEmail"
 }
 
-func (n *NodeChangeEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (n *NodeChangeEmail) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (n *NodeChangeEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (n *NodeChangeEmail) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 	return []workflow.Input{
 		&InputTakeLoginID{},
 	}, nil
 }
 
-func (n *NodeChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
+func (n *NodeChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 
 	switch {
@@ -62,6 +62,6 @@ func (n *NodeChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (n *NodeChangeEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (n *NodeChangeEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return map[string]interface{}{}, nil
 }

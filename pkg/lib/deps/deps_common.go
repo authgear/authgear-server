@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpasskey "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -83,6 +84,7 @@ var CommonDependencySet = wire.NewSet(
 		authenticationinfo.DependencySet,
 		wire.Bind(new(interaction.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(workflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+		wire.Bind(new(authenticationflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	),
 
@@ -105,6 +107,7 @@ var CommonDependencySet = wire.NewSet(
 		event.DependencySet,
 		wire.Bind(new(interaction.EventService), new(*event.Service)),
 		wire.Bind(new(workflow.EventService), new(*event.Service)),
+		wire.Bind(new(authenticationflow.EventService), new(*event.Service)),
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
 		wire.Bind(new(messaging.EventService), new(*event.Service)),
@@ -133,6 +136,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.IDTokenHintResolverSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(interaction.SessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(workflow.IDPSessionService), new(*idpsession.Provider)),
+		wire.Bind(new(authenticationflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
@@ -145,6 +149,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
 		wire.Bind(new(workflow.SessionService), new(*session.Manager)),
+		wire.Bind(new(authenticationflow.SessionService), new(*session.Manager)),
 	),
 
 	wire.NewSet(
@@ -179,13 +184,14 @@ var CommonDependencySet = wire.NewSet(
 		featurecustomattrs.DependencySet,
 		wire.Bind(new(user.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
 		wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*featurecustomattrs.ServiceNoEvent)),
+		wire.Bind(new(workflow.CustomAttrsService), new(*featurecustomattrs.Service)),
+		wire.Bind(new(authenticationflow.CustomAttrsService), new(*featurecustomattrs.Service)),
 	),
 
 	wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
-		wire.Bind(new(interaction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
-		wire.Bind(new(workflow.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+		wire.Bind(new(authenticatoroob.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 
 		identityoauth.DependencySet,
 
@@ -223,10 +229,15 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(interaction.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(workflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
+		wire.Bind(new(authenticationflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.VerificationService), new(facade.WorkflowVerificationFacade)),
+		wire.Bind(new(workflow.MFAService), new(*facade.MFAFacade)),
+		wire.Bind(new(authenticationflow.IdentityService), new(facade.IdentityFacade)),
+		wire.Bind(new(authenticationflow.VerificationService), new(facade.WorkflowVerificationFacade)),
+		wire.Bind(new(authenticationflow.MFAService), new(*facade.MFAFacade)),
 		wire.Bind(new(interaction.MFAService), new(*facade.MFAFacade)),
 	),
 
@@ -235,6 +246,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(workflow.UserService), new(*user.Provider)),
+		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
@@ -260,12 +272,15 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.ForgotPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(interaction.ResetPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(workflow.ForgotPasswordService), new(*forgotpassword.Service)),
+		wire.Bind(new(authenticationflow.ForgotPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(workflow.ResetPasswordService), new(*forgotpassword.Service)),
+		wire.Bind(new(authenticationflow.ResetPasswordService), new(*forgotpassword.Service)),
 	),
 
 	wire.NewSet(
 		captcha.DependencySet,
 		wire.Bind(new(workflow.CaptchaService), new(*captcha.Provider)),
+		wire.Bind(new(authenticationflow.CaptchaService), new(*captcha.Provider)),
 	),
 
 	wire.NewSet(
@@ -289,6 +304,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
 		wire.Bind(new(interaction.OfflineGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(workflow.OfflineGrantStore), new(*oauthredis.Store)),
+		wire.Bind(new(authenticationflow.OfflineGrantStore), new(*oauthredis.Store)),
 		wire.Bind(new(oidc.UIInfoResolverPromptResolver), new(*oauth.PromptResolver)),
 
 		oauthhandler.DependencySet,
@@ -322,10 +339,12 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(workflow.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(authenticationflow.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(forgotpassword.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
+		wire.Bind(new(authenticationflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(forgotpassword.OTPSender), new(*otp.MessageSender)),
 	),
 
@@ -349,6 +368,7 @@ var CommonDependencySet = wire.NewSet(
 		ratelimit.DependencySet,
 		wire.Bind(new(interaction.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(workflow.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(authenticationflow.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
@@ -373,6 +393,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(workflow.StdAttrsService), new(*featurestdattrs.Service)),
+		wire.Bind(new(authenticationflow.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
 
@@ -422,8 +443,13 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		authenticationflow.DependencySet,
+	),
+
+	wire.NewSet(
 		accountmigration.DependencySet,
 		wire.Bind(new(workflow.AccountMigrationService), new(*accountmigration.Service)),
+		wire.Bind(new(authenticationflow.AccountMigrationService), new(*accountmigration.Service)),
 	),
 
 	wire.NewSet(

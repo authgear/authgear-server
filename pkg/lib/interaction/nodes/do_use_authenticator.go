@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -77,9 +78,9 @@ func (n *NodeDoUseAuthenticator) UserAuthenticator(stage authn.AuthenticationSta
 	return nil, false
 }
 
-func (n *NodeDoUseAuthenticator) UsedAuthenticator() (*authenticator.Info, bool) {
+func (n *NodeDoUseAuthenticator) UsedAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool) {
 	if n.Authenticator != nil {
-		return n.Authenticator, true
+		return config.AuthenticationLockoutMethodFromAuthenticatorType(n.Authenticator.Type)
 	}
-	return nil, false
+	return "", false
 }

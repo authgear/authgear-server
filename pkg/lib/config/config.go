@@ -45,7 +45,8 @@ var _ = Schema.Add("AppConfig", `
 		"web3": { "$ref": "#/$defs/Web3Config" },
 		"google_tag_manager": { "$ref": "#/$defs/GoogleTagManagerConfig" },
 		"account_migration": { "$ref": "#/$defs/AccountMigrationConfig" },
-		"captcha": { "$ref": "#/$defs/CaptchaConfig" }
+		"captcha": { "$ref": "#/$defs/CaptchaConfig" },
+		"authentication_flow": { "$ref": "#/$defs/AuthenticationFlowConfig" }
 	},
 	"required": ["id", "http"]
 }
@@ -82,6 +83,8 @@ type AppConfig struct {
 	AccountMigration *AccountMigrationConfig `json:"account_migration,omitempty"`
 
 	Captcha *CaptchaConfig `json:"captcha,omitempty"`
+
+	AuthenticationFlow *AuthenticationFlowConfig `json:"authentication_flow,omitempty"`
 }
 
 func (c *AppConfig) Validate(ctx *validation.Context) {

@@ -31,9 +31,9 @@ func (*IntentForgotPasswordV2) JSONSchema() *validation.SimpleSchema {
 	return IntentForgotPasswordSchema
 }
 
-func (*IntentForgotPasswordV2) CanReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) ([]workflow.Input, error) {
+func (*IntentForgotPasswordV2) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {
 
-	switch len(w.Nodes) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		return []workflow.Input{
 			&InputTakeLoginID{},
@@ -46,8 +46,8 @@ func (*IntentForgotPasswordV2) CanReactTo(ctx context.Context, deps *workflow.De
 	return nil, workflow.ErrEOF
 }
 
-func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow, input workflow.Input) (*workflow.Node, error) {
-	switch len(w.Nodes) {
+func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
+	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		var inputTakeLoginID inputTakeLoginID
 		if workflow.AsInput(input, &inputTakeLoginID) {
@@ -78,7 +78,7 @@ func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dep
 		var inputTakeForgotPasswordChannel inputTakeForgotPasswordChannel
 		if workflow.AsInput(input, &inputTakeForgotPasswordChannel) {
 			channel := inputTakeForgotPasswordChannel.GetForgotPasswordChannel()
-			node, err := i.sendCodeForChannel(w, deps, channel)
+			node, err := i.sendCodeForChannel(workflows.Nearest, deps, channel)
 			if err != nil {
 				return nil, err
 			}
@@ -88,11 +88,11 @@ func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dep
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*IntentForgotPasswordV2) GetEffects(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (effs []workflow.Effect, err error) {
+func (*IntentForgotPasswordV2) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return nil, nil
 }
 
-func (*IntentForgotPasswordV2) OutputData(ctx context.Context, deps *workflow.Dependencies, w *workflow.Workflow) (interface{}, error) {
+func (*IntentForgotPasswordV2) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
@@ -148,7 +149,7 @@ func (t T) Tidy() T {
 	return out
 }
 
-func (t T) MergedWithJSONPointer(ptrs map[string]string) (T, error) {
+func (t T) MergedWithForm(ptrs map[string]string) (T, error) {
 	out := t.Clone().ToClaims()
 	for ptrStr, val := range ptrs {
 		ptr, err := jsonpointer.Parse(ptrStr)
@@ -162,6 +163,30 @@ func (t T) MergedWithJSONPointer(ptrs map[string]string) (T, error) {
 			}
 		} else {
 			err = jsonpointerutil.AssignToJSONObject(ptr, out, val)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// All address fields may have been removed, so we should call Tidy here.
+	return T(out).Tidy(), nil
+}
+
+func (t T) MergedWithList(l attrs.List) (T, error) {
+	out := t.Clone().ToClaims()
+	for _, attr := range l {
+		ptr, err := jsonpointer.Parse(attr.Pointer)
+		if err != nil {
+			return nil, err
+		}
+
+		if attr.Value == nil {
+			err = jsonpointerutil.RemoveFromJSONObject(ptr, out)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err = jsonpointerutil.AssignToJSONObject(ptr, out, attr.Value)
 			if err != nil {
 				return nil, err
 			}

@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -54,7 +53,7 @@ type AuthenticatorService interface {
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (requireUpdate bool, err error)
 	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
-	ClearLockoutAttempts(authenticators []*authenticator.Info) error
+	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type OTPCodeService interface {
@@ -152,10 +151,6 @@ type PasskeyService interface {
 	ConsumeAssertionResponse(assertionResponse []byte) (err error)
 }
 
-type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType model.LoginIDKeyType) loginid.Normalizer
-}
-
 type VerificationService interface {
 	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	GetAuthenticatorVerificationStatus(a *authenticator.Info) (verification.AuthenticatorStatus, error)
@@ -187,10 +182,6 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
-type AuthenticatorLockout interface {
-	ClearLockoutAttempts(userID string, authenticatorTypes []model.AuthenticatorType) error
-}
-
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
@@ -216,7 +207,6 @@ type Context struct {
 	ForgotPassword                  ForgotPasswordService
 	ResetPassword                   ResetPasswordService
 	Passkey                         PasskeyService
-	LoginIDNormalizerFactory        LoginIDNormalizerFactory
 	Verification                    VerificationService
 	RateLimiter                     RateLimiter
 

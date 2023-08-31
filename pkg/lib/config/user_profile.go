@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/slice"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var _ = Schema.Add("UserProfileConfig", `
@@ -358,44 +360,44 @@ func (c *CustomAttributesAttributeConfig) SetDefaults() {
 	}
 }
 
-func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]interface{}, err error) {
-	schema = make(map[string]interface{})
+func (c *CustomAttributesAttributeConfig) ToSchemaBuilder() (builder validation.SchemaBuilder, err error) {
+	builder = validation.SchemaBuilder{}
 
 	switch c.Type {
 	case CustomAttributeTypeString:
-		schema["type"] = "string"
-		schema["minLength"] = 1
+		builder.Type(validation.TypeString)
+		builder.MinLength(1)
 	case CustomAttributeTypeNumber:
-		schema["type"] = "number"
+		builder.Type(validation.TypeNumber)
 		if c.Minimum != nil {
-			schema["minimum"] = *c.Minimum
+			builder.MinimumFloat64(*c.Minimum)
 		}
 		if c.Maximum != nil {
-			schema["maximum"] = *c.Maximum
+			builder.MaximumFloat64(*c.Maximum)
 		}
 	case CustomAttributeTypeInteger:
-		schema["type"] = "integer"
+		builder.Type(validation.TypeInteger)
 		if c.Minimum != nil {
-			schema["minimum"] = int64(*c.Minimum)
+			builder.MinimumInt64(int64(*c.Minimum))
 		}
 		if c.Maximum != nil {
-			schema["maximum"] = int64(*c.Maximum)
+			builder.MaximumInt64(int64(*c.Maximum))
 		}
 	case CustomAttributeTypeEnum:
-		schema["type"] = "string"
-		schema["enum"] = c.Enum
+		builder.Type(validation.TypeString)
+		builder.Enum(slice.Cast[string, interface{}](c.Enum)...)
 	case CustomAttributeTypePhoneNumber:
-		schema["type"] = "string"
-		schema["format"] = "phone"
+		builder.Type(validation.TypeString)
+		builder.Format("phone")
 	case CustomAttributeTypeEmail:
-		schema["type"] = "string"
-		schema["format"] = "email"
+		builder.Type(validation.TypeString)
+		builder.Format("email")
 	case CustomAttributeTypeURL:
-		schema["type"] = "string"
-		schema["format"] = "uri"
+		builder.Type(validation.TypeString)
+		builder.Format("uri")
 	case CustomAttributeTypeCountryCode:
-		schema["type"] = "string"
-		schema["format"] = "iso3166-1-alpha-2"
+		builder.Type(validation.TypeString)
+		builder.Format("iso3166-1-alpha-2")
 	default:
 		err = fmt.Errorf("unknown type: %v", c.Type)
 	}

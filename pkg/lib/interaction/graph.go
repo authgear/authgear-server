@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -229,15 +230,15 @@ func (g *Graph) GetUserAuthenticator(stage authn.AuthenticationStage) (*authenti
 	return nil, false
 }
 
-func (g *Graph) GetUsedAuthenticators() []*authenticator.Info {
-	result := []*authenticator.Info{}
+func (g *Graph) GetUsedAuthenticationLockoutMethods() []config.AuthenticationLockoutMethod {
+	result := []config.AuthenticationLockoutMethod{}
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface {
-			UsedAuthenticator() (*authenticator.Info, bool)
+			UsedAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool)
 		}); ok {
-			ai, ok := n.UsedAuthenticator()
+			m, ok := n.UsedAuthenticationLockoutMethod()
 			if ok {
-				result = append(result, ai)
+				result = append(result, m)
 			}
 		}
 	}

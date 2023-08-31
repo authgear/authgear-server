@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -33,8 +34,16 @@ func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID stri
 	return nil
 }
 
-func (s *Service) UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
-	err := s.ServiceNoEvent.UpdateCustomAttributesWithJSONPointerMap(role, userID, jsonPointerMap)
+func (s *Service) UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error {
+	err := s.ServiceNoEvent.UpdateCustomAttributesWithList(role, userID, attrs)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
+	err := s.ServiceNoEvent.UpdateCustomAttributesWithForm(role, userID, jsonPointerMap)
 	if err != nil {
 		return err
 	}

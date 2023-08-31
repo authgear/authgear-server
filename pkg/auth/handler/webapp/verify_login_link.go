@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -55,6 +56,10 @@ type WorkflowWebsocketEventStore interface {
 	Publish(workflowID string, e workflow.Event) error
 }
 
+type AuthenticationFlowWebsocketEventStore interface {
+	Publish(authenticationFlowID string, e authflow.Event) error
+}
+
 type VerifyLoginLinkOTPHandler struct {
 	LoginLinkOTPCodeService     OTPCodeService
 	GlobalSessionServiceFactory *GlobalSessionServiceFactory
@@ -63,6 +68,7 @@ type VerifyLoginLinkOTPHandler struct {
 	AuthenticationViewModel     *viewmodels.AuthenticationViewModeler
 	Renderer                    Renderer
 	WorkflowEvents              WorkflowWebsocketEventStore
+	AuthenticationFlowEvents    AuthenticationFlowWebsocketEventStore
 	Config                      *config.AppConfig
 }
 
@@ -169,8 +175,17 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
+		// For legacy workflow
 		if state.WorkflowID != "" {
 			err = h.WorkflowEvents.Publish(state.WorkflowID, workflow.NewEventRefresh())
+			if err != nil {
+				return err
+			}
+		}
+
+		// For authentication flow
+		if state.AuthenticationFlowID != "" {
+			err = h.AuthenticationFlowEvents.Publish(state.AuthenticationFlowID, authflow.NewEventRefresh())
 			if err != nil {
 				return err
 			}
