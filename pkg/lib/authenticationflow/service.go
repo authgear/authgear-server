@@ -37,6 +37,7 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 		WebsocketID: o.Flow.FlowID,
 		JSONSchema:  o.SchemaBuilder,
 		Finished:    o.Finished,
+		Data:        o.Data,
 	}
 }
 
