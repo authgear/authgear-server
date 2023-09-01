@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 )
 
 type workflowJSON struct {
@@ -278,6 +280,28 @@ func (w *Workflow) CollectCookies(ctx context.Context, deps *Dependencies, workf
 	}
 
 	return
+}
+
+func (w *Workflow) GetAuthenticationInfoEntry(ctx context.Context, deps *Dependencies, workflows Workflows) (*authenticationinfo.Entry, bool) {
+	var e *authenticationinfo.Entry
+	_ = w.Traverse(WorkflowTraverser{
+		NodeSimple: func(nodeSimple NodeSimple, w *Workflow) error {
+			if n, ok := nodeSimple.(AuthenticationInfoEntryGetter); ok {
+				e = n.GetAuthenticationInfoEntry(ctx, deps, workflows)
+			}
+			return nil
+		},
+		Intent: func(intent Intent, w *Workflow) error {
+			if i, ok := intent.(AuthenticationInfoEntryGetter); ok {
+				e = i.GetAuthenticationInfoEntry(ctx, deps, workflows)
+			}
+			return nil
+		},
+	})
+	if e != nil {
+		return e, true
+	}
+	return nil, false
 }
 
 func (w *Workflow) Traverse(t WorkflowTraverser) error {

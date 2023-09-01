@@ -27,6 +27,7 @@ const CodeGrantValidDuration = duration.Short
 
 type UIInfoResolver interface {
 	ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
+	GetAuthenticationInfoID(req *http.Request) (string, bool)
 }
 
 type UIURLBuilder interface {
@@ -183,7 +184,6 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 		RedirectURI:  redirectURI,
 		Response:     protocol.NewErrorResponse("access_denied", "authorization denied"),
 		Cookies: []*http.Cookie{
-			h.Cookies.ClearCookie(authenticationinfo.CookieDef),
 			h.Cookies.ClearCookie(oauthsession.CookieDef),
 		},
 	}
@@ -273,12 +273,12 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 }
 
 func (h *AuthorizationHandler) getAuthenticationInfoEntry(req *http.Request) (*authenticationinfo.Entry, error) {
-	cookie, err := h.Cookies.GetCookie(req, authenticationinfo.CookieDef)
-	if err != nil {
+	id, ok := h.UIInfoResolver.GetAuthenticationInfoID(req)
+	if !ok {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
-	entry, err := h.AuthenticationInfoService.Get(cookie.Value)
+	entry, err := h.AuthenticationInfoService.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -487,10 +487,7 @@ func (h *AuthorizationHandler) finish(
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
 		Response:     resp,
-		Cookies: append(
-			[]*http.Cookie{h.Cookies.ClearCookie(authenticationinfo.CookieDef)},
-			cookies...,
-		),
+		Cookies:      cookies,
 	}, nil
 }
 

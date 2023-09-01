@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -309,6 +310,18 @@ func (g *Graph) GetAMR() []string {
 	sort.Strings(amr)
 
 	return amr
+}
+
+func (g *Graph) GetAuthenticationInfoEntry() (*authenticationinfo.Entry, bool) {
+	for _, node := range g.Nodes {
+		if n, ok := node.(interface {
+			GetAuthenticationInfoEntry() *authenticationinfo.Entry
+		}); ok {
+			e := n.GetAuthenticationInfoEntry()
+			return e, true
+		}
+	}
+	return nil, false
 }
 
 func (g *Graph) FillDetails(err error) error {

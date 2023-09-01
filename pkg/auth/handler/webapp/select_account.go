@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -42,6 +41,10 @@ type SelectAccountAuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
 }
 
+type SelectAccountUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
 type SelectAccountViewModel struct {
 	IdentityDisplayName string
 }
@@ -55,6 +58,7 @@ type SelectAccountHandler struct {
 	Users                     SelectAccountUserService
 	Identities                SelectAccountIdentityService
 	AuthenticationInfoService SelectAccountAuthenticationInfoService
+	UIInfoResolver            SelectAccountUIInfoResolver
 	Cookies                   CookieManager
 	OAuthConfig               *config.OAuthConfig
 	UIConfig                  *config.UIConfig
@@ -135,11 +139,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			if err != nil {
 				return err
 			}
-			cookie := h.Cookies.ValueCookie(
-				authenticationinfo.CookieDef,
-				entry.ID,
-			)
-			httputil.UpdateCookie(w, cookie)
+			redirectURI = h.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, entry)
 		}
 
 		http.Redirect(w, r, redirectURI, http.StatusFound)

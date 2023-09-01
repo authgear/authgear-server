@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -17,6 +18,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
+
+type UIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
 
 type SessionStore interface {
 	Get(id string) (*Session, error)
@@ -55,6 +60,7 @@ type Service2 struct {
 	OAuthConfig          *config.OAuthConfig
 	UIConfig             *config.UIConfig
 	TrustProxy           config.TrustProxy
+	UIInfoResolver       UIInfoResolver
 
 	Graph GraphService
 }
@@ -513,24 +519,33 @@ func (s *Service2) afterPost(
 	return nil
 }
 
-func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
+func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) (redirectURI string) {
+	defer func() {
+		if e, ok := graph.GetAuthenticationInfoEntry(); ok {
+			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
+		}
+	}()
+
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeForgotPasswordEnd:
-		return "/flows/forgot_password/success"
+		redirectURI = "/flows/forgot_password/success"
+		return
 	case *nodes.NodeResetPasswordEnd:
-		return "/flows/reset_password/success"
+		redirectURI = "/flows/reset_password/success"
+		return
 	}
 
 	// 1. WebSession's Redirect URL (e.g. authorization endpoint, settings page)
 	// 2. Obtain redirect_uri which is from the same origin by calling GetRedirectURI
 	// 3. DerivePostLoginRedirectURIFromRequest
 	if session.RedirectURI != "" {
-		return session.RedirectURI
+		redirectURI = session.RedirectURI
+		return
 	}
 
 	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthConfig, s.UIConfig)
-	redirectURI := GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
-	return redirectURI
+	redirectURI = GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
+	return
 }
 
 // nolint:gocyclo

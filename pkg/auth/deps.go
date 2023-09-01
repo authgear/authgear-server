@@ -70,6 +70,7 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.SessionMiddlewareOAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(webapp.SessionMiddlewareUIInfoResolver), new(*oidc.UIInfoResolver)),
+	wire.Bind(new(webapp.UIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),

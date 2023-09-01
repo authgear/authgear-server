@@ -15,17 +15,17 @@ func init() {
 }
 
 var _ workflow.CookieGetter = &NodeDoEnsureSession{}
+var _ workflow.AuthenticationInfoEntryGetter = &NodeDoEnsureSession{}
 
 type NodeDoEnsureSession struct {
-	UserID                   string                    `json:"user_id"`
-	CreateReason             session.CreateReason      `json:"create_reason"`
-	SessionToCreate          *idpsession.IDPSession    `json:"session_to_create,omitempty"`
-	AuthenticationInfoEntry  *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
-	SessionCookie            *http.Cookie              `json:"session_cookie,omitempty"`
-	UpdateSessionID          string                    `json:"update_session_id,omitempty"`
-	UpdateSessionAMR         []string                  `json:"update_session_amr,omitempty"`
-	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
-	AuthenticationInfoCookie *http.Cookie              `json:"authentication_info_cookie,omitempty"`
+	UserID                  string                    `json:"user_id"`
+	CreateReason            session.CreateReason      `json:"create_reason"`
+	SessionToCreate         *idpsession.IDPSession    `json:"session_to_create,omitempty"`
+	AuthenticationInfoEntry *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
+	SessionCookie           *http.Cookie              `json:"session_cookie,omitempty"`
+	UpdateSessionID         string                    `json:"update_session_id,omitempty"`
+	UpdateSessionAMR        []string                  `json:"update_session_amr,omitempty"`
+	SameSiteStrictCookie    *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
 }
 
 func (n *NodeDoEnsureSession) Kind() string {
@@ -82,10 +82,11 @@ func (n *NodeDoEnsureSession) GetCookies(ctx context.Context, deps *workflow.Dep
 	if n.SameSiteStrictCookie != nil {
 		cookies = append(cookies, n.SameSiteStrictCookie)
 	}
-	if n.AuthenticationInfoCookie != nil {
-		cookies = append(cookies, n.AuthenticationInfoCookie)
-	}
 	return cookies, nil
+}
+
+func (n *NodeDoEnsureSession) GetAuthenticationInfoEntry(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) *authenticationinfo.Entry {
+	return n.AuthenticationInfoEntry
 }
 
 func (*NodeDoEnsureSession) CanReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) ([]workflow.Input, error) {

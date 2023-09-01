@@ -2,12 +2,14 @@ package oidc
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -66,6 +68,32 @@ type UIInfoResolver struct {
 	PromptResolver      UIInfoResolverPromptResolver
 	IDTokenHintResolver UIInfoResolverIDTokenHintResolver
 	Clock               clock.Clock
+}
+
+func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
+	consentURI := r.EndpointsProvider.ConsentEndpointURL().String()
+	// Not redirecting to the consent endpoint.
+	// Do not set anything.
+	if redirectURI != consentURI {
+		return redirectURI
+	}
+	u, err := url.Parse(redirectURI)
+	if err != nil {
+		panic(err)
+	}
+
+	q := u.Query()
+	q.Set("code", e.ID)
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func (r *UIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
+	code := req.FormValue("code")
+	if code != "" {
+		return code, true
+	}
+	return "", false
 }
 
 func (r *UIInfoResolver) ResolveForUI(req protocol.AuthorizationRequest) (*UIInfo, error) {

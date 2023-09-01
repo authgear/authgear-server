@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -53,12 +54,17 @@ type ServiceDatabase interface {
 	ReadOnly(do func() error) (err error)
 }
 
+type ServiceUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
 type Service struct {
 	ContextDoNotUseDirectly context.Context
 	Deps                    *Dependencies
 	Logger                  ServiceLogger
 	Store                   Store
 	Database                ServiceDatabase
+	UIInfoResolver          ServiceUIInfoResolver
 }
 
 func (s *Service) CreateNewWorkflow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
@@ -350,15 +356,21 @@ func (s *Service) finishWorkflow(ctx context.Context, workflow *Workflow) (cooki
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, session *Session, workflow *Workflow) (*WorkflowAction, error) {
-	isEOF, err := workflow.IsEOF(ctx, s.Deps, NewWorkflows(workflow))
+func (s *Service) determineAction(ctx context.Context, session *Session, w *Workflow) (*WorkflowAction, error) {
+	isEOF, err := w.IsEOF(ctx, s.Deps, NewWorkflows(w))
 	if err != nil {
 		return nil, err
 	}
 	if isEOF {
+		e, ok := w.GetAuthenticationInfoEntry(ctx, s.Deps, NewWorkflows(w))
+		redirectURI := session.RedirectURI
+		if ok {
+			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
+		}
+
 		return &WorkflowAction{
 			Type:        WorkflowActionTypeFinish,
-			RedirectURI: session.RedirectURI,
+			RedirectURI: redirectURI,
 		}, nil
 	}
 	return &WorkflowAction{
