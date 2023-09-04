@@ -33,7 +33,7 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 		fromAuthzEndpoint := false
 		if webSession != nil {
 			// stay in the auth entry point if login is triggered by authz endpoint
-			fromAuthzEndpoint = webSession.FromAuthzEndpoint
+			fromAuthzEndpoint = webSession.OAuthSessionID != ""
 		}
 
 		host := httputil.GetHost(r, bool(m.TrustProxy))

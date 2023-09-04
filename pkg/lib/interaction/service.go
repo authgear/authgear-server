@@ -69,7 +69,7 @@ func (s *Service) Get(instanceID string) (*Graph, error) {
 	return s.Store.GetGraphInstance(instanceID)
 }
 
-func (s *Service) DryRun(webSessionID string, fn func(*Context) (*Graph, error)) (err error) {
+func (s *Service) DryRun(contextValues ContextValues, fn func(*Context) (*Graph, error)) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return
@@ -84,7 +84,8 @@ func (s *Service) DryRun(webSessionID string, fn func(*Context) (*Graph, error))
 	}()
 
 	ctx.IsCommitting = false
-	ctx.WebSessionID = webSessionID
+	ctx.WebSessionID = contextValues.WebSessionID
+	ctx.OAuthSessionID = contextValues.OAuthSessionID
 	graph, err := fn(ctx)
 	if err != nil {
 		return
@@ -98,7 +99,7 @@ func (s *Service) DryRun(webSessionID string, fn func(*Context) (*Graph, error))
 	return
 }
 
-func (s *Service) Run(webSessionID string, graph *Graph) (err error) {
+func (s *Service) Run(contextValues ContextValues, graph *Graph) (err error) {
 	ctx, err := s.Context.initialize()
 	if err != nil {
 		return
@@ -123,7 +124,8 @@ func (s *Service) Run(webSessionID string, graph *Graph) (err error) {
 	}()
 
 	ctx.IsCommitting = false
-	ctx.WebSessionID = webSessionID
+	ctx.WebSessionID = contextValues.WebSessionID
+	ctx.OAuthSessionID = contextValues.OAuthSessionID
 	err = graph.Apply(ctx)
 	if err != nil {
 		return

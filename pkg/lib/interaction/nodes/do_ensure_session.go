@@ -46,7 +46,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 
 	authenticationInfo := sessionToCreate.GetAuthenticationInfo()
 	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
-	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo)
+	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID)
 
 	var updateSessionID string
 	var updateSessionAMR []string

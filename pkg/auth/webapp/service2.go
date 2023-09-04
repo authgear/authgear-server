@@ -33,8 +33,8 @@ type SessionStore interface {
 type GraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
 	Get(instanceID string) (*interaction.Graph, error)
-	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
-	Run(webStateID string, graph *interaction.Graph) error
+	DryRun(contextValues interaction.ContextValues, fn func(*interaction.Context) (*interaction.Graph, error)) error
+	Run(contextValues interaction.ContextValues, graph *interaction.Graph) error
 	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
 }
 
@@ -96,7 +96,10 @@ func (s *Service2) PeekUncommittedChanges(session *Session, fn func(graph *inter
 		return ErrInvalidSession
 	}
 
-	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -121,7 +124,10 @@ func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 		return nil, ErrInvalidSession
 	}
 
-	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -137,7 +143,10 @@ func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 
 func (s *Service2) GetWithIntent(session *Session, intent interaction.Intent) (*interaction.Graph, error) {
 	var graph *interaction.Graph
-	err := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err := s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		g, err := s.Graph.NewGraph(ctx, intent)
 		if err != nil {
 			return nil, err
@@ -371,7 +380,10 @@ func (s *Service2) runGraph(
 ) (*interaction.Graph, []interaction.Edge, error) {
 	var graph *interaction.Graph
 	var edges []interaction.Edge
-	interactionErr := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	interactionErr := s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = graphFn(ctx)
 		if err != nil {
@@ -422,7 +434,10 @@ func (s *Service2) afterPost(
 	if isFinished {
 		// The graph finished. Apply its effect permanently.
 		s.Logger.Debugf("interaction: commit graph")
-		interactionErr = s.Graph.Run(session.ID, graph)
+		interactionErr = s.Graph.Run(interaction.ContextValues{
+			WebSessionID:   session.ID,
+			OAuthSessionID: session.OAuthSessionID,
+		}, graph)
 		// The interaction should not be finished, if there is error when
 		// applying effects.
 		isFinished = interactionErr == nil

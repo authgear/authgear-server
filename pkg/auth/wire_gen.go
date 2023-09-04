@@ -540,12 +540,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clock,
+		Cookies:             cookieManager,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -573,7 +575,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clock,
 		IDPSessions: idpsessionProvider,
 	}
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
@@ -1053,12 +1054,14 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -1086,7 +1089,6 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 		IDPSessions: idpsessionProvider,
 	}
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
 		AppSessionTokens:    redisStore,
@@ -6790,6 +6792,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -7643,6 +7646,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -8495,6 +8499,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -9335,6 +9340,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -10169,6 +10175,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -10992,6 +10999,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -11818,6 +11826,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -12647,6 +12656,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -13478,6 +13488,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -14307,6 +14318,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -15132,6 +15144,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -15961,6 +15974,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -16791,6 +16805,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -17620,6 +17635,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -18449,6 +18465,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -19280,6 +19297,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -20109,6 +20127,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -20938,6 +20957,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -21771,6 +21791,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -22600,6 +22621,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -23433,6 +23455,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -24262,6 +24285,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -25099,6 +25123,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -25946,6 +25971,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -26775,6 +26801,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -27600,6 +27627,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -28429,6 +28457,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -29254,6 +29283,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -30089,6 +30119,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -30914,6 +30945,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -31741,6 +31773,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -32566,6 +32599,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -33423,6 +33457,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -34259,6 +34294,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -35108,6 +35144,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -35941,6 +35978,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -36767,6 +36805,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -37601,6 +37640,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -38427,6 +38467,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -39253,6 +39294,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -40079,6 +40121,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -40906,6 +40949,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -41751,6 +41795,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -42577,6 +42622,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -43403,6 +43449,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -44229,6 +44276,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -45055,6 +45103,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -45888,6 +45937,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -46715,6 +46765,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -47540,6 +47591,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -48380,6 +48432,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -49205,6 +49258,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -50030,6 +50084,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -50873,6 +50928,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -51664,6 +51720,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -52454,6 +52511,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -53289,6 +53347,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -54115,6 +54174,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -55255,6 +55315,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -56031,6 +56092,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -56800,6 +56862,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -57604,6 +57667,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -58380,6 +58444,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	authenticationflowService := &authenticationflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -59785,6 +59850,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		PromptResolver:      promptResolver,
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
+		Cookies:             cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)

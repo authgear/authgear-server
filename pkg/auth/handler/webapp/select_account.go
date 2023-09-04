@@ -95,16 +95,16 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	idpSession := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 
+	oauthSessionID := ""
 	loginPrompt := false
-	fromAuthzEndpoint := false
 	userIDHint := ""
 	canUseIntentReauthenticate := false
 	suppressIDPSessionCookie := false
 	oauthProviderAlias := ""
 
 	if webSession != nil {
+		oauthSessionID = webSession.OAuthSessionID
 		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-		fromAuthzEndpoint = webSession.FromAuthzEndpoint
 		userIDHint = webSession.UserIDHint
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
@@ -134,7 +134,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		// Write authentication info cookie
 		if idpSession != nil {
 			info := idpSession.GetAuthenticationInfo()
-			entry := authenticationinfo.NewEntry(info)
+			entry := authenticationinfo.NewEntry(info, oauthSessionID)
 			err := h.AuthenticationInfoService.Save(entry)
 			if err != nil {
 				return err
@@ -253,6 +253,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 
+		fromAuthzEndpoint := oauthSessionID != ""
 		if !fromAuthzEndpoint || idpSession == nil || loginPrompt {
 			gotoSignupOrLogin()
 			return nil

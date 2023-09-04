@@ -23,6 +23,8 @@ type SessionMiddlewareStore interface {
 }
 
 type SessionMiddlewareUIInfoResolver interface {
+	GetOAuthSessionID(req *http.Request) (string, bool)
+	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
@@ -40,16 +42,15 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 		// The session is either created now, or read from cookie.
 
 		// Create the session now.
-		cookie, err := m.Cookies.GetCookie(r, oauthsession.UICookieDef)
-		if err == nil {
-			result, session := m.createSession(cookie)
+		if oauthSessionID, ok := m.UIInfoResolver.GetOAuthSessionID(r); ok {
+			result, session := m.createSession(oauthSessionID)
 
 			for _, c := range result.Cookies {
 				httputil.UpdateCookie(w, c)
 			}
 
-			// CLear the cookie so that we do not create the session again.
-			httputil.UpdateCookie(w, m.Cookies.ClearCookie(oauthsession.UICookieDef))
+			// Remove oauth session ID so that we do not create again.
+			m.UIInfoResolver.RemoveOAuthSessionID(w, r)
 
 			r = r.WithContext(WithSession(r.Context(), session))
 		} else {
@@ -75,12 +76,12 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Session) {
+func (m *SessionMiddleware) createSession(oauthSessionID string) (*Result, *Session) {
 	// When oauth session is not found, we fall back gracefully
 	// with a zero value of SessionOptions
 	sessionOptions := SessionOptions{}
 
-	entry, err := m.OAuthSessions.Get(cookie.Value)
+	entry, err := m.OAuthSessions.Get(oauthSessionID)
 	if err != nil && !errors.Is(err, oauthsession.ErrNotFound) {
 		panic(err)
 	}
@@ -93,6 +94,7 @@ func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Sessio
 			panic(err)
 		}
 		sessionOptions = SessionOptions{
+			OAuthSessionID:             oauthSessionID,
 			RedirectURI:                uiInfo.RedirectURI,
 			Prompt:                     uiInfo.Prompt,
 			UserIDHint:                 uiInfo.UserIDHint,
@@ -101,7 +103,6 @@ func (m *SessionMiddleware) createSession(cookie *http.Cookie) (*Result, *Sessio
 			SuppressIDPSessionCookie:   uiInfo.SuppressIDPSessionCookie,
 			OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
 			LoginHint:                  uiInfo.LoginHint,
-			FromAuthzEndpoint:          true,
 		}
 	}
 

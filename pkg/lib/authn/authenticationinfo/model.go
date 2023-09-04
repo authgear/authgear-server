@@ -23,14 +23,16 @@ type T struct {
 }
 
 type Entry struct {
-	ID string `json:"id,omitempty"`
-	T  T      `json:"t,omitempty"`
+	ID             string `json:"id,omitempty"`
+	T              T      `json:"t,omitempty"`
+	OAuthSessionID string `json:"oauth_session_id,omitempty"`
 }
 
-func NewEntry(t T) *Entry {
+func NewEntry(t T, oauthSessionID string) *Entry {
 	id := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
 	return &Entry{
-		ID: id,
-		T:  t,
+		ID:             id,
+		T:              t,
+		OAuthSessionID: oauthSessionID,
 	}
 }
