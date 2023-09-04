@@ -7,6 +7,7 @@ package authenticationflow
 import (
 	reflect "reflect"
 
+	authenticationinfo "github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -168,4 +169,41 @@ func (m *MockServiceDatabase) WithTx(do func() error) error {
 func (mr *MockServiceDatabaseMockRecorder) WithTx(do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockServiceDatabase)(nil).WithTx), do)
+}
+
+// MockServiceUIInfoResolver is a mock of ServiceUIInfoResolver interface.
+type MockServiceUIInfoResolver struct {
+	ctrl     *gomock.Controller
+	recorder *MockServiceUIInfoResolverMockRecorder
+}
+
+// MockServiceUIInfoResolverMockRecorder is the mock recorder for MockServiceUIInfoResolver.
+type MockServiceUIInfoResolverMockRecorder struct {
+	mock *MockServiceUIInfoResolver
+}
+
+// NewMockServiceUIInfoResolver creates a new mock instance.
+func NewMockServiceUIInfoResolver(ctrl *gomock.Controller) *MockServiceUIInfoResolver {
+	mock := &MockServiceUIInfoResolver{ctrl: ctrl}
+	mock.recorder = &MockServiceUIInfoResolverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockServiceUIInfoResolver) EXPECT() *MockServiceUIInfoResolverMockRecorder {
+	return m.recorder
+}
+
+// SetAuthenticationInfoInQuery mocks base method.
+func (m *MockServiceUIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetAuthenticationInfoInQuery", redirectURI, e)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// SetAuthenticationInfoInQuery indicates an expected call of SetAuthenticationInfoInQuery.
+func (mr *MockServiceUIInfoResolverMockRecorder) SetAuthenticationInfoInQuery(redirectURI, e interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAuthenticationInfoInQuery", reflect.TypeOf((*MockServiceUIInfoResolver)(nil).SetAuthenticationInfoInQuery), redirectURI, e)
 }

@@ -42,6 +42,21 @@ func (m *MockUIInfoResolver) EXPECT() *MockUIInfoResolverMockRecorder {
 	return m.recorder
 }
 
+// GetAuthenticationInfoID mocks base method.
+func (m *MockUIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthenticationInfoID", req)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetAuthenticationInfoID indicates an expected call of GetAuthenticationInfoID.
+func (mr *MockUIInfoResolverMockRecorder) GetAuthenticationInfoID(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationInfoID", reflect.TypeOf((*MockUIInfoResolver)(nil).GetAuthenticationInfoID), req)
+}
+
 // ResolveForAuthorizationEndpoint mocks base method.
 func (m *MockUIInfoResolver) ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error) {
 	m.ctrl.T.Helper()
@@ -82,18 +97,18 @@ func (m *MockUIURLBuilder) EXPECT() *MockUIURLBuilderMockRecorder {
 }
 
 // Build mocks base method.
-func (m *MockUIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error) {
+func (m *MockUIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Build", client, r)
+	ret := m.ctrl.Call(m, "Build", client, r, e)
 	ret0, _ := ret[0].(*url.URL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Build indicates an expected call of Build.
-func (mr *MockUIURLBuilderMockRecorder) Build(client, r interface{}) *gomock.Call {
+func (mr *MockUIURLBuilderMockRecorder) Build(client, r, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockUIURLBuilder)(nil).Build), client, r)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Build", reflect.TypeOf((*MockUIURLBuilder)(nil).Build), client, r, e)
 }
 
 // MockAppSessionTokenService is a mock of AppSessionTokenService interface.

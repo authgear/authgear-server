@@ -33,6 +33,7 @@ func TestService(t *testing.T) {
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
 		store := NewMockStore(ctrl)
+		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
 
 		service := &Service{
 			ContextDoNotUseDirectly: ctx,
@@ -40,6 +41,7 @@ func TestService(t *testing.T) {
 			Logger:                  logger,
 			Store:                   store,
 			Database:                database,
+			UIInfoResolver:          uiInfoResolver,
 		}
 
 		Convey("CreateNewWorkflow with intent expecting non-nil input at the beginning", func() {
@@ -90,6 +92,8 @@ func TestService(t *testing.T) {
 			gomock.InOrder(
 				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
 				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
+
+				uiInfoResolver.EXPECT().SetAuthenticationInfoInQuery(gomock.Any(), gomock.Any()).Return(""),
 
 				store.EXPECT().DeleteSession(gomock.Any()).Return(nil),
 				store.EXPECT().DeleteWorkflow(gomock.Any()).Return(nil),
@@ -419,6 +423,7 @@ func TestServiceContext(t *testing.T) {
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
 		store := NewMockStore(ctrl)
+		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
 
 		service := &Service{
 			ContextDoNotUseDirectly: ctx,
@@ -426,6 +431,7 @@ func TestServiceContext(t *testing.T) {
 			Logger:                  logger,
 			Store:                   store,
 			Database:                database,
+			UIInfoResolver:          uiInfoResolver,
 		}
 
 		Convey("Populate context", func() {

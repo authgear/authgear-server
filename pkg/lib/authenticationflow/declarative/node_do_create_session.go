@@ -19,11 +19,10 @@ type NodeDoCreateSession struct {
 	CreateReason session.CreateReason `json:"create_reason"`
 	SkipCreate   bool                 `json:"skip_create"`
 
-	Session                  *idpsession.IDPSession    `json:"session,omitempty"`
-	SessionCookie            *http.Cookie              `json:"session_cookie,omitempty"`
-	AuthenticationInfoEntry  *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
-	AuthenticationInfoCookie *http.Cookie              `json:"authentication_info_cookie,omitempty"`
-	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
+	Session                 *idpsession.IDPSession    `json:"session,omitempty"`
+	SessionCookie           *http.Cookie              `json:"session_cookie,omitempty"`
+	AuthenticationInfoEntry *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
+	SameSiteStrictCookie    *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
 }
 
 func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoCreateSession) (*NodeDoCreateSession, error) {
@@ -38,11 +37,7 @@ func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, fl
 
 	authnInfo := s.GetAuthenticationInfo()
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = n.SkipCreate && n.CreateReason == session.CreateReasonLogin
-	authnInfoEntry := authenticationinfo.NewEntry(authnInfo)
-	authnInfoCookie := deps.Cookies.ValueCookie(
-		authenticationinfo.CookieDef,
-		authnInfoEntry.ID,
-	)
+	authnInfoEntry := authenticationinfo.NewEntry(authnInfo, authflow.GetOAuthSessionID(ctx))
 
 	sameSiteStrictCookie := deps.Cookies.ValueCookie(
 		deps.SessionCookie.SameSiteStrictDef,
@@ -57,7 +52,6 @@ func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, fl
 	n.Session = s
 	n.SessionCookie = sessionCookie
 	n.AuthenticationInfoEntry = authnInfoEntry
-	n.AuthenticationInfoCookie = authnInfoCookie
 	n.SameSiteStrictCookie = sameSiteStrictCookie
 
 	return n, nil
@@ -68,6 +62,7 @@ var _ authflow.Milestone = &NodeDoCreateSession{}
 var _ MilestoneDoCreateSession = &NodeDoCreateSession{}
 var _ authflow.EffectGetter = &NodeDoCreateSession{}
 var _ authflow.CookieGetter = &NodeDoCreateSession{}
+var _ authflow.AuthenticationInfoEntryGetter = &NodeDoCreateSession{}
 
 func (*NodeDoCreateSession) Kind() string {
 	return "NodeDoCreateSession"
@@ -123,8 +118,9 @@ func (n *NodeDoCreateSession) GetCookies(ctx context.Context, deps *authflow.Dep
 	if n.SameSiteStrictCookie != nil {
 		cookies = append(cookies, n.SameSiteStrictCookie)
 	}
-	if n.AuthenticationInfoCookie != nil {
-		cookies = append(cookies, n.AuthenticationInfoCookie)
-	}
 	return cookies, nil
+}
+
+func (n *NodeDoCreateSession) GetAuthenticationInfoEntry(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) *authenticationinfo.Entry {
+	return n.AuthenticationInfoEntry
 }

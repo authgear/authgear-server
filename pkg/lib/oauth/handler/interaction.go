@@ -6,7 +6,7 @@ import (
 
 type GraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
-	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
-	Run(webStateID string, graph *interaction.Graph) error
+	DryRun(contextValue interaction.ContextValues, fn func(*interaction.Context) (*interaction.Graph, error)) error
+	Run(contextValue interaction.ContextValues, graph *interaction.Graph) error
 	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
 }

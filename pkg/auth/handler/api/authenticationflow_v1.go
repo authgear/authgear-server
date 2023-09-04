@@ -38,6 +38,8 @@ type AuthenticationFlowV1OAuthSessionService interface {
 }
 
 type AuthenticationFlowV1UIInfoResolver interface {
+	GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool)
+	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
@@ -368,8 +370,8 @@ func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromQuery(urlQuery strin
 	}
 }
 
-func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromCookie(oauthSessionCookie *http.Cookie) (*workflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(oauthSessionCookie.Value)
+func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromOAuth(oauthSessionID string) (*workflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(oauthSessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -381,6 +383,7 @@ func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromCookie(oauthSessionC
 	}
 
 	sessionOptions := &workflow.SessionOptions{
+		OAuthSessionID:           oauthSessionID,
 		ClientID:                 uiInfo.ClientID,
 		RedirectURI:              uiInfo.RedirectURI,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
@@ -445,20 +448,18 @@ func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Req
 
 	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
 
-	var sessionOptionsFromCookie *workflow.SessionOptions
-	oauthCookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
-	if err == nil {
-		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(oauthCookie)
+	var sessionOptionsFromOAuth *workflow.SessionOptions
+	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionID(r, request.URLQuery); ok {
+		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
-			// Clear the cookie if it invalid or expired
-			httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
+			// Clear the oauth session if it invalid or expired
+			h.UIInfoResolver.RemoveOAuthSessionID(w, r)
 		} else if err != nil {
 			// Still return error for any other errors.
 			return nil, err
 		}
 
-		// Do not clear the UI cookie so that a new session can be created again.
-		// httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
+		// Do not clear the oauth session so that a new session can be created again.
 	}
 
 	// Accept client_id, state, ui_locales from query.
@@ -466,7 +467,7 @@ func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Req
 	sessionOptionsFromQuery := h.makeSessionOptionsFromQuery(request.URLQuery)
 
 	// The query overrides the cookie.
-	sessionOptions := sessionOptionsFromCookie.PartiallyMergeFrom(sessionOptionsFromQuery)
+	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
 
 	if *request.BindUserAgent {
 		sessionOptions.UserAgentID = userAgentID

@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -42,6 +41,10 @@ type SelectAccountAuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
 }
 
+type SelectAccountUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
 type SelectAccountViewModel struct {
 	IdentityDisplayName string
 }
@@ -55,6 +58,7 @@ type SelectAccountHandler struct {
 	Users                     SelectAccountUserService
 	Identities                SelectAccountIdentityService
 	AuthenticationInfoService SelectAccountAuthenticationInfoService
+	UIInfoResolver            SelectAccountUIInfoResolver
 	Cookies                   CookieManager
 	OAuthConfig               *config.OAuthConfig
 	UIConfig                  *config.UIConfig
@@ -91,16 +95,16 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	idpSession := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 
+	oauthSessionID := ""
 	loginPrompt := false
-	fromAuthzEndpoint := false
 	userIDHint := ""
 	canUseIntentReauthenticate := false
 	suppressIDPSessionCookie := false
 	oauthProviderAlias := ""
 
 	if webSession != nil {
+		oauthSessionID = webSession.OAuthSessionID
 		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-		fromAuthzEndpoint = webSession.FromAuthzEndpoint
 		userIDHint = webSession.UserIDHint
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
@@ -130,16 +134,12 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		// Write authentication info cookie
 		if idpSession != nil {
 			info := idpSession.GetAuthenticationInfo()
-			entry := authenticationinfo.NewEntry(info)
+			entry := authenticationinfo.NewEntry(info, oauthSessionID)
 			err := h.AuthenticationInfoService.Save(entry)
 			if err != nil {
 				return err
 			}
-			cookie := h.Cookies.ValueCookie(
-				authenticationinfo.CookieDef,
-				entry.ID,
-			)
-			httputil.UpdateCookie(w, cookie)
+			redirectURI = h.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, entry)
 		}
 
 		http.Redirect(w, r, redirectURI, http.StatusFound)
@@ -253,6 +253,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 
+		fromAuthzEndpoint := oauthSessionID != ""
 		if !fromAuthzEndpoint || idpSession == nil || loginPrompt {
 			gotoSignupOrLogin()
 			return nil

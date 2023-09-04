@@ -182,9 +182,15 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
+type ContextValues struct {
+	WebSessionID   string
+	OAuthSessionID string
+}
+
 type Context struct {
-	IsCommitting bool   `wire:"-"`
-	WebSessionID string `wire:"-"`
+	IsCommitting   bool   `wire:"-"`
+	WebSessionID   string `wire:"-"`
+	OAuthSessionID string `wire:"-"`
 
 	Request  *http.Request
 	RemoteIP httputil.RemoteIP

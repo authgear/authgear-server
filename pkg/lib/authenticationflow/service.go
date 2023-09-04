@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -68,12 +69,17 @@ type ServiceDatabase interface {
 	ReadOnly(do func() error) (err error)
 }
 
+type ServiceUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
 type Service struct {
 	ContextDoNotUseDirectly context.Context
 	Deps                    *Dependencies
 	Logger                  ServiceLogger
 	Store                   Store
 	Database                ServiceDatabase
+	UIInfoResolver          ServiceUIInfoResolver
 }
 
 func (s *Service) CreateNewFlow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
@@ -348,10 +354,15 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (*determineActionResult, error) {
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
+		redirectURI := session.RedirectURI
+		e, ok := GetAuthenticationInfoEntry(ctx, s.Deps, NewFlows(flow))
+		if ok {
+			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
+		}
 		return &determineActionResult{
 			Finished: true,
 			Data: &DataFinishRedirectURI{
-				FinishRedirectURI: session.RedirectURI,
+				FinishRedirectURI: redirectURI,
 			},
 		}, nil
 	}

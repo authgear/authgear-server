@@ -2,19 +2,25 @@ package oidc
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
+
+const queryNameOAuthSessionID = "x_ref"
 
 // UIInfo is a collection of information that is essential to the UI.
 type UIInfo struct {
@@ -60,12 +66,90 @@ type UIInfoResolverIDTokenHintResolver interface {
 	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.Session, err error)
 }
 
+type UIInfoResolverCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
+}
+
 type UIInfoResolver struct {
 	Config              *config.OAuthConfig
 	EndpointsProvider   oauth.EndpointsProvider
 	PromptResolver      UIInfoResolverPromptResolver
 	IDTokenHintResolver UIInfoResolverIDTokenHintResolver
 	Clock               clock.Clock
+	Cookies             UIInfoResolverCookieManager
+}
+
+func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
+	consentURI := r.EndpointsProvider.ConsentEndpointURL().String()
+	// Not redirecting to the consent endpoint.
+	// Do not set anything.
+	if redirectURI != consentURI {
+		return redirectURI
+	}
+	u, err := url.Parse(redirectURI)
+	if err != nil {
+		panic(err)
+	}
+
+	q := u.Query()
+	q.Set("code", e.ID)
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func (r *UIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
+	code := req.FormValue("code")
+	if code != "" {
+		return code, true
+	}
+	return "", false
+}
+
+func (r *UIInfoResolver) GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool) {
+	if q, err := url.ParseQuery(urlQuery); err == nil {
+		id := q.Get(queryNameOAuthSessionID)
+		if id != "" {
+			return id, true
+		}
+	}
+
+	id := req.URL.Query().Get(queryNameOAuthSessionID)
+	if id != "" {
+		return id, true
+	}
+	return "", false
+}
+
+func (r *UIInfoResolver) GetOAuthSessionIDLegacy(req *http.Request, urlQuery string) (string, bool) {
+	if q, err := url.ParseQuery(urlQuery); err == nil {
+		id := q.Get(queryNameOAuthSessionID)
+		if id != "" {
+			return id, true
+		}
+	}
+
+	id := req.URL.Query().Get(queryNameOAuthSessionID)
+	if id != "" {
+		return id, true
+	}
+	cookie, err := r.Cookies.GetCookie(req, oauthsession.UICookieDef)
+	if err == nil {
+		return cookie.Value, true
+	}
+	return "", false
+}
+
+func (r *UIInfoResolver) RemoveOAuthSessionID(w http.ResponseWriter, req *http.Request) {
+	// Remove from http.Request.URL
+	urlQuery := req.URL.Query()
+	urlQuery.Del(queryNameOAuthSessionID)
+	reqURL := *req.URL
+	reqURL.RawQuery = urlQuery.Encode()
+	req.URL = &reqURL
+
+	// Remove from cookies
+	httputil.UpdateCookie(w, r.Cookies.ClearCookie(oauthsession.UICookieDef))
 }
 
 func (r *UIInfoResolver) ResolveForUI(req protocol.AuthorizationRequest) (*UIInfo, error) {
@@ -149,7 +233,7 @@ type UIURLBuilder struct {
 	Endpoints UIURLBuilderAuthUIEndpointsProvider
 }
 
-func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error) {
+func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error) {
 	var endpoint *url.URL
 	if client != nil && client.CustomUIURI != "" {
 		var err error
@@ -162,6 +246,7 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	}
 
 	q := endpoint.Query()
+	q.Set(queryNameOAuthSessionID, e.ID)
 	q.Set("client_id", r.ClientID())
 	q.Set("redirect_uri", r.RedirectURI())
 	if r.ColorScheme() != "" {

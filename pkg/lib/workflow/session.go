@@ -10,6 +10,7 @@ import (
 type Session struct {
 	WorkflowID string `json:"workflow_id"`
 
+	OAuthSessionID           string `json:"oauth_session_id,omitempty"`
 	ClientID                 string `json:"client_id,omitempty"`
 	RedirectURI              string `json:"redirect_uri,omitempty"`
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
@@ -28,6 +29,7 @@ type SessionOutput struct {
 }
 
 type SessionOptions struct {
+	OAuthSessionID           string
 	ClientID                 string
 	RedirectURI              string
 	SuppressIDPSessionCookie bool
@@ -42,6 +44,7 @@ type SessionOptions struct {
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 	out := &SessionOptions{}
 	if s != nil {
+		out.OAuthSessionID = s.OAuthSessionID
 		out.ClientID = s.ClientID
 		out.RedirectURI = s.RedirectURI
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
@@ -73,6 +76,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 func NewSession(opts *SessionOptions) *Session {
 	return &Session{
 		WorkflowID:               newWorkflowID(),
+		OAuthSessionID:           opts.OAuthSessionID,
 		ClientID:                 opts.ClientID,
 		RedirectURI:              opts.RedirectURI,
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
@@ -93,6 +97,7 @@ func (s *Session) ToOutput() *SessionOutput {
 }
 
 func (s *Session) Context(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,
 		UILocales: s.UILocales,

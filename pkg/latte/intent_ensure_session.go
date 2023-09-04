@@ -60,10 +60,9 @@ func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Depend
 
 	authnInfo := sessionToCreate.GetAuthenticationInfo()
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && i.CreateReason == session.CreateReasonLogin
-	authnInfoEntry := authenticationinfo.NewEntry(authnInfo)
-	authnInfoCookie := deps.Cookies.ValueCookie(
-		authenticationinfo.CookieDef,
-		authnInfoEntry.ID,
+	authnInfoEntry := authenticationinfo.NewEntry(
+		authnInfo,
+		workflow.GetOAuthSessionID(ctx),
 	)
 
 	sameSiteStrictCookie := deps.Cookies.ValueCookie(
@@ -91,15 +90,14 @@ func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Depend
 	}
 
 	return workflow.NewNodeSimple(&NodeDoEnsureSession{
-		UserID:                   i.UserID,
-		CreateReason:             i.CreateReason,
-		SessionToCreate:          sessionToCreate,
-		AuthenticationInfoEntry:  authnInfoEntry,
-		SessionCookie:            sessionCookie,
-		UpdateSessionID:          updateSessionID,
-		UpdateSessionAMR:         updateSessionAMR,
-		SameSiteStrictCookie:     sameSiteStrictCookie,
-		AuthenticationInfoCookie: authnInfoCookie,
+		UserID:                  i.UserID,
+		CreateReason:            i.CreateReason,
+		SessionToCreate:         sessionToCreate,
+		AuthenticationInfoEntry: authnInfoEntry,
+		SessionCookie:           sessionCookie,
+		UpdateSessionID:         updateSessionID,
+		UpdateSessionAMR:        updateSessionAMR,
+		SameSiteStrictCookie:    sameSiteStrictCookie,
 	}), nil
 }
 

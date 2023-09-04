@@ -451,7 +451,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	var graph *interaction.Graph
-	err = h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		intent := &interactionintents.IntentAuthenticate{
 			Kind:                     interactionintents.IntentAuthenticateKindLogin,
@@ -489,7 +489,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		AuthenticatedAt: h.Clock.NowUTC(),
 	}
 
-	err = h.Graphs.Run("", graph)
+	err = h.Graphs.Run(interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
@@ -593,7 +593,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	}
 
 	var graph *interaction.Graph
-	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err := h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.GetAuthenticationInfo().UserID))
 		if err != nil {
@@ -625,7 +625,7 @@ func (h *TokenHandler) handleBiometricSetup(
 		return nil, err
 	}
 
-	err = h.Graphs.Run("", graph)
+	err = h.Graphs.Run(interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
@@ -645,7 +645,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	var graph *interaction.Graph
-	err = h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		intent := &interactionintents.IntentAuthenticate{
 			Kind:                     interactionintents.IntentAuthenticateKindLogin,
@@ -685,7 +685,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 	biometricIdentity := graph.MustGetUserLastIdentity()
 
-	err = h.Graphs.Run("", graph)
+	err = h.Graphs.Run(interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {

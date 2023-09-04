@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -17,6 +18,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
+
+type UIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
 
 type SessionStore interface {
 	Get(id string) (*Session, error)
@@ -28,8 +33,8 @@ type SessionStore interface {
 type GraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
 	Get(instanceID string) (*interaction.Graph, error)
-	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
-	Run(webStateID string, graph *interaction.Graph) error
+	DryRun(contextValues interaction.ContextValues, fn func(*interaction.Context) (*interaction.Graph, error)) error
+	Run(contextValues interaction.ContextValues, graph *interaction.Graph) error
 	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
 }
 
@@ -55,6 +60,7 @@ type Service2 struct {
 	OAuthConfig          *config.OAuthConfig
 	UIConfig             *config.UIConfig
 	TrustProxy           config.TrustProxy
+	UIInfoResolver       UIInfoResolver
 
 	Graph GraphService
 }
@@ -90,7 +96,10 @@ func (s *Service2) PeekUncommittedChanges(session *Session, fn func(graph *inter
 		return ErrInvalidSession
 	}
 
-	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -115,7 +124,10 @@ func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 		return nil, ErrInvalidSession
 	}
 
-	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		err = graph.Apply(ctx)
 		if err != nil {
 			return nil, err
@@ -131,7 +143,10 @@ func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 
 func (s *Service2) GetWithIntent(session *Session, intent interaction.Intent) (*interaction.Graph, error) {
 	var graph *interaction.Graph
-	err := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err := s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		g, err := s.Graph.NewGraph(ctx, intent)
 		if err != nil {
 			return nil, err
@@ -365,7 +380,10 @@ func (s *Service2) runGraph(
 ) (*interaction.Graph, []interaction.Edge, error) {
 	var graph *interaction.Graph
 	var edges []interaction.Edge
-	interactionErr := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	interactionErr := s.Graph.DryRun(interaction.ContextValues{
+		WebSessionID:   session.ID,
+		OAuthSessionID: session.OAuthSessionID,
+	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = graphFn(ctx)
 		if err != nil {
@@ -416,7 +434,10 @@ func (s *Service2) afterPost(
 	if isFinished {
 		// The graph finished. Apply its effect permanently.
 		s.Logger.Debugf("interaction: commit graph")
-		interactionErr = s.Graph.Run(session.ID, graph)
+		interactionErr = s.Graph.Run(interaction.ContextValues{
+			WebSessionID:   session.ID,
+			OAuthSessionID: session.OAuthSessionID,
+		}, graph)
 		// The interaction should not be finished, if there is error when
 		// applying effects.
 		isFinished = interactionErr == nil
@@ -513,24 +534,33 @@ func (s *Service2) afterPost(
 	return nil
 }
 
-func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) string {
+func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.Graph) (redirectURI string) {
+	defer func() {
+		if e, ok := graph.GetAuthenticationInfoEntry(); ok {
+			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
+		}
+	}()
+
 	switch graph.CurrentNode().(type) {
 	case *nodes.NodeForgotPasswordEnd:
-		return "/flows/forgot_password/success"
+		redirectURI = "/flows/forgot_password/success"
+		return
 	case *nodes.NodeResetPasswordEnd:
-		return "/flows/reset_password/success"
+		redirectURI = "/flows/reset_password/success"
+		return
 	}
 
 	// 1. WebSession's Redirect URL (e.g. authorization endpoint, settings page)
 	// 2. Obtain redirect_uri which is from the same origin by calling GetRedirectURI
 	// 3. DerivePostLoginRedirectURIFromRequest
 	if session.RedirectURI != "" {
-		return session.RedirectURI
+		redirectURI = session.RedirectURI
+		return
 	}
 
 	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthConfig, s.UIConfig)
-	redirectURI := GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
-	return redirectURI
+	redirectURI = GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
+	return
 }
 
 // nolint:gocyclo

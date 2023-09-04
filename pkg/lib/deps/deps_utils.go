@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -26,6 +27,7 @@ var utilsDeps = wire.NewSet(
 		wire.Bind(new(idpsession.ResolverCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(oauth.ResolverCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(oidchandler.CookieManager), new(*httputil.CookieManager)),
+		wire.Bind(new(oidc.UIInfoResolverCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(interaction.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(workflow.CookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(authenticationflow.CookieManager), new(*httputil.CookieManager)),

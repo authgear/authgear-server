@@ -226,7 +226,7 @@ func (h *AnonymousUserHandler) runSignupAnonymousUserGraph(
 	suppressIDPSessionCookie bool,
 ) (*interaction.Graph, error) {
 	var graph *interaction.Graph
-	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err := h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		intent := &interactionintents.IntentAuthenticate{
 			Kind:                     interactionintents.IntentAuthenticateKindLogin,
@@ -259,7 +259,7 @@ func (h *AnonymousUserHandler) runSignupAnonymousUserGraph(
 		return nil, err
 	}
 
-	err = h.Graphs.Run("", graph)
+	err = h.Graphs.Run(interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, err
 	} else if err != nil {

@@ -46,8 +46,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 
 	authenticationInfo := sessionToCreate.GetAuthenticationInfo()
 	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
-	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo)
-	authenticationInfoCookie := ctx.CookieManager.ValueCookie(authenticationinfo.CookieDef, authenticationInfoEntry.ID)
+	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID)
 
 	var updateSessionID string
 	var updateSessionAMR []string
@@ -76,30 +75,28 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	now := ctx.Clock.NowUTC()
 
 	return &NodeDoEnsureSession{
-		CreateReason:             e.CreateReason,
-		SessionToCreate:          sessionToCreate,
-		AuthenticationInfoEntry:  authenticationInfoEntry,
-		UpdateLoginTime:          now,
-		UpdateSessionID:          updateSessionID,
-		UpdateSessionAMR:         updateSessionAMR,
-		SessionCookie:            sessionCookie,
-		SameSiteStrictCookie:     sameSiteStrictCookie,
-		AuthenticationInfoCookie: authenticationInfoCookie,
-		IsAdminAPI:               interaction.IsAdminAPI(input),
+		CreateReason:            e.CreateReason,
+		SessionToCreate:         sessionToCreate,
+		AuthenticationInfoEntry: authenticationInfoEntry,
+		UpdateLoginTime:         now,
+		UpdateSessionID:         updateSessionID,
+		UpdateSessionAMR:        updateSessionAMR,
+		SessionCookie:           sessionCookie,
+		SameSiteStrictCookie:    sameSiteStrictCookie,
+		IsAdminAPI:              interaction.IsAdminAPI(input),
 	}, nil
 }
 
 type NodeDoEnsureSession struct {
-	CreateReason             session.CreateReason      `json:"reason"`
-	SessionToCreate          *idpsession.IDPSession    `json:"session_to_create,omitempty"`
-	AuthenticationInfoEntry  *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
-	UpdateLoginTime          time.Time                 `json:"update_login_time,omitempty"`
-	UpdateSessionID          string                    `json:"update_session_id,omitempty"`
-	UpdateSessionAMR         []string                  `json:"update_session_amr,omitempty"`
-	SessionCookie            *http.Cookie              `json:"session_cookie,omitempty"`
-	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
-	AuthenticationInfoCookie *http.Cookie              `json:"authentication_info_cookie,omitempty"`
-	IsAdminAPI               bool                      `json:"is_admin_api"`
+	CreateReason            session.CreateReason      `json:"reason"`
+	SessionToCreate         *idpsession.IDPSession    `json:"session_to_create,omitempty"`
+	AuthenticationInfoEntry *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
+	UpdateLoginTime         time.Time                 `json:"update_login_time,omitempty"`
+	UpdateSessionID         string                    `json:"update_session_id,omitempty"`
+	UpdateSessionAMR        []string                  `json:"update_session_amr,omitempty"`
+	SessionCookie           *http.Cookie              `json:"session_cookie,omitempty"`
+	SameSiteStrictCookie    *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
+	IsAdminAPI              bool                      `json:"is_admin_api"`
 }
 
 // GetCookies implements CookiesGetter
@@ -110,10 +107,11 @@ func (n *NodeDoEnsureSession) GetCookies() (cookies []*http.Cookie) {
 	if n.SameSiteStrictCookie != nil {
 		cookies = append(cookies, n.SameSiteStrictCookie)
 	}
-	if n.AuthenticationInfoCookie != nil {
-		cookies = append(cookies, n.AuthenticationInfoCookie)
-	}
 	return
+}
+
+func (n *NodeDoEnsureSession) GetAuthenticationInfoEntry() *authenticationinfo.Entry {
+	return n.AuthenticationInfoEntry
 }
 
 func (n *NodeDoEnsureSession) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

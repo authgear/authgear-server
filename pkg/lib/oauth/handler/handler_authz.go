@@ -27,10 +27,11 @@ const CodeGrantValidDuration = duration.Short
 
 type UIInfoResolver interface {
 	ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
+	GetAuthenticationInfoID(req *http.Request) (string, bool)
 }
 
 type UIURLBuilder interface {
-	Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (*url.URL, error)
+	Build(client *config.OAuthClientConfig, r protocol.AuthorizationRequest, e *oauthsession.Entry) (*url.URL, error)
 }
 
 type AppSessionTokenService interface {
@@ -182,10 +183,6 @@ func (h *AuthorizationHandler) HandleConsentWithUserCancel(req *http.Request) ht
 		ResponseMode: authzReq.ResponseMode(),
 		RedirectURI:  redirectURI,
 		Response:     protocol.NewErrorResponse("access_denied", "authorization denied"),
-		Cookies: []*http.Cookie{
-			h.Cookies.ClearCookie(authenticationinfo.CookieDef),
-			h.Cookies.ClearCookie(oauthsession.CookieDef),
-		},
 	}
 	state := authzReq.State()
 	if state != "" {
@@ -273,12 +270,12 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 }
 
 func (h *AuthorizationHandler) getAuthenticationInfoEntry(req *http.Request) (*authenticationinfo.Entry, error) {
-	cookie, err := h.Cookies.GetCookie(req, authenticationinfo.CookieDef)
-	if err != nil {
+	id, ok := h.UIInfoResolver.GetAuthenticationInfoID(req)
+	if !ok {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
-	entry, err := h.AuthenticationInfoService.Get(cookie.Value)
+	entry, err := h.AuthenticationInfoService.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -294,13 +291,15 @@ type consentRequest struct {
 }
 
 func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consentRequest, error) {
-	cookie, err := h.Cookies.GetCookie(req, oauthsession.CookieDef)
+	authInfoEntry, err := h.getAuthenticationInfoEntry(req)
 	if err != nil {
-		err = protocol.NewError("invalid_request", "missing oauth session")
+		if errors.Is(err, authenticationinfo.ErrNotFound) {
+			err = protocol.NewError("invalid_request", "authentication expired")
+		}
 		return nil, err
 	}
 
-	entry, err := h.OAuthSessionService.Get(cookie.Value)
+	entry, err := h.OAuthSessionService.Get(authInfoEntry.OAuthSessionID)
 	if err != nil {
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			err = protocol.NewError("invalid_request", "oauth session expired")
@@ -319,14 +318,6 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 	redirectURI, errResp := parseRedirectURI(client, h.HTTPOrigin, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
-		return nil, err
-	}
-
-	authInfoEntry, err := h.getAuthenticationInfoEntry(req)
-	if err != nil {
-		if errors.Is(err, authenticationinfo.ErrNotFound) {
-			err = protocol.NewError("invalid_request", "authentication expired")
-		}
 		return nil, err
 	}
 
@@ -393,7 +384,7 @@ func (h *AuthorizationHandler) doHandle(
 	// Handle prompt!=none
 	// We must return here.
 	if !slice.ContainsString(uiInfo.Prompt, "none") {
-		endpoint, err := h.UIURLBuilder.Build(client, r)
+		endpoint, err := h.UIURLBuilder.Build(client, r, oauthSessionEntry)
 		if apierrors.IsKind(err, oidc.ErrInvalidCustomURI) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {
@@ -402,7 +393,6 @@ func (h *AuthorizationHandler) doHandle(
 
 		resp := &httputil.ResultRedirect{
 			Cookies: []*http.Cookie{
-				h.Cookies.ValueCookie(oauthsession.CookieDef, oauthSessionEntry.ID),
 				h.Cookies.ValueCookie(oauthsession.UICookieDef, oauthSessionEntry.ID),
 			},
 			URL: endpoint.String(),
@@ -487,10 +477,7 @@ func (h *AuthorizationHandler) finish(
 		RedirectURI:  redirectURI,
 		ResponseMode: r.ResponseMode(),
 		Response:     resp,
-		Cookies: append(
-			[]*http.Cookie{h.Cookies.ClearCookie(authenticationinfo.CookieDef)},
-			cookies...,
-		),
+		Cookies:      cookies,
 	}, nil
 }
 
@@ -522,7 +509,7 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 		idpSessionID = s.SessionID()
 	}
 
-	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{h.Cookies.ClearCookie(oauthsession.CookieDef)}, grantAuthz)
+	return h.finish(redirectURI, r, idpSessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
 }
 
 func (h *AuthorizationHandler) validateRequest(
