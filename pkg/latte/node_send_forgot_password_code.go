@@ -3,7 +3,9 @@ package latte
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -11,7 +13,8 @@ func init() {
 }
 
 type NodeSendForgotPasswordCode struct {
-	LoginID string `json:"login_id"`
+	LoginID       string `json:"login_id"`
+	OutputLoginID bool   `json:"output_login_id"`
 }
 
 func (n *NodeSendForgotPasswordCode) Kind() string {
@@ -30,8 +33,18 @@ func (*NodeSendForgotPasswordCode) ReactTo(ctx context.Context, deps *workflow.D
 	return nil, workflow.ErrIncompatibleInput
 }
 
-func (*NodeSendForgotPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
-	return nil, nil
+func (n *NodeSendForgotPasswordCode) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
+	output := map[string]interface{}{}
+
+	if n.OutputLoginID {
+		maskedLoginID := mail.MaskAddress(n.LoginID)
+		if maskedLoginID == "" {
+			maskedLoginID = phone.Mask(n.LoginID)
+		}
+		output["masked_login_id"] = maskedLoginID
+	}
+
+	return output, nil
 }
 
 func (n *NodeSendForgotPasswordCode) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
