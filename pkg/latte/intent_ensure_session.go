@@ -60,7 +60,10 @@ func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Depend
 
 	authnInfo := sessionToCreate.GetAuthenticationInfo()
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && i.CreateReason == session.CreateReasonLogin
-	authnInfoEntry := authenticationinfo.NewEntry(authnInfo)
+	authnInfoEntry := authenticationinfo.NewEntry(
+		authnInfo,
+		workflow.GetOAuthSessionID(ctx),
+	)
 
 	sameSiteStrictCookie := deps.Cookies.ValueCookie(
 		deps.SessionCookie.SameSiteStrictDef,

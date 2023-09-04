@@ -186,6 +186,8 @@ type WorkflowV2OAuthSessionService interface {
 }
 
 type WorkflowV2UIInfoResolver interface {
+	GetOAuthSessionIDLegacy(req *http.Request) (string, bool)
+	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
@@ -320,20 +322,18 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
-	var sessionOptionsFromCookie *workflow.SessionOptions
-	oauthCookie, err := h.Cookies.GetCookie(r, oauthsession.UICookieDef)
-	if err == nil {
-		sessionOptionsFromCookie, err = h.makeSessionOptionsFromCookie(oauthCookie)
+	var sessionOptionsFromOAuth *workflow.SessionOptions
+	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionIDLegacy(r); ok {
+		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
-			// Clear the cookie if it invalid or expired
-			httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
+			// Clear the oauth session if it invalid or expired
+			h.UIInfoResolver.RemoveOAuthSessionID(w, r)
 		} else if err != nil {
 			// Still return error for any other errors.
 			return nil, err
 		}
 
-		// Do not clear the UI cookie so that a new session can be created again.
-		// httputil.UpdateCookie(w, h.Cookies.ClearCookie(oauthsession.UICookieDef))
+		// Do not clear oauth session so that a new session can be created again.
 	}
 
 	// Accept client_id, state, ui_locales from query.
@@ -341,7 +341,7 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 	sessionOptionsFromQuery := h.makeSessionOptionsFromQuery(request.URLQuery)
 
 	// The query overrides the cookie.
-	sessionOptions := sessionOptionsFromCookie.PartiallyMergeFrom(sessionOptionsFromQuery)
+	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
 
 	if *request.BindUserAgent {
 		sessionOptions.UserAgentID = userAgentID
@@ -355,8 +355,8 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 	return output, nil
 }
 
-func (h *WorkflowV2Handler) makeSessionOptionsFromCookie(oauthSessionCookie *http.Cookie) (*workflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(oauthSessionCookie.Value)
+func (h *WorkflowV2Handler) makeSessionOptionsFromOAuth(oauthSessionID string) (*workflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(oauthSessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -368,6 +368,7 @@ func (h *WorkflowV2Handler) makeSessionOptionsFromCookie(oauthSessionCookie *htt
 	}
 
 	sessionOptions := &workflow.SessionOptions{
+		OAuthSessionID:           oauthSessionID,
 		ClientID:                 uiInfo.ClientID,
 		RedirectURI:              uiInfo.RedirectURI,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
