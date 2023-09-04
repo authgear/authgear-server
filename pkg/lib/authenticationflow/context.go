@@ -4,6 +4,14 @@ import (
 	"context"
 )
 
+type contextKeyTypeOAuthSessionID struct{}
+
+var contextKeyOAuthSessionID = contextKeyTypeOAuthSessionID{}
+
+func GetOAuthSessionID(ctx context.Context) string {
+	return ctx.Value(contextKeyOAuthSessionID).(string)
+}
+
 type contextKeyTypeSuppressIDPSessionCookie struct{}
 
 var contextKeySuppressIDPSessionCookie = contextKeyTypeSuppressIDPSessionCookie{}
