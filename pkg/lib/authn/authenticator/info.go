@@ -196,7 +196,7 @@ func (i *Info) IsDependentOf(iden *identity.Info) bool {
 	if i.Kind == KindPrimary && (i.Type == model.AuthenticatorTypeOOBEmail || i.Type == model.AuthenticatorTypeOOBSMS) {
 		identityClaims := iden.IdentityAwareStandardClaims()
 		for k, v := range i.StandardClaims() {
-			if identityClaims[k] == v {
+			if iden.Type == model.IdentityTypeLoginID && identityClaims[k] == v {
 				return true
 			}
 		}
