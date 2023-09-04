@@ -246,8 +246,7 @@ func (s *Service) CreateSubscriptionIfNotExists(checkoutSessionID string, subscr
 		})
 	}
 
-	billingCycleAnchor := s.Clock.NowUTC().AddDate(0, 1, 0)
-	billingCycleAnchor = timeutil.FirstDayOfTheMonth(billingCycleAnchor)
+	billingCycleAnchor := timeutil.FirstDayOfTheMonth(s.Clock.NowUTC()).AddDate(0, 1, 0)
 	billingCycleAnchorUnix := billingCycleAnchor.Unix()
 	_, err = s.ClientAPI.Subscriptions.New(&stripe.SubscriptionParams{
 		Params: stripe.Params{
