@@ -38,7 +38,7 @@ type AuthenticationFlowV1OAuthSessionService interface {
 }
 
 type AuthenticationFlowV1UIInfoResolver interface {
-	GetOAuthSessionID(req *http.Request) (string, bool)
+	GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool)
 	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
@@ -449,7 +449,7 @@ func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Req
 	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
 
 	var sessionOptionsFromOAuth *workflow.SessionOptions
-	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionID(r); ok {
+	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionID(r, request.URLQuery); ok {
 		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the oauth session if it invalid or expired

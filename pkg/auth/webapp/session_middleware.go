@@ -23,7 +23,7 @@ type SessionMiddlewareStore interface {
 }
 
 type SessionMiddlewareUIInfoResolver interface {
-	GetOAuthSessionID(req *http.Request) (string, bool)
+	GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool)
 	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
@@ -42,7 +42,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 		// The session is either created now, or read from cookie.
 
 		// Create the session now.
-		if oauthSessionID, ok := m.UIInfoResolver.GetOAuthSessionID(r); ok {
+		if oauthSessionID, ok := m.UIInfoResolver.GetOAuthSessionID(r, ""); ok {
 			result, session := m.createSession(oauthSessionID)
 
 			for _, c := range result.Cookies {

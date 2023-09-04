@@ -106,7 +106,14 @@ func (r *UIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, boo
 	return "", false
 }
 
-func (r *UIInfoResolver) GetOAuthSessionID(req *http.Request) (string, bool) {
+func (r *UIInfoResolver) GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool) {
+	if q, err := url.ParseQuery(urlQuery); err == nil {
+		id := q.Get(queryNameOAuthSessionID)
+		if id != "" {
+			return id, true
+		}
+	}
+
 	id := req.URL.Query().Get(queryNameOAuthSessionID)
 	if id != "" {
 		return id, true
@@ -114,7 +121,14 @@ func (r *UIInfoResolver) GetOAuthSessionID(req *http.Request) (string, bool) {
 	return "", false
 }
 
-func (r *UIInfoResolver) GetOAuthSessionIDLegacy(req *http.Request) (string, bool) {
+func (r *UIInfoResolver) GetOAuthSessionIDLegacy(req *http.Request, urlQuery string) (string, bool) {
+	if q, err := url.ParseQuery(urlQuery); err == nil {
+		id := q.Get(queryNameOAuthSessionID)
+		if id != "" {
+			return id, true
+		}
+	}
+
 	id := req.URL.Query().Get(queryNameOAuthSessionID)
 	if id != "" {
 		return id, true

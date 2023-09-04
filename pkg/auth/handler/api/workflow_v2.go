@@ -186,7 +186,7 @@ type WorkflowV2OAuthSessionService interface {
 }
 
 type WorkflowV2UIInfoResolver interface {
-	GetOAuthSessionIDLegacy(req *http.Request) (string, bool)
+	GetOAuthSessionIDLegacy(req *http.Request, urlQuery string) (string, bool)
 	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
@@ -323,7 +323,7 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
 	var sessionOptionsFromOAuth *workflow.SessionOptions
-	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionIDLegacy(r); ok {
+	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionIDLegacy(r, request.URLQuery); ok {
 		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the oauth session if it invalid or expired
