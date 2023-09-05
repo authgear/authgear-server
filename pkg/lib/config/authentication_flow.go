@@ -486,6 +486,46 @@ const (
 	AuthenticationFlowIdentificationUsername AuthenticationFlowIdentification = "username"
 )
 
+func (m AuthenticationFlowIdentification) PrimaryAuthentications() []AuthenticationFlowAuthentication {
+	switch m {
+	case AuthenticationFlowIdentificationEmail:
+		return []AuthenticationFlowAuthentication{
+			AuthenticationFlowAuthenticationPrimaryPassword,
+			AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+		}
+	case AuthenticationFlowIdentificationPhone:
+		return []AuthenticationFlowAuthentication{
+			AuthenticationFlowAuthenticationPrimaryPassword,
+			AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+		}
+	case AuthenticationFlowIdentificationUsername:
+		return []AuthenticationFlowAuthentication{
+			AuthenticationFlowAuthenticationPrimaryPassword,
+		}
+	default:
+		panic(fmt.Errorf("unknown identification: %v", m))
+	}
+}
+
+func (m AuthenticationFlowIdentification) SecondaryAuthentications() []AuthenticationFlowAuthentication {
+	all := []AuthenticationFlowAuthentication{
+		AuthenticationFlowAuthenticationSecondaryPassword,
+		AuthenticationFlowAuthenticationSecondaryTOTP,
+		AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
+		AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+	}
+	switch m {
+	case AuthenticationFlowIdentificationEmail:
+		return all
+	case AuthenticationFlowIdentificationPhone:
+		return all
+	case AuthenticationFlowIdentificationUsername:
+		return all
+	default:
+		panic(fmt.Errorf("unknown identification: %v", m))
+	}
+}
+
 type AuthenticationFlowAuthentication string
 
 const (
