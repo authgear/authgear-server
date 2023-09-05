@@ -46,11 +46,6 @@ func selectForgotPasswordLoginID(
 	}
 
 	if targetLoginID != nil {
-		err = deps.ForgotPassword.SendCode(*targetLoginID)
-		if err != nil {
-			return "", err
-		}
-
 		return *targetLoginID, nil
 	}
 

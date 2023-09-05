@@ -38,6 +38,10 @@ func (*IntentReauthForgotPassword) CanReactTo(ctx context.Context, deps *workflo
 		return []workflow.Input{
 			&InputTakeForgotPasswordChannel{},
 		}, nil
+	case 2:
+		return []workflow.Input{
+			&InputSendForgotPasswordCode{},
+		}, nil
 	}
 	return nil, workflow.ErrEOF
 }
@@ -58,12 +62,22 @@ func (i *IntentReauthForgotPassword) ReactTo(ctx context.Context, deps *workflow
 		var inputTakeForgotPasswordChannel inputTakeForgotPasswordChannel
 		if workflow.AsInput(input, &inputTakeForgotPasswordChannel) {
 			channel := inputTakeForgotPasswordChannel.GetForgotPasswordChannel()
-			node, err := i.sendCodeForChannel(workflows.Nearest, deps, channel)
+			node, err := i.selectLoginIDForChannel(workflows.Nearest, deps, channel)
 			if err != nil {
 				return nil, err
 			}
 			return workflow.NewNodeSimple(node), nil
 		}
+	case 2:
+		var inputSendForgotPasswordCode inputSendForgotPasswordCode
+		if workflow.AsInput(input, &inputSendForgotPasswordCode) {
+			node, err := i.sendCode(ctx, workflows.Nearest, deps)
+			if err != nil {
+				return nil, err
+			}
+			return workflow.NewNodeSimple(node), nil
+		}
+
 	}
 	return nil, workflow.ErrIncompatibleInput
 }
@@ -76,10 +90,10 @@ func (*IntentReauthForgotPassword) OutputData(ctx context.Context, deps *workflo
 	return nil, nil
 }
 
-func (*IntentReauthForgotPassword) sendCodeForChannel(
+func (*IntentReauthForgotPassword) selectLoginIDForChannel(
 	w *workflow.Workflow,
 	deps *workflow.Dependencies,
-	channel ForgotPasswordChannel) (*NodeSendForgotPasswordCode, error) {
+	channel ForgotPasswordChannel) (*NodeForgotPasswordWithLoginID, error) {
 	prevnode, found := workflow.FindSingleNode[*NodeForgotPasswordForUser](w)
 	if !found {
 		panic("NodeForgotPasswordForUser not found but it must exist")
@@ -94,5 +108,27 @@ func (*IntentReauthForgotPassword) sendCodeForChannel(
 		return nil, err
 	}
 
-	return &NodeSendForgotPasswordCode{LoginID: targetLoginID, OutputLoginID: true}, nil
+	return &NodeForgotPasswordWithLoginID{LoginID: targetLoginID}, nil
+}
+
+func (*IntentReauthForgotPassword) sendCode(
+	ctx context.Context,
+	w *workflow.Workflow,
+	deps *workflow.Dependencies) (*NodeSendForgotPasswordCode, error) {
+	prevnode, found := workflow.FindSingleNode[*NodeForgotPasswordWithLoginID](w)
+	if !found {
+		panic("NodeForgotPasswordWithLoginID not found but it must exist")
+	}
+	loginID := prevnode.LoginID
+
+	newNode := &NodeSendForgotPasswordCode{
+		LoginID: loginID,
+	}
+
+	err := newNode.sendCode(ctx, deps)
+	if err != nil {
+		return nil, err
+	}
+
+	return newNode, nil
 }
