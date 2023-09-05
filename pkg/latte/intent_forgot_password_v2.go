@@ -2,6 +2,7 @@ package latte
 
 import (
 	"context"
+	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -105,46 +106,14 @@ func (*IntentForgotPasswordV2) sendCodeForChannel(
 		panic("NodeForgotPasswordForUser not found but it must exist")
 	}
 	if prevnode.UserID == nil {
-		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID}, nil
-	}
-	loginIDs, err := deps.Identities.ListByUser(*prevnode.UserID)
-	if err != nil {
-		return nil, err
+		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID, OutputLoginID: false}, nil
 	}
 
-	var targetLoginID *string
+	_, err := selectForgotPasswordLoginID(deps, *prevnode.UserID, channel)
 
-	switch channel {
-	case ForgotPasswordChannelEmail:
-		for _, loginID := range loginIDs {
-			if loginID.Type != model.IdentityTypeLoginID {
-				continue
-			}
-			if loginID.LoginID.LoginIDType != model.LoginIDKeyTypeEmail {
-				continue
-			}
-			targetLoginID = &loginID.LoginID.LoginID
-			break
-		}
-	case ForgotPasswordChannelSMS:
-		for _, loginID := range loginIDs {
-			if loginID.Type != model.IdentityTypeLoginID {
-				continue
-			}
-			if loginID.LoginID.LoginIDType != model.LoginIDKeyTypePhone {
-				continue
-			}
-			targetLoginID = &loginID.LoginID.LoginID
-			break
-		}
+	if err == nil || errors.Is(err, ErrNoMatchingLoginIDForForgotPasswordChannel) {
+		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID, OutputLoginID: false}, nil
 	}
 
-	if targetLoginID != nil {
-		err = deps.ForgotPassword.SendCode(*targetLoginID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID}, nil
+	return nil, err
 }

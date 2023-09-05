@@ -3,7 +3,6 @@ package latte
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -44,7 +43,7 @@ func (*IntentReauthenticate) CanReactTo(ctx context.Context, deps *workflow.Depe
 }
 
 func (i *IntentReauthenticate) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	userID, err := i.userID(ctx)
+	userID, err := reauthUserIDHint(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -78,12 +77,4 @@ func (*IntentReauthenticate) GetEffects(ctx context.Context, deps *workflow.Depe
 
 func (*IntentReauthenticate) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	return nil, nil
-}
-
-func (*IntentReauthenticate) userID(ctx context.Context) (string, error) {
-	userID := workflow.GetUserIDHint(ctx)
-	if userID == "" {
-		return "", apierrors.NewInvalid("this workflow must be triggered in a reauthentication session")
-	}
-	return userID, nil
 }
