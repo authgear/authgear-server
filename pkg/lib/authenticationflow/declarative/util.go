@@ -30,13 +30,20 @@ func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenti
 
 func signupFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
-	for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
-		f := f
-		if f.ID == id {
-			root = f
-			break
+
+	if id == idGeneratedFlow {
+		root = GenerateSignupFlowConfig(deps.Config)
+	} else {
+		for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
+			f := f
+			if f.ID == id {
+				root = f
+				break
+			}
 		}
+
 	}
+
 	if root == nil {
 		return nil, ErrFlowNotFound
 	}
@@ -56,13 +63,19 @@ func signupFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpoint
 
 func loginFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
-	for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
-		f := f
-		if f.ID == id {
-			root = f
-			break
+
+	if id == idGeneratedFlow {
+		root = GenerateLoginFlowConfig(deps.Config)
+	} else {
+		for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
+			f := f
+			if f.ID == id {
+				root = f
+				break
+			}
 		}
 	}
+
 	if root == nil {
 		return nil, ErrFlowNotFound
 	}
