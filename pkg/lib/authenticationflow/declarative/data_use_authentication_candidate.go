@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -18,37 +19,24 @@ type UseAuthenticationCandidate struct {
 	// Channels is specific to OOBOTP.
 	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 
+	// Count is specific to password.
+	Count *int `json:"count,omitempty"`
+
 	// AuthenticatorID is omitted from the output.
 	// The caller must use index to select a candidate.
 	AuthenticatorID string `json:"-"`
 }
 
-// NewUseAuthenticationCandidateFromMethod is not a total function.
-// It will panic for invalid input.
-func NewUseAuthenticationCandidateFromMethod(m config.AuthenticationFlowAuthentication) UseAuthenticationCandidate {
-	switch m {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationRecoveryCode:
-		return UseAuthenticationCandidate{
-			Authentication: m,
-		}
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationDeviceToken:
-		panic(fmt.Errorf("unexpected call to NewUseAuthenticationCandidateFromMethod: %v", m))
-	default:
-		panic(fmt.Errorf("unknown authentication method: %v", m))
+func NewUseAuthenticationCandidateRecoveryCode() UseAuthenticationCandidate {
+	return UseAuthenticationCandidate{
+		Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+	}
+}
+
+func NewUseAuthenticationCandidatePassword(am config.AuthenticationFlowAuthentication, count int) UseAuthenticationCandidate {
+	return UseAuthenticationCandidate{
+		Authentication: am,
+		Count:          &count,
 	}
 }
 
@@ -85,11 +73,17 @@ func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBCon
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryPassword:
-		fallthrough
+		count := 0
+		return UseAuthenticationCandidate{
+			Authentication: am,
+			Count:          &count,
+		}
+
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return UseAuthenticationCandidate{
 			Authentication: am,
 		}
+
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
@@ -124,5 +118,11 @@ func KeepAuthenticationMethod(ams ...config.AuthenticationFlowAuthentication) au
 			}
 		}
 		return false
+	})
+}
+
+func IsDependentOf(info *identity.Info) authenticator.Filter {
+	return authenticator.FilterFunc(func(ai *authenticator.Info) bool {
+		return ai.IsDependentOf(info)
 	})
 }

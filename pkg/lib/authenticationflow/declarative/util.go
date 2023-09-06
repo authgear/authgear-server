@@ -10,6 +10,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -93,29 +94,75 @@ func loginFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointe
 	return current, nil
 }
 
-func getAuthenticationCandidatesOfIdentity(deps *authflow.Dependencies, info *identity.Info, am config.AuthenticationFlowAuthentication) ([]UseAuthenticationCandidate, error) {
-	as, err := deps.Authenticators.List(info.UserID, KeepAuthenticationMethod(am))
-	if err != nil {
-		return nil, err
-	}
-
-	return getAuthenticationCandidates(deps.Config.Authenticator.OOB, as, []config.AuthenticationFlowAuthentication{am})
-}
-
-func getAuthenticationCandidatesOfUser(deps *authflow.Dependencies, userID string, allAllowed []config.AuthenticationFlowAuthentication) ([]UseAuthenticationCandidate, error) {
-	as, err := deps.Authenticators.List(userID, KeepAuthenticationMethod(allAllowed...))
-	if err != nil {
-		return nil, err
-	}
-
-	return getAuthenticationCandidates(deps.Config.Authenticator.OOB, as, allAllowed)
-}
-
 func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationCandidate, error) {
-	var candidates []UseAuthenticationCandidate
+	candidates := []UseAuthenticationCandidate{}
+
+	infos, err := deps.Authenticators.List(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	recoveryCodes, err := deps.MFA.ListRecoveryCodes(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	byTarget := func(am config.AuthenticationFlowAuthentication, targetStepID string) error {
+		// Find the target step from the root.
+		targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+		if err != nil {
+			return err
+		}
+
+		target, ok := targetStepFlow.Intent.(IntentLoginFlowStepAuthenticateTarget)
+		if !ok {
+			return InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
+				"target_step": targetStepID,
+			})
+		}
+
+		identityInfo := target.GetIdentity(ctx, deps, flows.Replace(targetStepFlow))
+
+		allAllowed := []config.AuthenticationFlowAuthentication{am}
+		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(am), IsDependentOf(identityInfo))
+		moreCandidates, err := getAuthenticationCandidates(deps.Config.Authenticator.OOB, filteredInfos, recoveryCodes, allAllowed)
+		if err != nil {
+			return err
+		}
+
+		candidates = append(candidates, moreCandidates...)
+		return nil
+	}
+
+	byUser := func(am config.AuthenticationFlowAuthentication) error {
+		allAllowed := []config.AuthenticationFlowAuthentication{am}
+		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(allAllowed...))
+		moreCandidates, err := getAuthenticationCandidates(deps.Config.Authenticator.OOB, filteredInfos, recoveryCodes, allAllowed)
+		if err != nil {
+			return err
+		}
+		candidates = append(candidates, moreCandidates...)
+		return nil
+	}
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
+		case config.AuthenticationFlowAuthenticationDeviceToken:
+			// Device token is handled transparently.
+			break
+
+		case config.AuthenticationFlowAuthenticationRecoveryCode:
+
+		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			err := byUser(branch.Authentication)
+			if err != nil {
+				return nil, err
+			}
+
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -123,50 +170,30 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			targetStepID := branch.TargetStep
-			if targetStepID != "" {
-				// Find the target step from the root.
-				targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+			if targetStepID := branch.TargetStep; targetStepID != "" {
+				err := byTarget(branch.Authentication, targetStepID)
 				if err != nil {
 					return nil, err
 				}
-
-				target, ok := targetStepFlow.Intent.(IntentLoginFlowStepAuthenticateTarget)
-				if !ok {
-					return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-						"target_step": targetStepID,
-					})
-				}
-
-				identityInfo := target.GetIdentity(ctx, deps, flows.Replace(targetStepFlow))
-
-				moreCandidates, err := getAuthenticationCandidatesOfIdentity(deps, identityInfo, branch.Authentication)
-				if err != nil {
-					return nil, err
-				}
-
-				candidates = append(candidates, moreCandidates...)
 			} else {
-				moreCandidates, err := getAuthenticationCandidatesOfUser(deps, userID, []config.AuthenticationFlowAuthentication{branch.Authentication})
+				err := byUser(branch.Authentication)
 				if err != nil {
 					return nil, err
 				}
-
-				candidates = append(candidates, moreCandidates...)
 			}
-		case config.AuthenticationFlowAuthenticationDeviceToken:
-			// Device token is handled transparently.
-			break
-		default:
-			candidates = append(candidates, NewUseAuthenticationCandidateFromMethod(branch.Authentication))
 		}
 	}
 
 	return candidates, nil
 }
 
-func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []*authenticator.Info, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
-	addOne := func() {
+func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []*authenticator.Info, recoveryCodes []*mfa.RecoveryCode, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
+	addPasswordAlways := func(am config.AuthenticationFlowAuthentication) {
+		count := len(as)
+		allUsable = append(allUsable, NewUseAuthenticationCandidatePassword(am, count))
+	}
+
+	addOneIfPresent := func() {
 		added := false
 		for _, a := range as {
 			candidate := NewUseAuthenticationCandidateFromInfo(oobConfig, a)
@@ -184,24 +211,30 @@ func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []
 		}
 	}
 
+	addRecoveryCodeIfPresent := func() {
+		if len(recoveryCodes) > 0 {
+			allUsable = append(allUsable, NewUseAuthenticationCandidateRecoveryCode())
+		}
+	}
+
 	for _, allowed := range allAllowed {
 		switch allowed {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
-			addOne()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			addAll()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			addAll()
+			addPasswordAlways(allowed)
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			addOne()
+			addOneIfPresent()
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			addAll()
+			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			addAll()
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			addOne()
+			addOneIfPresent()
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
-			allUsable = append(allUsable, NewUseAuthenticationCandidateFromMethod(config.AuthenticationFlowAuthenticationRecoveryCode))
+			addRecoveryCodeIfPresent()
 		case config.AuthenticationFlowAuthenticationDeviceToken:
 			// Device token is handled transparently.
 			break

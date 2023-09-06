@@ -145,6 +145,7 @@ type CaptchaService interface {
 
 type MFAService interface {
 	GenerateRecoveryCodes() []string
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
 	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
 	ConsumeRecoveryCode(c *mfa.RecoveryCode) error
