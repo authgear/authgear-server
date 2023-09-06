@@ -63,19 +63,17 @@ type FindInputReactorResult struct {
 	Flows        Flows
 	InputReactor InputReactor
 	InputSchema  InputSchema
-	Boundary     Boundary
 }
 
 func FindInputReactor(ctx context.Context, deps *Dependencies, flows Flows) (*FindInputReactorResult, error) {
-	var boundary Boundary
-	return FindInputReactorForFlow(ctx, deps, flows, boundary)
+	return FindInputReactorForFlow(ctx, deps, flows)
 }
 
-func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flows, boundary Boundary) (*FindInputReactorResult, error) {
+func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flows) (*FindInputReactorResult, error) {
 	if len(flows.Nearest.Nodes) > 0 {
 		// We check the last node if it can react to input first.
 		lastNode := flows.Nearest.Nodes[len(flows.Nearest.Nodes)-1]
-		findInputReactorResult, err := FindInputReactorForNode(ctx, deps, flows, boundary, &lastNode)
+		findInputReactorResult, err := FindInputReactorForNode(ctx, deps, flows, &lastNode)
 		if err == nil {
 			return findInputReactorResult, nil
 		}
@@ -89,15 +87,10 @@ func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flow
 	// Otherwise we check if the intent can react to input.
 	inputSchema, err := flows.Nearest.Intent.CanReactTo(ctx, deps, flows)
 	if err == nil {
-		// Update boundary
-		if b, ok := flows.Nearest.Intent.(Boundary); ok {
-			boundary = b
-		}
 		return &FindInputReactorResult{
 			Flows:        flows,
 			InputReactor: flows.Nearest.Intent,
 			InputSchema:  inputSchema,
-			Boundary:     boundary,
 		}, nil
 	}
 
@@ -106,7 +99,7 @@ func FindInputReactorForFlow(ctx context.Context, deps *Dependencies, flows Flow
 	return nil, err
 }
 
-func FindInputReactorForNode(ctx context.Context, deps *Dependencies, flows Flows, boundary Boundary, n *Node) (*FindInputReactorResult, error) {
+func FindInputReactorForNode(ctx context.Context, deps *Dependencies, flows Flows, n *Node) (*FindInputReactorResult, error) {
 	switch n.Type {
 	case NodeTypeSimple:
 		reactor, ok := n.Simple.(InputReactor)
@@ -116,19 +109,15 @@ func FindInputReactorForNode(ctx context.Context, deps *Dependencies, flows Flow
 
 		inputSchema, err := reactor.CanReactTo(ctx, deps, flows)
 		if err == nil {
-			if b, ok := reactor.(Boundary); ok {
-				boundary = b
-			}
 			return &FindInputReactorResult{
 				Flows:        flows,
 				InputReactor: reactor,
 				InputSchema:  inputSchema,
-				Boundary:     boundary,
 			}, nil
 		}
 		return nil, err
 	case NodeTypeSubFlow:
-		return FindInputReactorForFlow(ctx, deps, flows.Replace(n.SubFlow), boundary)
+		return FindInputReactorForFlow(ctx, deps, flows.Replace(n.SubFlow))
 	default:
 		panic(errors.New("unreachable"))
 	}

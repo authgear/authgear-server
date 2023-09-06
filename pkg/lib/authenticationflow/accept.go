@@ -9,23 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-// Boundary confines the input in Accept.
-// Boundary is identified by a string.
-// Initially boundary is an empty string.
-// Accept records the last boundary it saw.
-// When Accept detects a different boundary,
-// it stops as if the input reactor does not react to the input.
-type Boundary interface {
-	InputReactor
-	Boundary() string
-}
-
 // Accept executes the flow to the deepest using input.
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
 func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage json.RawMessage) (err error) {
-	var lastSeenBoundary string
-
 	var changed bool
 	defer func() {
 		if changed {
@@ -41,17 +28,6 @@ func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage jso
 		findInputReactorResult, err = FindInputReactor(ctx, deps, flows)
 		if err != nil {
 			return
-		}
-
-		if findInputReactorResult.Boundary != nil {
-			b := findInputReactorResult.Boundary.Boundary()
-			if lastSeenBoundary == "" {
-				lastSeenBoundary = b
-			} else if lastSeenBoundary != b {
-				// Boundary cross detected.
-				// End the loop.
-				return
-			}
 		}
 
 		// Otherwise we found an InputReactor that we can feed input to.

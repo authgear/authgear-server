@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -18,14 +17,9 @@ func init() {
 	RegisterIntent(&intentAddLoginID{})
 	RegisterIntent(&intentCreatePassword{})
 
-	RegisterIntent(&intentTestBoundarySteps{})
-	RegisterIntent(&intentTestBoundaryStep{})
-
 	RegisterNode(&nodeCreatePassword{})
 	RegisterNode(&nodeVerifyLoginID{})
 	RegisterNode(&nodeLoginIDVerified{})
-
-	RegisterNode(&nodeTestBoundary{})
 }
 
 type intentAuthenticate struct {
@@ -441,87 +435,3 @@ func (*InputIntentCreatePassword) Input() {}
 func (i *InputIntentCreatePassword) GetNewPassword() string {
 	return i.NewPassword
 }
-
-type intentTestBoundarySteps struct{}
-
-var _ Intent = &intentTestBoundarySteps{}
-
-func (*intentTestBoundarySteps) Kind() string {
-	return "intentTestBoundarySteps"
-}
-
-func (*intentTestBoundarySteps) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
-	return nil, nil
-}
-
-func (*intentTestBoundarySteps) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
-	name := strconv.Itoa(len(flows.Nearest.Nodes))
-	return NewSubFlow(&intentTestBoundaryStep{
-		Name: name,
-	}), nil
-}
-
-type intentTestBoundaryStep struct {
-	Name string
-}
-
-var _ Intent = &intentTestBoundaryStep{}
-var _ Boundary = &intentTestBoundaryStep{}
-
-func (*intentTestBoundaryStep) Kind() string {
-	return "intentTestBoundaryStep"
-}
-
-func (i *intentTestBoundaryStep) Boundary() string {
-	return i.Name
-}
-
-func (i *intentTestBoundaryStep) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
-	switch len(flows.Nearest.Nodes) {
-	case 0:
-		return &inputTestBoundary{}, nil
-	default:
-		return nil, ErrEOF
-	}
-}
-
-func (i *intentTestBoundaryStep) ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error) {
-	switch len(flows.Nearest.Nodes) {
-	case 0:
-		return NewNodeSimple(&nodeTestBoundary{}), nil
-	default:
-		return nil, ErrIncompatibleInput
-	}
-}
-
-type nodeTestBoundary struct{}
-
-var _ NodeSimple = &nodeTestBoundary{}
-
-func (*nodeTestBoundary) Kind() string {
-	return "nodeTestBoundary"
-}
-
-type InputTestBoundary interface {
-	InputTestBoundary()
-}
-
-type inputTestBoundary struct{}
-
-var _ Input = &inputTestBoundary{}
-var _ InputSchema = &inputTestBoundary{}
-var _ InputTestBoundary = &inputTestBoundary{}
-
-func (*inputTestBoundary) Input() {}
-func (*inputTestBoundary) SchemaBuilder() validation.SchemaBuilder {
-	return validation.SchemaBuilder{}
-}
-func (i *inputTestBoundary) MakeInput(rawMessage json.RawMessage) (Input, error) {
-	var input inputTestBoundary
-	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
-	if err != nil {
-		return nil, err
-	}
-	return &input, nil
-}
-func (i *inputTestBoundary) InputTestBoundary() {}

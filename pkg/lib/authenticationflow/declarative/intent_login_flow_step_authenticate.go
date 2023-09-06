@@ -67,7 +67,6 @@ func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Conte
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepAuthenticate{}
-var _ authflow.Boundary = &IntentLoginFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentLoginFlowStepAuthenticate{}
 
 func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentLoginFlowStepAuthenticate) (*IntentLoginFlowStepAuthenticate, error) {
@@ -85,10 +84,6 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Depe
 
 func (*IntentLoginFlowStepAuthenticate) Kind() string {
 	return "IntentLoginFlowStepAuthenticate"
-}
-
-func (i *IntentLoginFlowStepAuthenticate) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -176,7 +171,10 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				return nil, err
 			}
 
-			idx := i.getIndex(step, candidates, authentication)
+			idx, err := i.getIndex(step, candidates, authentication)
+			if err != nil {
+				return nil, err
+			}
 
 			switch authentication {
 			case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -251,7 +249,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.AuthenticationFlowAuthentication) (idx int) {
+func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	allAllowed := i.getAllAllowed(step)
@@ -269,7 +267,8 @@ func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFl
 		return
 	}
 
-	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
+	err = authflow.ErrIncompatibleInput
+	return
 }
 
 func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.AuthenticationFlowLoginFlowStep) []config.AuthenticationFlowAuthentication {

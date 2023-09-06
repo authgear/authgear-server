@@ -34,14 +34,9 @@ func (i *IntentSignupFlowStepUserProfile) GetJSONPointer() jsonpointer.T {
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepUserProfile{}
-var _ authflow.Boundary = &IntentSignupFlowStepUserProfile{}
 
 func (*IntentSignupFlowStepUserProfile) Kind() string {
 	return "IntentSignupFlowStepUserProfile"
-}
-
-func (i *IntentSignupFlowStepUserProfile) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

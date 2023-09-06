@@ -46,13 +46,6 @@ func (*IntentSignupFlowStepVerify) Kind() string {
 	return "IntentSignupFlowStepVerify"
 }
 
-// This intent is NOT a boundary because it reacts to nil input.
-// If it were a boundary, the returned flow would stick at wait for nil input.
-// var _ authflow.Boundary = &IntentSignupFlowStepVerify{}
-// func (i *IntentSignupFlowStepVerify) Boundary() string {
-// 	return i.JSONPointer.String()
-// }
-
 func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Look up the claim to verify
 	if len(flows.Nearest.Nodes) == 0 {
