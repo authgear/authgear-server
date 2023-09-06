@@ -106,13 +106,21 @@ func (*IntentForgotPasswordV2) sendCodeForChannel(
 		panic("NodeForgotPasswordForUser not found but it must exist")
 	}
 	if prevnode.UserID == nil {
-		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID, OutputLoginID: false}, nil
+		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID}, nil
 	}
 
-	_, err := selectForgotPasswordLoginID(deps, *prevnode.UserID, channel)
+	targetLoginID, err := selectForgotPasswordLoginID(deps, *prevnode.UserID, channel)
 
 	if err == nil || errors.Is(err, ErrNoMatchingLoginIDForForgotPasswordChannel) {
-		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID, OutputLoginID: false}, nil
+
+		if targetLoginID != "" {
+			err = deps.ForgotPassword.SendCode(targetLoginID)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID}, nil
 	}
 
 	return nil, err
