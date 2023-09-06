@@ -69,19 +69,6 @@ func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Conte
 var _ authflow.Intent = &IntentLoginFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentLoginFlowStepAuthenticate{}
 
-func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentLoginFlowStepAuthenticate) (*IntentLoginFlowStepAuthenticate, error) {
-	// OutputData will include usable authenticators.
-	// If it returns error, there is no usable authenticators.
-	// This intent cannot proceed if there is no usable authenticators.
-	// Therefore, we prevent from adding this intent to the flow if such case happens.
-	_, err := i.OutputData(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
-
 func (*IntentLoginFlowStepAuthenticate) Kind() string {
 	return "IntentLoginFlowStepAuthenticate"
 }

@@ -162,10 +162,6 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		}
 	}
 
-	if len(candidates) == 0 {
-		return nil, NoUsableAuthentication.New("no usable authentication method")
-	}
-
 	return candidates, nil
 }
 
