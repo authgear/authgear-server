@@ -87,6 +87,8 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		return nil, err
 	}
 
+	canSkipAuthenticate := i.canSkipAuthenticate(candidates, step)
+
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
@@ -101,6 +103,10 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	case deviceTokenEnabled && !deviceTokenInspected:
 		// Inspect the device token
 		return nil, nil
+	case canSkipAuthenticate:
+		// Skip this step and any nested step.
+		return nil, authflow.ErrEOF
+
 	case !authenticationMethodSelected:
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
@@ -133,6 +139,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
+	if err != nil {
+		return nil, err
+	}
+
+	canSkipAuthenticate := i.canSkipAuthenticate(candidates, step)
+
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
@@ -148,15 +161,14 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		return authflow.NewSubFlow(&IntentInspectDeviceToken{
 			UserID: i.UserID,
 		}), nil
+	case canSkipAuthenticate:
+		// Skip this step and any nested step.
+		return nil, authflow.ErrIncompatibleInput
+
 	case !authenticationMethodSelected:
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-
-			candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
-			if err != nil {
-				return nil, err
-			}
 
 			idx, err := i.getIndex(step, candidates, authentication)
 			if err != nil {
@@ -309,4 +321,13 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	}
 
 	panic(fmt.Errorf("selected authentication method is not allowed"))
+}
+
+func (i *IntentLoginFlowStepAuthenticate) canSkipAuthenticate(candidates []UseAuthenticationCandidate, step *config.AuthenticationFlowLoginFlowStep) bool {
+	// Can skip if there are no candidates.
+	if step.Optional != nil && *step.Optional && len(candidates) == 0 {
+		return true
+	}
+
+	return false
 }
