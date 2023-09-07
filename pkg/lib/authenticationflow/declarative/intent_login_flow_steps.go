@@ -30,7 +30,7 @@ func (*IntentLoginFlowSteps) Milestone()            {}
 func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -57,18 +57,18 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 	case config.AuthenticationFlowLoginFlowStepTypeIdentify:
 		return authflow.NewSubFlow(&IntentLoginFlowStepIdentify{
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		return authflow.NewSubFlow(&IntentLoginFlowStepAuthenticate{
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.userID(flows),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeChangePassword:
 		return authflow.NewSubFlow(&IntentLoginFlowStepChangePassword{
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.userID(flows),
 		}), nil
 	}

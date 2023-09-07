@@ -39,7 +39,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.A
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *au
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

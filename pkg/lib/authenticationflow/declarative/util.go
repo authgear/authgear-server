@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -28,20 +26,6 @@ func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenti
 
 	isDefault = len(ais) == 0
 	return
-}
-
-func flowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
-	entries, err := Traverse(flowRootObject, pointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
 }
 
 func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {

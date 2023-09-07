@@ -66,7 +66,7 @@ func (*IntentSignupFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (i *IntentSignupFlowStepIdentify) jsonPointer(step *config.AuthenticationFl
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {
-			return JSONPointerForOneOf(i.JSONPointer, idx)
+			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}
 	}
 

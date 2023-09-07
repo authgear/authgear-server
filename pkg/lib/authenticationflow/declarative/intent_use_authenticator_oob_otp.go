@@ -47,7 +47,7 @@ func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.Au
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), n.JSONPointerToStep)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointerToStep)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	case !authenticatorSelected:
 		var inputTakeAuthenticationCandidateIndex inputTakeAuthenticationCandidateIndex
 		if authflow.AsInput(input, &inputTakeAuthenticationCandidateIndex) {
-			current, err := flowObject(authflow.GetFlowRootObject(ctx), n.JSONPointerToStep)
+			current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointerToStep)
 			if err != nil {
 				return nil, err
 			}
@@ -128,7 +128,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := flowObject(authflow.GetFlowRootObject(ctx), n.JSONPointerToStep)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointerToStep)
 	if err != nil {
 		return nil, err
 	}

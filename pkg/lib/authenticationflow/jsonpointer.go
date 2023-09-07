@@ -1,4 +1,4 @@
-package declarative
+package authenticationflow
 
 import (
 	"errors"
@@ -12,7 +12,6 @@ import (
 
 var ErrInvalidJSONPointer = errors.New("invalid json pointer")
 var ErrNoEntries = errors.New("no entries")
-var ErrEOF = errors.New("eof")
 
 type TraverseEntry struct {
 	FlowObject  config.AuthenticationFlowObject
@@ -22,12 +21,12 @@ type TraverseEntry struct {
 	Index       int
 }
 
-func getID(o config.AuthenticationFlowObject) string {
-	id, _ := o.GetID()
-	return id
-}
-
 func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]TraverseEntry, error) {
+	getID := func(o config.AuthenticationFlowObject) string {
+		id, _ := o.GetID()
+		return id
+	}
+
 	entries := []TraverseEntry{
 		{
 			FlowObject: o,
@@ -97,4 +96,18 @@ func JSONPointerForStep(p jsonpointer.T, index int) jsonpointer.T {
 
 func JSONPointerForOneOf(p jsonpointer.T, index int) jsonpointer.T {
 	return p.AddReferenceToken("one_of").AddReferenceToken(strconv.Itoa(index))
+}
+
+func FlowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+	entries, err := Traverse(flowRootObject, pointer)
+	if err != nil {
+		return nil, err
+	}
+
+	current, err := GetCurrentObject(entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return current, nil
 }

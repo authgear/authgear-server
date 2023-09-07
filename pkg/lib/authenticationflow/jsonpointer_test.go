@@ -1,4 +1,4 @@
-package declarative
+package authenticationflow
 
 import (
 	"testing"
