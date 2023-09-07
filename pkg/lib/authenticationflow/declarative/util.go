@@ -41,7 +41,18 @@ func flowObject(deps *authflow.Dependencies, flowReference authflow.FlowReferenc
 	}
 }
 
-func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+	switch flowReference.Type {
+	case authflow.FlowTypeSignup:
+		return flowRootObjectForSignupFlow(deps, flowReference)
+	case authflow.FlowTypeLogin:
+		return flowRootObjectForLoginFlow(deps, flowReference)
+	default:
+		panic(fmt.Errorf("unexpected flow type: %v", flowReference.Type))
+	}
+}
+
+func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
 	if flowReference.ID == idGeneratedFlow {
@@ -61,6 +72,15 @@ func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow
 		return nil, ErrFlowNotFound
 	}
 
+	return root, nil
+}
+
+func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+	root, err := flowRootObjectForSignupFlow(deps, flowReference)
+	if err != nil {
+		return nil, err
+	}
+
 	entries, err := Traverse(root, pointer)
 	if err != nil {
 		return nil, err
@@ -74,7 +94,7 @@ func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow
 	return current, nil
 }
 
-func flowObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
 	if flowReference.ID == idGeneratedFlow {
@@ -91,6 +111,15 @@ func flowObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.
 
 	if root == nil {
 		return nil, ErrFlowNotFound
+	}
+
+	return root, nil
+}
+
+func flowObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+	root, err := flowRootObjectForLoginFlow(deps, flowReference)
+	if err != nil {
+		return nil, err
 	}
 
 	entries, err := Traverse(root, pointer)

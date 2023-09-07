@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -82,19 +83,22 @@ type Service struct {
 	UIInfoResolver          ServiceUIInfoResolver
 }
 
-func (s *Service) CreateNewFlow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
+func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
 	session := NewSession(sessionOptions)
 	err = s.Store.CreateSession(session)
 	if err != nil {
 		return
 	}
 
-	ctx := session.Context(s.ContextDoNotUseDirectly)
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
 
 	var flow *Flow
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.createNewFlow(ctx, session, intent)
+		flow, determineActionResult, err = s.createNewFlow(ctx, session, publicFlow)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -142,8 +146,8 @@ func (s *Service) CreateNewFlow(intent Intent, sessionOptions *SessionOptions) (
 	return
 }
 
-func (s *Service) createNewFlow(ctx context.Context, session *Session, intent Intent) (flow *Flow, determineActionResult *determineActionResult, err error) {
-	flow = NewFlow(session.FlowID, intent)
+func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, determineActionResult *determineActionResult, err error) {
+	flow = NewFlow(session.FlowID, publicFlow)
 
 	// A new flow does not have any nodes.
 	// A flow is allowed to have on-commit-effects only.
@@ -196,7 +200,15 @@ func (s *Service) Get(instanceID string, userAgentID string) (output *ServiceOut
 		return
 	}
 
-	ctx := session.Context(s.ContextDoNotUseDirectly)
+	publicFlow, ok := w.Intent.(PublicFlow)
+	if !ok {
+		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", w.Intent))
+	}
+
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
 
 	err = s.Database.ReadOnly(func() error {
 		output, err = s.get(ctx, session, w)
@@ -247,7 +259,15 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		return
 	}
 
-	ctx := session.Context(s.ContextDoNotUseDirectly)
+	publicFlow, ok := flow.Intent.(PublicFlow)
+	if !ok {
+		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", flow.Intent))
+	}
+
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
 
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {

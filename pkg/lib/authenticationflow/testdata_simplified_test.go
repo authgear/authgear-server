@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -26,10 +27,20 @@ type intentAuthenticate struct {
 	PretendLoginIDExists bool
 }
 
-var _ Intent = &intentAuthenticate{}
+var _ PublicFlow = &intentAuthenticate{}
 
 func (*intentAuthenticate) Kind() string {
 	return "intentAuthenticate"
+}
+
+func (*intentAuthenticate) FlowType() FlowType {
+	return ""
+}
+
+func (*intentAuthenticate) FlowInit(r FlowReference) {}
+
+func (*intentAuthenticate) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
+	return nil, nil
 }
 
 func (i *intentAuthenticate) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {

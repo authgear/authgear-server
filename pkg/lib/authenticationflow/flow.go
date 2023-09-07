@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -12,6 +13,7 @@ type PublicFlow interface {
 	Intent
 	FlowType() FlowType
 	FlowInit(r FlowReference)
+	FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error)
 }
 
 // FlowType denotes the type of the intents.

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
@@ -34,6 +35,10 @@ func (*IntentLoginFlow) FlowType() authflow.FlowType {
 
 func (i *IntentLoginFlow) FlowInit(r authflow.FlowReference) {
 	i.FlowReference = r
+}
+
+func (i *IntentLoginFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	return flowRootObject(deps, i.FlowReference)
 }
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

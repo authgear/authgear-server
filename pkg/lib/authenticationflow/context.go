@@ -2,6 +2,8 @@ package authenticationflow
 
 import (
 	"context"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type contextKeyTypeOAuthSessionID struct{}
@@ -26,4 +28,16 @@ var contextKeyFlowID = contextKeyTypeFlowID{}
 
 func GetFlowID(ctx context.Context) string {
 	return ctx.Value(contextKeyFlowID).(string)
+}
+
+type contextKeyTypeFlowRootObject struct{}
+
+var contextKeyFlowRootObject = contextKeyTypeFlowRootObject{}
+
+func GetFlowRootObject(ctx context.Context) config.AuthenticationFlowObject {
+	v := ctx.Value(contextKeyFlowRootObject)
+	if v == nil {
+		return nil
+	}
+	return v.(config.AuthenticationFlowObject)
 }

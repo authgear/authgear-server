@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -203,10 +204,20 @@ func TestService(t *testing.T) {
 
 type intentNilInput struct{}
 
-var _ Intent = &intentNilInput{}
+var _ PublicFlow = &intentNilInput{}
 
 func (*intentNilInput) Kind() string {
 	return "intentNilInput"
+}
+
+func (*intentNilInput) FlowType() FlowType {
+	return ""
+}
+
+func (*intentNilInput) FlowInit(r FlowReference) {}
+
+func (*intentNilInput) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
+	return nil, nil
 }
 
 func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
@@ -230,11 +241,21 @@ func (*nodeNilInput) Kind() string {
 
 type intentServiceContext struct{}
 
-var _ Intent = &intentServiceContext{}
+var _ PublicFlow = &intentServiceContext{}
 var _ CookieGetter = &intentServiceContext{}
 
 func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
+}
+
+func (*intentServiceContext) FlowType() FlowType {
+	return ""
+}
+
+func (*intentServiceContext) FlowInit(r FlowReference) {}
+
+func (*intentServiceContext) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
+	return nil, nil
 }
 
 func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
