@@ -62,17 +62,12 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeAuthenticate:
-		n, err := NewIntentLoginFlowStepAuthenticate(ctx, deps, flows, &IntentLoginFlowStepAuthenticate{
+		return authflow.NewSubFlow(&IntentLoginFlowStepAuthenticate{
 			LoginFlow:   i.LoginFlow,
 			StepID:      step.ID,
 			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.userID(flows),
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewSubFlow(n), nil
+		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeChangePassword:
 		return authflow.NewSubFlow(&IntentLoginFlowStepChangePassword{
 			LoginFlow:   i.LoginFlow,

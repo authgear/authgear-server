@@ -67,28 +67,10 @@ func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Conte
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepAuthenticate{}
-var _ authflow.Boundary = &IntentLoginFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentLoginFlowStepAuthenticate{}
-
-func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentLoginFlowStepAuthenticate) (*IntentLoginFlowStepAuthenticate, error) {
-	// OutputData will include usable authenticators.
-	// If it returns error, there is no usable authenticators.
-	// This intent cannot proceed if there is no usable authenticators.
-	// Therefore, we prevent from adding this intent to the flow if such case happens.
-	_, err := i.OutputData(ctx, deps, flows)
-	if err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
 
 func (*IntentLoginFlowStepAuthenticate) Kind() string {
 	return "IntentLoginFlowStepAuthenticate"
-}
-
-func (i *IntentLoginFlowStepAuthenticate) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -105,6 +87,8 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		return nil, err
 	}
 
+	canSkipAuthenticate := i.canSkipAuthenticate(candidates, step)
+
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
@@ -119,6 +103,10 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	case deviceTokenEnabled && !deviceTokenInspected:
 		// Inspect the device token
 		return nil, nil
+	case canSkipAuthenticate:
+		// Skip this step and any nested step.
+		return nil, authflow.ErrEOF
+
 	case !authenticationMethodSelected:
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
@@ -151,6 +139,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
+	if err != nil {
+		return nil, err
+	}
+
+	canSkipAuthenticate := i.canSkipAuthenticate(candidates, step)
+
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
@@ -166,17 +161,19 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		return authflow.NewSubFlow(&IntentInspectDeviceToken{
 			UserID: i.UserID,
 		}), nil
+	case canSkipAuthenticate:
+		// Skip this step and any nested step.
+		return nil, authflow.ErrIncompatibleInput
+
 	case !authenticationMethodSelected:
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 
-			candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
+			idx, err := i.getIndex(step, candidates, authentication)
 			if err != nil {
 				return nil, err
 			}
-
-			idx := i.getIndex(step, candidates, authentication)
 
 			switch authentication {
 			case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -251,7 +248,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 	}, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.AuthenticationFlowAuthentication) (idx int) {
+func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	allAllowed := i.getAllAllowed(step)
@@ -269,7 +266,8 @@ func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFl
 		return
 	}
 
-	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
+	err = authflow.ErrIncompatibleInput
+	return
 }
 
 func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.AuthenticationFlowLoginFlowStep) []config.AuthenticationFlowAuthentication {
@@ -323,4 +321,13 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	}
 
 	panic(fmt.Errorf("selected authentication method is not allowed"))
+}
+
+func (i *IntentLoginFlowStepAuthenticate) canSkipAuthenticate(candidates []UseAuthenticationCandidate, step *config.AuthenticationFlowLoginFlowStep) bool {
+	// Can skip if there are no candidates.
+	if step.Optional != nil && *step.Optional && len(candidates) == 0 {
+		return true
+	}
+
+	return false
 }

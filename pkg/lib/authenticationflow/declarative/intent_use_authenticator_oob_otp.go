@@ -166,7 +166,7 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependen
 		}
 	}
 
-	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
+	return nil, authflow.ErrIncompatibleInput
 }
 
 func (*IntentUseAuthenticatorOOBOTP) otpMessageType(info *authenticator.Info) otp.MessageType {

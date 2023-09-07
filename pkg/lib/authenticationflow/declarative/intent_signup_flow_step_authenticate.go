@@ -77,15 +77,10 @@ func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepAuthenticate{}
-var _ authflow.Boundary = &IntentSignupFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentSignupFlowStepAuthenticate{}
 
 func (*IntentSignupFlowStepAuthenticate) Kind() string {
 	return "IntentSignupFlowStepAuthenticate"
-}
-
-func (i *IntentSignupFlowStepAuthenticate) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -125,7 +120,10 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
-			idx := i.checkAuthenticationMethod(deps, step, authentication)
+			idx, err := i.checkAuthenticationMethod(deps, step, authentication)
+			if err != nil {
+				return nil, err
+			}
 
 			switch authentication {
 			case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -193,7 +191,7 @@ func (*IntentSignupFlowStepAuthenticate) step(o config.AuthenticationFlowObject)
 	return step
 }
 
-func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) (idx int) {
+func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -207,7 +205,8 @@ func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *authf
 		return
 	}
 
-	panic(fmt.Errorf("the input schema should have ensured index can always be found"))
+	err = authflow.ErrIncompatibleInput
+	return
 }
 
 func (*IntentSignupFlowStepAuthenticate) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {

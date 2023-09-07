@@ -38,14 +38,9 @@ func (i *IntentLoginFlowStepChangePassword) GetJSONPointer() jsonpointer.T {
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepChangePassword{}
-var _ authflow.Boundary = &IntentLoginFlowStepChangePassword{}
 
 func (*IntentLoginFlowStepChangePassword) Kind() string {
 	return "IntentLoginFlowStepChangePassword"
-}
-
-func (i *IntentLoginFlowStepChangePassword) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

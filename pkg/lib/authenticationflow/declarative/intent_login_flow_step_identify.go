@@ -44,14 +44,9 @@ func (*IntentLoginFlowStepIdentify) GetIdentity(_ context.Context, _ *authflow.D
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepIdentify{}
-var _ authflow.Boundary = &IntentLoginFlowStepIdentify{}
 
 func (*IntentLoginFlowStepIdentify) Kind() string {
 	return "IntentLoginFlowStepIdentify"
-}
-
-func (i *IntentLoginFlowStepIdentify) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

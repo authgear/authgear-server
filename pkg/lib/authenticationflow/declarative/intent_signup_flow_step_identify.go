@@ -61,14 +61,9 @@ func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepIdentify{}
-var _ authflow.Boundary = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Kind() string {
 	return "IntentSignupFlowStepIdentify"
-}
-
-func (i *IntentSignupFlowStepIdentify) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {

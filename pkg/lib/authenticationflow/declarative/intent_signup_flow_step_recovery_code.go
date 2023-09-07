@@ -43,15 +43,10 @@ func (i *IntentSignupFlowStepRecoveryCode) GetJSONPointer() jsonpointer.T {
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepRecoveryCode{}
-var _ authflow.Boundary = &IntentSignupFlowStepRecoveryCode{}
 var _ authflow.DataOutputer = &IntentSignupFlowStepRecoveryCode{}
 
 func (*IntentSignupFlowStepRecoveryCode) Kind() string {
 	return "IntentSignupFlowStepRecoveryCode"
-}
-
-func (i *IntentSignupFlowStepRecoveryCode) Boundary() string {
-	return i.JSONPointer.String()
 }
 
 func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
