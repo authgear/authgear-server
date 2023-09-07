@@ -16,9 +16,8 @@ func init() {
 }
 
 type IntentLoginFlowStepIdentify struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepID        string                 `json:"step_id,omitempty"`
+	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	StepID      string        `json:"step_id,omitempty"`
 }
 
 var _ FlowStep = &IntentLoginFlowStepIdentify{}
@@ -109,8 +108,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	case identityUsed && !nestedStepsHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			FlowReference: i.FlowReference,
-			JSONPointer:   i.jsonPointer(step, identification),
+			JSONPointer: i.jsonPointer(step, identification),
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput

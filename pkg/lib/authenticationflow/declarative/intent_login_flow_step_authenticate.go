@@ -29,10 +29,9 @@ var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
 func (m IntentLoginFlowStepAuthenticateData) Data() {}
 
 type IntentLoginFlowStepAuthenticate struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepID        string                 `json:"step_id,omitempty"`
-	UserID        string                 `json:"user_id,omitempty"`
+	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	StepID      string        `json:"step_id,omitempty"`
+	UserID      string        `json:"user_id,omitempty"`
 }
 
 var _ FlowStep = &IntentLoginFlowStepAuthenticate{}
@@ -191,7 +190,6 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorOOBOTP{
-					FlowReference:     i.FlowReference,
 					JSONPointer:       JSONPointerForOneOf(i.JSONPointer, idx),
 					JSONPointerToStep: i.JSONPointer,
 					UserID:            i.UserID,
@@ -223,8 +221,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 	case !nestedStepsHandled:
 		authentication := i.authenticationMethod(flows)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			FlowReference: i.FlowReference,
-			JSONPointer:   i.jsonPointer(step, authentication),
+			JSONPointer: i.jsonPointer(step, authentication),
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput

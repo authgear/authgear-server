@@ -26,7 +26,6 @@ var _ authflow.Data = IntentUseAuthenticatorOOBOTPData{}
 func (m IntentUseAuthenticatorOOBOTPData) Data() {}
 
 type IntentUseAuthenticatorOOBOTP struct {
-	FlowReference     authflow.FlowReference                  `json:"flow_reference,omitempty"`
 	JSONPointer       jsonpointer.T                           `json:"json_pointer,omitempty"`
 	JSONPointerToStep jsonpointer.T                           `json:"json_pointer_to_step,omitempty"`
 	UserID            string                                  `json:"user_id,omitempty"`

@@ -19,7 +19,6 @@ func init() {
 }
 
 type NodeCreateAuthenticatorOOBOTP struct {
-	FlowReference  authflow.FlowReference                  `json:"flow_reference,omitempty"`
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`

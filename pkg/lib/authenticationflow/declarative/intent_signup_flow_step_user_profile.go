@@ -17,10 +17,9 @@ func init() {
 }
 
 type IntentSignupFlowStepUserProfile struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepID        string                 `json:"step_id,omitempty"`
-	UserID        string                 `json:"user_id,omitempty"`
+	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	StepID      string        `json:"step_id,omitempty"`
+	UserID      string        `json:"user_id,omitempty"`
 }
 
 var _ FlowStep = &IntentSignupFlowStepUserProfile{}

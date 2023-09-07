@@ -55,8 +55,7 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			FlowReference: i.FlowReference,
-			JSONPointer:   i.JSONPointer,
+			JSONPointer: i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewNodeSimple(&NodeDoCheckAccountStatus{

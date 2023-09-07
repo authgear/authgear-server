@@ -15,8 +15,7 @@ func init() {
 }
 
 type IntentLoginFlowSteps struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLoginFlowSteps{}
@@ -57,23 +56,20 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 	switch step.Type {
 	case config.AuthenticationFlowLoginFlowStepTypeIdentify:
 		return authflow.NewSubFlow(&IntentLoginFlowStepIdentify{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		return authflow.NewSubFlow(&IntentLoginFlowStepAuthenticate{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.userID(flows),
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(flows),
 		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeChangePassword:
 		return authflow.NewSubFlow(&IntentLoginFlowStepChangePassword{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.userID(flows),
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(flows),
 		}), nil
 	}
 

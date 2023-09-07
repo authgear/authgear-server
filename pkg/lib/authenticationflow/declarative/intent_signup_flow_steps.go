@@ -15,9 +15,8 @@ func init() {
 }
 
 type IntentSignupFlowSteps struct {
-	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
-	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
-	UserID        string                 `json:"user_id,omitempty"`
+	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	UserID      string        `json:"user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentSignupFlowSteps{}
@@ -58,38 +57,33 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 	switch step.Type {
 	case config.AuthenticationFlowSignupFlowStepTypeIdentify:
 		return authflow.NewSubFlow(&IntentSignupFlowStepIdentify{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeVerify:
 		return authflow.NewSubFlow(&IntentSignupFlowStepVerify{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeAuthenticate:
 		return authflow.NewSubFlow(&IntentSignupFlowStepAuthenticate{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeRecoveryCode:
 		return authflow.NewSubFlow(NewIntentSignupFlowStepRecoveryCode(deps, &IntentSignupFlowStepRecoveryCode{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
 		})), nil
 	case config.AuthenticationFlowSignupFlowStepTypeUserProfile:
 		return authflow.NewSubFlow(&IntentSignupFlowStepUserProfile{
-			FlowReference: i.FlowReference,
-			StepID:        step.ID,
-			JSONPointer:   JSONPointerForStep(i.JSONPointer, nextStepIndex),
-			UserID:        i.UserID,
+			StepID:      step.ID,
+			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
 		}), nil
 	}
 
