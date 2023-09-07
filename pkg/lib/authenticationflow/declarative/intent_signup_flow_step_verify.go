@@ -113,6 +113,7 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	messageType := target.GetMessageType(ctx, deps, flows.Replace(targetStepFlow))
 	claimValue := claims[claimName]
 	return authflow.NewSubFlow(&IntentVerifyClaim{
+		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 		Purpose:     purpose,
 		MessageType: messageType,

@@ -3,6 +3,8 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -10,10 +12,15 @@ import (
 )
 
 type InputSchemaUseAuthenticatorOOBOTP struct {
-	Candidates []UseAuthenticationCandidate
+	JSONPointer jsonpointer.T
+	Candidates  []UseAuthenticationCandidate
 }
 
 var _ authflow.InputSchema = &InputSchemaUseAuthenticatorOOBOTP{}
+
+func (i *InputSchemaUseAuthenticatorOOBOTP) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
 
 func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBuilder {
 	indice := []int{}

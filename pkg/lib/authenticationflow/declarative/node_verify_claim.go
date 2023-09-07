@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -33,6 +35,7 @@ var _ authflow.Data = &NodeVerifyClaimData{}
 func (m NodeVerifyClaimData) Data() {}
 
 type NodeVerifyClaim struct {
+	JSONPointer jsonpointer.T                 `json:"json_pointer,omitempty"`
 	UserID      string                        `json:"user_id,omitempty"`
 	Purpose     otp.Purpose                   `json:"purpose,omitempty"`
 	MessageType otp.MessageType               `json:"message_type,omitempty"`
@@ -51,7 +54,8 @@ func (n *NodeVerifyClaim) Kind() string {
 
 func (n *NodeVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	return &InputSchemaNodeVerifyClaim{
-		OTPForm: n.otpForm(deps),
+		JSONPointer: n.JSONPointer,
+		OTPForm:     n.otpForm(deps),
 	}, nil
 }
 

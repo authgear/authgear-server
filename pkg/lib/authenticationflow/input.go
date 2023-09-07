@@ -6,6 +6,8 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -18,12 +20,12 @@ type InputReactor interface {
 	ReactTo(ctx context.Context, deps *Dependencies, flows Flows, input Input) (*Node, error)
 }
 
-// InputSchema is something that can produce a JSON Schema.
-// In simple case, it can be implemented by the input struct itself.
-// If rawMessage does not validate against the JSON schema,
-// MakeInput MUST return *validation.AggregateError.
+// InputSchema validates and parses the input.
+// It is associated with a json pointer which points to the a step, or a branch of a step.
 type InputSchema interface {
+	GetJSONPointer() jsonpointer.T
 	SchemaBuilder() validation.SchemaBuilder
+	// MakeInput MUST return *validation.AggregateError if rawMessage does not validate against the JSON schema.
 	MakeInput(rawMessage json.RawMessage) (Input, error)
 }
 

@@ -64,7 +64,8 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	switch {
 	case !authenticatorSelected:
 		return &InputSchemaUseAuthenticatorOOBOTP{
-			Candidates: candidates,
+			JSONPointer: n.JSONPointer,
+			Candidates:  candidates,
 		}, nil
 	case !claimVerified:
 		// Verify the claim
@@ -111,6 +112,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
 		return authflow.NewSubFlow(&IntentVerifyClaim{
+			JSONPointer: n.JSONPointer,
 			UserID:      n.UserID,
 			Purpose:     otp.PurposeOOBOTP,
 			MessageType: n.otpMessageType(info),

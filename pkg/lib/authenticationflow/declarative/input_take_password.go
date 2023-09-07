@@ -3,6 +3,8 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -24,21 +26,21 @@ func init() {
 	)
 }
 
-type InputTakePassword struct {
-	Password           string `json:"password,omitempty"`
-	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+type InputSchemaTakePassword struct {
+	JSONPointer jsonpointer.T
 }
 
-var _ authflow.InputSchema = &InputTakePassword{}
-var _ authflow.Input = &InputTakePassword{}
-var _ inputTakePassword = &InputTakePassword{}
-var _ inputDeviceTokenRequested = &InputTakePassword{}
+var _ authflow.InputSchema = &InputSchemaTakePassword{}
 
-func (*InputTakePassword) SchemaBuilder() validation.SchemaBuilder {
+func (i *InputSchemaTakePassword) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
+
+func (*InputSchemaTakePassword) SchemaBuilder() validation.SchemaBuilder {
 	return InputTakePasswordSchemaBuilder
 }
 
-func (i *InputTakePassword) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaTakePassword) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputTakePassword
 	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
 	if err != nil {
@@ -46,6 +48,15 @@ func (i *InputTakePassword) MakeInput(rawMessage json.RawMessage) (authflow.Inpu
 	}
 	return &input, nil
 }
+
+type InputTakePassword struct {
+	Password           string `json:"password,omitempty"`
+	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+}
+
+var _ authflow.Input = &InputTakePassword{}
+var _ inputTakePassword = &InputTakePassword{}
+var _ inputDeviceTokenRequested = &InputTakePassword{}
 
 func (*InputTakePassword) Input() {}
 

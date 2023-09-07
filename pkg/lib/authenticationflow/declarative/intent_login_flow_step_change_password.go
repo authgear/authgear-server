@@ -78,6 +78,7 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	}
 
 	return authflow.NewNodeSimple(&NodeLoginFlowChangePassword{
+		JSONPointer:   i.JSONPointer,
 		Authenticator: info,
 	}), nil
 }

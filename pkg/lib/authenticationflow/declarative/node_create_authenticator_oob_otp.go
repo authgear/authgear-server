@@ -51,7 +51,9 @@ func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *au
 		return nil, nil
 	}
 
-	return &InputTakeOOBOTPTarget{}, nil
+	return &InputSchemaTakeOOBOTPTarget{
+		JSONPointer: n.JSONPointer,
+	}, nil
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {

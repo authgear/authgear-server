@@ -50,9 +50,11 @@ func (*IntentSignupFlowStepRecoveryCode) Kind() string {
 	return "IntentSignupFlowStepRecoveryCode"
 }
 
-func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		return &InputConfirmRecoveryCode{}, nil
+		return &InputConfirmRecoveryCode{
+			JSONPointer: i.JSONPointer,
+		}, nil
 	}
 
 	return nil, authflow.ErrEOF

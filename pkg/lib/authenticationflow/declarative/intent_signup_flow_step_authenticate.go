@@ -93,7 +93,8 @@ func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 		}
 		step := i.step(current)
 		return &InputSchemaSignupFlowStepAuthenticate{
-			OneOf: step.OneOf,
+			JSONPointer: i.JSONPointer,
+			OneOf:       step.OneOf,
 		}, nil
 	}
 
@@ -131,6 +132,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewNodeSimple(&NodeCreateAuthenticatorPassword{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
@@ -148,6 +150,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 				node, err := NewNodeCreateAuthenticatorTOTP(deps, &NodeCreateAuthenticatorTOTP{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				})

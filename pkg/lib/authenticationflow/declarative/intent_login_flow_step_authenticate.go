@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -109,6 +110,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	case !authenticationMethodSelected:
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
+			JSONPointer:        i.JSONPointer,
 			Candidates:         candidates,
 			DeviceTokenEnabled: deviceTokenEnabled,
 		}, nil
@@ -179,6 +181,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorPassword{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
@@ -197,11 +200,13 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationRecoveryCode:
 				return authflow.NewNodeSimple(&NodeUseRecoveryCode{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil

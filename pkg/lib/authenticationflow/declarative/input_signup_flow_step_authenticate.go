@@ -3,16 +3,23 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type InputSchemaSignupFlowStepAuthenticate struct {
-	OneOf []*config.AuthenticationFlowSignupFlowOneOf
+	JSONPointer jsonpointer.T
+	OneOf       []*config.AuthenticationFlowSignupFlowOneOf
 }
 
 var _ authflow.InputSchema = &InputSchemaSignupFlowStepAuthenticate{}
+
+func (i *InputSchemaSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
 
 func (i *InputSchemaSignupFlowStepAuthenticate) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -304,6 +305,10 @@ type inputServiceContext struct{}
 var _ InputSchema = &inputServiceContext{}
 var _ Input = &inputServiceContext{}
 var _ InputServiceContext = &inputServiceContext{}
+
+func (*inputServiceContext) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*inputServiceContext) SchemaBuilder() validation.SchemaBuilder {
 	return validation.SchemaBuilder{}

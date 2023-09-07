@@ -3,6 +3,8 @@ package declarative
 import (
 	"context"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
@@ -18,6 +20,7 @@ type NodeLoginFlowChangePasswordData struct {
 func (NodeLoginFlowChangePasswordData) Data() {}
 
 type NodeLoginFlowChangePassword struct {
+	JSONPointer   jsonpointer.T       `json:"json_pointer,omitempty"`
 	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
 }
 
@@ -29,8 +32,10 @@ func (*NodeLoginFlowChangePassword) Kind() string {
 	return "NodeLoginFlowChangePassword"
 }
 
-func (*NodeLoginFlowChangePassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	return &InputTakeNewPassword{}, nil
+func (n *NodeLoginFlowChangePassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	return &InputSchemaTakeNewPassword{
+		JSONPointer: n.JSONPointer,
+	}, nil
 }
 
 func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {

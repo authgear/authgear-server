@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -274,7 +276,9 @@ var _ InputSchema = &InputIntentAuthenticate{}
 var _ Input = &InputIntentAuthenticate{}
 var _ InputLoginID = &InputIntentAuthenticate{}
 
-func (*InputIntentAuthenticate) Input() {}
+func (*InputIntentAuthenticate) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*InputIntentAuthenticate) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.
@@ -293,6 +297,8 @@ func (i *InputIntentAuthenticate) MakeInput(rawMessage json.RawMessage) (Input, 
 	return &input, nil
 }
 
+func (*InputIntentAuthenticate) Input() {}
+
 func (i *InputIntentAuthenticate) GetLoginID() string {
 	return i.LoginID
 }
@@ -307,7 +313,9 @@ var _ Input = &InputIntentSignup{}
 var _ InputLoginID = &InputIntentSignup{}
 var _ InputCreatePasswordFlow = &InputIntentSignup{}
 
-func (*InputIntentSignup) Input() {}
+func (*InputIntentSignup) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*InputIntentSignup) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.
@@ -335,6 +343,8 @@ func (i *InputIntentSignup) MakeInput(rawMessage json.RawMessage) (Input, error)
 	return &input, nil
 }
 
+func (*InputIntentSignup) Input() {}
+
 func (i *InputIntentSignup) GetLoginID() string {
 	return i.LoginID
 }
@@ -351,6 +361,10 @@ var _ InputSchema = &InputIntentAddLoginID{}
 var _ Input = &InputIntentAddLoginID{}
 var _ InputLoginID = &InputIntentAddLoginID{}
 
+func (*InputIntentAddLoginID) GetJSONPointer() jsonpointer.T {
+	return nil
+}
+
 func (*InputIntentAddLoginID) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.
 		Type(validation.TypeObject).
@@ -358,8 +372,6 @@ func (*InputIntentAddLoginID) SchemaBuilder() validation.SchemaBuilder {
 	b.Properties().Property("login_id", validation.SchemaBuilder{}.Type(validation.TypeString))
 	return b
 }
-
-func (*InputIntentAddLoginID) Input() {}
 
 func (i *InputIntentAddLoginID) MakeInput(rawMessage json.RawMessage) (Input, error) {
 	var input InputIntentAddLoginID
@@ -369,6 +381,8 @@ func (i *InputIntentAddLoginID) MakeInput(rawMessage json.RawMessage) (Input, er
 	}
 	return &input, nil
 }
+
+func (*InputIntentAddLoginID) Input() {}
 
 func (i *InputIntentAddLoginID) GetLoginID() string {
 	return i.LoginID
@@ -383,6 +397,10 @@ var _ InputSchema = &InputNodeVerifyLoginID{}
 var _ Input = &InputNodeVerifyLoginID{}
 var _ InputOTP = &InputNodeVerifyLoginID{}
 var _ InputResendOTP = &InputNodeVerifyLoginID{}
+
+func (*InputNodeVerifyLoginID) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*InputNodeVerifyLoginID) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.
@@ -427,6 +445,10 @@ type InputIntentCreatePassword struct {
 var _ InputSchema = &InputIntentCreatePassword{}
 var _ Input = &InputIntentCreatePassword{}
 var _ InputNewPassword = &InputIntentCreatePassword{}
+
+func (*InputIntentCreatePassword) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*InputIntentCreatePassword) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.

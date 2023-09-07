@@ -50,6 +50,7 @@ func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *
 			return nil, err
 		}
 		return &InputSchemaFillUserProfile{
+			JSONPointer:      i.JSONPointer,
 			Attributes:       step.UserProfile,
 			CustomAttributes: deps.Config.UserProfile.CustomAttributes.Attributes,
 		}, nil
