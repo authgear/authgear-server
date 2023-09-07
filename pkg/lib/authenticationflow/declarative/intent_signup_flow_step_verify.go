@@ -24,10 +24,10 @@ func init() {
 }
 
 type IntentSignupFlowStepVerify struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	StepID        string                 `json:"step_id,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ FlowStep = &IntentSignupFlowStepVerify{}
@@ -55,7 +55,7 @@ func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflo
 }
 
 func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

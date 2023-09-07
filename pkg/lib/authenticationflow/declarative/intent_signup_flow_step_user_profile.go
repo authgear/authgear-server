@@ -17,10 +17,10 @@ func init() {
 }
 
 type IntentSignupFlowStepUserProfile struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepID        string                 `json:"step_id,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ FlowStep = &IntentSignupFlowStepUserProfile{}
@@ -41,7 +41,7 @@ func (*IntentSignupFlowStepUserProfile) Kind() string {
 
 func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+		current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,7 @@ func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *
 func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputFillUserProfile inputFillUserProfile
 	if authflow.AsInput(input, &inputFillUserProfile) {
-		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+		current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}

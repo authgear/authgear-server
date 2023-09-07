@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -29,15 +30,24 @@ func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenti
 	return
 }
 
-func signupFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+func flowObject(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+	switch flowReference.Type {
+	case authflow.FlowTypeSignup:
+		return flowObjectForSignupFlow(deps, flowReference, pointer)
+	default:
+		panic(fmt.Errorf("unexpected flow type: %v", flowReference.Type))
+	}
+}
+
+func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if id == idGeneratedFlow {
+	if flowReference.ID == idGeneratedFlow {
 		root = GenerateSignupFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
 			f := f
-			if f.ID == id {
+			if f.ID == flowReference.ID {
 				root = f
 				break
 			}

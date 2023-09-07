@@ -19,10 +19,10 @@ type IntentSignupFlowStepRecoveryCodeData struct {
 func (*IntentSignupFlowStepRecoveryCodeData) Data() {}
 
 type IntentSignupFlowStepRecoveryCode struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepID        string                 `json:"step_id,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 
 	RecoveryCodes []string `json:"recovery_codes,omitempty"`
 }

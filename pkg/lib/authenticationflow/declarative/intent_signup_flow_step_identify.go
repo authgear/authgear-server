@@ -18,10 +18,10 @@ func init() {
 }
 
 type IntentSignupFlowStepIdentify struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepID        string                 `json:"step_id,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ FlowStep = &IntentSignupFlowStepIdentify{}
@@ -67,7 +67,7 @@ func (*IntentSignupFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -136,9 +136,9 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
-			SignupFlow:  i.SignupFlow,
-			JSONPointer: i.jsonPointer(step, identification),
-			UserID:      i.UserID,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.jsonPointer(step, identification),
+			UserID:        i.UserID,
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput

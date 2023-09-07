@@ -27,10 +27,10 @@ type IntentSignupFlowStepAuthenticateData struct {
 func (m IntentSignupFlowStepAuthenticateData) Data() {}
 
 type IntentSignupFlowStepAuthenticate struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepID        string                 `json:"step_id,omitempty"`
+	UserID        string                 `json:"user_id,omitempty"`
 }
 
 var _ FlowStep = &IntentSignupFlowStepAuthenticate{}
@@ -86,7 +86,7 @@ func (*IntentSignupFlowStepAuthenticate) Kind() string {
 func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which authentication method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+		current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +109,7 @@ func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 }
 
 func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewNodeSimple(&NodeCreateAuthenticatorOOBOTP{
-					SignupFlow:     i.SignupFlow,
+					FlowReference:  i.FlowReference,
 					JSONPointer:    JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -167,9 +167,9 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 	case authenticatorCreated && !nestedStepsHandled:
 		authentication := i.authenticationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
-			SignupFlow:  i.SignupFlow,
-			JSONPointer: i.jsonPointer(step, authentication),
-			UserID:      i.UserID,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.jsonPointer(step, authentication),
+			UserID:        i.UserID,
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput
