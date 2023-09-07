@@ -41,7 +41,7 @@ func (*IntentSignupFlowStepUserProfile) Kind() string {
 
 func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+		current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +61,7 @@ func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *
 func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputFillUserProfile inputFillUserProfile
 	if authflow.AsInput(input, &inputFillUserProfile) {
-		current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+		current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 		if err != nil {
 			return nil, err
 		}

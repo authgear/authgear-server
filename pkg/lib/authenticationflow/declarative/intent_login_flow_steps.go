@@ -31,7 +31,7 @@ func (*IntentLoginFlowSteps) Milestone()            {}
 func (*IntentLoginFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (i *IntentLoginFlowSteps) CanReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

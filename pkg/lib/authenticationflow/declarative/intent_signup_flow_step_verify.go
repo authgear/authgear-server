@@ -55,7 +55,7 @@ func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflo
 }
 
 func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

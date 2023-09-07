@@ -30,15 +30,18 @@ func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenti
 	return
 }
 
-func flowObject(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
-	switch flowReference.Type {
-	case authflow.FlowTypeSignup:
-		return flowObjectForSignupFlow(deps, flowReference, pointer)
-	case authflow.FlowTypeLogin:
-		return flowObjectForLoginFlow(deps, flowReference, pointer)
-	default:
-		panic(fmt.Errorf("unexpected flow type: %v", flowReference.Type))
+func flowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+	entries, err := Traverse(flowRootObject, pointer)
+	if err != nil {
+		return nil, err
 	}
+
+	current, err := GetCurrentObject(entries)
+	if err != nil {
+		return nil, err
+	}
+
+	return current, nil
 }
 
 func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
@@ -75,25 +78,6 @@ func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference auth
 	return root, nil
 }
 
-func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
-	root, err := flowRootObjectForSignupFlow(deps, flowReference)
-	if err != nil {
-		return nil, err
-	}
-
-	entries, err := Traverse(root, pointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
-}
-
 func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
@@ -114,25 +98,6 @@ func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authf
 	}
 
 	return root, nil
-}
-
-func flowObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
-	root, err := flowRootObjectForLoginFlow(deps, flowReference)
-	if err != nil {
-		return nil, err
-	}
-
-	entries, err := Traverse(root, pointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
 }
 
 func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationCandidate, error) {

@@ -50,7 +50,7 @@ func (*IntentLoginFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 }
 
 func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
+	current, err := flowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
