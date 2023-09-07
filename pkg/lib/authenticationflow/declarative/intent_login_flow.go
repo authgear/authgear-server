@@ -37,6 +37,10 @@ func (i *IntentLoginFlow) FlowInit(r authflow.FlowReference) {
 	i.FlowReference = r
 }
 
+func (i *IntentLoginFlow) FlowFlowReference() authflow.FlowReference {
+	return i.FlowReference
+}
+
 func (i *IntentLoginFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
 	return flowRootObject(deps, i.FlowReference)
 }

@@ -24,6 +24,8 @@ type IntentSignupFlowStepAuthenticateData struct {
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
 }
 
+var _ authflow.Data = &IntentSignupFlowStepAuthenticateData{}
+
 func (m IntentSignupFlowStepAuthenticateData) Data() {}
 
 type IntentSignupFlowStepAuthenticate struct {

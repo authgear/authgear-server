@@ -13,6 +13,7 @@ type PublicFlow interface {
 	Intent
 	FlowType() FlowType
 	FlowInit(r FlowReference)
+	FlowFlowReference() FlowReference
 	FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error)
 }
 

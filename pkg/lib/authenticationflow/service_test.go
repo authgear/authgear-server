@@ -75,7 +75,7 @@ func TestService(t *testing.T) {
 					InstanceID: "authflow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
-				Data:          EmptyData,
+				Data:          &DataFlowReference{},
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -116,8 +116,11 @@ func TestService(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data: &DataFinishRedirectURI{
-					FinishRedirectURI: "",
+				Data: mapData{
+					"flow_reference": map[string]interface{}{
+						"type": "",
+						"id":   "",
+					},
 				},
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -190,7 +193,7 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				Data: EmptyData,
+				Data: &DataFlowReference{},
 				Session: &Session{
 					FlowID: "flow-id",
 				},
@@ -215,6 +218,10 @@ func (*intentNilInput) FlowType() FlowType {
 }
 
 func (*intentNilInput) FlowInit(r FlowReference) {}
+
+func (*intentNilInput) FlowFlowReference() FlowReference {
+	return FlowReference{}
+}
 
 func (*intentNilInput) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
 	return nil, nil
@@ -253,6 +260,10 @@ func (*intentServiceContext) FlowType() FlowType {
 }
 
 func (*intentServiceContext) FlowInit(r FlowReference) {}
+
+func (*intentServiceContext) FlowFlowReference() FlowReference {
+	return FlowReference{}
+}
 
 func (*intentServiceContext) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
 	return nil, nil
@@ -395,8 +406,11 @@ func TestServiceContext(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data: &DataFinishRedirectURI{
-					FinishRedirectURI: "",
+				Data: mapData{
+					"flow_reference": map[string]interface{}{
+						"type": "",
+						"id":   "",
+					},
 				},
 				Session: &Session{
 					FlowID:   "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",

@@ -2,6 +2,7 @@ package authenticationflow
 
 import (
 	"context"
+	"encoding/json"
 )
 
 // Data is a marker.
@@ -23,8 +24,6 @@ var _ Data = mapData{}
 
 func (m mapData) Data() {}
 
-var EmptyData = make(mapData)
-
 type DataFinishRedirectURI struct {
 	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
 }
@@ -32,3 +31,28 @@ type DataFinishRedirectURI struct {
 var _ Data = &DataFinishRedirectURI{}
 
 func (*DataFinishRedirectURI) Data() {}
+
+type DataFlowReference struct {
+	FlowReference FlowReference `json:"flow_reference"`
+}
+
+var _ Data = &DataFlowReference{}
+
+func (*DataFlowReference) Data() {}
+
+func MergeData(manyData ...Data) Data {
+	m := map[string]interface{}{}
+
+	for _, data := range manyData {
+		b, err := json.Marshal(data)
+		if err != nil {
+			panic(err)
+		}
+		err = json.Unmarshal(b, &m)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return mapData(m)
+}

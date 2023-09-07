@@ -16,6 +16,8 @@ type IntentSignupFlowStepRecoveryCodeData struct {
 	RecoveryCodes []string `json:"recovery_codes"`
 }
 
+var _ authflow.Data = &IntentSignupFlowStepRecoveryCodeData{}
+
 func (*IntentSignupFlowStepRecoveryCodeData) Data() {}
 
 type IntentSignupFlowStepRecoveryCode struct {

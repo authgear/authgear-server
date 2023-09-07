@@ -39,6 +39,10 @@ func (*intentAuthenticate) FlowType() FlowType {
 
 func (*intentAuthenticate) FlowInit(r FlowReference) {}
 
+func (*intentAuthenticate) FlowFlowReference() FlowReference {
+	return FlowReference{}
+}
+
 func (*intentAuthenticate) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
 	return nil, nil
 }

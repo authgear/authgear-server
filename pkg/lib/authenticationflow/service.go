@@ -27,12 +27,6 @@ type ServiceOutput struct {
 	Cookies []*http.Cookie
 }
 
-func (o *ServiceOutput) EnsureDataIsNonNil() {
-	if o.Data == nil {
-		o.Data = EmptyData
-	}
-}
-
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
 		ID:          o.Flow.InstanceID,
@@ -142,7 +136,6 @@ func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOp
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
-	output.EnsureDataIsNonNil()
 	return
 }
 
@@ -239,7 +232,6 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Finished:      determineActionResult.Finished,
 	}
-	output.EnsureDataIsNonNil()
 	return
 }
 
@@ -314,7 +306,6 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		Finished:      determineActionResult.Finished,
 		Cookies:       cookies,
 	}
-	output.EnsureDataIsNonNil()
 	return
 }
 
@@ -371,7 +362,21 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (*determineActionResult, error) {
+func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (result *determineActionResult, err error) {
+	dataFlowReference := &DataFlowReference{
+		FlowReference: GetFlowReference(ctx),
+	}
+
+	defer func() {
+		if result != nil {
+			if result.Data == nil {
+				result.Data = dataFlowReference
+			} else {
+				result.Data = MergeData(dataFlowReference, result.Data)
+			}
+		}
+	}()
+
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
 		redirectURI := session.RedirectURI
@@ -379,12 +384,13 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		if ok {
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
-		return &determineActionResult{
+		result = &determineActionResult{
 			Finished: true,
 			Data: &DataFinishRedirectURI{
 				FinishRedirectURI: redirectURI,
 			},
-		}, nil
+		}
+		return
 	}
 	if err != nil {
 		return nil, err
@@ -403,8 +409,9 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		}
 	}
 
-	return &determineActionResult{
+	result = &determineActionResult{
 		Data:          data,
 		SchemaBuilder: schemaBuilder,
-	}, nil
+	}
+	return
 }

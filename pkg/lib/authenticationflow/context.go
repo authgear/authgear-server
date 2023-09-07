@@ -30,6 +30,14 @@ func GetFlowID(ctx context.Context) string {
 	return ctx.Value(contextKeyFlowID).(string)
 }
 
+type contextKeyTypeFlowReference struct{}
+
+var contextKeyFlowReference = contextKeyTypeFlowReference{}
+
+func GetFlowReference(ctx context.Context) FlowReference {
+	return ctx.Value(contextKeyFlowReference).(FlowReference)
+}
+
 type contextKeyTypeFlowRootObject struct{}
 
 var contextKeyFlowRootObject = contextKeyTypeFlowRootObject{}
