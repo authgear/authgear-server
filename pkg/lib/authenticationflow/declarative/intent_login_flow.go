@@ -17,8 +17,8 @@ func init() {
 }
 
 type IntentLoginFlow struct {
-	LoginFlow   string        `json:"login_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.PublicFlow = &IntentLoginFlow{}
@@ -33,7 +33,7 @@ func (*IntentLoginFlow) FlowType() authflow.FlowType {
 }
 
 func (i *IntentLoginFlow) FlowInit(r authflow.FlowReference) {
-	i.LoginFlow = r.ID
+	i.FlowReference = r
 }
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -50,8 +50,8 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			LoginFlow:   i.LoginFlow,
-			JSONPointer: i.JSONPointer,
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewNodeSimple(&NodeDoCheckAccountStatus{

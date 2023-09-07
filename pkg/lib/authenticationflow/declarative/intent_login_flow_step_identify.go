@@ -16,9 +16,9 @@ func init() {
 }
 
 type IntentLoginFlowStepIdentify struct {
-	LoginFlow   string        `json:"login_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepID        string                 `json:"step_id,omitempty"`
 }
 
 var _ FlowStep = &IntentLoginFlowStepIdentify{}
@@ -50,7 +50,7 @@ func (*IntentLoginFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 }
 
 func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := flowObject(deps, i.FlowReference, i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +109,8 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	case identityUsed && !nestedStepsHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			LoginFlow:   i.LoginFlow,
-			JSONPointer: i.jsonPointer(step, identification),
+			FlowReference: i.FlowReference,
+			JSONPointer:   i.jsonPointer(step, identification),
 		}), nil
 	default:
 		return nil, authflow.ErrIncompatibleInput

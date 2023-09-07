@@ -26,7 +26,7 @@ var _ authflow.Data = IntentUseAuthenticatorOOBOTPData{}
 func (m IntentUseAuthenticatorOOBOTPData) Data() {}
 
 type IntentUseAuthenticatorOOBOTP struct {
-	LoginFlow         string                                  `json:"login_flow,omitempty"`
+	FlowReference     authflow.FlowReference                  `json:"flow_reference,omitempty"`
 	JSONPointer       jsonpointer.T                           `json:"json_pointer,omitempty"`
 	JSONPointerToStep jsonpointer.T                           `json:"json_pointer_to_step,omitempty"`
 	UserID            string                                  `json:"user_id,omitempty"`
@@ -48,7 +48,7 @@ func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.Au
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointerToStep)
+	current, err := flowObject(deps, n.FlowReference, n.JSONPointerToStep)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	case !authenticatorSelected:
 		var inputTakeAuthenticationCandidateIndex inputTakeAuthenticationCandidateIndex
 		if authflow.AsInput(input, &inputTakeAuthenticationCandidateIndex) {
-			current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointerToStep)
+			current, err := flowObject(deps, n.FlowReference, n.JSONPointerToStep)
 			if err != nil {
 				return nil, err
 			}
@@ -129,7 +129,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 }
 
 func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := loginFlowCurrent(deps, n.LoginFlow, n.JSONPointerToStep)
+	current, err := flowObject(deps, n.FlowReference, n.JSONPointerToStep)
 	if err != nil {
 		return nil, err
 	}

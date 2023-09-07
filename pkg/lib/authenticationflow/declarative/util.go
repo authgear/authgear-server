@@ -34,6 +34,8 @@ func flowObject(deps *authflow.Dependencies, flowReference authflow.FlowReferenc
 	switch flowReference.Type {
 	case authflow.FlowTypeSignup:
 		return flowObjectForSignupFlow(deps, flowReference, pointer)
+	case authflow.FlowTypeLogin:
+		return flowObjectForLoginFlow(deps, flowReference, pointer)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowReference.Type))
 	}
@@ -72,15 +74,15 @@ func flowObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow
 	return current, nil
 }
 
-func loginFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+func flowObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if id == idGeneratedFlow {
+	if flowReference.ID == idGeneratedFlow {
 		root = GenerateLoginFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
 			f := f
-			if f.ID == id {
+			if f.ID == flowReference.ID {
 				root = f
 				break
 			}
