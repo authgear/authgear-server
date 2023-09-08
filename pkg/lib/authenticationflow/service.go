@@ -22,23 +22,29 @@ type ServiceOutput struct {
 	Finished      bool
 	SchemaBuilder validation.SchemaBuilder
 
-	Data Data
+	FlowReference *FlowReference
+	FlowStep      *FlowStep
+	Data          Data
 
 	Cookies []*http.Cookie
 }
 
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
-		ID:          o.Flow.InstanceID,
-		WebsocketID: o.Flow.FlowID,
-		JSONSchema:  o.SchemaBuilder,
-		Finished:    o.Finished,
-		Data:        o.Data,
+		ID:            o.Flow.InstanceID,
+		WebsocketID:   o.Flow.FlowID,
+		JSONSchema:    o.SchemaBuilder,
+		Finished:      o.Finished,
+		FlowReference: o.FlowReference,
+		FlowStep:      o.FlowStep,
+		Data:          o.Data,
 	}
 }
 
 type determineActionResult struct {
 	Finished      bool
+	FlowReference *FlowReference
+	FlowStep      *FlowStep
 	Data          Data
 	SchemaBuilder validation.SchemaBuilder
 }
@@ -131,6 +137,8 @@ func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOp
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
 		Data:          determineActionResult.Data,
 		Finished:      determineActionResult.Finished,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
@@ -228,6 +236,8 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          w,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
 		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Finished:      determineActionResult.Finished,
@@ -301,6 +311,8 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
 		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Finished:      determineActionResult.Finished,
@@ -363,19 +375,7 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 }
 
 func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (result *determineActionResult, err error) {
-	dataFlowReference := &DataFlowDetails{
-		FlowReference: GetFlowReference(ctx),
-	}
-
-	defer func() {
-		if result != nil {
-			if result.Data == nil {
-				result.Data = dataFlowReference
-			} else {
-				result.Data = MergeData(dataFlowReference, result.Data)
-			}
-		}
-	}()
+	flowReference := GetFlowReference(ctx)
 
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
@@ -385,7 +385,8 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
 		result = &determineActionResult{
-			Finished: true,
+			Finished:      true,
+			FlowReference: &flowReference,
 			Data: &DataFinishRedirectURI{
 				FinishRedirectURI: redirectURI,
 			},
@@ -396,16 +397,19 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		return nil, err
 	}
 
+	var flowStep *FlowStep
 	var schemaBuilder validation.SchemaBuilder
 	if findInputReactorResult.InputSchema != nil {
 		schemaBuilder = findInputReactorResult.InputSchema.SchemaBuilder()
 		p := findInputReactorResult.InputSchema.GetJSONPointer()
 		flowRootObject := GetFlowRootObject(ctx)
-		flowStep := GetFlowStep(flowRootObject, p)
-		dataFlowReference.FlowStep = flowStep
+		if flowRootObject != nil {
+			flowStep = GetFlowStep(flowRootObject, p)
+		}
 	}
 
-	var data Data
+	// Ensure data is always non-nil.
+	var data Data = mapData{}
 	if dataOutputer, ok := findInputReactorResult.InputReactor.(DataOutputer); ok {
 		data, err = dataOutputer.OutputData(ctx, s.Deps, findInputReactorResult.Flows)
 		if err != nil {
@@ -414,6 +418,8 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 	}
 
 	result = &determineActionResult{
+		FlowReference: &flowReference,
+		FlowStep:      flowStep,
 		Data:          data,
 		SchemaBuilder: schemaBuilder,
 	}

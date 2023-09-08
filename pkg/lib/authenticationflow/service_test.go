@@ -76,7 +76,8 @@ func TestService(t *testing.T) {
 					InstanceID: "authflow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
-				Data:          &DataFlowDetails{},
+				FlowReference: &FlowReference{},
+				Data:          mapData{},
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -117,12 +118,7 @@ func TestService(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data: mapData{
-					"flow_reference": map[string]interface{}{
-						"type": "",
-						"id":   "",
-					},
-				},
+				Data:     &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -194,7 +190,8 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				Data: &DataFlowDetails{},
+				FlowReference: &FlowReference{},
+				Data:          mapData{},
 				Session: &Session{
 					FlowID: "flow-id",
 				},
@@ -410,13 +407,9 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
-				Finished: true,
-				Data: mapData{
-					"flow_reference": map[string]interface{}{
-						"type": "",
-						"id":   "",
-					},
-				},
+				Finished:      true,
+				FlowReference: &FlowReference{},
+				Data:          &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID:   "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID: "client-id",
