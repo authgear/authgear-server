@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -12,6 +13,8 @@ type PublicFlow interface {
 	Intent
 	FlowType() FlowType
 	FlowInit(r FlowReference)
+	FlowFlowReference() FlowReference
+	FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error)
 }
 
 // FlowType denotes the type of the intents.
@@ -28,6 +31,13 @@ type FlowReference struct {
 	ID   string   `json:"id"`
 }
 
+// FlowStep is an API object.
+type FlowStep struct {
+	Type           string                                  `json:"type"`
+	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+}
+
 // FlowResponse is an API object.
 // When the flow finished, `json_schema` is absent and `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.
@@ -39,6 +49,9 @@ type FlowResponse struct {
 
 	Finished   bool                     `json:"finished,omitempty"`
 	JSONSchema validation.SchemaBuilder `json:"json_schema,omitempty"`
+
+	FlowReference *FlowReference `json:"flow_reference,omitempty"`
+	FlowStep      *FlowStep      `json:"flow_step,omitempty"`
 
 	Data Data `json:"data"`
 }

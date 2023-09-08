@@ -3,6 +3,8 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -22,11 +24,17 @@ func init() {
 	)
 }
 
-type InputConfirmRecoveryCode struct{}
+type InputConfirmRecoveryCode struct {
+	JSONPointer jsonpointer.T
+}
 
 var _ authflow.InputSchema = &InputConfirmRecoveryCode{}
 var _ authflow.Input = &InputConfirmRecoveryCode{}
 var _ inputConfirmRecoveryCode = &InputConfirmRecoveryCode{}
+
+func (i *InputConfirmRecoveryCode) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
 
 func (*InputConfirmRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
 	return InputConfirmRecoveryCodeSchemaBuilder

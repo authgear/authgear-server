@@ -7,6 +7,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -17,8 +18,8 @@ func init() {
 }
 
 type IntentSignupFlow struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.PublicFlow = &IntentSignupFlow{}
@@ -33,7 +34,15 @@ func (*IntentSignupFlow) FlowType() authflow.FlowType {
 }
 
 func (i *IntentSignupFlow) FlowInit(r authflow.FlowReference) {
-	i.SignupFlow = r.ID
+	i.FlowReference = r
+}
+
+func (i *IntentSignupFlow) FlowFlowReference() authflow.FlowReference {
+	return i.FlowReference
+}
+
+func (i *IntentSignupFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	return flowRootObject(deps, i.FlowReference)
 }
 
 func (i *IntentSignupFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -57,7 +66,6 @@ func (i *IntentSignupFlow) ReactTo(ctx context.Context, deps *authflow.Dependenc
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
-			SignupFlow:  i.SignupFlow,
 			JSONPointer: i.JSONPointer,
 			UserID:      i.userID(flows.Nearest),
 		}), nil

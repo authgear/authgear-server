@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
@@ -13,6 +15,7 @@ import (
 )
 
 type InputSchemaFillUserProfile struct {
+	JSONPointer      jsonpointer.T
 	Attributes       []*config.AuthenticationFlowSignupFlowUserProfile
 	CustomAttributes []*config.CustomAttributesAttributeConfig
 }
@@ -45,6 +48,10 @@ func (s *InputSchemaFillUserProfile) buildItemsSchema(pointer string, schema val
 	then_.Properties().Property("value", schema)
 	b.If(if_).Then(then_)
 	return b
+}
+
+func (s *InputSchemaFillUserProfile) GetJSONPointer() jsonpointer.T {
+	return s.JSONPointer
 }
 
 func (s *InputSchemaFillUserProfile) SchemaBuilder() validation.SchemaBuilder {

@@ -87,16 +87,30 @@ func (s *Session) ToOutput() *SessionOutput {
 	}
 }
 
-func (s *Session) Context(ctx context.Context) context.Context {
+func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlow PublicFlow) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
+
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,
 		UILocales: s.UILocales,
 		State:     s.State,
 		XState:    s.XState,
 	})
+
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
+
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
+
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
-	return ctx
+
+	flowReference := publicFlow.FlowFlowReference()
+	ctx = context.WithValue(ctx, contextKeyFlowReference, flowReference)
+
+	flowRootObject, err := publicFlow.FlowRootObject(deps)
+	if err != nil {
+		return nil, err
+	}
+	ctx = context.WithValue(ctx, contextKeyFlowRootObject, flowRootObject)
+
+	return ctx, nil
 }

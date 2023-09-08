@@ -3,6 +3,8 @@ package declarative
 import (
 	"context"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -16,6 +18,7 @@ func init() {
 }
 
 type NodeUseAuthenticatorPassword struct {
+	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 }
@@ -34,8 +37,10 @@ func (n *NodeUseAuthenticatorPassword) MilestoneAuthenticationMethod() config.Au
 	return n.Authentication
 }
 
-func (*NodeUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	return &InputTakePassword{}, nil
+func (n *NodeUseAuthenticatorPassword) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	return &InputSchemaTakePassword{
+		JSONPointer: n.JSONPointer,
+	}, nil
 }
 
 func (i *NodeUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {

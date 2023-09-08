@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -21,29 +22,29 @@ type ServiceOutput struct {
 	Finished      bool
 	SchemaBuilder validation.SchemaBuilder
 
-	Data Data
+	FlowReference *FlowReference
+	FlowStep      *FlowStep
+	Data          Data
 
 	Cookies []*http.Cookie
 }
 
-func (o *ServiceOutput) EnsureDataIsNonNil() {
-	if o.Data == nil {
-		o.Data = EmptyData
-	}
-}
-
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
-		ID:          o.Flow.InstanceID,
-		WebsocketID: o.Flow.FlowID,
-		JSONSchema:  o.SchemaBuilder,
-		Finished:    o.Finished,
-		Data:        o.Data,
+		ID:            o.Flow.InstanceID,
+		WebsocketID:   o.Flow.FlowID,
+		JSONSchema:    o.SchemaBuilder,
+		Finished:      o.Finished,
+		FlowReference: o.FlowReference,
+		FlowStep:      o.FlowStep,
+		Data:          o.Data,
 	}
 }
 
 type determineActionResult struct {
 	Finished      bool
+	FlowReference *FlowReference
+	FlowStep      *FlowStep
 	Data          Data
 	SchemaBuilder validation.SchemaBuilder
 }
@@ -82,19 +83,22 @@ type Service struct {
 	UIInfoResolver          ServiceUIInfoResolver
 }
 
-func (s *Service) CreateNewFlow(intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
+func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
 	session := NewSession(sessionOptions)
 	err = s.Store.CreateSession(session)
 	if err != nil {
 		return
 	}
 
-	ctx := session.Context(s.ContextDoNotUseDirectly)
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
 
 	var flow *Flow
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.createNewFlow(ctx, session, intent)
+		flow, determineActionResult, err = s.createNewFlow(ctx, session, publicFlow)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -133,17 +137,18 @@ func (s *Service) CreateNewFlow(intent Intent, sessionOptions *SessionOptions) (
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
 		Data:          determineActionResult.Data,
 		Finished:      determineActionResult.Finished,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Cookies:       cookies,
 	}
-	output.EnsureDataIsNonNil()
 	return
 }
 
-func (s *Service) createNewFlow(ctx context.Context, session *Session, intent Intent) (flow *Flow, determineActionResult *determineActionResult, err error) {
-	flow = NewFlow(session.FlowID, intent)
+func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, determineActionResult *determineActionResult, err error) {
+	flow = NewFlow(session.FlowID, publicFlow)
 
 	// A new flow does not have any nodes.
 	// A flow is allowed to have on-commit-effects only.
@@ -196,7 +201,15 @@ func (s *Service) Get(instanceID string, userAgentID string) (output *ServiceOut
 		return
 	}
 
-	ctx := session.Context(s.ContextDoNotUseDirectly)
+	publicFlow, ok := w.Intent.(PublicFlow)
+	if !ok {
+		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", w.Intent))
+	}
+
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
 
 	err = s.Database.ReadOnly(func() error {
 		output, err = s.get(ctx, session, w)
@@ -223,11 +236,12 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          w,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
 		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Finished:      determineActionResult.Finished,
 	}
-	output.EnsureDataIsNonNil()
 	return
 }
 
@@ -247,7 +261,15 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		return
 	}
 
-	ctx := session.Context(s.ContextDoNotUseDirectly)
+	publicFlow, ok := flow.Intent.(PublicFlow)
+	if !ok {
+		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", flow.Intent))
+	}
+
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
 
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
@@ -289,12 +311,13 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 		Session:       session,
 		SessionOutput: sessionOutput,
 		Flow:          flow,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
 		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Finished:      determineActionResult.Finished,
 		Cookies:       cookies,
 	}
-	output.EnsureDataIsNonNil()
 	return
 }
 
@@ -351,7 +374,9 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (*determineActionResult, error) {
+func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (result *determineActionResult, err error) {
+	flowReference := GetFlowReference(ctx)
+
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
 		redirectURI := session.RedirectURI
@@ -359,23 +384,32 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		if ok {
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
-		return &determineActionResult{
-			Finished: true,
+		result = &determineActionResult{
+			Finished:      true,
+			FlowReference: &flowReference,
 			Data: &DataFinishRedirectURI{
 				FinishRedirectURI: redirectURI,
 			},
-		}, nil
+		}
+		return
 	}
 	if err != nil {
 		return nil, err
 	}
 
+	var flowStep *FlowStep
 	var schemaBuilder validation.SchemaBuilder
 	if findInputReactorResult.InputSchema != nil {
 		schemaBuilder = findInputReactorResult.InputSchema.SchemaBuilder()
+		p := findInputReactorResult.InputSchema.GetJSONPointer()
+		flowRootObject := GetFlowRootObject(ctx)
+		if flowRootObject != nil {
+			flowStep = GetFlowStep(flowRootObject, p)
+		}
 	}
 
-	var data Data
+	// Ensure data is always non-nil.
+	var data Data = mapData{}
 	if dataOutputer, ok := findInputReactorResult.InputReactor.(DataOutputer); ok {
 		data, err = dataOutputer.OutputData(ctx, s.Deps, findInputReactorResult.Flows)
 		if err != nil {
@@ -383,8 +417,11 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		}
 	}
 
-	return &determineActionResult{
+	result = &determineActionResult{
+		FlowReference: &flowReference,
+		FlowStep:      flowStep,
 		Data:          data,
 		SchemaBuilder: schemaBuilder,
-	}, nil
+	}
+	return
 }

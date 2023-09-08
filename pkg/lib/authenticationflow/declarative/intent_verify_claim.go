@@ -3,6 +3,8 @@ package declarative
 import (
 	"context"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -14,6 +16,7 @@ func init() {
 }
 
 type IntentVerifyClaim struct {
+	JSONPointer jsonpointer.T   `json:"json_pointer,omitempty"`
 	UserID      string          `json:"user_id,omitempty"`
 	Purpose     otp.Purpose     `json:"purpose,omitempty"`
 	MessageType otp.MessageType `json:"message_type,omitempty"`
@@ -43,7 +46,8 @@ func (i *IntentVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Depen
 			return nil, nil
 		}
 		return &InputSchemaTakeOOBOTPChannel{
-			Channels: channels,
+			JSONPointer: i.JSONPointer,
+			Channels:    channels,
 		}, nil
 	}
 
@@ -65,6 +69,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 	}
 
 	node := &NodeVerifyClaim{
+		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 		Purpose:     i.Purpose,
 		MessageType: i.MessageType,

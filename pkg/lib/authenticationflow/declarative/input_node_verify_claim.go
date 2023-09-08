@@ -3,16 +3,23 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type InputSchemaNodeVerifyClaim struct {
-	OTPForm otp.Form
+	JSONPointer jsonpointer.T
+	OTPForm     otp.Form
 }
 
 var _ authflow.InputSchema = &InputSchemaNodeVerifyClaim{}
+
+func (i *InputSchemaNodeVerifyClaim) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
 
 func (i *InputSchemaNodeVerifyClaim) SchemaBuilder() validation.SchemaBuilder {
 	resend := validation.SchemaBuilder{}.

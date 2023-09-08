@@ -1,4 +1,4 @@
-package declarative
+package authenticationflow
 
 import (
 	"testing"
@@ -204,6 +204,60 @@ func TestGetCurrentObject(t *testing.T) {
 			test(jp("/steps/0/one_of/0"), fixtureReauthFlow.Steps[0].OneOf[0])
 			test(jp("/steps/0/one_of/0/steps/0"), fixtureReauthFlow.Steps[0].OneOf[0].Steps[0])
 			test(jp("/steps/0/one_of/0/steps/0/one_of/0"), fixtureReauthFlow.Steps[0].OneOf[0].Steps[0].OneOf[0])
+		})
+	})
+}
+
+func TestJSONPointerForStep(t *testing.T) {
+	Convey("JSONPointerForStep", t, func() {
+		test := func(p jsonpointer.T, index int, expected string) {
+			actual := JSONPointerForStep(p, index)
+			So(actual.String(), ShouldEqual, expected)
+		}
+
+		test(nil, 1, "/steps/1")
+		test(jsonpointer.MustParse("/a"), 1, "/a/steps/1")
+	})
+}
+
+func TestJSONPointerForOneOf(t *testing.T) {
+	Convey("JSONPointerForOneOf", t, func() {
+		test := func(p jsonpointer.T, index int, expected string) {
+			actual := JSONPointerForOneOf(p, index)
+			So(actual.String(), ShouldEqual, expected)
+		}
+
+		test(nil, 1, "/one_of/1")
+		test(jsonpointer.MustParse("/a"), 1, "/a/one_of/1")
+	})
+}
+
+func TestJSONPointerToParent(t *testing.T) {
+	Convey("JSONPointerToParent", t, func() {
+		test := func(p jsonpointer.T, expected string) {
+			actual := JSONPointerToParent(p)
+			So(actual.String(), ShouldEqual, expected)
+		}
+
+		Convey("should panic for length 0", func() {
+			So(func() {
+				JSONPointerToParent(nil)
+			}, ShouldPanic)
+		})
+		Convey("should panic for length 1", func() {
+			So(func() {
+				JSONPointerToParent(jsonpointer.MustParse("/a"))
+			}, ShouldPanic)
+		})
+
+		Convey("should work for length 2", func() {
+			test(jsonpointer.MustParse("/steps/0"), "")
+			test(jsonpointer.MustParse("/one_of/0"), "")
+		})
+
+		Convey("should work for length 4", func() {
+			test(jsonpointer.MustParse("/steps/0/one_of/1"), "/steps/0")
+			test(jsonpointer.MustParse("/one_of/0/steps/1"), "/one_of/0")
 		})
 	})
 }

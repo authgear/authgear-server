@@ -24,7 +24,6 @@ func init() {
 }
 
 type IntentSignupFlowStepVerify struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
@@ -55,7 +54,7 @@ func (*IntentSignupFlowStepVerify) CanReactTo(ctx context.Context, deps *authflo
 }
 
 func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +113,7 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	messageType := target.GetMessageType(ctx, deps, flows.Replace(targetStepFlow))
 	claimValue := claims[claimName]
 	return authflow.NewSubFlow(&IntentVerifyClaim{
+		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 		Purpose:     purpose,
 		MessageType: messageType,

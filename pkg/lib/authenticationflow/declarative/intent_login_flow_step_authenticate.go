@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -29,7 +30,6 @@ var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
 func (m IntentLoginFlowStepAuthenticateData) Data() {}
 
 type IntentLoginFlowStepAuthenticate struct {
-	LoginFlow   string        `json:"login_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
@@ -74,7 +74,7 @@ func (*IntentLoginFlowStepAuthenticate) Kind() string {
 }
 
 func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +110,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	case !authenticationMethodSelected:
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
+			JSONPointer:        i.JSONPointer,
 			Candidates:         candidates,
 			DeviceTokenEnabled: deviceTokenEnabled,
 		}, nil
@@ -131,7 +132,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 }
 
 func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +181,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorPassword{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
@@ -191,19 +193,19 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorOOBOTP{
-					LoginFlow:         i.LoginFlow,
-					JSONPointer:       JSONPointerForOneOf(i.JSONPointer, idx),
-					JSONPointerToStep: i.JSONPointer,
-					UserID:            i.UserID,
-					Authentication:    authentication,
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationRecoveryCode:
 				return authflow.NewNodeSimple(&NodeUseRecoveryCode{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
@@ -223,7 +225,6 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 	case !nestedStepsHandled:
 		authentication := i.authenticationMethod(flows)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			LoginFlow:   i.LoginFlow,
 			JSONPointer: i.jsonPointer(step, authentication),
 		}), nil
 	default:
@@ -232,7 +233,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +317,7 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Authentication == am {
-			return JSONPointerForOneOf(i.JSONPointer, idx)
+			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}
 	}
 

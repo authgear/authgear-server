@@ -3,6 +3,8 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -23,11 +25,16 @@ func init() {
 
 }
 
-type InputConfirmTerminateOtherSessions struct{}
+type InputConfirmTerminateOtherSessions struct {
+}
 
 var _ authflow.InputSchema = &InputConfirmTerminateOtherSessions{}
 var _ authflow.Input = &InputConfirmTerminateOtherSessions{}
 var _ inputConfirmTerminateOtherSessions = &InputConfirmTerminateOtherSessions{}
+
+func (*InputConfirmTerminateOtherSessions) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*InputConfirmTerminateOtherSessions) SchemaBuilder() validation.SchemaBuilder {
 	return InputConfirmTerminateOtherSessionsSchemaBuilder

@@ -21,7 +21,6 @@ func init() {
 }
 
 type IntentLoginFlowStepChangePassword struct {
-	LoginFlow   string        `json:"login_flow,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
@@ -52,7 +51,7 @@ func (*IntentLoginFlowStepChangePassword) CanReactTo(ctx context.Context, deps *
 }
 
 func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +78,7 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	}
 
 	return authflow.NewNodeSimple(&NodeLoginFlowChangePassword{
+		JSONPointer:   i.JSONPointer,
 		Authenticator: info,
 	}), nil
 }

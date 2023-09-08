@@ -3,6 +3,8 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -24,21 +26,21 @@ func init() {
 	)
 }
 
-type InputTakeRecoveryCode struct {
-	RecoveryCode       string `json:"recovery_code,omitempty"`
-	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+type InputSchemaTakeRecoveryCode struct {
+	JSONPointer jsonpointer.T
 }
 
-var _ authflow.InputSchema = &InputTakeRecoveryCode{}
-var _ authflow.Input = &InputTakeRecoveryCode{}
-var _ inputTakeRecoveryCode = &InputTakeRecoveryCode{}
-var _ inputDeviceTokenRequested = &InputTakeRecoveryCode{}
+var _ authflow.InputSchema = &InputSchemaTakeRecoveryCode{}
 
-func (*InputTakeRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
+func (i *InputSchemaTakeRecoveryCode) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
+
+func (*InputSchemaTakeRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
 	return InputTakeRecoveryCodeSchemaBuilder
 }
 
-func (i *InputTakeRecoveryCode) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaTakeRecoveryCode) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputTakeRecoveryCode
 	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
 	if err != nil {
@@ -46,6 +48,15 @@ func (i *InputTakeRecoveryCode) MakeInput(rawMessage json.RawMessage) (authflow.
 	}
 	return &input, nil
 }
+
+type InputTakeRecoveryCode struct {
+	RecoveryCode       string `json:"recovery_code,omitempty"`
+	RequestDeviceToken bool   `json:"request_device_token,omitempty"`
+}
+
+var _ authflow.Input = &InputTakeRecoveryCode{}
+var _ inputTakeRecoveryCode = &InputTakeRecoveryCode{}
+var _ inputDeviceTokenRequested = &InputTakeRecoveryCode{}
 
 func (*InputTakeRecoveryCode) Input() {}
 

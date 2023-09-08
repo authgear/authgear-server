@@ -16,10 +16,11 @@ type IntentSignupFlowStepRecoveryCodeData struct {
 	RecoveryCodes []string `json:"recovery_codes"`
 }
 
+var _ authflow.Data = &IntentSignupFlowStepRecoveryCodeData{}
+
 func (*IntentSignupFlowStepRecoveryCodeData) Data() {}
 
 type IntentSignupFlowStepRecoveryCode struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
@@ -49,9 +50,11 @@ func (*IntentSignupFlowStepRecoveryCode) Kind() string {
 	return "IntentSignupFlowStepRecoveryCode"
 }
 
-func (*IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentSignupFlowStepRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		return &InputConfirmRecoveryCode{}, nil
+		return &InputConfirmRecoveryCode{
+			JSONPointer: i.JSONPointer,
+		}, nil
 	}
 
 	return nil, authflow.ErrEOF

@@ -15,7 +15,6 @@ func init() {
 }
 
 type IntentSignupFlowSteps struct {
-	SignupFlow  string        `json:"signup_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
@@ -32,7 +31,7 @@ func (*IntentSignupFlowSteps) Milestone()            {}
 func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
 
 func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +45,7 @@ func (i *IntentSignupFlowSteps) CanReactTo(ctx context.Context, deps *authflow.D
 }
 
 func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
-	current, err := signupFlowCurrent(deps, i.SignupFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -58,37 +57,32 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 	switch step.Type {
 	case config.AuthenticationFlowSignupFlowStepTypeIdentify:
 		return authflow.NewSubFlow(&IntentSignupFlowStepIdentify{
-			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeVerify:
 		return authflow.NewSubFlow(&IntentSignupFlowStepVerify{
-			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeAuthenticate:
 		return authflow.NewSubFlow(&IntentSignupFlowStepAuthenticate{
-			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeRecoveryCode:
 		return authflow.NewSubFlow(NewIntentSignupFlowStepRecoveryCode(deps, &IntentSignupFlowStepRecoveryCode{
-			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		})), nil
 	case config.AuthenticationFlowSignupFlowStepTypeUserProfile:
 		return authflow.NewSubFlow(&IntentSignupFlowStepUserProfile{
-			SignupFlow:  i.SignupFlow,
 			StepID:      step.ID,
-			JSONPointer: JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
 	}
@@ -97,7 +91,7 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 }
 
 func (i *IntentSignupFlowSteps) steps(o config.AuthenticationFlowObject) []config.AuthenticationFlowObject {
-	steps, ok := o.GetSteps()
+	steps, ok := authflow.FlowObjectGetSteps(o)
 	if !ok {
 		panic(fmt.Errorf("flow object does not have steps %T", o))
 	}

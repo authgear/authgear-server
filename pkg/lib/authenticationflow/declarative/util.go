@@ -2,8 +2,7 @@ package declarative
 
 import (
 	"context"
-
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -29,15 +28,26 @@ func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenti
 	return
 }
 
-func signupFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+	switch flowReference.Type {
+	case authflow.FlowTypeSignup:
+		return flowRootObjectForSignupFlow(deps, flowReference)
+	case authflow.FlowTypeLogin:
+		return flowRootObjectForLoginFlow(deps, flowReference)
+	default:
+		panic(fmt.Errorf("unexpected flow type: %v", flowReference.Type))
+	}
+}
+
+func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if id == idGeneratedFlow {
+	if flowReference.ID == idGeneratedFlow {
 		root = GenerateSignupFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
 			f := f
-			if f.ID == id {
+			if f.ID == flowReference.ID {
 				root = f
 				break
 			}
@@ -49,28 +59,18 @@ func signupFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpoint
 		return nil, ErrFlowNotFound
 	}
 
-	entries, err := Traverse(root, pointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
+	return root, nil
 }
 
-func loginFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
+func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if id == idGeneratedFlow {
+	if flowReference.ID == idGeneratedFlow {
 		root = GenerateLoginFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
 			f := f
-			if f.ID == id {
+			if f.ID == flowReference.ID {
 				root = f
 				break
 			}
@@ -81,17 +81,7 @@ func loginFlowCurrent(deps *authflow.Dependencies, id string, pointer jsonpointe
 		return nil, ErrFlowNotFound
 	}
 
-	entries, err := Traverse(root, pointer)
-	if err != nil {
-		return nil, err
-	}
-
-	current, err := GetCurrentObject(entries)
-	if err != nil {
-		return nil, err
-	}
-
-	return current, nil
+	return root, nil
 }
 
 func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationCandidate, error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
@@ -17,8 +18,8 @@ func init() {
 }
 
 type IntentLoginFlow struct {
-	LoginFlow   string        `json:"login_flow,omitempty"`
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.PublicFlow = &IntentLoginFlow{}
@@ -33,7 +34,15 @@ func (*IntentLoginFlow) FlowType() authflow.FlowType {
 }
 
 func (i *IntentLoginFlow) FlowInit(r authflow.FlowReference) {
-	i.LoginFlow = r.ID
+	i.FlowReference = r
+}
+
+func (i *IntentLoginFlow) FlowFlowReference() authflow.FlowReference {
+	return i.FlowReference
+}
+
+func (i *IntentLoginFlow) FlowRootObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {
+	return flowRootObject(deps, i.FlowReference)
 }
 
 func (*IntentLoginFlow) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
@@ -50,7 +59,6 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			LoginFlow:   i.LoginFlow,
 			JSONPointer: i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:

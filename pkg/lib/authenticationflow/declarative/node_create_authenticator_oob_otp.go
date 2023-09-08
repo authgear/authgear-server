@@ -19,7 +19,6 @@ func init() {
 }
 
 type NodeCreateAuthenticatorOOBOTP struct {
-	SignupFlow     string                                  `json:"signup_flow,omitempty"`
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
@@ -40,7 +39,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.A
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := signupFlowCurrent(deps, n.SignupFlow, n.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +51,13 @@ func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *au
 		return nil, nil
 	}
 
-	return &InputTakeOOBOTPTarget{}, nil
+	return &InputSchemaTakeOOBOTPTarget{
+		JSONPointer: n.JSONPointer,
+	}, nil
 }
 
 func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := signupFlowCurrent(deps, n.SignupFlow, n.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

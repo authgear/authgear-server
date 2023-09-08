@@ -16,7 +16,6 @@ func init() {
 }
 
 type IntentLoginFlowStepIdentify struct {
-	LoginFlow   string        `json:"login_flow,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
 }
@@ -50,7 +49,7 @@ func (*IntentLoginFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +58,8 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
 		return &InputSchemaLoginFlowStepIdentify{
-			OneOf: step.OneOf,
+			JSONPointer: i.JSONPointer,
+			OneOf:       step.OneOf,
 		}, nil
 	}
 
@@ -76,7 +76,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 }
 
 func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	current, err := loginFlowCurrent(deps, i.LoginFlow, i.JSONPointer)
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +85,11 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
 		if authflow.AsInput(input, &inputTakeIdentificationMethod) {
-
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
+			idx, err := i.checkIdentificationMethod(deps, step, identification)
+			if err != nil {
+				return nil, err
+			}
 
 			switch identification {
 			case config.AuthenticationFlowIdentificationEmail:
@@ -95,6 +98,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 				fallthrough
 			case config.AuthenticationFlowIdentificationUsername:
 				return authflow.NewNodeSimple(&NodeUseIdentityLoginID{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 				}), nil
 			}
@@ -109,7 +113,6 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	case identityUsed && !nestedStepsHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{
-			LoginFlow:   i.LoginFlow,
 			JSONPointer: i.jsonPointer(step, identification),
 		}), nil
 	default:
@@ -124,6 +127,24 @@ func (*IntentLoginFlowStepIdentify) step(o config.AuthenticationFlowObject) *con
 	}
 
 	return step
+}
+
+func (*IntentLoginFlowStepIdentify) checkIdentificationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowLoginFlowStep, im config.AuthenticationFlowIdentification) (idx int, err error) {
+	idx = -1
+
+	for index, branch := range step.OneOf {
+		branch := branch
+		if im == branch.Identification {
+			idx = index
+		}
+	}
+
+	if idx >= 0 {
+		return
+	}
+
+	err = authflow.ErrIncompatibleInput
+	return
 }
 
 func (*IntentLoginFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
@@ -141,7 +162,7 @@ func (i *IntentLoginFlowStepIdentify) jsonPointer(step *config.AuthenticationFlo
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Identification == im {
-			return JSONPointerForOneOf(i.JSONPointer, idx)
+			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}
 	}
 

@@ -22,7 +22,7 @@ import (
 )
 
 type AuthenticationFlowV1WorkflowService interface {
-	CreateNewFlow(intent workflow.Intent, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
+	CreateNewFlow(intent workflow.PublicFlow, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
 	Get(instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
 	FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (*workflow.ServiceOutput, error)
 }

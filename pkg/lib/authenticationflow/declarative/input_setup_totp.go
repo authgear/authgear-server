@@ -3,6 +3,8 @@ package declarative
 import (
 	"encoding/json"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -24,20 +26,21 @@ func init() {
 	)
 }
 
-type InputSetupTOTP struct {
-	Code        string `json:"code,omitempty"`
-	DisplayName string `json:"display_name,omitempty"`
+type InputSchemaSetupTOTP struct {
+	JSONPointer jsonpointer.T
 }
 
-var _ authflow.InputSchema = &InputSetupTOTP{}
-var _ authflow.Input = &InputSetupTOTP{}
-var _ inputSetupTOTP = &InputSetupTOTP{}
+var _ authflow.InputSchema = &InputSchemaSetupTOTP{}
 
-func (*InputSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
+func (i *InputSchemaSetupTOTP) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
+}
+
+func (*InputSchemaSetupTOTP) SchemaBuilder() validation.SchemaBuilder {
 	return InputSetupTOTPSchemaBuilder
 }
 
-func (i *InputSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
 	var input InputSetupTOTP
 	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
 	if err != nil {
@@ -45,6 +48,14 @@ func (i *InputSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.Input, 
 	}
 	return &input, nil
 }
+
+type InputSetupTOTP struct {
+	Code        string `json:"code,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
+}
+
+var _ authflow.Input = &InputSetupTOTP{}
+var _ inputSetupTOTP = &InputSetupTOTP{}
 
 func (*InputSetupTOTP) Input() {}
 

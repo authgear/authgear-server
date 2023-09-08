@@ -473,9 +473,31 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 `)
 
 type AuthenticationFlowObject interface {
-	GetID() (string, bool)
-	GetSteps() ([]AuthenticationFlowObject, bool)
-	GetOneOf() ([]AuthenticationFlowObject, bool)
+	IsFlowObject()
+}
+
+type AuthenticationFlowObjectFlowRoot interface {
+	AuthenticationFlowObject
+	GetID() string
+	GetSteps() []AuthenticationFlowObject
+}
+
+type AuthenticationFlowObjectFlowStep interface {
+	AuthenticationFlowObject
+	GetID() string
+	GetType() string
+	GetOneOf() []AuthenticationFlowObject
+}
+
+type AuthenticationFlowObjectFlowBranchInfo struct {
+	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+}
+
+type AuthenticationFlowObjectFlowBranch interface {
+	AuthenticationFlowObject
+	GetSteps() []AuthenticationFlowObject
+	GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo
 }
 
 type AuthenticationFlowIdentification string
@@ -577,21 +599,17 @@ type AuthenticationFlowSignupFlow struct {
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowSignupFlow) GetID() (string, bool) {
-	return f.ID, true
-}
+var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupFlow{}
 
-func (f *AuthenticationFlowSignupFlow) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowSignupFlow) IsFlowObject() {}
+func (f *AuthenticationFlowSignupFlow) GetID() string { return f.ID }
+func (f *AuthenticationFlowSignupFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
-}
-
-func (f *AuthenticationFlowSignupFlow) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+	return out
 }
 
 type AuthenticationFlowSignupFlowStepType string
@@ -616,15 +634,12 @@ type AuthenticationFlowSignupFlowStep struct {
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
 }
 
-func (s *AuthenticationFlowSignupFlowStep) GetID() (string, bool) {
-	return s.ID, true
-}
+var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
 
-func (s *AuthenticationFlowSignupFlowStep) GetSteps() ([]AuthenticationFlowObject, bool) {
-	return nil, false
-}
-
-func (s *AuthenticationFlowSignupFlowStep) GetOneOf() ([]AuthenticationFlowObject, bool) {
+func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowSignupFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowSignupFlowStep) GetType() string { return string(s.Type) }
+func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
 		fallthrough
@@ -634,9 +649,9 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() ([]AuthenticationFlowObjec
 			v := v
 			out[i] = v
 		}
-		return out, true
+		return out
 	default:
-		return nil, false
+		return nil
 	}
 }
 
@@ -653,21 +668,24 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowSignupFlowOneOf) GetID() (string, bool) {
-	return "", false
-}
+var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupFlowOneOf{}
 
-func (f *AuthenticationFlowSignupFlowOneOf) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
+
+func (f *AuthenticationFlowSignupFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
+	return out
 }
 
-func (f *AuthenticationFlowSignupFlowOneOf) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
+	return AuthenticationFlowObjectFlowBranchInfo{
+		Identification: f.Identification,
+		Authentication: f.Authentication,
+	}
 }
 
 type AuthenticationFlowSignupFlowUserProfile struct {
@@ -680,21 +698,21 @@ type AuthenticationFlowLoginFlow struct {
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowLoginFlow) GetID() (string, bool) {
-	return f.ID, true
+var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowLoginFlow{}
+
+func (f *AuthenticationFlowLoginFlow) IsFlowObject() {}
+
+func (f *AuthenticationFlowLoginFlow) GetID() string {
+	return f.ID
 }
 
-func (f *AuthenticationFlowLoginFlow) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
-}
-
-func (f *AuthenticationFlowLoginFlow) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+	return out
 }
 
 type AuthenticationFlowLoginFlowStepType string
@@ -719,15 +737,13 @@ type AuthenticationFlowLoginFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 }
 
-func (s *AuthenticationFlowLoginFlowStep) GetID() (string, bool) {
-	return s.ID, true
-}
+var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowLoginFlowStep{}
 
-func (s *AuthenticationFlowLoginFlowStep) GetSteps() ([]AuthenticationFlowObject, bool) {
-	return nil, false
-}
+func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowLoginFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowLoginFlowStep) GetType() string { return string(s.Type) }
 
-func (s *AuthenticationFlowLoginFlowStep) GetOneOf() ([]AuthenticationFlowObject, bool) {
+func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowLoginFlowStepTypeIdentify:
 		fallthrough
@@ -737,9 +753,9 @@ func (s *AuthenticationFlowLoginFlowStep) GetOneOf() ([]AuthenticationFlowObject
 			v := v
 			out[i] = v
 		}
-		return out, true
+		return out
 	default:
-		return nil, false
+		return nil
 	}
 }
 
@@ -756,21 +772,24 @@ type AuthenticationFlowLoginFlowOneOf struct {
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowLoginFlowOneOf) GetID() (string, bool) {
-	return "", false
-}
+var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowLoginFlowOneOf{}
 
-func (f *AuthenticationFlowLoginFlowOneOf) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowLoginFlowOneOf) IsFlowObject() {}
+
+func (f *AuthenticationFlowLoginFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
+	return out
 }
 
-func (f *AuthenticationFlowLoginFlowOneOf) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+func (f *AuthenticationFlowLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
+	return AuthenticationFlowObjectFlowBranchInfo{
+		Identification: f.Identification,
+		Authentication: f.Authentication,
+	}
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
@@ -778,21 +797,18 @@ type AuthenticationFlowSignupLoginFlow struct {
 	Steps []*AuthenticationFlowSignupLoginFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowSignupLoginFlow) GetID() (string, bool) {
-	return f.ID, true
-}
+var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupLoginFlow{}
 
-func (f *AuthenticationFlowSignupLoginFlow) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowSignupLoginFlow) IsFlowObject() {}
+func (f *AuthenticationFlowSignupLoginFlow) GetID() string { return f.ID }
+
+func (f *AuthenticationFlowSignupLoginFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
-}
-
-func (f *AuthenticationFlowSignupLoginFlow) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+	return out
 }
 
 type AuthenticationFlowSignupLoginFlowStep struct {
@@ -801,15 +817,13 @@ type AuthenticationFlowSignupLoginFlowStep struct {
 	OneOf []*AuthenticationFlowSignupLoginFlowOneOf `json:"one_of,omitempty"`
 }
 
-func (s *AuthenticationFlowSignupLoginFlowStep) GetID() (string, bool) {
-	return s.ID, true
-}
+var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupLoginFlowStep{}
 
-func (s *AuthenticationFlowSignupLoginFlowStep) GetSteps() ([]AuthenticationFlowObject, bool) {
-	return nil, false
-}
+func (s *AuthenticationFlowSignupLoginFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowSignupLoginFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowSignupLoginFlowStep) GetType() string { return string(s.Type) }
 
-func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() ([]AuthenticationFlowObject, bool) {
+func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupLoginFlowStepTypeIdentify:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
@@ -817,9 +831,9 @@ func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() ([]AuthenticationFlow
 			v := v
 			out[i] = v
 		}
-		return out, true
+		return out
 	default:
-		return nil, false
+		return nil
 	}
 }
 
@@ -835,16 +849,18 @@ type AuthenticationFlowSignupLoginFlowOneOf struct {
 	LoginFlow      string                           `json:"login_flow,omitempty"`
 }
 
-func (s *AuthenticationFlowSignupLoginFlowOneOf) GetID() (string, bool) {
-	return "", false
+var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupLoginFlowOneOf{}
+
+func (s *AuthenticationFlowSignupLoginFlowOneOf) IsFlowObject() {}
+
+func (s *AuthenticationFlowSignupLoginFlowOneOf) GetSteps() []AuthenticationFlowObject {
+	return nil
 }
 
-func (s *AuthenticationFlowSignupLoginFlowOneOf) GetSteps() ([]AuthenticationFlowObject, bool) {
-	return nil, false
-}
-
-func (s *AuthenticationFlowSignupLoginFlowOneOf) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+func (s *AuthenticationFlowSignupLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
+	return AuthenticationFlowObjectFlowBranchInfo{
+		Identification: s.Identification,
+	}
 }
 
 type AuthenticationFlowReauthFlow struct {
@@ -852,21 +868,18 @@ type AuthenticationFlowReauthFlow struct {
 	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowReauthFlow) GetID() (string, bool) {
-	return f.ID, true
-}
+var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowReauthFlow{}
 
-func (f *AuthenticationFlowReauthFlow) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowReauthFlow) IsFlowObject() {}
+func (f *AuthenticationFlowReauthFlow) GetID() string { return f.ID }
+
+func (f *AuthenticationFlowReauthFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
-}
-
-func (f *AuthenticationFlowReauthFlow) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+	return out
 }
 
 type AuthenticationFlowReauthFlowStepType string
@@ -886,15 +899,13 @@ type AuthenticationFlowReauthFlowStep struct {
 	OneOf []*AuthenticationFlowReauthFlowOneOf `json:"one_of,omitempty"`
 }
 
-func (s *AuthenticationFlowReauthFlowStep) GetID() (string, bool) {
-	return s.ID, true
-}
+var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
 
-func (s *AuthenticationFlowReauthFlowStep) GetSteps() ([]AuthenticationFlowObject, bool) {
-	return nil, false
-}
+func (s *AuthenticationFlowReauthFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowReauthFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowReauthFlowStep) GetType() string { return string(s.Type) }
 
-func (s *AuthenticationFlowReauthFlowStep) GetOneOf() ([]AuthenticationFlowObject, bool) {
+func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowReauthFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
@@ -902,9 +913,9 @@ func (s *AuthenticationFlowReauthFlowStep) GetOneOf() ([]AuthenticationFlowObjec
 			v := v
 			out[i] = v
 		}
-		return out, true
+		return out
 	default:
-		return nil, false
+		return nil
 	}
 }
 
@@ -914,19 +925,21 @@ type AuthenticationFlowReauthFlowOneOf struct {
 	Steps          []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
-func (f *AuthenticationFlowReauthFlowOneOf) GetID() (string, bool) {
-	return "", false
-}
+var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowReauthFlowOneOf{}
 
-func (f *AuthenticationFlowReauthFlowOneOf) GetSteps() ([]AuthenticationFlowObject, bool) {
+func (f *AuthenticationFlowReauthFlowOneOf) IsFlowObject() {}
+
+func (f *AuthenticationFlowReauthFlowOneOf) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
 		v := v
 		out[i] = v
 	}
-	return out, true
+	return out
 }
 
-func (f *AuthenticationFlowReauthFlowOneOf) GetOneOf() ([]AuthenticationFlowObject, bool) {
-	return nil, false
+func (f *AuthenticationFlowReauthFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
+	return AuthenticationFlowObjectFlowBranchInfo{
+		Authentication: f.Authentication,
+	}
 }

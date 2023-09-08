@@ -9,8 +9,10 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -74,7 +76,8 @@ func TestService(t *testing.T) {
 					InstanceID: "authflow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
-				Data:          EmptyData,
+				FlowReference: &FlowReference{},
+				Data:          mapData{},
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -115,9 +118,7 @@ func TestService(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data: &DataFinishRedirectURI{
-					FinishRedirectURI: "",
-				},
+				Data:     &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -189,7 +190,8 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				Data: EmptyData,
+				FlowReference: &FlowReference{},
+				Data:          mapData{},
 				Session: &Session{
 					FlowID: "flow-id",
 				},
@@ -203,10 +205,24 @@ func TestService(t *testing.T) {
 
 type intentNilInput struct{}
 
-var _ Intent = &intentNilInput{}
+var _ PublicFlow = &intentNilInput{}
 
 func (*intentNilInput) Kind() string {
 	return "intentNilInput"
+}
+
+func (*intentNilInput) FlowType() FlowType {
+	return ""
+}
+
+func (*intentNilInput) FlowInit(r FlowReference) {}
+
+func (*intentNilInput) FlowFlowReference() FlowReference {
+	return FlowReference{}
+}
+
+func (*intentNilInput) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
+	return nil, nil
 }
 
 func (*intentNilInput) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
@@ -230,11 +246,25 @@ func (*nodeNilInput) Kind() string {
 
 type intentServiceContext struct{}
 
-var _ Intent = &intentServiceContext{}
+var _ PublicFlow = &intentServiceContext{}
 var _ CookieGetter = &intentServiceContext{}
 
 func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
+}
+
+func (*intentServiceContext) FlowType() FlowType {
+	return ""
+}
+
+func (*intentServiceContext) FlowInit(r FlowReference) {}
+
+func (*intentServiceContext) FlowFlowReference() FlowReference {
+	return FlowReference{}
+}
+
+func (*intentServiceContext) FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error) {
+	return nil, nil
 }
 
 func (*intentServiceContext) CanReactTo(ctx context.Context, deps *Dependencies, flows Flows) (InputSchema, error) {
@@ -272,6 +302,10 @@ type inputServiceContext struct{}
 var _ InputSchema = &inputServiceContext{}
 var _ Input = &inputServiceContext{}
 var _ InputServiceContext = &inputServiceContext{}
+
+func (*inputServiceContext) GetJSONPointer() jsonpointer.T {
+	return nil
+}
 
 func (*inputServiceContext) SchemaBuilder() validation.SchemaBuilder {
 	return validation.SchemaBuilder{}
@@ -373,10 +407,9 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
-				Finished: true,
-				Data: &DataFinishRedirectURI{
-					FinishRedirectURI: "",
-				},
+				Finished:      true,
+				FlowReference: &FlowReference{},
+				Data:          &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID:   "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID: "client-id",

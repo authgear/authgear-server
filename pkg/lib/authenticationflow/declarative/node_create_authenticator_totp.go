@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -26,6 +28,7 @@ var _ authflow.Data = NodeCreateAuthenticatorTOTPData{}
 func (m NodeCreateAuthenticatorTOTPData) Data() {}
 
 type NodeCreateAuthenticatorTOTP struct {
+	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	Authenticator  *authenticator.Info                     `json:"authenticator,omitempty"`
@@ -75,8 +78,10 @@ func (n *NodeCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.Aut
 	return n.Authentication
 }
 
-func (*NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	return &InputSetupTOTP{}, nil
+func (n *NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	return &InputSchemaSetupTOTP{
+		JSONPointer: n.JSONPointer,
+	}, nil
 }
 
 func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
