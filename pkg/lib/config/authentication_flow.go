@@ -485,6 +485,7 @@ type AuthenticationFlowObjectFlowRoot interface {
 type AuthenticationFlowObjectFlowStep interface {
 	AuthenticationFlowObject
 	GetID() string
+	GetType() string
 	GetOneOf() []AuthenticationFlowObject
 }
 
@@ -635,8 +636,9 @@ type AuthenticationFlowSignupFlowStep struct {
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
 
-func (s *AuthenticationFlowSignupFlowStep) IsFlowObject() {}
-func (s *AuthenticationFlowSignupFlowStep) GetID() string { return s.ID }
+func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowSignupFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowSignupFlowStep) GetType() string { return string(s.Type) }
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
@@ -737,9 +739,9 @@ type AuthenticationFlowLoginFlowStep struct {
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowLoginFlowStep{}
 
-func (s *AuthenticationFlowLoginFlowStep) IsFlowObject() {}
-
-func (s *AuthenticationFlowLoginFlowStep) GetID() string { return s.ID }
+func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowLoginFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowLoginFlowStep) GetType() string { return string(s.Type) }
 
 func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
@@ -817,8 +819,9 @@ type AuthenticationFlowSignupLoginFlowStep struct {
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupLoginFlowStep{}
 
-func (s *AuthenticationFlowSignupLoginFlowStep) IsFlowObject() {}
-func (s *AuthenticationFlowSignupLoginFlowStep) GetID() string { return s.ID }
+func (s *AuthenticationFlowSignupLoginFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowSignupLoginFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowSignupLoginFlowStep) GetType() string { return string(s.Type) }
 
 func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
@@ -898,8 +901,9 @@ type AuthenticationFlowReauthFlowStep struct {
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
 
-func (s *AuthenticationFlowReauthFlowStep) IsFlowObject() {}
-func (s *AuthenticationFlowReauthFlowStep) GetID() string { return s.ID }
+func (s *AuthenticationFlowReauthFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowReauthFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowReauthFlowStep) GetType() string { return string(s.Type) }
 
 func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
