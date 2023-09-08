@@ -614,14 +614,27 @@ Example of a successful response.
   "result": {
     "id": "authflow_blahblahblah",
     "websocket_id": "blahblahblah",
+    "flow_reference": {
+      "type": "login_flow",
+      "id": "default"
+    },
+    "flow_step": {
+      "type": "authenticate",
+      "authenticate": "primary_oob_otp_email"
+    },
     "data": {},
     "json_schema": {}
   }
 }
 ```
 
-- `result.id`: The ID of the Authentication Flow. You must keep this for the next request. This ID changes every time you give an input to the flow. As a result, you can back-track by associating the ID with your application navigation backstack very easily.
+- `result.id`: The ID of the instance of Authentication Flow. You must keep this for the next request. This ID changes every time you give an input to the flow. As a result, you can back-track by associating the ID with your application navigation backstack very easily.
 - `result.websocket_id`: The ID you need to supply to the websocket endpoint. This ID is a constant for every created Authentication Flow.
+- `result.flow_reference.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
+- `result.flow_reference.id`: The ID of the flow. Use the special value `default` to refer to the flow generated according to configuration.
+- `result.flow_step.type`: The type of the current step. Valid values are the union of all possible steps, that is, `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, and `change_password`.
+- `result.flow_step.identification`: The taken branch of the current step. It is only present when `result.flow_step.type=identify`. Valid values are `email`, `phone`, and `username`.
+- `result.flow_step.authentication`: The taken branch of the current step. It is only present when `result.flow_step.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
 - `result.data`: The data associated with the current state of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
 - `result.json_schema`: The JSON schema the server is going to use to validate the next request.
 
