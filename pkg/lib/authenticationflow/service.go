@@ -363,7 +363,7 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 }
 
 func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (result *determineActionResult, err error) {
-	dataFlowReference := &DataFlowReference{
+	dataFlowReference := &DataFlowDetails{
 		FlowReference: GetFlowReference(ctx),
 	}
 
@@ -399,6 +399,10 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 	var schemaBuilder validation.SchemaBuilder
 	if findInputReactorResult.InputSchema != nil {
 		schemaBuilder = findInputReactorResult.InputSchema.SchemaBuilder()
+		p := findInputReactorResult.InputSchema.GetJSONPointer()
+		flowRootObject := GetFlowRootObject(ctx)
+		flowStep := GetFlowStep(flowRootObject, p)
+		dataFlowReference.FlowStep = flowStep
 	}
 
 	var data Data

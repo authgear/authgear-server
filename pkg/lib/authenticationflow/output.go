@@ -32,13 +32,14 @@ var _ Data = &DataFinishRedirectURI{}
 
 func (*DataFinishRedirectURI) Data() {}
 
-type DataFlowReference struct {
+type DataFlowDetails struct {
 	FlowReference FlowReference `json:"flow_reference"`
+	FlowStep      *FlowStep     `json:"flow_step,omitempty"`
 }
 
-var _ Data = &DataFlowReference{}
+var _ Data = &DataFlowDetails{}
 
-func (*DataFlowReference) Data() {}
+func (*DataFlowDetails) Data() {}
 
 func MergeData(manyData ...Data) Data {
 	m := map[string]interface{}{}

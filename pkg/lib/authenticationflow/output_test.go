@@ -17,7 +17,7 @@ func TestMergeData(t *testing.T) {
 			d2 := &DataFinishRedirectURI{
 				FinishRedirectURI: "http://localhost/",
 			}
-			d3 := &DataFlowReference{
+			d3 := &DataFlowDetails{
 				FlowReference: FlowReference{
 					Type: FlowTypeLogin,
 					ID:   "default",

@@ -76,7 +76,7 @@ func TestService(t *testing.T) {
 					InstanceID: "authflow_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
 					Intent:     intent,
 				},
-				Data:          &DataFlowReference{},
+				Data:          &DataFlowDetails{},
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					FlowID: "authflowparent_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -194,7 +194,7 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				Data: &DataFlowReference{},
+				Data: &DataFlowDetails{},
 				Session: &Session{
 					FlowID: "flow-id",
 				},

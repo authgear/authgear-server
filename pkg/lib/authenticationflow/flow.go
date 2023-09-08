@@ -31,6 +31,13 @@ type FlowReference struct {
 	ID   string   `json:"id"`
 }
 
+// FlowStep is an API object.
+type FlowStep struct {
+	Type           string                                  `json:"type"`
+	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
+	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+}
+
 // FlowResponse is an API object.
 // When the flow finished, `json_schema` is absent and `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.

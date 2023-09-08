@@ -140,3 +140,38 @@ func FlowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpoin
 
 	return current, nil
 }
+
+func GetFlowStep(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) *FlowStep {
+	flowObject, err := FlowObject(flowRootObject, pointer)
+	if err != nil {
+		panic(err)
+	}
+
+	switch o := flowObject.(type) {
+	case config.AuthenticationFlowObjectFlowRoot:
+		return nil
+	case config.AuthenticationFlowObjectFlowStep:
+		return &FlowStep{
+			Type: o.GetType(),
+		}
+	case config.AuthenticationFlowObjectFlowBranch:
+		branchInfo := o.GetBranchInfo()
+		step := &FlowStep{
+			Identification: branchInfo.Identification,
+			Authentication: branchInfo.Authentication,
+		}
+
+		stepPointer := JSONPointerToParent(pointer)
+		stepFlowObjectBeforeCast, err := FlowObject(flowRootObject, stepPointer)
+		if err != nil {
+			panic(err)
+		}
+
+		stepFlowObject := stepFlowObjectBeforeCast.(config.AuthenticationFlowObjectFlowStep)
+		step.Type = stepFlowObject.GetType()
+
+		return step
+	default:
+		panic(fmt.Errorf("unexpected flow object: %T", flowObject))
+	}
+}
