@@ -120,6 +120,13 @@ func JSONPointerForOneOf(p jsonpointer.T, index int) jsonpointer.T {
 	return p.AddReferenceToken("one_of").AddReferenceToken(strconv.Itoa(index))
 }
 
+func JSONPointerToParent(p jsonpointer.T) jsonpointer.T {
+	if len(p) < 2 {
+		panic(ErrInvalidJSONPointer)
+	}
+	return p[:len(p)-2]
+}
+
 func FlowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
 	entries, err := Traverse(flowRootObject, pointer)
 	if err != nil {
