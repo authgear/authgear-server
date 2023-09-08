@@ -193,10 +193,9 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorOOBOTP{
-					JSONPointer:       authflow.JSONPointerForOneOf(i.JSONPointer, idx),
-					JSONPointerToStep: i.JSONPointer,
-					UserID:            i.UserID,
-					Authentication:    authentication,
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
