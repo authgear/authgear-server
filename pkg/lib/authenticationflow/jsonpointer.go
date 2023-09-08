@@ -21,16 +21,38 @@ type TraverseEntry struct {
 	Index       int
 }
 
-func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]TraverseEntry, error) {
-	getID := func(o config.AuthenticationFlowObject) string {
-		id, _ := o.GetID()
-		return id
+func FlowObjectGetID(o config.AuthenticationFlowObject) string {
+	if root, ok := o.(config.AuthenticationFlowObjectFlowRoot); ok {
+		return root.GetID()
 	}
+	if step, ok := o.(config.AuthenticationFlowObjectFlowStep); ok {
+		return step.GetID()
+	}
+	return ""
+}
 
+func FlowObjectGetSteps(o config.AuthenticationFlowObject) ([]config.AuthenticationFlowObject, bool) {
+	if root, ok := o.(config.AuthenticationFlowObjectFlowRoot); ok {
+		return root.GetSteps(), true
+	}
+	if branch, ok := o.(config.AuthenticationFlowObjectFlowBranch); ok {
+		return branch.GetSteps(), true
+	}
+	return nil, false
+}
+
+func FlowObjectGetOneOf(o config.AuthenticationFlowObject) ([]config.AuthenticationFlowObject, bool) {
+	if step, ok := o.(config.AuthenticationFlowObjectFlowStep); ok {
+		return step.GetOneOf(), true
+	}
+	return nil, false
+}
+
+func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]TraverseEntry, error) {
 	entries := []TraverseEntry{
 		{
 			FlowObject: o,
-			ID:         getID(o),
+			ID:         FlowObjectGetID(o),
 		},
 	}
 	var traversedPointer jsonpointer.T
@@ -57,9 +79,9 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 			var ok bool
 			switch fieldName {
 			case "steps":
-				objects, ok = o.GetSteps()
+				objects, ok = FlowObjectGetSteps(o)
 			case "one_of":
-				objects, ok = o.GetOneOf()
+				objects, ok = FlowObjectGetOneOf(o)
 			default:
 				break
 			}
@@ -75,7 +97,7 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 			entries = append(entries, TraverseEntry{
 				FlowObject:  o,
 				JSONPointer: traversedPointer,
-				ID:          getID(o),
+				ID:          FlowObjectGetID(o),
 				FieldName:   fieldName,
 				Index:       index,
 			})

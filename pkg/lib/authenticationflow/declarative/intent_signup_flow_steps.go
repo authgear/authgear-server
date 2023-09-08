@@ -91,7 +91,7 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 }
 
 func (i *IntentSignupFlowSteps) steps(o config.AuthenticationFlowObject) []config.AuthenticationFlowObject {
-	steps, ok := o.GetSteps()
+	steps, ok := authflow.FlowObjectGetSteps(o)
 	if !ok {
 		panic(fmt.Errorf("flow object does not have steps %T", o))
 	}
