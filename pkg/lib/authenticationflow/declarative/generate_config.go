@@ -26,7 +26,6 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 }
 
 func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlowStep {
-	// FIXME(authflow): support oauth in signup.
 	step := &config.AuthenticationFlowSignupFlowStep{
 		ID:   idStepIdentify,
 		Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
@@ -36,6 +35,9 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		switch identityType {
 		case model.IdentityTypeLoginID:
 			oneOf := generateSignupFlowStepIdentifyLoginID(cfg, step.ID)
+			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypeOAuth:
+			oneOf := generateSignupFlowStepIdentifyOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
 		}
 	}
@@ -126,6 +128,18 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepID string)
 	}
 
 	return output
+}
+
+func generateSignupFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.AuthenticationFlowSignupFlowOneOf {
+	if len(cfg.Identity.OAuth.Providers) == 0 {
+		return nil
+	}
+
+	return []*config.AuthenticationFlowSignupFlowOneOf{
+		{
+			Identification: config.AuthenticationFlowIdentificationOAuth,
+		},
+	}
 }
 
 func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
@@ -267,7 +281,6 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 }
 
 func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowLoginFlowStep {
-	// FIXME(authflow): support oauth in login.
 	step := &config.AuthenticationFlowLoginFlowStep{
 		ID:   idStepIdentify,
 		Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
@@ -277,6 +290,9 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 		switch identityType {
 		case model.IdentityTypeLoginID:
 			oneOf := generateLoginFlowStepIdentifyLoginID(cfg)
+			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypeOAuth:
+			oneOf := generateLoginFlowStepIdentityOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
 		}
 	}
@@ -349,6 +365,18 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 	}
 
 	return output
+}
+
+func generateLoginFlowStepIdentityOAuth(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
+	if len(cfg.Identity.OAuth.Providers) == 0 {
+		return nil
+	}
+
+	return []*config.AuthenticationFlowLoginFlowOneOf{
+		{
+			Identification: config.AuthenticationFlowIdentificationOAuth,
+		},
+	}
 }
 
 func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowLoginFlowStep, bool) {
