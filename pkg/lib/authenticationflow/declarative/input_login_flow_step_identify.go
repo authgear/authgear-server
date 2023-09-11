@@ -43,6 +43,9 @@ func (i *InputSchemaLoginFlowStepIdentify) SchemaBuilder() validation.SchemaBuil
 			requireString("login_id")
 		case config.AuthenticationFlowIdentificationUsername:
 			requireString("login_id")
+		case config.AuthenticationFlowIdentificationOAuth:
+			// FIXME(authflow): support oauth in login.
+			continue
 		default:
 			// Skip the following code.
 			continue

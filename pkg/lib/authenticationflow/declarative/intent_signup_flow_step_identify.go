@@ -123,6 +123,9 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 					UserID:         i.UserID,
 					Identification: identification,
 				}), nil
+			case config.AuthenticationFlowIdentificationOAuth:
+				// FIXME(authflow): Support oauth in signup.
+				return nil, authflow.ErrIncompatibleInput
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput

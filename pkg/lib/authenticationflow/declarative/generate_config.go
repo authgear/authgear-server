@@ -26,6 +26,7 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 }
 
 func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlowStep {
+	// FIXME(authflow): support oauth in signup.
 	step := &config.AuthenticationFlowSignupFlowStep{
 		ID:   idStepIdentify,
 		Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
@@ -256,6 +257,7 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 }
 
 func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowLoginFlowStep {
+	// FIXME(authflow): support oauth in login.
 	step := &config.AuthenticationFlowLoginFlowStep{
 		ID:   idStepIdentify,
 		Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
