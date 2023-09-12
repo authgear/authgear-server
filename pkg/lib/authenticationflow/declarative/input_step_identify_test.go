@@ -19,17 +19,19 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 		}
 
 		test(&InputSchemaStepIdentify{
-			Identifications: []config.AuthenticationFlowIdentification{
-				config.AuthenticationFlowIdentificationEmail,
-				config.AuthenticationFlowIdentificationPhone,
-				config.AuthenticationFlowIdentificationUsername,
-				config.AuthenticationFlowIdentificationOAuth,
-			},
-			OAuthConfig: &config.OAuthSSOConfig{
-				Providers: []config.OAuthSSOProviderConfig{
-					{
-						Alias: "google",
-					},
+			Candidates: []IdentificationCandidate{
+				{
+					Identification: config.AuthenticationFlowIdentificationEmail,
+				},
+				{
+					Identification: config.AuthenticationFlowIdentificationPhone,
+				},
+				{
+					Identification: config.AuthenticationFlowIdentificationUsername,
+				},
+				{
+					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Aliases:        []string{"google"},
 				},
 			},
 		}, `

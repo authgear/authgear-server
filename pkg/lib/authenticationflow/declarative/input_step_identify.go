@@ -11,9 +11,8 @@ import (
 )
 
 type InputSchemaStepIdentify struct {
-	JSONPointer     jsonpointer.T
-	Identifications []config.AuthenticationFlowIdentification
-	OAuthConfig     *config.OAuthSSOConfig
+	JSONPointer jsonpointer.T
+	Candidates  []IdentificationCandidate
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -25,10 +24,10 @@ func (i *InputSchemaStepIdentify) GetJSONPointer() jsonpointer.T {
 func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
-	for _, identification := range i.Identifications {
+	for _, candidate := range i.Candidates {
 		b := validation.SchemaBuilder{}
 		required := []string{"identification"}
-		b.Properties().Property("identification", validation.SchemaBuilder{}.Const(identification))
+		b.Properties().Property("identification", validation.SchemaBuilder{}.Const(candidate.Identification))
 
 		requireString := func(key string) {
 			required = append(required, key)
@@ -48,7 +47,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			oneOf = append(oneOf, b)
 		}
 
-		switch identification {
+		switch candidate.Identification {
 		case config.AuthenticationFlowIdentificationEmail:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
@@ -59,15 +58,13 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationOAuth:
-			if len(i.OAuthConfig.Providers) > 0 {
-				requireString("redirect_uri")
-				var enumValues []interface{}
-				for _, p := range i.OAuthConfig.Providers {
-					enumValues = append(enumValues, p.Alias)
-				}
-				requireEnum("alias", enumValues)
-				setRequiredAndAppendOneOf()
+			requireString("redirect_uri")
+			var enumValues []interface{}
+			for _, alias := range candidate.Aliases {
+				enumValues = append(enumValues, alias)
 			}
+			requireEnum("alias", enumValues)
+			setRequiredAndAppendOneOf()
 		default:
 			break
 		}

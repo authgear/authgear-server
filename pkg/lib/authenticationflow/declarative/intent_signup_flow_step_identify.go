@@ -17,6 +17,14 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepIdentify{})
 }
 
+type IntentSignupFlowStepIdentifyData struct {
+	Candidates []IdentificationCandidate `json:"candidates"`
+}
+
+var _ authflow.Data = IntentSignupFlowStepIdentifyData{}
+
+func (IntentSignupFlowStepIdentifyData) Data() {}
+
 type IntentSignupFlowStepIdentify struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepID      string        `json:"step_id,omitempty"`
@@ -60,6 +68,7 @@ func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepIdentify{}
+var _ authflow.DataOutputer = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Kind() string {
 	return "IntentSignupFlowStepIdentify"
@@ -74,15 +83,12 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		var identifications []config.AuthenticationFlowIdentification
-		for _, b := range step.OneOf {
-			identifications = append(identifications, b.Identification)
-		}
-
 		return &InputSchemaStepIdentify{
-			JSONPointer:     i.JSONPointer,
-			Identifications: identifications,
-			OAuthConfig:     deps.Config.Identity.OAuth,
+			JSONPointer: i.JSONPointer,
+			Candidates: NewIdentificationCandidates(
+				deps.Config.Identity.OAuth,
+				i.identifications(step),
+			),
 		}, nil
 	}
 
@@ -158,6 +164,21 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	}
 }
 
+func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	return IntentSignupFlowStepIdentifyData{
+		Candidates: NewIdentificationCandidates(
+			deps.Config.Identity.OAuth,
+			i.identifications(step),
+		),
+	}, nil
+}
+
 func (*IntentSignupFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {
 	step, ok := o.(*config.AuthenticationFlowSignupFlowStep)
 	if !ok {
@@ -214,4 +235,12 @@ func (*IntentSignupFlowStepIdentify) identityInfo(w *authflow.Flow) *identity.In
 	}
 	info := m.MilestoneDoCreateIdentity()
 	return info
+}
+
+func (i *IntentSignupFlowStepIdentify) identifications(step *config.AuthenticationFlowSignupFlowStep) []config.AuthenticationFlowIdentification {
+	var identifications []config.AuthenticationFlowIdentification
+	for _, b := range step.OneOf {
+		identifications = append(identifications, b.Identification)
+	}
+	return identifications
 }
