@@ -19,11 +19,15 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
 		}
 
 		test(&InputSchemaTakeOAuthAuthorizationRequest{
-			OAuthConfig: &config.OAuthSSOConfig{
-				Providers: []config.OAuthSSOProviderConfig{
-					{
-						Alias: "google",
-					},
+			OAuthCandidates: []IdentificationCandidate{
+				{
+					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Alias:          "google",
+				},
+				{
+					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Alias:          "wechat_mobile",
+					WechatAppType:  config.OAuthSSOWeChatAppTypeMobile,
 				},
 			},
 		}, `
@@ -31,7 +35,8 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
     "properties": {
         "alias": {
             "enum": [
-                "google"
+                "google",
+                "wechat_mobile"
             ],
             "type": "string"
         },

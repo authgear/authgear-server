@@ -6,13 +6,12 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type InputSchemaTakeOAuthAuthorizationRequest struct {
-	JSONPointer jsonpointer.T
-	OAuthConfig *config.OAuthSSOConfig
+	JSONPointer     jsonpointer.T
+	OAuthCandidates []IdentificationCandidate
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeOAuthAuthorizationRequest{}
@@ -27,8 +26,9 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.Sc
 	b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
 	b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))
 	var enumValues []interface{}
-	for _, p := range i.OAuthConfig.Providers {
-		enumValues = append(enumValues, p.Alias)
+	for _, c := range i.OAuthCandidates {
+		enumValues = append(enumValues, c.Alias)
+
 	}
 	b.Properties().Property("alias", validation.SchemaBuilder{}.
 		Type(validation.TypeString).

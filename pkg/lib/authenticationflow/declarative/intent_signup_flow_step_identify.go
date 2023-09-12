@@ -83,12 +83,11 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
+		oauthCandidates := NewIdentificationCandidatesOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
+		candidates := NewIdentificationCandidates(i.identifications(step), oauthCandidates)
 		return &InputSchemaStepIdentify{
 			JSONPointer: i.JSONPointer,
-			Candidates: NewIdentificationCandidates(
-				deps.Config.Identity.OAuth,
-				i.identifications(step),
-			),
+			Candidates:  candidates,
 		}, nil
 	}
 
@@ -174,11 +173,10 @@ func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *aut
 	}
 	step := i.step(current)
 
+	oauthCandidates := NewIdentificationCandidatesOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
+	candidates := NewIdentificationCandidates(i.identifications(step), oauthCandidates)
 	return IntentSignupFlowStepIdentifyData{
-		Candidates: NewIdentificationCandidates(
-			deps.Config.Identity.OAuth,
-			i.identifications(step),
-		),
+		Candidates: candidates,
 	}, nil
 }
 

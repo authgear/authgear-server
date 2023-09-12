@@ -39,12 +39,9 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString).Format(format))
 		}
 
-		requireEnum := func(key string, enumValues []interface{}) {
+		requireConst := func(key string, value string) {
 			required = append(required, key)
-			inner := validation.SchemaBuilder{}
-			inner.Type(validation.TypeString)
-			inner.Enum(enumValues...)
-			b.Properties().Property(key, inner)
+			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString).Const(value))
 		}
 
 		setRequiredAndAppendOneOf := func() {
@@ -65,11 +62,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		case config.AuthenticationFlowIdentificationOAuth:
 			requireFormat("redirect_uri", "uri")
 			requireString("state")
-			var enumValues []interface{}
-			for _, alias := range candidate.Aliases {
-				enumValues = append(enumValues, alias)
-			}
-			requireEnum("alias", enumValues)
+			requireConst("alias", candidate.Alias)
 			setRequiredAndAppendOneOf()
 		default:
 			break

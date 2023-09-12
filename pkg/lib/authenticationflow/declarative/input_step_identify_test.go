@@ -31,7 +31,12 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 				},
 				{
 					Identification: config.AuthenticationFlowIdentificationOAuth,
-					Aliases:        []string{"google"},
+					Alias:          "google",
+				},
+				{
+					Identification: config.AuthenticationFlowIdentificationOAuth,
+					Alias:          "wechat_mobile",
+					WechatAppType:  config.OAuthSSOWeChatAppTypeMobile,
 				},
 			},
 		}, `
@@ -82,9 +87,31 @@ func TestInputSchemaStepIdentify(t *testing.T) {
         {
             "properties": {
                 "alias": {
-                    "enum": [
-                        "google"
-                    ],
+                    "const": "google",
+                    "type": "string"
+                },
+                "identification": {
+                    "const": "oauth"
+                },
+                "redirect_uri": {
+                    "type": "string",
+		    "format": "uri"
+                },
+                "state": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "identification",
+                "redirect_uri",
+                "state",
+                "alias"
+            ]
+        },
+        {
+            "properties": {
+                "alias": {
+                    "const": "wechat_mobile",
                     "type": "string"
                 },
                 "identification": {

@@ -36,9 +36,10 @@ func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencie
 	// FIXME(authflow): must have NodeDoUseIdentity by the end of flow if NewUserID is absent.
 	// FIXME(authflow): Must have NodeDoCreateIdentity by the end of flow if NewUserID is present.
 	if len(flows.Nearest.Nodes) == 0 {
+		oauthCandidates := NewIdentificationCandidatesOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
 		return &InputSchemaTakeOAuthAuthorizationRequest{
-			JSONPointer: i.JSONPointer,
-			OAuthConfig: deps.Config.Identity.OAuth,
+			JSONPointer:     i.JSONPointer,
+			OAuthCandidates: oauthCandidates,
 		}, nil
 	}
 	return nil, authflow.ErrEOF
