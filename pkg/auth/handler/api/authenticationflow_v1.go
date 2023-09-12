@@ -9,7 +9,7 @@ import (
 	"github.com/iawaknahc/originmatcher"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	workflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -22,9 +22,9 @@ import (
 )
 
 type AuthenticationFlowV1WorkflowService interface {
-	CreateNewFlow(intent workflow.PublicFlow, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
-	Get(instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
-	FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (*workflow.ServiceOutput, error)
+	CreateNewFlow(intent authflow.PublicFlow, sessionOptions *authflow.SessionOptions) (*authflow.ServiceOutput, error)
+	Get(instanceID string, userAgentID string) (*authflow.ServiceOutput, error)
+	FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (*authflow.ServiceOutput, error)
 }
 
 type AuthenticationFlowV1CookieManager interface {
@@ -53,14 +53,14 @@ type AuthenticationFlowV1WebsocketOriginMatcher interface {
 
 func authenticationFlowGetOrCreateUserAgentID(cookies AuthenticationFlowV1CookieManager, w http.ResponseWriter, r *http.Request) string {
 	var userAgentID string
-	userAgentIDCookie, err := cookies.GetCookie(r, workflow.UserAgentIDCookieDef)
+	userAgentIDCookie, err := cookies.GetCookie(r, authflow.UserAgentIDCookieDef)
 	if err == nil {
 		userAgentID = userAgentIDCookie.Value
 	}
 	if userAgentID == "" {
-		userAgentID = workflow.NewUserAgentID()
+		userAgentID = authflow.NewUserAgentID()
 	}
-	cookie := cookies.ValueCookie(workflow.UserAgentIDCookieDef, userAgentID)
+	cookie := cookies.ValueCookie(authflow.UserAgentIDCookieDef, userAgentID)
 	httputil.UpdateCookie(w, cookie)
 	return userAgentID
 }
@@ -102,7 +102,7 @@ var AuthenticationFlowV1RestfulCreateRequestSchema = validation.NewSimpleSchema(
 `)
 
 type AuthenticationFlowV1RestfulCreateRequest struct {
-	FlowReference *workflow.FlowReference `json:"flow_reference,omitempty"`
+	FlowReference *authflow.FlowReference `json:"flow_reference,omitempty"`
 	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
 	BatchInput    []json.RawMessage       `json:"batch_input,omitempty"`
 }
@@ -155,7 +155,7 @@ var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSche
 `)
 
 type AuthenticationFlowV1NonRestfulCreateRequest struct {
-	FlowReference *workflow.FlowReference `json:"flow_reference,omitempty"`
+	FlowReference *authflow.FlowReference `json:"flow_reference,omitempty"`
 	URLQuery      string                  `json:"url_query,omitempty"`
 	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
 	BatchInput    []json.RawMessage       `json:"batch_input,omitempty"`
@@ -360,9 +360,9 @@ func (h *AuthenticationFlowV1Handler) ServeHTTP(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromQuery(urlQuery string) *workflow.SessionOptions {
+func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromQuery(urlQuery string) *authflow.SessionOptions {
 	q, _ := url.ParseQuery(urlQuery)
-	return &workflow.SessionOptions{
+	return &authflow.SessionOptions{
 		ClientID:  q.Get("client_id"),
 		State:     q.Get("state"),
 		XState:    q.Get("x_state"),
@@ -370,7 +370,7 @@ func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromQuery(urlQuery strin
 	}
 }
 
-func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromOAuth(oauthSessionID string) (*workflow.SessionOptions, error) {
+func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromOAuth(oauthSessionID string) (*authflow.SessionOptions, error) {
 	entry, err := h.OAuthSessions.Get(oauthSessionID)
 	if err != nil {
 		return nil, err
@@ -382,7 +382,7 @@ func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromOAuth(oauthSessionID
 		return nil, err
 	}
 
-	sessionOptions := &workflow.SessionOptions{
+	sessionOptions := &authflow.SessionOptions{
 		OAuthSessionID:           oauthSessionID,
 		ClientID:                 uiInfo.ClientID,
 		RedirectURI:              uiInfo.RedirectURI,
@@ -440,15 +440,15 @@ func (h *AuthenticationFlowV1Handler) create(w http.ResponseWriter, r *http.Requ
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*workflow.ServiceOutput, error) {
-	flow, err := workflow.InstantiateFlow(*request.FlowReference)
+func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*authflow.ServiceOutput, error) {
+	flow, err := authflow.InstantiateFlow(*request.FlowReference)
 	if err != nil {
 		return nil, err
 	}
 
 	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
 
-	var sessionOptionsFromOAuth *workflow.SessionOptions
+	var sessionOptionsFromOAuth *authflow.SessionOptions
 	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionID(r, request.URLQuery); ok {
 		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
@@ -511,9 +511,9 @@ func (h *AuthenticationFlowV1Handler) input0(
 	instanceID string,
 	userAgentID string,
 	request AuthenticationFlowV1NonRestfulInputRequest,
-) (*workflow.ServiceOutput, error) {
+) (*authflow.ServiceOutput, error) {
 	output, err := h.Workflows.FeedInput(instanceID, userAgentID, request.Input)
-	if err != nil && !errors.Is(err, workflow.ErrEOF) {
+	if err != nil && !errors.Is(err, authflow.ErrEOF) {
 		return nil, err
 	}
 
@@ -550,12 +550,12 @@ func (h *AuthenticationFlowV1Handler) batchInput0(
 	instanceID string,
 	userAgentID string,
 	rawMessages []json.RawMessage,
-) (output *workflow.ServiceOutput, err error) {
+) (output *authflow.ServiceOutput, err error) {
 	// Collect all cookies
 	var cookies []*http.Cookie
 	for _, rawMessage := range rawMessages {
 		output, err = h.Workflows.FeedInput(instanceID, userAgentID, rawMessage)
-		if err != nil && !errors.Is(err, workflow.ErrEOF) {
+		if err != nil && !errors.Is(err, authflow.ErrEOF) {
 			return nil, err
 		}
 
@@ -563,7 +563,7 @@ func (h *AuthenticationFlowV1Handler) batchInput0(
 		instanceID = output.Flow.InstanceID
 		cookies = append(cookies, output.Cookies...)
 	}
-	if err != nil && errors.Is(err, workflow.ErrEOF) {
+	if err != nil && errors.Is(err, authflow.ErrEOF) {
 		err = nil
 	}
 	if err != nil {
