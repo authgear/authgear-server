@@ -386,6 +386,7 @@ func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromOAuth(oauthSessionID
 		OAuthSessionID:           oauthSessionID,
 		ClientID:                 uiInfo.ClientID,
 		RedirectURI:              uiInfo.RedirectURI,
+		Prompt:                   uiInfo.Prompt,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		State:                    uiInfo.State,
 		XState:                   uiInfo.XState,
