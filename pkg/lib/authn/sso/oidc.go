@@ -29,10 +29,14 @@ func (c jwtClock) Now() time.Time {
 type OIDCAuthParams struct {
 	ProviderConfig config.OAuthSSOProviderConfig
 	RedirectURI    string
-	Nonce          string
-	State          string
-	Prompt         []string
-	ExtraParams    map[string]string
+	// TODO(authflow): do not save nonce in cookies.
+	// Nonce in the current implementation is stored in cookies.
+	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
+	// So Nonce is optional.
+	Nonce       string
+	State       string
+	Prompt      []string
+	ExtraParams map[string]string
 }
 
 type OIDCDiscoveryDocument struct {
@@ -73,7 +77,10 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 	v.Add("client_id", params.ProviderConfig.ClientID)
 	v.Add("redirect_uri", params.RedirectURI)
 	v.Add("scope", params.ProviderConfig.Type.Scope())
-	v.Add("nonce", params.Nonce)
+	// Include nonce in the URL only when it is present.
+	if params.Nonce != "" {
+		v.Add("nonce", params.Nonce)
+	}
 	v.Add("response_mode", "form_post")
 	for key, value := range params.ExtraParams {
 		v.Add(key, value)
@@ -155,18 +162,21 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		return nil, fmt.Errorf("failed to validate JWT claims: %w", err)
 	}
 
-	hashedNonceIface, ok := payload.Get("nonce")
-	if !ok {
-		return nil, OAuthProtocolError.New("nonce not found in ID token")
-	}
+	// Verify nonce only when it was specified in the authorization url.
+	if nonce != "" {
+		hashedNonceIface, ok := payload.Get("nonce")
+		if !ok {
+			return nil, OAuthProtocolError.New("nonce not found in ID token")
+		}
 
-	hashedNonce, ok := hashedNonceIface.(string)
-	if !ok {
-		return nil, OAuthProtocolError.New(fmt.Sprintf("nonce in ID token is of invalid type: %T", hashedNonceIface))
-	}
+		hashedNonce, ok := hashedNonceIface.(string)
+		if !ok {
+			return nil, OAuthProtocolError.New(fmt.Sprintf("nonce in ID token is of invalid type: %T", hashedNonceIface))
+		}
 
-	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
-		return nil, fmt.Errorf("invalid nonce")
+		if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
+			return nil, fmt.Errorf("invalid nonce")
+		}
 	}
 
 	return payload, nil
