@@ -20,7 +20,6 @@ func init() {
 type InputUseIdentityOAuthUserInfo interface {
 	GetProviderAlias() string
 	GetCode() string
-	GetScope() string
 	GetError() string
 	GetErrorDescription() string
 	GetErrorURI() string
@@ -44,7 +43,6 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	nonceSource := ctx.Nonces.GetAndClear()
 	code := input.GetCode()
 	state := ctx.WebSessionID
-	scope := input.GetScope()
 	oauthError := input.GetError()
 	errorDescription := input.GetErrorDescription()
 	errorURI := input.GetErrorURI()
@@ -76,7 +74,6 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		sso.OAuthAuthorizationResponse{
 			Code:  code,
 			State: state,
-			Scope: scope,
 		},
 		sso.GetAuthInfoParam{
 			Nonce: hashedNonce,

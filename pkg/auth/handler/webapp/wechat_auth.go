@@ -118,7 +118,6 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				data := InputOAuthCallback{
 					ProviderAlias:    httproute.GetParam(r, "alias"),
 					Code:             step.FormData["x_code"].(string),
-					Scope:            step.FormData["x_scope"].(string),
 					Error:            step.FormData["x_error"].(string),
 					ErrorDescription: step.FormData["x_error_description"].(string),
 				}
@@ -158,7 +157,6 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				data := InputOAuthCallback{
 					ProviderAlias:    httproute.GetParam(r, "alias"),
 					Code:             step.FormData["x_code"].(string),
-					Scope:            step.FormData["x_scope"].(string),
 					Error:            step.FormData["x_error"].(string),
 					ErrorDescription: step.FormData["x_error_description"].(string),
 				}
