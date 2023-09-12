@@ -18,9 +18,17 @@ type inputTakeLoginID interface {
 	GetLoginID() string
 }
 
-type inputTakeOAuthAliasAndRedirectURI interface {
+type inputTakeOAuthAuthorizationRequest interface {
 	GetOAuthAlias() string
+	GetOAuthState() string
 	GetOAuthRedirectURI() string
+}
+
+type inputTakeOAuthAuthorizationResponse interface {
+	GetOAuthAuthorizationCode() string
+	GetOAuthError() string
+	GetOAuthErrorDescription() string
+	GetOAuthErrorURI() string
 }
 
 type inputTakeOOBOTPChannel interface {

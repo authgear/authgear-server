@@ -114,8 +114,10 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 					Identification: identification,
 				}), nil
 			case config.AuthenticationFlowIdentificationOAuth:
-				// FIXME(authflow): support oauth in login.
-				return nil, authflow.ErrIncompatibleInput
+				return authflow.NewSubFlow(&IntentOAuth{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+				}), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput

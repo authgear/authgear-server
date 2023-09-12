@@ -59,6 +59,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationOAuth:
 			requireString("redirect_uri")
+			requireString("state")
 			var enumValues []interface{}
 			for _, alias := range candidate.Aliases {
 				enumValues = append(enumValues, alias)
@@ -95,13 +96,14 @@ type InputStepIdentify struct {
 	LoginID string `json:"login,omitempty"`
 
 	Alias       string `json:"alias,omitempty"`
+	State       string `json:"state,omitempty"`
 	RedirectURI string `json:"redirect_uri,omitempty"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
 var _ inputTakeIdentificationMethod = &InputStepIdentify{}
 var _ inputTakeLoginID = &InputStepIdentify{}
-var _ inputTakeOAuthAliasAndRedirectURI = &InputStepIdentify{}
+var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
@@ -115,6 +117,10 @@ func (i *InputStepIdentify) GetLoginID() string {
 
 func (i *InputStepIdentify) GetOAuthAlias() string {
 	return i.Alias
+}
+
+func (i *InputStepIdentify) GetOAuthState() string {
+	return i.State
 }
 
 func (i *InputStepIdentify) GetOAuthRedirectURI() string {

@@ -92,11 +92,15 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                 },
                 "redirect_uri": {
                     "type": "string"
+                },
+                "state": {
+                    "type": "string"
                 }
             },
             "required": [
                 "identification",
                 "redirect_uri",
+                "state",
                 "alias"
             ]
         }
