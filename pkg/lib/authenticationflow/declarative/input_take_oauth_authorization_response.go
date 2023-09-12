@@ -30,7 +30,7 @@ func (i *InputSchemaTakeOAuthAuthorizationResponse) SchemaBuilder() validation.S
 	bad.Required("error")
 	good.Properties().Property("error", validation.SchemaBuilder{}.Type(validation.TypeString))
 	good.Properties().Property("error_description", validation.SchemaBuilder{}.Type(validation.TypeString))
-	good.Properties().Property("error_uri", validation.SchemaBuilder{}.Type(validation.TypeString))
+	good.Properties().Property("error_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
 
 	b.OneOf(good, bad)
 

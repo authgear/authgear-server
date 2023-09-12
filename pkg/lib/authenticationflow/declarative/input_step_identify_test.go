@@ -91,7 +91,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "const": "oauth"
                 },
                 "redirect_uri": {
-                    "type": "string"
+                    "type": "string",
+		    "format": "uri"
                 },
                 "state": {
                     "type": "string"

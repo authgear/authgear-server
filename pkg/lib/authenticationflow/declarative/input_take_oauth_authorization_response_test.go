@@ -31,7 +31,8 @@ func TestInputSchemaTakeOAuthAuthorizationResponse(t *testing.T) {
                     "type": "string"
                 },
                 "error_uri": {
-                    "type": "string"
+                    "type": "string",
+		    "format": "uri"
                 }
             },
             "required": [

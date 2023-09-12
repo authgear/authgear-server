@@ -36,7 +36,8 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
             "type": "string"
         },
         "redirect_uri": {
-            "type": "string"
+            "type": "string",
+	    "format": "uri"
         },
         "state": {
             "type": "string"

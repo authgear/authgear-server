@@ -34,6 +34,11 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString))
 		}
 
+		requireFormat := func(key string, format string) {
+			required = append(required, key)
+			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString).Format(format))
+		}
+
 		requireEnum := func(key string, enumValues []interface{}) {
 			required = append(required, key)
 			inner := validation.SchemaBuilder{}
@@ -58,7 +63,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationOAuth:
-			requireString("redirect_uri")
+			requireFormat("redirect_uri", "uri")
 			requireString("state")
 			var enumValues []interface{}
 			for _, alias := range candidate.Aliases {
