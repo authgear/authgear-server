@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
+	"github.com/authgear/authgear-server/pkg/portal/apptester"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -17,6 +18,7 @@ import (
 
 var DependencySet = wire.NewSet(
 	appsecret.DependencySet,
+	apptester.DependencySet,
 	wire.Struct(new(AppService), "*"),
 	wire.Struct(new(AdminAPIService), "*"),
 	wire.Struct(new(AuthzService), "*"),
@@ -40,6 +42,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(AuthzCollaboratorService), new(*CollaboratorService)),
 	wire.Bind(new(DomainConfigService), new(*ConfigService)),
 	wire.Bind(new(AppSecretVisitTokenStore), new(*appsecret.AppSecretVisitTokenStoreImpl)),
+	wire.Bind(new(AppTesterTokenStore), new(*apptester.AppTesterTokenStore)),
 	wire.Bind(new(AppDefaultDomainService), new(*DefaultDomainService)),
 	wire.Bind(new(AdminAPIDefaultDomainService), new(*DefaultDomainService)),
 	wire.Bind(new(DefaultDomainDomainService), new(*DomainService)),

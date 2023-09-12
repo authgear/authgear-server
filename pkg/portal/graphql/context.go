@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
+	"github.com/authgear/authgear-server/pkg/portal/apptester"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
@@ -54,6 +55,10 @@ type AppService interface {
 		sessionInfo *apimodel.SessionInfo,
 		visitingSecrets []config.SecretKey,
 	) (*appsecret.AppSecretVisitToken, error)
+	GenerateTesterToken(
+		app *model.App,
+		returnURI string,
+	) (*apptester.AppTesterToken, error)
 }
 
 type DomainService interface {
