@@ -18,6 +18,11 @@ type inputTakeLoginID interface {
 	GetLoginID() string
 }
 
+type inputTakeOAuthAliasAndRedirectURI interface {
+	GetOAuthAlias() string
+	GetOAuthRedirectURI() string
+}
+
 type inputTakeOOBOTPChannel interface {
 	GetChannel() model.AuthenticatorOOBChannel
 }
