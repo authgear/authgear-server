@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -14,28 +15,15 @@ type IdentificationCandidate struct {
 	Alias string `json:"alias,omitempty"`
 	// WechatAppType is specific to OAuth.
 	WechatAppType config.OAuthSSOWeChatAppType `json:"wechat_app_type,omitempty"`
+
+	// WebAuthnRequestOptions is specific to Passkey.
+	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 }
 
-func NewIdentificationCandidates(identifications []config.AuthenticationFlowIdentification, oauthCandidates []IdentificationCandidate) []IdentificationCandidate {
-	output := []IdentificationCandidate{}
-	for _, identification := range identifications {
-		switch identification {
-		case config.AuthenticationFlowIdentificationEmail:
-			fallthrough
-		case config.AuthenticationFlowIdentificationPhone:
-			fallthrough
-		case config.AuthenticationFlowIdentificationUsername:
-			output = append(output, IdentificationCandidate{
-				Identification: identification,
-			})
-		case config.AuthenticationFlowIdentificationOAuth:
-			output = append(output, oauthCandidates...)
-		case config.AuthenticationFlowIdentificationPasskey:
-			// FIXME(authflow): support passkey
-			break
-		}
+func NewIdentificationCandidateLoginID(i config.AuthenticationFlowIdentification) IdentificationCandidate {
+	return IdentificationCandidate{
+		Identification: i,
 	}
-	return output
 }
 
 func NewIdentificationCandidatesOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig) []IdentificationCandidate {
@@ -51,4 +39,11 @@ func NewIdentificationCandidatesOAuth(oauthConfig *config.OAuthSSOConfig, oauthF
 		}
 	}
 	return output
+}
+
+func NewIdentificationCandidatePasskey(requestOptions *model.WebAuthnRequestOptions) IdentificationCandidate {
+	return IdentificationCandidate{
+		Identification: config.AuthenticationFlowIdentificationPasskey,
+		RequestOptions: requestOptions,
+	}
 }

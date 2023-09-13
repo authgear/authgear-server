@@ -164,6 +164,10 @@ type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
 }
 
+type PasskeyRequestOptionsService interface {
+	MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -187,6 +191,7 @@ type Dependencies struct {
 	AccountMigrations    AccountMigrationService
 	Captcha              CaptchaService
 	OAuthProviderFactory OAuthProviderFactory
+	PasskeyRequestOptionsService PasskeyRequestOptionsService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService
