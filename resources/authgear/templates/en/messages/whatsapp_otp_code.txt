@@ -1,1 +1,1 @@
-{{ .Code }} ({{ template "app.name" }})
+{{ .Code }}
