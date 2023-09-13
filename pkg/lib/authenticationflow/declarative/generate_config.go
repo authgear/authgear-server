@@ -39,6 +39,9 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		case model.IdentityTypeOAuth:
 			oneOf := generateSignupFlowStepIdentifyOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypePasskey:
+			// FIXME(authflow): support passkey in signup flow
+			break
 		}
 	}
 
@@ -294,6 +297,9 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 		case model.IdentityTypeOAuth:
 			oneOf := generateLoginFlowStepIdentityOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypePasskey:
+			// FIXME(authflow): support passkey in login flow.
+			break
 		}
 	}
 

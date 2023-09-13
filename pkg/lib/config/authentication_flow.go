@@ -49,7 +49,8 @@ var _ = Schema.Add("AuthenticationFlowIdentification", `
 		"email",
 		"phone",
 		"username",
-		"oauth"
+		"oauth",
+		"passkey"
 	]
 }
 `)
@@ -508,6 +509,7 @@ const (
 	AuthenticationFlowIdentificationPhone    AuthenticationFlowIdentification = "phone"
 	AuthenticationFlowIdentificationUsername AuthenticationFlowIdentification = "username"
 	AuthenticationFlowIdentificationOAuth    AuthenticationFlowIdentification = "oauth"
+	AuthenticationFlowIdentificationPasskey  AuthenticationFlowIdentification = "passkey"
 )
 
 func (m AuthenticationFlowIdentification) PrimaryAuthentications() []AuthenticationFlowAuthentication {
@@ -528,6 +530,9 @@ func (m AuthenticationFlowIdentification) PrimaryAuthentications() []Authenticat
 		}
 	case AuthenticationFlowIdentificationOAuth:
 		// OAuth does not require primary authentication.
+		return nil
+	case AuthenticationFlowIdentificationPasskey:
+		// Passkey does not require primary authentication.
 		return nil
 	default:
 		panic(fmt.Errorf("unknown identification: %v", m))
@@ -550,6 +555,9 @@ func (m AuthenticationFlowIdentification) SecondaryAuthentications() []Authentic
 		return all
 	case AuthenticationFlowIdentificationOAuth:
 		// OAuth does not require secondary authentication.
+		return nil
+	case AuthenticationFlowIdentificationPasskey:
+		// Passkey does not require secondary authentication.
 		return nil
 	default:
 		panic(fmt.Errorf("unknown identification: %v", m))

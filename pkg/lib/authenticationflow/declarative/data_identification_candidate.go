@@ -30,6 +30,9 @@ func NewIdentificationCandidates(identifications []config.AuthenticationFlowIden
 			})
 		case config.AuthenticationFlowIdentificationOAuth:
 			output = append(output, oauthCandidates...)
+		case config.AuthenticationFlowIdentificationPasskey:
+			// FIXME(authflow): support passkey
+			break
 		}
 	}
 	return output

@@ -117,6 +117,9 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 				}), nil
+			case config.AuthenticationFlowIdentificationPasskey:
+				// FIXME(authflow): support passkey in login flow.
+				return nil, authflow.ErrIncompatibleInput
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput

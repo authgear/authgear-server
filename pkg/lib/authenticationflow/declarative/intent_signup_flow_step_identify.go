@@ -140,6 +140,9 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 					NewUserID:      i.UserID,
 					Identification: identification,
 				}), nil
+			case config.AuthenticationFlowIdentificationPasskey:
+				// FIXME(authflow): support passkey in signup flow.
+				break
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput
