@@ -3,9 +3,7 @@ package latte
 import (
 	"context"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -34,11 +32,11 @@ func (*NodeForgotPasswordWithLoginID) ReactTo(ctx context.Context, deps *workflo
 
 func (n *NodeForgotPasswordWithLoginID) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	output := map[string]interface{}{}
-	maskedLoginID := mail.MaskAddress(n.LoginID)
-	if maskedLoginID == "" {
-		maskedLoginID = phone.Mask(n.LoginID)
+	userIDHint, err := reauthUserIDHint(ctx)
+
+	if err == nil && userIDHint != "" {
+		output["login_id"] = n.LoginID
 	}
-	output["masked_login_id"] = maskedLoginID
 
 	return output, nil
 }
