@@ -42,7 +42,6 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	alias := input.GetProviderAlias()
 	nonceSource := ctx.Nonces.GetAndClear()
 	code := input.GetCode()
-	state := ctx.WebSessionID
 	oauthError := input.GetError()
 	errorDescription := input.GetErrorDescription()
 	errorURI := input.GetErrorURI()
@@ -72,8 +71,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 
 	userInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
-			Code:  code,
-			State: state,
+			Code: code,
 		},
 		sso.GetAuthInfoParam{
 			Nonce: hashedNonce,

@@ -19,8 +19,7 @@ type GetAuthInfoParam struct {
 }
 
 type OAuthAuthorizationResponse struct {
-	Code  string
-	State string
+	Code string
 }
 
 // OAuthProvider is OAuth 2.0 based provider.
