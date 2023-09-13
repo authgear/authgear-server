@@ -33,8 +33,6 @@ func (i *IntentOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowI
 }
 
 func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	// FIXME(authflow): must have NodeDoUseIdentity by the end of flow if NewUserID is absent.
-	// FIXME(authflow): Must have NodeDoCreateIdentity by the end of flow if NewUserID is present.
 	if len(flows.Nearest.Nodes) == 0 {
 		oauthCandidates := NewIdentificationCandidatesOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
 		return &InputSchemaTakeOAuthAuthorizationRequest{
@@ -55,6 +53,7 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 
 			return authflow.NewNodeSimple(&NodeOAuth{
 				JSONPointer: i.JSONPointer,
+				NewUserID:   i.NewUserID,
 				Alias:       alias,
 				State:       state,
 				RedirectURI: redirectURI,

@@ -2,8 +2,10 @@ package declarative
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -292,4 +294,58 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 	}
 
 	return channels
+}
+
+func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (*identity.Info, error) {
+	// FIXME(authflow): allow bypassing email blocklist for Admin API.
+	info, err := deps.Identities.New(newUserID, spec, identity.NewIdentityOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	duplicate, err := deps.Identities.CheckDuplicated(info)
+	if err != nil && !errors.Is(err, identity.ErrIdentityAlreadyExists) {
+		return nil, err
+	}
+
+	if err != nil {
+		spec := info.ToSpec()
+		otherSpec := duplicate.ToSpec()
+		return nil, identityFillDetails(api.ErrDuplicatedIdentity, &spec, &otherSpec)
+	}
+
+	return info, nil
+}
+
+func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
+	bucketSpec := AccountEnumerationPerIPRateLimitBucketSpec(
+		deps.Config.Authentication,
+		string(deps.RemoteIP),
+	)
+
+	reservation := deps.RateLimiter.Reserve(bucketSpec)
+	err := reservation.Error()
+	if err != nil {
+		return nil, err
+	}
+	defer deps.RateLimiter.Cancel(reservation)
+
+	exactMatch, otherMatches, err := deps.Identities.SearchBySpec(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	if exactMatch == nil {
+		// Consume the reservation if exact match is not found.
+		reservation.Consume()
+
+		var otherSpec *identity.Spec
+		if len(otherMatches) > 0 {
+			s := otherMatches[0].ToSpec()
+			otherSpec = &s
+		}
+		return nil, identityFillDetails(api.ErrUserNotFound, spec, otherSpec)
+	}
+
+	return exactMatch, nil
 }

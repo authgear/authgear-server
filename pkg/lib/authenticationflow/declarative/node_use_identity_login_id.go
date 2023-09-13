@@ -5,7 +5,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -44,18 +43,6 @@ func (n *NodeUseIdentityLoginID) CanReactTo(ctx context.Context, deps *authflow.
 func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLoginID inputTakeLoginID
 	if authflow.AsInput(input, &inputTakeLoginID) {
-		bucketSpec := AccountEnumerationPerIPRateLimitBucketSpec(
-			deps.Config.Authentication,
-			string(deps.RemoteIP),
-		)
-
-		reservation := deps.RateLimiter.Reserve(bucketSpec)
-		err := reservation.Error()
-		if err != nil {
-			return nil, err
-		}
-		defer deps.RateLimiter.Cancel(reservation)
-
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,
@@ -64,21 +51,9 @@ func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dep
 			},
 		}
 
-		exactMatch, otherMatches, err := deps.Identities.SearchBySpec(spec)
+		exactMatch, err := findExactOneIdentityInfo(deps, spec)
 		if err != nil {
 			return nil, err
-		}
-
-		if exactMatch == nil {
-			// Consume the reservation if exact match is not found.
-			reservation.Consume()
-
-			var otherSpec *identity.Spec
-			if len(otherMatches) > 0 {
-				s := otherMatches[0].ToSpec()
-				otherSpec = &s
-			}
-			return nil, identityFillDetails(api.ErrUserNotFound, spec, otherSpec)
 		}
 
 		n, err := NewNodeDoUseIdentity(flows, &NodeDoUseIdentity{
