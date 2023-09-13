@@ -286,6 +286,19 @@ export type GenerateStripeCustomerPortalSessionPayload = {
   url: Scalars['String'];
 };
 
+export type GenerateTestTokenInput = {
+  /** ID of the app. */
+  id: Scalars['ID'];
+  /** URI to retrun to in the tester page */
+  returnUri: Scalars['String'];
+};
+
+export type GenerateTestTokenPayload = {
+  __typename?: 'GenerateTestTokenPayload';
+  /** The generated token */
+  token: Scalars['String'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   /** Accept collaborator invitation to the target app. */
@@ -312,6 +325,8 @@ export type Mutation = {
   generateAppSecretVisitToken: GenerateAppSecretVisitTokenPayloadPayload;
   /** Generate Stripe customer portal session */
   generateStripeCustomerPortalSession: GenerateStripeCustomerPortalSessionPayload;
+  /** Generate a token for tester */
+  generateTesterToken: GenerateTestTokenPayload;
   /** Preview update subscription */
   previewUpdateSubscription: PreviewUpdateSubscriptionPayload;
   /** Probes a NFT Collection to see whether it is a large collection */
@@ -392,6 +407,11 @@ export type MutationGenerateAppSecretVisitTokenArgs = {
 
 export type MutationGenerateStripeCustomerPortalSessionArgs = {
   input: GenerateStripeCustomerPortalSessionInput;
+};
+
+
+export type MutationGenerateTesterTokenArgs = {
+  input: GenerateTestTokenInput;
 };
 
 

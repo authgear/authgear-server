@@ -26,7 +26,7 @@ import {
   SkipAppTutorialProgressMutationDocument,
 } from "./mutations/skipAppTutorialProgressMutation.generated";
 
-// import iconKey from "../../images/getting-started-icon-key.png";
+import iconKey from "../../images/getting-started-icon-key.png";
 import iconCustomize from "../../images/getting-started-icon-customize.png";
 import iconApplication from "../../images/getting-started-icon-application.png";
 import iconSSO from "../../images/getting-started-icon-sso.png";
@@ -39,8 +39,8 @@ import {
 } from "../../GTMProvider";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import ActionButton from "../../ActionButton";
-import ExternalLink from "../../ExternalLink";
 import LinkButton from "../../LinkButton";
+import { useGenerateTesterTokenMutation } from "./mutations/generateTesterTokenMutation";
 
 type Progress = keyof TutorialStatusData["progress"];
 
@@ -48,75 +48,98 @@ interface CardSpec {
   key: Progress;
   iconSrc: string;
   internalHref: string | undefined;
-  externalHref: string | undefined;
+  action?: () => void;
   canSkip: boolean;
   isDone: boolean;
 }
 
 interface MakeCardSpecsOptions {
-  publicOrigin?: string;
+  appID: string;
+  publicOrigin: string;
   numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
 }
 
-function makeCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
-  const { numberOfClients, tutorialStatusData } = options;
+function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
+  const { appID, publicOrigin, numberOfClients, tutorialStatusData } = options;
 
-  // This is disabled in https://github.com/authgear/authgear-server/issues/3319
-  // const authui: CardSpec = {
-  //   key: "authui",
-  //   iconSrc: iconKey,
-  //   internalHref: undefined,
-  //   externalHref:
-  //     publicOrigin != null ? `${publicOrigin}?x_tutorial=true` : undefined,
-  //   canSkip: false,
-  //   isDone: tutorialStatusData.progress["authui"] === true,
-  // };
+  const { generateTesterToken } = useGenerateTesterTokenMutation(appID);
+  const onTryAuth = useCallback(async () => {
+    const token = await generateTesterToken(window.location.href);
+    const destination = new URL(publicOrigin);
+    destination.pathname = "/tester";
+    destination.search = new URLSearchParams({ token }).toString();
+    window.location.assign(destination);
+  }, [generateTesterToken, publicOrigin]);
 
-  const customize_ui: CardSpec = {
-    key: "customize_ui",
-    iconSrc: iconCustomize,
-    internalHref: "~/configuration/ui-settings",
-    externalHref: undefined,
-    canSkip: false,
-    isDone: tutorialStatusData.progress["customize_ui"] === true,
-  };
+  const authui: CardSpec = useMemo(
+    () => ({
+      key: "authui",
+      iconSrc: iconKey,
+      internalHref: undefined,
+      canSkip: false,
+      action: onTryAuth,
+      isDone: tutorialStatusData.progress["authui"] === true,
+    }),
+    [onTryAuth, tutorialStatusData.progress]
+  );
+
+  const customize_ui: CardSpec = useMemo(
+    () => ({
+      key: "customize_ui",
+      iconSrc: iconCustomize,
+      internalHref: "~/configuration/ui-settings",
+      canSkip: false,
+      isDone: tutorialStatusData.progress["customize_ui"] === true,
+    }),
+    [tutorialStatusData.progress]
+  );
 
   // Special handling for apps with applications.
   // https://github.com/authgear/authgear-server/issues/1976
-  const create_application: CardSpec = {
-    key: "create_application",
-    iconSrc: iconApplication,
-    internalHref: undefined,
-    externalHref: undefined,
-    canSkip: false,
-    isDone:
-      numberOfClients > 0 ||
-      tutorialStatusData.progress["create_application"] === true,
-  };
-  create_application.internalHref = create_application.isDone
-    ? "~/configuration/apps"
-    : "~/configuration/apps/add";
+  const create_application: CardSpec = useMemo(() => {
+    const spec: CardSpec = {
+      key: "create_application",
+      iconSrc: iconApplication,
+      internalHref: undefined,
+      canSkip: false,
+      isDone:
+        numberOfClients > 0 ||
+        tutorialStatusData.progress["create_application"] === true,
+    };
+    spec.internalHref = spec.isDone
+      ? "~/configuration/apps"
+      : "~/configuration/apps/add";
+    return spec;
+  }, [numberOfClients, tutorialStatusData.progress]);
 
-  const sso: CardSpec = {
-    key: "sso",
-    iconSrc: iconSSO,
-    internalHref: "~/configuration/authentication/external-oauth",
-    externalHref: undefined,
-    canSkip: true,
-    isDone: tutorialStatusData.progress["sso"] === true,
-  };
+  const sso: CardSpec = useMemo(
+    () => ({
+      key: "sso",
+      iconSrc: iconSSO,
+      internalHref: "~/configuration/authentication/external-oauth",
+      canSkip: true,
+      isDone: tutorialStatusData.progress["sso"] === true,
+    }),
+    [tutorialStatusData.progress]
+  );
 
-  const invite: CardSpec = {
-    key: "invite",
-    iconSrc: iconTeam,
-    internalHref: "~/portal-admins/invite",
-    externalHref: undefined,
-    canSkip: false,
-    isDone: tutorialStatusData.progress["invite"] === true,
-  };
+  const invite: CardSpec = useMemo(
+    () => ({
+      key: "invite",
+      iconSrc: iconTeam,
+      internalHref: "~/portal-admins/invite",
+      externalHref: undefined,
+      canSkip: false,
+      isDone: tutorialStatusData.progress["invite"] === true,
+    }),
+    [tutorialStatusData.progress]
+  );
 
-  return [/* authui, */ customize_ui, create_application, sso, invite];
+  return useMemo(
+    () => [authui, customize_ui, create_application, sso, invite],
+    [authui, create_application, customize_ui, invite, sso]
+  );
 }
 
 function Title() {
@@ -165,7 +188,7 @@ interface CardProps {
   iconSrc: string;
   skipDisabled: boolean;
   skipProgress?: (progress: Progress) => Promise<void>;
-  externalHref?: string;
+  action?: () => void;
   internalHref?: string;
 }
 
@@ -176,7 +199,7 @@ function Card(props: CardProps) {
     iconSrc,
     skipProgress,
     skipDisabled,
-    externalHref,
+    action,
     internalHref,
   } = props;
   const {
@@ -266,11 +289,11 @@ function Card(props: CardProps) {
           {" >"}
         </Link>
       ) : null}
-      {externalHref != null ? (
-        <ExternalLink
+      {action != null ? (
+        <LinkButton
           id={id}
           className={styles.cardActionButton}
-          href={externalHref}
+          onClick={action}
           target="_blank"
           {...eventDataAttributes}
         >
@@ -278,7 +301,7 @@ function Card(props: CardProps) {
             id={"GetStartedScreen.card.action-label." + cardKey}
           />
           {" >"}
-        </ExternalLink>
+        </LinkButton>
       ) : null}
       {skipProgress != null && !isDone ? (
         <LinkButton
@@ -314,7 +337,7 @@ function Cards(props: CardsProps) {
             skipProgress={card.canSkip ? skipProgress : undefined}
             skipDisabled={loading}
             iconSrc={card.iconSrc}
-            externalHref={card.externalHref}
+            action={card.action}
             internalHref={card.internalHref}
           />
         );
@@ -358,7 +381,7 @@ function DismissButton(props: DismissButtonProps) {
 
 interface GetStartedScreenContentProps {
   loading: boolean;
-  publicOrigin?: string;
+  publicOrigin: string;
   numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
 }
@@ -429,7 +452,8 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     [appID, skipAppTutorialMutationFunction, navigate]
   );
 
-  const cardSpecs = makeCardSpecs({
+  const cardSpecs = useCardSpecs({
+    appID,
     publicOrigin,
     numberOfClients,
     tutorialStatusData,
@@ -492,7 +516,7 @@ export default function GetStartedScreen(): React.ReactElement {
   return (
     <GetStartedScreenContent
       loading={loading}
-      publicOrigin={effectiveAppConfig.http?.public_origin}
+      publicOrigin={effectiveAppConfig.http?.public_origin ?? ""}
       numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
       tutorialStatusData={tutorialStatusData}
     />

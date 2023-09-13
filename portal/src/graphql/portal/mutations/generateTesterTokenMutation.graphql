@@ -1,0 +1,5 @@
+mutation generateTesterTokenMutation($appID: ID!, $returnUri: String!) {
+  generateTesterToken(input: { id: $appID, returnUri: $returnUri }) {
+    token
+  }
+}
