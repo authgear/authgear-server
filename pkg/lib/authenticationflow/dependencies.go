@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -159,6 +160,10 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
+type OAuthProviderFactory interface {
+	NewOAuthProvider(alias string) sso.OAuthProvider
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -168,19 +173,20 @@ type Dependencies struct {
 
 	HTTPRequest *http.Request
 
-	Users              UserService
-	Identities         IdentityService
-	Authenticators     AuthenticatorService
-	MFA                MFAService
-	StdAttrsService    StdAttrsService
-	CustomAttrsService CustomAttrsService
-	OTPCodes           OTPCodeService
-	OTPSender          OTPSender
-	Verification       VerificationService
-	ForgotPassword     ForgotPasswordService
-	ResetPassword      ResetPasswordService
-	AccountMigrations  AccountMigrationService
-	Captcha            CaptchaService
+	Users                UserService
+	Identities           IdentityService
+	Authenticators       AuthenticatorService
+	MFA                  MFAService
+	StdAttrsService      StdAttrsService
+	CustomAttrsService   CustomAttrsService
+	OTPCodes             OTPCodeService
+	OTPSender            OTPSender
+	Verification         VerificationService
+	ForgotPassword       ForgotPasswordService
+	ResetPassword        ResetPasswordService
+	AccountMigrations    AccountMigrationService
+	Captcha              CaptchaService
+	OAuthProviderFactory OAuthProviderFactory
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

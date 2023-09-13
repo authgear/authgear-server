@@ -5,7 +5,10 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 )
 
 func init() {
@@ -13,7 +16,7 @@ func init() {
 }
 
 type NodeOAuthData struct {
-	AuthorizationURL string `json:"authorization_url,omitempty"`
+	OAuthAuthorizationURL string `json:"oauth_authorization_url,omitempty"`
 }
 
 var _ authflow.Data = NodeOAuthData{}
@@ -47,6 +50,24 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 }
 
 func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	// FIXME(authflow): compose the authorization URL.
-	return NodeOAuthData{}, nil
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(n.Alias)
+	if oauthProvider == nil {
+		return nil, api.ErrOAuthProviderNotFound
+	}
+
+	uiParam := uiparam.GetUIParam(ctx)
+
+	param := sso.GetAuthURLParam{
+		State:  n.State,
+		Prompt: uiParam.Prompt,
+	}
+
+	authorizationURL, err := oauthProvider.GetAuthURL(param)
+	if err != nil {
+		return nil, err
+	}
+
+	return NodeOAuthData{
+		OAuthAuthorizationURL: authorizationURL,
+	}, nil
 }
