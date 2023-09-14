@@ -643,7 +643,7 @@ var generateTestTokenInput = graphql.NewInputObject(graphql.InputObjectConfig{
 		},
 		"returnUri": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.String),
-			Description: "URI to retrun to in the tester page",
+			Description: "URI to return to in the tester page",
 		},
 	},
 })
@@ -672,7 +672,7 @@ var _ = registerMutationField(
 			// Access Control: authenicated user.
 			sessionInfo := session.GetValidSessionInfo(p.Context)
 			if sessionInfo == nil {
-				return nil, AccessDenied.New("only authenticated users can visit secrets")
+				return nil, AccessDenied.New("only authenticated users can generate tester token")
 			}
 
 			input := p.Args["input"].(map[string]interface{})
