@@ -165,7 +165,7 @@ type OAuthProviderFactory interface {
 }
 
 type PasskeyRequestOptionsService interface {
-	MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error)
 }
 
 type PasskeyService interface {
