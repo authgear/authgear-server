@@ -59,6 +59,9 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 		switch candidate.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			requireString("password")
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			// FIXME(authflow): support passkey in login flow.
+			continue
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			requireString("password")
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:

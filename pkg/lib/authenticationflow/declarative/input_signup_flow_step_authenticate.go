@@ -57,6 +57,9 @@ func (i *InputSchemaSignupFlowStepAuthenticate) SchemaBuilder() validation.Schem
 			}
 			b.Required(required...)
 			oneOf = append(oneOf, b)
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			// Cannot create passkey in this step.
+			break
 		default:
 			break
 		}

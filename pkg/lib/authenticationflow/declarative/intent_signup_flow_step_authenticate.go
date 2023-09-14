@@ -136,6 +136,9 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
+			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+				// Cannot create passkey in this step.
+				return nil, authflow.ErrIncompatibleInput
 			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:

@@ -318,6 +318,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 			"type": "string",
 			"enum": [
 				"primary_password",
+				"primary_passkey",
 				"primary_oob_otp_email",
 				"primary_oob_otp_sms",
 				"secondary_password",
@@ -518,15 +519,18 @@ func (m AuthenticationFlowIdentification) PrimaryAuthentications() []Authenticat
 		return []AuthenticationFlowAuthentication{
 			AuthenticationFlowAuthenticationPrimaryPassword,
 			AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+			AuthenticationFlowAuthenticationPrimaryPasskey,
 		}
 	case AuthenticationFlowIdentificationPhone:
 		return []AuthenticationFlowAuthentication{
 			AuthenticationFlowAuthenticationPrimaryPassword,
 			AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+			AuthenticationFlowAuthenticationPrimaryPasskey,
 		}
 	case AuthenticationFlowIdentificationUsername:
 		return []AuthenticationFlowAuthentication{
 			AuthenticationFlowAuthenticationPrimaryPassword,
+			AuthenticationFlowAuthenticationPrimaryPasskey,
 		}
 	case AuthenticationFlowIdentificationOAuth:
 		// OAuth does not require primary authentication.
@@ -568,6 +572,7 @@ type AuthenticationFlowAuthentication string
 
 const (
 	AuthenticationFlowAuthenticationPrimaryPassword      AuthenticationFlowAuthentication = "primary_password"
+	AuthenticationFlowAuthenticationPrimaryPasskey       AuthenticationFlowAuthentication = "primary_passkey"
 	AuthenticationFlowAuthenticationPrimaryOOBOTPEmail   AuthenticationFlowAuthentication = "primary_oob_otp_email"
 	AuthenticationFlowAuthenticationPrimaryOOBOTPSMS     AuthenticationFlowAuthentication = "primary_oob_otp_sms"
 	AuthenticationFlowAuthenticationSecondaryPassword    AuthenticationFlowAuthentication = "secondary_password"
@@ -581,6 +586,8 @@ const (
 func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.AuthenticatorKind {
 	switch m {
 	case AuthenticationFlowAuthenticationPrimaryPassword:
+		fallthrough
+	case AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
 	case AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough

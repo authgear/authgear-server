@@ -46,6 +46,8 @@ func AuthenticationFromAuthenticator(i *authenticator.Info) config.Authenticatio
 		switch i.Type {
 		case model.AuthenticatorTypePassword:
 			return config.AuthenticationFlowAuthenticationPrimaryPassword
+		case model.AuthenticatorTypePasskey:
+			return config.AuthenticationFlowAuthenticationPrimaryPasskey
 		case model.AuthenticatorTypeOOBEmail:
 			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
 		case model.AuthenticatorTypeOOBSMS:
@@ -104,6 +106,9 @@ func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBCon
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
 			AuthenticatorID:   i.ID,
 		}
+	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		// FIXME(authflow): support passkey in login flow.
+		break
 	}
 
 	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))

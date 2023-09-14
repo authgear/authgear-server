@@ -147,6 +147,8 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
@@ -213,6 +215,9 @@ func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []
 		switch allowed {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			addPasswordAlways(allowed)
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			// FIXME(authflow): support passkey in login flow.
+			break
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			addOneIfPresent()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:

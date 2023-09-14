@@ -185,6 +185,9 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 					UserID:         i.UserID,
 					Authentication: authentication,
 				}), nil
+			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+				// FIXME(authflow): support passkey in login flow.
+				return nil, authflow.ErrIncompatibleInput
 			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
