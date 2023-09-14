@@ -328,11 +328,6 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
-
 		case keyConfig.Type == model.LoginIDKeyTypePhone && !phone:
 			phone = true
 
@@ -346,11 +341,6 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
-
 		case keyConfig.Type == model.LoginIDKeyTypeUsername && !username:
 			username = true
 
@@ -362,11 +352,6 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 			// Add authenticate step primary if necessary
 			if stepAuthenticatePrimary, ok := generateLoginFlowStepAuthenticatePrimary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
-			}
-
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 			}
 		}
 	}
@@ -429,11 +414,23 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 						TargetStep: step.ID,
 					})
 				}
+
+				// Add authenticate step secondary if necessary
+				if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+					oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+				}
 			}
 
 		case model.AuthenticatorTypePasskey:
-			// FIXME(authflow): support passkey in login flow.
-			break
+			am := config.AuthenticationFlowAuthenticationPrimaryPasskey
+			if _, ok := allowedMap[am]; ok {
+				oneOf := &config.AuthenticationFlowLoginFlowOneOf{
+					Authentication: am,
+				}
+				step.OneOf = append(step.OneOf, oneOf)
+			}
+
+			// passkey does not require secondary authentication.
 
 		case model.AuthenticatorTypeOOBEmail:
 			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
@@ -443,6 +440,11 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 					TargetStep:     idStepIdentify,
 				}
 				step.OneOf = append(step.OneOf, oneOf)
+
+				// Add authenticate step secondary if necessary
+				if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+					oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+				}
 			}
 
 		case model.AuthenticatorTypeOOBSMS:
@@ -453,6 +455,11 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 					TargetStep:     idStepIdentify,
 				}
 				step.OneOf = append(step.OneOf, oneOf)
+
+				// Add authenticate step secondary if necessary
+				if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+					oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+				}
 			}
 		}
 	}
