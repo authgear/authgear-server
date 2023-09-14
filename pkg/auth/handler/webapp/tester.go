@@ -1,7 +1,12 @@
 package webapp
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -29,14 +34,44 @@ type TesterTokenStore interface {
 }
 
 type TesterHandler struct {
-	ControllerFactory ControllerFactory
-	EndpointsProvider oauth.EndpointsProvider
-	TesterTokenStore  TesterTokenStore
+	AppID                   config.AppID
+	ControllerFactory       ControllerFactory
+	OauthEndpointsProvider  oauth.EndpointsProvider
+	TesterEndpointsProvider tester.EndpointsProvider
+	TesterTokenStore        TesterTokenStore
 }
 
 func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http.Request) error {
-	// authEndpoint := h.EndpointsProvider.AuthorizeEndpointURL()
-	// TODO
+	testerToken, err := h.TesterTokenStore.ConsumeToken(h.AppID, token)
+	if errors.Is(err, tester.ErrTokenNotFound) {
+		http.Error(w, "404 page not found", http.StatusNotFound)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	stateMap := map[string]string{}
+	stateMap["return_uri"] = testerToken.ReturnURI
+	stateBytes, err := json.Marshal(stateMap)
+	if err != nil {
+		return err
+	}
+	stateb64 := make([]byte, base64.RawURLEncoding.EncodedLen(len(stateBytes)))
+	base64.RawURLEncoding.Encode(stateb64, stateBytes)
+	q := url.Values{}
+	q.Set("redirect_uri", h.TesterEndpointsProvider.TesterURL().String())
+	q.Set("scope", strings.Join([]string{
+		"offline_access", "https://authgear.com/scopes/full-access",
+	}, " "))
+	q.Set("response_type", "code")
+	q.Set("client_id", "tester")
+	q.Set("x_sso_enabled", "false")
+	q.Set("state", string(stateb64))
+
+	redirectTo := h.OauthEndpointsProvider.AuthorizeEndpointURL()
+	redirectTo.RawQuery = q.Encode()
+	http.Redirect(w, r, redirectTo.String(), http.StatusFound)
+
 	return nil
 }
 

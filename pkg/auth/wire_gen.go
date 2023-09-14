@@ -54566,13 +54566,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
 	appContext := appProvider.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	factory := appProvider.LoggerFactory
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
 	serviceLogger := webapp2.NewServiceLogger(factory)
 	request := p.Request
 	sessionStoreRedis := &webapp2.SessionStoreRedis{
@@ -55388,9 +55388,11 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   globalredisHandle,
 	}
 	testerHandler := &webapp.TesterHandler{
-		ControllerFactory: controllerFactory,
-		EndpointsProvider: endpointsEndpoints,
-		TesterTokenStore:  testerTokenStore,
+		AppID:                   appID,
+		ControllerFactory:       controllerFactory,
+		OauthEndpointsProvider:  endpointsEndpoints,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TesterTokenStore:        testerTokenStore,
 	}
 	return testerHandler
 }

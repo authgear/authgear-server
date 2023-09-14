@@ -241,6 +241,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappSuccessPageRoute := httproute.Route{Middleware: webappSuccessPageChain}
 	webappSettingsRoute := httproute.Route{Middleware: webappSettingsChain}
 	webappSettingsSubRoutesRoute := httproute.Route{Middleware: webappSettingsSubRoutesChain}
+	webappTesterRouter := httproute.Route{Middleware: webappChain}
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 	webappAPIRoute := httproute.Route{Middleware: webappAPIChain}
@@ -303,6 +304,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangePasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsDeleteAccountHandler))
+
+	router.Add(webapphandler.ConfigureTesterRoute(webappTesterRouter), p.Handler(newWebAppTesterHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 

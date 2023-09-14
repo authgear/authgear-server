@@ -47,6 +47,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -96,6 +97,7 @@ var DependencySet = wire.NewSet(
 		endpoints.DependencySet,
 
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
