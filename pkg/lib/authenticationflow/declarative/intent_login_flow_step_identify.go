@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -149,11 +148,9 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 					Identification: identification,
 				}), nil
 			case config.AuthenticationFlowIdentificationPasskey:
-				requestOptions := i.mustFindPasskeyRequestOptions()
 				return authflow.NewNodeSimple(&NodeUseIdentityPasskey{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
-					RequestOptions: requestOptions,
 				}), nil
 			}
 		}
@@ -227,14 +224,4 @@ func (i *IntentLoginFlowStepIdentify) jsonPointer(step *config.AuthenticationFlo
 	}
 
 	panic(fmt.Errorf("selected identification method is not allowed"))
-}
-
-func (i *IntentLoginFlowStepIdentify) mustFindPasskeyRequestOptions() *model.WebAuthnRequestOptions {
-	for _, c := range i.Candidates {
-		if c.Identification == config.AuthenticationFlowIdentificationPasskey {
-			return c.RequestOptions
-		}
-	}
-
-	panic(fmt.Errorf("expected to find passkey request options in candidates"))
 }

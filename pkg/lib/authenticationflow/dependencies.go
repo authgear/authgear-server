@@ -168,6 +168,11 @@ type PasskeyRequestOptionsService interface {
 	MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error)
 }
 
+type PasskeyService interface {
+	ConsumeAttestationResponse(attestationResponse []byte) (err error)
+	ConsumeAssertionResponse(assertionResponse []byte) (err error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -177,21 +182,22 @@ type Dependencies struct {
 
 	HTTPRequest *http.Request
 
-	Users                UserService
-	Identities           IdentityService
-	Authenticators       AuthenticatorService
-	MFA                  MFAService
-	StdAttrsService      StdAttrsService
-	CustomAttrsService   CustomAttrsService
-	OTPCodes             OTPCodeService
-	OTPSender            OTPSender
-	Verification         VerificationService
-	ForgotPassword       ForgotPasswordService
-	ResetPassword        ResetPasswordService
-	AccountMigrations    AccountMigrationService
-	Captcha              CaptchaService
-	OAuthProviderFactory OAuthProviderFactory
+	Users                        UserService
+	Identities                   IdentityService
+	Authenticators               AuthenticatorService
+	MFA                          MFAService
+	StdAttrsService              StdAttrsService
+	CustomAttrsService           CustomAttrsService
+	OTPCodes                     OTPCodeService
+	OTPSender                    OTPSender
+	Verification                 VerificationService
+	ForgotPassword               ForgotPasswordService
+	ResetPassword                ResetPasswordService
+	AccountMigrations            AccountMigrationService
+	Captcha                      CaptchaService
+	OAuthProviderFactory         OAuthProviderFactory
 	PasskeyRequestOptionsService PasskeyRequestOptionsService
+	PasskeyService               PasskeyService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

@@ -58431,6 +58431,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Captcha:                      captchaProvider,
 		OAuthProviderFactory:         oAuthProviderFactory,
 		PasskeyRequestOptionsService: requestOptionsService,
+		PasskeyService:               passkeyService,
 		IDPSessions:                  idpsessionProvider,
 		Sessions:                     manager2,
 		AuthenticationInfos:          authenticationinfoStoreRedis,
