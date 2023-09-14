@@ -28,7 +28,6 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ProviderAlias: httproute.GetParam(r, "alias"),
 
 		Code:             r.Form.Get("code"),
-		Scope:            r.Form.Get("scope"),
 		Error:            r.Form.Get("error"),
 		ErrorDescription: r.Form.Get("error_description"),
 		ErrorURI:         r.Form.Get("error_uri"),

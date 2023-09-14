@@ -63,7 +63,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		step := session.CurrentStep()
 		step.FormData["x_action"] = WechatActionCallback
 		step.FormData["x_code"] = r.Form.Get("code")
-		step.FormData["x_scope"] = r.Form.Get("scope")
 		step.FormData["x_error"] = r.Form.Get("error")
 		step.FormData["x_error_description"] = r.Form.Get("error_description")
 		session.Steps[len(session.Steps)-1] = step

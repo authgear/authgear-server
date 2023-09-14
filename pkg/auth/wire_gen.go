@@ -58375,6 +58375,19 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Logger:           providerLogger,
 		CloudflareClient: cloudflareClient,
 	}
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsEndpoints,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthSSOProviderCredentials,
+		RedirectURL:                  endpointsEndpoints,
+		Clock:                        clockClock,
+		WechatURLProvider:            endpointsEndpoints,
+		StandardAttributesNormalizer: normalizer,
+	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
@@ -58411,6 +58424,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		ResetPassword:        forgotpasswordService,
 		AccountMigrations:    accountmigrationService,
 		Captcha:              captchaProvider,
+		OAuthProviderFactory: oAuthProviderFactory,
 		IDPSessions:          idpsessionProvider,
 		Sessions:             manager2,
 		AuthenticationInfos:  authenticationinfoStoreRedis,

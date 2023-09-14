@@ -232,6 +232,69 @@ steps:
         - type: recovery_code
 `)
 
+		// oauth
+		test(`
+authentication:
+  identities:
+  - oauth
+identity:
+  oauth:
+    providers:
+    - alias: google
+      type: google
+`, `
+id: default
+steps:
+- id: identify
+  type: identify
+  one_of:
+  - identification: oauth
+`)
+
+		// oauth does not require 2fa.
+		test(`
+authentication:
+  identities:
+  - login_id
+  - oauth
+  primary_authenticators:
+  - password
+  secondary_authenticators:
+  - totp
+  secondary_authentication_mode: required
+  device_token:
+    disabled: true
+  recovery_code:
+    disabled: true
+identity:
+  login_id:
+    keys:
+    - type: email
+  oauth:
+    providers:
+    - alias: google
+      type: google
+`, `
+id: default
+steps:
+- id: identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - target_step: identify
+      type: verify
+    - id: authenticate_primary_email
+      type: authenticate
+      one_of:
+      - authentication: primary_password
+    - id: authenticate_secondary_email
+      type: authenticate
+      one_of:
+      - authentication: secondary_totp
+  - identification: oauth
+`)
+
 	})
 }
 
@@ -559,6 +622,70 @@ steps:
       - authentication: device_token
       - authentication: recovery_code
       - authentication: secondary_totp
+`)
+
+		// oauth
+		test(`
+authentication:
+  identities:
+  - oauth
+identity:
+  oauth:
+    providers:
+    - alias: google
+      type: google
+`, `
+id: default
+steps:
+- id: identify
+  type: identify
+  one_of:
+  - identification: oauth
+`)
+
+		// oauth does not require 2fa.
+		test(`
+authentication:
+  identities:
+  - login_id
+  - oauth
+  primary_authenticators:
+  - password
+  secondary_authenticators:
+  - totp
+  secondary_authentication_mode: required
+  device_token:
+    disabled: true
+  recovery_code:
+    disabled: true
+identity:
+  login_id:
+    keys:
+    - type: email
+  oauth:
+    providers:
+    - alias: google
+      type: google
+`, `
+id: default
+steps:
+- id: identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - id: authenticate_primary_email
+      type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - type: change_password
+          target_step: authenticate_primary_email
+    - id: authenticate_secondary_email
+      type: authenticate
+      one_of:
+      - authentication: secondary_totp
+  - identification: oauth
 `)
 	})
 }

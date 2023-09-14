@@ -18,6 +18,19 @@ type inputTakeLoginID interface {
 	GetLoginID() string
 }
 
+type inputTakeOAuthAuthorizationRequest interface {
+	GetOAuthAlias() string
+	GetOAuthState() string
+	GetOAuthRedirectURI() string
+}
+
+type inputTakeOAuthAuthorizationResponse interface {
+	GetOAuthAuthorizationCode() string
+	GetOAuthError() string
+	GetOAuthErrorDescription() string
+	GetOAuthErrorURI() string
+}
+
 type inputTakeOOBOTPChannel interface {
 	GetChannel() model.AuthenticatorOOBChannel
 }

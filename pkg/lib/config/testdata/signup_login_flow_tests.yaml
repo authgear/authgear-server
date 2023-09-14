@@ -20,7 +20,7 @@ error: |-
   /steps/1/one_of/0: required
     map[actual:[identification] expected:[identification login_flow signup_flow] missing:[login_flow signup_flow]]
   /steps/1/one_of/0/identification: enum
-    map[actual:foobar expected:[email phone username]]
+    map[actual:foobar expected:[email phone username oauth]]
 value:
   id: id
   steps:

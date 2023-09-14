@@ -2,12 +2,10 @@ package declarative
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -50,21 +48,9 @@ func (n *NodeCreateIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.
 		loginID := inputTakeLoginID.GetLoginID()
 		spec := n.makeLoginIDSpec(loginID)
 
-		// FIXME(authflow): allow bypassing email blocklist for Admin API.
-		info, err := deps.Identities.New(n.UserID, spec, identity.NewIdentityOptions{})
+		info, err := newIdentityInfo(deps, n.UserID, spec)
 		if err != nil {
 			return nil, err
-		}
-
-		duplicate, err := deps.Identities.CheckDuplicated(info)
-		if err != nil && !errors.Is(err, identity.ErrIdentityAlreadyExists) {
-			return nil, err
-		}
-
-		if err != nil {
-			spec := info.ToSpec()
-			otherSpec := duplicate.ToSpec()
-			return nil, identityFillDetails(api.ErrDuplicatedIdentity, &spec, &otherSpec)
 		}
 
 		return authflow.NewNodeSimple(&NodeDoCreateIdentity{

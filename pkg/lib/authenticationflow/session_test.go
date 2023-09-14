@@ -21,6 +21,7 @@ func TestPartiallyMergeFrom(t *testing.T) {
 		test(&SessionOptions{
 			ClientID:                 "a",
 			RedirectURI:              "b",
+			Prompt:                   []string{"login"},
 			SuppressIDPSessionCookie: true,
 			State:                    "c",
 			XState:                   "d",
@@ -28,6 +29,7 @@ func TestPartiallyMergeFrom(t *testing.T) {
 		}, nil, &SessionOptions{
 			ClientID:                 "a",
 			RedirectURI:              "b",
+			Prompt:                   []string{"login"},
 			SuppressIDPSessionCookie: true,
 			State:                    "c",
 			XState:                   "d",
@@ -38,6 +40,7 @@ func TestPartiallyMergeFrom(t *testing.T) {
 		test(nil, &SessionOptions{
 			ClientID:                 "a",
 			RedirectURI:              "b",
+			Prompt:                   []string{"login"},
 			SuppressIDPSessionCookie: true,
 			State:                    "c",
 			XState:                   "d",
@@ -53,6 +56,7 @@ func TestPartiallyMergeFrom(t *testing.T) {
 		test(&SessionOptions{
 			ClientID:                 "a",
 			RedirectURI:              "b",
+			Prompt:                   []string{"login"},
 			SuppressIDPSessionCookie: true,
 			State:                    "c",
 			XState:                   "d",
@@ -64,6 +68,7 @@ func TestPartiallyMergeFrom(t *testing.T) {
 		}, &SessionOptions{
 			ClientID:                 "a",
 			RedirectURI:              "b",
+			Prompt:                   []string{"login"},
 			SuppressIDPSessionCookie: true,
 			State:                    "cc",
 			XState:                   "dd",

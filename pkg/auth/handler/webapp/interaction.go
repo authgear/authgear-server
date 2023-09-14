@@ -265,7 +265,6 @@ type InputOAuthCallback struct {
 	ProviderAlias string
 
 	Code             string
-	Scope            string
 	Error            string
 	ErrorDescription string
 	ErrorURI         string
@@ -275,7 +274,6 @@ var _ nodes.InputUseIdentityOAuthUserInfo = &InputOAuthCallback{}
 
 func (i *InputOAuthCallback) GetProviderAlias() string    { return i.ProviderAlias }
 func (i *InputOAuthCallback) GetCode() string             { return i.Code }
-func (i *InputOAuthCallback) GetScope() string            { return i.Scope }
 func (i *InputOAuthCallback) GetError() string            { return i.Error }
 func (i *InputOAuthCallback) GetErrorDescription() string { return i.ErrorDescription }
 func (i *InputOAuthCallback) GetErrorURI() string         { return i.ErrorURI }
