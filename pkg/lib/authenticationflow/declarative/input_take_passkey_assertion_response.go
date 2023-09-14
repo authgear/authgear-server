@@ -19,17 +19,19 @@ func init() {
 
 	clientExtensionResults := validation.SchemaBuilder{}.Type(validation.TypeObject)
 
+	base64URLString := validation.SchemaBuilder{}.Type(validation.TypeString).Format("x_base64_url")
+
 	response := validation.SchemaBuilder{}.Type(validation.TypeObject)
-	response.Properties().Property("clientDataJSON", validation.SchemaBuilder{}.Type(validation.TypeString))
-	response.Properties().Property("authenticatorData", validation.SchemaBuilder{}.Type(validation.TypeString))
-	response.Properties().Property("signature", validation.SchemaBuilder{}.Type(validation.TypeString))
+	response.Properties().Property("clientDataJSON", base64URLString)
+	response.Properties().Property("authenticatorData", base64URLString)
+	response.Properties().Property("signature", base64URLString)
 	// optional
-	response.Properties().Property("userHandle", validation.SchemaBuilder{}.Type(validation.TypeString))
+	response.Properties().Property("userHandle", base64URLString)
 	response.Required("clientDataJSON", "authenticatorData", "signature")
 
 	b.Properties().Property("id", validation.SchemaBuilder{}.Type(validation.TypeString))
 	b.Properties().Property("type", validation.SchemaBuilder{}.Type(validation.TypeString))
-	b.Properties().Property("rawId", validation.SchemaBuilder{}.Type(validation.TypeString))
+	b.Properties().Property("rawId", base64URLString)
 	b.Properties().Property("clientExtensionResults", clientExtensionResults)
 	b.Properties().Property("response", response)
 	b.Required("id", "type", "rawId", "response")

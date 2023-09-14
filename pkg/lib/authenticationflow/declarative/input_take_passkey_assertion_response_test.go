@@ -28,21 +28,26 @@ func TestInputSchemaTakePasskeyAssertionResponse(t *testing.T) {
                     "type": "string"
                 },
                 "rawId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "x_base64_url"
                 },
                 "response": {
                     "properties": {
                         "authenticatorData": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "x_base64_url"
                         },
                         "clientDataJSON": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "x_base64_url"
                         },
                         "signature": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "x_base64_url"
                         },
                         "userHandle": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "x_base64_url"
                         }
                     },
                     "required": [
