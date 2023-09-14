@@ -15,9 +15,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
-	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
@@ -236,7 +236,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context: context,
 		Redis:   globalredisHandle,
 	}
-	appTesterTokenStore := &tester.TesterTokenStore{
+	testerTokenStore := &tester.TesterTokenStore{
 		Context: context,
 		Redis:   globalredisHandle,
 	}
@@ -253,7 +253,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Plan:                     planService,
 		Clock:                    clock,
 		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
-		AppTesterTokenStore:      appTesterTokenStore,
+		AppTesterTokenStore:      testerTokenStore,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService)
 	appLoader := loader.NewAppLoader(appService, authzService)

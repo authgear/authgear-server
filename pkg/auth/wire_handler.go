@@ -574,6 +574,13 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.TesterHandler)),
+	))
+}
+
 func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

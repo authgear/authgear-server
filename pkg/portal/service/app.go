@@ -95,10 +95,6 @@ type AppTesterTokenStore interface {
 		appID config.AppID,
 		returnURI string,
 	) (*tester.TesterToken, error)
-	GetTokenByID(
-		appID config.AppID,
-		tokenID string,
-	) (*tester.TesterToken, error)
 }
 
 type AppService struct {

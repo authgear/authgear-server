@@ -48,7 +48,7 @@ func (s *TesterTokenStore) CreateToken(
 	return token, nil
 }
 
-func (s *TesterTokenStore) GetTokenByID(
+func (s *TesterTokenStore) ConsumeToken(
 	appID config.AppID,
 	tokenID string,
 ) (*TesterToken, error) {
@@ -64,6 +64,11 @@ func (s *TesterTokenStore) GetTokenByID(
 		}
 
 		err = json.Unmarshal(bytes, &token)
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.Del(s.Context, key).Result()
 		if err != nil {
 			return err
 		}
