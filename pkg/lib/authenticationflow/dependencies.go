@@ -166,6 +166,7 @@ type OAuthProviderFactory interface {
 
 type PasskeyRequestOptionsService interface {
 	MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error)
 }
 
 type PasskeyService interface {

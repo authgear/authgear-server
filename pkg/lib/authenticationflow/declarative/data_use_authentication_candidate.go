@@ -22,6 +22,9 @@ type UseAuthenticationCandidate struct {
 	// Count is specific to password.
 	Count *int `json:"count,omitempty"`
 
+	// WebAuthnRequestOptions is specific to Passkey.
+	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
+
 	// AuthenticatorID is omitted from the output.
 	// The caller must use index to select a candidate.
 	AuthenticatorID string `json:"-"`
@@ -38,6 +41,47 @@ func NewUseAuthenticationCandidatePassword(am config.AuthenticationFlowAuthentic
 		Authentication: am,
 		Count:          &count,
 	}
+}
+
+func NewUseAuthenticationCandidatePasskey(requestOptions *model.WebAuthnRequestOptions) UseAuthenticationCandidate {
+	return UseAuthenticationCandidate{
+		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+		RequestOptions: requestOptions,
+	}
+}
+
+func NewUseAuthenticationCandidateTOTP() UseAuthenticationCandidate {
+	return UseAuthenticationCandidate{
+		Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+	}
+}
+
+func NewUseAuthenticationCandidateOOBOTP(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationCandidate {
+	am := AuthenticationFromAuthenticator(i)
+	switch am {
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		fallthrough
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		channels := getChannels(model.ClaimEmail, oobConfig)
+		return UseAuthenticationCandidate{
+			Authentication:    am,
+			Channels:          channels,
+			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
+			AuthenticatorID:   i.ID,
+		}
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		fallthrough
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
+		return UseAuthenticationCandidate{
+			Authentication:    am,
+			Channels:          channels,
+			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
+			AuthenticatorID:   i.ID,
+		}
+	}
+
+	panic(fmt.Errorf("NewUseAuthenticationCandidateOOBOTP: unexpected authentication method: %v %v", i.Kind, i.Type))
 }
 
 func AuthenticationFromAuthenticator(i *authenticator.Info) config.AuthenticationFlowAuthentication {
@@ -64,51 +108,6 @@ func AuthenticationFromAuthenticator(i *authenticator.Info) config.Authenticatio
 		case model.AuthenticatorTypeTOTP:
 			return config.AuthenticationFlowAuthenticationSecondaryTOTP
 		}
-	}
-
-	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
-}
-
-func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationCandidate {
-	am := AuthenticationFromAuthenticator(i)
-	switch am {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
-		count := 0
-		return UseAuthenticationCandidate{
-			Authentication: am,
-			Count:          &count,
-		}
-
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-		return UseAuthenticationCandidate{
-			Authentication: am,
-		}
-
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		channels := getChannels(model.ClaimEmail, oobConfig)
-		return UseAuthenticationCandidate{
-			Authentication:    am,
-			Channels:          channels,
-			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
-			AuthenticatorID:   i.ID,
-		}
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
-		return UseAuthenticationCandidate{
-			Authentication:    am,
-			Channels:          channels,
-			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
-			AuthenticatorID:   i.ID,
-		}
-	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-		// FIXME(authflow): support passkey in login flow.
-		break
 	}
 
 	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
