@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,6 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 )
 
 const (
@@ -230,7 +229,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.RedirectURI() == "" {
 			return protocol.NewError("invalid_request", "redirect uri is required")
 		}
-		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case IDTokenGrantType:
@@ -336,7 +335,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	// verify pkce
 	needVerifyPKCE := client.IsPublic() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
-		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
+		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(codeGrant.PKCEChallenge) {
 			return nil, errInvalidAuthzCode
 		}
 	}
@@ -1221,10 +1220,4 @@ func (h *TokenHandler) translateAccessTokenError(err error) error {
 	}
 
 	return err
-}
-
-func verifyPKCE(challenge, verifier string) bool {
-	verifierHash := sha256.Sum256([]byte(verifier))
-	expectedChallenge := base64.RawURLEncoding.EncodeToString(verifierHash[:])
-	return subtle.ConstantTimeCompare([]byte(challenge), []byte(expectedChallenge)) == 1
 }

@@ -27,9 +27,10 @@ func ConfigureTesterRoute(route httproute.Route) httproute.Route {
 }
 
 type TesterTokenStore interface {
-	ConsumeToken(
+	GetToken(
 		appID config.AppID,
 		tokenID string,
+		consume bool,
 	) (*tester.TesterToken, error)
 }
 
@@ -42,7 +43,7 @@ type TesterHandler struct {
 }
 
 func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http.Request) error {
-	testerToken, err := h.TesterTokenStore.ConsumeToken(h.AppID, token)
+	testerToken, err := h.TesterTokenStore.GetToken(h.AppID, token, false)
 	if errors.Is(err, tester.ErrTokenNotFound) {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return nil
@@ -61,12 +62,14 @@ func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http
 	q := url.Values{}
 	q.Set("redirect_uri", h.TesterEndpointsProvider.TesterURL().String())
 	q.Set("scope", strings.Join([]string{
-		"offline_access", "https://authgear.com/scopes/full-access",
+		"openid", "offline_access", "https://authgear.com/scopes/full-access",
 	}, " "))
 	q.Set("response_type", "code")
 	q.Set("client_id", "tester")
 	q.Set("x_sso_enabled", "false")
 	q.Set("state", string(stateb64))
+	q.Set("code_challenge_method", testerToken.PKCEVerifier.CodeChallengeMethod)
+	q.Set("code_challenge", testerToken.PKCEVerifier.Challenge())
 
 	redirectTo := h.OauthEndpointsProvider.AuthorizeEndpointURL()
 	redirectTo.RawQuery = q.Encode()

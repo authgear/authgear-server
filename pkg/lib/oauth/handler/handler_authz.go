@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -553,7 +554,7 @@ func (h *AuthorizationHandler) validateRequest(
 				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
 			}
 		}
-		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case "none":

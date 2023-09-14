@@ -48,9 +48,10 @@ func (s *TesterTokenStore) CreateToken(
 	return token, nil
 }
 
-func (s *TesterTokenStore) ConsumeToken(
+func (s *TesterTokenStore) GetToken(
 	appID config.AppID,
 	tokenID string,
+	consume bool,
 ) (*TesterToken, error) {
 	key := redisTokenKey(appID, tokenID)
 	var token TesterToken
@@ -68,9 +69,11 @@ func (s *TesterTokenStore) ConsumeToken(
 			return err
 		}
 
-		_, err = conn.Del(s.Context, key).Result()
-		if err != nil {
-			return err
+		if consume {
+			_, err = conn.Del(s.Context, key).Result()
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
