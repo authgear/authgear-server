@@ -1,9 +1,9 @@
-package apptester
+package tester
 
 import (
 	"github.com/google/wire"
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(AppTesterTokenStore), "*"),
+	wire.Struct(new(TesterTokenStore), "*"),
 )

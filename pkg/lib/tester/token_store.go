@@ -1,4 +1,4 @@
-package apptester
+package tester
 
 import (
 	"context"
@@ -13,17 +13,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-type AppTesterTokenStore struct {
+type TesterTokenStore struct {
 	Context context.Context
 	Redis   *globalredis.Handle
 }
 
 const Lifetime = duration.Short
 
-func (s *AppTesterTokenStore) CreateToken(
+func (s *TesterTokenStore) CreateToken(
 	appID config.AppID,
 	returnURI string,
-) (*AppTesterToken, error) {
+) (*TesterToken, error) {
 	token := NewTesterToken(returnURI)
 	bytes, err := json.Marshal(token)
 	if err != nil {
@@ -48,12 +48,12 @@ func (s *AppTesterTokenStore) CreateToken(
 	return token, nil
 }
 
-func (s *AppTesterTokenStore) GetTokenByID(
+func (s *TesterTokenStore) GetTokenByID(
 	appID config.AppID,
 	tokenID string,
-) (*AppTesterToken, error) {
+) (*TesterToken, error) {
 	key := redisTokenKey(appID, tokenID)
-	var token AppTesterToken
+	var token TesterToken
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		bytes, err := conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {

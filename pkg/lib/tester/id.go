@@ -1,4 +1,4 @@
-package apptester
+package tester
 
 import (
 	"math/rand"

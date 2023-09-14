@@ -9,10 +9,10 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
-	"github.com/authgear/authgear-server/pkg/portal/apptester"
 	"github.com/authgear/authgear-server/pkg/portal/libstripe"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
@@ -58,7 +58,7 @@ type AppService interface {
 	GenerateTesterToken(
 		app *model.App,
 		returnURI string,
-	) (*apptester.AppTesterToken, error)
+	) (*tester.TesterToken, error)
 }
 
 type DomainService interface {

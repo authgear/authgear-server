@@ -17,9 +17,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
-	"github.com/authgear/authgear-server/pkg/portal/apptester"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -236,7 +236,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context: context,
 		Redis:   globalredisHandle,
 	}
-	appTesterTokenStore := &apptester.AppTesterTokenStore{
+	appTesterTokenStore := &tester.TesterTokenStore{
 		Context: context,
 		Redis:   globalredisHandle,
 	}

@@ -19,9 +19,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
-	"github.com/authgear/authgear-server/pkg/portal/apptester"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
@@ -94,11 +94,11 @@ type AppTesterTokenStore interface {
 	CreateToken(
 		appID config.AppID,
 		returnURI string,
-	) (*apptester.AppTesterToken, error)
+	) (*tester.TesterToken, error)
 	GetTokenByID(
 		appID config.AppID,
 		tokenID string,
-	) (*apptester.AppTesterToken, error)
+	) (*tester.TesterToken, error)
 }
 
 type AppService struct {
@@ -304,7 +304,7 @@ func (s *AppService) GenerateSecretVisitToken(
 func (s *AppService) GenerateTesterToken(
 	app *model.App,
 	returnURI string,
-) (*apptester.AppTesterToken, error) {
+) (*tester.TesterToken, error) {
 	return s.AppTesterTokenStore.CreateToken(config.AppID(app.ID), returnURI)
 }
 
