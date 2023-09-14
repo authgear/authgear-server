@@ -93,10 +93,11 @@ type AuthorizationHandler struct {
 	Cookies                   CookieManager
 	OAuthSessionService       OAuthSessionService
 	CodeGrantService          CodeGrantService
+	ClientResolver            OAuthClientResolver
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
-	client := resolveClient(h.Config, r)
+	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -309,7 +310,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 
 	r := entry.T.AuthorizationRequest
 
-	client := resolveClient(h.Config, r)
+	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		err = protocol.NewError("unauthorized_client", "invalid client ID")
 		return nil, err

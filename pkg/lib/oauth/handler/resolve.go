@@ -15,11 +15,12 @@ type oauthRequest interface {
 	RedirectURI() string
 }
 
-func resolveClient(config *config.OAuthConfig, r oauthRequest) *config.OAuthClientConfig {
-	if client, ok := config.GetClient(r.ClientID()); ok {
-		return client
-	}
-	return nil
+type OAuthClientResolver interface {
+	ResolveClientID(clientID string) *config.OAuthClientConfig
+}
+
+func resolveClient(resolver OAuthClientResolver, r oauthRequest) *config.OAuthClientConfig {
+	return resolver.ResolveClientID(r.ClientID())
 }
 
 func parseRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, r oauthRequest) (*url.URL, protocol.ErrorResponse) {

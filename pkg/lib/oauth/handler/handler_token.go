@@ -111,10 +111,11 @@ type TokenHandler struct {
 	App2App             App2AppService
 	Challenges          ChallengeProvider
 	CodeGrantService    CodeGrantService
+	ClientResolver      OAuthClientResolver
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
-	client := resolveClient(h.Config, r)
+	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		return tokenResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),

@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/google/wire"
 
@@ -468,5 +469,10 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		tester.DependencySet,
 		wire.Bind(new(webapp.TesterTokenStore), new(*tester.TesterTokenStore)),
+	),
+
+	wire.NewSet(
+		oauthclient.DependencySet,
+		wire.Bind(new(oauthhandler.OAuthClientResolver), new(*oauthclient.Resolver)),
 	),
 )
