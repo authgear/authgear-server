@@ -38,6 +38,9 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 					Alias:          "wechat_mobile",
 					WechatAppType:  config.OAuthSSOWeChatAppTypeMobile,
 				},
+				{
+					Identification: config.AuthenticationFlowIdentificationPasskey,
+				},
 			},
 		}, `
 {
@@ -94,8 +97,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "const": "oauth"
                 },
                 "redirect_uri": {
-                    "type": "string",
-		    "format": "uri"
+                    "format": "uri",
+                    "type": "string"
                 },
                 "state": {
                     "type": "string"
@@ -118,8 +121,8 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "const": "oauth"
                 },
                 "redirect_uri": {
-                    "type": "string",
-		    "format": "uri"
+                    "format": "uri",
+                    "type": "string"
                 },
                 "state": {
                     "type": "string"
@@ -131,10 +134,66 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                 "state",
                 "alias"
             ]
+        },
+        {
+            "properties": {
+                "assertion_response": {
+                    "properties": {
+                        "clientExtensionResults": {
+                            "type": "object"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "rawId": {
+                            "type": "string"
+                        },
+                        "response": {
+                            "properties": {
+                                "authenticatorData": {
+                                    "type": "string"
+                                },
+                                "clientDataJSON": {
+                                    "type": "string"
+                                },
+                                "signature": {
+                                    "type": "string"
+                                },
+                                "userHandle": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "clientDataJSON",
+                                "authenticatorData",
+                                "signature"
+                            ],
+                            "type": "object"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "type",
+                        "rawId",
+                        "response"
+                    ],
+                    "type": "object"
+                },
+                "identification": {
+                    "const": "passkey"
+                }
+            },
+            "required": [
+                "identification",
+                "assertion_response"
+            ]
         }
     ],
     "type": "object"
 }
-		`)
+`)
 	})
 }

@@ -65,7 +65,9 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			requireConst("alias", candidate.Alias)
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationPasskey:
-			// FIXME(authflow): support passkey.
+			required = append(required, "assertion_response")
+			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
+			setRequiredAndAppendOneOf()
 		default:
 			break
 		}
