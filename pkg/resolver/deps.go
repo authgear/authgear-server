@@ -12,6 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 )
 
@@ -31,5 +33,8 @@ var DependencySet = wire.NewSet(
 		endpoints.DependencySet,
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 	),
+
+	wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 )

@@ -9,8 +9,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountanonymization"
 	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
@@ -122,4 +126,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(hook.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.EmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
+
+	endpoints.DependencySet,
+	wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
+
+	wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 )

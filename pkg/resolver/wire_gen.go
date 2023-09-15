@@ -45,6 +45,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -607,10 +608,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    provider,
+		ClientResolver: oauthclientResolver,
 	}
 	oauthResolver := &oauth2.Resolver{
 		RemoteIP:            remoteIP,

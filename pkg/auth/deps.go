@@ -134,6 +134,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.ProtocolIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handleroauth.ProtocolProxyRedirectHandler), new(*oauthhandler.ProxyRedirectHandler)),
 	wire.Bind(new(handleroauth.OAuthClientResolver), new(*oauthclient.Resolver)),
+	wire.Bind(new(handlerwebapp.TesterTokenIssuer), new(*oauthhandler.TokenHandler)),
 	ProvideOAuthMetadataProviders,
 
 	handlerapi.DependencySet,
@@ -201,6 +202,8 @@ var DependencySet = wire.NewSet(
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+
+	wire.Bind(new(oauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 )
 
 func ProvideOAuthConfig() *config.OAuthConfig {

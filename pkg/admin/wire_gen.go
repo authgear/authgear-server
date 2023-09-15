@@ -710,10 +710,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          rand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -745,14 +754,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator:  coordinator,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
@@ -999,9 +1000,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthClientResolver: oauthclientResolver,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,

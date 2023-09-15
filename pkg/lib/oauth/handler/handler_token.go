@@ -311,6 +311,18 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	resp, err := h.IssueTokensForAuthorizationCode(client, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) IssueTokensForAuthorizationCode(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (protocol.TokenResponse, error) {
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", err.Error())
@@ -370,7 +382,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
+	resp, err := h.doIssueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +392,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
 
-	return tokenResultOK{Response: resp}, nil
+	return resp, nil
 }
 
 func (h *TokenHandler) handleRefreshToken(
@@ -947,7 +959,7 @@ func (h *TokenHandler) issueOfflineGrant(
 }
 
 // nolint: gocyclo
-func (h *TokenHandler) issueTokensForAuthorizationCode(
+func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,

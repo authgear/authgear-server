@@ -15,9 +15,10 @@ type ServiceIDPSessionProvider interface {
 }
 
 type OfflineGrantService struct {
-	OAuthConfig *config.OAuthConfig
-	Clock       clock.Clock
-	IDPSessions ServiceIDPSessionProvider
+	OAuthConfig    *config.OAuthConfig
+	Clock          clock.Clock
+	IDPSessions    ServiceIDPSessionProvider
+	ClientResolver OAuthClientResolver
 }
 
 func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, error) {
@@ -53,13 +54,7 @@ func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, e
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {
-	var clientConfig *config.OAuthClientConfig
-	for _, c := range s.OAuthConfig.Clients {
-		if c.ClientID == session.ClientID {
-			cc := c
-			clientConfig = &cc
-		}
-	}
+	clientConfig := s.ClientResolver.ResolveClient(session.ClientID)
 
 	if clientConfig == nil {
 		err = ErrGrantNotFound

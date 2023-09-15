@@ -561,9 +561,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -578,9 +579,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
@@ -1081,9 +1083,10 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -1098,9 +1101,10 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
@@ -1265,10 +1269,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -1282,14 +1295,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -2070,10 +2075,21 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -2161,16 +2177,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             resourceManager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -3363,10 +3377,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -3454,13 +3473,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             resourceManager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -3903,10 +3922,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -3920,14 +3948,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
-	}
-	resolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
 	eventLogger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -5264,9 +5284,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Random:          idpsessionRand,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -6055,9 +6076,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Random:          idpsessionRand,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -6973,9 +6995,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -7836,9 +7859,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -8698,9 +8722,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -9548,9 +9573,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -10393,9 +10419,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -11226,9 +11253,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -12062,9 +12090,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -12901,9 +12930,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -13742,9 +13772,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -14581,9 +14612,10 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -15416,9 +15448,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -16255,9 +16288,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -17095,9 +17129,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -17934,9 +17969,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -18773,9 +18809,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -19614,9 +19651,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -20453,9 +20491,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -21292,9 +21331,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -22135,9 +22175,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -22974,9 +23015,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -23817,9 +23859,10 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -24656,9 +24699,10 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -25503,9 +25547,10 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -26360,9 +26405,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -27199,9 +27245,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -28034,9 +28081,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -28873,9 +28921,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -29708,9 +29757,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -30553,9 +30603,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -31388,9 +31439,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -32225,9 +32277,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -33060,9 +33113,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -33927,9 +33981,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -34773,9 +34828,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -35632,9 +35688,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -36475,9 +36532,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -37311,9 +37369,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -38155,9 +38214,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -38991,9 +39051,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -39827,9 +39888,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -40663,9 +40725,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -41500,9 +41563,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -41760,9 +41824,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,
@@ -42355,9 +42420,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -43191,9 +43257,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -44027,9 +44094,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -44863,9 +44931,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -45699,9 +45768,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -46542,9 +46612,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -47379,9 +47450,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -48214,9 +48286,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -49065,9 +49138,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -49900,9 +49974,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -50735,9 +50810,10 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -51588,9 +51664,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -52387,9 +52464,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -53185,9 +53263,10 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -54030,9 +54109,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -54866,9 +54946,10 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -55701,9 +55782,10 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -55959,12 +56041,79 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Context: contextContext,
 		Redis:   globalredisHandle,
 	}
+	oAuthFeatureConfig := featureConfig.OAuth
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsEndpoints,
+		Events:     eventService,
+	}
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenService := handler.TokenService{
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
+	}
+	app2appProvider := &app2app.Provider{
+		Clock: clockClock,
+	}
+	codeGrantService := handler.CodeGrantService{
+		AppID:         appID,
+		CodeGenerator: tokenGenerator,
+		Clock:         clockClock,
+		CodeGrants:    redisStore,
+	}
+	tokenHandler := &handler.TokenHandler{
+		AppID:                  appID,
+		Config:                 oAuthConfig,
+		HTTPOrigin:             httpOrigin,
+		OAuthFeatureConfig:     oAuthFeatureConfig,
+		IdentityFeatureConfig:  identityFeatureConfig,
+		OAuthClientCredentials: oAuthClientCredentials,
+		Logger:                 tokenHandlerLogger,
+		Authorizations:         authorizationService,
+		CodeGrants:             redisStore,
+		OfflineGrants:          redisStore,
+		AppSessionTokens:       redisStore,
+		OfflineGrantService:    offlineGrantService,
+		Graphs:                 interactionService,
+		IDTokenIssuer:          idTokenIssuer,
+		Clock:                  clockClock,
+		TokenService:           tokenService,
+		Events:                 eventService,
+		SessionManager:         manager2,
+		App2App:                app2appProvider,
+		Challenges:             challengeProvider,
+		CodeGrantService:       codeGrantService,
+		ClientResolver:         oauthclientResolver,
+	}
 	testerHandler := &webapp.TesterHandler{
 		AppID:                   appID,
 		ControllerFactory:       controllerFactory,
 		OauthEndpointsProvider:  endpointsEndpoints,
 		TesterEndpointsProvider: endpointsEndpoints,
 		TesterTokenStore:        testerTokenStore,
+		TesterTokenIssuer:       tokenHandler,
+		OAuthClientResolver:     oauthclientResolver,
 	}
 	return testerHandler
 }
@@ -56503,10 +56652,19 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -56546,10 +56704,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -56714,10 +56868,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Issuer:        idTokenIssuer,
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
@@ -57285,10 +57435,19 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -57328,10 +57487,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -57496,10 +57651,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Issuer:        idTokenIssuer,
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
@@ -58060,10 +58211,19 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -58103,10 +58263,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -58271,10 +58427,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Issuer:        idTokenIssuer,
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
@@ -58870,10 +59022,19 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -58913,10 +59074,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -59081,10 +59238,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Issuer:        idTokenIssuer,
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
@@ -59652,10 +59805,19 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -59695,10 +59857,6 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -59891,10 +60049,6 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		Issuer:        idTokenIssuer,
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
 	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
@@ -60853,10 +61007,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: oauthclientResolver,
 	}
 	oauthResolver := &oauth2.Resolver{
 		RemoteIP:            remoteIP,
@@ -61474,9 +61633,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -62314,10 +62474,19 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
