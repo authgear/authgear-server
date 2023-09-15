@@ -289,7 +289,7 @@ export type GenerateStripeCustomerPortalSessionPayload = {
 export type GenerateTestTokenInput = {
   /** ID of the app. */
   id: Scalars['ID'];
-  /** URI to retrun to in the tester page */
+  /** URI to return to in the tester page */
   returnUri: Scalars['String'];
 };
 
