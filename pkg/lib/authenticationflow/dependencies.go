@@ -169,6 +169,10 @@ type PasskeyRequestOptionsService interface {
 	MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error)
 }
 
+type PasskeyCreationOptionsService interface {
+	MakeCreationOptions(userID string) (*model.WebAuthnCreationOptions, error)
+}
+
 type PasskeyService interface {
 	ConsumeAttestationResponse(attestationResponse []byte) (err error)
 	ConsumeAssertionResponse(assertionResponse []byte) (err error)
@@ -183,22 +187,23 @@ type Dependencies struct {
 
 	HTTPRequest *http.Request
 
-	Users                        UserService
-	Identities                   IdentityService
-	Authenticators               AuthenticatorService
-	MFA                          MFAService
-	StdAttrsService              StdAttrsService
-	CustomAttrsService           CustomAttrsService
-	OTPCodes                     OTPCodeService
-	OTPSender                    OTPSender
-	Verification                 VerificationService
-	ForgotPassword               ForgotPasswordService
-	ResetPassword                ResetPasswordService
-	AccountMigrations            AccountMigrationService
-	Captcha                      CaptchaService
-	OAuthProviderFactory         OAuthProviderFactory
-	PasskeyRequestOptionsService PasskeyRequestOptionsService
-	PasskeyService               PasskeyService
+	Users                         UserService
+	Identities                    IdentityService
+	Authenticators                AuthenticatorService
+	MFA                           MFAService
+	StdAttrsService               StdAttrsService
+	CustomAttrsService            CustomAttrsService
+	OTPCodes                      OTPCodeService
+	OTPSender                     OTPSender
+	Verification                  VerificationService
+	ForgotPassword                ForgotPasswordService
+	ResetPassword                 ResetPasswordService
+	AccountMigrations             AccountMigrationService
+	Captcha                       CaptchaService
+	OAuthProviderFactory          OAuthProviderFactory
+	PasskeyRequestOptionsService  PasskeyRequestOptionsService
+	PasskeyCreationOptionsService PasskeyCreationOptionsService
+	PasskeyService                PasskeyService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

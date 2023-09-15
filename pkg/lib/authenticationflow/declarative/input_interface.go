@@ -88,3 +88,9 @@ type inputTakeTOTP interface {
 type inputTakeRecoveryCode interface {
 	GetRecoveryCode() string
 }
+
+type inputNodePromptCreatePasskey interface {
+	IsSkip() bool
+	IsCreationResponse() bool
+	GetCreationResponse() *protocol.CredentialCreationResponse
+}

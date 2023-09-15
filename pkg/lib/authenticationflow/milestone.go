@@ -37,3 +37,27 @@ func FindMilestone[T Milestone](w *Flow) (T, bool) {
 
 	return t, true
 }
+
+func FindAllMilestones[T Milestone](w *Flow) []T {
+	var ts []T
+
+	err := TraverseFlow(Traverser{
+		NodeSimple: func(nodeSimple NodeSimple, _ *Flow) error {
+			if m, ok := nodeSimple.(T); ok {
+				ts = append(ts, m)
+			}
+			return nil
+		},
+		Intent: func(intent Intent, w *Flow) error {
+			if m, ok := intent.(T); ok {
+				ts = append(ts, m)
+			}
+			return nil
+		},
+	}, w)
+	if err != nil {
+		panic(err)
+	}
+
+	return ts
+}
