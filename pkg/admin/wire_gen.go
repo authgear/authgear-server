@@ -63,6 +63,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -744,6 +745,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator:  coordinator,
 	}
 	interactionLogger := interaction.NewLogger(factory)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
@@ -755,10 +764,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -869,6 +874,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -985,11 +991,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:               queries,
 	}
 	oAuthFacade := &facade2.OAuthFacade{
-		Config:         oAuthConfig,
-		Users:          userFacade,
-		Authorizations: authorizationService,
-		Tokens:         tokenService,
-		Clock:          clockClock,
+		Config:              oAuthConfig,
+		Users:               userFacade,
+		Authorizations:      authorizationService,
+		Tokens:              tokenService,
+		Clock:               clockClock,
+		OAuthClientResolver: oauthclientResolver,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
 		OAuthConfig: oAuthConfig,

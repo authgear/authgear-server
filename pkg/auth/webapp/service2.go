@@ -61,6 +61,7 @@ type Service2 struct {
 	UIConfig             *config.UIConfig
 	TrustProxy           config.TrustProxy
 	UIInfoResolver       UIInfoResolver
+	OAuthClientResolver  OAuthClientResolver
 
 	Graph GraphService
 }
@@ -558,7 +559,7 @@ func (s *Service2) deriveFinishRedirectURI(session *Session, graph *interaction.
 		return
 	}
 
-	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthConfig, s.UIConfig)
+	postLoginRedirectURI := DerivePostLoginRedirectURIFromRequest(s.Request, s.OAuthClientResolver, s.UIConfig)
 	redirectURI = GetRedirectURI(s.Request, bool(s.TrustProxy), postLoginRedirectURI)
 	return
 }

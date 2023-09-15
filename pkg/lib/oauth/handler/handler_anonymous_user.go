@@ -80,6 +80,7 @@ type AnonymousUserHandler struct {
 	UserProvider        UserProvider
 	AnonymousIdentities AnonymousIdentityProvider
 	PromotionCodes      PromotionCodeStore
+	OAuthClientResolver OAuthClientResolver
 }
 
 // SignupAnonymousUser return token response or api errors
@@ -136,8 +137,8 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	clientID string,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
-	client, ok := h.OAuthConfig.GetClient(clientID)
-	if !ok {
+	client := h.OAuthClientResolver.ResolveClient(clientID)
+	if client == nil {
 		// "invalid_client"
 		return nil, apierrors.NewInvalid("invalid client ID")
 	}

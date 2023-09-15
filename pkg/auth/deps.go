@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -97,7 +98,6 @@ var DependencySet = wire.NewSet(
 		endpoints.DependencySet,
 
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.EndpointsProvider), new(*endpoints.Endpoints)),
@@ -108,6 +108,7 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.WechatURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 	),
 
 	webapp.DependencySet,
@@ -132,6 +133,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.Renderer), new(*handlerwebapp.ResponseRenderer)),
 	wire.Bind(new(handleroauth.ProtocolIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handleroauth.ProtocolProxyRedirectHandler), new(*oauthhandler.ProxyRedirectHandler)),
+	wire.Bind(new(handleroauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 	ProvideOAuthMetadataProviders,
 
 	handlerapi.DependencySet,
@@ -161,6 +163,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(viewmodelswebapp.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(viewmodelswebapp.SettingsProfileUserService), new(*user.Queries)),
 	wire.Bind(new(viewmodelswebapp.SettingsProfileIdentityService), new(*facade.IdentityFacade)),
+	wire.Bind(new(viewmodelswebapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
@@ -294,6 +297,12 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
 	wire.Bind(new(httputil.FlashMessageCookieManager), new(*httputil.CookieManager)),
+
+	endpoints.DependencySet,
+	wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
+
+	oauthclient.DependencySet,
+	wire.Bind(new(viewmodelswebapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
 )
 
 func RequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSource, factory func(http.ResponseWriter, *http.Request, *deps.RootProvider, *configsource.ConfigSource) httproute.Middleware) httproute.Middleware {

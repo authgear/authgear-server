@@ -62,6 +62,7 @@ type SelectAccountHandler struct {
 	Cookies                   CookieManager
 	OAuthConfig               *config.OAuthConfig
 	UIConfig                  *config.UIConfig
+	OAuthClientResolver       WebappOAuthClientResolver
 }
 
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
@@ -128,7 +129,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		}
 
 		if redirectURI == "" {
-			redirectURI = webapp.DerivePostLoginRedirectURIFromRequest(r, h.OAuthConfig, h.UIConfig)
+			redirectURI = webapp.DerivePostLoginRedirectURIFromRequest(r, h.OAuthClientResolver, h.UIConfig)
 		}
 
 		// Write authentication info cookie

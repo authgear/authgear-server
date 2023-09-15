@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	authwebapp "github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -474,5 +475,9 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		oauthclient.DependencySet,
 		wire.Bind(new(oauthhandler.OAuthClientResolver), new(*oauthclient.Resolver)),
+		wire.Bind(new(oidc.UIInfoClientResolver), new(*oauthclient.Resolver)),
+		wire.Bind(new(webapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),
+		wire.Bind(new(authwebapp.OAuthClientResolver), new(*oauthclient.Resolver)),
+		wire.Bind(new(interaction.OAuthClientResolver), new(*oauthclient.Resolver)),
 	),
 )

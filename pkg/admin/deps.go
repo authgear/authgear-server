@@ -29,9 +29,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -65,6 +67,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.AuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(facade.OAuthAuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(facade.OAuthTokenService), new(*oauthhandler.TokenService)),
+	wire.Bind(new(facade.OAuthClientResolver), new(*oauthclient.Resolver)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -97,6 +100,7 @@ var DependencySet = wire.NewSet(
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 	),
 
 	transport.DependencySet,

@@ -71,6 +71,10 @@ type UIInfoResolverCookieManager interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
+type UIInfoClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
 type UIInfoResolver struct {
 	Config              *config.OAuthConfig
 	EndpointsProvider   oauth.EndpointsProvider
@@ -78,6 +82,7 @@ type UIInfoResolver struct {
 	IDTokenHintResolver UIInfoResolverIDTokenHintResolver
 	Clock               clock.Clock
 	Cookies             UIInfoResolverCookieManager
+	ClientResolver      UIInfoClientResolver
 }
 
 func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
@@ -153,8 +158,8 @@ func (r *UIInfoResolver) RemoveOAuthSessionID(w http.ResponseWriter, req *http.R
 }
 
 func (r *UIInfoResolver) ResolveForUI(req protocol.AuthorizationRequest) (*UIInfo, error) {
-	client, ok := r.Config.GetClient(req.ClientID())
-	if !ok {
+	client := r.ClientResolver.ResolveClient(req.ClientID())
+	if client == nil {
 		return nil, fmt.Errorf("client not found: %v", req.ClientID())
 	}
 

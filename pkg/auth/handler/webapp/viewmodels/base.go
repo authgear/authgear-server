@@ -120,6 +120,10 @@ type FlashMessage interface {
 	Pop(r *http.Request, rw http.ResponseWriter) string
 }
 
+type WebappOAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
 type BaseViewModeler struct {
 	TrustProxy            config.TrustProxy
 	OAuth                 *config.OAuthConfig
@@ -136,13 +140,14 @@ type BaseViewModeler struct {
 	DefaultLanguageTag    template.DefaultLanguageTag
 	SupportedLanguageTags template.SupportedLanguageTags
 	AuthUISentryDSN       config.AuthUISentryDSN
+	OAuthClientResolver   WebappOAuthClientResolver
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	now := m.Clock.NowUTC().Unix()
 	uiParam := uiparam.GetUIParam(r.Context())
 	clientID := uiParam.ClientID
-	client, _ := m.OAuth.GetClient(clientID)
+	client := m.OAuthClientResolver.ResolveClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
 	clientName := ""
 	if client != nil {

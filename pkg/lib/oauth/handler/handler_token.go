@@ -810,8 +810,8 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, err
 	}
 	scopes := originalOfflineGrant.Scopes
-	originalClient, ok := h.Config.GetClient(originalOfflineGrant.ClientID)
-	if !ok {
+	originalClient := h.ClientResolver.ResolveClient(originalOfflineGrant.ClientID)
+	if originalClient == nil {
 		return nil, protocol.NewError("server_error", "cannot find original client for app2app")
 	}
 

@@ -15,7 +15,11 @@ func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string 
 	return redirectURI
 }
 
-func DerivePostLoginRedirectURIFromRequest(r *http.Request, oauthConfig *config.OAuthConfig, uiConfig *config.UIConfig) string {
+type OAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
+func DerivePostLoginRedirectURIFromRequest(r *http.Request, clientResolver OAuthClientResolver, uiConfig *config.UIConfig) string {
 	// 1. Redirect URL in query param (must be whitelisted)
 	// 2. Default redirect URL of the client
 	// 3. Post-login URL
@@ -26,8 +30,8 @@ func DerivePostLoginRedirectURIFromRequest(r *http.Request, oauthConfig *config.
 		if clientID == "" {
 			return ""
 		}
-		client, found := oauthConfig.GetClient(clientID)
-		if !found {
+		client := clientResolver.ResolveClient(clientID)
+		if client == nil {
 			return ""
 		}
 

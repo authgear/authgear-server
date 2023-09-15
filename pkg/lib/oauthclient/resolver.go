@@ -10,7 +10,7 @@ type Resolver struct {
 	TesterEndpoints tester.EndpointsProvider
 }
 
-func (r *Resolver) ResolveClientID(clientID string) *config.OAuthClientConfig {
+func (r *Resolver) ResolveClient(clientID string) *config.OAuthClientConfig {
 	if clientID == tester.ClientIDTester {
 		return tester.NewTesterClient(r.TesterEndpoints.TesterURL().String())
 	}

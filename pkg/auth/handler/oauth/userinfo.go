@@ -28,16 +28,21 @@ func NewUserInfoHandlerLogger(lf *log.Factory) UserInfoHandlerLogger {
 	return UserInfoHandlerLogger{lf.New("handler-user-info")}
 }
 
+type OAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
 type UserInfoHandler struct {
-	Logger           UserInfoHandlerLogger
-	Database         *appdb.Handle
-	UserInfoProvider ProtocolUserInfoProvider
-	OAuth            *config.OAuthConfig
+	Logger              UserInfoHandlerLogger
+	Database            *appdb.Handle
+	UserInfoProvider    ProtocolUserInfoProvider
+	OAuth               *config.OAuthConfig
+	OAuthClientResolver OAuthClientResolver
 }
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
-	clientLike := oauth.SessionClientLike(s, h.OAuth)
+	clientLike := oauth.SessionClientLike(s, h.OAuthClientResolver)
 	var userInfo map[string]interface{}
 	err := h.Database.WithTx(func() (err error) {
 		userInfo, err = h.UserInfoProvider.GetUserInfo(s.GetAuthenticationInfo().UserID, clientLike)

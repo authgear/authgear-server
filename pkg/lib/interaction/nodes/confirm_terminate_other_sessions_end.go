@@ -17,8 +17,8 @@ type EdgeConfirmTerminateOtherSessionsEnd struct {
 
 func (e *EdgeConfirmTerminateOtherSessionsEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	clientID := ctx.Request.URL.Query().Get("client_id")
-	client, success := ctx.Config.OAuth.GetClient(clientID)
-	if clientID == "" || !success || client.MaxConcurrentSession != 1 {
+	client := ctx.OAuthClientResolver.ResolveClient(clientID)
+	if client == nil || client.MaxConcurrentSession != 1 {
 		return &NodeConfirmTerminateOtherSessionsEnd{}, nil
 	}
 	existingGrants, err := ctx.OfflineGrants.ListClientOfflineGrants(client.ClientID, graph.MustGetUserID())
