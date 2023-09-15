@@ -7209,17 +7209,18 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -8071,17 +8072,18 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -8932,17 +8934,18 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -9781,17 +9784,18 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -10625,17 +10629,18 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -11457,17 +11462,18 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -12292,17 +12298,18 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -13130,17 +13137,18 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -13970,17 +13978,18 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -14808,17 +14817,18 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -15642,17 +15652,18 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -16480,17 +16491,18 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -17319,17 +17331,18 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -18157,17 +18170,18 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -18995,17 +19009,18 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -19835,17 +19850,18 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -20673,17 +20689,18 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -21511,17 +21528,18 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -22353,17 +22371,18 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -23191,17 +23210,18 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -24033,17 +24053,18 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -24871,17 +24892,18 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      appdbHandle,
-		RedisHandle:   handle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                appdbHandle,
+		RedisHandle:             handle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -25717,17 +25739,18 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      appdbHandle,
-		RedisHandle:   handle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                appdbHandle,
+		RedisHandle:             handle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -26573,17 +26596,18 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -27411,17 +27435,18 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -28245,17 +28270,18 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -29083,17 +29109,18 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -29917,17 +29944,18 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -30761,17 +30789,18 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -31595,17 +31624,18 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -32431,17 +32461,18 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -33265,17 +33296,18 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -34131,17 +34163,18 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -34976,17 +35009,18 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -35834,17 +35868,18 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -36676,17 +36711,18 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -37511,17 +37547,18 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -38354,17 +38391,18 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -39189,17 +39227,18 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -40024,17 +40063,18 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -40859,17 +40899,18 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -41695,17 +41736,18 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -42549,17 +42591,18 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -43384,17 +43427,18 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -44219,17 +44263,18 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -45054,17 +45099,18 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -45889,17 +45935,18 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -46731,17 +46778,18 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -47567,17 +47615,18 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -48401,17 +48450,18 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -49251,17 +49301,18 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -50085,17 +50136,18 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -50919,17 +50971,18 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -53368,17 +53421,18 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -54212,17 +54266,18 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -55047,17 +55102,18 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -55881,17 +55937,18 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
