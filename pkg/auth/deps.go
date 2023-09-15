@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
+	oauthredis "github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -197,6 +198,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.TesterTokenIssuer), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handlerwebapp.TesterCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TesterAppSessionTokenService), new(*oauth.AppSessionTokenService)),
+	wire.Bind(new(handlerwebapp.TesterUserInfoProvider), new(*oidc.IDTokenIssuer)),
+	wire.Bind(new(handlerwebapp.TesterOfflineGrantStore), new(*oauthredis.Store)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),

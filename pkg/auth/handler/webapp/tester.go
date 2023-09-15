@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -29,6 +30,11 @@ func ConfigureTesterRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern("/tester")
+}
+
+type TesterViewModel struct {
+	ReturnURI    string
+	UserInfoJson string
 }
 
 type TesterTokenStore interface {
@@ -55,6 +61,14 @@ type TesterCookieManager interface {
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 }
 
+type TesterUserInfoProvider interface {
+	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+}
+
+type TesterOfflineGrantStore interface {
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+}
+
 type TesterHandler struct {
 	AppID                   config.AppID
 	ControllerFactory       ControllerFactory
@@ -65,6 +79,14 @@ type TesterHandler struct {
 	OAuthClientResolver     *oauthclient.Resolver
 	AppSessionTokenService  TesterAppSessionTokenService
 	CookieManager           TesterCookieManager
+	Renderer                Renderer
+	BaseViewModel           *viewmodels.BaseViewModeler
+	UserInfoProvider        TesterUserInfoProvider
+	OfflineGrants           TesterOfflineGrantStore
+}
+
+var TesterScopes = []string{
+	"openid", "offline_access", "https://authgear.com/scopes/full-access",
 }
 
 type TesterState struct {
@@ -94,9 +116,7 @@ func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http
 	stateb64 := base64.RawURLEncoding.EncodeToString(stateBytes)
 	q := url.Values{}
 	q.Set("redirect_uri", h.TesterEndpointsProvider.TesterURL().String())
-	q.Set("scope", strings.Join([]string{
-		"openid", "offline_access", "https://authgear.com/scopes/full-access",
-	}, " "))
+	q.Set("scope", strings.Join(TesterScopes, " "))
 	q.Set("response_type", "code")
 	q.Set("client_id", tester.ClientIDTester)
 	q.Set("x_sso_enabled", "false")
@@ -109,6 +129,30 @@ func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http
 	http.Redirect(w, r, redirectTo.String(), http.StatusFound)
 
 	return nil
+}
+
+func (h *TesterHandler) getData(
+	rw http.ResponseWriter,
+	r *http.Request,
+	testerToken *tester.TesterToken,
+	userInfo map[string]interface{},
+) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	userInfoJsonBytes, err := json.MarshalIndent(userInfo, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	testerViewModel := TesterViewModel{
+		ReturnURI:    testerToken.ReturnURI,
+		UserInfoJson: string(userInfoJsonBytes),
+	}
+
+	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, testerViewModel)
+	return data, nil
 }
 
 func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.ResponseWriter, r *http.Request) error {
@@ -144,10 +188,16 @@ func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.Resp
 		return fmt.Errorf("tester: refresh_token is not string")
 	}
 
-	appSessionToken, _, err := h.TesterTokenIssuer.IssueAppSessionToken(refreshToken)
+	appSessionToken, s, err := h.TesterTokenIssuer.IssueAppSessionToken(refreshToken)
 	if err != nil {
 		return err
 	}
+
+	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(s.OfflineGrantID)
+	if err != nil {
+		return err
+	}
+	userID := offlineGrant.GetAuthenticationInfo().UserID
 
 	appSession, err := h.AppSessionTokenService.Exchange(appSessionToken)
 	if err != nil {
@@ -156,6 +206,18 @@ func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.Resp
 
 	cookie := h.CookieManager.ValueCookie(session.AppSessionTokenCookieDef, appSession)
 	httputil.UpdateCookie(w, cookie)
+
+	userInfo, err := h.UserInfoProvider.GetUserInfo(userID, oauth.ClientClientLike(client, TesterScopes))
+	if err != nil {
+		return err
+	}
+
+	data, err := h.getData(w, r, testerToken, userInfo)
+	if err != nil {
+		return err
+	}
+
+	h.Renderer.RenderHTML(w, r, TemplateWebTesterHTML, data)
 
 	return nil
 }

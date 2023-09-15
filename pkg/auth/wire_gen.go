@@ -56130,6 +56130,10 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		OAuthClientResolver:     oauthclientResolver,
 		AppSessionTokenService:  appSessionTokenService,
 		CookieManager:           cookieManager,
+		Renderer:                responseRenderer,
+		BaseViewModel:           baseViewModeler,
+		UserInfoProvider:        idTokenIssuer,
+		OfflineGrants:           redisStore,
 	}
 	return testerHandler
 }
