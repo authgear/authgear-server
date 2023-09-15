@@ -79,6 +79,9 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.userID(flows),
 		}), nil
+	case config.AuthenticationFlowLoginFlowStepTypePromptCreatePasskey:
+		// FIXME(authflow): support create passkey.
+		return nil, authflow.ErrIncompatibleInput
 	}
 
 	return nil, authflow.ErrIncompatibleInput

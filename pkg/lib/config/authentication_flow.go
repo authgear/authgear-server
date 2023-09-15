@@ -237,7 +237,8 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 			"enum": [
 				"identify",
 				"authenticate",
-				"change_password"
+				"change_password",
+				"prompt_create_passkey"
 			]
 		}
 	},
@@ -741,9 +742,10 @@ func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowLoginFlowStepType string
 
 const (
-	AuthenticationFlowLoginFlowStepTypeIdentify       AuthenticationFlowLoginFlowStepType = "identify"
-	AuthenticationFlowLoginFlowStepTypeAuthenticate   AuthenticationFlowLoginFlowStepType = "authenticate"
-	AuthenticationFlowLoginFlowStepTypeChangePassword AuthenticationFlowLoginFlowStepType = "change_password"
+	AuthenticationFlowLoginFlowStepTypeIdentify            AuthenticationFlowLoginFlowStepType = "identify"
+	AuthenticationFlowLoginFlowStepTypeAuthenticate        AuthenticationFlowLoginFlowStepType = "authenticate"
+	AuthenticationFlowLoginFlowStepTypeChangePassword      AuthenticationFlowLoginFlowStepType = "change_password"
+	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey AuthenticationFlowLoginFlowStepType = "prompt_create_passkey"
 )
 
 type AuthenticationFlowLoginFlowStep struct {

@@ -48,6 +48,8 @@ error: |-
     map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
   /steps/0/one_of/0/steps/1/optional: type
     map[actual:[string] expected:[boolean]]
+  /steps/1/type: enum
+    map[actual:foobar expected:[identify authenticate change_password prompt_create_passkey]]
 value:
   id: id
   steps:
@@ -64,3 +66,4 @@ value:
         optional: "a"
         one_of:
         - authentication: foobar
+  - type: foobar

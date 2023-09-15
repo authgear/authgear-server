@@ -280,6 +280,8 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 		},
 	}
 
+	// FIXME(authflow): support create passkey.
+
 	return flow
 }
 
