@@ -56,37 +56,48 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 			}
 		}
 
+		setRequiredAndAppendOneOf := func() {
+			b.Required(required...)
+			oneOf = append(oneOf, b)
+		}
+
 		switch candidate.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			requireString("password")
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			// FIXME(authflow): support passkey in login flow.
-			continue
+			required = append(required, "assertion_response")
+			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
+			setRequiredAndAppendOneOf()
+
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			requireString("password")
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			requireString("code")
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			requireIndex()
 			mayRequireChannel()
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			requireIndex()
 			mayRequireChannel()
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			requireString("recovery_code")
+			setRequiredAndAppendOneOf()
 		default:
-			// Skip the following code.
-			continue
+			break
 		}
-
-		b.Required(required...)
-		oneOf = append(oneOf, b)
 	}
 
 	b := validation.SchemaBuilder{}.
