@@ -190,8 +190,11 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-				// FIXME(authflow): support passkey in login flow.
-				return nil, authflow.ErrIncompatibleInput
+				return authflow.NewNodeSimple(&NodeUseAuthenticatorPasskey{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
