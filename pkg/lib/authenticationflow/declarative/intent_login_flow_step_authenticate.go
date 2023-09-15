@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -49,19 +48,17 @@ func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
 
 func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (info *authenticator.Info, ok bool) {
-	m, ok := authflow.FindMilestone[MilestoneDidVerifyAuthenticator](flows.Nearest)
+	m, ok := authflow.FindMilestone[MilestoneDoUseAuthenticatorPassword](flows.Nearest)
 	if !ok {
 		return
 	}
 
 	ok = false
-	n := m.MilestoneDidVerifyAuthenticator()
+	n := m.MilestoneDoUseAuthenticatorPassword()
 
-	if n.Authenticator.Type == model.AuthenticatorTypePassword {
-		if n.PasswordChangeRequired {
-			info = n.Authenticator
-			ok = true
-		}
+	if n.PasswordChangeRequired {
+		info = n.Authenticator
+		ok = true
 	}
 
 	return

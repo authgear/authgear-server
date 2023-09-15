@@ -156,9 +156,9 @@ type MilestoneDidSelectAuthenticator interface {
 	MilestoneDidSelectAuthenticator() *authenticator.Info
 }
 
-type MilestoneDidVerifyAuthenticator interface {
+type MilestoneDoUseAuthenticatorPassword interface {
 	authflow.Milestone
-	MilestoneDidVerifyAuthenticator() *NodeDidVerifyAuthenticator
+	MilestoneDoUseAuthenticatorPassword() *NodeDoUseAuthenticatorPassword
 }
 
 type MilestoneDoPopulateStandardAttributes interface {

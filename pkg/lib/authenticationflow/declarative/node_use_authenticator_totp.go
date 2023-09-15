@@ -77,7 +77,7 @@ func (n *NodeUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.D
 			return nil, err
 		}
 
-		return authflow.NewNodeSimple(&NodeDidVerifyAuthenticator{
+		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorSimple{
 			Authenticator: info,
 		}), nil
 	}
