@@ -41,7 +41,7 @@ type AppSessionTokenService struct {
 }
 
 func (s *AppSessionTokenService) Handle(input AppSessionTokenInput) (httputil.Result, error) {
-	token, err := s.exchange(input.AppSessionToken)
+	token, err := s.Exchange(input.AppSessionToken)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (s *AppSessionTokenService) Handle(input AppSessionTokenInput) (httputil.Re
 	}, nil
 }
 
-func (s *AppSessionTokenService) exchange(appSessionToken string) (string, error) {
+func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error) {
 	sToken, err := s.AppSessionTokens.GetAppSessionToken(HashToken(appSessionToken))
 	if err != nil {
 		return "", err

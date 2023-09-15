@@ -13,8 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -45,6 +47,14 @@ type TesterTokenIssuer interface {
 	IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error)
 }
 
+type TesterAppSessionTokenService interface {
+	Exchange(appSessionToken string) (string, error)
+}
+
+type TesterCookieManager interface {
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+}
+
 type TesterHandler struct {
 	AppID                   config.AppID
 	ControllerFactory       ControllerFactory
@@ -53,6 +63,8 @@ type TesterHandler struct {
 	TesterTokenStore        TesterTokenStore
 	TesterTokenIssuer       TesterTokenIssuer
 	OAuthClientResolver     *oauthclient.Resolver
+	AppSessionTokenService  TesterAppSessionTokenService
+	CookieManager           TesterCookieManager
 }
 
 type TesterState struct {
@@ -131,9 +143,19 @@ func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.Resp
 	if !ok {
 		return fmt.Errorf("tester: refresh_token is not string")
 	}
-	fmt.Println("Refresh Token", refreshToken)
 
-	// appSessionToken, _, err := h.TesterTokenIssuer.IssueAppSessionToken(refreshToken)
+	appSessionToken, _, err := h.TesterTokenIssuer.IssueAppSessionToken(refreshToken)
+	if err != nil {
+		return err
+	}
+
+	appSession, err := h.AppSessionTokenService.Exchange(appSessionToken)
+	if err != nil {
+		return err
+	}
+
+	cookie := h.CookieManager.ValueCookie(session.AppSessionTokenCookieDef, appSession)
+	httputil.UpdateCookie(w, cookie)
 
 	return nil
 }

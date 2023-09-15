@@ -56106,6 +56106,20 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		CodeGrantService:       codeGrantService,
 		ClientResolver:         oauthclientResolver,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
+	appSessionTokenService := &oauth2.AppSessionTokenService{
+		AppSessions:         redisStore,
+		AppSessionTokens:    redisStore,
+		OfflineGrants:       redisStore,
+		OfflineGrantService: oauthOfflineGrantService,
+		Cookies:             cookieManager,
+		Clock:               clockClock,
+	}
 	testerHandler := &webapp.TesterHandler{
 		AppID:                   appID,
 		ControllerFactory:       controllerFactory,
@@ -56114,6 +56128,8 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		TesterTokenStore:        testerTokenStore,
 		TesterTokenIssuer:       tokenHandler,
 		OAuthClientResolver:     oauthclientResolver,
+		AppSessionTokenService:  appSessionTokenService,
+		CookieManager:           cookieManager,
 	}
 	return testerHandler
 }

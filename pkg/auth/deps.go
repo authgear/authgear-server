@@ -134,7 +134,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.ProtocolIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handleroauth.ProtocolProxyRedirectHandler), new(*oauthhandler.ProxyRedirectHandler)),
 	wire.Bind(new(handleroauth.OAuthClientResolver), new(*oauthclient.Resolver)),
-	wire.Bind(new(handlerwebapp.TesterTokenIssuer), new(*oauthhandler.TokenHandler)),
 	ProvideOAuthMetadataProviders,
 
 	handlerapi.DependencySet,
@@ -195,6 +194,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 	wire.Bind(new(handlerwebapp.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.EventStoreImpl)),
+	wire.Bind(new(handlerwebapp.TesterTokenIssuer), new(*oauthhandler.TokenHandler)),
+	wire.Bind(new(handlerwebapp.TesterCookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerwebapp.TesterAppSessionTokenService), new(*oauth.AppSessionTokenService)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
