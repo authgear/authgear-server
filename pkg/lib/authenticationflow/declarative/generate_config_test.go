@@ -744,6 +744,7 @@ steps:
           - authentication: secondary_totp
       - authentication: primary_passkey
   - identification: passkey
+- type: prompt_create_passkey
 `)
 
 		// passkey and oauth and 2fa
@@ -793,6 +794,7 @@ steps:
       - authentication: primary_passkey
   - identification: oauth
   - identification: passkey
+- type: prompt_create_passkey
 `)
 	})
 }
