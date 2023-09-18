@@ -31,13 +31,14 @@ type ServiceOutput struct {
 
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
-		ID:            o.Flow.InstanceID,
-		WebsocketID:   o.Flow.FlowID,
-		JSONSchema:    o.SchemaBuilder,
-		Finished:      o.Finished,
-		FlowReference: o.FlowReference,
-		FlowStep:      o.FlowStep,
-		Data:          o.Data,
+		ID:          o.Flow.InstanceID,
+		WebsocketID: o.Flow.FlowID,
+		JSONSchema:  o.SchemaBuilder,
+		Finished:    o.Finished,
+		FlowType:    o.FlowReference.Type,
+		FlowName:    o.FlowReference.Name,
+		FlowStep:    o.FlowStep,
+		Data:        o.Data,
 	}
 }
 

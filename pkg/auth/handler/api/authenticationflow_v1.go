@@ -75,20 +75,14 @@ func ConfigureAuthenticationFlowV1Routes(route httproute.Route) []httproute.Rout
 var AuthenticationFlowV1RestfulCreateRequestSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"required": ["flow_reference"],
+	"required": ["flow_type", "flow_name"],
 	"properties": {
-		"flow_reference": {
-			"type": "object",
-			"properties": {
-				"type": {
-					"type": "string",
-					"enum": ["signup_flow", "login_flow"]
-				},
-				"name": {
-					"type": "string"
-				}
-			},
-			"required": ["type", "name"]
+		"flow_type": {
+			"type": "string",
+			"enum": ["signup_flow", "login_flow"]
+		},
+		"flow_name": {
+			"type": "string"
 		},
 		"bind_user_agent": { "type": "boolean" },
 		"batch_input": {
@@ -102,9 +96,10 @@ var AuthenticationFlowV1RestfulCreateRequestSchema = validation.NewSimpleSchema(
 `)
 
 type AuthenticationFlowV1RestfulCreateRequest struct {
-	FlowReference *authflow.FlowReference `json:"flow_reference,omitempty"`
-	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
-	BatchInput    []json.RawMessage       `json:"batch_input,omitempty"`
+	FlowType      authflow.FlowType `json:"flow_type,omitempty"`
+	FlowName      string            `json:"flow_name,omitempty"`
+	BindUserAgent *bool             `json:"bind_user_agent,omitempty"`
+	BatchInput    []json.RawMessage `json:"batch_input,omitempty"`
 }
 
 func (r *AuthenticationFlowV1RestfulCreateRequest) SetDefaults() {
@@ -117,7 +112,8 @@ func (r *AuthenticationFlowV1RestfulCreateRequest) SetDefaults() {
 func (r AuthenticationFlowV1RestfulCreateRequest) ToNonRestful(httpReq *http.Request) AuthenticationFlowV1NonRestfulCreateRequest {
 	rawQuery := httpReq.URL.RawQuery
 	return AuthenticationFlowV1NonRestfulCreateRequest{
-		FlowReference: r.FlowReference,
+		FlowType:      r.FlowType,
+		FlowName:      r.FlowName,
 		BindUserAgent: r.BindUserAgent,
 		BatchInput:    r.BatchInput,
 		URLQuery:      rawQuery,
@@ -127,20 +123,14 @@ func (r AuthenticationFlowV1RestfulCreateRequest) ToNonRestful(httpReq *http.Req
 var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"required": ["flow_reference"],
+	"required": ["flow_type", "flow_name"],
 	"properties": {
-		"flow_reference": {
-			"type": "object",
-			"properties": {
-				"type": {
-					"type": "string",
-					"enum": ["signup_flow", "login_flow"]
-				},
-				"id": {
-					"type": "string"
-				}
-			},
-			"required": ["type", "id"]
+		"flow_type": {
+			"type": "string",
+			"enum": ["signup_flow", "login_flow"]
+		},
+		"flow_name": {
+			"type": "string"
 		},
 		"url_query": { "type": "string" },
 		"bind_user_agent": { "type": "boolean" },
@@ -155,10 +145,18 @@ var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSche
 `)
 
 type AuthenticationFlowV1NonRestfulCreateRequest struct {
-	FlowReference *authflow.FlowReference `json:"flow_reference,omitempty"`
-	URLQuery      string                  `json:"url_query,omitempty"`
-	BindUserAgent *bool                   `json:"bind_user_agent,omitempty"`
-	BatchInput    []json.RawMessage       `json:"batch_input,omitempty"`
+	FlowType      authflow.FlowType `json:"flow_type,omitempty"`
+	FlowName      string            `json:"flow_name,omitempty"`
+	URLQuery      string            `json:"url_query,omitempty"`
+	BindUserAgent *bool             `json:"bind_user_agent,omitempty"`
+	BatchInput    []json.RawMessage `json:"batch_input,omitempty"`
+}
+
+func (r *AuthenticationFlowV1NonRestfulCreateRequest) GetFlowReference() *authflow.FlowReference {
+	return &authflow.FlowReference{
+		Type: r.FlowType,
+		Name: r.FlowName,
+	}
 }
 
 func (r *AuthenticationFlowV1NonRestfulCreateRequest) SetDefaults() {
@@ -442,7 +440,7 @@ func (h *AuthenticationFlowV1Handler) create(w http.ResponseWriter, r *http.Requ
 }
 
 func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*authflow.ServiceOutput, error) {
-	flow, err := authflow.InstantiateFlow(*request.FlowReference)
+	flow, err := authflow.InstantiateFlow(*request.GetFlowReference())
 	if err != nil {
 		return nil, err
 	}

@@ -50,8 +50,10 @@ type FlowResponse struct {
 	Finished   bool                     `json:"finished,omitempty"`
 	JSONSchema validation.SchemaBuilder `json:"json_schema,omitempty"`
 
-	FlowReference *FlowReference `json:"flow_reference,omitempty"`
-	FlowStep      *FlowStep      `json:"flow_step,omitempty"`
+	FlowType FlowType `json:"flow_type,omitempty"`
+	FlowName string   `json:"flow_name,omitempty"`
+
+	FlowStep *FlowStep `json:"flow_step,omitempty"`
 
 	Data Data `json:"data"`
 }
