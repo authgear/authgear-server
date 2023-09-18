@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
@@ -90,7 +90,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 
 	if webhook, ok := secretConfig.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials); ok {
 		if webhook.Set.Len() == 1 {
-			if jwkKey, ok := webhook.Set.Get(0); ok {
+			if jwkKey, ok := webhook.Set.Key(0); ok {
 				if sKey, ok := jwkKey.(jwk.SymmetricKey); ok {
 					var secret *string
 					if _, exist := unmaskedSecretsSet[config.WebhookKeyMaterialsKey]; exist {
@@ -108,7 +108,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 
 	if adminAPI, ok := secretConfig.LookupData(config.AdminAPIAuthKeyKey).(*config.AdminAPIAuthKey); ok {
 		for i := 0; i < adminAPI.Set.Len(); i++ {
-			if jwkKey, ok := adminAPI.Set.Get(i); ok {
+			if jwkKey, ok := adminAPI.Set.Key(i); ok {
 				var createdAt *time.Time
 				if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {
 					if fCreatedAt, ok := anyCreatedAt.(float64); ok {
@@ -117,7 +117,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 					}
 				}
 				set := jwk.NewSet()
-				_ = set.Add(jwkKey)
+				_ = set.AddKey(jwkKey)
 				publicKeyPEMBytes, err := jwkutil.PublicPEM(set)
 				if err != nil {
 					return nil, err
@@ -161,7 +161,7 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 			keys := []OAuthClientSecretKey{}
 
 			for i := 0; i < item.Set.Len(); i++ {
-				if jwkKey, ok := item.Set.Get(i); ok {
+				if jwkKey, ok := item.Set.Key(i); ok {
 					newlyCreated := false
 					var createdAt *time.Time
 					if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {

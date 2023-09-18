@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -41,14 +41,14 @@ func TestGenerateOctetKeyForSig(t *testing.T) {
 
 		// Able to get created_at after marshaling and unmarshaling.
 		jwkSet := jwk.NewSet()
-		jwkSet.Add(jwkKey)
+		jwkSet.AddKey(jwkKey)
 		jwkSetJSON, err := json.Marshal(jwkSet)
 		So(err, ShouldBeNil)
 		newSet := jwk.NewSet()
 		err = json.Unmarshal(jwkSetJSON, &newSet)
 		So(err, ShouldBeNil)
 		So(newSet.Len(), ShouldEqual, 1)
-		key, ok := newSet.Get(0)
+		key, ok := newSet.Key(0)
 		So(ok, ShouldBeTrue)
 		createdAtIface, ok = key.Get(jwkutil.KeyCreatedAt)
 		So(ok, ShouldBeTrue)

@@ -5,9 +5,9 @@ import (
 	"crypto/rsa"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -23,9 +23,9 @@ func TestVerifyWithSet(t *testing.T) {
 		privKey, err := rsa.GenerateKey(rand.Reader, 512)
 		So(err, ShouldBeNil)
 
-		jwkKey, err := jwk.New(privKey)
+		jwkKey, err := jwk.FromRaw(privKey)
 		So(err, ShouldBeNil)
-		_ = jwkKey.Set("kid", "mykey")
+		_ = jwkKey.Set("kid", "c240e6bd-0083-4ee7-98c0-518d65bb0dd8")
 
 		alg := jwa.RS256
 
@@ -33,7 +33,7 @@ func TestVerifyWithSet(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		privateKeySet := jwk.NewSet()
-		_ = privateKeySet.Add(jwkKey)
+		_ = privateKeySet.AddKey(jwkKey)
 
 		publicKeySet, err := jwk.PublicSetOf(privateKeySet)
 		So(err, ShouldBeNil)

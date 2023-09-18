@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
@@ -47,7 +47,6 @@ func SignWithHeader(t jwt.Token, hdr jws.Headers, alg jwa.SignatureAlgorithm, ke
 			if err != nil {
 				return
 			}
-
 			kid := jwk.KeyID()
 			if kid != "" {
 				err = hdr.Set("kid", jwk.KeyID())
@@ -58,7 +57,7 @@ func SignWithHeader(t jwt.Token, hdr jws.Headers, alg jwa.SignatureAlgorithm, ke
 		}
 	}
 
-	token, err = jws.Sign(buf, alg, realKey, jws.WithHeaders(hdr))
+	token, err = jws.Sign(buf, jws.WithKey(alg, realKey, jws.WithProtectedHeaders(hdr)))
 	return
 }
 

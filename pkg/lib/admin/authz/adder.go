@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -38,7 +38,7 @@ func (a *Adder) AddAuthz(
 		_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
 		_ = payload.Set(JWTKeyAuditContext, auditContext)
 
-		key, _ := authKey.Set.Get(0)
+		key, _ := authKey.Set.Key(0)
 
 		var token []byte
 		token, err = jwtutil.Sign(payload, jwa.RS256, key)

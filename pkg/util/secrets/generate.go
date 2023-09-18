@@ -5,7 +5,7 @@ import (
 	mathrand "math/rand"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -23,7 +23,7 @@ func GenerateSecret(length int, rng *mathrand.Rand) string {
 func GenerateOctetKey(createdAt time.Time, rng *mathrand.Rand) jwk.Key {
 	key := []byte(GenerateSecret(32, rng))
 
-	jwkKey, err := jwk.New(key)
+	jwkKey, err := jwk.FromRaw(key)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +48,7 @@ func GenerateRSAKey(createdAt time.Time, rng *mathrand.Rand) jwk.Key {
 		panic(err)
 	}
 
-	jwkKey, err := jwk.New(privateKey)
+	jwkKey, err := jwk.FromRaw(privateKey)
 	if err != nil {
 		panic(err)
 	}

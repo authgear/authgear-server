@@ -1,7 +1,7 @@
 package jwkutil
 
 import (
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 func PublicPEM(set jwk.Set) (bytes []byte, err error) {

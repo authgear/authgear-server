@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
 
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
@@ -43,14 +43,14 @@ func TestMiddleware(t *testing.T) {
 			privKey, err := rsa.GenerateKey(rand.Reader, 512)
 			So(err, ShouldBeNil)
 
-			jwkKey, err := jwk.New(privKey)
+			jwkKey, err := jwk.FromRaw(privKey)
 			So(err, ShouldBeNil)
 			_ = jwkKey.Set(jwk.KeyIDKey, "mykey")
 			_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
 			_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
 
 			set := jwk.NewSet()
-			_ = set.Add(jwkKey)
+			_ = set.AddKey(jwkKey)
 
 			m := adminauthz.Middleware{
 				Logger: adminauthz.Logger{
@@ -61,7 +61,7 @@ func TestMiddleware(t *testing.T) {
 				AuthKey: &config.AdminAPIAuthKey{
 					Set: set,
 				},
-				Clock: clock.NewMockClock(),
+				Clock: clock.NewMockClockAt("2023-09-18T11:59:42.142Z"),
 			}
 
 			r, _ := http.NewRequest("GET", "/", nil)
@@ -85,14 +85,14 @@ func TestMiddleware(t *testing.T) {
 			privKey, err := rsa.GenerateKey(rand.Reader, 512)
 			So(err, ShouldBeNil)
 
-			jwkKey, err := jwk.New(privKey)
+			jwkKey, err := jwk.FromRaw(privKey)
 			So(err, ShouldBeNil)
 			_ = jwkKey.Set(jwk.KeyIDKey, "mykey")
 			_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
 			_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
 
 			set := jwk.NewSet()
-			_ = set.Add(jwkKey)
+			_ = set.AddKey(jwkKey)
 
 			m := adminauthz.Middleware{
 				Logger: adminauthz.Logger{

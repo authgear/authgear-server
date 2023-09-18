@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 var _ = SecretConfigSchema.Add("DatabaseCredentials", `

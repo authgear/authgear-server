@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -41,7 +41,7 @@ func TestSign(t *testing.T) {
 		privKey, err := rsa.GenerateKey(rand.Reader, 512)
 		So(err, ShouldBeNil)
 
-		jwkKey, err := jwk.New(privKey)
+		jwkKey, err := jwk.FromRaw(privKey)
 		So(err, ShouldBeNil)
 		_ = jwkKey.Set("kid", "mykey")
 
@@ -60,7 +60,7 @@ func TestSign(t *testing.T) {
 		privKey, err := rsa.GenerateKey(rand.Reader, 512)
 		So(err, ShouldBeNil)
 
-		jwkKey, err := jwk.New(privKey)
+		jwkKey, err := jwk.FromRaw(privKey)
 		So(err, ShouldBeNil)
 
 		token, err := Sign(payload, alg, jwkKey)
@@ -77,7 +77,7 @@ func TestSign(t *testing.T) {
 		privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		So(err, ShouldBeNil)
 
-		jwkKey, err := jwk.New(privKey)
+		jwkKey, err := jwk.FromRaw(privKey)
 		So(err, ShouldBeNil)
 
 		token, err := Sign(payload, alg, jwkKey)

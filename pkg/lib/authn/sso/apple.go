@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -47,7 +47,7 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	_ = payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
 	_ = payload.Set(jwt.SubjectKey, f.ProviderConfig.ClientID)
 
-	jwkKey, err := jwk.New(key)
+	jwkKey, err := jwk.FromRaw(key)
 	if err != nil {
 		return
 	}

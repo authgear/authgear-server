@@ -8,9 +8,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -118,7 +118,7 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 			return
 		}
 
-		key, ok = set.Get(0)
+		key, ok = set.Key(0)
 		if !ok {
 			err = fmt.Errorf("empty JWK set")
 			return
@@ -127,7 +127,7 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 
 		// The client does include alg in the JWK.
 		// Fix it by copying alg in the header.
-		if key.Algorithm() == "" {
+		if key.Algorithm().String() == "" {
 			_ = key.Set(jws.AlgorithmKey, hdr.Algorithm())
 		}
 	} else if kid := hdr.KeyID(); kid != "" {
@@ -175,9 +175,9 @@ func (p *Provider) ParseRequest(requestJWT string, i *identity.Biometric) (*Requ
 	}
 
 	set := jwk.NewSet()
-	_ = set.Add(key)
+	_ = set.AddKey(key)
 
-	payload, err := jws.VerifySet([]byte(requestJWT), set)
+	payload, err := jws.Verify([]byte(requestJWT), jws.WithKeySet(set))
 	if err != nil {
 		return nil, fmt.Errorf("invalid JWT: %w", err)
 	}

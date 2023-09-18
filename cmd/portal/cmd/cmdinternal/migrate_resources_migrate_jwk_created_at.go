@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
@@ -78,7 +78,7 @@ func migrateJWKCreatedAt(appID string, configSourceData map[string]string, dryRu
 				return err
 			}
 			for i := 0; i < jwkSet.Len(); i++ {
-				jwkKey, ok := jwkSet.Get(i)
+				jwkKey, ok := jwkSet.Key(i)
 				if ok {
 					_, ok := jwkKey.Get("created_at")
 					if !ok {
