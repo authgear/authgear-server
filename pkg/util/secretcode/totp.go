@@ -18,6 +18,11 @@ type TOTP struct {
 	Secret string
 }
 
+type URIOptions struct {
+	Issuer      string
+	AccountName string
+}
+
 type QRCodeImageOptions struct {
 	Issuer      string
 	AccountName string
@@ -77,19 +82,31 @@ func (c *TOTP) ValidateCode(t time.Time, code string) bool {
 	return ok
 }
 
-func (c *TOTP) QRCodeImage(opts QRCodeImageOptions) (image.Image, error) {
+func (c *TOTP) GetURI(opts URIOptions) *url.URL {
 	q := url.Values{}
 	q.Set("secret", c.Secret)
 	q.Set("issuer", opts.Issuer)
 	q.Set("algorithm", otp.AlgorithmSHA1.String())
 	q.Set("digits", otp.DigitsSix.String())
 	q.Set("period", strconv.FormatUint(uint64(validateOptsTOTP.Period), 10))
+	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+	// According to the spec, we SHOULD specify issuer both in the path and in the query.
+	// But issuer is typically an URL that contains colon, it cannot be placed in the path safely.
 	u := &url.URL{
 		Scheme:   "otpauth",
 		Host:     "totp",
-		Path:     fmt.Sprintf("/%s:%s", opts.Issuer, opts.AccountName),
+		Path:     fmt.Sprintf("/%v", url.PathEscape(opts.AccountName)),
 		RawQuery: q.Encode(),
 	}
+
+	return u
+}
+
+func (c *TOTP) QRCodeImage(opts QRCodeImageOptions) (image.Image, error) {
+	u := c.GetURI(URIOptions{
+		Issuer:      opts.Issuer,
+		AccountName: opts.AccountName,
+	})
 
 	key, err := otp.NewKeyFromURL(u.String())
 	if err != nil {
