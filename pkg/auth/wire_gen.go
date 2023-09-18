@@ -57713,6 +57713,9 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	clockClock := _wireSystemClockValue
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
@@ -57812,9 +57815,6 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
-	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -58421,6 +58421,7 @@ func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig:                 featureConfig,
 		Clock:                         clockClock,
 		RemoteIP:                      remoteIP,
+		HTTPOrigin:                    httpOrigin,
 		HTTPRequest:                   request,
 		Users:                         userProvider,
 		Identities:                    identityFacade,

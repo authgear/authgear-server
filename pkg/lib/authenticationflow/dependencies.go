@@ -93,6 +93,7 @@ type EventService interface {
 }
 
 type UserService interface {
+	Get(id string, role accesscontrol.Role) (*model.User, error)
 	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
 	UpdateLoginTime(userID string, t time.Time) error
@@ -182,8 +183,9 @@ type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
 
-	Clock    clock.Clock
-	RemoteIP httputil.RemoteIP
+	Clock      clock.Clock
+	RemoteIP   httputil.RemoteIP
+	HTTPOrigin httputil.HTTPOrigin
 
 	HTTPRequest *http.Request
 
