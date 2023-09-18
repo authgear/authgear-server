@@ -22,7 +22,9 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 		},
 	}
 
-	// FIXME(authflow): support create passkey in signup flow.
+	if step, ok := generateSignupFlowStepPromptCreatePasskey(cfg); ok {
+		flow.Steps = append(flow.Steps, step)
+	}
 
 	return flow
 }
@@ -560,5 +562,22 @@ func generateLoginFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.Au
 
 	return &config.AuthenticationFlowLoginFlowStep{
 		Type: config.AuthenticationFlowLoginFlowStepTypePromptCreatePasskey,
+	}, true
+}
+
+func generateSignupFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.AuthenticationFlowSignupFlowStep, bool) {
+	passkeyEnabled := false
+	for _, typ := range *cfg.Authentication.PrimaryAuthenticators {
+		if typ == model.AuthenticatorTypePasskey {
+			passkeyEnabled = true
+		}
+	}
+
+	if !passkeyEnabled {
+		return nil, false
+	}
+
+	return &config.AuthenticationFlowSignupFlowStep{
+		Type: config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey,
 	}, true
 }
