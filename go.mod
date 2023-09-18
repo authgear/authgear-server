@@ -59,7 +59,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.28.2
 	k8s.io/apimachinery v0.28.2
-	k8s.io/client-go v0.28.1
+	k8s.io/client-go v0.28.2
 	nhooyr.io/websocket v1.8.7
 	sigs.k8s.io/yaml v1.3.0
 )
