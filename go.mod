@@ -81,7 +81,7 @@ require (
 )
 
 require (
-	github.com/alicebob/miniredis/v2 v2.30.2
+	github.com/alicebob/miniredis/v2 v2.30.5
 	github.com/twilio/twilio-go v1.7.1
 	github.com/yudai/gojsondiff v1.0.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -95,7 +95,7 @@ require (
 	github.com/Azure/azure-pipeline-go v0.2.3 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
+	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
