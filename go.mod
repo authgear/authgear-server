@@ -57,8 +57,8 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.28.1
-	k8s.io/apimachinery v0.28.1
+	k8s.io/api v0.28.2
+	k8s.io/apimachinery v0.28.2
 	k8s.io/client-go v0.28.1
 	nhooyr.io/websocket v1.8.7
 	sigs.k8s.io/yaml v1.3.0
