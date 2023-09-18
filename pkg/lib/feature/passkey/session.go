@@ -1,7 +1,7 @@
 package passkey
 
 import (
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 
-	"github.com/duo-labs/webauthn/protocol"
-	"github.com/duo-labs/webauthn/webauthn"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -114,7 +114,7 @@ func (s *Service) PeekAssertionResponse(assertionResponse []byte, attestationRes
 	err = parsedAssertion.Verify(
 		challengeString,
 		config.RPID,
-		config.RPOrigin,
+		[]string{config.RPOrigin},
 		"",    // We do not support FIDO AppID extension
 		false, // user verification is preferred so we do not require user verification here.
 		credential.PublicKey,

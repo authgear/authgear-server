@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 )
 
 type WebAuthnRequestOptions struct {

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/duo-labs/webauthn/protocol"
 	goredis "github.com/go-redis/redis/v8"
+	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
