@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -90,4 +91,18 @@ func (m *mockCookieManager) ClearCookie(def *httputil.CookieDef) *http.Cookie {
 
 func (m *mockCookieManager) ValueCookie(def *httputil.CookieDef, value string) *http.Cookie {
 	return &http.Cookie{}
+}
+
+type mockClientResolver struct {
+	ClientConfig *config.OAuthClientConfig
+}
+
+func (m *mockClientResolver) ResolveClient(clientID string) *config.OAuthClientConfig {
+	if m.ClientConfig == nil {
+		return nil
+	}
+	if clientID != m.ClientConfig.ClientID {
+		return nil
+	}
+	return m.ClientConfig
 }
