@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -48,14 +49,16 @@ func NewNodeCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *NodeCreateAu
 		return nil, err
 	}
 
+	now := deps.Clock.NowUTC()
+	displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
+
 	spec := &authenticator.Spec{
 		UserID:    n.UserID,
 		IsDefault: isDefault,
 		Kind:      authenticatorKind,
 		Type:      model.AuthenticatorTypeTOTP,
 		TOTP: &authenticator.TOTPSpec{
-			// The display name will be filled by input.
-			DisplayName: "",
+			DisplayName: displayName,
 		},
 	}
 
@@ -98,8 +101,6 @@ func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflo
 			return nil, err
 		}
 
-		// Set display name.
-		i.Authenticator.TOTP.DisplayName = inputSetupTOTP.GetDisplayName()
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
 			Authenticator: i.Authenticator,
 		}), nil
