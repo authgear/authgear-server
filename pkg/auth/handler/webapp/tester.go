@@ -157,6 +157,9 @@ func (h *TesterHandler) getData(
 
 func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.ResponseWriter, r *http.Request) error {
 	statejson, err := base64.RawURLEncoding.DecodeString(stateb64)
+	if err != nil {
+		return err
+	}
 	var state *TesterState
 	err = json.Unmarshal(statejson, &state)
 	if err != nil {
