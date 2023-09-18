@@ -101,7 +101,7 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 
 	byTarget := func(am config.AuthenticationFlowAuthentication, targetStepName string) error {
 		// Find the target step from the root.
-		targetStepFlow, err := FindTargetStep(flows.Root, targetStepName)
+		targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 		if err != nil {
 			return err
 		}

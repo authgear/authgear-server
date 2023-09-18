@@ -66,7 +66,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authf
 	targetStepName := oneOf.TargetStep
 	if targetStepName != "" {
 		// Find the target step from the root.
-		targetStepFlow, err := FindTargetStep(flows.Root, targetStepName)
+		targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 		if err != nil {
 			return nil, err
 		}

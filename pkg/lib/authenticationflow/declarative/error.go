@@ -5,7 +5,6 @@ import (
 )
 
 var ErrFlowNotFound = apierrors.NotFound.WithReason("AuthenticationFlowFlowNotFound").New("flow not found")
-var ErrStepNotFound = apierrors.NotFound.WithReason("AuthenticationFlowStepNotFound").New("step not found")
 
 var InvalidTargetStep = apierrors.InternalError.WithReason("AuthenticationFlowInvalidTargetStep")
 

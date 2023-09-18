@@ -35,7 +35,7 @@ type IntentLoginFlowStepAuthenticate struct {
 	Candidates  []UseAuthenticationCandidate `json:"candidates"`
 }
 
-var _ FlowTargetStep = &IntentLoginFlowStepAuthenticate{}
+var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
 
 func (i *IntentLoginFlowStepAuthenticate) GetName() string {
 	return i.StepName

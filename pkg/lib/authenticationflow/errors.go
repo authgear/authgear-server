@@ -30,6 +30,8 @@ var ErrEOF = errors.New("eof")
 
 var ErrFlowNotFound = apierrors.NotFound.WithReason("AuthenticationFlowNotFound").New("flow not found")
 
+var ErrStepNotFound = apierrors.NotFound.WithReason("AuthenticationFlowStepNotFound").New("step not found")
+
 var ErrUnknownFlow = apierrors.BadRequest.WithReason("AuthenticationFlowUnknownFlow").New("unknown flow")
 
 var ErrUserAgentUnmatched = apierrors.Forbidden.WithReason("UserAgentUnmatched").New("flow cannot be used in other user agent")

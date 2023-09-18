@@ -49,7 +49,7 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	step := i.step(current)
 	targetStepName := step.TargetStep
 
-	targetStepFlow, err := FindTargetStep(flows.Root, targetStepName)
+	targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 	if err != nil {
 		return nil, err
 	}
