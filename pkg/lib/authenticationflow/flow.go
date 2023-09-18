@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // PublicFlow is a instantiable intent by the public.
@@ -47,8 +46,7 @@ type FlowResponse struct {
 	// WebsocketID is actually the flow ID.
 	WebsocketID string `json:"websocket_id"`
 
-	Finished   bool                     `json:"finished,omitempty"`
-	JSONSchema validation.SchemaBuilder `json:"json_schema,omitempty"`
+	Finished bool `json:"finished,omitempty"`
 
 	FlowType FlowType `json:"flow_type,omitempty"`
 	FlowName string   `json:"flow_name,omitempty"`
