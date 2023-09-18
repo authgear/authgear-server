@@ -12,10 +12,10 @@ import (
 var jp = jsonpointer.MustParse
 
 var fixtureSignupFlow *config.AuthenticationFlowSignupFlow = &config.AuthenticationFlowSignupFlow{
-	ID: "id",
+	Name: "id",
 	Steps: []*config.AuthenticationFlowSignupFlowStep{
 		{
-			ID:   "step0",
+			Name: "step0",
 			Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
 			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 				{
@@ -58,10 +58,10 @@ var fixtureSignupFlow *config.AuthenticationFlowSignupFlow = &config.Authenticat
 }
 
 var fixtureLoginFlow *config.AuthenticationFlowLoginFlow = &config.AuthenticationFlowLoginFlow{
-	ID: "id",
+	Name: "id",
 	Steps: []*config.AuthenticationFlowLoginFlowStep{
 		{
-			ID:   "step0",
+			Name: "step0",
 			Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
 			OneOf: []*config.AuthenticationFlowLoginFlowOneOf{
 				{
@@ -91,7 +91,7 @@ var fixtureLoginFlow *config.AuthenticationFlowLoginFlow = &config.Authenticatio
 }
 
 var fixtureSignupLoginFlow *config.AuthenticationFlowSignupLoginFlow = &config.AuthenticationFlowSignupLoginFlow{
-	ID: "id",
+	Name: "id",
 	Steps: []*config.AuthenticationFlowSignupLoginFlowStep{
 		{
 			Type: config.AuthenticationFlowSignupLoginFlowStepTypeIdentify,
@@ -105,7 +105,7 @@ var fixtureSignupLoginFlow *config.AuthenticationFlowSignupLoginFlow = &config.A
 }
 
 var fixtureReauthFlow *config.AuthenticationFlowReauthFlow = &config.AuthenticationFlowReauthFlow{
-	ID: "id",
+	Name: "id",
 	Steps: []*config.AuthenticationFlowReauthFlowStep{
 		{
 			Type: config.AuthenticationFlowReauthFlowStepTypeAuthenticate,

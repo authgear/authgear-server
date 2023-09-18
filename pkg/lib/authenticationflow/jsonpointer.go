@@ -16,17 +16,17 @@ var ErrNoEntries = errors.New("no entries")
 type TraverseEntry struct {
 	FlowObject  config.AuthenticationFlowObject
 	JSONPointer jsonpointer.T
-	ID          string
+	Name        string
 	FieldName   string
 	Index       int
 }
 
-func FlowObjectGetID(o config.AuthenticationFlowObject) string {
+func FlowObjectGetName(o config.AuthenticationFlowObject) string {
 	if root, ok := o.(config.AuthenticationFlowObjectFlowRoot); ok {
-		return root.GetID()
+		return root.GetName()
 	}
 	if step, ok := o.(config.AuthenticationFlowObjectFlowStep); ok {
-		return step.GetID()
+		return step.GetName()
 	}
 	return ""
 }
@@ -52,7 +52,7 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 	entries := []TraverseEntry{
 		{
 			FlowObject: o,
-			ID:         FlowObjectGetID(o),
+			Name:       FlowObjectGetName(o),
 		},
 	}
 	var traversedPointer jsonpointer.T
@@ -97,7 +97,7 @@ func Traverse(o config.AuthenticationFlowObject, pointer jsonpointer.T) ([]Trave
 			entries = append(entries, TraverseEntry{
 				FlowObject:  o,
 				JSONPointer: traversedPointer,
-				ID:          FlowObjectGetID(o),
+				Name:        FlowObjectGetName(o),
 				FieldName:   fieldName,
 				Index:       index,
 			})

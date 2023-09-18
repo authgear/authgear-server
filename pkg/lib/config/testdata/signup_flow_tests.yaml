@@ -2,10 +2,10 @@ part: AuthenticationFlowSignupFlow
 name: valid
 error: null
 value:
-  id: id
+  name: id
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: email
       steps:
@@ -38,10 +38,10 @@ error: |-
   /steps/3/type: enum
     map[actual:foobar expected:[identify authenticate verify user_profile recovery_code prompt_create_passkey]]
 value:
-  id: id
+  name: id
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: foobar
       steps:

@@ -84,11 +84,11 @@ var AuthenticationFlowV1RestfulCreateRequestSchema = validation.NewSimpleSchema(
 					"type": "string",
 					"enum": ["signup_flow", "login_flow"]
 				},
-				"id": {
+				"name": {
 					"type": "string"
 				}
 			},
-			"required": ["type", "id"]
+			"required": ["type", "name"]
 		},
 		"bind_user_agent": { "type": "boolean" },
 		"batch_input": {

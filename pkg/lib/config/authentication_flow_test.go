@@ -41,10 +41,10 @@ func TestAuthenticationFlowSignupFlow(t *testing.T) {
 
 		test(`
 signup_flows:
-- id: signup_flow
+- name: signup_flow
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: email
   - type: authenticate
@@ -91,10 +91,10 @@ func TestAuthenticationFlowLoginFlow(t *testing.T) {
 
 		test(`
 login_flows:
-- id: login_flow
+- name: login_flow
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: email
   - type: authenticate
@@ -139,7 +139,7 @@ func TestAuthenticationFlowSignupLoginFlow(t *testing.T) {
 
 		test(`
 signup_login_flows:
-- id: signup_login_flow
+- name: signup_login_flow
   steps:
   - type: identify
     one_of:
@@ -181,7 +181,7 @@ func TestAuthenticationFlowReauthFlow(t *testing.T) {
 
 		test(`
 reauth_flows:
-- id: reauth_flow
+- name: reauth_flow
   steps:
   - type: authenticate
     one_of:

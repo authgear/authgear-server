@@ -45,9 +45,9 @@ func (n *NodeCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *au
 	}
 
 	oneOf := n.oneOf(current)
-	targetStepID := oneOf.TargetStep
+	targetStepName := oneOf.TargetStep
 	// If target step is specified, we do not need input to react.
-	if targetStepID != "" {
+	if targetStepName != "" {
 		return nil, nil
 	}
 
@@ -63,10 +63,10 @@ func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authf
 	}
 
 	oneOf := n.oneOf(current)
-	targetStepID := oneOf.TargetStep
-	if targetStepID != "" {
+	targetStepName := oneOf.TargetStep
+	if targetStepName != "" {
 		// Find the target step from the root.
-		targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+		targetStepFlow, err := FindTargetStep(flows.Root, targetStepName)
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +74,7 @@ func (n *NodeCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authf
 		target, ok := targetStepFlow.Intent.(IntentSignupFlowStepAuthenticateTarget)
 		if !ok {
 			return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-				"target_step": targetStepID,
+				"target_step": targetStepName,
 			})
 		}
 

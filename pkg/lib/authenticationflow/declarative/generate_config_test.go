@@ -46,16 +46,16 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
@@ -73,16 +73,16 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_oob_otp_email
@@ -104,16 +104,16 @@ identity:
     keys:
     - type: phone
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: phone
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_phone
+    - name: authenticate_primary_phone
       type: authenticate
       one_of:
       - authentication: primary_oob_otp_sms
@@ -135,14 +135,14 @@ identity:
     keys:
     - type: username
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: username
     steps:
-    - id: authenticate_primary_username
+    - name: authenticate_primary_username
       type: authenticate
       one_of:
       - authentication: primary_password
@@ -163,16 +163,16 @@ identity:
     - type: email
     - type: phone
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
@@ -185,7 +185,7 @@ steps:
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_phone
+    - name: authenticate_primary_phone
       type: authenticate
       one_of:
       - authentication: primary_password
@@ -211,20 +211,20 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
-    - id: authenticate_secondary_email
+    - name: authenticate_secondary_email
       type: authenticate
       one_of:
       - authentication: secondary_totp
@@ -243,9 +243,9 @@ identity:
     - alias: google
       type: google
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: oauth
@@ -275,20 +275,20 @@ identity:
     - alias: google
       type: google
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
     - target_step: identify
       type: verify
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
-    - id: authenticate_secondary_email
+    - name: authenticate_secondary_email
       type: authenticate
       one_of:
       - authentication: secondary_totp
@@ -333,21 +333,21 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -368,20 +368,20 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_oob_otp_email
         target_step: identify
         steps:
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -402,20 +402,20 @@ identity:
     keys:
     - type: phone
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: phone
     steps:
-    - id: authenticate_primary_phone
+    - name: authenticate_primary_phone
       type: authenticate
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: identify
         steps:
-        - id: authenticate_secondary_phone
+        - name: authenticate_secondary_phone
           type: authenticate
           optional: true
           one_of:
@@ -436,21 +436,21 @@ identity:
     keys:
     - type: username
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: username
     steps:
-    - id: authenticate_primary_username
+    - name: authenticate_primary_username
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_username
-        - id: authenticate_secondary_username
+        - name: authenticate_secondary_username
           type: authenticate
           optional: true
           one_of:
@@ -474,21 +474,21 @@ identity:
     - type: email
     - type: phone
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -498,7 +498,7 @@ steps:
       - authentication: primary_oob_otp_email
         target_step: identify
         steps:
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -507,14 +507,14 @@ steps:
           - authentication: secondary_totp
   - identification: phone
     steps:
-    - id: authenticate_primary_phone
+    - name: authenticate_primary_phone
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_phone
-        - id: authenticate_secondary_phone
+        - name: authenticate_secondary_phone
           type: authenticate
           optional: true
           one_of:
@@ -524,7 +524,7 @@ steps:
       - authentication: primary_oob_otp_sms
         target_step: identify
         steps:
-        - id: authenticate_secondary_phone
+        - name: authenticate_secondary_phone
           type: authenticate
           optional: true
           one_of:
@@ -548,21 +548,21 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           one_of:
           - authentication: device_token
@@ -586,21 +586,21 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -622,19 +622,19 @@ authenticator:
   password:
     force_change: false
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -654,9 +654,9 @@ identity:
     - alias: google
       type: google
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: oauth
@@ -686,21 +686,21 @@ identity:
     - alias: google
       type: google
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           one_of:
           - authentication: secondary_totp
@@ -721,21 +721,21 @@ identity:
     keys:
     - type: email
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           optional: true
           one_of:
@@ -773,21 +773,21 @@ identity:
     - alias: google
       type: google
 `, `
-id: default
+name: default
 steps:
-- id: identify
+- name: identify
   type: identify
   one_of:
   - identification: email
     steps:
-    - id: authenticate_primary_email
+    - name: authenticate_primary_email
       type: authenticate
       one_of:
       - authentication: primary_password
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-        - id: authenticate_secondary_email
+        - name: authenticate_secondary_email
           type: authenticate
           one_of:
           - authentication: secondary_totp

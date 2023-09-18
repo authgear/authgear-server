@@ -24,15 +24,15 @@ func init() {
 }
 
 type IntentSignupFlowStepVerify struct {
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowStep = &IntentSignupFlowStepVerify{}
+var _ FlowTargetStep = &IntentSignupFlowStepVerify{}
 
-func (i *IntentSignupFlowStepVerify) GetID() string {
-	return i.StepID
+func (i *IntentSignupFlowStepVerify) GetName() string {
+	return i.StepName
 }
 
 func (i *IntentSignupFlowStepVerify) GetJSONPointer() jsonpointer.T {
@@ -60,10 +60,10 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	}
 
 	step := i.step(current)
-	targetStepID := step.TargetStep
+	targetStepName := step.TargetStep
 
 	// Find the target step from the root.
-	targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+	targetStepFlow, err := FindTargetStep(flows.Root, targetStepName)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	target, ok := targetStepFlow.Intent.(IntentSignupFlowStepVerifyTarget)
 	if !ok {
 		return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-			"target_step": targetStepID,
+			"target_step": targetStepName,
 		})
 	}
 

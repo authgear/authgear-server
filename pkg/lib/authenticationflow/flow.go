@@ -28,7 +28,7 @@ const (
 // FlowReference is an API object.
 type FlowReference struct {
 	Type FlowType `json:"type"`
-	ID   string   `json:"id"`
+	Name string   `json:"name"`
 }
 
 // FlowStep is an API object.

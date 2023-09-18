@@ -30,14 +30,14 @@ func (m IntentSignupFlowStepAuthenticateData) Data() {}
 
 type IntentSignupFlowStepAuthenticate struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowStep = &IntentSignupFlowStepAuthenticate{}
+var _ FlowTargetStep = &IntentSignupFlowStepAuthenticate{}
 
-func (i *IntentSignupFlowStepAuthenticate) GetID() string {
-	return i.StepID
+func (i *IntentSignupFlowStepAuthenticate) GetName() string {
+	return i.StepName
 }
 
 func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {

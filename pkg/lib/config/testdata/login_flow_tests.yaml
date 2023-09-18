@@ -2,10 +2,10 @@ part: AuthenticationFlowLoginFlow
 name: valid
 error: null
 value:
-  id: id
+  name: id
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: email
       steps:
@@ -22,14 +22,14 @@ part: AuthenticationFlowLoginFlow
 name: change-password
 error: null
 value:
-  id: id
+  name: id
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: email
   - type: authenticate
-    id: step1
+    name: step1
     one_of:
     - authentication: primary_password
   - type: change_password
@@ -51,10 +51,10 @@ error: |-
   /steps/1/type: enum
     map[actual:foobar expected:[identify authenticate change_password prompt_create_passkey]]
 value:
-  id: id
+  name: id
   steps:
   - type: identify
-    id: my_step
+    name: my_step
     one_of:
     - identification: email
       steps:

@@ -6,15 +6,15 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 )
 
-type FlowStep interface {
-	GetID() string
+type FlowTargetStep interface {
+	GetName() string
 	GetJSONPointer() jsonpointer.T
 }
 
-func FindTargetStep(w *authflow.Flow, id string) (out *authflow.Flow, err error) {
+func FindTargetStep(w *authflow.Flow, name string) (out *authflow.Flow, err error) {
 	err = authflow.TraverseFlow(authflow.Traverser{
 		Intent: func(i authflow.Intent, w *authflow.Flow) error {
-			if i, ok := i.(FlowStep); ok && id == i.GetID() {
+			if i, ok := i.(FlowTargetStep); ok && name == i.GetName() {
 				out = w
 			}
 			return nil

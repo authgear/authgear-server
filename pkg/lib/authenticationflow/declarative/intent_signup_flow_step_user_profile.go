@@ -18,14 +18,14 @@ func init() {
 
 type IntentSignupFlowStepUserProfile struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowStep = &IntentSignupFlowStepUserProfile{}
+var _ FlowTargetStep = &IntentSignupFlowStepUserProfile{}
 
-func (i *IntentSignupFlowStepUserProfile) GetID() string {
-	return i.StepID
+func (i *IntentSignupFlowStepUserProfile) GetName() string {
+	return i.StepName
 }
 
 func (i *IntentSignupFlowStepUserProfile) GetJSONPointer() jsonpointer.T {

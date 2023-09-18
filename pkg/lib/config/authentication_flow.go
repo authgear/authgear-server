@@ -35,7 +35,7 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 }
 `)
 
-var _ = Schema.Add("AuthenticationFlowObjectID", `
+var _ = Schema.Add("AuthenticationFlowObjectName", `
 {
 	"type": "string",
 	"pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
@@ -58,9 +58,9 @@ var _ = Schema.Add("AuthenticationFlowIdentification", `
 var _ = Schema.Add("AuthenticationFlowSignupFlow", `
 {
 	"type": "object",
-	"required": ["id", "steps"],
+	"required": ["name", "steps"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -75,7 +75,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 	"type": "object",
 	"required": ["type"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"type": {
 			"type": "string",
 			"enum": [
@@ -133,7 +133,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"then": {
 				"required": ["target_step"],
 				"properties": {
-					"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectID" }
+					"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
 				}
 			}
 		},
@@ -189,7 +189,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowAuthenticate", `
 				"secondary_oob_otp_sms"
 			]
 		},
-		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlowStep" }
@@ -215,9 +215,9 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowUserProfile", `
 var _ = Schema.Add("AuthenticationFlowLoginFlow", `
 {
 	"type": "object",
-	"required": ["id", "steps"],
+	"required": ["name", "steps"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -232,7 +232,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 	"type": "object",
 	"required": ["type"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"type": {
 			"type": "string",
 			"enum": [
@@ -289,7 +289,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 			"then": {
 				"required": ["target_step"],
 				"properties": {
-					"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectID" }
+					"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
 				}
 			}
 		}
@@ -331,7 +331,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 				"device_token"
 			]
 		},
-		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowStep" }
@@ -343,9 +343,9 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 var _ = Schema.Add("AuthenticationFlowSignupLoginFlow", `
 {
 	"type": "object",
-	"required": ["id", "steps"],
+	"required": ["name", "steps"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -360,7 +360,7 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowStep", `
 	"type": "object",
 	"required": ["type"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"type": {
 			"type": "string",
 			"enum": ["identify"]
@@ -394,8 +394,8 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 	"required": ["identification", "signup_flow", "login_flow"],
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowIdentification" },
-		"signup_flow": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
-		"login_flow": { "$ref": "#/$defs/AuthenticationFlowObjectID" }
+		"signup_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"login_flow": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
 	}
 }
 `)
@@ -403,9 +403,9 @@ var _ = Schema.Add("AuthenticationFlowSignupLoginFlowIdentify", `
 var _ = Schema.Add("AuthenticationFlowReauthFlow", `
 {
 	"type": "object",
-	"required": ["id", "steps"],
+	"required": ["name", "steps"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"minItems": 1,
@@ -420,7 +420,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowStep", `
 	"type": "object",
 	"required": ["type"],
 	"properties": {
-		"id": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"type": {
 			"type": "string",
 			"enum": [
@@ -468,7 +468,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 				"secondary_oob_otp_sms"
 			]
 		},
-		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectID" },
+		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowStep" }
@@ -483,13 +483,13 @@ type AuthenticationFlowObject interface {
 
 type AuthenticationFlowObjectFlowRoot interface {
 	AuthenticationFlowObject
-	GetID() string
+	GetName() string
 	GetSteps() []AuthenticationFlowObject
 }
 
 type AuthenticationFlowObjectFlowStep interface {
 	AuthenticationFlowObject
-	GetID() string
+	GetName() string
 	GetType() string
 	GetOneOf() []AuthenticationFlowObject
 }
@@ -620,14 +620,14 @@ type AuthenticationFlowConfig struct {
 }
 
 type AuthenticationFlowSignupFlow struct {
-	ID    string                              `json:"id,omitempty"`
+	Name  string                              `json:"name,omitempty"`
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupFlow{}
 
-func (f *AuthenticationFlowSignupFlow) IsFlowObject() {}
-func (f *AuthenticationFlowSignupFlow) GetID() string { return f.ID }
+func (f *AuthenticationFlowSignupFlow) IsFlowObject()   {}
+func (f *AuthenticationFlowSignupFlow) GetName() string { return f.Name }
 func (f *AuthenticationFlowSignupFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
 	for i, v := range f.Steps {
@@ -649,7 +649,7 @@ const (
 )
 
 type AuthenticationFlowSignupFlowStep struct {
-	ID   string                               `json:"id,omitempty"`
+	Name string                               `json:"name,omitempty"`
 	Type AuthenticationFlowSignupFlowStepType `json:"type,omitempty"`
 
 	// OneOf is relevant when Type is identify or authenticate.
@@ -663,7 +663,7 @@ type AuthenticationFlowSignupFlowStep struct {
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
 
 func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
-func (s *AuthenticationFlowSignupFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowSignupFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowSignupFlowStep) GetType() string { return string(s.Type) }
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
@@ -720,7 +720,7 @@ type AuthenticationFlowSignupFlowUserProfile struct {
 }
 
 type AuthenticationFlowLoginFlow struct {
-	ID    string                             `json:"id,omitempty"`
+	Name  string                             `json:"name,omitempty"`
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
@@ -728,8 +728,8 @@ var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowLoginFlow{}
 
 func (f *AuthenticationFlowLoginFlow) IsFlowObject() {}
 
-func (f *AuthenticationFlowLoginFlow) GetID() string {
-	return f.ID
+func (f *AuthenticationFlowLoginFlow) GetName() string {
+	return f.Name
 }
 
 func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
@@ -751,7 +751,7 @@ const (
 )
 
 type AuthenticationFlowLoginFlowStep struct {
-	ID   string                              `json:"id,omitempty"`
+	Name string                              `json:"name,omitempty"`
 	Type AuthenticationFlowLoginFlowStepType `json:"type,omitempty"`
 
 	// Optional is relevant when Type is authenticate.
@@ -767,7 +767,7 @@ type AuthenticationFlowLoginFlowStep struct {
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowLoginFlowStep{}
 
 func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
-func (s *AuthenticationFlowLoginFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowLoginFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowLoginFlowStep) GetType() string { return string(s.Type) }
 
 func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
@@ -820,14 +820,14 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObj
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
-	ID    string                                   `json:"id,omitempty"`
+	Name  string                                   `json:"name,omitempty"`
 	Steps []*AuthenticationFlowSignupLoginFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowSignupLoginFlow{}
 
-func (f *AuthenticationFlowSignupLoginFlow) IsFlowObject() {}
-func (f *AuthenticationFlowSignupLoginFlow) GetID() string { return f.ID }
+func (f *AuthenticationFlowSignupLoginFlow) IsFlowObject()   {}
+func (f *AuthenticationFlowSignupLoginFlow) GetName() string { return f.Name }
 
 func (f *AuthenticationFlowSignupLoginFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
@@ -839,7 +839,7 @@ func (f *AuthenticationFlowSignupLoginFlow) GetSteps() []AuthenticationFlowObjec
 }
 
 type AuthenticationFlowSignupLoginFlowStep struct {
-	ID    string                                    `json:"id,omitempty"`
+	Name  string                                    `json:"name,omitempty"`
 	Type  AuthenticationFlowSignupLoginFlowStepType `json:"type,omitempty"`
 	OneOf []*AuthenticationFlowSignupLoginFlowOneOf `json:"one_of,omitempty"`
 }
@@ -847,7 +847,7 @@ type AuthenticationFlowSignupLoginFlowStep struct {
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupLoginFlowStep{}
 
 func (s *AuthenticationFlowSignupLoginFlowStep) IsFlowObject()   {}
-func (s *AuthenticationFlowSignupLoginFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowSignupLoginFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowSignupLoginFlowStep) GetType() string { return string(s.Type) }
 
 func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
@@ -891,14 +891,14 @@ func (s *AuthenticationFlowSignupLoginFlowOneOf) GetBranchInfo() AuthenticationF
 }
 
 type AuthenticationFlowReauthFlow struct {
-	ID    string                              `json:"id,omitempty"`
+	Name  string                              `json:"name,omitempty"`
 	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowReauthFlow{}
 
-func (f *AuthenticationFlowReauthFlow) IsFlowObject() {}
-func (f *AuthenticationFlowReauthFlow) GetID() string { return f.ID }
+func (f *AuthenticationFlowReauthFlow) IsFlowObject()   {}
+func (f *AuthenticationFlowReauthFlow) GetName() string { return f.Name }
 
 func (f *AuthenticationFlowReauthFlow) GetSteps() []AuthenticationFlowObject {
 	out := make([]AuthenticationFlowObject, len(f.Steps))
@@ -916,7 +916,7 @@ const (
 )
 
 type AuthenticationFlowReauthFlowStep struct {
-	ID   string                               `json:"id,omitempty"`
+	Name string                               `json:"name,omitempty"`
 	Type AuthenticationFlowReauthFlowStepType `json:"type,omitempty"`
 
 	// Optional is relevant when Type is authenticate.
@@ -929,7 +929,7 @@ type AuthenticationFlowReauthFlowStep struct {
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
 
 func (s *AuthenticationFlowReauthFlowStep) IsFlowObject()   {}
-func (s *AuthenticationFlowReauthFlowStep) GetID() string   { return s.ID }
+func (s *AuthenticationFlowReauthFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowReauthFlowStep) GetType() string { return string(s.Type) }
 
 func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject {

@@ -16,15 +16,15 @@ func init() {
 }
 
 type IntentSignupFlowStepPromptCreatePasskey struct {
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowStep = &IntentSignupFlowStepPromptCreatePasskey{}
+var _ FlowTargetStep = &IntentSignupFlowStepPromptCreatePasskey{}
 
-func (i *IntentSignupFlowStepPromptCreatePasskey) GetID() string {
-	return i.StepID
+func (i *IntentSignupFlowStepPromptCreatePasskey) GetName() string {
+	return i.StepName
 }
 
 func (i *IntentSignupFlowStepPromptCreatePasskey) GetJSONPointer() jsonpointer.T {

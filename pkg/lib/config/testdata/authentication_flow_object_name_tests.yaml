@@ -1,0 +1,13 @@
+part: AuthenticationFlowObjectName
+name: authentication-flow-object-name-invalid
+error: |-
+  invalid value:
+  <root>: pattern
+    map[actual:1 expected:^[a-zA-Z_][a-zA-Z0-9_]*$]
+value: "1"
+
+---
+part: AuthenticationFlowObjectName
+name: authentication-flow-object-name-valid
+error: null
+value: a

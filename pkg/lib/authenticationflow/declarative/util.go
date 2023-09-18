@@ -44,12 +44,12 @@ func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowRefe
 func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.ID == idGeneratedFlow {
+	if flowReference.Name == nameGeneratedFlow {
 		root = GenerateSignupFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
 			f := f
-			if f.ID == flowReference.ID {
+			if f.Name == flowReference.Name {
 				root = f
 				break
 			}
@@ -67,12 +67,12 @@ func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference auth
 func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.ID == idGeneratedFlow {
+	if flowReference.Name == nameGeneratedFlow {
 		root = GenerateLoginFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
 			f := f
-			if f.ID == flowReference.ID {
+			if f.Name == flowReference.Name {
 				root = f
 				break
 			}
@@ -99,9 +99,9 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		return nil, err
 	}
 
-	byTarget := func(am config.AuthenticationFlowAuthentication, targetStepID string) error {
+	byTarget := func(am config.AuthenticationFlowAuthentication, targetStepName string) error {
 		// Find the target step from the root.
-		targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+		targetStepFlow, err := FindTargetStep(flows.Root, targetStepName)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		target, ok := targetStepFlow.Intent.(IntentLoginFlowStepAuthenticateTarget)
 		if !ok {
 			return InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-				"target_step": targetStepID,
+				"target_step": targetStepName,
 			})
 		}
 
@@ -164,8 +164,8 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			if targetStepID := branch.TargetStep; targetStepID != "" {
-				err := byTarget(branch.Authentication, targetStepID)
+			if targetStepName := branch.TargetStep; targetStepName != "" {
+				err := byTarget(branch.Authentication, targetStepName)
 				if err != nil {
 					return nil, err
 				}
