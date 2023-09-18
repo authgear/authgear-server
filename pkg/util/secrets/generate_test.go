@@ -41,7 +41,7 @@ func TestGenerateOctetKeyForSig(t *testing.T) {
 
 		// Able to get created_at after marshaling and unmarshaling.
 		jwkSet := jwk.NewSet()
-		jwkSet.AddKey(jwkKey)
+		_ = jwkSet.AddKey(jwkKey)
 		jwkSetJSON, err := json.Marshal(jwkSet)
 		So(err, ShouldBeNil)
 		newSet := jwk.NewSet()

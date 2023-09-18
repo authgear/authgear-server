@@ -429,7 +429,7 @@ func (i *AdminAPIAuthKeyUpdateInstruction) generate(ctx *SecretConfigUpdateInstr
 	}
 
 	// Add new key to the AdminAPIAuthKey
-	newAdminAPIAuthKey.AddKey(newAuthKey)
+	_ = newAdminAPIAuthKey.AddKey(newAuthKey)
 	if newAdminAPIAuthKey.Len() > 2 {
 		return nil, fmt.Errorf("config: must have at most two Admin API auth keys")
 	} else {
@@ -473,7 +473,7 @@ func (i *AdminAPIAuthKeyUpdateInstruction) delete(currentConfig *SecretConfig) (
 	newAdminAPIAuthKey := &AdminAPIAuthKey{Set: jwk.NewSet()}
 	for it := authKey.Keys(context.Background()); it.Next(context.Background()); {
 		if key, ok := it.Pair().Value.(jwk.Key); ok && key.KeyID() != i.DeleteData.KeyID {
-			newAdminAPIAuthKey.AddKey(key)
+			_ = newAdminAPIAuthKey.AddKey(key)
 		}
 	}
 
