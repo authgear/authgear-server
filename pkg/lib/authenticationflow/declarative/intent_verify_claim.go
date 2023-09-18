@@ -15,6 +15,12 @@ func init() {
 	authflow.RegisterIntent(&IntentVerifyClaim{})
 }
 
+type IntentVerifyClaimData struct {
+	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
+}
+
+func (IntentVerifyClaimData) Data() {}
+
 type IntentVerifyClaim struct {
 	JSONPointer jsonpointer.T   `json:"json_pointer,omitempty"`
 	UserID      string          `json:"user_id,omitempty"`
@@ -25,6 +31,7 @@ type IntentVerifyClaim struct {
 }
 
 var _ authflow.Intent = &IntentVerifyClaim{}
+var _ authflow.DataOutputer = &IntentVerifyClaim{}
 var _ authflow.Milestone = &IntentVerifyClaim{}
 var _ MilestoneDoMarkClaimVerified = &IntentVerifyClaim{}
 
@@ -86,6 +93,13 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 	}
 
 	return authflow.NewNodeSimple(node), nil
+}
+
+func (i *IntentVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	channels := i.getChannels(deps)
+	return IntentVerifyClaimData{
+		Channels: channels,
+	}, nil
 }
 
 func (i *IntentVerifyClaim) getChannels(deps *authflow.Dependencies) []model.AuthenticatorOOBChannel {

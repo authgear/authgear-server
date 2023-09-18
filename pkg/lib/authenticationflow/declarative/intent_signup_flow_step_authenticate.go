@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentSignupFlowStepAuthenticateData struct {
-	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+	Candidates []CreateAuthenticationCandidate `json:"candidates,omitempty"`
 }
 
 var _ authflow.Data = &IntentSignupFlowStepAuthenticateData{}
@@ -182,8 +182,14 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 }
 
 func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
 	return IntentSignupFlowStepAuthenticateData{
-		PasswordPolicy: NewPasswordPolicy(deps.Config.Authenticator.Password.Policy),
+		Candidates: NewCreateAuthenticationCandidates(deps, step),
 	}, nil
 }
 
