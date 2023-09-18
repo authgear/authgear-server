@@ -21,16 +21,6 @@ type IntentSignupFlowStepPromptCreatePasskey struct {
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowTargetStep = &IntentSignupFlowStepPromptCreatePasskey{}
-
-func (i *IntentSignupFlowStepPromptCreatePasskey) GetName() string {
-	return i.StepName
-}
-
-func (i *IntentSignupFlowStepPromptCreatePasskey) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
 var _ authflow.Intent = &IntentSignupFlowStepPromptCreatePasskey{}
 
 func (*IntentSignupFlowStepPromptCreatePasskey) Kind() string {

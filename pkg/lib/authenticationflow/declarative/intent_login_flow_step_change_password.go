@@ -26,16 +26,6 @@ type IntentLoginFlowStepChangePassword struct {
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowTargetStep = &IntentLoginFlowStepChangePassword{}
-
-func (i *IntentLoginFlowStepChangePassword) GetName() string {
-	return i.StepName
-}
-
-func (i *IntentLoginFlowStepChangePassword) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
 var _ authflow.Intent = &IntentLoginFlowStepChangePassword{}
 
 func (*IntentLoginFlowStepChangePassword) Kind() string {

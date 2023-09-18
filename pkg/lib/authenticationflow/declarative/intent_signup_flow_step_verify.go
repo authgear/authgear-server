@@ -29,16 +29,6 @@ type IntentSignupFlowStepVerify struct {
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowTargetStep = &IntentSignupFlowStepVerify{}
-
-func (i *IntentSignupFlowStepVerify) GetName() string {
-	return i.StepName
-}
-
-func (i *IntentSignupFlowStepVerify) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
 var _ authflow.Intent = &IntentSignupFlowStepVerify{}
 
 func (*IntentSignupFlowStepVerify) Kind() string {

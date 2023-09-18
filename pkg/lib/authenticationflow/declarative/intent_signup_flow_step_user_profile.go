@@ -22,16 +22,6 @@ type IntentSignupFlowStepUserProfile struct {
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowTargetStep = &IntentSignupFlowStepUserProfile{}
-
-func (i *IntentSignupFlowStepUserProfile) GetName() string {
-	return i.StepName
-}
-
-func (i *IntentSignupFlowStepUserProfile) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
 var _ authflow.Intent = &IntentSignupFlowStepUserProfile{}
 
 func (*IntentSignupFlowStepUserProfile) Kind() string {

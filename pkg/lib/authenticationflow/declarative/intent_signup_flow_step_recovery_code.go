@@ -33,16 +33,6 @@ func NewIntentSignupFlowStepRecoveryCode(deps *authflow.Dependencies, i *IntentS
 	return i
 }
 
-var _ FlowTargetStep = &IntentSignupFlowStepRecoveryCode{}
-
-func (i *IntentSignupFlowStepRecoveryCode) GetName() string {
-	return i.StepName
-}
-
-func (i *IntentSignupFlowStepRecoveryCode) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
-}
-
 var _ authflow.Intent = &IntentSignupFlowStepRecoveryCode{}
 var _ authflow.DataOutputer = &IntentSignupFlowStepRecoveryCode{}
 
