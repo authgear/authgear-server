@@ -28,10 +28,11 @@ type CreationOptionsService struct {
 
 // MakeCreationOptions makes creation options which is ready for use.
 func (s *CreationOptionsService) MakeCreationOptions(userID string) (*model.WebAuthnCreationOptions, error) {
-	challenge, err := protocol.CreateChallenge()
+	c, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
 	}
+	var challenge protocol.URLEncodedBase64 = protocol.URLEncodedBase64(c)
 
 	config, err := s.ConfigService.MakeConfig()
 	if err != nil {

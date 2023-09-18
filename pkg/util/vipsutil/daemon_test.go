@@ -129,7 +129,7 @@ func TestDaemonProcess(t *testing.T) {
 		actualImage, err := jpeg.Decode(bytes.NewReader(output.Data))
 		So(err, ShouldBeNil)
 
-		So(expectedImage.Bounds, ShouldEqual, actualImage.Bounds)
+		So(expectedImage.Bounds(), ShouldEqual, actualImage.Bounds())
 	})
 
 	Convey("Daemon Process does not panic on invalid input", t, func() {

@@ -24,10 +24,11 @@ func (s *RequestOptionsService) MakeConditionalRequestOptions() (*model.WebAuthn
 }
 
 func (s *RequestOptionsService) MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error) {
-	challenge, err := protocol.CreateChallenge()
+	c, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
 	}
+	challenge := protocol.URLEncodedBase64(c)
 
 	config, err := s.ConfigService.MakeConfig()
 	if err != nil {
@@ -63,10 +64,11 @@ func (s *RequestOptionsService) MakeModalRequestOptions() (*model.WebAuthnReques
 }
 
 func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error) {
-	challenge, err := protocol.CreateChallenge()
+	c, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
 	}
+	challenge := protocol.URLEncodedBase64(c)
 
 	config, err := s.ConfigService.MakeConfig()
 	if err != nil {

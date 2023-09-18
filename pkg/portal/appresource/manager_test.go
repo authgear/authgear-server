@@ -160,7 +160,7 @@ func TestManager(t *testing.T) {
 			So(len(files), ShouldEqual, 2)
 			So(files[1].Location.Fs.GetFsLevel(), ShouldEqual, resource.FsLevelApp)
 			So(files[1].Location.Path, ShouldEqual, "deno/a.ts")
-			So(files[1].Data, ShouldEqual, nil)
+			So(files[1].Data, ShouldEqual, []uint8(nil))
 		})
 	})
 

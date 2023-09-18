@@ -13,7 +13,7 @@ import (
 func TestEIP55(t *testing.T) {
 	Convey("eip55", t, func() {
 		Convey("parse eip55", func() {
-			test := func(address string, expected string) {
+			test := func(address string, expected web3.EIP55) {
 				eip55, err := web3.NewEIP55(address)
 				So(err, ShouldBeNil)
 				So(eip55, ShouldEqual, expected)
