@@ -15,7 +15,7 @@ require (
 	// The client should have equal or less minor version.
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/felixge/httpsnoop v1.0.3
-	github.com/getsentry/sentry-go v0.21.0
+	github.com/getsentry/sentry-go v0.24.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redsync/redsync/v4 v4.8.1
 	github.com/golang/mock v1.6.0
