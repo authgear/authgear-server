@@ -13,7 +13,7 @@ require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2
 	// https://github.com/elastic/go-elasticsearch#compatibility
 	// The client should have equal or less minor version.
-	github.com/elastic/go-elasticsearch/v7 v7.16.0
+	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/felixge/httpsnoop v1.0.3
 	github.com/getsentry/sentry-go v0.21.0
 	github.com/go-redis/redis/v8 v8.11.5
