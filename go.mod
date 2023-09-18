@@ -48,7 +48,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f
+	github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc
 	golang.org/x/crypto v0.13.0
 	golang.org/x/net v0.15.0
 	golang.org/x/oauth2 v0.12.0
@@ -73,7 +73,6 @@ require (
 	github.com/duo-labs/webauthn v0.0.0-20221205164246-ebaf9b74c6ec
 	github.com/ethereum/go-ethereum v1.13.1
 	github.com/goccy/go-json v0.10.2
-	github.com/spruceid/siwe-go v0.2.0
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.6.8
 	github.com/vimeo/go-magic v1.0.0
@@ -82,6 +81,7 @@ require (
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.5
+	github.com/spruceid/siwe-go v0.2.0
 	github.com/twilio/twilio-go v1.13.0
 	github.com/yudai/gojsondiff v1.0.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -145,6 +145,7 @@ require (
 	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.2.3 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
