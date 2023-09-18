@@ -99,9 +99,20 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 		})
 	}
 
+	claimValue := claims[claimName]
+
+	// Do not verify if the claim is verified already.
+	claimStatus, err := deps.Verification.GetClaimStatus(i.UserID, claimName, claimValue)
+	if err != nil {
+		return nil, err
+	}
+
+	if claimStatus.Verified {
+		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+	}
+
 	purpose := target.GetPurpose(ctx, deps, flows.Replace(targetStepFlow))
 	messageType := target.GetMessageType(ctx, deps, flows.Replace(targetStepFlow))
-	claimValue := claims[claimName]
 	return authflow.NewSubFlow(&IntentVerifyClaim{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,

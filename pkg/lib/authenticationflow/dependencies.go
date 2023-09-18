@@ -67,6 +67,7 @@ type OTPSender interface {
 }
 
 type VerificationService interface {
+	GetClaimStatus(userID string, claimName model.ClaimName, claimValue string) (*verification.ClaimStatus, error)
 	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
