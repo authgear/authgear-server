@@ -46,7 +46,7 @@ require (
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.15.0
+	github.com/spf13/viper v1.16.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f
 	golang.org/x/crypto v0.13.0
@@ -174,7 +174,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/oschwald/maxminddb-golang v1.12.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
@@ -187,7 +187,7 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/test-go/testify v1.1.4 // indirect
@@ -199,10 +199,10 @@ require (
 	github.com/yudai/pp v2.0.1+incompatible // indirect
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.etcd.io/bbolt v1.3.5 // indirect
-	go.etcd.io/etcd/api/v3 v3.5.6 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
-	go.etcd.io/etcd/client/v2 v2.305.6 // indirect
-	go.etcd.io/etcd/client/v3 v3.5.6 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.9 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.9 // indirect
+	go.etcd.io/etcd/client/v2 v2.305.7 // indirect
+	go.etcd.io/etcd/client/v3 v3.5.9 // indirect
 	go.etcd.io/etcd/etcdctl/v3 v3.5.0-alpha.0 // indirect
 	go.etcd.io/etcd/pkg/v3 v3.5.0-alpha.0 // indirect
 	go.etcd.io/etcd/raft/v3 v3.5.0-alpha.0 // indirect
