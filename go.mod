@@ -70,7 +70,7 @@ require (
 	github.com/Azure/azure-storage-blob-go v0.15.0
 	github.com/aws/aws-sdk-go v1.45.11
 	github.com/davidbyttow/govips/v2 v2.13.0
-	github.com/duo-labs/webauthn v0.0.0-20220815211337-00c9fb5711f5
+	github.com/duo-labs/webauthn v0.0.0-20221205164246-ebaf9b74c6ec
 	github.com/ethereum/go-ethereum v1.11.6
 	github.com/goccy/go-json v0.10.2
 	github.com/spruceid/siwe-go v0.2.0
