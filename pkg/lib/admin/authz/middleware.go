@@ -61,7 +61,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 					Debug("invalid authz header")
 				break
 			}
-			token, err := jwt.ParseString(match[1], jwt.WithKeySet(keySet))
+			token, err := jwt.ParseString(match[1], jwt.WithKeySet(keySet), jwt.WithValidate(false))
 			if err != nil {
 				m.Logger.
 					WithError(err).

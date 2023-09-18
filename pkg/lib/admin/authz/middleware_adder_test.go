@@ -61,7 +61,7 @@ func TestMiddleware(t *testing.T) {
 				AuthKey: &config.AdminAPIAuthKey{
 					Set: set,
 				},
-				Clock: clock.NewMockClockAt("2023-09-18T11:59:42.142Z"),
+				Clock: clock.NewMockClockAt("2001-09-09T01:46:40.000Z"),
 			}
 
 			r, _ := http.NewRequest("GET", "/", nil)
@@ -103,7 +103,7 @@ func TestMiddleware(t *testing.T) {
 				AuthKey: &config.AdminAPIAuthKey{
 					Set: set,
 				},
-				Clock: clock.NewMockClock(),
+				Clock: clock.NewMockClockAt("2001-09-09T01:46:40.000Z"),
 			}
 
 			r, _ := http.NewRequest("GET", "/", nil)
