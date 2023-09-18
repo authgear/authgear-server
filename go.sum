@@ -1385,8 +1385,8 @@ github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce/go.mod h1:o8v6yHRoi
 github.com/trustelem/zxcvbn v1.0.1 h1:mp4JFtzdDYGj9WYSD3KQSkwwUumWNFzXaAjckaTYpsc=
 github.com/trustelem/zxcvbn v1.0.1/go.mod h1:zonUyKeh7sw6psPf/e3DtRqkRyZvAbOfjNz/aO7YQ5s=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
-github.com/twilio/twilio-go v1.7.1 h1:wghxGqc3ZDMc9E/OkvopizU/aXzdIm/0fDknagpAq3k=
-github.com/twilio/twilio-go v1.7.1/go.mod h1:tdnfQ5TjbewoAu4lf9bMsGvfuJ/QU9gYuv9yx3TSIXU=
+github.com/twilio/twilio-go v1.13.0 h1:8uKXSWAgCvO9Kn12iboy3x/Pw7oxPBufs94fTWQGhLk=
+github.com/twilio/twilio-go v1.13.0/go.mod h1:tdnfQ5TjbewoAu4lf9bMsGvfuJ/QU9gYuv9yx3TSIXU=
 github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f h1:A+MmlgpvrHLeUP8dkBVn4Pnf5Bp5Yk2OALm7SEJLLE8=
 github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f/go.mod h1:OBcG9bn7sHtXgarhUEb3OfCnNsgtGnkVf41ilSZ3K3E=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=

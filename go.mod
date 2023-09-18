@@ -82,7 +82,7 @@ require (
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.5
-	github.com/twilio/twilio-go v1.7.1
+	github.com/twilio/twilio-go v1.13.0
 	github.com/yudai/gojsondiff v1.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
