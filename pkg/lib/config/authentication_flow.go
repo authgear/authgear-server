@@ -83,7 +83,8 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 				"authenticate",
 				"verify",
 				"user_profile",
-				"recovery_code"
+				"recovery_code",
+				"prompt_create_passkey"
 			]
 		}
 	},
@@ -639,11 +640,12 @@ func (f *AuthenticationFlowSignupFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowSignupFlowStepType string
 
 const (
-	AuthenticationFlowSignupFlowStepTypeIdentify     AuthenticationFlowSignupFlowStepType = "identify"
-	AuthenticationFlowSignupFlowStepTypeAuthenticate AuthenticationFlowSignupFlowStepType = "authenticate"
-	AuthenticationFlowSignupFlowStepTypeVerify       AuthenticationFlowSignupFlowStepType = "verify"
-	AuthenticationFlowSignupFlowStepTypeUserProfile  AuthenticationFlowSignupFlowStepType = "user_profile"
-	AuthenticationFlowSignupFlowStepTypeRecoveryCode AuthenticationFlowSignupFlowStepType = "recovery_code"
+	AuthenticationFlowSignupFlowStepTypeIdentify            AuthenticationFlowSignupFlowStepType = "identify"
+	AuthenticationFlowSignupFlowStepTypeAuthenticate        AuthenticationFlowSignupFlowStepType = "authenticate"
+	AuthenticationFlowSignupFlowStepTypeVerify              AuthenticationFlowSignupFlowStepType = "verify"
+	AuthenticationFlowSignupFlowStepTypeUserProfile         AuthenticationFlowSignupFlowStepType = "user_profile"
+	AuthenticationFlowSignupFlowStepTypeRecoveryCode        AuthenticationFlowSignupFlowStepType = "recovery_code"
+	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey AuthenticationFlowSignupFlowStepType = "prompt_create_passkey"
 )
 
 type AuthenticationFlowSignupFlowStep struct {

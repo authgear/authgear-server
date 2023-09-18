@@ -36,7 +36,7 @@ error: |-
   /steps/2/user_profile/0/pointer: format
     map[error:0: expecting / but found: "g" format:json-pointer]
   /steps/3/type: enum
-    map[actual:foobar expected:[identify authenticate verify user_profile recovery_code]]
+    map[actual:foobar expected:[identify authenticate verify user_profile recovery_code prompt_create_passkey]]
 value:
   id: id
   steps:

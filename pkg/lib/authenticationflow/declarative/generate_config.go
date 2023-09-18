@@ -22,6 +22,8 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 		},
 	}
 
+	// FIXME(authflow): support create passkey in signup flow.
+
 	return flow
 }
 
