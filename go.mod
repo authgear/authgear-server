@@ -40,7 +40,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.9.0
 	github.com/pquerna/otp v1.4.0
 	github.com/rubenv/sql-migrate v1.5.2
-	github.com/sirupsen/logrus v1.9.2
+	github.com/sirupsen/logrus v1.9.3
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 	github.com/smartystreets/goconvey v1.8.0
 	github.com/spf13/afero v1.9.5
