@@ -36,7 +36,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
-	github.com/nyaruka/phonenumbers v1.1.7
+	github.com/nyaruka/phonenumbers v1.1.8
 	github.com/oschwald/geoip2-golang v1.8.0
 	github.com/pquerna/otp v1.4.0
 	github.com/rubenv/sql-migrate v1.4.0
