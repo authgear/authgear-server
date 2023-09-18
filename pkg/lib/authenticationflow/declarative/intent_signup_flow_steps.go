@@ -90,8 +90,11 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			UserID:      i.UserID,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey:
-		// FIXME(authflow): support create passkey in signup flow.
-		return nil, authflow.ErrIncompatibleInput
+		return authflow.NewSubFlow(&IntentSignupFlowStepPromptCreatePasskey{
+			StepID:      step.ID,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
+		}), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput
