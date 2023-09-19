@@ -614,43 +614,37 @@ Example of a successful response.
   "result": {
     "id": "authflow_blahblahblah",
     "websocket_id": "blahblahblah",
-    "flow_reference": {
-      "type": "login_flow",
-      "id": "default"
-    },
+    "flow_type": "login_flow",
+    "flow_name": "default",
     "flow_step": {
       "type": "authenticate",
       "authenticate": "primary_oob_otp_email"
     },
-    "data": {},
-    "json_schema": {}
+    "data": {}
   }
 }
 ```
 
 - `result.id`: The ID of the instance of Authentication Flow. You must keep this for the next request. This ID changes every time you give an input to the flow. As a result, you can back-track by associating the ID with your application navigation backstack very easily.
 - `result.websocket_id`: The ID you need to supply to the websocket endpoint. This ID is a constant for every created Authentication Flow.
-- `result.flow_reference.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
-- `result.flow_reference.id`: The ID of the flow. Use the special value `default` to refer to the flow generated according to configuration.
-- `result.flow_step.type`: The type of the current step. Valid values are the union of all possible steps, that is, `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, and `change_password`.
+- `result.flow_type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
+- `result.flow_name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
+- `result.flow_step.type`: The type of the current step. Valid values are the union of all possible steps, that is, `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`.
 - `result.flow_step.identification`: The taken branch of the current step. It is only present when `result.flow_step.type=identify`. Valid values are `email`, `phone`, and `username`.
 - `result.flow_step.authentication`: The taken branch of the current step. It is only present when `result.flow_step.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
 - `result.data`: The data associated with the current state of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
-- `result.json_schema`: The JSON schema the server is going to use to validate the next request.
 
 ### Create a Authentication Flow
 
-To create a Authentication Flow, specify the type and the ID in the configuration.
+To create a Authentication Flow, specify the type and the name.
 
 ```
 POST /api/v1/authentication_flows
 Content-Type: application/json
 
 {
-  "flow_reference": {
-    "type": "login_flow",
-    "id": "default"
-  }
+  "flow_type": "login_flow",
+  "flow_name": "default"
 }
 ```
 
@@ -668,7 +662,7 @@ Content-Type: application/json
 ```
 
 - `id`: The ID of the Authentication Flow. Typically this is the ID in the last response if you want to continue the flow. If you want to back-track, you must supply a suitable ID.
-- `input`: A JSON object that should be valid against the `json_schema`.
+- `input`: A JSON object specific to the current step of the flow.
 - `batch_input`: An array of input. This allows you to execute the flow multiple steps in a single request. In order to do this, you must know in advance how the flow is going. 
 
 ### Get the Authentication Flow
