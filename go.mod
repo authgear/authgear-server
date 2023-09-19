@@ -199,5 +199,3 @@ require (
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 )
-
-replace github.com/duo-labs/webauthn v0.0.0-20220815211337-00c9fb5711f5 => github.com/authgear/webauthn v0.0.0-20220906031926-bba627c5c32a
