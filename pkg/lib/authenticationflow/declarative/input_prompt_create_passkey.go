@@ -3,7 +3,7 @@ package declarative
 import (
 	"encoding/json"
 
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
