@@ -29,7 +29,7 @@ var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSche
 	"properties": {
 		"flow_type": {
 			"type": "string",
-			"enum": ["signup_flow", "login_flow"]
+			"enum": ["signup", "login"]
 		},
 		"flow_name": {
 			"type": "string"

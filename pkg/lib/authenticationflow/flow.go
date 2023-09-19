@@ -20,8 +20,8 @@ type PublicFlow interface {
 type FlowType string
 
 const (
-	FlowTypeSignup FlowType = "signup_flow"
-	FlowTypeLogin  FlowType = "login_flow"
+	FlowTypeSignup FlowType = "signup"
+	FlowTypeLogin  FlowType = "login"
 )
 
 // FlowReference is an API object.
