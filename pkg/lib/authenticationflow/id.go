@@ -22,7 +22,3 @@ func newFlowID() string {
 func newInstanceID() string {
 	return fmt.Sprintf("authflow_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
-
-func NewUserAgentID() string {
-	return fmt.Sprintf("authflowua_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
-}

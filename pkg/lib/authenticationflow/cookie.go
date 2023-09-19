@@ -3,19 +3,10 @@ package authenticationflow
 import (
 	"context"
 	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type CookieGetter interface {
 	GetCookies(ctx context.Context, deps *Dependencies, flows Flows) ([]*http.Cookie, error)
-}
-
-var UserAgentIDCookieDef = &httputil.CookieDef{
-	NameSuffix:        "authenticationflow_ua_id",
-	Path:              "/",
-	AllowScriptAccess: false,
-	SameSite:          http.SameSiteNoneMode,
 }
 
 func CollectCookies(ctx context.Context, deps *Dependencies, flows Flows) (cookies []*http.Cookie, err error) {

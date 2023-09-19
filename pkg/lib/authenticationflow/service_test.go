@@ -150,7 +150,7 @@ func TestService(t *testing.T) {
 				store.EXPECT().CreateFlow(gomock.Any()).Return(nil),
 			)
 
-			output, err := service.FeedInput(flow.InstanceID, "", json.RawMessage(`{
+			output, err := service.FeedInput(flow.InstanceID, json.RawMessage(`{
 				"login_id": "user@example.com"
 			}`))
 			So(err, ShouldBeNil)
@@ -389,7 +389,6 @@ func TestServiceContext(t *testing.T) {
 
 			output, err = service.FeedInput(
 				output.Flow.InstanceID,
-				"",
 				json.RawMessage(`{}`),
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)

@@ -185,7 +185,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	return
 }
 
-func (s *Service) Get(instanceID string, userAgentID string) (output *ServiceOutput, err error) {
+func (s *Service) Get(instanceID string) (output *ServiceOutput, err error) {
 	w, err := s.Store.GetFlowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -193,11 +193,6 @@ func (s *Service) Get(instanceID string, userAgentID string) (output *ServiceOut
 
 	session, err := s.Store.GetSession(w.FlowID)
 	if err != nil {
-		return
-	}
-
-	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
-		err = ErrUserAgentUnmatched
 		return
 	}
 
@@ -245,7 +240,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 	return
 }
 
-func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(instanceID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
 	flow, err := s.Store.GetFlowByInstanceID(instanceID)
 	if err != nil {
 		return
@@ -253,11 +248,6 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 
 	session, err := s.Store.GetSession(flow.FlowID)
 	if err != nil {
-		return
-	}
-
-	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
-		err = ErrUserAgentUnmatched
 		return
 	}
 

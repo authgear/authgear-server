@@ -9,7 +9,6 @@ import (
 
 type Session struct {
 	FlowID         string `json:"flow_id"`
-	UserAgentID    string `json:"user_agent_id,omitempty"`
 	OAuthSessionID string `json:"oauth_session_id,omitempty"`
 
 	ClientID    string   `json:"client_id,omitempty"`
@@ -29,7 +28,6 @@ type SessionOutput struct {
 }
 
 type SessionOptions struct {
-	UserAgentID    string
 	OAuthSessionID string
 
 	ClientID    string
@@ -76,7 +74,6 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 func NewSession(opts *SessionOptions) *Session {
 	return &Session{
 		FlowID:         newFlowID(),
-		UserAgentID:    opts.UserAgentID,
 		OAuthSessionID: opts.OAuthSessionID,
 
 		ClientID:    opts.ClientID,

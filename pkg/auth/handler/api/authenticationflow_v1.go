@@ -23,8 +23,8 @@ import (
 
 type AuthenticationFlowV1WorkflowService interface {
 	CreateNewFlow(intent authflow.PublicFlow, sessionOptions *authflow.SessionOptions) (*authflow.ServiceOutput, error)
-	Get(instanceID string, userAgentID string) (*authflow.ServiceOutput, error)
-	FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (*authflow.ServiceOutput, error)
+	Get(instanceID string) (*authflow.ServiceOutput, error)
+	FeedInput(instanceID string, rawMessage json.RawMessage) (*authflow.ServiceOutput, error)
 }
 
 type AuthenticationFlowV1CookieManager interface {
@@ -51,20 +51,6 @@ type AuthenticationFlowV1WebsocketOriginMatcher interface {
 	PrepareOriginMatcher(r *http.Request) (*originmatcher.T, error)
 }
 
-func authenticationFlowGetOrCreateUserAgentID(cookies AuthenticationFlowV1CookieManager, w http.ResponseWriter, r *http.Request) string {
-	var userAgentID string
-	userAgentIDCookie, err := cookies.GetCookie(r, authflow.UserAgentIDCookieDef)
-	if err == nil {
-		userAgentID = userAgentIDCookie.Value
-	}
-	if userAgentID == "" {
-		userAgentID = authflow.NewUserAgentID()
-	}
-	cookie := cookies.ValueCookie(authflow.UserAgentIDCookieDef, userAgentID)
-	httputil.UpdateCookie(w, cookie)
-	return userAgentID
-}
-
 func ConfigureAuthenticationFlowV1Routes(route httproute.Route) []httproute.Route {
 	return []httproute.Route{
 		route.WithMethods("OPTIONS", "POST").WithPathPattern("/api/v1/authentication_flows"),
@@ -84,7 +70,6 @@ var AuthenticationFlowV1RestfulCreateRequestSchema = validation.NewSimpleSchema(
 		"flow_name": {
 			"type": "string"
 		},
-		"bind_user_agent": { "type": "boolean" },
 		"batch_input": {
 			"type": "array",
 			"items": {
@@ -96,27 +81,18 @@ var AuthenticationFlowV1RestfulCreateRequestSchema = validation.NewSimpleSchema(
 `)
 
 type AuthenticationFlowV1RestfulCreateRequest struct {
-	FlowType      authflow.FlowType `json:"flow_type,omitempty"`
-	FlowName      string            `json:"flow_name,omitempty"`
-	BindUserAgent *bool             `json:"bind_user_agent,omitempty"`
-	BatchInput    []json.RawMessage `json:"batch_input,omitempty"`
-}
-
-func (r *AuthenticationFlowV1RestfulCreateRequest) SetDefaults() {
-	if r.BindUserAgent == nil {
-		defaultBindUserAgent := true
-		r.BindUserAgent = &defaultBindUserAgent
-	}
+	FlowType   authflow.FlowType `json:"flow_type,omitempty"`
+	FlowName   string            `json:"flow_name,omitempty"`
+	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
 }
 
 func (r AuthenticationFlowV1RestfulCreateRequest) ToNonRestful(httpReq *http.Request) AuthenticationFlowV1NonRestfulCreateRequest {
 	rawQuery := httpReq.URL.RawQuery
 	return AuthenticationFlowV1NonRestfulCreateRequest{
-		FlowType:      r.FlowType,
-		FlowName:      r.FlowName,
-		BindUserAgent: r.BindUserAgent,
-		BatchInput:    r.BatchInput,
-		URLQuery:      rawQuery,
+		FlowType:   r.FlowType,
+		FlowName:   r.FlowName,
+		BatchInput: r.BatchInput,
+		URLQuery:   rawQuery,
 	}
 }
 
@@ -133,7 +109,6 @@ var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSche
 			"type": "string"
 		},
 		"url_query": { "type": "string" },
-		"bind_user_agent": { "type": "boolean" },
 		"batch_input": {
 			"type": "array",
 			"items": {
@@ -145,24 +120,16 @@ var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSche
 `)
 
 type AuthenticationFlowV1NonRestfulCreateRequest struct {
-	FlowType      authflow.FlowType `json:"flow_type,omitempty"`
-	FlowName      string            `json:"flow_name,omitempty"`
-	URLQuery      string            `json:"url_query,omitempty"`
-	BindUserAgent *bool             `json:"bind_user_agent,omitempty"`
-	BatchInput    []json.RawMessage `json:"batch_input,omitempty"`
+	FlowType   authflow.FlowType `json:"flow_type,omitempty"`
+	FlowName   string            `json:"flow_name,omitempty"`
+	URLQuery   string            `json:"url_query,omitempty"`
+	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
 }
 
 func (r *AuthenticationFlowV1NonRestfulCreateRequest) GetFlowReference() *authflow.FlowReference {
 	return &authflow.FlowReference{
 		Type: r.FlowType,
 		Name: r.FlowName,
-	}
-}
-
-func (r *AuthenticationFlowV1NonRestfulCreateRequest) SetDefaults() {
-	if r.BindUserAgent == nil {
-		defaultBindUserAgent := true
-		r.BindUserAgent = &defaultBindUserAgent
 	}
 }
 
@@ -395,9 +362,7 @@ func (h *AuthenticationFlowV1Handler) makeSessionOptionsFromOAuth(oauthSessionID
 }
 
 func (h *AuthenticationFlowV1Handler) get(w http.ResponseWriter, r *http.Request, instanceID string) {
-	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
-
-	output, err := h.Workflows.Get(instanceID, userAgentID)
+	output, err := h.Workflows.Get(instanceID)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
@@ -416,11 +381,10 @@ func (h *AuthenticationFlowV1Handler) create(w http.ResponseWriter, r *http.Requ
 
 	if len(request.BatchInput) > 0 {
 		instanceID := output.Flow.InstanceID
-		userAgentID := output.Session.UserAgentID
 
-		output, err = h.batchInput0(w, r, instanceID, userAgentID, request.BatchInput)
+		output, err = h.batchInput0(w, r, instanceID, request.BatchInput)
 		if err != nil {
-			apiResp, apiRespErr := h.prepareErrorResponse(instanceID, userAgentID, err)
+			apiResp, apiRespErr := h.prepareErrorResponse(instanceID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -445,8 +409,6 @@ func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Req
 		return nil, err
 	}
 
-	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
-
 	var sessionOptionsFromOAuth *authflow.SessionOptions
 	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionID(r, request.URLQuery); ok {
 		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
@@ -468,10 +430,6 @@ func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Req
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
 
-	if *request.BindUserAgent {
-		sessionOptions.UserAgentID = userAgentID
-	}
-
 	output, err := h.Workflows.CreateNewFlow(flow, sessionOptions)
 	if err != nil {
 		return nil, err
@@ -482,11 +440,10 @@ func (h *AuthenticationFlowV1Handler) create0(w http.ResponseWriter, r *http.Req
 
 func (h *AuthenticationFlowV1Handler) input(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
 	instanceID := request.ID
-	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
 
-	output, err := h.input0(w, r, instanceID, userAgentID, request)
+	output, err := h.input0(w, r, instanceID, request)
 	if err != nil {
-		apiResp, apiRespErr := h.prepareErrorResponse(instanceID, userAgentID, err)
+		apiResp, apiRespErr := h.prepareErrorResponse(instanceID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -508,10 +465,9 @@ func (h *AuthenticationFlowV1Handler) input0(
 	w http.ResponseWriter,
 	r *http.Request,
 	instanceID string,
-	userAgentID string,
 	request AuthenticationFlowV1NonRestfulInputRequest,
 ) (*authflow.ServiceOutput, error) {
-	output, err := h.Workflows.FeedInput(instanceID, userAgentID, request.Input)
+	output, err := h.Workflows.FeedInput(instanceID, request.Input)
 	if err != nil && !errors.Is(err, authflow.ErrEOF) {
 		return nil, err
 	}
@@ -521,11 +477,10 @@ func (h *AuthenticationFlowV1Handler) input0(
 
 func (h *AuthenticationFlowV1Handler) batchInput(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
 	instanceID := request.ID
-	userAgentID := authenticationFlowGetOrCreateUserAgentID(h.Cookies, w, r)
 
-	output, err := h.batchInput0(w, r, instanceID, userAgentID, request.BatchInput)
+	output, err := h.batchInput0(w, r, instanceID, request.BatchInput)
 	if err != nil {
-		apiResp, apiRespErr := h.prepareErrorResponse(instanceID, userAgentID, err)
+		apiResp, apiRespErr := h.prepareErrorResponse(instanceID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -547,13 +502,12 @@ func (h *AuthenticationFlowV1Handler) batchInput0(
 	w http.ResponseWriter,
 	r *http.Request,
 	instanceID string,
-	userAgentID string,
 	rawMessages []json.RawMessage,
 ) (output *authflow.ServiceOutput, err error) {
 	// Collect all cookies
 	var cookies []*http.Cookie
 	for _, rawMessage := range rawMessages {
-		output, err = h.Workflows.FeedInput(instanceID, userAgentID, rawMessage)
+		output, err = h.Workflows.FeedInput(instanceID, rawMessage)
 		if err != nil && !errors.Is(err, authflow.ErrEOF) {
 			return nil, err
 		}
@@ -576,10 +530,9 @@ func (h *AuthenticationFlowV1Handler) batchInput0(
 
 func (h *AuthenticationFlowV1Handler) prepareErrorResponse(
 	instanceID string,
-	userAgentID string,
 	workflowErr error,
 ) (*api.Response, error) {
-	output, err := h.Workflows.Get(instanceID, userAgentID)
+	output, err := h.Workflows.Get(instanceID)
 	if err != nil {
 		return nil, err
 	}
