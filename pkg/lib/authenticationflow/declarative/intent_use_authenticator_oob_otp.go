@@ -58,7 +58,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	}
 	_, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
 	_, claimVerified := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
-	_, authenticatorVerified := authflow.FindMilestone[MilestoneDidVerifyAuthenticator](flows.Nearest)
+	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
 
 	switch {
 	case !authenticatorSelected:
@@ -69,7 +69,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	case !claimVerified:
 		// Verify the claim
 		return nil, nil
-	case !authenticatorVerified:
+	case !authenticated:
 		// Achieve the milestone.
 		return nil, nil
 	default:
@@ -80,7 +80,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
 	_, claimVerified := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
-	_, authenticatorVerified := authflow.FindMilestone[MilestoneDidVerifyAuthenticator](flows.Nearest)
+	_, authenticated := authflow.FindMilestone[MilestoneDidAuthenticate](flows.Nearest)
 
 	switch {
 	case !authenticatorSelected:
@@ -118,9 +118,9 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 			ClaimName:   claimName,
 			ClaimValue:  claimValue,
 		}), nil
-	case !authenticatorVerified:
+	case !authenticated:
 		info := m.MilestoneDidSelectAuthenticator()
-		return authflow.NewNodeSimple(&NodeDidVerifyAuthenticator{
+		return authflow.NewNodeSimple(&NodeDoUseAuthenticatorSimple{
 			Authenticator: info,
 		}), nil
 	}

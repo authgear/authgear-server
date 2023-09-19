@@ -22,6 +22,10 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 		},
 	}
 
+	if step, ok := generateSignupFlowStepPromptCreatePasskey(cfg); ok {
+		flow.Steps = append(flow.Steps, step)
+	}
+
 	return flow
 }
 
@@ -39,6 +43,9 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		case model.IdentityTypeOAuth:
 			oneOf := generateSignupFlowStepIdentifyOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypePasskey:
+			// Cannot create paskey in this step.
+			break
 		}
 	}
 
@@ -277,6 +284,10 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 		},
 	}
 
+	if step, ok := generateLoginFlowStepPromptCreatePasskey(cfg); ok {
+		flow.Steps = append(flow.Steps, step)
+	}
+
 	return flow
 }
 
@@ -294,6 +305,10 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 		case model.IdentityTypeOAuth:
 			oneOf := generateLoginFlowStepIdentityOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypePasskey:
+			oneOf := generateLoginFlowStepIdentityPasskey(cfg)
+			step.OneOf = append(step.OneOf, oneOf...)
+			break
 		}
 	}
 
@@ -321,11 +336,6 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
-
 		case keyConfig.Type == model.LoginIDKeyTypePhone && !phone:
 			phone = true
 
@@ -339,11 +349,6 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
-
 		case keyConfig.Type == model.LoginIDKeyTypeUsername && !username:
 			username = true
 
@@ -355,11 +360,6 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 			// Add authenticate step primary if necessary
 			if stepAuthenticatePrimary, ok := generateLoginFlowStepAuthenticatePrimary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
-			}
-
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 			}
 		}
 	}
@@ -375,6 +375,14 @@ func generateLoginFlowStepIdentityOAuth(cfg *config.AppConfig) []*config.Authent
 	return []*config.AuthenticationFlowLoginFlowOneOf{
 		{
 			Identification: config.AuthenticationFlowIdentificationOAuth,
+		},
+	}
+}
+
+func generateLoginFlowStepIdentityPasskey(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
+	return []*config.AuthenticationFlowLoginFlowOneOf{
+		{
+			Identification: config.AuthenticationFlowIdentificationPasskey,
 		},
 	}
 }
@@ -414,7 +422,23 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 						TargetStep: step.ID,
 					})
 				}
+
+				// Add authenticate step secondary if necessary
+				if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+					oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+				}
 			}
+
+		case model.AuthenticatorTypePasskey:
+			am := config.AuthenticationFlowAuthenticationPrimaryPasskey
+			if _, ok := allowedMap[am]; ok {
+				oneOf := &config.AuthenticationFlowLoginFlowOneOf{
+					Authentication: am,
+				}
+				step.OneOf = append(step.OneOf, oneOf)
+			}
+
+			// passkey does not require secondary authentication.
 
 		case model.AuthenticatorTypeOOBEmail:
 			am := config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
@@ -424,6 +448,11 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 					TargetStep:     idStepIdentify,
 				}
 				step.OneOf = append(step.OneOf, oneOf)
+
+				// Add authenticate step secondary if necessary
+				if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+					oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+				}
 			}
 
 		case model.AuthenticatorTypeOOBSMS:
@@ -434,6 +463,11 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 					TargetStep:     idStepIdentify,
 				}
 				step.OneOf = append(step.OneOf, oneOf)
+
+				// Add authenticate step secondary if necessary
+				if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
+					oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+				}
 			}
 		}
 	}
@@ -512,4 +546,38 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 	}
 
 	return step, true
+}
+
+func generateLoginFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.AuthenticationFlowLoginFlowStep, bool) {
+	passkeyEnabled := false
+	for _, typ := range *cfg.Authentication.PrimaryAuthenticators {
+		if typ == model.AuthenticatorTypePasskey {
+			passkeyEnabled = true
+		}
+	}
+
+	if !passkeyEnabled {
+		return nil, false
+	}
+
+	return &config.AuthenticationFlowLoginFlowStep{
+		Type: config.AuthenticationFlowLoginFlowStepTypePromptCreatePasskey,
+	}, true
+}
+
+func generateSignupFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.AuthenticationFlowSignupFlowStep, bool) {
+	passkeyEnabled := false
+	for _, typ := range *cfg.Authentication.PrimaryAuthenticators {
+		if typ == model.AuthenticatorTypePasskey {
+			passkeyEnabled = true
+		}
+	}
+
+	if !passkeyEnabled {
+		return nil, false
+	}
+
+	return &config.AuthenticationFlowSignupFlowStep{
+		Type: config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey,
+	}, true
 }

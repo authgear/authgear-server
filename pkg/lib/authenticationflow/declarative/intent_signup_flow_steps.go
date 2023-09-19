@@ -56,11 +56,15 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 
 	switch step.Type {
 	case config.AuthenticationFlowSignupFlowStepTypeIdentify:
-		return authflow.NewSubFlow(&IntentSignupFlowStepIdentify{
+		stepIdentify, err := NewIntentSignupFlowStepIdentify(ctx, deps, &IntentSignupFlowStepIdentify{
 			StepID:      step.ID,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
-		}), nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowSignupFlowStepTypeVerify:
 		return authflow.NewSubFlow(&IntentSignupFlowStepVerify{
 			StepID:      step.ID,
@@ -81,6 +85,12 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 		})), nil
 	case config.AuthenticationFlowSignupFlowStepTypeUserProfile:
 		return authflow.NewSubFlow(&IntentSignupFlowStepUserProfile{
+			StepID:      step.ID,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.UserID,
+		}), nil
+	case config.AuthenticationFlowSignupFlowStepTypePromptCreatePasskey:
+		return authflow.NewSubFlow(&IntentSignupFlowStepPromptCreatePasskey{
 			StepID:      step.ID,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,

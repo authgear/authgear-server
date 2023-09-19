@@ -164,6 +164,20 @@ type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
 }
 
+type PasskeyRequestOptionsService interface {
+	MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error)
+}
+
+type PasskeyCreationOptionsService interface {
+	MakeCreationOptions(userID string) (*model.WebAuthnCreationOptions, error)
+}
+
+type PasskeyService interface {
+	ConsumeAttestationResponse(attestationResponse []byte) (err error)
+	ConsumeAssertionResponse(assertionResponse []byte) (err error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -173,20 +187,23 @@ type Dependencies struct {
 
 	HTTPRequest *http.Request
 
-	Users                UserService
-	Identities           IdentityService
-	Authenticators       AuthenticatorService
-	MFA                  MFAService
-	StdAttrsService      StdAttrsService
-	CustomAttrsService   CustomAttrsService
-	OTPCodes             OTPCodeService
-	OTPSender            OTPSender
-	Verification         VerificationService
-	ForgotPassword       ForgotPasswordService
-	ResetPassword        ResetPasswordService
-	AccountMigrations    AccountMigrationService
-	Captcha              CaptchaService
-	OAuthProviderFactory OAuthProviderFactory
+	Users                         UserService
+	Identities                    IdentityService
+	Authenticators                AuthenticatorService
+	MFA                           MFAService
+	StdAttrsService               StdAttrsService
+	CustomAttrsService            CustomAttrsService
+	OTPCodes                      OTPCodeService
+	OTPSender                     OTPSender
+	Verification                  VerificationService
+	ForgotPassword                ForgotPasswordService
+	ResetPassword                 ResetPasswordService
+	AccountMigrations             AccountMigrationService
+	Captcha                       CaptchaService
+	OAuthProviderFactory          OAuthProviderFactory
+	PasskeyRequestOptionsService  PasskeyRequestOptionsService
+	PasskeyCreationOptionsService PasskeyCreationOptionsService
+	PasskeyService                PasskeyService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

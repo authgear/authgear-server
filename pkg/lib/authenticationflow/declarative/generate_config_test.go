@@ -347,13 +347,13 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-    - id: authenticate_secondary_email
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// email, otp
@@ -380,13 +380,14 @@ steps:
       one_of:
       - authentication: primary_oob_otp_email
         target_step: identify
-    - id: authenticate_secondary_email
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        steps:
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// phone, otp
@@ -413,13 +414,14 @@ steps:
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: identify
-    - id: authenticate_secondary_phone
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        steps:
+        - id: authenticate_secondary_phone
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// username, password
@@ -448,13 +450,13 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_username
-    - id: authenticate_secondary_username
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        - id: authenticate_secondary_username
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// email,phone, password,otp
@@ -486,15 +488,23 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_email
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
       - authentication: primary_oob_otp_email
         target_step: identify
-    - id: authenticate_secondary_email
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        steps:
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
   - identification: phone
     steps:
     - id: authenticate_primary_phone
@@ -504,15 +514,23 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_phone
+        - id: authenticate_secondary_phone
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
       - authentication: primary_oob_otp_sms
         target_step: identify
-    - id: authenticate_secondary_phone
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        steps:
+        - id: authenticate_secondary_phone
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// email,password, totp,recovery_code
@@ -544,12 +562,12 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-    - id: authenticate_secondary_email
-      type: authenticate
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        - id: authenticate_secondary_email
+          type: authenticate
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// Disable device token recovery code.
@@ -582,11 +600,11 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-    - id: authenticate_secondary_email
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: secondary_totp
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: secondary_totp
 `)
 
 		// No password force change
@@ -615,13 +633,14 @@ steps:
       type: authenticate
       one_of:
       - authentication: primary_password
-    - id: authenticate_secondary_email
-      type: authenticate
-      optional: true
-      one_of:
-      - authentication: device_token
-      - authentication: recovery_code
-      - authentication: secondary_totp
+        steps:
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
 `)
 
 		// oauth
@@ -681,11 +700,101 @@ steps:
         steps:
         - type: change_password
           target_step: authenticate_primary_email
-    - id: authenticate_secondary_email
+        - id: authenticate_secondary_email
+          type: authenticate
+          one_of:
+          - authentication: secondary_totp
+  - identification: oauth
+`)
+
+		// passkey
+		test(`
+authentication:
+  identities:
+  - login_id
+  - passkey
+  primary_authenticators:
+  - password
+  - passkey
+identity:
+  login_id:
+    keys:
+    - type: email
+`, `
+id: default
+steps:
+- id: identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - id: authenticate_primary_email
       type: authenticate
       one_of:
-      - authentication: secondary_totp
+      - authentication: primary_password
+        steps:
+        - type: change_password
+          target_step: authenticate_primary_email
+        - id: authenticate_secondary_email
+          type: authenticate
+          optional: true
+          one_of:
+          - authentication: device_token
+          - authentication: recovery_code
+          - authentication: secondary_totp
+      - authentication: primary_passkey
+  - identification: passkey
+- type: prompt_create_passkey
+`)
+
+		// passkey and oauth and 2fa
+		test(`
+authentication:
+  identities:
+  - login_id
+  - oauth
+  - passkey
+  primary_authenticators:
+  - password
+  - passkey
+  secondary_authenticators:
+  - totp
+  secondary_authentication_mode: required
+  device_token:
+    disabled: true
+  recovery_code:
+    disabled: true
+identity:
+  login_id:
+    keys:
+    - type: email
+  oauth:
+    providers:
+    - alias: google
+      type: google
+`, `
+id: default
+steps:
+- id: identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - id: authenticate_primary_email
+      type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - type: change_password
+          target_step: authenticate_primary_email
+        - id: authenticate_secondary_email
+          type: authenticate
+          one_of:
+          - authentication: secondary_totp
+      - authentication: primary_passkey
   - identification: oauth
+  - identification: passkey
+- type: prompt_create_passkey
 `)
 	})
 }

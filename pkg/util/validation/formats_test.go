@@ -271,3 +271,16 @@ func TestFormatDurationString(t *testing.T) {
 		So(f("4h5m6s"), ShouldBeNil)
 	})
 }
+
+func TestFormatBase64URL(t *testing.T) {
+	f := FormatBase64URL{}.CheckFormat
+
+	Convey("FormatBase64URL", t, func() {
+		So(f(1), ShouldBeNil)
+		So(f(""), ShouldBeNil)
+
+		So(f("aA"), ShouldBeNil)
+		So(f("aA=="), ShouldBeError, "illegal base64 data at input byte 2")
+		So(f("a\nA"), ShouldBeNil)
+	})
+}

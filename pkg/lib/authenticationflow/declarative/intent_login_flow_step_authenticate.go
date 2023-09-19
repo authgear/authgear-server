@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -30,9 +29,10 @@ var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
 func (m IntentLoginFlowStepAuthenticateData) Data() {}
 
 type IntentLoginFlowStepAuthenticate struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	JSONPointer jsonpointer.T                `json:"json_pointer,omitempty"`
+	StepID      string                       `json:"step_id,omitempty"`
+	UserID      string                       `json:"user_id,omitempty"`
+	Candidates  []UseAuthenticationCandidate `json:"candidates"`
 }
 
 var _ FlowStep = &IntentLoginFlowStepAuthenticate{}
@@ -48,19 +48,17 @@ func (i *IntentLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 var _ IntentLoginFlowStepChangePasswordTarget = &IntentLoginFlowStepAuthenticate{}
 
 func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (info *authenticator.Info, ok bool) {
-	m, ok := authflow.FindMilestone[MilestoneDidVerifyAuthenticator](flows.Nearest)
+	m, ok := authflow.FindMilestone[MilestoneDoUseAuthenticatorPassword](flows.Nearest)
 	if !ok {
 		return
 	}
 
 	ok = false
-	n := m.MilestoneDidVerifyAuthenticator()
+	n := m.MilestoneDoUseAuthenticatorPassword()
 
-	if n.Authenticator.Type == model.AuthenticatorTypePassword {
-		if n.PasswordChangeRequired {
-			info = n.Authenticator
-			ok = true
-		}
+	if n.PasswordChangeRequired {
+		info = n.Authenticator
+		ok = true
 	}
 
 	return
@@ -68,6 +66,22 @@ func (*IntentLoginFlowStepAuthenticate) GetPasswordAuthenticator(_ context.Conte
 
 var _ authflow.Intent = &IntentLoginFlowStepAuthenticate{}
 var _ authflow.DataOutputer = &IntentLoginFlowStepAuthenticate{}
+
+func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, i *IntentLoginFlowStepAuthenticate) (*IntentLoginFlowStepAuthenticate, error) {
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
+	if err != nil {
+		return nil, err
+	}
+
+	i.Candidates = candidates
+	return i, nil
+}
 
 func (*IntentLoginFlowStepAuthenticate) Kind() string {
 	return "IntentLoginFlowStepAuthenticate"
@@ -82,12 +96,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
-	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
-	if err != nil {
-		return nil, err
-	}
-
-	canSkipAuthenticate := i.canSkipAuthenticate(candidates, step)
+	canSkipAuthenticate := i.canSkipAuthenticate(step)
 
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
@@ -111,7 +120,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
 			JSONPointer:        i.JSONPointer,
-			Candidates:         candidates,
+			Candidates:         i.Candidates,
 			DeviceTokenEnabled: deviceTokenEnabled,
 		}, nil
 	case !authenticated:
@@ -140,12 +149,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
-	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
-	if err != nil {
-		return nil, err
-	}
-
-	canSkipAuthenticate := i.canSkipAuthenticate(candidates, step)
+	canSkipAuthenticate := i.canSkipAuthenticate(step)
 
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
@@ -171,7 +175,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
 
-			idx, err := i.getIndex(step, candidates, authentication)
+			idx, err := i.getIndex(step, authentication)
 			if err != nil {
 				return nil, err
 			}
@@ -181,6 +185,12 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryPassword:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorPassword{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
+			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+				return authflow.NewNodeSimple(&NodeUseAuthenticatorPasskey{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -233,32 +243,21 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
-	if err != nil {
-		return nil, err
-	}
-	step := i.step(current)
-
-	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
-	if err != nil {
-		return nil, err
-	}
-
 	return IntentLoginFlowStepAuthenticateData{
-		Candidates: candidates,
+		Candidates: i.Candidates,
 	}, nil
 }
 
-func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, candidates []UseAuthenticationCandidate, am config.AuthenticationFlowAuthentication) (idx int, err error) {
+func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFlowLoginFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	allAllowed := i.getAllAllowed(step)
 
-	for i := range allAllowed {
-		thisMethod := allAllowed[i]
-		for _, candidate := range candidates {
+	for index := range allAllowed {
+		thisMethod := allAllowed[index]
+		for _, candidate := range i.Candidates {
 			if thisMethod == candidate.Authentication && thisMethod == am {
-				idx = i
+				idx = index
 			}
 		}
 	}
@@ -324,9 +323,9 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	panic(fmt.Errorf("selected authentication method is not allowed"))
 }
 
-func (i *IntentLoginFlowStepAuthenticate) canSkipAuthenticate(candidates []UseAuthenticationCandidate, step *config.AuthenticationFlowLoginFlowStep) bool {
+func (i *IntentLoginFlowStepAuthenticate) canSkipAuthenticate(step *config.AuthenticationFlowLoginFlowStep) bool {
 	// Can skip if there are no candidates.
-	if step.Optional != nil && *step.Optional && len(candidates) == 0 {
+	if step.Optional != nil && *step.Optional && len(i.Candidates) == 0 {
 		return true
 	}
 

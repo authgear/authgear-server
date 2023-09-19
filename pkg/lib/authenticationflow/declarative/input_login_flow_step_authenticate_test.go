@@ -53,6 +53,9 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 					},
 					{
+						Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+					},
+					{
 						Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
 					},
 					{
@@ -103,6 +106,67 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
         },
         {
             "properties": {
+                "assertion_response": {
+                    "properties": {
+                        "clientExtensionResults": {
+                            "type": "object"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "rawId": {
+                            "format": "x_base64_url",
+                            "type": "string"
+                        },
+                        "response": {
+                            "properties": {
+                                "authenticatorData": {
+                                    "format": "x_base64_url",
+                                    "type": "string"
+                                },
+                                "clientDataJSON": {
+                                    "format": "x_base64_url",
+                                    "type": "string"
+                                },
+                                "signature": {
+                                    "format": "x_base64_url",
+                                    "type": "string"
+                                },
+                                "userHandle": {
+                                    "format": "x_base64_url",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "clientDataJSON",
+                                "authenticatorData",
+                                "signature"
+                            ],
+                            "type": "object"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "type",
+                        "rawId",
+                        "response"
+                    ],
+                    "type": "object"
+                },
+                "authentication": {
+                    "const": "primary_passkey"
+                }
+            },
+            "required": [
+                "authentication",
+                "assertion_response"
+            ]
+        },
+        {
+            "properties": {
                 "authentication": {
                     "const": "secondary_password"
                 },
@@ -135,7 +199,7 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_oob_otp_email"
                 },
                 "index": {
-                    "const": 3,
+                    "const": 4,
                     "type": "integer"
                 }
             },
@@ -150,7 +214,7 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "primary_oob_otp_sms"
                 },
                 "index": {
-                    "const": 4,
+                    "const": 5,
                     "type": "integer"
                 }
             },
@@ -165,7 +229,7 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_oob_otp_email"
                 },
                 "index": {
-                    "const": 5,
+                    "const": 6,
                     "type": "integer"
                 }
             },
@@ -180,7 +244,7 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
                     "const": "secondary_oob_otp_sms"
                 },
                 "index": {
-                    "const": 6,
+                    "const": 7,
                     "type": "integer"
                 }
             },

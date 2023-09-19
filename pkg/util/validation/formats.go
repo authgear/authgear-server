@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/mail"
@@ -44,6 +45,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_web3_contract_id"] = FormatContractID{}
 	jsonschemaformat.DefaultChecker["x_web3_network_id"] = FormatNetworkID{}
 	jsonschemaformat.DefaultChecker["x_duration_string"] = FormatDurationString{}
+	jsonschemaformat.DefaultChecker["x_base64_url"] = FormatBase64URL{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -479,5 +481,20 @@ func (FormatDurationString) CheckFormat(value interface{}) error {
 		return fmt.Errorf("non-positive duration %q", str)
 	}
 
+	return nil
+}
+
+type FormatBase64URL struct{}
+
+func (FormatBase64URL) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	_, err := base64.RawURLEncoding.Strict().DecodeString(str)
+	if err != nil {
+		return err
+	}
 	return nil
 }

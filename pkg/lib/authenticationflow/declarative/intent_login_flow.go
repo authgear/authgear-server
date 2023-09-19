@@ -69,7 +69,6 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		return authflow.NewSubFlow(&IntentConfirmTerminateOtherSessions{
 			UserID: i.userID(flows),
 		}), nil
-		// FIXME(authflow): prompt passkey creation
 	case len(flows.Nearest.Nodes) == 3:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       i.userID(flows),

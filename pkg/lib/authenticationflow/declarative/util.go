@@ -117,7 +117,7 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 
 		allAllowed := []config.AuthenticationFlowAuthentication{am}
 		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(am), IsDependentOf(identityInfo))
-		moreCandidates, err := getAuthenticationCandidates(deps.Config.Authenticator.OOB, filteredInfos, recoveryCodes, allAllowed)
+		moreCandidates, err := getAuthenticationCandidates(deps, userID, filteredInfos, recoveryCodes, allAllowed)
 		if err != nil {
 			return err
 		}
@@ -129,7 +129,7 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 	byUser := func(am config.AuthenticationFlowAuthentication) error {
 		allAllowed := []config.AuthenticationFlowAuthentication{am}
 		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(allAllowed...))
-		moreCandidates, err := getAuthenticationCandidates(deps.Config.Authenticator.OOB, filteredInfos, recoveryCodes, allAllowed)
+		moreCandidates, err := getAuthenticationCandidates(deps, userID, filteredInfos, recoveryCodes, allAllowed)
 		if err != nil {
 			return err
 		}
@@ -146,6 +146,8 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			fallthrough
@@ -179,26 +181,46 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 	return candidates, nil
 }
 
-func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []*authenticator.Info, recoveryCodes []*mfa.RecoveryCode, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
-	addPasswordAlways := func(am config.AuthenticationFlowAuthentication) {
+func getAuthenticationCandidates(deps *authflow.Dependencies, userID string, as []*authenticator.Info, recoveryCodes []*mfa.RecoveryCode, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
+	addPrimaryPassword := func() {
 		count := len(as)
-		allUsable = append(allUsable, NewUseAuthenticationCandidatePassword(am, count))
+		allUsable = append(allUsable, NewUseAuthenticationCandidatePassword(
+			config.AuthenticationFlowAuthenticationPrimaryPassword,
+			count,
+		))
 	}
 
-	addOneIfPresent := func() {
-		added := false
-		for _, a := range as {
-			candidate := NewUseAuthenticationCandidateFromInfo(oobConfig, a)
-			if !added {
-				allUsable = append(allUsable, candidate)
-				added = true
+	addPasskeyIfPresent := func() error {
+		if len(as) > 0 {
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+			if err != nil {
+				return err
 			}
+
+			allUsable = append(allUsable, NewUseAuthenticationCandidatePasskey(requestOptions))
+		}
+		return nil
+	}
+
+	addSecondaryPasswordIfPresent := func() {
+		count := len(as)
+		if count > 0 {
+			allUsable = append(allUsable, NewUseAuthenticationCandidatePassword(
+				config.AuthenticationFlowAuthenticationSecondaryPassword,
+				count,
+			))
 		}
 	}
 
-	addAll := func() {
+	addTOTPIfPresent := func() {
+		if len(as) > 0 {
+			allUsable = append(allUsable, NewUseAuthenticationCandidateTOTP())
+		}
+	}
+
+	addAllOOBOTP := func() {
 		for _, a := range as {
-			candidate := NewUseAuthenticationCandidateFromInfo(oobConfig, a)
+			candidate := NewUseAuthenticationCandidateOOBOTP(deps.Config.Authenticator.OOB, a)
 			allUsable = append(allUsable, candidate)
 		}
 	}
@@ -212,9 +234,14 @@ func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []
 	for _, allowed := range allAllowed {
 		switch allowed {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
-			addPasswordAlways(allowed)
+			addPrimaryPassword()
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			err = addPasskeyIfPresent()
+			if err != nil {
+				return
+			}
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			addOneIfPresent()
+			addSecondaryPasswordIfPresent()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -222,9 +249,9 @@ func getAuthenticationCandidates(oobConfig *config.AuthenticatorOOBConfig, as []
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			addAll()
+			addAllOOBOTP()
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			addOneIfPresent()
+			addTOTPIfPresent()
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			addRecoveryCodeIfPresent()
 		case config.AuthenticationFlowAuthenticationDeviceToken:

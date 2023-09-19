@@ -49,7 +49,8 @@ var _ = Schema.Add("AuthenticationFlowIdentification", `
 		"email",
 		"phone",
 		"username",
-		"oauth"
+		"oauth",
+		"passkey"
 	]
 }
 `)
@@ -82,7 +83,8 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 				"authenticate",
 				"verify",
 				"user_profile",
-				"recovery_code"
+				"recovery_code",
+				"prompt_create_passkey"
 			]
 		}
 	},
@@ -236,7 +238,8 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 			"enum": [
 				"identify",
 				"authenticate",
-				"change_password"
+				"change_password",
+				"prompt_create_passkey"
 			]
 		}
 	},
@@ -317,6 +320,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 			"type": "string",
 			"enum": [
 				"primary_password",
+				"primary_passkey",
 				"primary_oob_otp_email",
 				"primary_oob_otp_sms",
 				"secondary_password",
@@ -508,6 +512,7 @@ const (
 	AuthenticationFlowIdentificationPhone    AuthenticationFlowIdentification = "phone"
 	AuthenticationFlowIdentificationUsername AuthenticationFlowIdentification = "username"
 	AuthenticationFlowIdentificationOAuth    AuthenticationFlowIdentification = "oauth"
+	AuthenticationFlowIdentificationPasskey  AuthenticationFlowIdentification = "passkey"
 )
 
 func (m AuthenticationFlowIdentification) PrimaryAuthentications() []AuthenticationFlowAuthentication {
@@ -516,18 +521,24 @@ func (m AuthenticationFlowIdentification) PrimaryAuthentications() []Authenticat
 		return []AuthenticationFlowAuthentication{
 			AuthenticationFlowAuthenticationPrimaryPassword,
 			AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+			AuthenticationFlowAuthenticationPrimaryPasskey,
 		}
 	case AuthenticationFlowIdentificationPhone:
 		return []AuthenticationFlowAuthentication{
 			AuthenticationFlowAuthenticationPrimaryPassword,
 			AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+			AuthenticationFlowAuthenticationPrimaryPasskey,
 		}
 	case AuthenticationFlowIdentificationUsername:
 		return []AuthenticationFlowAuthentication{
 			AuthenticationFlowAuthenticationPrimaryPassword,
+			AuthenticationFlowAuthenticationPrimaryPasskey,
 		}
 	case AuthenticationFlowIdentificationOAuth:
 		// OAuth does not require primary authentication.
+		return nil
+	case AuthenticationFlowIdentificationPasskey:
+		// Passkey does not require primary authentication.
 		return nil
 	default:
 		panic(fmt.Errorf("unknown identification: %v", m))
@@ -551,6 +562,9 @@ func (m AuthenticationFlowIdentification) SecondaryAuthentications() []Authentic
 	case AuthenticationFlowIdentificationOAuth:
 		// OAuth does not require secondary authentication.
 		return nil
+	case AuthenticationFlowIdentificationPasskey:
+		// Passkey does not require secondary authentication.
+		return nil
 	default:
 		panic(fmt.Errorf("unknown identification: %v", m))
 	}
@@ -560,6 +574,7 @@ type AuthenticationFlowAuthentication string
 
 const (
 	AuthenticationFlowAuthenticationPrimaryPassword      AuthenticationFlowAuthentication = "primary_password"
+	AuthenticationFlowAuthenticationPrimaryPasskey       AuthenticationFlowAuthentication = "primary_passkey"
 	AuthenticationFlowAuthenticationPrimaryOOBOTPEmail   AuthenticationFlowAuthentication = "primary_oob_otp_email"
 	AuthenticationFlowAuthenticationPrimaryOOBOTPSMS     AuthenticationFlowAuthentication = "primary_oob_otp_sms"
 	AuthenticationFlowAuthenticationSecondaryPassword    AuthenticationFlowAuthentication = "secondary_password"
@@ -573,6 +588,8 @@ const (
 func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.AuthenticatorKind {
 	switch m {
 	case AuthenticationFlowAuthenticationPrimaryPassword:
+		fallthrough
+	case AuthenticationFlowAuthenticationPrimaryPasskey:
 		fallthrough
 	case AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
@@ -623,11 +640,12 @@ func (f *AuthenticationFlowSignupFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowSignupFlowStepType string
 
 const (
-	AuthenticationFlowSignupFlowStepTypeIdentify     AuthenticationFlowSignupFlowStepType = "identify"
-	AuthenticationFlowSignupFlowStepTypeAuthenticate AuthenticationFlowSignupFlowStepType = "authenticate"
-	AuthenticationFlowSignupFlowStepTypeVerify       AuthenticationFlowSignupFlowStepType = "verify"
-	AuthenticationFlowSignupFlowStepTypeUserProfile  AuthenticationFlowSignupFlowStepType = "user_profile"
-	AuthenticationFlowSignupFlowStepTypeRecoveryCode AuthenticationFlowSignupFlowStepType = "recovery_code"
+	AuthenticationFlowSignupFlowStepTypeIdentify            AuthenticationFlowSignupFlowStepType = "identify"
+	AuthenticationFlowSignupFlowStepTypeAuthenticate        AuthenticationFlowSignupFlowStepType = "authenticate"
+	AuthenticationFlowSignupFlowStepTypeVerify              AuthenticationFlowSignupFlowStepType = "verify"
+	AuthenticationFlowSignupFlowStepTypeUserProfile         AuthenticationFlowSignupFlowStepType = "user_profile"
+	AuthenticationFlowSignupFlowStepTypeRecoveryCode        AuthenticationFlowSignupFlowStepType = "recovery_code"
+	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey AuthenticationFlowSignupFlowStepType = "prompt_create_passkey"
 )
 
 type AuthenticationFlowSignupFlowStep struct {
@@ -726,9 +744,10 @@ func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowLoginFlowStepType string
 
 const (
-	AuthenticationFlowLoginFlowStepTypeIdentify       AuthenticationFlowLoginFlowStepType = "identify"
-	AuthenticationFlowLoginFlowStepTypeAuthenticate   AuthenticationFlowLoginFlowStepType = "authenticate"
-	AuthenticationFlowLoginFlowStepTypeChangePassword AuthenticationFlowLoginFlowStepType = "change_password"
+	AuthenticationFlowLoginFlowStepTypeIdentify            AuthenticationFlowLoginFlowStepType = "identify"
+	AuthenticationFlowLoginFlowStepTypeAuthenticate        AuthenticationFlowLoginFlowStepType = "authenticate"
+	AuthenticationFlowLoginFlowStepTypeChangePassword      AuthenticationFlowLoginFlowStepType = "change_password"
+	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey AuthenticationFlowLoginFlowStepType = "prompt_create_passkey"
 )
 
 type AuthenticationFlowLoginFlowStep struct {

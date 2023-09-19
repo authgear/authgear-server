@@ -22,6 +22,9 @@ type UseAuthenticationCandidate struct {
 	// Count is specific to password.
 	Count *int `json:"count,omitempty"`
 
+	// WebAuthnRequestOptions is specific to Passkey.
+	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
+
 	// AuthenticatorID is omitted from the output.
 	// The caller must use index to select a candidate.
 	AuthenticatorID string `json:"-"`
@@ -40,50 +43,22 @@ func NewUseAuthenticationCandidatePassword(am config.AuthenticationFlowAuthentic
 	}
 }
 
-func AuthenticationFromAuthenticator(i *authenticator.Info) config.AuthenticationFlowAuthentication {
-	switch i.Kind {
-	case model.AuthenticatorKindPrimary:
-		switch i.Type {
-		case model.AuthenticatorTypePassword:
-			return config.AuthenticationFlowAuthenticationPrimaryPassword
-		case model.AuthenticatorTypeOOBEmail:
-			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
-		case model.AuthenticatorTypeOOBSMS:
-			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
-		}
-	case model.AuthenticatorKindSecondary:
-		switch i.Type {
-		case model.AuthenticatorTypePassword:
-			return config.AuthenticationFlowAuthenticationSecondaryPassword
-		case model.AuthenticatorTypeOOBEmail:
-			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
-		case model.AuthenticatorTypeOOBSMS:
-			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
-		case model.AuthenticatorTypeTOTP:
-			return config.AuthenticationFlowAuthenticationSecondaryTOTP
-		}
+func NewUseAuthenticationCandidatePasskey(requestOptions *model.WebAuthnRequestOptions) UseAuthenticationCandidate {
+	return UseAuthenticationCandidate{
+		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
+		RequestOptions: requestOptions,
 	}
-
-	panic(fmt.Errorf("unknown authentication method: %v %v", i.Kind, i.Type))
 }
 
-func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationCandidate {
+func NewUseAuthenticationCandidateTOTP() UseAuthenticationCandidate {
+	return UseAuthenticationCandidate{
+		Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
+	}
+}
+
+func NewUseAuthenticationCandidateOOBOTP(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationCandidate {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
-	case config.AuthenticationFlowAuthenticationPrimaryPassword:
-		fallthrough
-	case config.AuthenticationFlowAuthenticationSecondaryPassword:
-		count := 0
-		return UseAuthenticationCandidate{
-			Authentication: am,
-			Count:          &count,
-		}
-
-	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-		return UseAuthenticationCandidate{
-			Authentication: am,
-		}
-
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
@@ -103,6 +78,35 @@ func NewUseAuthenticationCandidateFromInfo(oobConfig *config.AuthenticatorOOBCon
 			Channels:          channels,
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
 			AuthenticatorID:   i.ID,
+		}
+	}
+
+	panic(fmt.Errorf("NewUseAuthenticationCandidateOOBOTP: unexpected authentication method: %v %v", i.Kind, i.Type))
+}
+
+func AuthenticationFromAuthenticator(i *authenticator.Info) config.AuthenticationFlowAuthentication {
+	switch i.Kind {
+	case model.AuthenticatorKindPrimary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			return config.AuthenticationFlowAuthenticationPrimaryPassword
+		case model.AuthenticatorTypePasskey:
+			return config.AuthenticationFlowAuthenticationPrimaryPasskey
+		case model.AuthenticatorTypeOOBEmail:
+			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail
+		case model.AuthenticatorTypeOOBSMS:
+			return config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS
+		}
+	case model.AuthenticatorKindSecondary:
+		switch i.Type {
+		case model.AuthenticatorTypePassword:
+			return config.AuthenticationFlowAuthenticationSecondaryPassword
+		case model.AuthenticatorTypeOOBEmail:
+			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail
+		case model.AuthenticatorTypeOOBSMS:
+			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
+		case model.AuthenticatorTypeTOTP:
+			return config.AuthenticationFlowAuthenticationSecondaryTOTP
 		}
 	}
 

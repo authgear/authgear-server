@@ -64,6 +64,10 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			requireString("state")
 			requireConst("alias", candidate.Alias)
 			setRequiredAndAppendOneOf()
+		case config.AuthenticationFlowIdentificationPasskey:
+			required = append(required, "assertion_response")
+			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
+			setRequiredAndAppendOneOf()
 		default:
 			break
 		}

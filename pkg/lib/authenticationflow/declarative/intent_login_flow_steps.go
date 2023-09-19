@@ -55,18 +55,32 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 
 	switch step.Type {
 	case config.AuthenticationFlowLoginFlowStepTypeIdentify:
-		return authflow.NewSubFlow(&IntentLoginFlowStepIdentify{
+		stepIdentify, err := NewIntentLoginFlowStepIdentify(ctx, deps, &IntentLoginFlowStepIdentify{
 			StepID:      step.ID,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-		}), nil
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowLoginFlowStepTypeAuthenticate:
-		return authflow.NewSubFlow(&IntentLoginFlowStepAuthenticate{
+		stepAuthenticate, err := NewIntentLoginFlowStepAuthenticate(ctx, deps, flows, &IntentLoginFlowStepAuthenticate{
+			StepID:      step.ID,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(flows),
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(stepAuthenticate), nil
+	case config.AuthenticationFlowLoginFlowStepTypeChangePassword:
+		return authflow.NewSubFlow(&IntentLoginFlowStepChangePassword{
 			StepID:      step.ID,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.userID(flows),
 		}), nil
-	case config.AuthenticationFlowLoginFlowStepTypeChangePassword:
-		return authflow.NewSubFlow(&IntentLoginFlowStepChangePassword{
+	case config.AuthenticationFlowLoginFlowStepTypePromptCreatePasskey:
+		return authflow.NewSubFlow(&IntentLoginFlowStepPromptCreatePasskey{
 			StepID:      step.ID,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.userID(flows),

@@ -1,6 +1,8 @@
 package declarative
 
 import (
+	"github.com/duo-labs/webauthn/protocol"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -29,6 +31,10 @@ type inputTakeOAuthAuthorizationResponse interface {
 	GetOAuthError() string
 	GetOAuthErrorDescription() string
 	GetOAuthErrorURI() string
+}
+
+type inputTakePasskeyAssertionResponse interface {
+	GetAssertionResponse() *protocol.CredentialAssertionResponse
 }
 
 type inputTakeOOBOTPChannel interface {
@@ -81,4 +87,10 @@ type inputTakeTOTP interface {
 
 type inputTakeRecoveryCode interface {
 	GetRecoveryCode() string
+}
+
+type inputNodePromptCreatePasskey interface {
+	IsSkip() bool
+	IsCreationResponse() bool
+	GetCreationResponse() *protocol.CredentialCreationResponse
 }

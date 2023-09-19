@@ -30,6 +30,8 @@ func AuthenticationStageFromAuthenticationMethod(am config.AuthenticationFlowAut
 	switch am {
 	case config.AuthenticationFlowAuthenticationPrimaryPassword:
 		fallthrough
+	case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		fallthrough
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
