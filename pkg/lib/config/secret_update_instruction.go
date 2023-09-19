@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -288,7 +288,7 @@ func (i *OAuthClientSecretsUpdateInstruction) generate(ctx *SecretConfigUpdateIn
 	clientID := i.GenerateData.ClientID
 	jwkKey := ctx.GenerateClientSecretOctetKeyFunc(ctx.Clock.NowUTC(), corerand.SecureRand)
 	keySet := jwk.NewSet()
-	_ = keySet.Add(jwkKey)
+	_ = keySet.AddKey(jwkKey)
 	newCredentialsItem := OAuthClientCredentialsItem{
 		ClientID:                     clientID,
 		OAuthClientCredentialsKeySet: OAuthClientCredentialsKeySet{Set: keySet},
@@ -429,7 +429,7 @@ func (i *AdminAPIAuthKeyUpdateInstruction) generate(ctx *SecretConfigUpdateInstr
 	}
 
 	// Add new key to the AdminAPIAuthKey
-	newAdminAPIAuthKey.Add(newAuthKey)
+	_ = newAdminAPIAuthKey.AddKey(newAuthKey)
 	if newAdminAPIAuthKey.Len() > 2 {
 		return nil, fmt.Errorf("config: must have at most two Admin API auth keys")
 	} else {
@@ -471,9 +471,9 @@ func (i *AdminAPIAuthKeyUpdateInstruction) delete(currentConfig *SecretConfig) (
 	}
 
 	newAdminAPIAuthKey := &AdminAPIAuthKey{Set: jwk.NewSet()}
-	for it := authKey.Iterate(context.Background()); it.Next(context.Background()); {
+	for it := authKey.Keys(context.Background()); it.Next(context.Background()); {
 		if key, ok := it.Pair().Value.(jwk.Key); ok && key.KeyID() != i.DeleteData.KeyID {
-			newAdminAPIAuthKey.Add(key)
+			_ = newAdminAPIAuthKey.AddKey(key)
 		}
 	}
 

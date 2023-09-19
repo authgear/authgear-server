@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
@@ -37,8 +37,8 @@ func VerifyWithSet(keySet jwk.Set, compact []byte) (hdr jws.Headers, payload jwt
 		return
 	}
 
-	keyAlg := key.Algorithm()
-	hdrAlg := hdr.Algorithm()
+	keyAlg := key.Algorithm().String()
+	hdrAlg := hdr.Algorithm().String()
 
 	// Prefer alg in key
 	alg := keyAlg
@@ -52,7 +52,7 @@ func VerifyWithSet(keySet jwk.Set, compact []byte) (hdr jws.Headers, payload jwt
 		return
 	}
 
-	_, err = jws.Verify(compact, jwa.SignatureAlgorithm(alg), rawKey)
+	_, err = jws.Verify(compact, jws.WithKey(jwa.SignatureAlgorithm(alg), rawKey))
 	if err != nil {
 		return
 	}

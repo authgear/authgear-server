@@ -6,7 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 func TestPublicSetOf(t *testing.T) {
@@ -55,21 +55,21 @@ func TestPublicSetOf(t *testing.T) {
 
 func TestExtractOctetKey(t *testing.T) {
 	Convey("ExtractOctetKey", t, func() {
-		key1, err := jwk.New([]byte("secret1"))
+		key1, err := jwk.FromRaw([]byte("secret1"))
 		if err != nil {
 			panic(err)
 		}
 		_ = key1.Set("kid", "key-1")
 
-		key2, err := jwk.New([]byte("secret2"))
+		key2, err := jwk.FromRaw([]byte("secret2"))
 		if err != nil {
 			panic(err)
 		}
 		_ = key2.Set("kid", "key-2")
 
 		set := jwk.NewSet()
-		_ = set.Add(key1)
-		_ = set.Add(key2)
+		_ = set.AddKey(key1)
+		_ = set.AddKey(key2)
 
 		Convey("should match on key ID", func() {
 			octetKey, err := ExtractOctetKey(set, "key-1")
@@ -93,21 +93,21 @@ func TestExtractOctetKey(t *testing.T) {
 
 func TestExtractOctetKeys(t *testing.T) {
 	Convey("ExtractOctetKeys", t, func() {
-		key1, err := jwk.New([]byte("secret1"))
+		key1, err := jwk.FromRaw([]byte("secret1"))
 		if err != nil {
 			panic(err)
 		}
 		_ = key1.Set("kid", "key-1")
 
-		key2, err := jwk.New([]byte("secret2"))
+		key2, err := jwk.FromRaw([]byte("secret2"))
 		if err != nil {
 			panic(err)
 		}
 		_ = key2.Set("kid", "key-2")
 
 		set := jwk.NewSet()
-		_ = set.Add(key1)
-		_ = set.Add(key2)
+		_ = set.AddKey(key1)
+		_ = set.AddKey(key2)
 
 		Convey("should extract keys", func() {
 			keys, err := ExtractOctetKeys(set)

@@ -120,7 +120,7 @@ func TestDeviceModelCodename(t *testing.T) {
 		actual = DeviceModelCodename(android)
 		So(actual, ShouldEqual, "SM-S9010")
 
-		So(DevicePlatform(nil), ShouldEqual, "")
+		So(DevicePlatform(nil), ShouldEqual, Platform(""))
 	})
 }
 

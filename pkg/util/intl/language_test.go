@@ -8,8 +8,8 @@ import (
 
 func TestFallback(t *testing.T) {
 	Convey("Fallback", t, func() {
-		So(Fallback("ja"), ShouldEqual, "ja")
-		So(Fallback(""), ShouldEqual, BuiltinBaseLanguage)
+		So(Fallback("ja"), ShouldEqual, FallbackLanguage("ja"))
+		So(Fallback(""), ShouldEqual, FallbackLanguage(BuiltinBaseLanguage))
 	})
 }
 

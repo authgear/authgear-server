@@ -16,7 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -24,7 +24,7 @@ func TestSecretConfigUpdateInstruction(t *testing.T) {
 	var GenerateOctetKeyFunc = func(createdAt time.Time, rng *mathrand.Rand) jwk.Key {
 		key := []byte("secret1")
 
-		jwkKey, err := jwk.New(key)
+		jwkKey, err := jwk.FromRaw(key)
 		if err != nil {
 			panic(err)
 		}

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	. "github.com/smartystreets/goconvey/convey"
 	"gopkg.in/h2non/gock.v1"
 
@@ -23,10 +23,10 @@ func TestEventWebHook(t *testing.T) {
 	}
 
 	Convey("EventWebHook", t, func() {
-		key, err := jwk.New([]byte("aG9vay1zZWNyZXQ"))
+		key, err := jwk.FromRaw([]byte("aG9vay1zZWNyZXQ"))
 		So(err, ShouldBeNil)
 		set := jwk.NewSet()
-		_ = set.Add(key)
+		_ = set.AddKey(key)
 		secret := &config.WebhookKeyMaterials{
 			Set: set,
 		}

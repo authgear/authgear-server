@@ -8,10 +8,10 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -117,7 +117,7 @@ func (ti *IDTokenIssuer) updateTimeClaims(token jwt.Token) {
 }
 
 func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
-	jwk, _ := ti.Secrets.Set.Get(0)
+	jwk, _ := ti.Secrets.Set.Key(0)
 	signed, err := jwtutil.Sign(token, jwa.RS256, jwk)
 	if err != nil {
 		return "", err
@@ -190,7 +190,7 @@ func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idT
 		return
 	}
 
-	_, err = jws.VerifySet([]byte(idTokenHint), jwkSet)
+	_, err = jws.Verify([]byte(idTokenHint), jws.WithKeySet(jwkSet))
 	if err != nil {
 		return
 	}

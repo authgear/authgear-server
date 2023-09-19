@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
@@ -90,7 +90,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
-	jwk, _ := e.Secrets.Set.Get(0)
+	jwk, _ := e.Secrets.Set.Key(0)
 
 	hdr := jws.NewHeaders()
 	_ = hdr.Set("typ", "at+jwt")

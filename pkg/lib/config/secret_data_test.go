@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwa"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -20,7 +20,7 @@ func TestOAuthClientCredentialsItemMarshalUnmarshalJSON(t *testing.T) {
 		err := json.Unmarshal([]byte(secretJSON), &item)
 		So(err, ShouldBeNil)
 		So(item.ClientID, ShouldEqual, "confidential-client")
-		k, ok := item.Get(0)
+		k, ok := item.Key(0)
 		So(ok, ShouldBeTrue)
 		So(k.KeyID(), ShouldEqual, "9dc0e72c-bf34-4ab3-a616-393093bdae0b")
 		So(k.KeyType(), ShouldEqual, jwa.OctetSeq)

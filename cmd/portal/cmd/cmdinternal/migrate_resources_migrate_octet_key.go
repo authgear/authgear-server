@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
@@ -77,7 +77,7 @@ func migrateOctetKey(appID string, configSourceData map[string]string, dryRun bo
 				return err
 			}
 			for i := 0; i < jwkSet.Len(); i++ {
-				jwkKey, ok := jwkSet.Get(i)
+				jwkKey, ok := jwkSet.Key(i)
 				if ok {
 					sKey := jwkKey.(jwk.SymmetricKey)
 					newOctet := utilsecrets.GenerateSecret(32, rand.SecureRand)

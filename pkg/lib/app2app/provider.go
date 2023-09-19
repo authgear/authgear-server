@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jws"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -65,7 +65,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Request, err erro
 			return
 		}
 
-		key, ok = set.Get(0)
+		key, ok = set.Key(0)
 		if !ok {
 			err = fmt.Errorf("empty app2app JWK set")
 			return
@@ -74,7 +74,7 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Request, err erro
 
 		// The client does include alg in the JWK.
 		// Fix it by copying alg in the header.
-		if key.Algorithm() == "" {
+		if key.Algorithm().String() == "" {
 			_ = key.Set(jws.AlgorithmKey, hdr.Algorithm())
 		}
 	} else {
@@ -114,9 +114,9 @@ func (p *Provider) ParseTokenUnverified(requestJWT string) (t *Request, err erro
 func (p *Provider) ParseToken(requestJWT string, key jwk.Key) (*Request, error) {
 
 	set := jwk.NewSet()
-	_ = set.Add(key)
+	_ = set.AddKey(key)
 
-	payload, err := jws.VerifySet([]byte(requestJWT), set)
+	payload, err := jws.Verify([]byte(requestJWT), jws.WithKeySet(set))
 	if err != nil {
 		return nil, fmt.Errorf("invalid app2app JWT: %w", err)
 	}

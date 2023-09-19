@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
 type SecretConfigUpdateInstructionContext struct {

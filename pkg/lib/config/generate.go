@@ -7,7 +7,7 @@ import (
 	mathrand "math/rand"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/secrets"
@@ -157,6 +157,6 @@ func marshalSecretData(items []SecretItem) {
 
 func wrapInSet(jwkKey jwk.Key) jwk.Set {
 	keySet := jwk.NewSet()
-	_ = keySet.Add(jwkKey)
+	_ = keySet.AddKey(jwkKey)
 	return keySet
 }

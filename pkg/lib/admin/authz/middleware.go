@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -61,7 +61,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 					Debug("invalid authz header")
 				break
 			}
-			token, err := jwt.ParseString(match[1], jwt.WithKeySet(keySet))
+			token, err := jwt.ParseString(match[1], jwt.WithKeySet(keySet), jwt.WithValidate(false))
 			if err != nil {
 				m.Logger.
 					WithError(err).

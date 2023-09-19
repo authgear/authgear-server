@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
@@ -80,7 +80,7 @@ func migrateImagesSecret(appID string, configSourceData map[string]string, dryRu
 	createdAt := time.Now().UTC()
 	jwkKey := utilsecrets.GenerateOctetKeyForSig(createdAt, rand.SecureRand)
 	keySet := jwk.NewSet()
-	_ = keySet.Add(jwkKey)
+	_ = keySet.AddKey(jwkKey)
 	imagesKeySet := &config.ImagesKeyMaterials{Set: keySet}
 
 	dataBytes, err := json.Marshal(imagesKeySet)

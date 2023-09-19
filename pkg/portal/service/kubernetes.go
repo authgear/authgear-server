@@ -27,7 +27,7 @@ import (
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/kubeutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
+	certmanagerclientset "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 )
 
 var LabelAppID = "authgear.com/app-id"

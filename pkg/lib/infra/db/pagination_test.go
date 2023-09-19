@@ -5,6 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -80,7 +81,7 @@ func TestPageKey(t *testing.T) {
 			pageKey := db.PageKey{Offset: 10}
 			cursor, err := pageKey.ToPageCursor()
 			So(err, ShouldBeNil)
-			So(cursor, ShouldEqual, "b2Zmc2V0OjEw")
+			So(cursor, ShouldEqual, model.PageCursor("b2Zmc2V0OjEw"))
 
 			key, err := db.NewFromPageCursor(cursor)
 			So(err, ShouldBeNil)

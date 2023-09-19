@@ -3,7 +3,7 @@ package passkey
 import (
 	"encoding/base64"
 
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
