@@ -84,9 +84,9 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 
 			return []interaction.Edge{
-				&nodes.EdgeEnsureVerificationBegin{
-					Identity:        node.IdentityInfo,
-					RequestedByUser: false,
+				&nodes.EdgeDoUseIdentity{
+					Identity:   node.IdentityInfo,
+					UserIDHint: i.UserIDHint,
 				},
 			}, nil
 		case IntentAuthenticateKindSignup:
