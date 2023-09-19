@@ -41,17 +41,17 @@ type FlowStep struct {
 // When the flow finished, `json_schema` is absent and `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.
 type FlowResponse struct {
-	// ID is the instance ID.
+	// StateID is the StateID.
+	StateID string `json:"state_id"`
+	// ID is the flow ID.
 	ID string `json:"id"`
-	// WebsocketID is actually the flow ID.
-	WebsocketID string `json:"websocket_id"`
 
 	Finished bool `json:"finished,omitempty"`
 
-	FlowType FlowType `json:"flow_type,omitempty"`
-	FlowName string   `json:"flow_name,omitempty"`
+	Type FlowType `json:"type,omitempty"`
+	Name string   `json:"name,omitempty"`
 
-	FlowStep *FlowStep `json:"flow_step,omitempty"`
+	Step *FlowStep `json:"step,omitempty"`
 
 	Data Data `json:"data"`
 }

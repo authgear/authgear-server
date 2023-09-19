@@ -21,9 +21,9 @@ func ConfigureAuthenticationFlowV1InputRoute(route httproute.Route) httproute.Ro
 var AuthenticationFlowV1NonRestfulInputRequestSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
-		"required": ["id"],
+		"required": ["state_id"],
 		"properties": {
-			"id": { "type": "string" }
+			"state_id": { "type": "string" }
 		},
 		"oneOf": [
 			{
@@ -51,7 +51,7 @@ var AuthenticationFlowV1NonRestfulInputRequestSchema = validation.NewSimpleSchem
 `)
 
 type AuthenticationFlowV1NonRestfulInputRequest struct {
-	ID         string            `json:"id,omitempty"`
+	StateID    string            `json:"state_id,omitempty"`
 	Input      json.RawMessage   `json:"input,omitempty"`
 	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
 }
@@ -81,11 +81,11 @@ func (h *AuthenticationFlowV1InputHandler) ServeHTTP(w http.ResponseWriter, r *h
 }
 
 func (h *AuthenticationFlowV1InputHandler) input(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
-	instanceID := request.ID
+	stateID := request.StateID
 
-	output, err := h.input0(w, r, instanceID, request)
+	output, err := h.input0(w, r, stateID, request)
 	if err != nil {
-		apiResp, apiRespErr := prepareErrorResponse(h.Workflows, instanceID, err)
+		apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -106,10 +106,10 @@ func (h *AuthenticationFlowV1InputHandler) input(w http.ResponseWriter, r *http.
 func (h *AuthenticationFlowV1InputHandler) input0(
 	w http.ResponseWriter,
 	r *http.Request,
-	instanceID string,
+	stateID string,
 	request AuthenticationFlowV1NonRestfulInputRequest,
 ) (*authflow.ServiceOutput, error) {
-	output, err := h.Workflows.FeedInput(instanceID, request.Input)
+	output, err := h.Workflows.FeedInput(stateID, request.Input)
 	if err != nil && !errors.Is(err, authflow.ErrEOF) {
 		return nil, err
 	}
@@ -118,11 +118,11 @@ func (h *AuthenticationFlowV1InputHandler) input0(
 }
 
 func (h *AuthenticationFlowV1InputHandler) batchInput(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
-	instanceID := request.ID
+	stateID := request.StateID
 
-	output, err := batchInput0(h.Workflows, w, r, instanceID, request.BatchInput)
+	output, err := batchInput0(h.Workflows, w, r, stateID, request.BatchInput)
 	if err != nil {
-		apiResp, apiRespErr := prepareErrorResponse(h.Workflows, instanceID, err)
+		apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})

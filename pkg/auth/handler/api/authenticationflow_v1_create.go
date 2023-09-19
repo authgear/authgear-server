@@ -25,13 +25,13 @@ func ConfigureAuthenticationFlowV1CreateRoute(route httproute.Route) httproute.R
 var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSchema(`
 {
 	"type": "object",
-	"required": ["flow_type", "flow_name"],
+	"required": ["type", "name"],
 	"properties": {
-		"flow_type": {
+		"type": {
 			"type": "string",
 			"enum": ["signup", "login"]
 		},
-		"flow_name": {
+		"name": {
 			"type": "string"
 		},
 		"url_query": { "type": "string" },
@@ -46,16 +46,16 @@ var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSche
 `)
 
 type AuthenticationFlowV1NonRestfulCreateRequest struct {
-	FlowType   authflow.FlowType `json:"flow_type,omitempty"`
-	FlowName   string            `json:"flow_name,omitempty"`
+	Type       authflow.FlowType `json:"type,omitempty"`
+	Name       string            `json:"name,omitempty"`
 	URLQuery   string            `json:"url_query,omitempty"`
 	BatchInput []json.RawMessage `json:"batch_input,omitempty"`
 }
 
 func (r *AuthenticationFlowV1NonRestfulCreateRequest) GetFlowReference() *authflow.FlowReference {
 	return &authflow.FlowReference{
-		Type: r.FlowType,
-		Name: r.FlowName,
+		Type: r.Type,
+		Name: r.Name,
 	}
 }
 
@@ -99,11 +99,11 @@ func (h *AuthenticationFlowV1CreateHandler) create(w http.ResponseWriter, r *htt
 	}
 
 	if len(request.BatchInput) > 0 {
-		instanceID := output.Flow.InstanceID
+		stateID := output.Flow.StateID
 
-		output, err = batchInput0(h.Workflows, w, r, instanceID, request.BatchInput)
+		output, err = batchInput0(h.Workflows, w, r, stateID, request.BatchInput)
 		if err != nil {
-			apiResp, apiRespErr := prepareErrorResponse(h.Workflows, instanceID, err)
+			apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})

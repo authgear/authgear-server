@@ -29,7 +29,7 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		flowKey := redisFlowKey(s.AppID, flow.FlowID)
-		instanceKey := redisFlowInstanceKey(s.AppID, flow.InstanceID)
+		stateKey := redisFlowStateKey(s.AppID, flow.StateID)
 		ttl := Lifetime
 
 		_, err := conn.SetEX(s.Context, flowKey, []byte(flowKey), ttl).Result()
@@ -37,7 +37,7 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 			return err
 		}
 
-		_, err = conn.SetEX(s.Context, instanceKey, bytes, ttl).Result()
+		_, err = conn.SetEX(s.Context, stateKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -46,11 +46,11 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 	})
 }
 
-func (s *StoreImpl) GetFlowByInstanceID(instanceID string) (*Flow, error) {
-	instanceKey := redisFlowInstanceKey(s.AppID, instanceID)
+func (s *StoreImpl) GetFlowByStateID(stateID string) (*Flow, error) {
+	stateKey := redisFlowStateKey(s.AppID, stateID)
 	var flow Flow
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		bytes, err := conn.Get(s.Context, instanceKey).Bytes()
+		bytes, err := conn.Get(s.Context, stateKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrFlowNotFound
 		}
@@ -78,8 +78,8 @@ func (s *StoreImpl) GetFlowByInstanceID(instanceID string) (*Flow, error) {
 }
 
 func (s *StoreImpl) DeleteFlow(flow *Flow) error {
-	// We do not delete the instances because there are many of them.
-	// Deleting the flowID is enough to make GetFlowByInstanceID to return ErrFlowNotFound.
+	// We do not delete the states because there are many of them.
+	// Deleting the flowID is enough to make GetFlowByStateID to return ErrFlowNotFound.
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		flowKey := redisFlowKey(s.AppID, flow.FlowID)
 
@@ -150,8 +150,8 @@ func redisFlowKey(appID config.AppID, flowID string) string {
 	return fmt.Sprintf("app:%s:authenticationflow_flow:%s", appID, flowID)
 }
 
-func redisFlowInstanceKey(appID config.AppID, instanceID string) string {
-	return fmt.Sprintf("app:%s:authenticationflow_instance:%s", appID, instanceID)
+func redisFlowStateKey(appID config.AppID, stateID string) string {
+	return fmt.Sprintf("app:%s:authenticationflow_state:%s", appID, stateID)
 }
 
 func redisFlowSessionKey(appID config.AppID, flowID string) string {
