@@ -347,7 +347,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureWorkflowWebsocketRoute(workflowRoute), p.Handler(newAPIWorkflowWebsocketHandler))
 	router.Add(apihandler.ConfigureWorkflowV2Route(workflowRoute), p.Handler(newAPIWorkflowV2Handler))
 
-	router.AddRoutes(p.Handler(newAPIAuthenticationFlowV1Handler), apihandler.ConfigureAuthenticationFlowV1Routes(workflowRoute)...)
+	router.Add(apihandler.ConfigureAuthenticationFlowV1CreateRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1CreateHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1InputRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1InputHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1GetRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1GetHandler))
+	router.Add(apihandler.ConfigureAuthenticationFlowV1WebsocketRoute(workflowRoute), p.Handler(newAPIAuthenticationFlowV1WebsocketHandler))
 
 	router.NotFound(webappPageRoute, p.Handler(newWebAppNotFoundHandler))
 

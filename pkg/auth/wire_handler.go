@@ -609,9 +609,30 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newAPIAuthenticationFlowV1Handler(p *deps.RequestProvider) http.Handler {
+func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1Handler)),
+		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1CreateHandler)),
+	))
+}
+
+func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1InputHandler)),
+	))
+}
+
+func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1GetHandler)),
+	))
+}
+
+func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1WebsocketHandler)),
 	))
 }
