@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-
 func TestGenerateLoginFlowConfig(t *testing.T) {
 	Convey("GenerateLoginFlowConfig", t, func() {
 		test := func(cfgStr string, expected string) {
@@ -25,14 +24,14 @@ func TestGenerateLoginFlowConfig(t *testing.T) {
 
 			config.PopulateDefaultValues(&appConfig)
 
-			signupFlow := GenerateLoginFlowConfig(&appConfig)
-			signupFlowJSON, err := json.Marshal(signupFlow)
+			flow := GenerateLoginFlowConfig(&appConfig)
+			flowJSON, err := json.Marshal(flow)
 			So(err, ShouldBeNil)
 
 			expectedJSON, err := yaml.YAMLToJSON([]byte(expected))
 			So(err, ShouldBeNil)
 
-			So(string(signupFlowJSON), ShouldEqualJSON, string(expectedJSON))
+			So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
 		}
 
 		// email, password

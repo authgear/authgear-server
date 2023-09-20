@@ -34,12 +34,11 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 			oneOf := generateLoginFlowStepIdentifyLoginID(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
 		case model.IdentityTypeOAuth:
-			oneOf := generateLoginFlowStepIdentityOAuth(cfg)
+			oneOf := generateLoginFlowStepIdentifyOAuth(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
 		case model.IdentityTypePasskey:
-			oneOf := generateLoginFlowStepIdentityPasskey(cfg)
+			oneOf := generateLoginFlowStepIdentifyPasskey(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
-			break
 		}
 	}
 
@@ -98,7 +97,7 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 	return output
 }
 
-func generateLoginFlowStepIdentityOAuth(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
+func generateLoginFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
 	if len(cfg.Identity.OAuth.Providers) == 0 {
 		return nil
 	}
@@ -110,7 +109,7 @@ func generateLoginFlowStepIdentityOAuth(cfg *config.AppConfig) []*config.Authent
 	}
 }
 
-func generateLoginFlowStepIdentityPasskey(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
+func generateLoginFlowStepIdentifyPasskey(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
 	return []*config.AuthenticationFlowLoginFlowOneOf{
 		{
 			Identification: config.AuthenticationFlowIdentificationPasskey,

@@ -24,14 +24,14 @@ func TestGenerateSignupFlowConfig(t *testing.T) {
 
 			config.PopulateDefaultValues(&appConfig)
 
-			signupFlow := GenerateSignupFlowConfig(&appConfig)
-			signupFlowJSON, err := json.Marshal(signupFlow)
+			flow := GenerateSignupFlowConfig(&appConfig)
+			flowJSON, err := json.Marshal(flow)
 			So(err, ShouldBeNil)
 
 			expectedJSON, err := yaml.YAMLToJSON([]byte(expected))
 			So(err, ShouldBeNil)
 
-			So(string(signupFlowJSON), ShouldEqualJSON, string(expectedJSON))
+			So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
 		}
 
 		// email, password
