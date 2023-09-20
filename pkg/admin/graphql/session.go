@@ -41,6 +41,9 @@ var nodeSession = node(
 			"amr": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 			},
+			"clientID": &graphql.Field{
+				Type: graphql.String,
+			},
 			"lastAccessedAt": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.DateTime),
 			},
