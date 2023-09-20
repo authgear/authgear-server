@@ -515,6 +515,39 @@ func (c *Coordinator) markVerified(userID string, claims map[model.ClaimName]str
 	return nil
 }
 
+func (c *Coordinator) MarkOOBIdentityVerified(info *authenticator.Info) error {
+	claim := map[model.ClaimName]string{}
+	switch info.Type {
+	case model.AuthenticatorTypeOOBEmail:
+		identities, err := c.Identities.ListByClaim(string(model.ClaimEmail), info.OOBOTP.Email)
+		if err != nil {
+			return err
+		}
+		if len(identities) == 0 {
+			return nil
+		}
+		claim[model.ClaimEmail] = info.OOBOTP.Email
+	case model.AuthenticatorTypeOOBSMS:
+		identities, err := c.Identities.ListByClaim(string(model.ClaimPhoneNumber), info.OOBOTP.Phone)
+		if err != nil {
+			return err
+		}
+		if len(identities) == 0 {
+			return nil
+		}
+		claim[model.ClaimPhoneNumber] = info.OOBOTP.Phone
+	default:
+		return nil
+	}
+
+	err := c.markVerified(info.UserID, claim)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	if info.Type != model.IdentityTypeOAuth {
 		return nil

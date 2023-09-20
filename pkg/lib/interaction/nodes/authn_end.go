@@ -44,7 +44,14 @@ func (n *NodeAuthenticationEnd) Prepare(ctx *interaction.Context, graph *interac
 }
 
 func (n *NodeAuthenticationEnd) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
+	return []interaction.Effect{
+		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if n.VerifiedAuthenticator == nil {
+				return nil
+			}
+			return ctx.Authenticators.MarkOOBIdentityVerified(n.VerifiedAuthenticator)
+		}),
+	}, nil
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

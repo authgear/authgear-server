@@ -56,6 +56,10 @@ func (a AuthenticatorFacade) ClearLockoutAttempts(userID string, usedMethods []c
 	return a.Coordinator.AuthenticatorClearLockoutAttempts(userID, usedMethods)
 }
 
+func (a AuthenticatorFacade) MarkOOBIdentityVerified(info *authenticator.Info) error {
+	return a.Coordinator.MarkOOBIdentityVerified(info)
+}
+
 type VerifyOptions struct {
 	OOBChannel            *apimodel.AuthenticatorOOBChannel
 	AuthenticationDetails *AuthenticationDetails
