@@ -5,12 +5,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 )
 
 func init() {
@@ -48,93 +44,31 @@ func (n *NodeOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies,
 }
 
 func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+	var syntheticInputOAuth syntheticInputOAuth
 	var inputOAuth inputTakeOAuthAuthorizationResponse
-	if authflow.AsInput(input, &inputOAuth) {
-		if oauthError := inputOAuth.GetOAuthError(); oauthError != "" {
-			errorDescription := inputOAuth.GetOAuthErrorDescription()
-			errorURI := inputOAuth.GetOAuthErrorURI()
-
-			return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
-		}
-
-		oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(n.Alias)
-		if oauthProvider == nil {
-			return nil, api.ErrOAuthProviderNotFound
-		}
-
-		code := inputOAuth.GetOAuthAuthorizationCode()
-
-		// TODO(authflow): support nonce in OAuth.
-		emptyNonce := ""
-		authInfo, err := oauthProvider.GetAuthInfo(
-			sso.OAuthAuthorizationResponse{
-				Code: code,
-			},
-			sso.GetAuthInfoParam{
-				Nonce: emptyNonce,
-			},
-		)
+	// The order of the cases is important.
+	// We must handle the synthetic input first.
+	// It is because if it is synthetic input,
+	// then the code has been consumed.
+	// Using the code again will definitely fail.
+	switch {
+	case authflow.AsInput(input, &syntheticInputOAuth):
+		spec := syntheticInputOAuth.GetIdentitySpec()
+		return n.reactTo(deps, flows, spec)
+	case authflow.AsInput(input, &inputOAuth):
+		spec, err := handleOAuthAuthorizationResponse(deps, n.Alias, inputOAuth)
 		if err != nil {
 			return nil, err
 		}
 
-		providerConfig := oauthProvider.Config()
-		providerID := providerConfig.ProviderID()
-		identitySpec := &identity.Spec{
-			Type: model.IdentityTypeOAuth,
-			OAuth: &identity.OAuthSpec{
-				ProviderID:     providerID,
-				SubjectID:      authInfo.ProviderUserID,
-				RawProfile:     authInfo.ProviderRawProfile,
-				StandardClaims: authInfo.StandardAttributes.ToClaims(),
-			},
-		}
-
-		// signup
-		if n.NewUserID != "" {
-			info, err := newIdentityInfo(deps, n.NewUserID, identitySpec)
-			if err != nil {
-				return nil, err
-			}
-
-			return authflow.NewNodeSimple(&NodeDoCreateIdentity{
-				Identity: info,
-			}), nil
-		}
-		// Else login
-
-		exactMatch, err := findExactOneIdentityInfo(deps, identitySpec)
-		if err != nil {
-			return nil, err
-		}
-
-		n, err := NewNodeDoUseIdentity(flows, &NodeDoUseIdentity{
-			Identity: exactMatch,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		return authflow.NewNodeSimple(n), nil
+		return n.reactTo(deps, flows, spec)
 	}
 
 	return nil, authflow.ErrIncompatibleInput
 }
 
 func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(n.Alias)
-	if oauthProvider == nil {
-		return nil, api.ErrOAuthProviderNotFound
-	}
-
-	uiParam := uiparam.GetUIParam(ctx)
-
-	param := sso.GetAuthURLParam{
-		State:  n.State,
-		Prompt: uiParam.Prompt,
-	}
-
-	authorizationURL, err := oauthProvider.GetAuthURL(param)
+	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, n.Alias, n.State)
 	if err != nil {
 		return nil, err
 	}
@@ -142,4 +76,33 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 	return NodeOAuthData{
 		OAuthAuthorizationURL: authorizationURL,
 	}, nil
+}
+
+func (n *NodeOAuth) reactTo(deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
+	// signup
+	if n.NewUserID != "" {
+		info, err := newIdentityInfo(deps, n.NewUserID, spec)
+		if err != nil {
+			return nil, err
+		}
+
+		return authflow.NewNodeSimple(&NodeDoCreateIdentity{
+			Identity: info,
+		}), nil
+	}
+	// Else login
+
+	exactMatch, err := findExactOneIdentityInfo(deps, spec)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode, err := NewNodeDoUseIdentity(flows, &NodeDoUseIdentity{
+		Identity: exactMatch,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return authflow.NewNodeSimple(newNode), nil
 }

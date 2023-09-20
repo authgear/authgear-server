@@ -12,7 +12,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
@@ -399,4 +401,70 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 	}
 
 	return exactMatch, nil
+}
+
+func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
+	if oauthError := inputOAuth.GetOAuthError(); oauthError != "" {
+		errorDescription := inputOAuth.GetOAuthErrorDescription()
+		errorURI := inputOAuth.GetOAuthErrorURI()
+
+		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
+	}
+
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(alias)
+	if oauthProvider == nil {
+		return nil, api.ErrOAuthProviderNotFound
+	}
+
+	code := inputOAuth.GetOAuthAuthorizationCode()
+
+	// TODO(authflow): support nonce in OAuth.
+	emptyNonce := ""
+	authInfo, err := oauthProvider.GetAuthInfo(
+		sso.OAuthAuthorizationResponse{
+			Code: code,
+		},
+		sso.GetAuthInfoParam{
+			Nonce: emptyNonce,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	providerConfig := oauthProvider.Config()
+	providerID := providerConfig.ProviderID()
+	identitySpec := &identity.Spec{
+		Type: model.IdentityTypeOAuth,
+		OAuth: &identity.OAuthSpec{
+			ProviderID:     providerID,
+			SubjectID:      authInfo.ProviderUserID,
+			RawProfile:     authInfo.ProviderRawProfile,
+			StandardClaims: authInfo.StandardAttributes.ToClaims(),
+		},
+	}
+
+	return identitySpec, nil
+}
+
+func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependencies, alias string, state string) (authorizationURL string, err error) {
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(alias)
+	if oauthProvider == nil {
+		err = api.ErrOAuthProviderNotFound
+		return
+	}
+
+	uiParam := uiparam.GetUIParam(ctx)
+
+	param := sso.GetAuthURLParam{
+		State:  state,
+		Prompt: uiParam.Prompt,
+	}
+
+	authorizationURL, err = oauthProvider.GetAuthURL(param)
+	if err != nil {
+		return
+	}
+
+	return
 }

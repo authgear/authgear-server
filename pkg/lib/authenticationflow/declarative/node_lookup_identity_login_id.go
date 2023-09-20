@@ -21,7 +21,7 @@ func init() {
 type NodeLookupIdentityLoginID struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
-	SyntheticInput authflow.Input                          `json:"synthetic_input,omitempty"`
+	SyntheticInput *InputStepIdentify                      `json:"synthetic_input,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeLookupIdentityLoginID{}

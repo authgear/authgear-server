@@ -117,11 +117,11 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 					SyntheticInput: syntheticInput,
 				}), nil
 			case config.AuthenticationFlowIdentificationOAuth:
-				break
-				//return authflow.NewSubFlow(&IntentLookupIdentityOAuth{
-				//	JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
-				//	Identification: identification,
-				//}), nil
+				return authflow.NewSubFlow(&IntentLookupIdentityOAuth{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+					SyntheticInput: syntheticInput,
+				}), nil
 			case config.AuthenticationFlowIdentificationPasskey:
 				break
 				//return authflow.NewNodeSimple(&NodeLookupIdentityPasskey{

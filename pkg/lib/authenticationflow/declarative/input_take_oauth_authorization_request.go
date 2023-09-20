@@ -22,7 +22,7 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) GetJSONPointer() jsonpointer.
 
 func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
-	b.Required("alias", "state", "redirect_uri")
+	b.Required("alias", "redirect_uri")
 	b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
 	b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))
 	var enumValues []interface{}
