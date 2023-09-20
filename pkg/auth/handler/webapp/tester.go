@@ -94,7 +94,11 @@ type TesterState struct {
 }
 
 func (h *TesterHandler) notFound(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, "404 page not found", http.StatusNotFound)
+	http.Error(
+		w,
+		"This endpoint is for testing authentication. You can trigger the test in the portal.",
+		http.StatusNotFound,
+	)
 }
 
 func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http.Request) error {
