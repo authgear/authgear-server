@@ -56037,7 +56037,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	globalredisHandle := appProvider.GlobalRedis
-	testerTokenStore := &tester.TesterTokenStore{
+	testerStore := &tester.TesterStore{
 		Context: contextContext,
 		Redis:   globalredisHandle,
 	}
@@ -56125,7 +56125,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		ControllerFactory:       controllerFactory,
 		OauthEndpointsProvider:  endpointsEndpoints,
 		TesterEndpointsProvider: endpointsEndpoints,
-		TesterTokenStore:        testerTokenStore,
+		TesterService:           testerStore,
 		TesterTokenIssuer:       tokenHandler,
 		OAuthClientResolver:     oauthclientResolver,
 		AppSessionTokenService:  appSessionTokenService,

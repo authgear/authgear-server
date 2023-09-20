@@ -236,7 +236,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context: context,
 		Redis:   globalredisHandle,
 	}
-	testerTokenStore := &tester.TesterTokenStore{
+	testerStore := &tester.TesterStore{
 		Context: context,
 		Redis:   globalredisHandle,
 	}
@@ -253,7 +253,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Plan:                     planService,
 		Clock:                    clock,
 		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
-		AppTesterTokenStore:      testerTokenStore,
+		AppTesterTokenStore:      testerStore,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService)
 	appLoader := loader.NewAppLoader(appService, authzService)

@@ -42,7 +42,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(AuthzCollaboratorService), new(*CollaboratorService)),
 	wire.Bind(new(DomainConfigService), new(*ConfigService)),
 	wire.Bind(new(AppSecretVisitTokenStore), new(*appsecret.AppSecretVisitTokenStoreImpl)),
-	wire.Bind(new(AppTesterTokenStore), new(*tester.TesterTokenStore)),
+	wire.Bind(new(AppTesterTokenStore), new(*tester.TesterStore)),
 	wire.Bind(new(AppDefaultDomainService), new(*DefaultDomainService)),
 	wire.Bind(new(AdminAPIDefaultDomainService), new(*DefaultDomainService)),
 	wire.Bind(new(DefaultDomainDomainService), new(*DomainService)),

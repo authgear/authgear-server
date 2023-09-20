@@ -468,7 +468,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		tester.DependencySet,
-		wire.Bind(new(webapp.TesterTokenStore), new(*tester.TesterTokenStore)),
+		wire.Bind(new(webapp.TesterService), new(*tester.TesterStore)),
 	),
 
 	wire.NewSet(

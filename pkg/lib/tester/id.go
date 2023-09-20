@@ -17,3 +17,7 @@ var rng *rand.Rand = corerand.SecureRand
 func newTesterTokenID() string {
 	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
 }
+
+func newTesterResultID() string {
+	return corerand.StringWithAlphabet(idLength, idAlphabet, rng)
+}

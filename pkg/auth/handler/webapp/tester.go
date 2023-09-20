@@ -37,15 +37,23 @@ type TesterViewModel struct {
 	UserInfoJson string
 }
 
-type TesterTokenStore interface {
+type TesterService interface {
 	GetToken(
 		appID config.AppID,
 		tokenID string,
 		consume bool,
 	) (*tester.TesterToken, error)
+	CreateResult(
+		appID config.AppID,
+		result *tester.TesterResult,
+	) (*tester.TesterResult, error)
+	GetResult(
+		appID config.AppID,
+		resultID string,
+	) (*tester.TesterResult, error)
 }
 
-type TesterTokenIssuer interface {
+type TesterAuthTokensIssuer interface {
 	IssueTokensForAuthorizationCode(
 		client *config.OAuthClientConfig,
 		r protocol.TokenRequest,
@@ -74,8 +82,8 @@ type TesterHandler struct {
 	ControllerFactory       ControllerFactory
 	OauthEndpointsProvider  oauth.EndpointsProvider
 	TesterEndpointsProvider tester.EndpointsProvider
-	TesterTokenStore        TesterTokenStore
-	TesterTokenIssuer       TesterTokenIssuer
+	TesterService           TesterService
+	TesterTokenIssuer       TesterAuthTokensIssuer
 	OAuthClientResolver     *oauthclient.Resolver
 	AppSessionTokenService  TesterAppSessionTokenService
 	CookieManager           TesterCookieManager
@@ -102,7 +110,7 @@ func (h *TesterHandler) notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http.Request) error {
-	testerToken, err := h.TesterTokenStore.GetToken(h.AppID, token, false)
+	testerToken, err := h.TesterService.GetToken(h.AppID, token, false)
 	if errors.Is(err, tester.ErrTokenNotFound) {
 		h.notFound(w, r)
 		return nil
@@ -138,19 +146,18 @@ func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http
 func (h *TesterHandler) getData(
 	rw http.ResponseWriter,
 	r *http.Request,
-	testerToken *tester.TesterToken,
-	userInfo map[string]interface{},
+	result *tester.TesterResult,
 ) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
-	userInfoJsonBytes, err := json.MarshalIndent(userInfo, "", "  ")
+	userInfoJsonBytes, err := json.MarshalIndent(result.UserInfo, "", "  ")
 	if err != nil {
 		return nil, err
 	}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	testerViewModel := TesterViewModel{
-		ReturnURI:    testerToken.ReturnURI,
+		ReturnURI:    result.ReturnURI,
 		UserInfoJson: string(userInfoJsonBytes),
 	}
 
@@ -170,7 +177,7 @@ func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.Resp
 		return err
 	}
 
-	testerToken, err := h.TesterTokenStore.GetToken(h.AppID, state.Token, true)
+	testerToken, err := h.TesterService.GetToken(h.AppID, state.Token, true)
 	if errors.Is(err, tester.ErrTokenNotFound) {
 		h.notFound(w, r)
 		return nil
@@ -219,7 +226,33 @@ func (h *TesterHandler) doCodeExchange(code string, stateb64 string, w http.Resp
 		return err
 	}
 
-	data, err := h.getData(w, r, testerToken, userInfo)
+	result := tester.NewTesterResultFromToken(testerToken, userInfo)
+	_, err = h.TesterService.CreateResult(h.AppID, result)
+	if err != nil {
+		return err
+	}
+
+	q := url.Values{}
+	q.Set("result", result.ID)
+
+	redirectTo := h.TesterEndpointsProvider.TesterURL()
+	redirectTo.RawQuery = q.Encode()
+	http.Redirect(w, r, redirectTo.String(), http.StatusFound)
+
+	return nil
+}
+
+func (h *TesterHandler) renderResult(resultID string, w http.ResponseWriter, r *http.Request) error {
+	result, err := h.TesterService.GetResult(h.AppID, resultID)
+	if errors.Is(err, tester.ErrResultNotFound) {
+		h.notFound(w, r)
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	data, err := h.getData(w, r, result)
 	if err != nil {
 		return err
 	}
@@ -247,6 +280,11 @@ func (h *TesterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		state := r.URL.Query().Get("state")
 		if code != "" && state != "" {
 			return h.doCodeExchange(code, state, w, r)
+		}
+
+		resultID := r.URL.Query().Get("result")
+		if resultID != "" {
+			return h.renderResult(resultID, w, r)
 		}
 
 		h.notFound(w, r)

@@ -13,14 +13,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-type TesterTokenStore struct {
+type TesterStore struct {
 	Context context.Context
 	Redis   *globalredis.Handle
 }
 
-const Lifetime = duration.Short
+const TokenLifetime = duration.Short
+const ResultLifetime = duration.UserInteraction
 
-func (s *TesterTokenStore) CreateToken(
+func (s *TesterStore) CreateToken(
 	appID config.AppID,
 	returnURI string,
 ) (*TesterToken, error) {
@@ -32,7 +33,7 @@ func (s *TesterTokenStore) CreateToken(
 
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
 		key := redisTokenKey(appID, token.TokenID)
-		ttl := Lifetime
+		ttl := TokenLifetime
 
 		_, err := conn.SetEX(s.Context, key, bytes, ttl).Result()
 		if err != nil {
@@ -48,7 +49,7 @@ func (s *TesterTokenStore) CreateToken(
 	return token, nil
 }
 
-func (s *TesterTokenStore) GetToken(
+func (s *TesterStore) GetToken(
 	appID config.AppID,
 	tokenID string,
 	consume bool,
@@ -81,6 +82,62 @@ func (s *TesterTokenStore) GetToken(
 	return &token, err
 }
 
+func (s *TesterStore) CreateResult(
+	appID config.AppID,
+	result *TesterResult,
+) (*TesterResult, error) {
+	bytes, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		key := redisResultKey(appID, result.ID)
+		ttl := ResultLifetime
+
+		_, err := conn.SetEX(s.Context, key, bytes, ttl).Result()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *TesterStore) GetResult(
+	appID config.AppID,
+	resultID string,
+) (*TesterResult, error) {
+	key := redisResultKey(appID, resultID)
+	var result TesterResult
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		bytes, err := conn.Get(s.Context, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
+			return ErrResultNotFound
+		}
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(bytes, &result)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	return &result, err
+}
+
 func redisTokenKey(appID config.AppID, tokenID string) string {
 	return fmt.Sprintf("app:%s:tester:%s", appID, tokenID)
+}
+
+func redisResultKey(appID config.AppID, resultID string) string {
+	return fmt.Sprintf("app:%s:tester:result:%s", appID, resultID)
 }
