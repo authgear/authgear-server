@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentSignupFlowStepAuthenticateData struct {
-	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+	Candidates []CreateAuthenticationCandidate `json:"candidates,omitempty"`
 }
 
 var _ authflow.Data = &IntentSignupFlowStepAuthenticateData{}
@@ -30,14 +30,14 @@ func (m IntentSignupFlowStepAuthenticateData) Data() {}
 
 type IntentSignupFlowStepAuthenticate struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ FlowStep = &IntentSignupFlowStepAuthenticate{}
+var _ authflow.TargetStep = &IntentSignupFlowStepAuthenticate{}
 
-func (i *IntentSignupFlowStepAuthenticate) GetID() string {
-	return i.StepID
+func (i *IntentSignupFlowStepAuthenticate) GetName() string {
+	return i.StepName
 }
 
 func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
@@ -182,8 +182,14 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 }
 
 func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
 	return IntentSignupFlowStepAuthenticateData{
-		PasswordPolicy: NewPasswordPolicy(deps.Config.Authenticator.Password.Policy),
+		Candidates: NewCreateAuthenticationCandidates(deps, step),
 	}, nil
 }
 

@@ -22,7 +22,7 @@ func (*IntentSignupFlowStepRecoveryCodeData) Data() {}
 
 type IntentSignupFlowStepRecoveryCode struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 
 	RecoveryCodes []string `json:"recovery_codes,omitempty"`
@@ -31,16 +31,6 @@ type IntentSignupFlowStepRecoveryCode struct {
 func NewIntentSignupFlowStepRecoveryCode(deps *authflow.Dependencies, i *IntentSignupFlowStepRecoveryCode) *IntentSignupFlowStepRecoveryCode {
 	i.RecoveryCodes = deps.MFA.GenerateRecoveryCodes()
 	return i
-}
-
-var _ FlowStep = &IntentSignupFlowStepRecoveryCode{}
-
-func (i *IntentSignupFlowStepRecoveryCode) GetID() string {
-	return i.StepID
-}
-
-func (i *IntentSignupFlowStepRecoveryCode) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepRecoveryCode{}

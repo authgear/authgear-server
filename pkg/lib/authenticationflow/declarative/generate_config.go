@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	idGeneratedFlow                   = "default"
-	idStepIdentify                    = "identify"
-	idFormatStepAuthenticatePrimary   = "authenticate_primary_%s"
-	idFormatStepAuthenticateSecondary = "authenticate_secondary_%s"
+	nameGeneratedFlow                   = "default"
+	nameStepIdentify                    = "identify"
+	nameFormatStepAuthenticatePrimary   = "authenticate_primary_%s"
+	nameFormatStepAuthenticateSecondary = "authenticate_secondary_%s"
 )
 
 func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlow {
 	flow := &config.AuthenticationFlowSignupFlow{
-		ID: idGeneratedFlow,
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowSignupFlowStep{
 			generateSignupFlowStepIdentify(cfg),
 		},
@@ -31,14 +31,14 @@ func GenerateSignupFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowS
 
 func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowSignupFlowStep {
 	step := &config.AuthenticationFlowSignupFlowStep{
-		ID:   idStepIdentify,
+		Name: nameStepIdentify,
 		Type: config.AuthenticationFlowSignupFlowStepTypeIdentify,
 	}
 
 	for _, identityType := range cfg.Authentication.Identities {
 		switch identityType {
 		case model.IdentityTypeLoginID:
-			oneOf := generateSignupFlowStepIdentifyLoginID(cfg, step.ID)
+			oneOf := generateSignupFlowStepIdentifyLoginID(cfg, step.Name)
 			step.OneOf = append(step.OneOf, oneOf...)
 		case model.IdentityTypeOAuth:
 			oneOf := generateSignupFlowStepIdentifyOAuth(cfg)
@@ -52,7 +52,7 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 	return step
 }
 
-func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepID string) []*config.AuthenticationFlowSignupFlowOneOf {
+func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName string) []*config.AuthenticationFlowSignupFlowOneOf {
 	var output []*config.AuthenticationFlowSignupFlowOneOf
 
 	email := false
@@ -72,7 +72,7 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepID string)
 				oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
 
 					Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-					TargetStep: stepID,
+					TargetStep: stepName,
 				})
 			}
 
@@ -98,7 +98,7 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepID string)
 			if *cfg.Verification.Claims.PhoneNumber.Enabled && *cfg.Verification.Claims.PhoneNumber.Required {
 				oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
 					Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-					TargetStep: stepID,
+					TargetStep: stepName,
 				})
 			}
 
@@ -163,7 +163,7 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 	}
 
 	step := &config.AuthenticationFlowSignupFlowStep{
-		ID:   fmt.Sprintf(idFormatStepAuthenticatePrimary, identification),
+		Name: fmt.Sprintf(nameFormatStepAuthenticatePrimary, identification),
 		Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
 	}
 
@@ -183,12 +183,12 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
-					TargetStep:     idStepIdentify,
+					TargetStep:     nameStepIdentify,
 					Steps: []*config.AuthenticationFlowSignupFlowStep{
 						// Must verify.
 						&config.AuthenticationFlowSignupFlowStep{
 							Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-							TargetStep: step.ID,
+							TargetStep: step.Name,
 						},
 					},
 				}
@@ -200,12 +200,12 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
-					TargetStep:     idStepIdentify,
+					TargetStep:     nameStepIdentify,
 					Steps: []*config.AuthenticationFlowSignupFlowStep{
 						// Must verify.
 						&config.AuthenticationFlowSignupFlowStep{
 							Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-							TargetStep: step.ID,
+							TargetStep: step.Name,
 						},
 					},
 				}
@@ -243,7 +243,7 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 	}
 
 	step := &config.AuthenticationFlowSignupFlowStep{
-		ID:   fmt.Sprintf(idFormatStepAuthenticateSecondary, identification),
+		Name: fmt.Sprintf(nameFormatStepAuthenticateSecondary, identification),
 		Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
 	}
 
@@ -278,7 +278,7 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 
 func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLoginFlow {
 	flow := &config.AuthenticationFlowLoginFlow{
-		ID: idGeneratedFlow,
+		Name: nameGeneratedFlow,
 		Steps: []*config.AuthenticationFlowLoginFlowStep{
 			generateLoginFlowStepIdentify(cfg),
 		},
@@ -293,7 +293,7 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 
 func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.AuthenticationFlowLoginFlowStep {
 	step := &config.AuthenticationFlowLoginFlowStep{
-		ID:   idStepIdentify,
+		Name: nameStepIdentify,
 		Type: config.AuthenticationFlowLoginFlowStepTypeIdentify,
 	}
 
@@ -401,7 +401,7 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 	}
 
 	step := &config.AuthenticationFlowLoginFlowStep{
-		ID:   fmt.Sprintf(idFormatStepAuthenticatePrimary, identification),
+		Name: fmt.Sprintf(nameFormatStepAuthenticatePrimary, identification),
 		Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
 	}
 
@@ -419,7 +419,7 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 				if *cfg.Authenticator.Password.ForceChange {
 					oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowLoginFlowStep{
 						Type:       config.AuthenticationFlowLoginFlowStepTypeChangePassword,
-						TargetStep: step.ID,
+						TargetStep: step.Name,
 					})
 				}
 
@@ -445,7 +445,7 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 					Authentication: am,
-					TargetStep:     idStepIdentify,
+					TargetStep:     nameStepIdentify,
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 
@@ -460,7 +460,7 @@ func generateLoginFlowStepAuthenticatePrimary(cfg *config.AppConfig, identificat
 			if _, ok := allowedMap[am]; ok {
 				oneOf := &config.AuthenticationFlowLoginFlowOneOf{
 					Authentication: am,
-					TargetStep:     idStepIdentify,
+					TargetStep:     nameStepIdentify,
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 
@@ -501,7 +501,7 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 	}
 
 	step := &config.AuthenticationFlowLoginFlowStep{
-		ID:   fmt.Sprintf(idFormatStepAuthenticateSecondary, identification),
+		Name: fmt.Sprintf(nameFormatStepAuthenticateSecondary, identification),
 		Type: config.AuthenticationFlowLoginFlowStepTypeAuthenticate,
 	}
 	if optional {

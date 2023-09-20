@@ -58,7 +58,6 @@ type inputNodeVerifyClaim interface {
 
 type inputSetupTOTP interface {
 	GetCode() string
-	GetDisplayName() string
 }
 
 type inputConfirmRecoveryCode interface {

@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 )
@@ -28,6 +29,10 @@ func (v AdminVerificationFacade) DeleteClaim(claim *verification.Claim) error {
 
 type WorkflowVerificationFacade struct {
 	Verification VerificationService
+}
+
+func (v WorkflowVerificationFacade) GetClaimStatus(userID string, claimName model.ClaimName, claimValue string) (*verification.ClaimStatus, error) {
+	return v.Verification.GetClaimStatus(userID, claimName, claimValue)
 }
 
 func (v WorkflowVerificationFacade) GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error) {

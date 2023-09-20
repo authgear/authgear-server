@@ -31,13 +31,13 @@ type ServiceOutput struct {
 
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
-		ID:            o.Flow.InstanceID,
-		WebsocketID:   o.Flow.FlowID,
-		JSONSchema:    o.SchemaBuilder,
-		Finished:      o.Finished,
-		FlowReference: o.FlowReference,
-		FlowStep:      o.FlowStep,
-		Data:          o.Data,
+		StateID:  o.Flow.StateID,
+		ID:       o.Flow.FlowID,
+		Finished: o.Finished,
+		Type:     o.FlowReference.Type,
+		Name:     o.FlowReference.Name,
+		Step:     o.FlowStep,
+		Data:     o.Data,
 	}
 }
 
@@ -61,7 +61,7 @@ type Store interface {
 	DeleteSession(session *Session) error
 
 	CreateFlow(flow *Flow) error
-	GetFlowByInstanceID(instanceID string) (*Flow, error)
+	GetFlowByStateID(stateID string) (*Flow, error)
 	DeleteFlow(flow *Flow) error
 }
 
@@ -168,7 +168,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	}
 
 	// err is nil or err is ErrEOF.
-	// We persist the flow instance.
+	// We persist the flow state.
 	err = s.Store.CreateFlow(flow)
 	if err != nil {
 		return
@@ -185,19 +185,14 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	return
 }
 
-func (s *Service) Get(instanceID string, userAgentID string) (output *ServiceOutput, err error) {
-	w, err := s.Store.GetFlowByInstanceID(instanceID)
+func (s *Service) Get(stateID string) (output *ServiceOutput, err error) {
+	w, err := s.Store.GetFlowByStateID(stateID)
 	if err != nil {
 		return
 	}
 
 	session, err := s.Store.GetSession(w.FlowID)
 	if err != nil {
-		return
-	}
-
-	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
-		err = ErrUserAgentUnmatched
 		return
 	}
 
@@ -245,19 +240,14 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 	return
 }
 
-func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
-	flow, err := s.Store.GetFlowByInstanceID(instanceID)
+func (s *Service) FeedInput(stateID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+	flow, err := s.Store.GetFlowByStateID(stateID)
 	if err != nil {
 		return
 	}
 
 	session, err := s.Store.GetSession(flow.FlowID)
 	if err != nil {
-		return
-	}
-
-	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
-		err = ErrUserAgentUnmatched
 		return
 	}
 
@@ -273,7 +263,7 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.feedInput(ctx, session, instanceID, rawMessage)
+		flow, determineActionResult, err = s.feedInput(ctx, session, stateID, rawMessage)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -321,8 +311,8 @@ func (s *Service) FeedInput(instanceID string, userAgentID string, rawMessage js
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, instanceID string, rawMessage json.RawMessage) (flow *Flow, determineActionResult *determineActionResult, err error) {
-	flow, err = s.Store.GetFlowByInstanceID(instanceID)
+func (s *Service) feedInput(ctx context.Context, session *Session, stateID string, rawMessage json.RawMessage) (flow *Flow, determineActionResult *determineActionResult, err error) {
+	flow, err = s.Store.GetFlowByStateID(stateID)
 	if err != nil {
 		return
 	}
@@ -340,7 +330,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, instanceID st
 	}
 
 	// err is nil or err is ErrEOF.
-	// We persist the flow instance.
+	// We persist the flow state.
 	err = s.Store.CreateFlow(flow)
 	if err != nil {
 		return

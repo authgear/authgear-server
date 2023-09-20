@@ -14,14 +14,10 @@ var InputSetupTOTPSchemaBuilder validation.SchemaBuilder
 func init() {
 	InputSetupTOTPSchemaBuilder = validation.SchemaBuilder{}.
 		Type(validation.TypeObject).
-		Required("code", "display_name")
+		Required("code")
 
 	InputSetupTOTPSchemaBuilder.Properties().Property(
 		"code",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-	InputSetupTOTPSchemaBuilder.Properties().Property(
-		"display_name",
 		validation.SchemaBuilder{}.Type(validation.TypeString),
 	)
 }
@@ -50,8 +46,7 @@ func (i *InputSchemaSetupTOTP) MakeInput(rawMessage json.RawMessage) (authflow.I
 }
 
 type InputSetupTOTP struct {
-	Code        string `json:"code,omitempty"`
-	DisplayName string `json:"display_name,omitempty"`
+	Code string `json:"code,omitempty"`
 }
 
 var _ authflow.Input = &InputSetupTOTP{}
@@ -61,8 +56,4 @@ func (*InputSetupTOTP) Input() {}
 
 func (i *InputSetupTOTP) GetCode() string {
 	return i.Code
-}
-
-func (i *InputSetupTOTP) GetDisplayName() string {
-	return i.DisplayName
 }

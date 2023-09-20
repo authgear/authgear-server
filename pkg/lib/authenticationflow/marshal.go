@@ -22,10 +22,10 @@ var intentRegistry = map[string]intentFactory{}
 var nodeRegistry = map[string]nodeFactory{}
 
 type flowJSON struct {
-	FlowID     string     `json:"flow_id,omitempty"`
-	InstanceID string     `json:"instance_id,omitempty"`
-	Intent     intentJSON `json:"intent"`
-	Nodes      []Node     `json:"nodes,omitempty"`
+	FlowID  string     `json:"flow_id,omitempty"`
+	StateID string     `json:"state_id,omitempty"`
+	Intent  intentJSON `json:"intent"`
+	Nodes   []Node     `json:"nodes,omitempty"`
 }
 
 type nodeJSON struct {
@@ -58,10 +58,10 @@ func (w *Flow) MarshalJSON() ([]byte, error) {
 	}
 
 	flowJSON := flowJSON{
-		FlowID:     w.FlowID,
-		InstanceID: w.InstanceID,
-		Intent:     intentJSON,
-		Nodes:      w.Nodes,
+		FlowID:  w.FlowID,
+		StateID: w.StateID,
+		Intent:  intentJSON,
+		Nodes:   w.Nodes,
 	}
 
 	return json.Marshal(flowJSON)
@@ -87,7 +87,7 @@ func (w *Flow) UnmarshalJSON(d []byte) (err error) {
 	}
 
 	w.FlowID = flowJSON.FlowID
-	w.InstanceID = flowJSON.InstanceID
+	w.StateID = flowJSON.StateID
 	w.Intent = intent
 	w.Nodes = flowJSON.Nodes
 	return nil

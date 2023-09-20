@@ -14,8 +14,8 @@ func init() {
 
 func TestMarshalJSON(t *testing.T) {
 	flow := &Flow{
-		FlowID:     "wf-0",
-		InstanceID: "wf-0-instance-0",
+		FlowID:  "wf-0",
+		StateID: "wf-0-state-0",
 		Intent: &testMarshalIntent0{
 			Intent0: "intent0",
 		},
@@ -35,8 +35,8 @@ func TestMarshalJSON(t *testing.T) {
 			Node{
 				Type: NodeTypeSubFlow,
 				SubFlow: &Flow{
-					FlowID:     "wf-1",
-					InstanceID: "wf-1-instance-0",
+					FlowID:  "wf-1",
+					StateID: "wf-1-state-0",
 					Intent: &testMarshalIntent1{
 						Intent1: "intent1",
 					},
@@ -61,7 +61,7 @@ func TestMarshalJSON(t *testing.T) {
 
 	jsonString := `
 {
-    "instance_id": "wf-0-instance-0",
+    "state_id": "wf-0-state-0",
     "intent": {
         "data": {
             "Intent0": "intent0"
@@ -90,7 +90,7 @@ func TestMarshalJSON(t *testing.T) {
         {
             "type": "SUB_FLOW",
             "flow": {
-                "instance_id": "wf-1-instance-0",
+                "state_id": "wf-1-state-0",
                 "intent": {
                     "data": {
                         "Intent1": "intent1"

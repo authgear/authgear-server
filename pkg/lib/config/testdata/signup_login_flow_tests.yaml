@@ -2,7 +2,7 @@ part: AuthenticationFlowSignupLoginFlow
 name: valid
 error: null
 value:
-  id: id
+  name: id
   steps:
   - type: identify
     one_of:
@@ -22,7 +22,7 @@ error: |-
   /steps/1/one_of/0/identification: enum
     map[actual:foobar expected:[email phone username oauth passkey]]
 value:
-  id: id
+  name: id
   steps:
   - type: foobar
     one_of:

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -12,6 +13,8 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -20,7 +23,8 @@ func init() {
 }
 
 type NodeCreateAuthenticatorTOTPData struct {
-	Secret string `json:"secret"`
+	Secret     string `json:"secret"`
+	OTPAuthURI string `json:"otpauth_uri"`
 }
 
 var _ authflow.Data = NodeCreateAuthenticatorTOTPData{}
@@ -48,14 +52,16 @@ func NewNodeCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *NodeCreateAu
 		return nil, err
 	}
 
+	now := deps.Clock.NowUTC()
+	displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
+
 	spec := &authenticator.Spec{
 		UserID:    n.UserID,
 		IsDefault: isDefault,
 		Kind:      authenticatorKind,
 		Type:      model.AuthenticatorTypeTOTP,
 		TOTP: &authenticator.TOTPSpec{
-			// The display name will be filled by input.
-			DisplayName: "",
+			DisplayName: displayName,
 		},
 	}
 
@@ -98,8 +104,6 @@ func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflo
 			return nil, err
 		}
 
-		// Set display name.
-		i.Authenticator.TOTP.DisplayName = inputSetupTOTP.GetDisplayName()
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
 			Authenticator: i.Authenticator,
 		}), nil
@@ -110,8 +114,22 @@ func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflo
 
 func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	secret := n.Authenticator.TOTP.Secret
+
+	issuer := deps.HTTPOrigin
+	user, err := deps.Users.Get(n.UserID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return nil, err
+	}
+	accountName := user.EndUserAccountID()
+	opts := secretcode.URIOptions{
+		Issuer:      string(issuer),
+		AccountName: accountName,
+	}
+	otpauthURI := secretcode.NewTOTPFromSecret(secret).GetURI(opts).String()
+
 	return NodeCreateAuthenticatorTOTPData{
-		Secret: secret,
+		Secret:     secret,
+		OTPAuthURI: otpauthURI,
 	}, nil
 }
 

@@ -16,13 +16,9 @@ const (
 var rng *rand.Rand = corerand.SecureRand
 
 func newFlowID() string {
-	return fmt.Sprintf("authflowparent_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
-}
-
-func newInstanceID() string {
 	return fmt.Sprintf("authflow_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
 
-func NewUserAgentID() string {
-	return fmt.Sprintf("authflowua_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
+func newStateID() string {
+	return fmt.Sprintf("authflowstate_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }

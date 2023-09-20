@@ -24,19 +24,9 @@ func init() {
 }
 
 type IntentSignupFlowStepVerify struct {
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
-}
-
-var _ FlowStep = &IntentSignupFlowStepVerify{}
-
-func (i *IntentSignupFlowStepVerify) GetID() string {
-	return i.StepID
-}
-
-func (i *IntentSignupFlowStepVerify) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepVerify{}
@@ -60,10 +50,10 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	}
 
 	step := i.step(current)
-	targetStepID := step.TargetStep
+	targetStepName := step.TargetStep
 
 	// Find the target step from the root.
-	targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+	targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +61,7 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	target, ok := targetStepFlow.Intent.(IntentSignupFlowStepVerifyTarget)
 	if !ok {
 		return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-			"target_step": targetStepID,
+			"target_step": targetStepName,
 		})
 	}
 
@@ -109,9 +99,20 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 		})
 	}
 
+	claimValue := claims[claimName]
+
+	// Do not verify if the claim is verified already.
+	claimStatus, err := deps.Verification.GetClaimStatus(i.UserID, claimName, claimValue)
+	if err != nil {
+		return nil, err
+	}
+
+	if claimStatus.Verified {
+		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+	}
+
 	purpose := target.GetPurpose(ctx, deps, flows.Replace(targetStepFlow))
 	messageType := target.GetMessageType(ctx, deps, flows.Replace(targetStepFlow))
-	claimValue := claims[claimName]
 	return authflow.NewSubFlow(&IntentVerifyClaim{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,

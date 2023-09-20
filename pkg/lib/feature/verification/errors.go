@@ -12,3 +12,5 @@ var ErrCodeNotFound = InvalidVerificationCode.NewWithCause("verification code is
 var ErrInvalidVerificationCode = InvalidVerificationCode.NewWithCause("invalid verification code", apierrors.StringCause("InvalidVerificationCode"))
 
 var ErrClaimUnverified = errors.New("claim is unverified")
+
+var ErrUnsupportedClaim = errors.New("unsupported claim")

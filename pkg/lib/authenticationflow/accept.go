@@ -16,7 +16,7 @@ func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage jso
 	var changed bool
 	defer func() {
 		if changed {
-			flows.Nearest.InstanceID = newInstanceID()
+			flows.Nearest.StateID = newStateID()
 		}
 		if !changed && err == nil {
 			err = ErrNoChange

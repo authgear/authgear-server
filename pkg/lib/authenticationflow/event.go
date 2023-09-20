@@ -3,7 +3,7 @@ package authenticationflow
 type EventKind string
 
 const (
-	// EventKindRefresh indicates client should re-fetch current instance of flow for updated state.
+	// EventKindRefresh indicates client should re-fetch current state of flow for updated state.
 	EventKindRefresh EventKind = "refresh"
 )
 

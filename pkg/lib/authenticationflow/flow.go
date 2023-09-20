@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // PublicFlow is a instantiable intent by the public.
@@ -21,14 +20,14 @@ type PublicFlow interface {
 type FlowType string
 
 const (
-	FlowTypeSignup FlowType = "signup_flow"
-	FlowTypeLogin  FlowType = "login_flow"
+	FlowTypeSignup FlowType = "signup"
+	FlowTypeLogin  FlowType = "login"
 )
 
 // FlowReference is an API object.
 type FlowReference struct {
 	Type FlowType `json:"type"`
-	ID   string   `json:"id"`
+	Name string   `json:"name"`
 }
 
 // FlowStep is an API object.
@@ -42,16 +41,17 @@ type FlowStep struct {
 // When the flow finished, `json_schema` is absent and `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.
 type FlowResponse struct {
-	// ID is the instance ID.
+	// StateID is the StateID.
+	StateID string `json:"state_id"`
+	// ID is the flow ID.
 	ID string `json:"id"`
-	// WebsocketID is actually the flow ID.
-	WebsocketID string `json:"websocket_id"`
 
-	Finished   bool                     `json:"finished,omitempty"`
-	JSONSchema validation.SchemaBuilder `json:"json_schema,omitempty"`
+	Finished bool `json:"finished,omitempty"`
 
-	FlowReference *FlowReference `json:"flow_reference,omitempty"`
-	FlowStep      *FlowStep      `json:"flow_step,omitempty"`
+	Type FlowType `json:"type,omitempty"`
+	Name string   `json:"name,omitempty"`
+
+	Step *FlowStep `json:"step,omitempty"`
 
 	Data Data `json:"data"`
 }

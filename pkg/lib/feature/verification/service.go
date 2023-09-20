@@ -137,6 +137,33 @@ func (s *Service) GetClaims(userID string) ([]*Claim, error) {
 	return s.ClaimStore.ListByUser(userID)
 }
 
+func (s *Service) GetClaimStatus(userID string, claimName model.ClaimName, claimValue string) (*ClaimStatus, error) {
+	claims, err := s.ClaimStore.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := s.claimVerificationConfig(claimName)
+	if cfg == nil {
+		return nil, ErrUnsupportedClaim
+	}
+
+	verified := false
+	for _, claim := range claims {
+		if claim.Name == string(claimName) && claim.Value == claimValue {
+			verified = true
+		}
+	}
+
+	return &ClaimStatus{
+		Name:                       string(claimName),
+		Value:                      claimValue,
+		Verified:                   verified,
+		RequiredToVerifyOnCreation: *cfg.Required,
+		EndUserTriggerable:         *cfg.Enabled,
+	}, nil
+}
+
 func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	statuses, err := s.GetVerificationStatuses(identities)
 	if err != nil {

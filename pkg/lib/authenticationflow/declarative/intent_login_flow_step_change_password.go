@@ -21,19 +21,9 @@ func init() {
 }
 
 type IntentLoginFlowStepChangePassword struct {
-	StepID      string        `json:"step_id,omitempty"`
+	StepName    string        `json:"step_name,omitempty"`
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
-}
-
-var _ FlowStep = &IntentLoginFlowStepChangePassword{}
-
-func (i *IntentLoginFlowStepChangePassword) GetID() string {
-	return i.StepID
-}
-
-func (i *IntentLoginFlowStepChangePassword) GetJSONPointer() jsonpointer.T {
-	return i.JSONPointer
 }
 
 var _ authflow.Intent = &IntentLoginFlowStepChangePassword{}
@@ -57,9 +47,9 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	}
 
 	step := i.step(current)
-	targetStepID := step.TargetStep
+	targetStepName := step.TargetStep
 
-	targetStepFlow, err := FindTargetStep(flows.Root, targetStepID)
+	targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +57,7 @@ func (i *IntentLoginFlowStepChangePassword) ReactTo(ctx context.Context, deps *a
 	target, ok := targetStepFlow.Intent.(IntentLoginFlowStepChangePasswordTarget)
 	if !ok {
 		return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
-			"target_step": targetStepID,
+			"target_step": targetStepName,
 		})
 	}
 
