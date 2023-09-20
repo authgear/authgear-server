@@ -86,7 +86,7 @@ type TesterHandler struct {
 }
 
 var TesterScopes = []string{
-	"openid", "offline_access", "https://authgear.com/scopes/full-access",
+	"openid", "offline_access", oauth.FullAccessScope,
 }
 
 type TesterState struct {
