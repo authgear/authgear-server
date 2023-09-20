@@ -60639,10 +60639,19 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -60682,10 +60691,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -60887,6 +60892,7 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	authenticationflowService := &authenticationflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -61440,10 +61446,19 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -61483,10 +61498,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -61688,6 +61699,7 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	authenticationflowService := &authenticationflow.Service{
 		ContextDoNotUseDirectly: contextContext,
