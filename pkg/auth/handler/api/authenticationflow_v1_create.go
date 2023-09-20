@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -22,28 +23,23 @@ func ConfigureAuthenticationFlowV1CreateRoute(route httproute.Route) httproute.R
 	return route.WithMethods("OPTIONS", "POST").WithPathPattern("/api/v1/authentication_flows")
 }
 
-var AuthenticationFlowV1NonRestfulCreateRequestSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"required": ["type", "name"],
-	"properties": {
-		"type": {
-			"type": "string",
-			"enum": ["signup", "login"]
-		},
-		"name": {
-			"type": "string"
-		},
-		"url_query": { "type": "string" },
-		"batch_input": {
-			"type": "array",
-			"items": {
-				"type": "object"
-			}
-		}
-	}
+var AuthenticationFlowV1NonRestfulCreateRequestSchema *validation.SimpleSchema
+
+func init() {
+	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
+	b.Required("type", "name")
+
+	b.Properties().Property("name", validation.SchemaBuilder{}.Type(validation.TypeString))
+	b.Properties().Property("url_query", validation.SchemaBuilder{}.Type(validation.TypeString))
+	b.Properties().Property("batch_input", validation.SchemaBuilder{}.
+		Type(validation.TypeArray).
+		Items(validation.SchemaBuilder{}.Type(validation.TypeObject)))
+	b.Properties().Property("type", validation.SchemaBuilder{}.
+		Type(validation.TypeString).
+		Enum(slice.Cast[authflow.FlowType, interface{}](authflow.AllFlowTypes)...))
+
+	AuthenticationFlowV1NonRestfulCreateRequestSchema = b.ToSimpleSchema()
 }
-`)
 
 type AuthenticationFlowV1NonRestfulCreateRequest struct {
 	Type       authflow.FlowType `json:"type,omitempty"`
