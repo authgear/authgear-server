@@ -29,14 +29,15 @@ type LogoutSessionManager interface {
 }
 
 type LogoutHandler struct {
-	ControllerFactory ControllerFactory
-	Database          *appdb.Handle
-	TrustProxy        config.TrustProxy
-	OAuth             *config.OAuthConfig
-	UIConfig          *config.UIConfig
-	SessionManager    LogoutSessionManager
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory   ControllerFactory
+	Database            *appdb.Handle
+	TrustProxy          config.TrustProxy
+	OAuth               *config.OAuthConfig
+	UIConfig            *config.UIConfig
+	SessionManager      LogoutSessionManager
+	BaseViewModel       *viewmodels.BaseViewModeler
+	Renderer            Renderer
+	OAuthClientResolver WebappOAuthClientResolver
 }
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +68,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		uiParam := uiparam.GetUIParam(r.Context())
 		clientID := uiParam.ClientID
-		client, _ := h.OAuth.GetClient(clientID)
+		client := h.OAuthClientResolver.ResolveClient(clientID)
 		postLogoutRedirectURI := webapp.ResolvePostLogoutRedirectURI(client, r.FormValue("post_logout_redirect_uri"), h.UIConfig)
 		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), postLogoutRedirectURI)
 		http.Redirect(w, r, redirectURI, http.StatusFound)

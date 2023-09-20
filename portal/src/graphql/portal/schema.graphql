@@ -392,6 +392,21 @@ type GenerateStripeCustomerPortalSessionPayload {
 }
 
 """"""
+input GenerateTestTokenInput {
+  """ID of the app."""
+  id: ID!
+
+  """URI to return to in the tester page"""
+  returnUri: String!
+}
+
+""""""
+type GenerateTestTokenPayload {
+  """The generated token"""
+  token: String!
+}
+
+""""""
 type Mutation {
   """Accept collaborator invitation to the target app."""
   acceptCollaboratorInvitation(input: AcceptCollaboratorInvitationInput!): AcceptCollaboratorInvitationPayload!
@@ -428,6 +443,9 @@ type Mutation {
 
   """Generate Stripe customer portal session"""
   generateStripeCustomerPortalSession(input: GenerateStripeCustomerPortalSessionInput!): GenerateStripeCustomerPortalSessionPayload!
+
+  """Generate a token for tester"""
+  generateTesterToken(input: GenerateTestTokenInput!): GenerateTestTokenPayload!
 
   """Preview update subscription"""
   previewUpdateSubscription(input: PreviewUpdateSubscriptionInput!): PreviewUpdateSubscriptionPayload!

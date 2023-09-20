@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -34,16 +35,17 @@ type PageService interface {
 }
 
 type ControllerDeps struct {
-	Database      *appdb.Handle
-	RedisHandle   *appredis.Handle
-	AppID         config.AppID
-	Page          PageService
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	Publisher     *Publisher
-	Clock         clock.Clock
-	UIConfig      *config.UIConfig
-	ErrorCookie   *webapp.ErrorCookie
+	Database                *appdb.Handle
+	RedisHandle             *appredis.Handle
+	AppID                   config.AppID
+	Page                    PageService
+	BaseViewModel           *viewmodels.BaseViewModeler
+	Renderer                Renderer
+	Publisher               *Publisher
+	Clock                   clock.Clock
+	UIConfig                *config.UIConfig
+	ErrorCookie             *webapp.ErrorCookie
+	TesterEndpointsProvider tester.EndpointsProvider
 
 	TrustProxy config.TrustProxy
 }
@@ -98,7 +100,13 @@ func (c *Controller) RequireUserID() string {
 }
 
 func (c *Controller) RedirectURI() string {
-	return webapp.GetRedirectURI(c.request, bool(c.TrustProxy), "")
+	ruri := webapp.GetRedirectURI(c.request, bool(c.TrustProxy), "")
+	// Consent screen will be skipped if redirect uri here is not empty
+	// To workaround it we exclude tester endpoint here
+	if ruri == c.TesterEndpointsProvider.TesterURL().String() {
+		return ""
+	}
+	return ruri
 }
 
 func (c *Controller) Get(fn func() error) {

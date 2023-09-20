@@ -268,6 +268,11 @@
   "forgot-password-success-description": "如我們能確認你輸入的資訊, 重設密碼之指示將會被發至 {target}，請按照指示重設你的帳號密碼。",
   "login-button-label--forgot-password-success-page": "登入",
 
+  "tester-success-page-title": "登錄成功",
+  "tester-success-page-description": "您已成功登錄。這是您的應用程序將收到的用戶個人資料：",
+  "tester-button-label--settings-page": "查看預先構建的用戶設置頁面",
+  "tester-button-label--back-to-portal": "返回 Authgear Portal",
+
   "reset-password-page-title": "重設密碼",
   "reset-password-description": "請輸入你的新密碼。",
 

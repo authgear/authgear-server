@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,6 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 )
 
 const (
@@ -111,10 +110,11 @@ type TokenHandler struct {
 	App2App             App2AppService
 	Challenges          ChallengeProvider
 	CodeGrantService    CodeGrantService
+	ClientResolver      OAuthClientResolver
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
-	client := resolveClient(h.Config, r)
+	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		return tokenResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
@@ -229,7 +229,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 		if r.RedirectURI() == "" {
 			return protocol.NewError("invalid_request", "redirect uri is required")
 		}
-		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case IDTokenGrantType:
@@ -311,6 +311,18 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	resp, err := h.IssueTokensForAuthorizationCode(client, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) IssueTokensForAuthorizationCode(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (protocol.TokenResponse, error) {
 	deviceInfo, err := r.DeviceInfo()
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", err.Error())
@@ -335,7 +347,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 	// verify pkce
 	needVerifyPKCE := client.IsPublic() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
-		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !verifyPKCE(codeGrant.PKCEChallenge, r.CodeVerifier()) {
+		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(codeGrant.PKCEChallenge) {
 			return nil, errInvalidAuthzCode
 		}
 	}
@@ -370,7 +382,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
+	resp, err := h.doIssueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +392,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
 
-	return tokenResultOK{Response: resp}, nil
+	return resp, nil
 }
 
 func (h *TokenHandler) handleRefreshToken(
@@ -810,8 +822,8 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, err
 	}
 	scopes := originalOfflineGrant.Scopes
-	originalClient, ok := h.Config.GetClient(originalOfflineGrant.ClientID)
-	if !ok {
+	originalClient := h.ClientResolver.ResolveClient(originalOfflineGrant.ClientID)
+	if originalClient == nil {
 		return nil, protocol.NewError("server_error", "cannot find original client for app2app")
 	}
 
@@ -947,7 +959,7 @@ func (h *TokenHandler) issueOfflineGrant(
 }
 
 // nolint: gocyclo
-func (h *TokenHandler) issueTokensForAuthorizationCode(
+func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
@@ -1220,10 +1232,4 @@ func (h *TokenHandler) translateAccessTokenError(err error) error {
 	}
 
 	return err
-}
-
-func verifyPKCE(challenge, verifier string) bool {
-	verifierHash := sha256.Sum256([]byte(verifier))
-	expectedChallenge := base64.RawURLEncoding.EncodeToString(verifierHash[:])
-	return subtle.ConstantTimeCompare([]byte(challenge), []byte(expectedChallenge)) == 1
 }

@@ -36,12 +36,17 @@ type OAuthTokenService interface {
 	) error
 }
 
+type OAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
 type OAuthFacade struct {
-	Config         *config.OAuthConfig
-	Users          UserService
-	Authorizations OAuthAuthorizationService
-	Tokens         OAuthTokenService
-	Clock          clock.Clock
+	Config              *config.OAuthConfig
+	Users               UserService
+	Authorizations      OAuthAuthorizationService
+	Tokens              OAuthTokenService
+	Clock               clock.Clock
+	OAuthClientResolver OAuthClientResolver
 }
 
 func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Session, protocol.TokenResponse, error) {
@@ -56,8 +61,8 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Ses
 	}
 	deviceInfo := make(map[string]interface{})
 
-	client, ok := f.Config.GetClient(clientID)
-	if !ok {
+	client := f.OAuthClientResolver.ResolveClient(clientID)
+	if client == nil {
 		return nil, nil, apierrors.NewInvalid("invalid client ID")
 	}
 	if !client.IsFirstParty() {

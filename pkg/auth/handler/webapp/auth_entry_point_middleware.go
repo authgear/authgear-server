@@ -17,12 +17,13 @@ var TemplateRequireOAuth = template.RegisterHTML(
 )
 
 type AuthEntryPointMiddleware struct {
-	BaseViewModel   *viewmodels.BaseViewModeler
-	Renderer        Renderer
-	AppHostSuffixes config.AppHostSuffixes
-	TrustProxy      config.TrustProxy
-	OAuthConfig     *config.OAuthConfig
-	UIConfig        *config.UIConfig
+	BaseViewModel       *viewmodels.BaseViewModeler
+	Renderer            Renderer
+	AppHostSuffixes     config.AppHostSuffixes
+	TrustProxy          config.TrustProxy
+	OAuthConfig         *config.OAuthConfig
+	UIConfig            *config.UIConfig
+	OAuthClientResolver WebappOAuthClientResolver
 }
 
 func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
@@ -40,7 +41,7 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 		isDefaultDomain := m.AppHostSuffixes.CheckIsDefaultDomain(host)
 
 		if userID != nil && !fromAuthzEndpoint {
-			defaultRedirectURI := webapp.DerivePostLoginRedirectURIFromRequest(r, m.OAuthConfig, m.UIConfig)
+			defaultRedirectURI := webapp.DerivePostLoginRedirectURIFromRequest(r, m.OAuthClientResolver, m.UIConfig)
 			redirectURI := webapp.GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
 			http.Redirect(w, r, redirectURI, http.StatusFound)

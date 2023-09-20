@@ -72,12 +72,14 @@ import (
 	handler2 "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -541,6 +543,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants: redisStore,
 	}
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -548,15 +554,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -571,9 +579,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
@@ -617,6 +626,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
 		CodeGrantService:          codeGrantService,
+		ClientResolver:            oauthclientResolver,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,
@@ -1055,6 +1065,10 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		OfflineGrants: redisStore,
 	}
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -1062,15 +1076,17 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -1085,9 +1101,10 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	appSessionTokenService := &oauth2.AppSessionTokenService{
 		AppSessions:         redisStore,
@@ -1131,6 +1148,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthSessionService:       oauthsessionStoreRedis,
 		CodeGrantService:          codeGrantService,
+		ClientResolver:            oauthclientResolver,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
@@ -1161,6 +1179,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -1250,10 +1269,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -1346,13 +1374,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -1755,10 +1783,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
-	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
@@ -1872,6 +1896,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             resolver,
 		OfflineGrants:                   store,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -1969,6 +1994,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		App2App:                app2appProvider,
 		Challenges:             challengeProvider,
 		CodeGrantService:       codeGrantService,
+		ClientResolver:         resolver,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -2049,10 +2075,21 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -2140,16 +2177,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             resourceManager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -3251,11 +3286,16 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	userInfoHandler := &oauth.UserInfoHandler{
-		Logger:           userInfoHandlerLogger,
-		Database:         handle,
-		UserInfoProvider: idTokenIssuer,
-		OAuth:            oAuthConfig,
+		Logger:              userInfoHandlerLogger,
+		Database:            handle,
+		UserInfoProvider:    idTokenIssuer,
+		OAuth:               oAuthConfig,
+		OAuthClientResolver: oauthclientResolver,
 	}
 	return userInfoHandler
 }
@@ -3337,10 +3377,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -3428,13 +3473,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             resourceManager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -3877,10 +3922,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -3973,13 +4027,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -4382,10 +4436,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
-	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
 	usageLimiter := &usage.Limiter{
@@ -4499,6 +4549,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             resolver,
 		OfflineGrants:                   store,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -4596,6 +4647,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		App2App:                app2appProvider,
 		Challenges:             challengeProvider,
 		CodeGrantService:       codeGrantService,
+		ClientResolver:         resolver,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
@@ -4715,6 +4767,16 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	appredisHandle := appProvider.Redis
 	redisLogger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
@@ -4810,16 +4872,14 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -5224,9 +5284,10 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Random:          idpsessionRand,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -5264,10 +5325,6 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -5382,6 +5439,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             resolver,
 		OfflineGrants:                   store,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -5465,6 +5523,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		UserProvider:        queries,
 		AnonymousIdentities: anonymousProvider,
 		PromotionCodes:      anonymousStoreRedis,
+		OAuthClientResolver: resolver,
 	}
 	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
 		Logger:               anonymousUserSignupAPIHandlerLogger,
@@ -5500,6 +5559,16 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	resolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	appredisHandle := appProvider.Redis
 	redisLogger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
@@ -5595,16 +5664,14 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
+	templateResolver := &template.Resolver{
 		Resources:             manager,
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
-		Resolver: resolver,
+		Resolver: templateResolver,
 	}
-	httpProto := deps.ProvideHTTPProto(request, trustProxy)
-	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
@@ -6009,9 +6076,10 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Random:          idpsessionRand,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: resolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   store,
@@ -6049,10 +6117,6 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -6167,6 +6231,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             resolver,
 		OfflineGrants:                   store,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -6250,6 +6315,7 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		UserProvider:        queries,
 		AnonymousIdentities: anonymousProvider,
 		PromotionCodes:      anonymousStoreRedis,
+		OAuthClientResolver: resolver,
 	}
 	anonymousUserPromotionCodeAPIHandler := &api.AnonymousUserPromotionCodeAPIHandler{
 		Logger:         anonymousUserPromotionCodeAPIHandlerLogger,
@@ -6786,6 +6852,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -6793,6 +6863,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -6924,9 +6995,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -7077,6 +7149,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -7126,6 +7199,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -7151,23 +7225,25 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -7640,6 +7716,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -7647,6 +7727,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -7778,9 +7859,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -7931,6 +8013,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -7980,6 +8063,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -8005,23 +8089,25 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -8493,6 +8579,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -8500,6 +8590,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -8631,9 +8722,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -8784,6 +8876,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -8833,6 +8926,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -8858,23 +8952,25 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -9334,6 +9430,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -9341,6 +9441,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -9472,9 +9573,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -9625,6 +9727,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -9674,6 +9777,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -9699,23 +9803,25 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -9734,6 +9840,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                   cookieManager,
 		OAuthConfig:               oAuthConfig,
 		UIConfig:                  uiConfig,
+		OAuthClientResolver:       oauthclientResolver,
 	}
 	return selectAccountHandler
 }
@@ -10169,6 +10276,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -10176,6 +10287,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -10307,9 +10419,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -10460,6 +10573,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -10509,6 +10623,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -10534,23 +10649,25 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -10993,6 +11110,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -11000,6 +11121,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -11131,9 +11253,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -11284,6 +11407,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -11333,6 +11457,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -11358,23 +11483,25 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -11820,6 +11947,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -11827,6 +11958,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -11958,9 +12090,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -12111,6 +12244,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -12160,6 +12294,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -12185,23 +12320,25 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -12650,6 +12787,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -12657,6 +12798,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -12788,9 +12930,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -12941,6 +13084,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -12990,6 +13134,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -13015,23 +13160,25 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -13482,6 +13629,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -13489,6 +13640,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -13620,9 +13772,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -13773,6 +13926,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -13822,6 +13976,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -13847,23 +14002,25 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -14312,6 +14469,10 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -14319,6 +14480,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -14450,9 +14612,10 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -14603,6 +14766,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -14652,6 +14816,7 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -14677,23 +14842,25 @@ func newWebConfirmTerminateOtherSessionsHandler(p *deps.RequestProvider) http.Ha
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -15138,6 +15305,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -15145,6 +15316,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -15276,9 +15448,10 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -15429,6 +15602,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -15478,6 +15652,7 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -15503,23 +15678,25 @@ func newWebAppUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -15968,6 +16145,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -15975,6 +16156,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -16106,9 +16288,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -16259,6 +16442,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -16308,6 +16492,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -16333,23 +16518,25 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -16799,6 +16986,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -16806,6 +16997,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -16937,9 +17129,10 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -17090,6 +17283,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -17139,6 +17333,7 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -17164,23 +17359,25 @@ func newWebAppCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -17629,6 +17826,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -17636,6 +17837,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -17767,9 +17969,10 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -17920,6 +18123,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -17969,6 +18173,7 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -17994,23 +18199,25 @@ func newWebAppPromptCreatePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -18459,6 +18666,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -18466,6 +18677,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -18597,9 +18809,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -18750,6 +18963,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -18799,6 +19013,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -18824,23 +19039,25 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -19291,6 +19508,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -19298,6 +19519,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -19429,9 +19651,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -19582,6 +19805,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -19631,6 +19855,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -19656,23 +19881,25 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -20121,6 +20348,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -20128,6 +20359,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -20259,9 +20491,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -20412,6 +20645,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -20461,6 +20695,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -20486,23 +20721,25 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -20951,6 +21188,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -20958,6 +21199,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -21089,9 +21331,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -21242,6 +21485,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -21291,6 +21535,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -21316,23 +21561,25 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -21785,6 +22032,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -21792,6 +22043,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -21923,9 +22175,10 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -22076,6 +22329,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -22125,6 +22379,7 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -22150,23 +22405,25 @@ func newWebAppSetupWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -22615,6 +22872,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -22622,6 +22883,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -22753,9 +23015,10 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -22906,6 +23169,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -22955,6 +23219,7 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -22980,23 +23245,25 @@ func newWebAppWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -23449,6 +23716,10 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -23456,6 +23727,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -23587,9 +23859,10 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -23740,6 +24013,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -23789,6 +24063,7 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -23814,23 +24089,25 @@ func newWebAppSetupLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -24279,6 +24556,10 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -24286,6 +24567,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -24417,9 +24699,10 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -24570,6 +24853,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -24619,6 +24903,7 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -24644,23 +24929,25 @@ func newWebAppLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      appdbHandle,
-		RedisHandle:   handle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                appdbHandle,
+		RedisHandle:             handle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -25117,6 +25404,10 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -25124,6 +25415,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -25255,9 +25547,10 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -25408,6 +25701,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -25457,6 +25751,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -25482,23 +25777,25 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      appdbHandle,
-		RedisHandle:   handle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                appdbHandle,
+		RedisHandle:             handle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -25965,6 +26262,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -25972,6 +26273,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -26103,9 +26405,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -26256,6 +26559,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -26305,6 +26609,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -26330,23 +26635,25 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -26795,6 +27102,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -26802,6 +27113,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -26933,9 +27245,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -27086,6 +27399,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -27135,6 +27449,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -27160,23 +27475,25 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -27621,6 +27938,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -27628,6 +27949,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -27759,9 +28081,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -27912,6 +28235,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -27961,6 +28285,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -27986,23 +28311,25 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -28451,6 +28778,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -28458,6 +28789,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -28589,9 +28921,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -28742,6 +29075,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -28791,6 +29125,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -28816,23 +29151,25 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -29277,6 +29614,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -29284,6 +29625,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -29415,9 +29757,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -29568,6 +29911,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -29617,6 +29961,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -29642,23 +29987,25 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -30113,6 +30460,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -30120,6 +30471,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -30251,9 +30603,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -30404,6 +30757,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -30453,6 +30807,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -30478,23 +30833,25 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -30939,6 +31296,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -30946,6 +31307,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -31077,9 +31439,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -31230,6 +31593,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -31279,6 +31643,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -31304,23 +31669,25 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -31767,6 +32134,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -31774,6 +32145,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -31905,9 +32277,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -32058,6 +32431,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -32107,6 +32481,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -32132,23 +32507,25 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -32593,6 +32970,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -32600,6 +32981,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -32731,9 +33113,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -32884,6 +33267,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -32933,6 +33317,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -32958,23 +33343,25 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -33451,6 +33838,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -33458,6 +33849,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -33589,9 +33981,10 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -33742,6 +34135,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -33791,6 +34185,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -33816,23 +34211,25 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -34288,6 +34685,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -34295,6 +34696,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -34426,9 +34828,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -34579,6 +34982,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -34628,6 +35032,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -34653,23 +35058,25 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -35138,6 +35545,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -35145,6 +35556,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -35276,9 +35688,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -35429,6 +35842,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -35478,6 +35892,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -35503,23 +35918,25 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -35972,6 +36389,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -35979,6 +36400,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -36110,9 +36532,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -36263,6 +36686,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -36312,6 +36736,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -36337,23 +36762,25 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -36799,6 +37226,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -36806,6 +37237,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -36937,9 +37369,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -37090,6 +37523,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -37139,6 +37573,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -37164,23 +37599,25 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -37634,6 +38071,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -37641,6 +38082,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -37772,9 +38214,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -37925,6 +38368,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -37974,6 +38418,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -37999,23 +38444,25 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -38461,6 +38908,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -38468,6 +38919,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -38599,9 +39051,10 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -38752,6 +39205,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -38801,6 +39255,7 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -38826,23 +39281,25 @@ func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -39288,6 +39745,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -39295,6 +39756,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -39426,9 +39888,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -39579,6 +40042,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -39628,6 +40092,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -39653,23 +40118,25 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -40115,6 +40582,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -40122,6 +40593,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -40253,9 +40725,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -40406,6 +40879,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -40455,6 +40929,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -40480,23 +40955,25 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -40943,6 +41420,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -40950,6 +41431,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -41081,9 +41563,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -41234,6 +41717,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -41283,6 +41767,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -41308,23 +41793,25 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -41337,9 +41824,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OAuthSessionManager: sessionManager,
 	}
 	oauthOfflineGrantService := &oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionListingService := &sessionlisting.SessionListingService{
 		OAuthConfig:   oAuthConfig,
@@ -41789,6 +42277,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -41796,6 +42288,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -41927,9 +42420,10 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -42080,6 +42574,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -42129,6 +42624,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -42154,23 +42650,25 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -42616,6 +43114,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -42623,6 +43125,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -42754,9 +43257,10 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -42907,6 +43411,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -42956,6 +43461,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -42981,23 +43487,25 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -43443,6 +43951,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -43450,6 +43962,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -43581,9 +44094,10 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -43734,6 +44248,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -43783,6 +44298,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -43808,23 +44324,25 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -44270,6 +44788,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -44277,6 +44799,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -44408,9 +44931,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -44561,6 +45085,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -44610,6 +45135,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -44635,23 +45161,25 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -45097,6 +45625,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -45104,6 +45636,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -45235,9 +45768,10 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -45388,6 +45922,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -45437,6 +45972,7 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -45462,23 +45998,25 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -45931,6 +46469,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -45938,6 +46480,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -46069,9 +46612,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -46222,6 +46766,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -46271,6 +46816,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -46296,23 +46842,25 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -46759,6 +47307,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -46766,6 +47318,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -46897,9 +47450,10 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -47050,6 +47604,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -47099,6 +47654,7 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -47124,23 +47680,25 @@ func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -47585,6 +48143,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -47592,6 +48154,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -47723,9 +48286,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -47876,6 +48440,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -47925,6 +48490,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -47950,37 +48516,40 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
 	logoutHandler := &webapp.LogoutHandler{
-		ControllerFactory: controllerFactory,
-		Database:          handle,
-		TrustProxy:        trustProxy,
-		OAuth:             oAuthConfig,
-		UIConfig:          uiConfig,
-		SessionManager:    manager2,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:   controllerFactory,
+		Database:            handle,
+		TrustProxy:          trustProxy,
+		OAuth:               oAuthConfig,
+		UIConfig:            uiConfig,
+		SessionManager:      manager2,
+		BaseViewModel:       baseViewModeler,
+		Renderer:            responseRenderer,
+		OAuthClientResolver: oauthclientResolver,
 	}
 	return logoutHandler
 }
@@ -48426,6 +48995,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -48433,6 +49006,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -48564,9 +49138,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -48717,6 +49292,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -48766,6 +49342,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -48791,23 +49368,25 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -49252,6 +49831,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -49259,6 +49842,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -49390,9 +49974,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -49543,6 +50128,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -49592,6 +50178,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -49617,23 +50204,25 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -50078,6 +50667,10 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -50085,6 +50678,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -50216,9 +50810,10 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -50369,6 +50964,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -50418,6 +51014,7 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -50443,23 +51040,25 @@ func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -50922,6 +51521,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -50929,6 +51532,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -51060,9 +51664,10 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -51213,6 +51818,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -51262,6 +51868,7 @@ func newWebAppPasskeyCreationOptionsHandler(p *deps.RequestProvider) http.Handle
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
@@ -51714,6 +52321,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -51721,6 +52332,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -51852,9 +52464,10 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -52005,6 +52618,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -52054,6 +52668,7 @@ func newWebAppPasskeyRequestOptionsHandler(p *deps.RequestProvider) http.Handler
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
@@ -52505,6 +53120,10 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -52512,6 +53131,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -52643,9 +53263,10 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -52796,6 +53417,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -52845,6 +53467,7 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -52870,23 +53493,25 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -53341,6 +53966,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -53348,6 +53977,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -53479,9 +54109,10 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -53632,6 +54263,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -53681,6 +54313,7 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -53706,23 +54339,25 @@ func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -54168,6 +54803,10 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -54175,6 +54814,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -54306,9 +54946,10 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -54459,6 +55100,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -54508,6 +55150,7 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	uiFeatureConfig := featureConfig.UI
@@ -54533,23 +55176,25 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	publisher := webapp.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:      handle,
-		RedisHandle:   appredisHandle,
-		AppID:         appID,
-		Page:          webappService2,
-		BaseViewModel: baseViewModeler,
-		Renderer:      responseRenderer,
-		Publisher:     publisher,
-		Clock:         clockClock,
-		UIConfig:      uiConfig,
-		ErrorCookie:   errorCookie,
-		TrustProxy:    trustProxy,
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
 	}
 	controllerFactory := webapp.ControllerFactory{
 		LoggerFactory:  factory,
@@ -54561,6 +55206,936 @@ func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 	}
 	return featureDisabledHandler
+}
+
+func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	factory := appProvider.LoggerFactory
+	handle := appProvider.AppDatabase
+	appredisHandle := appProvider.Redis
+	serviceLogger := webapp2.NewServiceLogger(factory)
+	request := p.Request
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
+	}
+	oAuthConfig := appConfig.OAuth
+	uiConfig := appConfig.UI
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	clockClock := _wireSystemClockValue
+	promptResolver := &oauth2.PromptResolver{
+		Clock: clockClock,
+	}
+	secretConfig := config.SecretConfig
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	rawQueries := &user.RawQueries{
+		Store: store,
+	}
+	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appContext.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:     sqlBuilderApp,
+		SQLExecutor:    sqlExecutor,
+		IdentityConfig: identityConfig,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store:          oauthStore,
+		Clock:          clockClock,
+		IdentityConfig: identityConfig,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	passkeyStore := &passkey.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	store2 := &passkey2.Store{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	webAppCDNHost := environmentConfig.WebAppCDNHost
+	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:           contextContext,
+		Localization:      localizationConfig,
+		HTTPOrigin:        httpOrigin,
+		HTTPProto:         httpProto,
+		WebAppCDNHost:     webAppCDNHost,
+		Resources:         manager,
+		EmbeddedResources: globalEmbeddedResourceManager,
+	}
+	translationService := &translation.Service{
+		Context:        contextContext,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
+	}
+	configService := &passkey2.ConfigService{
+		Request:            request,
+		TrustProxy:         trustProxy,
+		TranslationService: translationService,
+	}
+	passkeyService := &passkey2.Service{
+		Store:         store2,
+		ConfigService: configService,
+	}
+	passkeyProvider := &passkey.Provider{
+		Store:   passkeyStore,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	siweStore := &siwe.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	web3Config := appConfig.Web3
+	storeRedis := &siwe2.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	logger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  logger,
+		Storage: storageRedis,
+		Config:  rateLimitsFeatureConfig,
+	}
+	siweLogger := siwe2.NewLogger(factory)
+	siweService := &siwe2.Service{
+		RemoteIP:             remoteIP,
+		HTTPOrigin:           httpOrigin,
+		Web3Config:           web3Config,
+		AuthenticationConfig: authenticationConfig,
+		Clock:                clockClock,
+		NonceStore:           storeRedis,
+		RateLimiter:          limiter,
+		Logger:               siweLogger,
+	}
+	siweProvider := &siwe.Provider{
+		Store: siweStore,
+		Clock: clockClock,
+		SIWE:  siweService,
+	}
+	serviceService := &service.Service{
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
+		Passkey:               passkeyProvider,
+		SIWE:                  siweProvider,
+	}
+	store3 := &service2.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorFeatureConfig := featureConfig.Authenticator
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, authenticatorFeatureConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	store4 := &passkey3.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	provider2 := &passkey3.Provider{
+		Store:   store4,
+		Clock:   clockClock,
+		Passkey: passkeyService,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	oobProvider := &oob.Provider{
+		Store:                    oobStore,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Clock:                    clockClock,
+	}
+	testModeFeatureConfig := featureConfig.TestMode
+	codeStoreRedis := &otp.CodeStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	lookupStoreRedis := &otp.LookupStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	attemptTrackerRedis := &otp.AttemptTrackerRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	otpLogger := otp.NewLogger(factory)
+	otpService := &otp.Service{
+		Clock:                 clockClock,
+		AppID:                 appID,
+		TestModeFeatureConfig: testModeFeatureConfig,
+		RemoteIP:              remoteIP,
+		CodeStore:             codeStoreRedis,
+		LookupStore:           lookupStoreRedis,
+		AttemptTracker:        attemptTrackerRedis,
+		Logger:                otpLogger,
+		RateLimiter:           limiter,
+	}
+	rateLimits := service2.RateLimits{
+		IP:          remoteIP,
+		Config:      authenticationConfig,
+		RateLimiter: limiter,
+	}
+	authenticationLockoutConfig := authenticationConfig.Lockout
+	lockoutLogger := lockout.NewLogger(factory)
+	lockoutStorageRedis := &lockout.StorageRedis{
+		AppID: appID,
+		Redis: appredisHandle,
+	}
+	lockoutService := &lockout.Service{
+		Logger:  lockoutLogger,
+		Storage: lockoutStorageRedis,
+	}
+	serviceLockout := service2.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	service3 := &service2.Service{
+		Store:          store3,
+		Config:         appConfig,
+		Password:       passwordProvider,
+		Passkey:        provider2,
+		TOTP:           totpProvider,
+		OOBOTP:         oobProvider,
+		OTPCodeService: otpService,
+		RateLimits:     rateLimits,
+		Lockout:        serviceLockout,
+	}
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		Clock:             clockClock,
+		ClaimStore:        storePQ,
+	}
+	imagesCDNHost := environmentConfig.ImagesCDNHost
+	pictureTransformer := &stdattrs.PictureTransformer{
+		HTTPProto:     httpProto,
+		HTTPHost:      httpHost,
+		ImagesCDNHost: imagesCDNHost,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+		Transformer:       pictureTransformer,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
+	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	web3Service := &web3.Service{
+		APIEndpoint: nftIndexerAPIEndpoint,
+		Web3Config:  web3Config,
+	}
+	queries := &user.Queries{
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service3,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsEndpoints,
+		Users:   queries,
+		Clock:   clockClock,
+	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	idTokenHintResolver := &oidc.IDTokenHintResolver{
+		Issuer:        idTokenIssuer,
+		Sessions:      idpsessionProvider,
+		OfflineGrants: redisStore,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
+	uiInfoResolver := &oidc.UIInfoResolver{
+		Config:              oAuthConfig,
+		EndpointsProvider:   endpointsEndpoints,
+		PromptResolver:      promptResolver,
+		IDTokenHintResolver: idTokenHintResolver,
+		Clock:               clockClock,
+		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
+	}
+	interactionLogger := interaction.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	webHookImpl := hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	eventWebHookImpl := &hook.EventWebHookImpl{
+		WebHookImpl: webHookImpl,
+		SyncHTTP:    syncHTTPClient,
+		AsyncHTTP:   asyncHTTPClient,
+	}
+	denoHook := hook.DenoHook{
+		Context:         contextContext,
+		ResourceManager: manager,
+	}
+	denoEndpoint := environmentConfig.DenoEndpoint
+	syncDenoClient := hook.NewSyncDenoClient(denoEndpoint, hookConfig, hookLogger)
+	asyncDenoClient := hook.NewAsyncDenoClient(denoEndpoint, hookLogger)
+	eventDenoHookImpl := &hook.EventDenoHookImpl{
+		DenoHook:        denoHook,
+		SyncDenoClient:  syncDenoClient,
+		AsyncDenoClient: asyncDenoClient,
+	}
+	sink := &hook.Sink{
+		Logger:             hookLogger,
+		Config:             hookConfig,
+		Clock:              clockClock,
+		EventWebHook:       eventWebHookImpl,
+		EventDenoHook:      eventDenoHookImpl,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     queries,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
+	elasticsearchSink := &elasticsearch.Sink{
+		Logger:   elasticsearchLogger,
+		Service:  elasticsearchService,
+		Database: handle,
+	}
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaLockout := mfa.Lockout{
+		Config:   authenticationLockoutConfig,
+		RemoteIP: remoteIP,
+		Provider: lockoutService,
+	}
+	mfaService := &mfa.Service{
+		IP:            remoteIP,
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+		Lockout:       mfaLockout,
+	}
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
+	}
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
+	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		Events:            eventService,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
+	}
+	offlineGrantService := oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:   redisStore,
+		Config:  oAuthConfig,
+		Service: offlineGrantService,
+	}
+	accountDeletionConfig := appConfig.AccountDeletion
+	accountAnonymizationConfig := appConfig.AccountAnonymization
+	coordinator := &facade.Coordinator{
+		Events:                     eventService,
+		Identities:                 serviceService,
+		Authenticators:             service3,
+		Verification:               verificationService,
+		MFA:                        mfaService,
+		UserCommands:               commands,
+		UserQueries:                queries,
+		StdAttrsService:            stdattrsService,
+		PasswordHistory:            historyStore,
+		OAuth:                      authorizationStore,
+		IDPSessions:                idpsessionManager,
+		OAuthSessions:              sessionManager,
+		IdentityConfig:             identityConfig,
+		AccountDeletionConfig:      accountDeletionConfig,
+		AccountAnonymizationConfig: accountAnonymizationConfig,
+		Clock:                      clockClock,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
+	}
+	messagingConfig := appConfig.Messaging
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	whatsappServiceLogger := whatsapp.NewServiceLogger(factory)
+	devMode := environmentConfig.DevMode
+	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappService := &whatsapp.Service{
+		Context:                    contextContext,
+		Logger:                     whatsappServiceLogger,
+		DevMode:                    devMode,
+		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
+		Config:                     whatsappConfig,
+		OnPremisesClient:           onPremisesClient,
+		TokenStore:                 tokenStore,
+	}
+	sender := &messaging.Sender{
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
+	}
+	messageSender := &otp.MessageSender{
+		Translation:     translationService,
+		Endpoints:       endpointsEndpoints,
+		Sender:          sender,
+		WhatsappService: whatsappService,
+	}
+	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
+	normalizer := &stdattrs2.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    endpointsEndpoints,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthSSOProviderCredentials,
+		RedirectURL:                  endpointsEndpoints,
+		Clock:                        clockClock,
+		WechatURLProvider:            endpointsEndpoints,
+		StandardAttributesNormalizer: normalizer,
+	}
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		Cookies:        cookieManager,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
+	interactionContext := &interaction.Context{
+		Request:                         request,
+		RemoteIP:                        remoteIP,
+		Database:                        sqlExecutor,
+		Clock:                           clockClock,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
+		OfflineGrants:                   redisStore,
+		Identities:                      identityFacade,
+		Authenticators:                  authenticatorFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		BiometricIdentities:             biometricProvider,
+		OTPCodeService:                  otpService,
+		OTPSender:                       messageSender,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		MFA:                             mfaFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		Passkey:                         passkeyService,
+		Verification:                    verificationService,
+		RateLimiter:                     limiter,
+		Nonces:                          nonceService,
+		Challenges:                      challengeProvider,
+		Users:                           userProvider,
+		StdAttrsService:                 stdattrsService,
+		Events:                          eventService,
+		CookieManager:                   cookieManager,
+		AuthenticationInfoService:       authenticationinfoStoreRedis,
+		Sessions:                        idpsessionProvider,
+		SessionManager:                  manager2,
+		SessionCookie:                   cookieDef2,
+		MFADeviceTokenCookie:            cookieDef,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  interactionLogger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp2.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		Cookies:              cookieManager,
+		OAuthConfig:          oAuthConfig,
+		UIConfig:             uiConfig,
+		TrustProxy:           trustProxy,
+		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
+		Graph:                interactionService,
+	}
+	uiFeatureConfig := featureConfig.UI
+	forgotPasswordConfig := appConfig.ForgotPassword
+	googleTagManagerConfig := appConfig.GoogleTagManager
+	flashMessage := &httputil.FlashMessage{
+		Cookies: cookieManager,
+	}
+	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		GoogleTagManager:      googleTagManagerConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
+	}
+	responseRenderer := &webapp.ResponseRenderer{
+		TemplateEngine: engine,
+	}
+	publisher := webapp.NewPublisher(appID, appredisHandle)
+	controllerDeps := webapp.ControllerDeps{
+		Database:                handle,
+		RedisHandle:             appredisHandle,
+		AppID:                   appID,
+		Page:                    webappService2,
+		BaseViewModel:           baseViewModeler,
+		Renderer:                responseRenderer,
+		Publisher:               publisher,
+		Clock:                   clockClock,
+		UIConfig:                uiConfig,
+		ErrorCookie:             errorCookie,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TrustProxy:              trustProxy,
+	}
+	controllerFactory := webapp.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	globalredisHandle := appProvider.GlobalRedis
+	testerStore := &tester.TesterStore{
+		Context: contextContext,
+		Redis:   globalredisHandle,
+	}
+	oAuthFeatureConfig := featureConfig.OAuth
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
+	authorizationService := &oauth2.AuthorizationService{
+		AppID:               appID,
+		Store:               authorizationStore,
+		Clock:               clockClock,
+		OAuthSessionManager: sessionManager,
+	}
+	accessTokenEncoding := &oauth2.AccessTokenEncoding{
+		Secrets:    oAuthKeyMaterials,
+		Clock:      clockClock,
+		UserClaims: idTokenIssuer,
+		BaseURL:    endpointsEndpoints,
+		Events:     eventService,
+	}
+	tokenGenerator := _wireTokenGeneratorValue
+	tokenService := handler.TokenService{
+		RemoteIP:            remoteIP,
+		UserAgentString:     userAgentString,
+		AppID:               appID,
+		Config:              oAuthConfig,
+		Authorizations:      authorizationStore,
+		OfflineGrants:       redisStore,
+		AccessGrants:        redisStore,
+		OfflineGrantService: offlineGrantService,
+		AccessEvents:        eventProvider,
+		AccessTokenIssuer:   accessTokenEncoding,
+		GenerateToken:       tokenGenerator,
+		Clock:               clockClock,
+		Users:               queries,
+	}
+	app2appProvider := &app2app.Provider{
+		Clock: clockClock,
+	}
+	codeGrantService := handler.CodeGrantService{
+		AppID:         appID,
+		CodeGenerator: tokenGenerator,
+		Clock:         clockClock,
+		CodeGrants:    redisStore,
+	}
+	tokenHandler := &handler.TokenHandler{
+		AppID:                  appID,
+		Config:                 oAuthConfig,
+		HTTPOrigin:             httpOrigin,
+		OAuthFeatureConfig:     oAuthFeatureConfig,
+		IdentityFeatureConfig:  identityFeatureConfig,
+		OAuthClientCredentials: oAuthClientCredentials,
+		Logger:                 tokenHandlerLogger,
+		Authorizations:         authorizationService,
+		CodeGrants:             redisStore,
+		OfflineGrants:          redisStore,
+		AppSessionTokens:       redisStore,
+		OfflineGrantService:    offlineGrantService,
+		Graphs:                 interactionService,
+		IDTokenIssuer:          idTokenIssuer,
+		Clock:                  clockClock,
+		TokenService:           tokenService,
+		Events:                 eventService,
+		SessionManager:         manager2,
+		App2App:                app2appProvider,
+		Challenges:             challengeProvider,
+		CodeGrantService:       codeGrantService,
+		ClientResolver:         oauthclientResolver,
+	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
+	}
+	appSessionTokenService := &oauth2.AppSessionTokenService{
+		AppSessions:         redisStore,
+		AppSessionTokens:    redisStore,
+		OfflineGrants:       redisStore,
+		OfflineGrantService: oauthOfflineGrantService,
+		Cookies:             cookieManager,
+		Clock:               clockClock,
+	}
+	testerHandler := &webapp.TesterHandler{
+		AppID:                   appID,
+		ControllerFactory:       controllerFactory,
+		OauthEndpointsProvider:  endpointsEndpoints,
+		TesterEndpointsProvider: endpointsEndpoints,
+		TesterService:           testerStore,
+		TesterTokenIssuer:       tokenHandler,
+		OAuthClientResolver:     oauthclientResolver,
+		AppSessionTokenService:  appSessionTokenService,
+		CookieManager:           cookieManager,
+		Renderer:                responseRenderer,
+		BaseViewModel:           baseViewModeler,
+		UserInfoProvider:        idTokenIssuer,
+		OfflineGrants:           redisStore,
+	}
+	return testerHandler
 }
 
 func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
@@ -55097,10 +56672,19 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -55140,10 +56724,6 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -55316,6 +56896,7 @@ func newAPIWorkflowNewHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -55874,10 +57455,19 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -55917,10 +57507,6 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -56093,6 +57679,7 @@ func newAPIWorkflowGetHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -56644,10 +58231,19 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -56687,10 +58283,6 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -56863,6 +58455,7 @@ func newAPIWorkflowInputHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -57449,10 +59042,19 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -57492,10 +59094,6 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -57668,6 +59266,7 @@ func newAPIWorkflowV2Handler(p *deps.RequestProvider) http.Handler {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	workflowService := &workflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -58226,10 +59825,19 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -58269,10 +59877,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Config:         userProfileConfig,
 		ServiceNoEvent: customattrsServiceNoEvent,
 		Events:         eventService,
-	}
-	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -58474,6 +60078,7 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	authenticationflowService := &authenticationflow.Service{
 		ContextDoNotUseDirectly: contextContext,
@@ -60190,6 +61795,14 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -60206,6 +61819,7 @@ func newRequestMiddleware(w http.ResponseWriter, r *http.Request, p *deps.RootPr
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	requestMiddleware := &deps.RequestMiddleware{
 		HTTPHost:        httpHost,
@@ -60309,6 +61923,14 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -60325,6 +61947,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -60489,6 +62112,14 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Cookies: cookieManager,
 	}
 	authUISentryDSN := environmentConfig.AuthUISentryDSN
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
@@ -60505,18 +62136,20 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 		AuthUISentryDSN:       authUISentryDSN,
+		OAuthClientResolver:   oauthclientResolver,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
-		BaseViewModel:   baseViewModeler,
-		Renderer:        responseRenderer,
-		AppHostSuffixes: appHostSuffixes,
-		TrustProxy:      trustProxy,
-		OAuthConfig:     oAuthConfig,
-		UIConfig:        uiConfig,
+		BaseViewModel:       baseViewModeler,
+		Renderer:            responseRenderer,
+		AppHostSuffixes:     appHostSuffixes,
+		TrustProxy:          trustProxy,
+		OAuthConfig:         oAuthConfig,
+		UIConfig:            uiConfig,
+		OAuthClientResolver: oauthclientResolver,
 	}
 	return authEntryPointMiddleware
 }
@@ -61023,10 +62656,15 @@ func newSessionMiddleware(p *deps.RequestProvider, idpSessionOnly bool) httprout
 		BaseURL:    endpointsEndpoints,
 		Events:     eventService,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: provider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    provider,
+		ClientResolver: oauthclientResolver,
 	}
 	oauthResolver := &oauth2.Resolver{
 		RemoteIP:            remoteIP,
@@ -61501,6 +63139,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Sessions:      idpsessionProvider,
 		OfflineGrants: redisStore,
 	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	uiInfoResolver := &oidc.UIInfoResolver{
 		Config:              oAuthConfig,
 		EndpointsProvider:   endpointsEndpoints,
@@ -61508,6 +63150,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		IDTokenHintResolver: idTokenHintResolver,
 		Clock:               clockClock,
 		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	eventLogger := event.NewLogger(factory)
@@ -61639,9 +63282,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef: cookieDef2,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,
@@ -61792,6 +63436,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:                           clockClock,
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
+		OAuthClientResolver:             oauthclientResolver,
 		OfflineGrants:                   redisStore,
 		Identities:                      identityFacade,
 		Authenticators:                  authenticatorFacade,
@@ -61841,6 +63486,7 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UIConfig:             uiConfig,
 		TrustProxy:           trustProxy,
 		UIInfoResolver:       uiInfoResolver,
+		OAuthClientResolver:  oauthclientResolver,
 		Graph:                interactionService,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
@@ -62477,10 +64123,19 @@ func newSettingsSubRoutesMiddleware(p *deps.RequestProvider) httproute.Middlewar
 		Clock:           clockClock,
 		Random:          idpsessionRand,
 	}
+	endpointsEndpoints := &endpoints.Endpoints{
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
-		OAuthConfig: oAuthConfig,
-		Clock:       clockClock,
-		IDPSessions: idpsessionProvider,
+		OAuthConfig:    oAuthConfig,
+		Clock:          clockClock,
+		IDPSessions:    idpsessionProvider,
+		ClientResolver: oauthclientResolver,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:   redisStore,

@@ -182,6 +182,10 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
+type OAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
 type ContextValues struct {
 	WebSessionID   string
 	OAuthSessionID string
@@ -195,10 +199,11 @@ type Context struct {
 	Request  *http.Request
 	RemoteIP httputil.RemoteIP
 
-	Database      *appdb.SQLExecutor
-	Clock         clock.Clock
-	Config        *config.AppConfig
-	FeatureConfig *config.FeatureConfig
+	Database            *appdb.SQLExecutor
+	Clock               clock.Clock
+	Config              *config.AppConfig
+	FeatureConfig       *config.FeatureConfig
+	OAuthClientResolver OAuthClientResolver
 
 	OfflineGrants                   OfflineGrantStore
 	Identities                      IdentityService

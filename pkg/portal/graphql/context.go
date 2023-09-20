@@ -9,6 +9,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
@@ -54,6 +55,10 @@ type AppService interface {
 		sessionInfo *apimodel.SessionInfo,
 		visitingSecrets []config.SecretKey,
 	) (*appsecret.AppSecretVisitToken, error)
+	GenerateTesterToken(
+		app *model.App,
+		returnURI string,
+	) (*tester.TesterToken, error)
 }
 
 type DomainService interface {

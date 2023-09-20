@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -93,10 +94,11 @@ type AuthorizationHandler struct {
 	Cookies                   CookieManager
 	OAuthSessionService       OAuthSessionService
 	CodeGrantService          CodeGrantService
+	ClientResolver            OAuthClientResolver
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
-	client := resolveClient(h.Config, r)
+	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -309,7 +311,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 
 	r := entry.T.AuthorizationRequest
 
-	client := resolveClient(h.Config, r)
+	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		err = protocol.NewError("unauthorized_client", "invalid client ID")
 		return nil, err
@@ -552,7 +554,7 @@ func (h *AuthorizationHandler) validateRequest(
 				return protocol.NewError("invalid_request", "PKCE code challenge is required for public clients")
 			}
 		}
-		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != "S256" {
+		if r.CodeChallenge() != "" && r.CodeChallengeMethod() != pkce.CodeChallengeMethodS256 {
 			return protocol.NewError("invalid_request", "only 'S256' PKCE transform is supported")
 		}
 	case "none":

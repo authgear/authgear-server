@@ -68,6 +68,7 @@ var appRootDeps = wire.NewSet(
 		"AuditReadDatabase",
 		"AuditWriteDatabase",
 		"Redis",
+		"GlobalRedis",
 		"AnalyticRedis",
 		"TaskQueue",
 		"AppContext",
