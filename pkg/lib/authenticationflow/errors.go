@@ -2,6 +2,7 @@ package authenticationflow
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
@@ -33,3 +34,16 @@ var ErrFlowNotFound = apierrors.NotFound.WithReason("AuthenticationFlowNotFound"
 var ErrStepNotFound = apierrors.NotFound.WithReason("AuthenticationFlowStepNotFound").New("step not found")
 
 var ErrUnknownFlow = apierrors.BadRequest.WithReason("AuthenticationFlowUnknownFlow").New("unknown flow")
+
+// ErrorSwitchFlow is a special error for switching flow.
+type ErrorSwitchFlow struct {
+	// FlowReference indicates the flow to switch to.
+	FlowReference FlowReference
+	// SyntheticInput advance the switched flow at the current state.
+	// It MUST include the input that triggers this error.
+	SyntheticInput Input
+}
+
+func (e *ErrorSwitchFlow) Error() string {
+	return fmt.Sprintf("switch flow: %v %v", e.FlowReference.Type, e.FlowReference.Name)
+}

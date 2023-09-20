@@ -13,6 +13,25 @@ import (
 // In addition to the errors caused by intents and nodes,
 // ErrEOF and ErrNoChange can be returned.
 func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage json.RawMessage) (err error) {
+	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
+		if rawMessage != nil && inputSchema != nil {
+			input, err := inputSchema.MakeInput(rawMessage)
+			if err != nil {
+				return nil, err
+			}
+			return input, nil
+		}
+		return nil, nil
+	})
+}
+
+func AcceptSyntheticInput(ctx context.Context, deps *Dependencies, flows Flows, syntheticInput Input) (err error) {
+	return accept(ctx, deps, flows, func(inputSchema InputSchema) (Input, error) {
+		return syntheticInput, nil
+	})
+}
+
+func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(inputSchema InputSchema) (Input, error)) (err error) {
 	var changed bool
 	defer func() {
 		if changed {
@@ -34,20 +53,18 @@ func Accept(ctx context.Context, deps *Dependencies, flows Flows, rawMessage jso
 
 		// input by default is nil.
 		var input Input
-		if rawMessage != nil && findInputReactorResult.InputSchema != nil {
-			input, err = findInputReactorResult.InputSchema.MakeInput(rawMessage)
-			// As a special case, if this loop has iterated at least once,
-			// then we treat the validation error as ErrIncompatibleInput,
-			// by setting err = nil.
-			var valiationError *validation.AggregatedError
-			if errors.As(err, &valiationError) {
-				if changed {
-					err = nil
-				}
-				return
-			} else if err != nil {
-				return
+		input, err = inputFn(findInputReactorResult.InputSchema)
+		// As a special case, if this loop has iterated at least once,
+		// then we treat the validation error as ErrIncompatibleInput,
+		// by setting err = nil.
+		var valiationError *validation.AggregatedError
+		if errors.As(err, &valiationError) {
+			if changed {
+				err = nil
 			}
+			return
+		} else if err != nil {
+			return
 		}
 
 		var nextNode *Node

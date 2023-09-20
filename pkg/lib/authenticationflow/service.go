@@ -90,6 +90,10 @@ func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOp
 		return
 	}
 
+	return s.createNewFlowWithSession(publicFlow, session)
+}
+
+func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Session) (output *ServiceOutput, err error) {
 	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
 	if err != nil {
 		return
@@ -266,6 +270,14 @@ func (s *Service) FeedInput(stateID string, rawMessage json.RawMessage) (output 
 		flow, determineActionResult, err = s.feedInput(ctx, session, stateID, rawMessage)
 		return err
 	})
+
+	// Handle switch flow.
+	var errSwitchFlow *ErrorSwitchFlow
+	if errors.As(err, &errSwitchFlow) {
+		output, err = s.switchFlow(session, errSwitchFlow)
+		return
+	}
+
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return
@@ -311,6 +323,106 @@ func (s *Service) FeedInput(stateID string, rawMessage json.RawMessage) (output 
 	return
 }
 
+func (s *Service) FeedSyntheticInput(stateID string, syntheticInput Input) (output *ServiceOutput, err error) {
+	flow, err := s.Store.GetFlowByStateID(stateID)
+	if err != nil {
+		return
+	}
+
+	session, err := s.Store.GetSession(flow.FlowID)
+	if err != nil {
+		return
+	}
+
+	publicFlow, ok := flow.Intent.(PublicFlow)
+	if !ok {
+		panic(fmt.Errorf("the root intent must be a PublicFlow: %T", flow.Intent))
+	}
+
+	ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps, publicFlow)
+	if err != nil {
+		return
+	}
+
+	var determineActionResult *determineActionResult
+	err = s.Database.ReadOnly(func() error {
+		flow, determineActionResult, err = s.feedSyntheticInput(ctx, session, stateID, syntheticInput)
+		return err
+	})
+
+	isEOF := errors.Is(err, ErrEOF)
+	if err != nil && !isEOF {
+		return
+	}
+
+	sessionOutput := session.ToOutput()
+
+	var cookies []*http.Cookie
+	if isEOF {
+		err = s.Database.WithTx(func() error {
+			cookies, err = s.finishFlow(ctx, flow)
+			return err
+		})
+		if err != nil {
+			return
+		}
+
+		err = s.Store.DeleteSession(session)
+		if err != nil {
+			return
+		}
+
+		err = s.Store.DeleteFlow(flow)
+		if err != nil {
+			return
+		}
+	}
+
+	if isEOF {
+		err = ErrEOF
+	}
+	output = &ServiceOutput{
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Flow:          flow,
+		FlowReference: determineActionResult.FlowReference,
+		FlowStep:      determineActionResult.FlowStep,
+		Data:          determineActionResult.Data,
+		SchemaBuilder: determineActionResult.SchemaBuilder,
+		Finished:      determineActionResult.Finished,
+		Cookies:       cookies,
+	}
+	return
+}
+
+func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (output *ServiceOutput, err error) {
+	publicFlow, err := InstantiateFlow(errSwitchFlow.FlowReference)
+	if err != nil {
+		return
+	}
+
+	createOutput, err := s.createNewFlowWithSession(publicFlow, session)
+	if err != nil {
+		return
+	}
+
+	output, err = s.FeedSyntheticInput(createOutput.Flow.StateID, errSwitchFlow.SyntheticInput)
+	if err != nil {
+		return
+	}
+
+	var cookies []*http.Cookie
+	for _, c := range createOutput.Cookies {
+		cookies = append(cookies, c)
+	}
+	for _, c := range output.Cookies {
+		cookies = append(cookies, c)
+	}
+	output.Cookies = cookies
+
+	return
+}
+
 func (s *Service) feedInput(ctx context.Context, session *Session, stateID string, rawMessage json.RawMessage) (flow *Flow, determineActionResult *determineActionResult, err error) {
 	flow, err = s.Store.GetFlowByStateID(stateID)
 	if err != nil {
@@ -324,6 +436,42 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateID strin
 	}
 
 	err = Accept(ctx, s.Deps, NewFlows(flow), rawMessage)
+	isEOF := errors.Is(err, ErrEOF)
+	if err != nil && !isEOF {
+		return
+	}
+
+	// err is nil or err is ErrEOF.
+	// We persist the flow state.
+	err = s.Store.CreateFlow(flow)
+	if err != nil {
+		return
+	}
+
+	determineActionResult, err = s.determineAction(ctx, session, flow)
+	if err != nil {
+		return
+	}
+
+	if isEOF {
+		err = ErrEOF
+	}
+	return
+}
+
+func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateID string, syntheticInput Input) (flow *Flow, determineActionResult *determineActionResult, err error) {
+	flow, err = s.Store.GetFlowByStateID(stateID)
+	if err != nil {
+		return
+	}
+
+	// Apply the run-effects.
+	err = ApplyRunEffects(ctx, s.Deps, NewFlows(flow))
+	if err != nil {
+		return
+	}
+
+	err = AcceptSyntheticInput(ctx, s.Deps, NewFlows(flow), syntheticInput)
 	isEOF := errors.Is(err, ErrEOF)
 	if err != nil && !isEOF {
 		return

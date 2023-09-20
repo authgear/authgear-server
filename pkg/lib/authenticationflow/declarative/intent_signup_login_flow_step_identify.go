@@ -96,9 +96,13 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
 		if authflow.AsInput(input, &inputTakeIdentificationMethod) {
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
-			_, err := i.checkIdentificationMethod(deps, step, identification)
+			idx, err := i.checkIdentificationMethod(deps, step, identification)
 			if err != nil {
 				return nil, err
+			}
+
+			syntheticInput := &InputStepIdentify{
+				Identification: identification,
 			}
 
 			switch identification {
@@ -107,11 +111,11 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 			case config.AuthenticationFlowIdentificationPhone:
 				fallthrough
 			case config.AuthenticationFlowIdentificationUsername:
-				break
-				//return authflow.NewNodeSimple(&NodeLookupIdentityLoginID{
-				//	JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
-				//	Identification: identification,
-				//}), nil
+				return authflow.NewNodeSimple(&NodeLookupIdentityLoginID{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					Identification: identification,
+					SyntheticInput: syntheticInput,
+				}), nil
 			case config.AuthenticationFlowIdentificationOAuth:
 				break
 				//return authflow.NewSubFlow(&IntentLookupIdentityOAuth{
