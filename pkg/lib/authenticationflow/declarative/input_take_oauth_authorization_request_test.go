@@ -50,7 +50,6 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
     },
     "required": [
         "alias",
-        "state",
         "redirect_uri"
     ],
     "type": "object"
