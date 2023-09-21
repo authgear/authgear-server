@@ -6,6 +6,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -96,8 +97,6 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
-	canSkipAuthenticate := i.canSkipAuthenticate(step)
-
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
@@ -112,11 +111,17 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	case deviceTokenEnabled && !deviceTokenInspected:
 		// Inspect the device token
 		return nil, nil
-	case canSkipAuthenticate:
-		// Skip this step and any nested step.
-		return nil, authflow.ErrEOF
-
 	case !authenticationMethodSelected:
+		if len(i.Candidates) == 0 {
+			if step.Optional != nil && *step.Optional {
+				// Skip this step and any nested step.
+				return nil, authflow.ErrEOF
+			}
+
+			// Otherwise this step is NON-optional but have no candidates
+			return nil, api.ErrNoAuthenticator
+		}
+
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
 			JSONPointer:        i.JSONPointer,
@@ -149,8 +154,6 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 
 	deviceTokenEnabled := i.deviceTokenEnabled(step)
 
-	canSkipAuthenticate := i.canSkipAuthenticate(step)
-
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
 	_, authenticationMethodSelected := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
@@ -166,9 +169,6 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		return authflow.NewSubFlow(&IntentInspectDeviceToken{
 			UserID: i.UserID,
 		}), nil
-	case canSkipAuthenticate:
-		// Skip this step and any nested step.
-		return nil, authflow.ErrIncompatibleInput
 
 	case !authenticationMethodSelected:
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
@@ -321,13 +321,4 @@ func (i *IntentLoginFlowStepAuthenticate) jsonPointer(step *config.Authenticatio
 	}
 
 	panic(fmt.Errorf("selected authentication method is not allowed"))
-}
-
-func (i *IntentLoginFlowStepAuthenticate) canSkipAuthenticate(step *config.AuthenticationFlowLoginFlowStep) bool {
-	// Can skip if there are no candidates.
-	if step.Optional != nil && *step.Optional && len(i.Candidates) == 0 {
-		return true
-	}
-
-	return false
 }
