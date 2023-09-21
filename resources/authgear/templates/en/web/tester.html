@@ -11,7 +11,11 @@
     }}
   </div>
 
-  <pre class="text-xs overflow-x-auto">{{ $.UserInfoJson }}</pre>
+  <div class="overflow-x-auto">
+    <pre class="text-xs bg-gray-50 p-4 block min-w-min">
+{{ $.UserInfoJson }}</pre
+    >
+  </div>
 
   <a class="link text-sm self-start" href="/settings"
     >{{ template "tester-button-label--settings-page" }}</a
