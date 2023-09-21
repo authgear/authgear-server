@@ -23,6 +23,7 @@ type Session struct {
 	LastAccessedByIP                   string    `json:"lastAccessedByIP"`
 	LastAccessedByIPCountryCode        string    `json:"lastAccessedByIPCountryCode"`
 	LastAccessedByIPEnglishCountryName string    `json:"lastAccessedByIPEnglishCountryName"`
+	ClientID                           *string   `json:"clientID"`
 
 	DisplayName     string `json:"displayName"`
 	ApplicationName string `json:"applicationName,omitempty"`

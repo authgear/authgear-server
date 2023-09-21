@@ -932,6 +932,7 @@ export interface Session {
   lastAccessedAt: string;
   lastAccessedByIP: string;
   displayName: string;
+  clientID?: string | null;
 }
 
 export interface Authorization {

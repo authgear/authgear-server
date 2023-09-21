@@ -69,7 +69,8 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		},
 		Type: model.SessionTypeOfflineGrant,
 
-		AMR: amr,
+		AMR:      amr,
+		ClientID: &g.ClientID,
 
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,

@@ -19,7 +19,7 @@ import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Session, SessionType } from "../../types";
+import { Session } from "../../types";
 import DefaultButton from "../../DefaultButton";
 import ActionButton from "../../ActionButton";
 
@@ -81,19 +81,9 @@ const RevokeConfirmationDialog: React.VFC<RevokeConfirmationDialogProps> =
     );
   };
 
-function sessionTypeDisplayKey(type: SessionType): string {
-  switch (type) {
-    case "IDP":
-      return "UserDetails.session.kind.idp";
-    case "OFFLINE_GRANT":
-      return "UserDetails.session.kind.offline-grant";
-  }
-  return "";
-}
-
 interface SessionItemViewModel {
   displayName: string;
-  kind: string;
+  clientID: string;
   ipAddress: string;
   lastActivity: string;
   revoke: () => void;
@@ -148,9 +138,9 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
         maxWidth: 200,
       },
       {
-        key: "kind",
-        fieldName: "kind",
-        name: renderToString("UserDetails.session.kind"),
+        key: "clientID",
+        fieldName: "clientID",
+        name: renderToString("UserDetails.session.clientID"),
         className: styles.cell,
         minWidth: 100,
         maxWidth: 100,
@@ -195,7 +185,7 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
       sessions.map(
         (session): SessionItemViewModel => ({
           displayName: session.displayName,
-          kind: renderToString(sessionTypeDisplayKey(session.type)),
+          clientID: session.clientID ?? "-",
           ipAddress: session.lastAccessedByIP,
           lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",
           revoke: () => {
@@ -212,7 +202,7 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
           },
         })
       ),
-    [sessions, locale, renderToString, revokeSession]
+    [sessions, locale, revokeSession]
   );
 
   const onRevokeAllClick = useCallback(() => {

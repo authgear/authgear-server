@@ -839,6 +839,9 @@ type Session implements Entity & Node {
   """"""
   amr: [String!]!
 
+  """"""
+  clientID: String
+
   """The creation time of entity"""
   createdAt: DateTime!
 

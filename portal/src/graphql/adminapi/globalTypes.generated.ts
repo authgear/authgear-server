@@ -685,6 +685,7 @@ export type Session = Entity & Node & {
   __typename?: 'Session';
   acr: Scalars['String'];
   amr: Array<Scalars['String']>;
+  clientID?: Maybe<Scalars['String']>;
   /** The creation time of entity */
   createdAt: Scalars['DateTime'];
   createdByIP: Scalars['String'];

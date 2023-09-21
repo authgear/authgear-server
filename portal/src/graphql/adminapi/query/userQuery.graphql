@@ -36,6 +36,7 @@ fragment UserQueryNode on User {
       node {
         id
         type
+        clientID
         lastAccessedAt
         lastAccessedByIP
         displayName
