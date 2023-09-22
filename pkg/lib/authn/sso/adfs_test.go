@@ -15,7 +15,6 @@ func TestADFSImpl(t *testing.T) {
 		defer gock.Off()
 
 		g := &ADFSImpl{
-			RedirectURL: mockRedirectURLProvider{},
 			ProviderConfig: config.OAuthSSOProviderConfig{
 				ClientID:                  "client_id",
 				Type:                      config.OAuthSSOProviderTypeADFS,
@@ -33,6 +32,7 @@ func TestADFSImpl(t *testing.T) {
 		defer func() { gock.Flush() }()
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
+			RedirectURI:  "https://localhost/",
 			ResponseMode: ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",

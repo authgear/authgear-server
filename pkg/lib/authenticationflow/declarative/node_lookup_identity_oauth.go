@@ -58,7 +58,10 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 
 	var inputOAuth inputTakeOAuthAuthorizationResponse
 	if authflow.AsInput(input, &inputOAuth) {
-		spec, err := handleOAuthAuthorizationResponse(deps, n.Alias, inputOAuth)
+		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
+			Alias:       n.Alias,
+			RedirectURI: n.RedirectURI,
+		}, inputOAuth)
 		if err != nil {
 			return nil, err
 		}
@@ -103,6 +106,7 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 
 func (n *NodeLookupIdentityOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
+		RedirectURI:  n.RedirectURI,
 		Alias:        n.Alias,
 		State:        n.State,
 		ResponseMode: n.ResponseMode,

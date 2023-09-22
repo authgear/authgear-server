@@ -96,13 +96,13 @@ var DependencySet = wire.NewSet(
 	wire.NewSet(
 		endpoints.DependencySet,
 		wire.Bind(new(sso.EndpointsProvider), new(*endpoints.Endpoints)),
-		wire.Bind(new(sso.RedirectURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(sso.WechatURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oauth.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(oidc.BaseURLProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
 	),
 
 	transport.DependencySet,

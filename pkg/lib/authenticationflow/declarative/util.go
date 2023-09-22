@@ -403,7 +403,12 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 	return exactMatch, nil
 }
 
-func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
+type HandleOAuthAuthorizationResponseOptions struct {
+	Alias       string
+	RedirectURI string
+}
+
+func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOAuthAuthorizationResponseOptions, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
 	if oauthError := inputOAuth.GetOAuthError(); oauthError != "" {
 		errorDescription := inputOAuth.GetOAuthErrorDescription()
 		errorURI := inputOAuth.GetOAuthErrorURI()
@@ -411,7 +416,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string,
 		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(alias)
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
 	if oauthProvider == nil {
 		return nil, api.ErrOAuthProviderNotFound
 	}
@@ -425,7 +430,8 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string,
 			Code: code,
 		},
 		sso.GetAuthInfoParam{
-			Nonce: emptyNonce,
+			RedirectURI: opts.RedirectURI,
+			Nonce:       emptyNonce,
 		},
 	)
 	if err != nil {
@@ -448,6 +454,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string,
 }
 
 type ConstructOAuthAuthorizationURLOptions struct {
+	RedirectURI  string
 	Alias        string
 	State        string
 	ResponseMode sso.ResponseMode
@@ -463,7 +470,7 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	uiParam := uiparam.GetUIParam(ctx)
 
 	param := sso.GetAuthURLParam{
-		// FIXME(oauth): redirect_uri
+		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.ResponseMode,
 		State:        opts.State,
 		Prompt:       uiParam.Prompt,

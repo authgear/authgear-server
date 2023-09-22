@@ -21,7 +21,6 @@ const (
 )
 
 type GithubImpl struct {
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -39,7 +38,7 @@ func (g *GithubImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
 	return MakeAuthorizationURL(githubAuthorizationURL, AuthorizationURLParams{
 		ClientID:    g.ProviderConfig.ClientID,
-		RedirectURI: g.RedirectURL.SSOCallbackURL(g.ProviderConfig).String(),
+		RedirectURI: param.RedirectURI,
 		Scope:       g.ProviderConfig.Type.Scope(),
 		// ResponseType is unset.
 		// ResponseMode is unset.
@@ -53,8 +52,8 @@ func (g *GithubImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 	return g.NonOpenIDConnectGetAuthInfo(r, param)
 }
 
-func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	accessTokenResp, err := g.exchangeCode(r.Code)
+func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
+	accessTokenResp, err := g.exchangeCode(r, param)
 	if err != nil {
 		return
 	}
@@ -99,12 +98,12 @@ func (g *GithubImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 	return
 }
 
-func (g *GithubImpl) exchangeCode(code string) (accessTokenResp AccessTokenResp, err error) {
+func (g *GithubImpl) exchangeCode(r OAuthAuthorizationResponse, param GetAuthInfoParam) (accessTokenResp AccessTokenResp, err error) {
 	q := make(url.Values)
 	q.Set("client_id", g.ProviderConfig.ClientID)
 	q.Set("client_secret", g.Credentials.ClientSecret)
-	q.Set("code", code)
-	q.Set("redirect_uri", g.RedirectURL.SSOCallbackURL(g.ProviderConfig).String())
+	q.Set("code", r.Code)
+	q.Set("redirect_uri", param.RedirectURI)
 
 	body := strings.NewReader(q.Encode())
 	req, _ := http.NewRequest("POST", githubTokenURL, body)

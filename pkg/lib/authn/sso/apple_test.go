@@ -10,7 +10,6 @@ import (
 func TestAppleImpl(t *testing.T) {
 	Convey("AppleImpl", t, func() {
 		g := &AppleImpl{
-			RedirectURL: mockRedirectURLProvider{},
 			ProviderConfig: config.OAuthSSOProviderConfig{
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeApple,
@@ -18,6 +17,7 @@ func TestAppleImpl(t *testing.T) {
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
+			RedirectURI:  "https://localhost/",
 			ResponseMode: ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",

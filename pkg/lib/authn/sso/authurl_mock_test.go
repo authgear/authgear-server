@@ -6,15 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type mockRedirectURLProvider struct{}
-
-var _ RedirectURLProvider = mockRedirectURLProvider{}
-
-func (mockRedirectURLProvider) SSOCallbackURL(_ config.OAuthSSOProviderConfig) *url.URL {
-	u, _ := url.Parse("https://localhost/")
-	return u
-}
-
 type mockWechatURLProvider struct{}
 
 var _ WechatURLProvider = mockWechatURLProvider{}

@@ -58,7 +58,10 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		spec := syntheticInputOAuth.GetIdentitySpec()
 		return n.reactTo(deps, flows, spec)
 	case authflow.AsInput(input, &inputOAuth):
-		spec, err := handleOAuthAuthorizationResponse(deps, n.Alias, inputOAuth)
+		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
+			Alias:       n.Alias,
+			RedirectURI: n.RedirectURI,
+		}, inputOAuth)
 		if err != nil {
 			return nil, err
 		}
@@ -71,8 +74,9 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 
 func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
-		Alias: n.Alias,
-		State: n.State,
+		RedirectURI:  n.RedirectURI,
+		Alias:        n.Alias,
+		State:        n.State,
 		ResponseMode: n.ResponseMode,
 	})
 	if err != nil {

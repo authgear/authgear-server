@@ -25,7 +25,6 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 
 type AppleImpl struct {
 	Clock                        clock.Clock
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -73,7 +72,7 @@ func (f *AppleImpl) Config() config.OAuthSSOProviderConfig {
 func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID,
-		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Type.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
@@ -106,7 +105,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 		keySet,
 		f.ProviderConfig.ClientID,
 		clientSecret,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
 	)

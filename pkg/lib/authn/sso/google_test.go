@@ -15,7 +15,6 @@ func TestGoogleImpl(t *testing.T) {
 		defer gock.Off()
 
 		g := &GoogleImpl{
-			RedirectURL: mockRedirectURLProvider{},
 			ProviderConfig: config.OAuthSSOProviderConfig{
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeGoogle,
@@ -87,10 +86,11 @@ func TestGoogleImpl(t *testing.T) {
 		defer func() { gock.Flush() }()
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
+			RedirectURI:  "https://localhost/",
 			ResponseMode: ResponseModeFormPost,
-			Nonce:  "nonce",
-			State:  "state",
-			Prompt: []string{"login"},
+			Nonce:        "nonce",
+			State:        "state",
+			Prompt:       []string{"login"},
 		})
 		So(err, ShouldBeNil)
 		So(u, ShouldEqual, "https://accounts.google.com/o/oauth2/v2/auth?client_id=client_id&nonce=nonce&prompt=select_account&redirect_uri=https%3A%2F%2Flocalhost%2F&response_mode=form_post&response_type=code&scope=openid+profile+email&state=state")

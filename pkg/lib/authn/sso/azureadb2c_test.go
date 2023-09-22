@@ -15,7 +15,6 @@ func TestAzureadb2cImpl(t *testing.T) {
 		defer gock.Off()
 
 		g := &Azureadb2cImpl{
-			RedirectURL: mockRedirectURLProvider{},
 			ProviderConfig: config.OAuthSSOProviderConfig{
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeAzureADB2C,
@@ -34,6 +33,7 @@ func TestAzureadb2cImpl(t *testing.T) {
 		defer func() { gock.Flush() }()
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
+			RedirectURI:  "https://localhost/",
 			ResponseMode: ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",

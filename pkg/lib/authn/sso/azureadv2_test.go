@@ -15,7 +15,6 @@ func TestAzureadv2Impl(t *testing.T) {
 		defer gock.Off()
 
 		g := &Azureadv2Impl{
-			RedirectURL: mockRedirectURLProvider{},
 			ProviderConfig: config.OAuthSSOProviderConfig{
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeAzureADv2,
@@ -97,6 +96,7 @@ func TestAzureadv2Impl(t *testing.T) {
 		defer func() { gock.Flush() }()
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
+			RedirectURI:  "https://localhost/",
 			ResponseMode: ResponseModeFormPost,
 			Nonce:        "nonce",
 			State:        "state",

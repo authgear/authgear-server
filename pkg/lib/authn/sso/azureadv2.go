@@ -12,7 +12,6 @@ import (
 
 type Azureadv2Impl struct {
 	Clock                        clock.Clock
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -80,7 +79,7 @@ func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	}
 	return c.MakeOAuthURL(AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID,
-		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Type.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
@@ -113,7 +112,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 		keySet,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
 	)

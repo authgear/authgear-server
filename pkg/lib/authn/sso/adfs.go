@@ -12,7 +12,6 @@ import (
 
 type ADFSImpl struct {
 	Clock                        clock.Clock
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -38,7 +37,7 @@ func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	}
 	return c.MakeOAuthURL(AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID,
-		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Type.Scope(),
 		ResponseType: ResponseTypeCode,
 		ResponseMode: param.ResponseMode,
@@ -72,7 +71,7 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		keySet,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
 	)

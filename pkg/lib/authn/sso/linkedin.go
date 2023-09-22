@@ -14,7 +14,6 @@ const (
 )
 
 type LinkedInImpl struct {
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -31,7 +30,7 @@ func (f *LinkedInImpl) Config() config.OAuthSSOProviderConfig {
 func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	return MakeAuthorizationURL(linkedinAuthorizationURL, AuthorizationURLParams{
 		ClientID:     f.ProviderConfig.ClientID,
-		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		RedirectURI:  param.RedirectURI,
 		Scope:        f.ProviderConfig.Type.Scope(),
 		ResponseType: ResponseTypeCode,
 		// ResponseMode is unset.
@@ -45,11 +44,11 @@ func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 	return f.NonOpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
 		linkedinTokenURL,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
 	)
