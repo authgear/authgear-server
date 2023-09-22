@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -30,6 +31,7 @@ type NodeLookupIdentityOAuth struct {
 	Alias          string             `json:"alias,omitempty"`
 	State          string             `json:"state,omitempty"`
 	RedirectURI    string             `json:"redirect_uri,omitempty"`
+	ResponseMode   sso.ResponseMode   `json:"response_mode,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeLookupIdentityOAuth{}
@@ -66,6 +68,7 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 			Alias:          n.SyntheticInput.Alias,
 			State:          n.SyntheticInput.State,
 			RedirectURI:    n.SyntheticInput.RedirectURI,
+			ResponseMode:   n.SyntheticInput.ResponseMode,
 			IdentitySpec:   spec,
 		}
 
@@ -99,7 +102,11 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (n *NodeLookupIdentityOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, n.Alias, n.State)
+	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
+		Alias:        n.Alias,
+		State:        n.State,
+		ResponseMode: n.ResponseMode,
+	})
 	if err != nil {
 		return nil, err
 	}

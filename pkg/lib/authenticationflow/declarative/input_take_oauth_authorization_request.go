@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -23,8 +24,13 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) GetJSONPointer() jsonpointer.
 func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
 	b.Required("alias", "redirect_uri")
+
 	b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
 	b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))
+	b.Properties().Property("response_mode", validation.SchemaBuilder{}.
+		Type(validation.TypeString).
+		Enum(sso.ResponseModeFormPost, sso.ResponseModeQuery))
+
 	var enumValues []interface{}
 	for _, c := range i.OAuthCandidates {
 		enumValues = append(enumValues, c.Alias)
@@ -46,9 +52,10 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) MakeInput(rawMessage json.Raw
 }
 
 type InputTakeOAuthAuthorizationRequest struct {
-	Alias       string `json:"alias"`
-	State       string `json:"state"`
-	RedirectURI string `json:"redirect_uri"`
+	Alias        string           `json:"alias"`
+	RedirectURI  string           `json:"redirect_uri"`
+	State        string           `json:"state,omitempty"`
+	ResponseMode sso.ResponseMode `json:"ResponseMode,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeOAuthAuthorizationRequest{}
@@ -66,4 +73,8 @@ func (i *InputTakeOAuthAuthorizationRequest) GetOAuthState() string {
 
 func (i *InputTakeOAuthAuthorizationRequest) GetOAuthRedirectURI() string {
 	return i.RedirectURI
+}
+
+func (i *InputTakeOAuthAuthorizationRequest) GetOAuthResponseMode() sso.ResponseMode {
+	return i.ResponseMode
 }

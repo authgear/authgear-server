@@ -447,8 +447,14 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string,
 	return identitySpec, nil
 }
 
-func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependencies, alias string, state string) (authorizationURL string, err error) {
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(alias)
+type ConstructOAuthAuthorizationURLOptions struct {
+	Alias        string
+	State        string
+	ResponseMode sso.ResponseMode
+}
+
+func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependencies, opts ConstructOAuthAuthorizationURLOptions) (authorizationURL string, err error) {
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
 	if oauthProvider == nil {
 		err = api.ErrOAuthProviderNotFound
 		return
@@ -457,9 +463,10 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	uiParam := uiparam.GetUIParam(ctx)
 
 	param := sso.GetAuthURLParam{
-		// FIXME(oauth): response mode.
-		State:  state,
-		Prompt: uiParam.Prompt,
+		// FIXME(oauth): redirect_uri
+		ResponseMode: opts.ResponseMode,
+		State:        opts.State,
+		Prompt:       uiParam.Prompt,
 	}
 
 	authorizationURL, err = oauthProvider.GetAuthURL(param)

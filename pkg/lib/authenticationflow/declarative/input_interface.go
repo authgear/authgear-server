@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -29,6 +30,7 @@ type inputTakeOAuthAuthorizationRequest interface {
 	GetOAuthAlias() string
 	GetOAuthState() string
 	GetOAuthRedirectURI() string
+	GetOAuthResponseMode() sso.ResponseMode
 }
 
 type inputTakeOAuthAuthorizationResponse interface {
