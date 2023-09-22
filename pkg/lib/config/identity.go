@@ -288,38 +288,38 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 
 type OAuthSSOProviderType string
 
-func (t OAuthSSOProviderType) Scope() string {
+func (t OAuthSSOProviderType) Scope() []string {
 	switch t {
 	case OAuthSSOProviderTypeGoogle:
 		// https://developers.google.com/identity/protocols/oauth2/openid-connect
-		return "openid profile email"
+		return []string{"openid", "profile", "email"}
 	case OAuthSSOProviderTypeFacebook:
 		// https://developers.facebook.com/docs/permissions/reference
-		return "email public_profile"
+		return []string{"email", "public_profile"}
 	case OAuthSSOProviderTypeGithub:
 		// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
-		return "read:user user:email"
+		return []string{"read:user", "user:email"}
 	case OAuthSSOProviderTypeLinkedIn:
 		// https://docs.microsoft.com/en-us/linkedin/shared/references/v2/profile/lite-profile
 		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
-		return "r_liteprofile r_emailaddress"
+		return []string{"r_liteprofile", "r_emailaddress"}
 	case OAuthSSOProviderTypeAzureADv2:
 		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-		return "openid profile email"
+		return []string{"openid", "profile", "email"}
 	case OAuthSSOProviderTypeAzureADB2C:
 		// Instead of specifying scope to request a specific claim,
 		// the developer must customize the policy to allow which claims are returned to the relying party.
 		// If the developer is using User Flow policy, then those claims are called Application Claims.
-		return "openid"
+		return []string{"openid"}
 	case OAuthSSOProviderTypeADFS:
 		// The supported scopes are observed from a AD FS server.
-		return "openid profile email"
+		return []string{"openid", "profile", "email"}
 	case OAuthSSOProviderTypeApple:
 		// https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms
-		return "name email"
+		return []string{"name", "email"}
 	case OAuthSSOProviderTypeWechat:
 		// https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
-		return "snsapi_userinfo"
+		return []string{"snsapi_userinfo"}
 	}
 
 	panic(fmt.Sprintf("oauth: unknown provider type %s", string(t)))

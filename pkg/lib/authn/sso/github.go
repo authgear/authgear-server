@@ -37,12 +37,16 @@ func (g *GithubImpl) Config() config.OAuthSSOProviderConfig {
 
 func (g *GithubImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
-	q := make(url.Values)
-	q.Set("client_id", g.ProviderConfig.ClientID)
-	q.Set("redirect_uri", g.RedirectURL.SSOCallbackURL(g.ProviderConfig).String())
-	q.Set("scope", g.ProviderConfig.Type.Scope())
-	q.Set("state", param.State)
-	return githubAuthorizationURL + "?" + q.Encode(), nil
+	return MakeAuthorizationURL(githubAuthorizationURL, AuthorizationURLParams{
+		ClientID:    g.ProviderConfig.ClientID,
+		RedirectURI: g.RedirectURL.SSOCallbackURL(g.ProviderConfig).String(),
+		Scope:       g.ProviderConfig.Type.Scope(),
+		// ResponseType is unset.
+		// ResponseMode is unset.
+		State: param.State,
+		// Prompt is unset.
+		// Nonce is unset.
+	}.Query()), nil
 }
 
 func (g *GithubImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {

@@ -26,12 +26,15 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return d.MakeOAuthURL(OIDCAuthParams{
-		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          param.Nonce,
-		State:          param.State,
-		Prompt:         f.GetPrompt(param.Prompt),
+	return d.MakeOAuthURL(AuthorizationURLParams{
+		ClientID:     f.ProviderConfig.ClientID,
+		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		Scope:        f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		ResponseMode: ResponseModeFormPost,
+		State:        param.State,
+		Nonce:        param.Nonce,
+		Prompt:       f.GetPrompt(param.Prompt),
 	}), nil
 }
 

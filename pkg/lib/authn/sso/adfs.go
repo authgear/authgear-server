@@ -36,12 +36,15 @@ func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.MakeOAuthURL(OIDCAuthParams{
-		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          param.Nonce,
-		State:          param.State,
-		Prompt:         f.GetPrompt(param.Prompt),
+	return c.MakeOAuthURL(AuthorizationURLParams{
+		ClientID:     f.ProviderConfig.ClientID,
+		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		Scope:        f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		ResponseMode: ResponseModeFormPost,
+		State:        param.State,
+		Prompt:       f.GetPrompt(param.Prompt),
+		Nonce:        param.Nonce,
 	}), nil
 }
 

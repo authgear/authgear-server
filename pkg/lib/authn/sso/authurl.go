@@ -5,24 +5,66 @@ import (
 	"strings"
 )
 
-type authURLParams struct {
-	redirectURI string
-	clientID    string
-	scope       string
-	state       string
-	baseURL     string
-	prompt      []string
+type ResponseType string
+
+const (
+	ResponseTypeCode ResponseType = "code"
+)
+
+type ResponseMode string
+
+const (
+	ResponseModeFormPost ResponseMode = "form_post"
+	ResponseModeQuery    ResponseMode = "query"
+)
+
+type AuthorizationURLParams struct {
+	ClientID     string
+	RedirectURI  string
+	Scope        []string
+	ResponseType ResponseType
+	ResponseMode ResponseMode
+	State        string
+	Prompt       []string
+	Nonce        string
+
+	WechatAppID string
 }
 
-func authURL(params authURLParams) (string, error) {
+func (p AuthorizationURLParams) Query() url.Values {
 	v := url.Values{}
-	v.Add("response_type", "code")
-	v.Add("client_id", params.clientID)
-	v.Add("redirect_uri", params.redirectURI)
-	v.Add("scope", params.scope)
-	v.Add("state", params.state)
-	if len(params.prompt) > 0 {
-		v.Add("prompt", strings.Join(params.prompt, " "))
+
+	v.Set("redirect_uri", p.RedirectURI)
+
+	if p.ClientID != "" {
+		v.Set("client_id", p.ClientID)
 	}
-	return params.baseURL + "?" + v.Encode(), nil
+	if len(p.Scope) > 0 {
+		v.Set("scope", strings.Join(p.Scope, " "))
+	}
+	if p.ResponseType != "" {
+		v.Set("response_type", string(p.ResponseType))
+	}
+	if p.ResponseMode != "" {
+		v.Set("response_mode", string(p.ResponseMode))
+	}
+	if p.State != "" {
+		v.Set("state", p.State)
+	}
+	if len(p.Prompt) > 0 {
+		v.Set("prompt", strings.Join(p.Prompt, " "))
+	}
+	if p.Nonce != "" {
+		v.Set("nonce", p.Nonce)
+	}
+
+	if p.WechatAppID != "" {
+		v.Set("appid", p.WechatAppID)
+	}
+
+	return v
+}
+
+func MakeAuthorizationURL(base string, query url.Values) string {
+	return base + "?" + query.Encode()
 }

@@ -71,12 +71,15 @@ func (f *AppleImpl) Config() config.OAuthSSOProviderConfig {
 }
 
 func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	return appleOIDCConfig.MakeOAuthURL(OIDCAuthParams{
-		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          param.Nonce,
-		State:          param.State,
-		Prompt:         f.GetPrompt(param.Prompt),
+	return appleOIDCConfig.MakeOAuthURL(AuthorizationURLParams{
+		ClientID: f.ProviderConfig.ClientID,
+		RedirectURI: f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		Scope: f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		ResponseMode: ResponseModeFormPost,
+		State: param.State,
+		Prompt: f.GetPrompt(param.Prompt),
+		Nonce: param.Nonce,
 	}), nil
 }
 

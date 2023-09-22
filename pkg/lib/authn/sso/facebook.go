@@ -31,15 +31,16 @@ func (f *FacebookImpl) Config() config.OAuthSSOProviderConfig {
 }
 
 func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	p := authURLParams{
-		redirectURI: f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		clientID:    f.ProviderConfig.ClientID,
-		scope:       f.ProviderConfig.Type.Scope(),
-		state:       param.State,
-		baseURL:     facebookAuthorizationURL,
-		prompt:      f.GetPrompt(param.Prompt),
-	}
-	return authURL(p)
+	return MakeAuthorizationURL(facebookAuthorizationURL, AuthorizationURLParams{
+		ClientID:     f.ProviderConfig.ClientID,
+		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		Scope:        f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		// ResponseMode is unset
+		State:  param.State,
+		Prompt: f.GetPrompt(param.Prompt),
+		// Nonce is unset
+	}.Query()), nil
 }
 
 func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
