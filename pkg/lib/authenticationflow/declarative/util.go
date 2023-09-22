@@ -423,7 +423,9 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 
 	code := inputOAuth.GetOAuthAuthorizationCode()
 
-	// TODO(authflow): support nonce in OAuth.
+	// TODO(authflow): support nonce but do not save nonce in cookies.
+	// Nonce in the current implementation is stored in cookies.
+	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
 	authInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
