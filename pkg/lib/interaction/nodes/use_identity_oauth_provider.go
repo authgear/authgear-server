@@ -71,9 +71,11 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	nonce := crypto.SHA256String(nonceSource)
 
 	param := sso.GetAuthURLParam{
-		State:  state,
-		Nonce:  nonce,
-		Prompt: input.GetPrompt(),
+		// We use response_mode=form_post if it is supported.
+		ResponseMode: sso.ResponseModeFormPost,
+		State:        state,
+		Nonce:        nonce,
+		Prompt:       input.GetPrompt(),
 	}
 
 	redirectURI, err := oauthProvider.GetAuthURL(param)

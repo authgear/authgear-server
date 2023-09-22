@@ -457,6 +457,7 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	uiParam := uiparam.GetUIParam(ctx)
 
 	param := sso.GetAuthURLParam{
+		// FIXME(oauth): response mode.
 		State:  state,
 		Prompt: uiParam.Prompt,
 	}

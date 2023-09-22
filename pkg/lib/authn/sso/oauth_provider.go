@@ -9,9 +9,10 @@ import (
 )
 
 type GetAuthURLParam struct {
-	Nonce  string
-	State  string
-	Prompt []string
+	ResponseMode ResponseMode
+	Nonce        string
+	State        string
+	Prompt       []string
 }
 
 type GetAuthInfoParam struct {

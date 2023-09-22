@@ -83,7 +83,7 @@ func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		RedirectURI:  f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Scope:        f.ProviderConfig.Type.Scope(),
 		ResponseType: ResponseTypeCode,
-		ResponseMode: ResponseModeFormPost,
+		ResponseMode: param.ResponseMode,
 		State:        param.State,
 		Prompt:       f.GetPrompt(param.Prompt),
 		Nonce:        param.Nonce,

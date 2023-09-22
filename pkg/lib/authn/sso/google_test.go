@@ -87,6 +87,7 @@ func TestGoogleImpl(t *testing.T) {
 		defer func() { gock.Flush() }()
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
+			ResponseMode: ResponseModeFormPost,
 			Nonce:  "nonce",
 			State:  "state",
 			Prompt: []string{"login"},

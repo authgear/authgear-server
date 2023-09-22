@@ -34,9 +34,10 @@ func TestAzureadb2cImpl(t *testing.T) {
 		defer func() { gock.Flush() }()
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
-			Nonce:  "nonce",
-			State:  "state",
-			Prompt: []string{"login"},
+			ResponseMode: ResponseModeFormPost,
+			Nonce:        "nonce",
+			State:        "state",
+			Prompt:       []string{"login"},
 		})
 		So(err, ShouldBeNil)
 		So(u, ShouldEqual, "https://localhost/authorize?client_id=client_id&nonce=nonce&prompt=login&redirect_uri=https%3A%2F%2Flocalhost%2F&response_mode=form_post&response_type=code&scope=openid&state=state")
