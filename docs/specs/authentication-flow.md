@@ -612,27 +612,45 @@ Example of a successful response.
 ```json
 {
   "result": {
+    "state_token": "authflowstate_blahblahblah",
     "id": "authflow_blahblahblah",
-    "state_id": "authflowstate_blahblahblah",
     "type": "login_flow",
     "name": "default",
     "step": {
       "type": "authenticate",
       "authentication": "primary_oob_otp_email"
-    },
-    "data": {}
+      "data": {}
+    }
   }
 }
 ```
 
-- `result.id`: The constant ID for every Authentication Flow. You supply this ID to the websocket endpoint.
-- `result.state_id`: The ID of this particular state of the Authentication Flow. You must keep this for the next request. This ID changes every time you give an input to the flow. As a result, you can back-track by associating the ID with your application navigation backstack very easily.
+- `result.state_token`: The token that refers to a particular state of an Authentication Flow. You must keep this for the next request. This token changes every time you give an input to the flow. As a result, you can back-track by associating the token with your application navigation backstack very easily.
+- `result.id`: The ID of the Authentication Flow. It does not change for a given Authentication Flow. You supply this ID to the websocket endpoint.
 - `result.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
 - `result.name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
 - `result.step.type`: The type of the current step. Valid values are the union of all possible steps, that is, `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`.
 - `result.step.identification`: The taken branch of the current step. It is only present when `result.flow_step.type=identify`. Valid values are `email`, `phone`, and `username`.
 - `result.step.authentication`: The taken branch of the current step. It is only present when `result.flow_step.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
-- `result.data`: The data associated with the current state of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
+- `result.step.data`: The data associated with the current step of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
+
+Example of a finished response.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "login_flow",
+    "name": "default",
+    "finished": true,
+    "finish_redirect_uri": "https://example.com"
+  }
+}
+```
+
+- `result.finished`: If the flow has finished, then this key is present and the value is `true`.
+- `result.finish_redirect_uri`: If `finished` is `true`, then this key MAY be present. You MUST redirect the end-user to this URI, where Authgear will take control and continue.
 
 ### Create a Authentication Flow
 
@@ -657,12 +675,12 @@ POST /api/v1/authentication_flows/states/input
 Content-Type: application/json
 
 {
-  "state_id": "{{ FLOW_STATE_ID }}"
+  "state_token": "{{ STATE_TOKEN }}"
   "input": {}
 }
 ```
 
-- `flow_state_id`: The ID of a particular state of a Authentication Flow. Typically this is the ID in the last response if you want to continue the flow. If you want to back-track, you must supply a suitable ID.
+- `state_token`: The `state_token` of a previous request.
 - `input`: A JSON object specific to the current step of the flow.
 - `batch_input`: An array of input. This allows you to execute the flow multiple steps in a single request. In order to do this, you must know in advance how the flow is going. 
 
@@ -675,7 +693,7 @@ POST /api/v1/authentication_flows/states
 Content-Type: application/json
 
 {
-  "state_id": "{{ FLOW_STATE_ID }}"
+  "state_token": "{{ STATE_TOKEN }}"
 }
 ```
 
@@ -690,7 +708,7 @@ GET /api/v1/authentication_flows/ws?flow_id={{ FLOW_ID }}
 Connection: Upgrade
 ```
 
-- `flow_id`: The constant ID of a Authentication Flow. Do not confuse it with `state_id`.
+- `flow_id`: The constant ID of a Authentication Flow.
 
 The only websocket message you will receive is the JSON object `{"kind": "refresh"}`.
 Its meaning is to tell you to call the GET endpoint to refresh the flow.
