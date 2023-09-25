@@ -41,7 +41,7 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	}
 }
 
-type determineActionResult struct {
+type getFlowStepResult struct {
 	Finished          bool
 	FinishRedirectURI string
 
@@ -99,9 +99,9 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	}
 
 	var flow *Flow
-	var determineActionResult *determineActionResult
+	var getFlowStepResult *getFlowStepResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.createNewFlow(ctx, session, publicFlow)
+		flow, getFlowStepResult, err = s.createNewFlow(ctx, session, publicFlow)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -142,15 +142,15 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 		SessionOutput:     sessionOutput,
 		Flow:              flow,
 		FlowReference:     &flowReference,
-		Finished:          determineActionResult.Finished,
-		FinishRedirectURI: determineActionResult.FinishRedirectURI,
-		FlowStep:          determineActionResult.FlowStep,
+		Finished:          getFlowStepResult.Finished,
+		FinishRedirectURI: getFlowStepResult.FinishRedirectURI,
+		FlowStep:          getFlowStepResult.FlowStep,
 		Cookies:           cookies,
 	}
 	return
 }
 
-func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, determineActionResult *determineActionResult, err error) {
+func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, result *getFlowStepResult, err error) {
 	flow = NewFlow(session.FlowID, publicFlow)
 
 	// A new flow does not have any nodes.
@@ -177,7 +177,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 		return
 	}
 
-	determineActionResult, err = s.determineAction(ctx, session, flow)
+	result, err = s.getFlowStep(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -223,7 +223,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		return
 	}
 
-	determineActionResult, err := s.determineAction(ctx, session, w)
+	result, err := s.getFlowStep(ctx, session, w)
 	if err != nil {
 		return
 	}
@@ -236,9 +236,9 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		SessionOutput:     sessionOutput,
 		Flow:              w,
 		FlowReference:     &flowReference,
-		FlowStep:          determineActionResult.FlowStep,
-		Finished:          determineActionResult.Finished,
-		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		FlowStep:          result.FlowStep,
+		Finished:          result.Finished,
+		FinishRedirectURI: result.FinishRedirectURI,
 	}
 	return
 }
@@ -264,9 +264,9 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return
 	}
 
-	var determineActionResult *determineActionResult
+	var result *getFlowStepResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.feedInput(ctx, session, stateToken, rawMessage)
+		flow, result, err = s.feedInput(ctx, session, stateToken, rawMessage)
 		return err
 	})
 
@@ -315,9 +315,9 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		SessionOutput:     sessionOutput,
 		Flow:              flow,
 		FlowReference:     &flowReference,
-		FlowStep:          determineActionResult.FlowStep,
-		Finished:          determineActionResult.Finished,
-		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		FlowStep:          result.FlowStep,
+		Finished:          result.Finished,
+		FinishRedirectURI: result.FinishRedirectURI,
 		Cookies:           cookies,
 	}
 	return
@@ -344,9 +344,9 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		return
 	}
 
-	var determineActionResult *determineActionResult
+	var result *getFlowStepResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.feedSyntheticInput(ctx, session, stateToken, syntheticInput)
+		flow, result, err = s.feedSyntheticInput(ctx, session, stateToken, syntheticInput)
 		return err
 	})
 
@@ -388,9 +388,9 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		SessionOutput:     sessionOutput,
 		Flow:              flow,
 		FlowReference:     &flowReference,
-		FlowStep:          determineActionResult.FlowStep,
-		Finished:          determineActionResult.Finished,
-		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		FlowStep:          result.FlowStep,
+		Finished:          result.Finished,
+		FinishRedirectURI: result.FinishRedirectURI,
 		Cookies:           cookies,
 	}
 	return
@@ -424,7 +424,7 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, determineActionResult *determineActionResult, err error) {
+func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, result *getFlowStepResult, err error) {
 	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
@@ -449,7 +449,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 		return
 	}
 
-	determineActionResult, err = s.determineAction(ctx, session, flow)
+	result, err = s.getFlowStep(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -460,7 +460,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 	return
 }
 
-func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateToken string, syntheticInput Input) (flow *Flow, determineActionResult *determineActionResult, err error) {
+func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateToken string, syntheticInput Input) (flow *Flow, result *getFlowStepResult, err error) {
 	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
@@ -485,7 +485,7 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 		return
 	}
 
-	determineActionResult, err = s.determineAction(ctx, session, flow)
+	result, err = s.getFlowStep(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -513,7 +513,7 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 	return
 }
 
-func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (result *determineActionResult, err error) {
+func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow) (result *getFlowStepResult, err error) {
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
 		redirectURI := session.RedirectURI
@@ -521,7 +521,7 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		if ok {
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
-		result = &determineActionResult{
+		result = &getFlowStepResult{
 			Finished:          true,
 			FinishRedirectURI: redirectURI,
 		}
@@ -551,7 +551,7 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		}
 	}
 
-	result = &determineActionResult{
+	result = &getFlowStepResult{
 		FlowStep: flowStep,
 	}
 	return
