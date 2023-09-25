@@ -102,6 +102,10 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                 },
                 "state": {
                     "type": "string"
+                },
+                "response_mode": {
+                    "type": "string",
+                    "enum": ["form_post", "query"]
                 }
             },
             "required": [
@@ -125,6 +129,10 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                 },
                 "state": {
                     "type": "string"
+                },
+                "response_mode": {
+                    "type": "string",
+                    "enum": ["form_post", "query"]
                 }
             },
             "required": [

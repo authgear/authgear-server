@@ -403,7 +403,12 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 	return exactMatch, nil
 }
 
-func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
+type HandleOAuthAuthorizationResponseOptions struct {
+	Alias       string
+	RedirectURI string
+}
+
+func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOAuthAuthorizationResponseOptions, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
 	if oauthError := inputOAuth.GetOAuthError(); oauthError != "" {
 		errorDescription := inputOAuth.GetOAuthErrorDescription()
 		errorURI := inputOAuth.GetOAuthErrorURI()
@@ -411,21 +416,24 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string,
 		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(alias)
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
 	if oauthProvider == nil {
 		return nil, api.ErrOAuthProviderNotFound
 	}
 
 	code := inputOAuth.GetOAuthAuthorizationCode()
 
-	// TODO(authflow): support nonce in OAuth.
+	// TODO(authflow): support nonce but do not save nonce in cookies.
+	// Nonce in the current implementation is stored in cookies.
+	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
 	authInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
 			Code: code,
 		},
 		sso.GetAuthInfoParam{
-			Nonce: emptyNonce,
+			RedirectURI: opts.RedirectURI,
+			Nonce:       emptyNonce,
 		},
 	)
 	if err != nil {
@@ -447,8 +455,15 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, alias string,
 	return identitySpec, nil
 }
 
-func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependencies, alias string, state string) (authorizationURL string, err error) {
-	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(alias)
+type ConstructOAuthAuthorizationURLOptions struct {
+	RedirectURI  string
+	Alias        string
+	State        string
+	ResponseMode sso.ResponseMode
+}
+
+func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependencies, opts ConstructOAuthAuthorizationURLOptions) (authorizationURL string, err error) {
+	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
 	if oauthProvider == nil {
 		err = api.ErrOAuthProviderNotFound
 		return
@@ -457,8 +472,10 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	uiParam := uiparam.GetUIParam(ctx)
 
 	param := sso.GetAuthURLParam{
-		State:  state,
-		Prompt: uiParam.Prompt,
+		RedirectURI:  opts.RedirectURI,
+		ResponseMode: opts.ResponseMode,
+		State:        opts.State,
+		Prompt:       uiParam.Prompt,
 	}
 
 	authorizationURL, err = oauthProvider.GetAuthURL(param)

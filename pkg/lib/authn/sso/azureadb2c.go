@@ -12,7 +12,6 @@ import (
 
 type Azureadb2cImpl struct {
 	Clock                        clock.Clock
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -45,12 +44,15 @@ func (f *Azureadb2cImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return c.MakeOAuthURL(OIDCAuthParams{
-		ProviderConfig: f.ProviderConfig,
-		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		Nonce:          param.Nonce,
-		State:          param.State,
-		Prompt:         f.GetPrompt(param.Prompt),
+	return c.MakeOAuthURL(AuthorizationURLParams{
+		ClientID:     f.ProviderConfig.ClientID,
+		RedirectURI:  param.RedirectURI,
+		Scope:        f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		ResponseMode: param.ResponseMode,
+		State:        param.State,
+		Prompt:       f.GetPrompt(param.Prompt),
+		Nonce:        param.Nonce,
 	}), nil
 }
 
@@ -77,7 +79,7 @@ func (f *Azureadb2cImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, 
 		keySet,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		param.Nonce,
 		&tokenResp,
 	)

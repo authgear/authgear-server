@@ -16,7 +16,6 @@ const (
 )
 
 type FacebookImpl struct {
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -31,28 +30,29 @@ func (f *FacebookImpl) Config() config.OAuthSSOProviderConfig {
 }
 
 func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	p := authURLParams{
-		redirectURI: f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		clientID:    f.ProviderConfig.ClientID,
-		scope:       f.ProviderConfig.Type.Scope(),
-		state:       param.State,
-		baseURL:     facebookAuthorizationURL,
-		prompt:      f.GetPrompt(param.Prompt),
-	}
-	return authURL(p)
+	return MakeAuthorizationURL(facebookAuthorizationURL, AuthorizationURLParams{
+		ClientID:     f.ProviderConfig.ClientID,
+		RedirectURI:  param.RedirectURI,
+		Scope:        f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		// ResponseMode is unset
+		State:  param.State,
+		Prompt: f.GetPrompt(param.Prompt),
+		// Nonce is unset
+	}.Query()), nil
 }
 
 func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	return f.NonOpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{}
 
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
 		facebookTokenURL,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
 	)

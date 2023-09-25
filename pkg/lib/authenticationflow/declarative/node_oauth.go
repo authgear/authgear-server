@@ -7,6 +7,7 @@ import (
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 )
 
 func init() {
@@ -22,11 +23,12 @@ var _ authflow.Data = NodeOAuthData{}
 func (NodeOAuthData) Data() {}
 
 type NodeOAuth struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	NewUserID   string        `json:"new_user_id,omitempty"`
-	Alias       string        `json:"alias,omitempty"`
-	State       string        `json:"state,omitempty"`
-	RedirectURI string        `json:"redirect_uri,omitempty"`
+	JSONPointer  jsonpointer.T    `json:"json_pointer,omitempty"`
+	NewUserID    string           `json:"new_user_id,omitempty"`
+	Alias        string           `json:"alias,omitempty"`
+	State        string           `json:"state,omitempty"`
+	RedirectURI  string           `json:"redirect_uri,omitempty"`
+	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeOAuth{}
@@ -56,7 +58,10 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		spec := syntheticInputOAuth.GetIdentitySpec()
 		return n.reactTo(deps, flows, spec)
 	case authflow.AsInput(input, &inputOAuth):
-		spec, err := handleOAuthAuthorizationResponse(deps, n.Alias, inputOAuth)
+		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
+			Alias:       n.Alias,
+			RedirectURI: n.RedirectURI,
+		}, inputOAuth)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +73,12 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 }
 
 func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, n.Alias, n.State)
+	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
+		RedirectURI:  n.RedirectURI,
+		Alias:        n.Alias,
+		State:        n.State,
+		ResponseMode: n.ResponseMode,
+	})
 	if err != nil {
 		return nil, err
 	}

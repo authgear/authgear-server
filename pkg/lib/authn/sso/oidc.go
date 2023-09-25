@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
@@ -24,19 +22,6 @@ type jwtClock struct {
 
 func (c jwtClock) Now() time.Time {
 	return c.Clock.NowUTC()
-}
-
-type OIDCAuthParams struct {
-	ProviderConfig config.OAuthSSOProviderConfig
-	RedirectURI    string
-	// TODO(authflow): do not save nonce in cookies.
-	// Nonce in the current implementation is stored in cookies.
-	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
-	// So Nonce is optional.
-	Nonce       string
-	State       string
-	Prompt      []string
-	ExtraParams map[string]string
 }
 
 type OIDCDiscoveryDocument struct {
@@ -71,25 +56,8 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 	return &document, nil
 }
 
-func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
-	v := url.Values{}
-	v.Add("response_type", "code")
-	v.Add("client_id", params.ProviderConfig.ClientID)
-	v.Add("redirect_uri", params.RedirectURI)
-	v.Add("scope", params.ProviderConfig.Type.Scope())
-	// Include nonce in the URL only when it is present.
-	if params.Nonce != "" {
-		v.Add("nonce", params.Nonce)
-	}
-	v.Add("response_mode", "form_post")
-	for key, value := range params.ExtraParams {
-		v.Add(key, value)
-	}
-	v.Add("state", params.State)
-	if len(params.Prompt) > 0 {
-		v.Add("prompt", strings.Join(params.Prompt, " "))
-	}
-	return d.AuthorizationEndpoint + "?" + v.Encode()
+func (d *OIDCDiscoveryDocument) MakeOAuthURL(params AuthorizationURLParams) string {
+	return MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
 }
 
 func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) {

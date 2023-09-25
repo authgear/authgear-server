@@ -50,12 +50,14 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 			alias := inputOAuth.GetOAuthAlias()
 			state := inputOAuth.GetOAuthState()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
+			responseMode := inputOAuth.GetOAuthResponseMode()
 
 			syntheticInput := &InputStepIdentify{
 				Identification: i.SyntheticInput.Identification,
 				Alias:          alias,
 				State:          state,
 				RedirectURI:    redirectURI,
+				ResponseMode:   responseMode,
 			}
 
 			return authflow.NewNodeSimple(&NodeLookupIdentityOAuth{
@@ -64,6 +66,7 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 				Alias:          alias,
 				State:          state,
 				RedirectURI:    redirectURI,
+				ResponseMode:   responseMode,
 			}), nil
 		}
 	}

@@ -2,6 +2,7 @@ package interaction
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -138,6 +139,10 @@ type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
 }
 
+type OAuthRedirectURIBuilder interface {
+	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
+}
+
 type ForgotPasswordService interface {
 	SendCode(loginID string) error
 }
@@ -215,6 +220,7 @@ type Context struct {
 	OTPCodeService                  OTPCodeService
 	OTPSender                       OTPSender
 	OAuthProviderFactory            OAuthProviderFactory
+	OAuthRedirectURIBuilder         OAuthRedirectURIBuilder
 	MFA                             MFAService
 	ForgotPassword                  ForgotPasswordService
 	ResetPassword                   ResetPasswordService

@@ -69,12 +69,15 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, fmt.Errorf("invalid nonce")
 	}
 
+	redirectURI := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(oauthProvider.Config())
+
 	userInfo, err := oauthProvider.GetAuthInfo(
 		sso.OAuthAuthorizationResponse{
 			Code: code,
 		},
 		sso.GetAuthInfoParam{
-			Nonce: hashedNonce,
+			RedirectURI: redirectURI.String(),
+			Nonce:       hashedNonce,
 		},
 	)
 	if err != nil {

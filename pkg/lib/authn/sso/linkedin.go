@@ -14,7 +14,6 @@ const (
 )
 
 type LinkedInImpl struct {
-	RedirectURL                  RedirectURLProvider
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -29,26 +28,27 @@ func (f *LinkedInImpl) Config() config.OAuthSSOProviderConfig {
 }
 
 func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	p := authURLParams{
-		redirectURI: f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		clientID:    f.ProviderConfig.ClientID,
-		scope:       f.ProviderConfig.Type.Scope(),
-		state:       param.State,
-		baseURL:     linkedinAuthorizationURL,
-		prompt:      f.GetPrompt(param.Prompt),
-	}
-	return authURL(p)
+	return MakeAuthorizationURL(linkedinAuthorizationURL, AuthorizationURLParams{
+		ClientID:     f.ProviderConfig.ClientID,
+		RedirectURI:  param.RedirectURI,
+		Scope:        f.ProviderConfig.Type.Scope(),
+		ResponseType: ResponseTypeCode,
+		// ResponseMode is unset.
+		State:  param.State,
+		Prompt: f.GetPrompt(param.Prompt),
+		// Nonce is unset
+	}.Query()), nil
 }
 
 func (f *LinkedInImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	return f.NonOpenIDConnectGetAuthInfo(r, param)
 }
 
-func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
+func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
 		linkedinTokenURL,
-		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		param.RedirectURI,
 		f.ProviderConfig.ClientID,
 		f.Credentials.ClientSecret,
 	)

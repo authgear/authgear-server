@@ -42,10 +42,17 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
         },
         "redirect_uri": {
             "type": "string",
-	    "format": "uri"
+            "format": "uri"
         },
         "state": {
             "type": "string"
+        },
+        "response_mode": {
+            "type": "string",
+            "enum": [
+                "form_post",
+                "query"
+            ]
         }
     },
     "required": [

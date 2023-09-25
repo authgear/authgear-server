@@ -6,6 +6,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -34,20 +35,6 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString))
 		}
 
-		optionalString := func(key string) {
-			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString))
-		}
-
-		requireFormat := func(key string, format string) {
-			required = append(required, key)
-			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString).Format(format))
-		}
-
-		requireConst := func(key string, value string) {
-			required = append(required, key)
-			b.Properties().Property(key, validation.SchemaBuilder{}.Type(validation.TypeString).Const(value))
-		}
-
 		setRequiredAndAppendOneOf := func() {
 			b.Required(required...)
 			oneOf = append(oneOf, b)
@@ -64,9 +51,22 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationOAuth:
-			requireFormat("redirect_uri", "uri")
-			optionalString("state")
-			requireConst("alias", candidate.Alias)
+			// redirect_uri is required.
+			required = append(required, "redirect_uri")
+			b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
+
+			// alias is required.
+			required = append(required, "alias")
+			b.Properties().Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).Const(candidate.Alias))
+
+			// state is optional.
+			b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))
+
+			// response_mode is optional.
+			b.Properties().Property("response_mode", validation.SchemaBuilder{}.
+				Type(validation.TypeString).
+				Enum(sso.ResponseModeFormPost, sso.ResponseModeQuery))
+
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationPasskey:
 			required = append(required, "assertion_response")
@@ -101,9 +101,10 @@ type InputStepIdentify struct {
 
 	LoginID string `json:"login,omitempty"`
 
-	Alias       string `json:"alias,omitempty"`
-	State       string `json:"state,omitempty"`
-	RedirectURI string `json:"redirect_uri,omitempty"`
+	Alias        string           `json:"alias,omitempty"`
+	State        string           `json:"state,omitempty"`
+	RedirectURI  string           `json:"redirect_uri,omitempty"`
+	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -131,4 +132,8 @@ func (i *InputStepIdentify) GetOAuthState() string {
 
 func (i *InputStepIdentify) GetOAuthRedirectURI() string {
 	return i.RedirectURI
+}
+
+func (i *InputStepIdentify) GetOAuthResponseMode() sso.ResponseMode {
+	return i.ResponseMode
 }

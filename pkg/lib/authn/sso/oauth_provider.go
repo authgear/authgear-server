@@ -9,13 +9,16 @@ import (
 )
 
 type GetAuthURLParam struct {
-	Nonce  string
-	State  string
-	Prompt []string
+	RedirectURI  string
+	ResponseMode ResponseMode
+	Nonce        string
+	State        string
+	Prompt       []string
 }
 
 type GetAuthInfoParam struct {
-	Nonce string
+	RedirectURI string
+	Nonce       string
 }
 
 type OAuthAuthorizationResponse struct {
@@ -56,10 +59,6 @@ type EndpointsProvider interface {
 	BaseURL() *url.URL
 }
 
-type RedirectURLProvider interface {
-	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
-}
-
 type StandardAttributesNormalizer interface {
 	Normalize(stdattrs.T) error
 }
@@ -68,7 +67,6 @@ type OAuthProviderFactory struct {
 	Endpoints                    EndpointsProvider
 	IdentityConfig               *config.IdentityConfig
 	Credentials                  *config.OAuthSSOProviderCredentials
-	RedirectURL                  RedirectURLProvider
 	Clock                        clock.Clock
 	WechatURLProvider            WechatURLProvider
 	StandardAttributesNormalizer StandardAttributesNormalizer
@@ -88,28 +86,24 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	case config.OAuthSSOProviderTypeGoogle:
 		return &GoogleImpl{
 			Clock:                        p.Clock,
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeGithub:
 		return &GithubImpl{
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
@@ -117,7 +111,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
 			Clock:                        p.Clock,
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
@@ -125,7 +118,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	case config.OAuthSSOProviderTypeAzureADB2C:
 		return &Azureadb2cImpl{
 			Clock:                        p.Clock,
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
@@ -133,7 +125,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	case config.OAuthSSOProviderTypeADFS:
 		return &ADFSImpl{
 			Clock:                        p.Clock,
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
@@ -141,7 +132,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	case config.OAuthSSOProviderTypeApple:
 		return &AppleImpl{
 			Clock:                        p.Clock,
-			RedirectURL:                  p.RedirectURL,
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
