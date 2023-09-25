@@ -45,11 +45,11 @@ type FlowStep struct {
 }
 
 // FlowResponse is an API object.
-// When the flow finished, `json_schema` is absent and `finished` is true.
+// When the flow finished, `finished` is true.
 // When data contains "redirect_uri", the driver of the flow must perform redirect.
 type FlowResponse struct {
-	// StateID is the StateID.
-	StateID string `json:"state_id"`
+	// StateToken is the StateToken.
+	StateToken string `json:"state_token"`
 	// ID is the flow ID.
 	ID string `json:"id"`
 

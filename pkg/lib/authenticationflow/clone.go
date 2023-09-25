@@ -12,10 +12,10 @@ func CloneFlow(w *Flow) *Flow {
 	}
 
 	return &Flow{
-		FlowID:  w.FlowID,
-		StateID: "",
-		Intent:  w.Intent,
-		Nodes:   nodes,
+		FlowID:     w.FlowID,
+		StateToken: "",
+		Intent:     w.Intent,
+		Nodes:      nodes,
 	}
 }
 

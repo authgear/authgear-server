@@ -12,8 +12,8 @@ import (
 
 type AuthenticationFlowV1WorkflowService interface {
 	CreateNewFlow(intent authflow.PublicFlow, sessionOptions *authflow.SessionOptions) (*authflow.ServiceOutput, error)
-	Get(stateID string) (*authflow.ServiceOutput, error)
-	FeedInput(stateID string, rawMessage json.RawMessage) (*authflow.ServiceOutput, error)
+	Get(stateToken string) (*authflow.ServiceOutput, error)
+	FeedInput(stateToken string, rawMessage json.RawMessage) (*authflow.ServiceOutput, error)
 }
 
 type AuthenticationFlowV1CookieManager interface {
@@ -26,19 +26,19 @@ func batchInput0(
 	service AuthenticationFlowV1WorkflowService,
 	w http.ResponseWriter,
 	r *http.Request,
-	stateID string,
+	stateToken string,
 	rawMessages []json.RawMessage,
 ) (output *authflow.ServiceOutput, err error) {
 	// Collect all cookies
 	var cookies []*http.Cookie
 	for _, rawMessage := range rawMessages {
-		output, err = service.FeedInput(stateID, rawMessage)
+		output, err = service.FeedInput(stateToken, rawMessage)
 		if err != nil && !errors.Is(err, authflow.ErrEOF) {
 			return nil, err
 		}
 
 		// Feed the next input to the latest state.
-		stateID = output.Flow.StateID
+		stateToken = output.Flow.StateToken
 		cookies = append(cookies, output.Cookies...)
 	}
 	if err != nil && errors.Is(err, authflow.ErrEOF) {
@@ -53,8 +53,8 @@ func batchInput0(
 	return
 }
 
-func prepareErrorResponse(service AuthenticationFlowV1WorkflowService, stateID string, flowErr error) (*api.Response, error) {
-	output, err := service.Get(stateID)
+func prepareErrorResponse(service AuthenticationFlowV1WorkflowService, stateToken string, flowErr error) (*api.Response, error) {
+	output, err := service.Get(stateToken)
 	if err != nil {
 		return nil, err
 	}

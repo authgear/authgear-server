@@ -72,9 +72,9 @@ func TestService(t *testing.T) {
 
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:  "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					StateID: "authflowstate_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
-					Intent:  intent,
+					FlowID:     "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					StateToken: "authflowstate_1WPH8EXJFWMAZ7M8Y9EGAG34SPW86VXT",
+					Intent:     intent,
 				},
 				FlowReference: &FlowReference{},
 				Data:          mapData{},
@@ -107,9 +107,9 @@ func TestService(t *testing.T) {
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:  "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					StateID: "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
-					Intent:  intent,
+					FlowID:     "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					StateToken: "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					Intent:     intent,
 					Nodes: []Node{
 						{
 							Type:   NodeTypeSimple,
@@ -135,30 +135,30 @@ func TestService(t *testing.T) {
 				PretendLoginIDExists: false,
 			}
 			flow := &Flow{
-				FlowID:  "flow-id",
-				StateID: "state-id",
-				Intent:  intent,
+				FlowID:     "flow-id",
+				StateToken: "state-id",
+				Intent:     intent,
 			}
 			session := &Session{
 				FlowID: "flow-id",
 			}
 
 			gomock.InOrder(
-				store.EXPECT().GetFlowByStateID(flow.StateID).Times(1).Return(flow, nil),
+				store.EXPECT().GetFlowByStateToken(flow.StateToken).Times(1).Return(flow, nil),
 				store.EXPECT().GetSession(flow.FlowID).Return(session, nil),
-				store.EXPECT().GetFlowByStateID(flow.StateID).Times(1).Return(flow, nil),
+				store.EXPECT().GetFlowByStateToken(flow.StateToken).Times(1).Return(flow, nil),
 				store.EXPECT().CreateFlow(gomock.Any()).Return(nil),
 			)
 
-			output, err := service.FeedInput(flow.StateID, json.RawMessage(`{
+			output, err := service.FeedInput(flow.StateToken, json.RawMessage(`{
 				"login_id": "user@example.com"
 			}`))
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:  "flow-id",
-					StateID: "authflowstate_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					Intent:  intent,
+					FlowID:     "flow-id",
+					StateToken: "authflowstate_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					Intent:     intent,
 					Nodes: []Node{
 						{
 							Type: NodeTypeSubFlow,
@@ -385,18 +385,18 @@ func TestServiceContext(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			store.EXPECT().GetSession(output.Flow.FlowID).Return(output.Session, nil)
-			store.EXPECT().GetFlowByStateID(output.Flow.StateID).Times(2).Return(output.Flow, nil)
+			store.EXPECT().GetFlowByStateToken(output.Flow.StateToken).Times(2).Return(output.Flow, nil)
 
 			output, err = service.FeedInput(
-				output.Flow.StateID,
+				output.Flow.StateToken,
 				json.RawMessage(`{}`),
 			)
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
-					FlowID:  "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
-					StateID: "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
-					Intent:  intent,
+					FlowID:     "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
+					StateToken: "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+					Intent:     intent,
 					Nodes: []Node{
 						{
 							Type: NodeTypeSimple,

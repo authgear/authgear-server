@@ -90,19 +90,19 @@ func (mr *MockStoreMockRecorder) DeleteSession(session interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockStore)(nil).DeleteSession), session)
 }
 
-// GetFlowByStateID mocks base method.
-func (m *MockStore) GetFlowByStateID(stateID string) (*Flow, error) {
+// GetFlowByStateToken mocks base method.
+func (m *MockStore) GetFlowByStateToken(stateToken string) (*Flow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFlowByStateID", stateID)
+	ret := m.ctrl.Call(m, "GetFlowByStateToken", stateToken)
 	ret0, _ := ret[0].(*Flow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetFlowByStateID indicates an expected call of GetFlowByStateID.
-func (mr *MockStoreMockRecorder) GetFlowByStateID(stateID interface{}) *gomock.Call {
+// GetFlowByStateToken indicates an expected call of GetFlowByStateToken.
+func (mr *MockStoreMockRecorder) GetFlowByStateToken(stateToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowByStateID", reflect.TypeOf((*MockStore)(nil).GetFlowByStateID), stateID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowByStateToken", reflect.TypeOf((*MockStore)(nil).GetFlowByStateToken), stateToken)
 }
 
 // GetSession mocks base method.

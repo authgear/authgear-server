@@ -31,13 +31,13 @@ type ServiceOutput struct {
 
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
-		StateID:  o.Flow.StateID,
-		ID:       o.Flow.FlowID,
-		Finished: o.Finished,
-		Type:     o.FlowReference.Type,
-		Name:     o.FlowReference.Name,
-		Step:     o.FlowStep,
-		Data:     o.Data,
+		StateToken: o.Flow.StateToken,
+		ID:         o.Flow.FlowID,
+		Finished:   o.Finished,
+		Type:       o.FlowReference.Type,
+		Name:       o.FlowReference.Name,
+		Step:       o.FlowStep,
+		Data:       o.Data,
 	}
 }
 
@@ -61,7 +61,7 @@ type Store interface {
 	DeleteSession(session *Session) error
 
 	CreateFlow(flow *Flow) error
-	GetFlowByStateID(stateID string) (*Flow, error)
+	GetFlowByStateToken(stateToken string) (*Flow, error)
 	DeleteFlow(flow *Flow) error
 }
 
@@ -189,8 +189,8 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 	return
 }
 
-func (s *Service) Get(stateID string) (output *ServiceOutput, err error) {
-	w, err := s.Store.GetFlowByStateID(stateID)
+func (s *Service) Get(stateToken string) (output *ServiceOutput, err error) {
+	w, err := s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}
@@ -244,8 +244,8 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 	return
 }
 
-func (s *Service) FeedInput(stateID string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
-	flow, err := s.Store.GetFlowByStateID(stateID)
+func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+	flow, err := s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}
@@ -267,7 +267,7 @@ func (s *Service) FeedInput(stateID string, rawMessage json.RawMessage) (output 
 
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.feedInput(ctx, session, stateID, rawMessage)
+		flow, determineActionResult, err = s.feedInput(ctx, session, stateToken, rawMessage)
 		return err
 	})
 
@@ -323,8 +323,8 @@ func (s *Service) FeedInput(stateID string, rawMessage json.RawMessage) (output 
 	return
 }
 
-func (s *Service) FeedSyntheticInput(stateID string, syntheticInput Input) (output *ServiceOutput, err error) {
-	flow, err := s.Store.GetFlowByStateID(stateID)
+func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (output *ServiceOutput, err error) {
+	flow, err := s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}
@@ -346,7 +346,7 @@ func (s *Service) FeedSyntheticInput(stateID string, syntheticInput Input) (outp
 
 	var determineActionResult *determineActionResult
 	err = s.Database.ReadOnly(func() error {
-		flow, determineActionResult, err = s.feedSyntheticInput(ctx, session, stateID, syntheticInput)
+		flow, determineActionResult, err = s.feedSyntheticInput(ctx, session, stateToken, syntheticInput)
 		return err
 	})
 
@@ -406,7 +406,7 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 		return
 	}
 
-	output, err = s.FeedSyntheticInput(createOutput.Flow.StateID, errSwitchFlow.SyntheticInput)
+	output, err = s.FeedSyntheticInput(createOutput.Flow.StateToken, errSwitchFlow.SyntheticInput)
 	if err != nil {
 		return
 	}
@@ -423,8 +423,8 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, stateID string, rawMessage json.RawMessage) (flow *Flow, determineActionResult *determineActionResult, err error) {
-	flow, err = s.Store.GetFlowByStateID(stateID)
+func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, determineActionResult *determineActionResult, err error) {
+	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}
@@ -459,8 +459,8 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateID strin
 	return
 }
 
-func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateID string, syntheticInput Input) (flow *Flow, determineActionResult *determineActionResult, err error) {
-	flow, err = s.Store.GetFlowByStateID(stateID)
+func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateToken string, syntheticInput Input) (flow *Flow, determineActionResult *determineActionResult, err error) {
+	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
 	}

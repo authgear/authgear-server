@@ -29,7 +29,7 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		flowKey := redisFlowKey(s.AppID, flow.FlowID)
-		stateKey := redisFlowStateKey(s.AppID, flow.StateID)
+		stateKey := redisFlowStateKey(s.AppID, flow.StateToken)
 		ttl := Lifetime
 
 		_, err := conn.SetEX(s.Context, flowKey, []byte(flowKey), ttl).Result()
@@ -46,8 +46,8 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 	})
 }
 
-func (s *StoreImpl) GetFlowByStateID(stateID string) (*Flow, error) {
-	stateKey := redisFlowStateKey(s.AppID, stateID)
+func (s *StoreImpl) GetFlowByStateToken(stateToken string) (*Flow, error) {
+	stateKey := redisFlowStateKey(s.AppID, stateToken)
 	var flow Flow
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		bytes, err := conn.Get(s.Context, stateKey).Bytes()
@@ -79,7 +79,7 @@ func (s *StoreImpl) GetFlowByStateID(stateID string) (*Flow, error) {
 
 func (s *StoreImpl) DeleteFlow(flow *Flow) error {
 	// We do not delete the states because there are many of them.
-	// Deleting the flowID is enough to make GetFlowByStateID to return ErrFlowNotFound.
+	// Deleting the flowID is enough to make GetFlowByStateToken to return ErrFlowNotFound.
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		flowKey := redisFlowKey(s.AppID, flow.FlowID)
 
@@ -150,8 +150,8 @@ func redisFlowKey(appID config.AppID, flowID string) string {
 	return fmt.Sprintf("app:%s:authenticationflow_flow:%s", appID, flowID)
 }
 
-func redisFlowStateKey(appID config.AppID, stateID string) string {
-	return fmt.Sprintf("app:%s:authenticationflow_state:%s", appID, stateID)
+func redisFlowStateKey(appID config.AppID, stateToken string) string {
+	return fmt.Sprintf("app:%s:authenticationflow_state:%s", appID, stateToken)
 }
 
 func redisFlowSessionKey(appID config.AppID, flowID string) string {
