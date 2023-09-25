@@ -18,11 +18,10 @@ type ServiceOutput struct {
 	SessionOutput *SessionOutput
 	Flow          *Flow
 
-	Finished          bool
-	FinishRedirectURI string
-
 	FlowReference *FlowReference
+	Finished      bool
 	FlowStep      *FlowStep
+	Data          Data
 
 	Cookies []*http.Cookie
 }
@@ -31,21 +30,23 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
 		StateToken: o.Flow.StateToken,
 		ID:         o.Flow.FlowID,
+		Type:       o.FlowReference.Type,
+		Name:       o.FlowReference.Name,
 
-		Finished:          o.Finished,
-		FinishRedirectURI: o.FinishRedirectURI,
-
-		Type: o.FlowReference.Type,
-		Name: o.FlowReference.Name,
 		Step: o.FlowStep,
+
+		Finished: o.Finished,
+
+		Data: o.Data,
 	}
 }
 
 type getFlowStepResult struct {
-	Finished          bool
-	FinishRedirectURI string
+	Finished bool
 
 	FlowStep *FlowStep
+
+	Data Data
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -138,14 +139,14 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 
 	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
-		Session:           session,
-		SessionOutput:     sessionOutput,
-		Flow:              flow,
-		FlowReference:     &flowReference,
-		Finished:          getFlowStepResult.Finished,
-		FinishRedirectURI: getFlowStepResult.FinishRedirectURI,
-		FlowStep:          getFlowStepResult.FlowStep,
-		Cookies:           cookies,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Flow:          flow,
+		FlowReference: &flowReference,
+		Finished:      getFlowStepResult.Finished,
+		FlowStep:      getFlowStepResult.FlowStep,
+		Data:          getFlowStepResult.Data,
+		Cookies:       cookies,
 	}
 	return
 }
@@ -232,13 +233,13 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 
 	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
-		Session:           session,
-		SessionOutput:     sessionOutput,
-		Flow:              w,
-		FlowReference:     &flowReference,
-		FlowStep:          result.FlowStep,
-		Finished:          result.Finished,
-		FinishRedirectURI: result.FinishRedirectURI,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Flow:          w,
+		FlowReference: &flowReference,
+		FlowStep:      result.FlowStep,
+		Finished:      result.Finished,
+		Data:          result.Data,
 	}
 	return
 }
@@ -311,14 +312,14 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 
 	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
-		Session:           session,
-		SessionOutput:     sessionOutput,
-		Flow:              flow,
-		FlowReference:     &flowReference,
-		FlowStep:          result.FlowStep,
-		Finished:          result.Finished,
-		FinishRedirectURI: result.FinishRedirectURI,
-		Cookies:           cookies,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Flow:          flow,
+		FlowReference: &flowReference,
+		FlowStep:      result.FlowStep,
+		Finished:      result.Finished,
+		Data:          result.Data,
+		Cookies:       cookies,
 	}
 	return
 }
@@ -384,14 +385,14 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 
 	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
-		Session:           session,
-		SessionOutput:     sessionOutput,
-		Flow:              flow,
-		FlowReference:     &flowReference,
-		FlowStep:          result.FlowStep,
-		Finished:          result.Finished,
-		FinishRedirectURI: result.FinishRedirectURI,
-		Cookies:           cookies,
+		Session:       session,
+		SessionOutput: sessionOutput,
+		Flow:          flow,
+		FlowReference: &flowReference,
+		FlowStep:      result.FlowStep,
+		Finished:      result.Finished,
+		Data:          result.Data,
+		Cookies:       cookies,
 	}
 	return
 }
@@ -521,9 +522,22 @@ func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow)
 		if ok {
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
-		result = &getFlowStepResult{
-			Finished:          true,
+
+		dataFinishRedirectURI := &DataFinishRedirectURI{
 			FinishRedirectURI: redirectURI,
+		}
+		var data Data = dataFinishRedirectURI
+
+		if outputer, ok := flow.Intent.(EndOfFlowDataOutputer); ok {
+			data, err = outputer.OutputEndOfFlowData(ctx, s.Deps, NewFlows(flow), dataFinishRedirectURI)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		result = &getFlowStepResult{
+			Finished: true,
+			Data:     data,
 		}
 		return
 	}
@@ -546,13 +560,14 @@ func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow)
 		if err != nil {
 			return nil, err
 		}
-		if flowStep != nil {
-			flowStep.Data = data
-		}
+	}
+	if data == nil {
+		data = mapData{}
 	}
 
 	result = &getFlowStepResult{
 		FlowStep: flowStep,
+		Data:     data,
 	}
 	return
 }

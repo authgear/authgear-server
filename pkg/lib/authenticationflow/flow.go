@@ -42,7 +42,6 @@ type FlowStep struct {
 	Type           string                                  `json:"type"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
-	Data           Data                                    `json:"data,omitempty"`
 }
 
 // FlowResponse is an API object.
@@ -58,10 +57,11 @@ type FlowResponse struct {
 	Type FlowType `json:"type,omitempty"`
 	Name string   `json:"name,omitempty"`
 
-	Finished          bool   `json:"finished,omitempty"`
-	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
+	Finished bool `json:"finished,omitempty"`
 
 	Step *FlowStep `json:"step,omitempty"`
+
+	Data Data `json:"data,omitempty"`
 }
 
 type flowFactory func() PublicFlow

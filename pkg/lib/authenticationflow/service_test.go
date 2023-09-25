@@ -75,6 +75,7 @@ func TestService(t *testing.T) {
 				SessionOutput: &SessionOutput{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
+				Data: mapData{},
 			})
 		})
 
@@ -108,6 +109,7 @@ func TestService(t *testing.T) {
 					},
 				},
 				Finished: true,
+				Data:     &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -232,10 +234,18 @@ func (*nodeNilInput) Kind() string {
 	return "nodeNilInput"
 }
 
+type intentServiceContextData struct {
+	*DataFinishRedirectURI
+	Foobar string
+}
+
+func (*intentServiceContextData) Data() {}
+
 type intentServiceContext struct{}
 
 var _ PublicFlow = &intentServiceContext{}
 var _ CookieGetter = &intentServiceContext{}
+var _ EndOfFlowDataOutputer = &intentServiceContext{}
 
 func (*intentServiceContext) Kind() string {
 	return "intentServiceContext"
@@ -274,6 +284,13 @@ func (*intentServiceContext) ReactTo(ctx context.Context, deps *Dependencies, fl
 		return nil, ErrIncompatibleInput
 	}
 
+}
+
+func (*intentServiceContext) OutputEndOfFlowData(ctx context.Context, deps *Dependencies, flows Flows, baseData *DataFinishRedirectURI) (Data, error) {
+	return &intentServiceContextData{
+		DataFinishRedirectURI: baseData,
+		Foobar:                "42",
+	}, nil
 }
 
 func (*intentServiceContext) GetCookies(ctx context.Context, deps *Dependencies, flows Flows) ([]*http.Cookie, error) {
@@ -394,7 +411,11 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
-				Finished:      true,
+				Finished: true,
+				Data: &intentServiceContextData{
+					DataFinishRedirectURI: &DataFinishRedirectURI{},
+					Foobar:                "42",
+				},
 				FlowReference: &FlowReference{},
 				Session: &Session{
 					FlowID:   "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
