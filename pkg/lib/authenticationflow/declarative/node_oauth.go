@@ -56,7 +56,7 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 	switch {
 	case authflow.AsInput(input, &syntheticInputOAuth):
 		spec := syntheticInputOAuth.GetIdentitySpec()
-		return n.reactTo(deps, flows, spec)
+		return n.reactTo(ctx, deps, flows, spec)
 	case authflow.AsInput(input, &inputOAuth):
 		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
 			Alias:       n.Alias,
@@ -66,7 +66,7 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 			return nil, err
 		}
 
-		return n.reactTo(deps, flows, spec)
+		return n.reactTo(ctx, deps, flows, spec)
 	}
 
 	return nil, authflow.ErrIncompatibleInput
@@ -88,7 +88,7 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 	}, nil
 }
 
-func (n *NodeOAuth) reactTo(deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
+func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {
 	// signup
 	if n.NewUserID != "" {
 		info, err := newIdentityInfo(deps, n.NewUserID, spec)
@@ -107,7 +107,7 @@ func (n *NodeOAuth) reactTo(deps *authflow.Dependencies, flows authflow.Flows, s
 		return nil, err
 	}
 
-	newNode, err := NewNodeDoUseIdentity(flows, &NodeDoUseIdentity{
+	newNode, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
 		Identity: exactMatch,
 	})
 	if err != nil {
