@@ -48,7 +48,6 @@ type determineActionResult struct {
 	Finished          bool
 	FinishRedirectURI string
 
-	FlowReference *FlowReference
 	FlowStep      *FlowStep
 	SchemaBuilder validation.SchemaBuilder
 }
@@ -141,14 +140,15 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 		err = ErrEOF
 	}
 
+	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
 		Session:           session,
 		SessionOutput:     sessionOutput,
 		Flow:              flow,
-		FlowReference:     determineActionResult.FlowReference,
-		FlowStep:          determineActionResult.FlowStep,
+		FlowReference:     &flowReference,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		FlowStep:          determineActionResult.FlowStep,
 		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Cookies:           cookies,
 	}
@@ -235,14 +235,16 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 
 	sessionOutput := session.ToOutput()
 
+	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
-		Session:       session,
-		SessionOutput: sessionOutput,
-		Flow:          w,
-		FlowReference: determineActionResult.FlowReference,
-		FlowStep:      determineActionResult.FlowStep,
-		SchemaBuilder: determineActionResult.SchemaBuilder,
-		Finished:      determineActionResult.Finished,
+		Session:           session,
+		SessionOutput:     sessionOutput,
+		Flow:              w,
+		FlowReference:     &flowReference,
+		FlowStep:          determineActionResult.FlowStep,
+		SchemaBuilder:     determineActionResult.SchemaBuilder,
+		Finished:          determineActionResult.Finished,
+		FinishRedirectURI: determineActionResult.FinishRedirectURI,
 	}
 	return
 }
@@ -312,11 +314,13 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 	if isEOF {
 		err = ErrEOF
 	}
+
+	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
 		Session:           session,
 		SessionOutput:     sessionOutput,
 		Flow:              flow,
-		FlowReference:     determineActionResult.FlowReference,
+		FlowReference:     &flowReference,
 		FlowStep:          determineActionResult.FlowStep,
 		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
@@ -384,11 +388,13 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 	if isEOF {
 		err = ErrEOF
 	}
+
+	flowReference := GetFlowReference(ctx)
 	output = &ServiceOutput{
 		Session:           session,
 		SessionOutput:     sessionOutput,
 		Flow:              flow,
-		FlowReference:     determineActionResult.FlowReference,
+		FlowReference:     &flowReference,
 		FlowStep:          determineActionResult.FlowStep,
 		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
@@ -516,8 +522,6 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 }
 
 func (s *Service) determineAction(ctx context.Context, session *Session, flow *Flow) (result *determineActionResult, err error) {
-	flowReference := GetFlowReference(ctx)
-
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
 		redirectURI := session.RedirectURI
@@ -528,7 +532,6 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		result = &determineActionResult{
 			Finished:          true,
 			FinishRedirectURI: redirectURI,
-			FlowReference:     &flowReference,
 		}
 		return
 	}
@@ -559,7 +562,6 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 	}
 
 	result = &determineActionResult{
-		FlowReference: &flowReference,
 		FlowStep:      flowStep,
 		SchemaBuilder: schemaBuilder,
 	}
