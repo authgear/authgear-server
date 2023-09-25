@@ -5,22 +5,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type CreateAuthenticationCandidate struct {
+type CreateAuthenticationOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
 	// PasswordPolicy is specific to primary_password and secondary_password.
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
 }
 
-func NewCreateAuthenticationCandidates(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep) []CreateAuthenticationCandidate {
-	candidates := []CreateAuthenticationCandidate{}
+func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep) []CreateAuthenticationOption {
+	options := []CreateAuthenticationOption{}
 	passwordPolicy := NewPasswordPolicy(deps.Config.Authenticator.Password.Policy)
 	for _, b := range step.OneOf {
 		switch b.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			candidates = append(candidates, CreateAuthenticationCandidate{
+			options = append(options, CreateAuthenticationOption{
 				Authentication: b.Authentication,
 				PasswordPolicy: passwordPolicy,
 			})
@@ -34,11 +34,11 @@ func NewCreateAuthenticationCandidates(deps *authflow.Dependencies, step *config
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			candidates = append(candidates, CreateAuthenticationCandidate{
+			options = append(options, CreateAuthenticationOption{
 				Authentication: b.Authentication,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			candidates = append(candidates, CreateAuthenticationCandidate{
+			options = append(options, CreateAuthenticationOption{
 				Authentication: b.Authentication,
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
@@ -49,5 +49,5 @@ func NewCreateAuthenticationCandidates(deps *authflow.Dependencies, step *config
 			break
 		}
 	}
-	return candidates
+	return options
 }

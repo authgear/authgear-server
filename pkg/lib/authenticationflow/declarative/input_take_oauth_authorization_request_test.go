@@ -19,7 +19,7 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
 		}
 
 		test(&InputSchemaTakeOAuthAuthorizationRequest{
-			OAuthCandidates: []IdentificationCandidate{
+			OAuthOptions: []IdentificationOption{
 				{
 					Identification: config.AuthenticationFlowIdentificationOAuth,
 					Alias:          "google",

@@ -18,7 +18,7 @@ func init() {
 }
 
 type IntentSignupFlowStepIdentifyData struct {
-	Candidates []IdentificationCandidate `json:"candidates"`
+	Options []IdentificationOption `json:"options"`
 }
 
 var _ authflow.Data = IntentSignupFlowStepIdentifyData{}
@@ -26,10 +26,10 @@ var _ authflow.Data = IntentSignupFlowStepIdentifyData{}
 func (IntentSignupFlowStepIdentifyData) Data() {}
 
 type IntentSignupFlowStepIdentify struct {
-	JSONPointer jsonpointer.T             `json:"json_pointer,omitempty"`
-	StepName    string                    `json:"step_name,omitempty"`
-	UserID      string                    `json:"user_id,omitempty"`
-	Candidates  []IdentificationCandidate `json:"candidates,omitempty"`
+	JSONPointer jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName    string                 `json:"step_name,omitempty"`
+	UserID      string                 `json:"user_id,omitempty"`
+	Options     []IdentificationOption `json:"options,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentSignupFlowStepIdentify{}
@@ -78,7 +78,7 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 	}
 	step := i.step(current)
 
-	candidates := []IdentificationCandidate{}
+	options := []IdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
 		case config.AuthenticationFlowIdentificationEmail:
@@ -86,14 +86,14 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 		case config.AuthenticationFlowIdentificationPhone:
 			fallthrough
 		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationCandidateLoginID(b.Identification)
-			candidates = append(candidates, c)
+			c := NewIdentificationOptionLoginID(b.Identification)
+			options = append(options, c)
 		case config.AuthenticationFlowIdentificationOAuth:
-			oauthCandidates := NewIdentificationCandidatesOAuth(
+			oauthOptions := NewIdentificationOptionsOAuth(
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers,
 			)
-			candidates = append(candidates, oauthCandidates...)
+			options = append(options, oauthOptions...)
 		case config.AuthenticationFlowIdentificationPasskey:
 			// Do not support create passkey in signup because
 			// passkey is not considered as a persistent identifier.
@@ -101,7 +101,7 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 		}
 	}
 
-	i.Candidates = candidates
+	i.Options = options
 	return i, nil
 }
 
@@ -114,7 +114,7 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 	if len(flows.Nearest.Nodes) == 0 {
 		return &InputSchemaStepIdentify{
 			JSONPointer: i.JSONPointer,
-			Candidates:  i.Candidates,
+			Options:     i.Options,
 		}, nil
 	}
 
@@ -198,7 +198,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 
 func (i *IntentSignupFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return IntentSignupFlowStepIdentifyData{
-		Candidates: i.Candidates,
+		Options: i.Options,
 	}, nil
 }
 

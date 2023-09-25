@@ -22,7 +22,7 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Candidates []UseAuthenticationCandidate `json:"candidates"`
+	Options []UseAuthenticationOption `json:"options"`
 }
 
 var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -30,10 +30,10 @@ var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
 func (m IntentLoginFlowStepAuthenticateData) Data() {}
 
 type IntentLoginFlowStepAuthenticate struct {
-	JSONPointer jsonpointer.T                `json:"json_pointer,omitempty"`
-	StepName    string                       `json:"step_name,omitempty"`
-	UserID      string                       `json:"user_id,omitempty"`
-	Candidates  []UseAuthenticationCandidate `json:"candidates"`
+	JSONPointer jsonpointer.T             `json:"json_pointer,omitempty"`
+	StepName    string                    `json:"step_name,omitempty"`
+	UserID      string                    `json:"user_id,omitempty"`
+	Options     []UseAuthenticationOption `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
@@ -75,12 +75,12 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Depe
 	}
 	step := i.step(current)
 
-	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, i.UserID, step)
+	options, err := getAuthenticationOptionsForStep(ctx, deps, flows, i.UserID, step)
 	if err != nil {
 		return nil, err
 	}
 
-	i.Candidates = candidates
+	i.Options = options
 	return i, nil
 }
 
@@ -112,20 +112,20 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		// Inspect the device token
 		return nil, nil
 	case !authenticationMethodSelected:
-		if len(i.Candidates) == 0 {
+		if len(i.Options) == 0 {
 			if step.Optional != nil && *step.Optional {
 				// Skip this step and any nested step.
 				return nil, authflow.ErrEOF
 			}
 
-			// Otherwise this step is NON-optional but have no candidates
+			// Otherwise this step is NON-optional but have no options
 			return nil, api.ErrNoAuthenticator
 		}
 
 		// Let the input to select which authentication method to use.
 		return &InputSchemaLoginFlowStepAuthenticate{
 			JSONPointer:        i.JSONPointer,
-			Candidates:         i.Candidates,
+			Options:            i.Options,
 			DeviceTokenEnabled: deviceTokenEnabled,
 		}, nil
 	case !authenticated:
@@ -244,7 +244,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 
 func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return IntentLoginFlowStepAuthenticateData{
-		Candidates: i.Candidates,
+		Options: i.Options,
 	}, nil
 }
 
@@ -255,8 +255,8 @@ func (i *IntentLoginFlowStepAuthenticate) getIndex(step *config.AuthenticationFl
 
 	for index := range allAllowed {
 		thisMethod := allAllowed[index]
-		for _, candidate := range i.Candidates {
-			if thisMethod == candidate.Authentication && thisMethod == am {
+		for _, option := range i.Options {
+			if thisMethod == option.Authentication && thisMethod == am {
 				idx = index
 			}
 		}

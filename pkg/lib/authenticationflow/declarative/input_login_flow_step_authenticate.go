@@ -14,7 +14,7 @@ import (
 
 type InputSchemaLoginFlowStepAuthenticate struct {
 	JSONPointer        jsonpointer.T
-	Candidates         []UseAuthenticationCandidate
+	Options            []UseAuthenticationOption
 	DeviceTokenEnabled bool
 }
 
@@ -27,13 +27,13 @@ func (i *InputSchemaLoginFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
-	for index, candidate := range i.Candidates {
+	for index, option := range i.Options {
 		index := index
-		candidate := candidate
+		option := option
 
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
-		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(candidate.Authentication))
+		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(option.Authentication))
 
 		requireString := func(key string) {
 			required = append(required, key)
@@ -47,11 +47,11 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 			)
 		}
 		mayRequireChannel := func() {
-			if len(candidate.Channels) > 1 {
+			if len(option.Channels) > 1 {
 				required = append(required, "channel")
 				b.Properties().Property("channel", validation.SchemaBuilder{}.
 					Type(validation.TypeString).
-					Enum(slice.Cast[model.AuthenticatorOOBChannel, interface{}](candidate.Channels)...),
+					Enum(slice.Cast[model.AuthenticatorOOBChannel, interface{}](option.Channels)...),
 				)
 			}
 		}
@@ -61,7 +61,7 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 			oneOf = append(oneOf, b)
 		}
 
-		switch candidate.Authentication {
+		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			requireString("password")
 			setRequiredAndAppendOneOf()
@@ -142,7 +142,7 @@ var _ inputDeviceTokenRequested = &InputLoginFlowStepAuthenticate{}
 var _ inputTakePassword = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeTOTP = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeRecoveryCode = &InputLoginFlowStepAuthenticate{}
-var _ inputTakeAuthenticationCandidateIndex = &InputLoginFlowStepAuthenticate{}
+var _ inputTakeAuthenticationOptionIndex = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeOOBOTPChannel = &InputLoginFlowStepAuthenticate{}
 
 func (*InputLoginFlowStepAuthenticate) Input() {}

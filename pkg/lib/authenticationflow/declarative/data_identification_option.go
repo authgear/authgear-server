@@ -6,7 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type IdentificationCandidate struct {
+type IdentificationOption struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification"`
 
 	// ProviderType is specific to OAuth.
@@ -20,17 +20,17 @@ type IdentificationCandidate struct {
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 }
 
-func NewIdentificationCandidateLoginID(i config.AuthenticationFlowIdentification) IdentificationCandidate {
-	return IdentificationCandidate{
+func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification) IdentificationOption {
+	return IdentificationOption{
 		Identification: i,
 	}
 }
 
-func NewIdentificationCandidatesOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig) []IdentificationCandidate {
-	output := []IdentificationCandidate{}
+func NewIdentificationOptionsOAuth(oauthConfig *config.OAuthSSOConfig, oauthFeatureConfig *config.OAuthSSOProvidersFeatureConfig) []IdentificationOption {
+	output := []IdentificationOption{}
 	for _, p := range oauthConfig.Providers {
 		if !identity.IsOAuthSSOProviderTypeDisabled(p.Type, oauthFeatureConfig) {
-			output = append(output, IdentificationCandidate{
+			output = append(output, IdentificationOption{
 				Identification: config.AuthenticationFlowIdentificationOAuth,
 				ProviderType:   p.Type,
 				Alias:          p.Alias,
@@ -41,8 +41,8 @@ func NewIdentificationCandidatesOAuth(oauthConfig *config.OAuthSSOConfig, oauthF
 	return output
 }
 
-func NewIdentificationCandidatePasskey(requestOptions *model.WebAuthnRequestOptions) IdentificationCandidate {
-	return IdentificationCandidate{
+func NewIdentificationOptionPasskey(requestOptions *model.WebAuthnRequestOptions) IdentificationOption {
+	return IdentificationOption{
 		Identification: config.AuthenticationFlowIdentificationPasskey,
 		RequestOptions: requestOptions,
 	}

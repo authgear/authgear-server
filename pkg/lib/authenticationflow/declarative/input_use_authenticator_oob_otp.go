@@ -13,7 +13,7 @@ import (
 
 type InputSchemaUseAuthenticatorOOBOTP struct {
 	JSONPointer jsonpointer.T
-	Candidates  []UseAuthenticationCandidate
+	Options     []UseAuthenticationOption
 }
 
 var _ authflow.InputSchema = &InputSchemaUseAuthenticatorOOBOTP{}
@@ -24,11 +24,11 @@ func (i *InputSchemaUseAuthenticatorOOBOTP) GetJSONPointer() jsonpointer.T {
 
 func (i *InputSchemaUseAuthenticatorOOBOTP) SchemaBuilder() validation.SchemaBuilder {
 	indice := []int{}
-	for index, candidate := range i.Candidates {
+	for index, option := range i.Options {
 		index := index
-		candidate := candidate
+		option := option
 
-		switch candidate.Authentication {
+		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -67,7 +67,7 @@ type InputUseAuthenticatorOOBOTP struct {
 }
 
 var _ authflow.Input = &InputUseAuthenticatorOOBOTP{}
-var _ inputTakeAuthenticationCandidateIndex = &InputUseAuthenticatorOOBOTP{}
+var _ inputTakeAuthenticationOptionIndex = &InputUseAuthenticatorOOBOTP{}
 
 func (*InputUseAuthenticatorOOBOTP) Input() {}
 

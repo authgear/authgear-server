@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
-type UseAuthenticationCandidate struct {
+type UseAuthenticationOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
 	// MaskedDisplayName is specific to OOBOTP.
@@ -26,44 +26,44 @@ type UseAuthenticationCandidate struct {
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 
 	// AuthenticatorID is omitted from the output.
-	// The caller must use index to select a candidate.
+	// The caller must use index to select a option.
 	AuthenticatorID string `json:"-"`
 }
 
-func NewUseAuthenticationCandidateRecoveryCode() UseAuthenticationCandidate {
-	return UseAuthenticationCandidate{
+func NewUseAuthenticationOptionRecoveryCode() UseAuthenticationOption {
+	return UseAuthenticationOption{
 		Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
 	}
 }
 
-func NewUseAuthenticationCandidatePassword(am config.AuthenticationFlowAuthentication, count int) UseAuthenticationCandidate {
-	return UseAuthenticationCandidate{
+func NewUseAuthenticationOptionPassword(am config.AuthenticationFlowAuthentication, count int) UseAuthenticationOption {
+	return UseAuthenticationOption{
 		Authentication: am,
 		Count:          &count,
 	}
 }
 
-func NewUseAuthenticationCandidatePasskey(requestOptions *model.WebAuthnRequestOptions) UseAuthenticationCandidate {
-	return UseAuthenticationCandidate{
+func NewUseAuthenticationOptionPasskey(requestOptions *model.WebAuthnRequestOptions) UseAuthenticationOption {
+	return UseAuthenticationOption{
 		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
 		RequestOptions: requestOptions,
 	}
 }
 
-func NewUseAuthenticationCandidateTOTP() UseAuthenticationCandidate {
-	return UseAuthenticationCandidate{
+func NewUseAuthenticationOptionTOTP() UseAuthenticationOption {
+	return UseAuthenticationOption{
 		Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
 	}
 }
 
-func NewUseAuthenticationCandidateOOBOTP(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationCandidate {
+func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationOption {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		channels := getChannels(model.ClaimEmail, oobConfig)
-		return UseAuthenticationCandidate{
+		return UseAuthenticationOption{
 			Authentication:    am,
 			Channels:          channels,
 			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
@@ -73,7 +73,7 @@ func NewUseAuthenticationCandidateOOBOTP(oobConfig *config.AuthenticatorOOBConfi
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
-		return UseAuthenticationCandidate{
+		return UseAuthenticationOption{
 			Authentication:    am,
 			Channels:          channels,
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
@@ -81,7 +81,7 @@ func NewUseAuthenticationCandidateOOBOTP(oobConfig *config.AuthenticatorOOBConfi
 		}
 	}
 
-	panic(fmt.Errorf("NewUseAuthenticationCandidateOOBOTP: unexpected authentication method: %v %v", i.Kind, i.Type))
+	panic(fmt.Errorf("NewUseAuthenticationOptionOOBOTP: unexpected authentication method: %v %v", i.Kind, i.Type))
 }
 
 func AuthenticationFromAuthenticator(i *authenticator.Info) config.AuthenticationFlowAuthentication {
