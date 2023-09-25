@@ -9,7 +9,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
@@ -21,8 +20,6 @@ type ServiceOutput struct {
 
 	Finished          bool
 	FinishRedirectURI string
-
-	SchemaBuilder validation.SchemaBuilder
 
 	FlowReference *FlowReference
 	FlowStep      *FlowStep
@@ -48,8 +45,7 @@ type determineActionResult struct {
 	Finished          bool
 	FinishRedirectURI string
 
-	FlowStep      *FlowStep
-	SchemaBuilder validation.SchemaBuilder
+	FlowStep *FlowStep
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -149,7 +145,6 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
 		FlowStep:          determineActionResult.FlowStep,
-		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Cookies:           cookies,
 	}
 	return
@@ -242,7 +237,6 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		Flow:              w,
 		FlowReference:     &flowReference,
 		FlowStep:          determineActionResult.FlowStep,
-		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
 	}
@@ -322,7 +316,6 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		Flow:              flow,
 		FlowReference:     &flowReference,
 		FlowStep:          determineActionResult.FlowStep,
-		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
 		Cookies:           cookies,
@@ -396,7 +389,6 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		Flow:              flow,
 		FlowReference:     &flowReference,
 		FlowStep:          determineActionResult.FlowStep,
-		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
 		Cookies:           cookies,
@@ -540,9 +532,7 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 	}
 
 	var flowStep *FlowStep
-	var schemaBuilder validation.SchemaBuilder
 	if findInputReactorResult.InputSchema != nil {
-		schemaBuilder = findInputReactorResult.InputSchema.SchemaBuilder()
 		p := findInputReactorResult.InputSchema.GetJSONPointer()
 		flowRootObject := GetFlowRootObject(ctx)
 		if flowRootObject != nil {
@@ -562,8 +552,7 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 	}
 
 	result = &determineActionResult{
-		FlowStep:      flowStep,
-		SchemaBuilder: schemaBuilder,
+		FlowStep: flowStep,
 	}
 	return
 }

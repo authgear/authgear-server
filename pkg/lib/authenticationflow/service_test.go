@@ -61,14 +61,6 @@ func TestService(t *testing.T) {
 
 			output, err := service.CreateNewFlow(intent, &SessionOptions{})
 			So(err, ShouldBeNil)
-			schemaBuilder := validation.SchemaBuilder{}.
-				Type(validation.TypeObject).
-				Required("login_id")
-
-			schemaBuilder.Properties().Property(
-				"login_id",
-				validation.SchemaBuilder{}.Type(validation.TypeString),
-			)
 
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
@@ -77,7 +69,6 @@ func TestService(t *testing.T) {
 					Intent:     intent,
 				},
 				FlowReference: &FlowReference{},
-				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
