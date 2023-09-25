@@ -18,7 +18,8 @@ type Session struct {
 	XState      string   `json:"x_state,omitempty"`
 	UILocales   string   `json:"ui_locales,omitempty"`
 
-	SuppressIDPSessionCookie bool `json:"suppress_idp_session_cookie,omitempty"`
+	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
+	UserIDHint               string `json:"user_id_hint,omitempty"`
 }
 
 type SessionOutput struct {
@@ -38,6 +39,7 @@ type SessionOptions struct {
 	UILocales   string
 
 	SuppressIDPSessionCookie bool
+	UserIDHint               string
 }
 
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
@@ -53,6 +55,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.UILocales = s.UILocales
 
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
+		out.UserIDHint = s.UserIDHint
 	}
 	if o != nil {
 		if o.ClientID != "" {
@@ -80,10 +83,11 @@ func NewSession(opts *SessionOptions) *Session {
 		RedirectURI: opts.RedirectURI,
 		Prompt:      opts.Prompt,
 		State:       opts.State,
+		XState:      opts.XState,
 		UILocales:   opts.UILocales,
 
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
-		XState:                   opts.XState,
+		UserIDHint:               opts.UserIDHint,
 	}
 }
 
@@ -109,6 +113,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
+	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
 

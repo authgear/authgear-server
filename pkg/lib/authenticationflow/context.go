@@ -22,6 +22,14 @@ func GetSuppressIDPSessionCookie(ctx context.Context) bool {
 	return ctx.Value(contextKeySuppressIDPSessionCookie).(bool)
 }
 
+type contextKeyTypeUserIDHint struct{}
+
+var contextKeyUserIDHint = contextKeyTypeUserIDHint{}
+
+func GetUserIDHint(ctx context.Context) string {
+	return ctx.Value(contextKeyUserIDHint).(string)
+}
+
 type contextKeyTypeFlowID struct{}
 
 var contextKeyFlowID = contextKeyTypeFlowID{}

@@ -20,18 +20,20 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 }
 
 type SessionOptions struct {
-	OAuthSessionID             string
-	RedirectURI                string
-	KeepAfterFinish            bool
-	Prompt                     []string
-	Extra                      map[string]interface{}
-	Page                       string
+	OAuthSessionID  string
+	RedirectURI     string
+	KeepAfterFinish bool
+	Prompt          []string
+	Extra           map[string]interface{}
+	Page            string
+	// TODO(authflow): UserIDHint is now handled natively by authflow.
 	UserIDHint                 string
 	UpdatedAt                  time.Time
 	CanUseIntentReauthenticate bool
-	SuppressIDPSessionCookie   bool
-	OAuthProviderAlias         string
-	LoginHint                  string
+	// TODO(authflow): SuppressIDPSessionCookie is now handled natively by authflow.
+	SuppressIDPSessionCookie bool
+	OAuthProviderAlias       string
+	LoginHint                string
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {

@@ -56,7 +56,7 @@ func (n *NodeUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.Dep
 			return nil, err
 		}
 
-		n, err := NewNodeDoUseIdentity(flows, &NodeDoUseIdentity{
+		n, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
 			Identity: exactMatch,
 		})
 		if err != nil {
