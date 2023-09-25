@@ -22,11 +22,3 @@ type mapData map[string]interface{}
 var _ Data = mapData{}
 
 func (m mapData) Data() {}
-
-type DataFinishRedirectURI struct {
-	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
-}
-
-var _ Data = &DataFinishRedirectURI{}
-
-func (*DataFinishRedirectURI) Data() {}

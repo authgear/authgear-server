@@ -118,7 +118,6 @@ func TestService(t *testing.T) {
 					},
 				},
 				Finished: true,
-				Data:     &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -408,7 +407,6 @@ func TestServiceContext(t *testing.T) {
 				},
 				Finished:      true,
 				FlowReference: &FlowReference{},
-				Data:          &DataFinishRedirectURI{},
 				Session: &Session{
 					FlowID:   "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 					ClientID: "client-id",

@@ -45,22 +45,24 @@ type FlowStep struct {
 }
 
 // FlowResponse is an API object.
+//
 // When the flow finished, `finished` is true.
-// When data contains "redirect_uri", the driver of the flow must perform redirect.
+// In this case, `finish_redirect_uri` may be present.
 type FlowResponse struct {
 	// StateToken is the StateToken.
 	StateToken string `json:"state_token"`
 	// ID is the flow ID.
 	ID string `json:"id"`
 
-	Finished bool `json:"finished,omitempty"`
+	Finished          bool   `json:"finished,omitempty"`
+	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
 
 	Type FlowType `json:"type,omitempty"`
 	Name string   `json:"name,omitempty"`
 
 	Step *FlowStep `json:"step,omitempty"`
 
-	Data Data `json:"data"`
+	Data Data `json:"data,omitempty"`
 }
 
 type flowFactory func() PublicFlow

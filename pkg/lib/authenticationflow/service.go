@@ -19,7 +19,9 @@ type ServiceOutput struct {
 	SessionOutput *SessionOutput
 	Flow          *Flow
 
-	Finished      bool
+	Finished          bool
+	FinishRedirectURI string
+
 	SchemaBuilder validation.SchemaBuilder
 
 	FlowReference *FlowReference
@@ -33,16 +35,21 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
 		StateToken: o.Flow.StateToken,
 		ID:         o.Flow.FlowID,
-		Finished:   o.Finished,
-		Type:       o.FlowReference.Type,
-		Name:       o.FlowReference.Name,
-		Step:       o.FlowStep,
-		Data:       o.Data,
+
+		Finished:          o.Finished,
+		FinishRedirectURI: o.FinishRedirectURI,
+
+		Type: o.FlowReference.Type,
+		Name: o.FlowReference.Name,
+		Step: o.FlowStep,
+		Data: o.Data,
 	}
 }
 
 type determineActionResult struct {
-	Finished      bool
+	Finished          bool
+	FinishRedirectURI string
+
 	FlowReference *FlowReference
 	FlowStep      *FlowStep
 	Data          Data
@@ -138,15 +145,16 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	}
 
 	output = &ServiceOutput{
-		Session:       session,
-		SessionOutput: sessionOutput,
-		Flow:          flow,
-		FlowReference: determineActionResult.FlowReference,
-		FlowStep:      determineActionResult.FlowStep,
-		Data:          determineActionResult.Data,
-		Finished:      determineActionResult.Finished,
-		SchemaBuilder: determineActionResult.SchemaBuilder,
-		Cookies:       cookies,
+		Session:           session,
+		SessionOutput:     sessionOutput,
+		Flow:              flow,
+		FlowReference:     determineActionResult.FlowReference,
+		FlowStep:          determineActionResult.FlowStep,
+		Data:              determineActionResult.Data,
+		Finished:          determineActionResult.Finished,
+		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		SchemaBuilder:     determineActionResult.SchemaBuilder,
+		Cookies:           cookies,
 	}
 	return
 }
@@ -310,15 +318,16 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		err = ErrEOF
 	}
 	output = &ServiceOutput{
-		Session:       session,
-		SessionOutput: sessionOutput,
-		Flow:          flow,
-		FlowReference: determineActionResult.FlowReference,
-		FlowStep:      determineActionResult.FlowStep,
-		Data:          determineActionResult.Data,
-		SchemaBuilder: determineActionResult.SchemaBuilder,
-		Finished:      determineActionResult.Finished,
-		Cookies:       cookies,
+		Session:           session,
+		SessionOutput:     sessionOutput,
+		Flow:              flow,
+		FlowReference:     determineActionResult.FlowReference,
+		FlowStep:          determineActionResult.FlowStep,
+		Data:              determineActionResult.Data,
+		SchemaBuilder:     determineActionResult.SchemaBuilder,
+		Finished:          determineActionResult.Finished,
+		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		Cookies:           cookies,
 	}
 	return
 }
@@ -382,15 +391,16 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		err = ErrEOF
 	}
 	output = &ServiceOutput{
-		Session:       session,
-		SessionOutput: sessionOutput,
-		Flow:          flow,
-		FlowReference: determineActionResult.FlowReference,
-		FlowStep:      determineActionResult.FlowStep,
-		Data:          determineActionResult.Data,
-		SchemaBuilder: determineActionResult.SchemaBuilder,
-		Finished:      determineActionResult.Finished,
-		Cookies:       cookies,
+		Session:           session,
+		SessionOutput:     sessionOutput,
+		Flow:              flow,
+		FlowReference:     determineActionResult.FlowReference,
+		FlowStep:          determineActionResult.FlowStep,
+		Data:              determineActionResult.Data,
+		SchemaBuilder:     determineActionResult.SchemaBuilder,
+		Finished:          determineActionResult.Finished,
+		FinishRedirectURI: determineActionResult.FinishRedirectURI,
+		Cookies:           cookies,
 	}
 	return
 }
@@ -523,11 +533,9 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(redirectURI, e)
 		}
 		result = &determineActionResult{
-			Finished:      true,
-			FlowReference: &flowReference,
-			Data: &DataFinishRedirectURI{
-				FinishRedirectURI: redirectURI,
-			},
+			Finished:          true,
+			FinishRedirectURI: redirectURI,
+			FlowReference:     &flowReference,
 		}
 		return
 	}
