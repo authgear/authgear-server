@@ -77,7 +77,6 @@ func TestService(t *testing.T) {
 					Intent:     intent,
 				},
 				FlowReference: &FlowReference{},
-				Data:          mapData{},
 				SchemaBuilder: schemaBuilder,
 				Session: &Session{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
@@ -190,7 +189,6 @@ func TestService(t *testing.T) {
 					},
 				},
 				FlowReference: &FlowReference{},
-				Data:          mapData{},
 				Session: &Session{
 					FlowID: "flow-id",
 				},

@@ -42,6 +42,7 @@ type FlowStep struct {
 	Type           string                                  `json:"type"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Data           Data                                    `json:"data,omitempty"`
 }
 
 // FlowResponse is an API object.
@@ -51,18 +52,16 @@ type FlowStep struct {
 type FlowResponse struct {
 	// StateToken is the StateToken.
 	StateToken string `json:"state_token"`
+
 	// ID is the flow ID.
-	ID string `json:"id"`
+	ID   string   `json:"id"`
+	Type FlowType `json:"type,omitempty"`
+	Name string   `json:"name,omitempty"`
 
 	Finished          bool   `json:"finished,omitempty"`
 	FinishRedirectURI string `json:"finish_redirect_uri,omitempty"`
 
-	Type FlowType `json:"type,omitempty"`
-	Name string   `json:"name,omitempty"`
-
 	Step *FlowStep `json:"step,omitempty"`
-
-	Data Data `json:"data,omitempty"`
 }
 
 type flowFactory func() PublicFlow

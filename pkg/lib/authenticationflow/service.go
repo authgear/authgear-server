@@ -26,7 +26,6 @@ type ServiceOutput struct {
 
 	FlowReference *FlowReference
 	FlowStep      *FlowStep
-	Data          Data
 
 	Cookies []*http.Cookie
 }
@@ -42,7 +41,6 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 		Type: o.FlowReference.Type,
 		Name: o.FlowReference.Name,
 		Step: o.FlowStep,
-		Data: o.Data,
 	}
 }
 
@@ -52,7 +50,6 @@ type determineActionResult struct {
 
 	FlowReference *FlowReference
 	FlowStep      *FlowStep
-	Data          Data
 	SchemaBuilder validation.SchemaBuilder
 }
 
@@ -150,7 +147,6 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 		Flow:              flow,
 		FlowReference:     determineActionResult.FlowReference,
 		FlowStep:          determineActionResult.FlowStep,
-		Data:              determineActionResult.Data,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
 		SchemaBuilder:     determineActionResult.SchemaBuilder,
@@ -245,7 +241,6 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		Flow:          w,
 		FlowReference: determineActionResult.FlowReference,
 		FlowStep:      determineActionResult.FlowStep,
-		Data:          determineActionResult.Data,
 		SchemaBuilder: determineActionResult.SchemaBuilder,
 		Finished:      determineActionResult.Finished,
 	}
@@ -323,7 +318,6 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		Flow:              flow,
 		FlowReference:     determineActionResult.FlowReference,
 		FlowStep:          determineActionResult.FlowStep,
-		Data:              determineActionResult.Data,
 		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
@@ -396,7 +390,6 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		Flow:              flow,
 		FlowReference:     determineActionResult.FlowReference,
 		FlowStep:          determineActionResult.FlowStep,
-		Data:              determineActionResult.Data,
 		SchemaBuilder:     determineActionResult.SchemaBuilder,
 		Finished:          determineActionResult.Finished,
 		FinishRedirectURI: determineActionResult.FinishRedirectURI,
@@ -554,19 +547,20 @@ func (s *Service) determineAction(ctx context.Context, session *Session, flow *F
 		}
 	}
 
-	// Ensure data is always non-nil.
-	var data Data = mapData{}
+	var data Data
 	if dataOutputer, ok := findInputReactorResult.InputReactor.(DataOutputer); ok {
 		data, err = dataOutputer.OutputData(ctx, s.Deps, findInputReactorResult.Flows)
 		if err != nil {
 			return nil, err
+		}
+		if flowStep != nil {
+			flowStep.Data = data
 		}
 	}
 
 	result = &determineActionResult{
 		FlowReference: &flowReference,
 		FlowStep:      flowStep,
-		Data:          data,
 		SchemaBuilder: schemaBuilder,
 	}
 	return
