@@ -21,7 +21,7 @@ func init() {
 }
 
 type IntentSignupFlowStepAuthenticateData struct {
-	Candidates []CreateAuthenticationCandidate `json:"candidates,omitempty"`
+	Options []CreateAuthenticationOption `json:"options,omitempty"`
 }
 
 var _ authflow.Data = &IntentSignupFlowStepAuthenticateData{}
@@ -189,7 +189,7 @@ func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps 
 	step := i.step(current)
 
 	return IntentSignupFlowStepAuthenticateData{
-		Candidates: NewCreateAuthenticationCandidates(deps, step),
+		Options: NewCreateAuthenticationOptions(deps, step),
 	}, nil
 }
 

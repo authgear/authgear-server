@@ -13,7 +13,7 @@ import (
 
 type InputSchemaStepIdentify struct {
 	JSONPointer jsonpointer.T
-	Candidates  []IdentificationCandidate
+	Options     []IdentificationOption
 }
 
 var _ authflow.InputSchema = &InputSchemaStepIdentify{}
@@ -25,10 +25,10 @@ func (i *InputSchemaStepIdentify) GetJSONPointer() jsonpointer.T {
 func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
-	for _, candidate := range i.Candidates {
+	for _, option := range i.Options {
 		b := validation.SchemaBuilder{}
 		required := []string{"identification"}
-		b.Properties().Property("identification", validation.SchemaBuilder{}.Const(candidate.Identification))
+		b.Properties().Property("identification", validation.SchemaBuilder{}.Const(option.Identification))
 
 		requireString := func(key string) {
 			required = append(required, key)
@@ -40,7 +40,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			oneOf = append(oneOf, b)
 		}
 
-		switch candidate.Identification {
+		switch option.Identification {
 		case config.AuthenticationFlowIdentificationEmail:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
@@ -57,7 +57,7 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 
 			// alias is required.
 			required = append(required, "alias")
-			b.Properties().Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).Const(candidate.Alias))
+			b.Properties().Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).Const(option.Alias))
 
 			// state is optional.
 			b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))

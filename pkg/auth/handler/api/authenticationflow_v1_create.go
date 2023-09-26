@@ -95,11 +95,11 @@ func (h *AuthenticationFlowV1CreateHandler) create(w http.ResponseWriter, r *htt
 	}
 
 	if len(request.BatchInput) > 0 {
-		stateID := output.Flow.StateID
+		stateToken := output.Flow.StateToken
 
-		output, err = batchInput0(h.Workflows, w, r, stateID, request.BatchInput)
+		output, err = batchInput0(h.Workflows, w, r, stateToken, request.BatchInput)
 		if err != nil {
-			apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateID, err)
+			apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateToken, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})

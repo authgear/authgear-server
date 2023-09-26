@@ -28,7 +28,7 @@ func NewSubFlow(intent Intent) *Node {
 	return &Node{
 		Type: NodeTypeSubFlow,
 		SubFlow: &Flow{
-			// FlowID and StateID do not matter here.
+			// FlowID and StateToken do not matter here.
 			Intent: intent,
 		},
 	}

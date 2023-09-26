@@ -42,7 +42,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "state_id": "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+    "state_token": "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -101,7 +101,7 @@ func TestAccept(t *testing.T) {
 
 		jsonStr := `
 {
-    "state_id": "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
+    "state_token": "authflowstate_Y37GSHFPM7259WFBY64B4HTJ4PM8G482",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -189,7 +189,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "state_id": "authflowstate_1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
+    "state_token": "authflowstate_1MJNB5XDPQQ6TPW2WF73FG01K46CQ9ZD",
     "intent": {
         "data": {
             "PretendLoginIDExists": false
@@ -271,7 +271,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, `
 {
-    "state_id": "authflowstate_M4PEY3W99C69WACPPS9KWK5N09Y46XBC",
+    "state_token": "authflowstate_M4PEY3W99C69WACPPS9KWK5N09Y46XBC",
     "intent": {
         "data": {
             "PretendLoginIDExists": false

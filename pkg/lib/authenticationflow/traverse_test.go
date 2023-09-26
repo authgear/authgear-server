@@ -29,8 +29,8 @@ func TestTraverse(t *testing.T) {
 		}
 
 		test(&Flow{
-			FlowID:  "wf-0",
-			StateID: "wf-0-state-0",
+			FlowID:     "wf-0",
+			StateToken: "wf-0-state-0",
 			Intent: &testMarshalIntent0{
 				Intent0: "intent0-0",
 			},

@@ -35,7 +35,7 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 	var changed bool
 	defer func() {
 		if changed {
-			flows.Nearest.StateID = newStateID()
+			flows.Nearest.StateToken = newStateToken()
 		}
 		if !changed && err == nil {
 			err = ErrNoChange

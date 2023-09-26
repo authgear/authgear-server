@@ -112,8 +112,8 @@ func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference
 	return root, nil
 }
 
-func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationCandidate, error) {
-	candidates := []UseAuthenticationCandidate{}
+func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationOption, error) {
+	options := []UseAuthenticationOption{}
 
 	infos, err := deps.Authenticators.List(userID)
 	if err != nil {
@@ -143,23 +143,23 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 
 		allAllowed := []config.AuthenticationFlowAuthentication{am}
 		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(am), IsDependentOf(identityInfo))
-		moreCandidates, err := getAuthenticationCandidates(deps, userID, filteredInfos, recoveryCodes, allAllowed)
+		moreOptions, err := getAuthenticationOptions(deps, userID, filteredInfos, recoveryCodes, allAllowed)
 		if err != nil {
 			return err
 		}
 
-		candidates = append(candidates, moreCandidates...)
+		options = append(options, moreOptions...)
 		return nil
 	}
 
 	byUser := func(am config.AuthenticationFlowAuthentication) error {
 		allAllowed := []config.AuthenticationFlowAuthentication{am}
 		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(allAllowed...))
-		moreCandidates, err := getAuthenticationCandidates(deps, userID, filteredInfos, recoveryCodes, allAllowed)
+		moreOptions, err := getAuthenticationOptions(deps, userID, filteredInfos, recoveryCodes, allAllowed)
 		if err != nil {
 			return err
 		}
-		candidates = append(candidates, moreCandidates...)
+		options = append(options, moreOptions...)
 		return nil
 	}
 
@@ -204,13 +204,13 @@ func getAuthenticationCandidatesForStep(ctx context.Context, deps *authflow.Depe
 		}
 	}
 
-	return candidates, nil
+	return options, nil
 }
 
-func getAuthenticationCandidates(deps *authflow.Dependencies, userID string, as []*authenticator.Info, recoveryCodes []*mfa.RecoveryCode, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationCandidate, err error) {
+func getAuthenticationOptions(deps *authflow.Dependencies, userID string, as []*authenticator.Info, recoveryCodes []*mfa.RecoveryCode, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationOption, err error) {
 	addPrimaryPassword := func() {
 		count := len(as)
-		allUsable = append(allUsable, NewUseAuthenticationCandidatePassword(
+		allUsable = append(allUsable, NewUseAuthenticationOptionPassword(
 			config.AuthenticationFlowAuthenticationPrimaryPassword,
 			count,
 		))
@@ -223,7 +223,7 @@ func getAuthenticationCandidates(deps *authflow.Dependencies, userID string, as 
 				return err
 			}
 
-			allUsable = append(allUsable, NewUseAuthenticationCandidatePasskey(requestOptions))
+			allUsable = append(allUsable, NewUseAuthenticationOptionPasskey(requestOptions))
 		}
 		return nil
 	}
@@ -231,7 +231,7 @@ func getAuthenticationCandidates(deps *authflow.Dependencies, userID string, as 
 	addSecondaryPasswordIfPresent := func() {
 		count := len(as)
 		if count > 0 {
-			allUsable = append(allUsable, NewUseAuthenticationCandidatePassword(
+			allUsable = append(allUsable, NewUseAuthenticationOptionPassword(
 				config.AuthenticationFlowAuthenticationSecondaryPassword,
 				count,
 			))
@@ -240,20 +240,20 @@ func getAuthenticationCandidates(deps *authflow.Dependencies, userID string, as 
 
 	addTOTPIfPresent := func() {
 		if len(as) > 0 {
-			allUsable = append(allUsable, NewUseAuthenticationCandidateTOTP())
+			allUsable = append(allUsable, NewUseAuthenticationOptionTOTP())
 		}
 	}
 
 	addAllOOBOTP := func() {
 		for _, a := range as {
-			candidate := NewUseAuthenticationCandidateOOBOTP(deps.Config.Authenticator.OOB, a)
-			allUsable = append(allUsable, candidate)
+			option := NewUseAuthenticationOptionOOBOTP(deps.Config.Authenticator.OOB, a)
+			allUsable = append(allUsable, option)
 		}
 	}
 
 	addRecoveryCodeIfPresent := func() {
 		if len(recoveryCodes) > 0 {
-			allUsable = append(allUsable, NewUseAuthenticationCandidateRecoveryCode())
+			allUsable = append(allUsable, NewUseAuthenticationOptionRecoveryCode())
 		}
 	}
 

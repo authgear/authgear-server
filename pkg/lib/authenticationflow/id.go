@@ -19,6 +19,6 @@ func newFlowID() string {
 	return fmt.Sprintf("authflow_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
 
-func newStateID() string {
+func newStateToken() string {
 	return fmt.Sprintf("authflowstate_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }

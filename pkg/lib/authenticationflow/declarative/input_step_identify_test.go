@@ -19,7 +19,7 @@ func TestInputSchemaStepIdentify(t *testing.T) {
 		}
 
 		test(&InputSchemaStepIdentify{
-			Candidates: []IdentificationCandidate{
+			Options: []IdentificationOption{
 				{
 					Identification: config.AuthenticationFlowIdentificationEmail,
 				},

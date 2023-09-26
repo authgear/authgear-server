@@ -16,7 +16,7 @@ func init() {
 }
 
 type IntentLoginFlowStepIdentifyData struct {
-	Candidates []IdentificationCandidate `json:"candidates"`
+	Options []IdentificationOption `json:"options"`
 }
 
 var _ authflow.Data = IntentLoginFlowStepIdentifyData{}
@@ -24,9 +24,9 @@ var _ authflow.Data = IntentLoginFlowStepIdentifyData{}
 func (IntentLoginFlowStepIdentifyData) Data() {}
 
 type IntentLoginFlowStepIdentify struct {
-	JSONPointer jsonpointer.T             `json:"json_pointer,omitempty"`
-	StepName    string                    `json:"step_name,omitempty"`
-	Candidates  []IdentificationCandidate `json:"candidates"`
+	JSONPointer jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName    string                 `json:"step_name,omitempty"`
+	Options     []IdentificationOption `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepIdentify{}
@@ -61,7 +61,7 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 	}
 	step := i.step(current)
 
-	candidates := []IdentificationCandidate{}
+	options := []IdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
 		case config.AuthenticationFlowIdentificationEmail:
@@ -69,25 +69,25 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 		case config.AuthenticationFlowIdentificationPhone:
 			fallthrough
 		case config.AuthenticationFlowIdentificationUsername:
-			c := NewIdentificationCandidateLoginID(b.Identification)
-			candidates = append(candidates, c)
+			c := NewIdentificationOptionLoginID(b.Identification)
+			options = append(options, c)
 		case config.AuthenticationFlowIdentificationOAuth:
-			oauthCandidates := NewIdentificationCandidatesOAuth(
+			oauthOptions := NewIdentificationOptionsOAuth(
 				deps.Config.Identity.OAuth,
 				deps.FeatureConfig.Identity.OAuth.Providers,
 			)
-			candidates = append(candidates, oauthCandidates...)
+			options = append(options, oauthOptions...)
 		case config.AuthenticationFlowIdentificationPasskey:
 			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptions()
 			if err != nil {
 				return nil, err
 			}
-			c := NewIdentificationCandidatePasskey(requestOptions)
-			candidates = append(candidates, c)
+			c := NewIdentificationOptionPasskey(requestOptions)
+			options = append(options, c)
 		}
 	}
 
-	i.Candidates = candidates
+	i.Options = options
 	return i, nil
 }
 
@@ -100,7 +100,7 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 	if len(flows.Nearest.Nodes) == 0 {
 		return &InputSchemaStepIdentify{
 			JSONPointer: i.JSONPointer,
-			Candidates:  i.Candidates,
+			Options:     i.Options,
 		}, nil
 	}
 
@@ -173,7 +173,7 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 
 func (i *IntentLoginFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return IntentLoginFlowStepIdentifyData{
-		Candidates: i.Candidates,
+		Options: i.Options,
 	}, nil
 }
 

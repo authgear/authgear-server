@@ -37,30 +37,38 @@ type FlowReference struct {
 	Name string   `json:"name"`
 }
 
-// FlowStep is an API object.
-type FlowStep struct {
-	Type           string                                  `json:"type"`
+type FlowActionType string
+
+const (
+	FlowActionTypeFinished FlowActionType = "finished"
+)
+
+func FlowActionTypeFromStepType(t config.AuthenticationFlowStepType) FlowActionType {
+	return FlowActionType(t)
+}
+
+// FlowAction is an API object.
+type FlowAction struct {
+	Type           FlowActionType                          `json:"type"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Data           Data                                    `json:"data,omitempty"`
 }
 
 // FlowResponse is an API object.
-// When the flow finished, `json_schema` is absent and `finished` is true.
-// When data contains "redirect_uri", the driver of the flow must perform redirect.
+//
+// When the flow finished, `finished` is true.
+// In this case, `finish_redirect_uri` may be present.
 type FlowResponse struct {
-	// StateID is the StateID.
-	StateID string `json:"state_id"`
+	// StateToken is the StateToken.
+	StateToken string `json:"state_token"`
+
 	// ID is the flow ID.
-	ID string `json:"id"`
-
-	Finished bool `json:"finished,omitempty"`
-
+	ID   string   `json:"id"`
 	Type FlowType `json:"type,omitempty"`
 	Name string   `json:"name,omitempty"`
 
-	Step *FlowStep `json:"step,omitempty"`
-
-	Data Data `json:"data"`
+	Action *FlowAction `json:"action,omitempty"`
 }
 
 type flowFactory func() PublicFlow

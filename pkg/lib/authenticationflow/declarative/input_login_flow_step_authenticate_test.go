@@ -46,9 +46,9 @@ func TestInputSchemaLoginFlowStepAuthenticate(t *testing.T) {
 `)
 		})
 
-		Convey("candidates", func() {
+		Convey("options", func() {
 			test((&InputSchemaLoginFlowStepAuthenticate{
-				Candidates: []UseAuthenticationCandidate{
+				Options: []UseAuthenticationOption{
 					{
 						Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 					},

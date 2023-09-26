@@ -17,6 +17,13 @@ type DataOutputer interface {
 	OutputData(ctx context.Context, deps *Dependencies, flows Flows) (Data, error)
 }
 
+// EndOfFlowDataOutputer is an optional interface to be implemented by PublicFlow.
+// The implementation MUST return a Data that contains baseData.
+type EndOfFlowDataOutputer interface {
+	PublicFlow
+	OutputEndOfFlowData(ctx context.Context, deps *Dependencies, flows Flows, baseData *DataFinishRedirectURI) (Data, error)
+}
+
 type mapData map[string]interface{}
 
 var _ Data = mapData{}

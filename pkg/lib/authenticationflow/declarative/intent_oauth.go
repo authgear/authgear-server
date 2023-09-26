@@ -34,10 +34,10 @@ func (i *IntentOAuth) MilestoneIdentificationMethod() config.AuthenticationFlowI
 
 func (i *IntentOAuth) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		oauthCandidates := NewIdentificationCandidatesOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
+		oauthOptions := NewIdentificationOptionsOAuth(deps.Config.Identity.OAuth, deps.FeatureConfig.Identity.OAuth.Providers)
 		return &InputSchemaTakeOAuthAuthorizationRequest{
-			JSONPointer:     i.JSONPointer,
-			OAuthCandidates: oauthCandidates,
+			JSONPointer:  i.JSONPointer,
+			OAuthOptions: oauthOptions,
 		}, nil
 	}
 	return nil, authflow.ErrEOF

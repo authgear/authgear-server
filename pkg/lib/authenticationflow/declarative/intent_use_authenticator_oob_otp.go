@@ -18,7 +18,7 @@ func init() {
 }
 
 type IntentUseAuthenticatorOOBOTPData struct {
-	Candidates []UseAuthenticationCandidate `json:"candidates"`
+	Options []UseAuthenticationOption `json:"options"`
 }
 
 var _ authflow.Data = IntentUseAuthenticatorOOBOTPData{}
@@ -52,7 +52,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	}
 	step := n.step(current)
 
-	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, n.UserID, step)
+	options, err := getAuthenticationOptionsForStep(ctx, deps, flows, n.UserID, step)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (n *IntentUseAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *aut
 	case !authenticatorSelected:
 		return &InputSchemaUseAuthenticatorOOBOTP{
 			JSONPointer: n.JSONPointer,
-			Candidates:  candidates,
+			Options:     options,
 		}, nil
 	case !claimVerified:
 		// Verify the claim
@@ -84,21 +84,21 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 
 	switch {
 	case !authenticatorSelected:
-		var inputTakeAuthenticationCandidateIndex inputTakeAuthenticationCandidateIndex
-		if authflow.AsInput(input, &inputTakeAuthenticationCandidateIndex) {
+		var inputTakeAuthenticationOptionIndex inputTakeAuthenticationOptionIndex
+		if authflow.AsInput(input, &inputTakeAuthenticationOptionIndex) {
 			current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.jsonPointerToStep())
 			if err != nil {
 				return nil, err
 			}
 			step := n.step(current)
 
-			candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, n.UserID, step)
+			options, err := getAuthenticationOptionsForStep(ctx, deps, flows, n.UserID, step)
 			if err != nil {
 				return nil, err
 			}
 
-			index := inputTakeAuthenticationCandidateIndex.GetIndex()
-			info, err := n.pickAuthenticator(deps, candidates, index)
+			index := inputTakeAuthenticationOptionIndex.GetIndex()
+			info, err := n.pickAuthenticator(deps, options, index)
 			if err != nil {
 				return nil, err
 			}
@@ -135,13 +135,13 @@ func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *aut
 	}
 	step := n.step(current)
 
-	candidates, err := getAuthenticationCandidatesForStep(ctx, deps, flows, n.UserID, step)
+	options, err := getAuthenticationOptionsForStep(ctx, deps, flows, n.UserID, step)
 	if err != nil {
 		return nil, err
 	}
 
 	return IntentUseAuthenticatorOOBOTPData{
-		Candidates: candidates,
+		Options: options,
 	}, nil
 }
 
@@ -154,8 +154,8 @@ func (*IntentUseAuthenticatorOOBOTP) step(o config.AuthenticationFlowObject) *co
 	return step
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, candidates []UseAuthenticationCandidate, index int) (*authenticator.Info, error) {
-	for idx, c := range candidates {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []UseAuthenticationOption, index int) (*authenticator.Info, error) {
+	for idx, c := range options {
 		if idx == index {
 			id := c.AuthenticatorID
 			info, err := deps.Authenticators.Get(id)

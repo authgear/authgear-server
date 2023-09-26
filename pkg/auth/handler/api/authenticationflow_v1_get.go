@@ -16,16 +16,16 @@ func ConfigureAuthenticationFlowV1GetRoute(route httproute.Route) httproute.Rout
 }
 
 type AuthenticationFlowV1NonRestfulGetRequest struct {
-	StateID string `json:"state_id,omitempty"`
+	StateToken string `json:"state_token,omitempty"`
 }
 
 var AuthenticationFlowV1NonRestfulGetRequestSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"state_id": { "type": "string" }
+			"state_token": { "type": "string" }
 		},
-		"required": ["state_id"]
+		"required": ["state_token"]
 	}
 `)
 
@@ -45,12 +45,12 @@ func (h *AuthenticationFlowV1GetHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
-	stateID := request.StateID
-	h.get(w, r, stateID)
+	stateToken := request.StateToken
+	h.get(w, r, stateToken)
 }
 
-func (h *AuthenticationFlowV1GetHandler) get(w http.ResponseWriter, r *http.Request, stateID string) {
-	output, err := h.Workflows.Get(stateID)
+func (h *AuthenticationFlowV1GetHandler) get(w http.ResponseWriter, r *http.Request, stateToken string) {
+	output, err := h.Workflows.Get(stateToken)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return

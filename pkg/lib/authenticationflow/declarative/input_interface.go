@@ -83,7 +83,7 @@ type inputTakePassword interface {
 	GetPassword() string
 }
 
-type inputTakeAuthenticationCandidateIndex interface {
+type inputTakeAuthenticationOptionIndex interface {
 	GetIndex() int
 }
 

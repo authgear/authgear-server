@@ -23,11 +23,12 @@ func init() {
 }
 
 type NodeVerifyClaimData struct {
-	OTPForm                        otp.Form  `json:"otp_form,omitempty"`
-	MaskedClaimValue               string    `json:"masked_claim_value,omitempty"`
-	CodeLength                     int       `json:"code_length,omitempty"`
-	CanResendAt                    time.Time `json:"can_resend_at,omitempty"`
-	FailedAttemptRateLimitExceeded bool      `json:"failed_attempt_rate_limit_exceeded"`
+	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
+	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
+	MaskedClaimValue               string                        `json:"masked_claim_value,omitempty"`
+	CodeLength                     int                           `json:"code_length,omitempty"`
+	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
+	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
 }
 
 var _ authflow.Data = &NodeVerifyClaimData{}
@@ -138,6 +139,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 	otpForm := n.otpForm(deps)
 
 	return NodeVerifyClaimData{
+		Channel:                        n.Channel,
 		OTPForm:                        otpForm,
 		MaskedClaimValue:               n.maskedOTPTarget(),
 		CodeLength:                     otpForm.CodeLength(),

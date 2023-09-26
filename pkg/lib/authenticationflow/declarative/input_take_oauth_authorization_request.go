@@ -11,8 +11,8 @@ import (
 )
 
 type InputSchemaTakeOAuthAuthorizationRequest struct {
-	JSONPointer     jsonpointer.T
-	OAuthCandidates []IdentificationCandidate
+	JSONPointer  jsonpointer.T
+	OAuthOptions []IdentificationOption
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeOAuthAuthorizationRequest{}
@@ -32,7 +32,7 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.Sc
 		Enum(sso.ResponseModeFormPost, sso.ResponseModeQuery))
 
 	var enumValues []interface{}
-	for _, c := range i.OAuthCandidates {
+	for _, c := range i.OAuthOptions {
 		enumValues = append(enumValues, c.Alias)
 
 	}
