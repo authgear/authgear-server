@@ -150,6 +150,15 @@ func TestDeviceModel(t *testing.T) {
 				},
 			},
 		}), ShouldEqual, "iPhone9999,9999")
+
+		// iPhone in 2023.
+		So(DeviceModel(map[string]interface{}{
+			"ios": map[string]interface{}{
+				"uname": map[string]interface{}{
+					"machine": "iPhone16,2",
+				},
+			},
+		}), ShouldEqual, "iPhone 15 Pro Max")
 	})
 }
 
