@@ -151,12 +151,6 @@ var iosMachineMapping = map[string]string{
 	"iPad14,4":  "iPad Pro 11 inch 4th Gen",
 	"iPad14,5":  "iPad Pro 12.9 inch 6th Gen",
 	"iPad14,6":  "iPad Pro 12.9 inch 6th Gen",
-
-	"AppleTV2,1": "Apple TV",    // Apple TV (2nd Generation)
-	"AppleTV3,1": "Apple TV",    // Apple TV (3rd Generation)
-	"AppleTV3,2": "Apple TV",    // Apple TV (3rd Generation - Rev A)
-	"AppleTV5,3": "Apple TV",    // Apple TV (4th Generation)
-	"AppleTV6,2": "Apple TV 4K", // Apple TV 4K
 }
 
 type Platform string
