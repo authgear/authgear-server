@@ -64,6 +64,10 @@ var iosMachineMapping = map[string]string{
 	"iPhone14,8": "iPhone 14 Plus",
 	"iPhone15,2": "iPhone 14 Pro",
 	"iPhone15,3": "iPhone 14 Pro Max",
+	"iPhone15,4": "iPhone 15",
+	"iPhone15,5": "iPhone 15 Plus",
+	"iPhone16,1": "iPhone 15 Pro",
+	"iPhone16,2": "iPhone 15 Pro Max",
 
 	"iPad1,1":   "iPad",                                // (Original)
 	"iPad1,2":   "iPad 3G",                             //
@@ -127,6 +131,8 @@ var iosMachineMapping = map[string]string{
 	"iPad11,7":  "iPad (8th generation)",               // iPad (8th generation) Wifi + cellular
 	"iPad12,1":  "iPad (9th generation)",               // iPad (9th generation)
 	"iPad12,2":  "iPad (9th generation)",               // iPad (9th generation)
+	"iPad14,1":  "iPad mini (6th generation)",
+	"iPad14,2":  "iPad mini (6th generation)",
 	"iPad13,1":  "iPad Air (4th generation)",
 	"iPad13,2":  "iPad Air (4th generation)",
 	"iPad13,4":  "iPad Pro 11-inch (5th generation)",
@@ -139,14 +145,12 @@ var iosMachineMapping = map[string]string{
 	"iPad13,11": "iPad Pro 12.9-inch (5th generation)",
 	"iPad13,16": "iPad Air (5th generation)",
 	"iPad13,17": "iPad Air (5th generation)",
-	"iPad14,1":  "iPad mini (6th generation)",
-	"iPad14,2":  "iPad mini (6th generation)",
-
-	"AppleTV2,1": "Apple TV",    // Apple TV (2nd Generation)
-	"AppleTV3,1": "Apple TV",    // Apple TV (3rd Generation)
-	"AppleTV3,2": "Apple TV",    // Apple TV (3rd Generation - Rev A)
-	"AppleTV5,3": "Apple TV",    // Apple TV (4th Generation)
-	"AppleTV6,2": "Apple TV 4K", // Apple TV 4K
+	"iPad13,18": "iPad 10th Gen",
+	"iPad13,19": "iPad 10th Gen",
+	"iPad14,3":  "iPad Pro 11 inch 4th Gen",
+	"iPad14,4":  "iPad Pro 11 inch 4th Gen",
+	"iPad14,5":  "iPad Pro 12.9 inch 6th Gen",
+	"iPad14,6":  "iPad Pro 12.9 inch 6th Gen",
 }
 
 type Platform string
