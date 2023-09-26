@@ -20,8 +20,7 @@ type ServiceOutput struct {
 
 	FlowReference *FlowReference
 	Finished      bool
-	FlowStep      *FlowStep
-	Data          Data
+	FlowAction    *FlowAction
 
 	Cookies []*http.Cookie
 }
@@ -32,21 +31,8 @@ func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 		ID:         o.Flow.FlowID,
 		Type:       o.FlowReference.Type,
 		Name:       o.FlowReference.Name,
-
-		Step: o.FlowStep,
-
-		Finished: o.Finished,
-
-		Data: o.Data,
+		Action:     o.FlowAction,
 	}
-}
-
-type getFlowStepResult struct {
-	Finished bool
-
-	FlowStep *FlowStep
-
-	Data Data
 }
 
 type ServiceLogger struct{ *log.Logger }
@@ -100,9 +86,9 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	}
 
 	var flow *Flow
-	var getFlowStepResult *getFlowStepResult
+	var flowAction *FlowAction
 	err = s.Database.ReadOnly(func() error {
-		flow, getFlowStepResult, err = s.createNewFlow(ctx, session, publicFlow)
+		flow, flowAction, err = s.createNewFlow(ctx, session, publicFlow)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -143,15 +129,13 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 		SessionOutput: sessionOutput,
 		Flow:          flow,
 		FlowReference: &flowReference,
-		Finished:      getFlowStepResult.Finished,
-		FlowStep:      getFlowStepResult.FlowStep,
-		Data:          getFlowStepResult.Data,
+		FlowAction:    flowAction,
 		Cookies:       cookies,
 	}
 	return
 }
 
-func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, result *getFlowStepResult, err error) {
+func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlow PublicFlow) (flow *Flow, flowAction *FlowAction, err error) {
 	flow = NewFlow(session.FlowID, publicFlow)
 
 	// A new flow does not have any nodes.
@@ -178,7 +162,7 @@ func (s *Service) createNewFlow(ctx context.Context, session *Session, publicFlo
 		return
 	}
 
-	result, err = s.getFlowStep(ctx, session, flow)
+	flowAction, err = s.getFlowAction(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -224,7 +208,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		return
 	}
 
-	result, err := s.getFlowStep(ctx, session, w)
+	flowAction, err := s.getFlowAction(ctx, session, w)
 	if err != nil {
 		return
 	}
@@ -237,9 +221,7 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 		SessionOutput: sessionOutput,
 		Flow:          w,
 		FlowReference: &flowReference,
-		FlowStep:      result.FlowStep,
-		Finished:      result.Finished,
-		Data:          result.Data,
+		FlowAction:    flowAction,
 	}
 	return
 }
@@ -265,9 +247,9 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		return
 	}
 
-	var result *getFlowStepResult
+	var flowAction *FlowAction
 	err = s.Database.ReadOnly(func() error {
-		flow, result, err = s.feedInput(ctx, session, stateToken, rawMessage)
+		flow, flowAction, err = s.feedInput(ctx, session, stateToken, rawMessage)
 		return err
 	})
 
@@ -316,9 +298,7 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 		SessionOutput: sessionOutput,
 		Flow:          flow,
 		FlowReference: &flowReference,
-		FlowStep:      result.FlowStep,
-		Finished:      result.Finished,
-		Data:          result.Data,
+		FlowAction:    flowAction,
 		Cookies:       cookies,
 	}
 	return
@@ -345,9 +325,9 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		return
 	}
 
-	var result *getFlowStepResult
+	var flowAction *FlowAction
 	err = s.Database.ReadOnly(func() error {
-		flow, result, err = s.feedSyntheticInput(ctx, session, stateToken, syntheticInput)
+		flow, flowAction, err = s.feedSyntheticInput(ctx, session, stateToken, syntheticInput)
 		return err
 	})
 
@@ -389,9 +369,7 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 		SessionOutput: sessionOutput,
 		Flow:          flow,
 		FlowReference: &flowReference,
-		FlowStep:      result.FlowStep,
-		Finished:      result.Finished,
-		Data:          result.Data,
+		FlowAction:    flowAction,
 		Cookies:       cookies,
 	}
 	return
@@ -425,7 +403,7 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 	return
 }
 
-func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, result *getFlowStepResult, err error) {
+func (s *Service) feedInput(ctx context.Context, session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {
 	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
@@ -450,7 +428,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 		return
 	}
 
-	result, err = s.getFlowStep(ctx, session, flow)
+	flowAction, err = s.getFlowAction(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -461,7 +439,7 @@ func (s *Service) feedInput(ctx context.Context, session *Session, stateToken st
 	return
 }
 
-func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateToken string, syntheticInput Input) (flow *Flow, result *getFlowStepResult, err error) {
+func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stateToken string, syntheticInput Input) (flow *Flow, flowAction *FlowAction, err error) {
 	flow, err = s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
@@ -486,7 +464,7 @@ func (s *Service) feedSyntheticInput(ctx context.Context, session *Session, stat
 		return
 	}
 
-	result, err = s.getFlowStep(ctx, session, flow)
+	flowAction, err = s.getFlowAction(ctx, session, flow)
 	if err != nil {
 		return
 	}
@@ -514,7 +492,7 @@ func (s *Service) finishFlow(ctx context.Context, flow *Flow) (cookies []*http.C
 	return
 }
 
-func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow) (result *getFlowStepResult, err error) {
+func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flow) (flowAction *FlowAction, err error) {
 	findInputReactorResult, err := FindInputReactor(ctx, s.Deps, NewFlows(flow))
 	if errors.Is(err, ErrEOF) {
 		redirectURI := session.RedirectURI
@@ -535,9 +513,9 @@ func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow)
 			}
 		}
 
-		result = &getFlowStepResult{
-			Finished: true,
-			Data:     data,
+		flowAction = &FlowAction{
+			Type: FlowActionTypeFinished,
+			Data: data,
 		}
 		return
 	}
@@ -545,12 +523,11 @@ func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow)
 		return nil, err
 	}
 
-	var flowStep *FlowStep
 	if findInputReactorResult.InputSchema != nil {
 		p := findInputReactorResult.InputSchema.GetJSONPointer()
 		flowRootObject := GetFlowRootObject(ctx)
 		if flowRootObject != nil {
-			flowStep = GetFlowStep(flowRootObject, p)
+			flowAction = GetFlowAction(flowRootObject, p)
 		}
 	}
 
@@ -564,10 +541,9 @@ func (s *Service) getFlowStep(ctx context.Context, session *Session, flow *Flow)
 	if data == nil {
 		data = mapData{}
 	}
-
-	result = &getFlowStepResult{
-		FlowStep: flowStep,
-		Data:     data,
+	if flowAction != nil {
+		flowAction.Data = data
 	}
+
 	return
 }

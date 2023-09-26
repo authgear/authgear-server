@@ -37,11 +37,22 @@ type FlowReference struct {
 	Name string   `json:"name"`
 }
 
-// FlowStep is an API object.
-type FlowStep struct {
-	Type           string                                  `json:"type"`
+type FlowActionType string
+
+const (
+	FlowActionTypeFinished FlowActionType = "finished"
+)
+
+func FlowActionTypeFromStepType(t config.AuthenticationFlowStepType) FlowActionType {
+	return FlowActionType(t)
+}
+
+// FlowAction is an API object.
+type FlowAction struct {
+	Type           FlowActionType                          `json:"type"`
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	Data           Data                                    `json:"data,omitempty"`
 }
 
 // FlowResponse is an API object.
@@ -57,11 +68,7 @@ type FlowResponse struct {
 	Type FlowType `json:"type,omitempty"`
 	Name string   `json:"name,omitempty"`
 
-	Finished bool `json:"finished,omitempty"`
-
-	Step *FlowStep `json:"step,omitempty"`
-
-	Data Data `json:"data,omitempty"`
+	Action *FlowAction `json:"action,omitempty"`
 }
 
 type flowFactory func() PublicFlow

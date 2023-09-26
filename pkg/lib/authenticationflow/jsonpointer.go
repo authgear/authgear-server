@@ -141,7 +141,7 @@ func FlowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpoin
 	return current, nil
 }
 
-func GetFlowStep(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) *FlowStep {
+func GetFlowAction(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) *FlowAction {
 	flowObject, err := FlowObject(flowRootObject, pointer)
 	if err != nil {
 		panic(err)
@@ -151,12 +151,12 @@ func GetFlowStep(flowRootObject config.AuthenticationFlowObject, pointer jsonpoi
 	case config.AuthenticationFlowObjectFlowRoot:
 		return nil
 	case config.AuthenticationFlowObjectFlowStep:
-		return &FlowStep{
-			Type: o.GetType(),
+		return &FlowAction{
+			Type: FlowActionTypeFromStepType(o.GetType()),
 		}
 	case config.AuthenticationFlowObjectFlowBranch:
 		branchInfo := o.GetBranchInfo()
-		step := &FlowStep{
+		step := &FlowAction{
 			Identification: branchInfo.Identification,
 			Authentication: branchInfo.Authentication,
 		}
@@ -168,7 +168,7 @@ func GetFlowStep(flowRootObject config.AuthenticationFlowObject, pointer jsonpoi
 		}
 
 		stepFlowObject := stepFlowObjectBeforeCast.(config.AuthenticationFlowObjectFlowStep)
-		step.Type = stepFlowObject.GetType()
+		step.Type = FlowActionTypeFromStepType(stepFlowObject.GetType())
 
 		return step
 	default:

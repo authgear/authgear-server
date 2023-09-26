@@ -490,7 +490,7 @@ type AuthenticationFlowObjectFlowRoot interface {
 type AuthenticationFlowObjectFlowStep interface {
 	AuthenticationFlowObject
 	GetName() string
-	GetType() string
+	GetType() AuthenticationFlowStepType
 	GetOneOf() []AuthenticationFlowObject
 }
 
@@ -612,6 +612,18 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.Authenticato
 	}
 }
 
+type AuthenticationFlowStepType string
+
+const (
+	AuthenticationFlowStepTypeIdentify            AuthenticationFlowStepType = "identify"
+	AuthenticationFlowStepTypeAuthenticate        AuthenticationFlowStepType = "authenticate"
+	AuthenticationFlowStepTypeVerify              AuthenticationFlowStepType = "verify"
+	AuthenticationFlowStepTypeUserProfile         AuthenticationFlowStepType = "user_profile"
+	AuthenticationFlowStepTypeRecoveryCode        AuthenticationFlowStepType = "recovery_code"
+	AuthenticationFlowStepTypePromptCreatePasskey AuthenticationFlowStepType = "prompt_create_passkey"
+	AuthenticationFlowStepTypeChangePassword      AuthenticationFlowStepType = "change_password"
+)
+
 type AuthenticationFlowConfig struct {
 	SignupFlows      []*AuthenticationFlowSignupFlow      `json:"signup_flows,omitempty"`
 	LoginFlows       []*AuthenticationFlowLoginFlow       `json:"login_flows,omitempty"`
@@ -640,12 +652,12 @@ func (f *AuthenticationFlowSignupFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowSignupFlowStepType string
 
 const (
-	AuthenticationFlowSignupFlowStepTypeIdentify            AuthenticationFlowSignupFlowStepType = "identify"
-	AuthenticationFlowSignupFlowStepTypeAuthenticate        AuthenticationFlowSignupFlowStepType = "authenticate"
-	AuthenticationFlowSignupFlowStepTypeVerify              AuthenticationFlowSignupFlowStepType = "verify"
-	AuthenticationFlowSignupFlowStepTypeUserProfile         AuthenticationFlowSignupFlowStepType = "user_profile"
-	AuthenticationFlowSignupFlowStepTypeRecoveryCode        AuthenticationFlowSignupFlowStepType = "recovery_code"
-	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey AuthenticationFlowSignupFlowStepType = "prompt_create_passkey"
+	AuthenticationFlowSignupFlowStepTypeIdentify            = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeIdentify)
+	AuthenticationFlowSignupFlowStepTypeAuthenticate        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeAuthenticate)
+	AuthenticationFlowSignupFlowStepTypeVerify              = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeVerify)
+	AuthenticationFlowSignupFlowStepTypeUserProfile         = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeUserProfile)
+	AuthenticationFlowSignupFlowStepTypeRecoveryCode        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeRecoveryCode)
+	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
 
 type AuthenticationFlowSignupFlowStep struct {
@@ -664,7 +676,9 @@ var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
 
 func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowSignupFlowStep) GetName() string { return s.Name }
-func (s *AuthenticationFlowSignupFlowStep) GetType() string { return string(s.Type) }
+func (s *AuthenticationFlowSignupFlowStep) GetType() AuthenticationFlowStepType {
+	return AuthenticationFlowStepType(s.Type)
+}
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
@@ -744,10 +758,10 @@ func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowLoginFlowStepType string
 
 const (
-	AuthenticationFlowLoginFlowStepTypeIdentify            AuthenticationFlowLoginFlowStepType = "identify"
-	AuthenticationFlowLoginFlowStepTypeAuthenticate        AuthenticationFlowLoginFlowStepType = "authenticate"
-	AuthenticationFlowLoginFlowStepTypeChangePassword      AuthenticationFlowLoginFlowStepType = "change_password"
-	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey AuthenticationFlowLoginFlowStepType = "prompt_create_passkey"
+	AuthenticationFlowLoginFlowStepTypeIdentify            = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeIdentify)
+	AuthenticationFlowLoginFlowStepTypeAuthenticate        = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeAuthenticate)
+	AuthenticationFlowLoginFlowStepTypeChangePassword      = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeChangePassword)
+	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
 
 type AuthenticationFlowLoginFlowStep struct {
@@ -768,7 +782,9 @@ var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowLoginFlowStep{}
 
 func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowLoginFlowStep) GetName() string { return s.Name }
-func (s *AuthenticationFlowLoginFlowStep) GetType() string { return string(s.Type) }
+func (s *AuthenticationFlowLoginFlowStep) GetType() AuthenticationFlowStepType {
+	return AuthenticationFlowStepType(s.Type)
+}
 
 func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
@@ -848,7 +864,9 @@ var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupLoginFlowStep{
 
 func (s *AuthenticationFlowSignupLoginFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowSignupLoginFlowStep) GetName() string { return s.Name }
-func (s *AuthenticationFlowSignupLoginFlowStep) GetType() string { return string(s.Type) }
+func (s *AuthenticationFlowSignupLoginFlowStep) GetType() AuthenticationFlowStepType {
+	return AuthenticationFlowStepType(s.Type)
+}
 
 func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
@@ -867,7 +885,7 @@ func (s *AuthenticationFlowSignupLoginFlowStep) GetOneOf() []AuthenticationFlowO
 type AuthenticationFlowSignupLoginFlowStepType string
 
 const (
-	AuthenticationFlowSignupLoginFlowStepTypeIdentify AuthenticationFlowSignupLoginFlowStepType = "identify"
+	AuthenticationFlowSignupLoginFlowStepTypeIdentify = AuthenticationFlowSignupLoginFlowStepType(AuthenticationFlowStepTypeIdentify)
 )
 
 type AuthenticationFlowSignupLoginFlowOneOf struct {
@@ -930,7 +948,9 @@ var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowReauthFlowStep{}
 
 func (s *AuthenticationFlowReauthFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowReauthFlowStep) GetName() string { return s.Name }
-func (s *AuthenticationFlowReauthFlowStep) GetType() string { return string(s.Type) }
+func (s *AuthenticationFlowReauthFlowStep) GetType() AuthenticationFlowStepType {
+	return AuthenticationFlowStepType(s.Type)
+}
 
 func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {

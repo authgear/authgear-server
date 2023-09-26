@@ -75,7 +75,6 @@ func TestService(t *testing.T) {
 				SessionOutput: &SessionOutput{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
-				Data: mapData{},
 			})
 		})
 
@@ -108,8 +107,10 @@ func TestService(t *testing.T) {
 						},
 					},
 				},
-				Finished: true,
-				Data:     &DataFinishRedirectURI{},
+				FlowAction: &FlowAction{
+					Type: FlowActionTypeFinished,
+					Data: &DataFinishRedirectURI{},
+				},
 				Session: &Session{
 					FlowID: "authflow_TJSAV0F58G8VBWREZ22YBMAW1A0GFCD4",
 				},
@@ -411,10 +412,12 @@ func TestServiceContext(t *testing.T) {
 						},
 					},
 				},
-				Finished: true,
-				Data: &intentServiceContextData{
-					DataFinishRedirectURI: &DataFinishRedirectURI{},
-					Foobar:                "42",
+				FlowAction: &FlowAction{
+					Type: FlowActionTypeFinished,
+					Data: &intentServiceContextData{
+						DataFinishRedirectURI: &DataFinishRedirectURI{},
+						Foobar:                "42",
+					},
 				},
 				FlowReference: &FlowReference{},
 				Session: &Session{
