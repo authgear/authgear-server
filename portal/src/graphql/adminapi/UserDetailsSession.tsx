@@ -142,8 +142,8 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
         fieldName: "clientID",
         name: renderToString("UserDetails.session.clientID"),
         className: styles.cell,
-        minWidth: 100,
-        maxWidth: 100,
+        minWidth: 120,
+        maxWidth: 120,
       },
       {
         key: "ipAddress",
