@@ -616,7 +616,7 @@ Example of a successful response.
     "id": "authflow_blahblahblah",
     "type": "login_flow",
     "name": "default",
-    "step": {
+    "action": {
       "type": "authenticate",
       "authentication": "primary_oob_otp_email"
       "data": {}
@@ -629,10 +629,10 @@ Example of a successful response.
 - `result.id`: The ID of the Authentication Flow. It does not change for a given Authentication Flow. You supply this ID to the websocket endpoint.
 - `result.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
 - `result.name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
-- `result.step.type`: The type of the current step. Valid values are the union of all possible steps, that is, `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`.
-- `result.step.identification`: The taken branch of the current step. It is only present when `result.flow_step.type=identify`. Valid values are `email`, `phone`, and `username`.
-- `result.step.authentication`: The taken branch of the current step. It is only present when `result.flow_step.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
-- `result.step.data`: The data associated with the current step of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
+- `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
+- `result.action.identification`: The taken branch in this action. It is only present when `result.action.type=identify`. Valid values are `email`, `phone`, and `username`.
+- `result.action.authentication`: The taken branch in this action. It is only present when `result.action.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
+- `result.action.data`: The data associated with the current step of the Authentication Flow. For example, if the flow is currently waiting for the User to enter a OTP, then the data contains information like resend cooldown.
 
 Example of a finished response.
 
@@ -643,14 +643,18 @@ Example of a finished response.
     "id": "authflow_blahblahblah",
     "type": "login_flow",
     "name": "default",
-    "finished": true,
-    "finish_redirect_uri": "https://example.com"
+    "action": {
+      "type": "finished",
+      "data": {
+        "finish_redirect_uri": "https://example.com"
+      }
+    }
   }
 }
 ```
 
-- `result.finished`: If the flow has finished, then this key is present and the value is `true`.
-- `result.finish_redirect_uri`: If `finished` is `true`, then this key MAY be present. You MUST redirect the end-user to this URI, where Authgear will take control and continue.
+- `result.action.type`: If the flow has finished, the value is `finished`.
+- `result.action.data.finish_redirect_uri`: If `result.action.type=finished`, then this key MAY be present. You MUST redirect the end-user to this URI, where Authgear will take control and continue.
 
 ### Create a Authentication Flow
 
