@@ -58,6 +58,9 @@ type Session struct {
 	// Steps is a history stack of steps taken within this session.
 	Steps []SessionStep `json:"steps,omitempty"`
 
+	// Authflow keeps track of an authflow.
+	Authflow *Authflow `json:"authflow,omitempty"`
+
 	OAuthSessionID string `json:"oauth_session_id,omitempty"`
 
 	// RedirectURI is the URI to redirect to after the completion of session.

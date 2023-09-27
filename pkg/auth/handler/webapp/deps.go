@@ -12,6 +12,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ControllerDeps), "*"),
 	wire.Struct(new(ControllerFactory), "*"),
 
+	wire.Struct(new(AuthflowController), "*"),
+
 	NewPublisher,
 	wire.Struct(new(GlobalSessionServiceFactory), "*"),
 
@@ -23,6 +25,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(RootHandler), "*"),
 	wire.Struct(new(OAuthEntrypointHandler), "*"),
 	wire.Struct(new(LoginHandler), "*"),
+	wire.Struct(new(AuthflowLoginHandler), "*"),
 	wire.Struct(new(SignupHandler), "*"),
 	wire.Struct(new(PromoteHandler), "*"),
 	wire.Struct(new(SelectAccountHandler), "*"),
