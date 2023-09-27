@@ -161,7 +161,6 @@ func (c *AuthflowController) GetOrCreateAuthflow(r *http.Request, s *webapp.Sess
 		if !errors.Is(err, authflow.ErrFlowNotFound) {
 			return nil, err
 		}
-		err = nil
 	}
 
 	if flowResponse != nil {
