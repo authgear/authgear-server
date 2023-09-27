@@ -16,6 +16,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type AuthflowControllerHandler func() error
@@ -57,7 +59,18 @@ type AuthflowControllerUIInfoResolver interface {
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
+type AuthflowControllerOAuthClientResolver interface {
+	ResolveClient(clientID string) *config.OAuthClientConfig
+}
+
+type AuthflowControllerLogger struct{ *log.Logger }
+
+func NewAuthflowControllerLogger(lf *log.Factory) AuthflowControllerLogger {
+	return AuthflowControllerLogger{lf.New("authflow_controller")}
+}
+
 type AuthflowController struct {
+	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
 	ErrorCookie             *webapp.ErrorCookie
 	TrustProxy              config.TrustProxy
@@ -71,6 +84,9 @@ type AuthflowController struct {
 
 	OAuthSessions  AuthflowControllerOAuthSessionService
 	UIInfoResolver AuthflowControllerUIInfoResolver
+
+	UIConfig            *config.UIConfig
+	OAuthClientResolver AuthflowControllerOAuthClientResolver
 }
 
 func (c *AuthflowController) GetOrCreateWebSession(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
@@ -192,6 +208,97 @@ func (c *AuthflowController) GetOrCreateAuthflow(r *http.Request, s *webapp.Sess
 	}
 
 	return flowResponse, nil
+}
+
+func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, f *authflow.FlowResponse, input interface{}) (*webapp.Result, error) {
+	rawMessageBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+
+	rawMessage := json.RawMessage(rawMessageBytes)
+
+	result := &webapp.Result{}
+	output, err := c.Authflows.FeedInput(f.StateToken, rawMessage)
+	if err != nil {
+		if !apierrors.IsAPIError(err) {
+			c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("feed input: %v", err)
+		}
+		errCookie, err := c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
+		if err != nil {
+			return nil, err
+		}
+		result.IsInteractionErr = true
+		result.Cookies = append(result.Cookies, errCookie)
+		result.RedirectURI = c.deriveErrorRedirectURI(r, f)
+		return result, nil
+	}
+
+	result.Cookies = output.Cookies
+	newF := output.ToFlowResponse()
+	if newF.Action.Type == authflow.FlowActionTypeFinished {
+		result.RemoveQueries = setutil.Set[string]{
+			"x_step": struct{}{},
+		}
+		result.NavigationAction = "redirect"
+		result.RedirectURI = c.deriveFinishRedirectURI(r, s, &newF)
+
+		err = c.Sessions.Delete(s.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Forget the session.
+		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(c.SessionCookie.Def))
+		// Reset visitor ID.
+		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
+	} else {
+		s.Authflow.Add(&newF)
+		err = c.Sessions.Update(s)
+		if err != nil {
+			return nil, err
+		}
+
+		// FIXME(authflow): derive redirectURI
+		result.RedirectURI = "/authflow/FIXME"
+	}
+
+	return result, nil
+}
+
+func (c *AuthflowController) deriveErrorRedirectURI(r *http.Request, f *authflow.FlowResponse) string {
+	// Just redirect to the current location.
+	u := *r.URL
+	u.Scheme = ""
+	u.Host = ""
+	return u.String()
+}
+
+func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, f *authflow.FlowResponse) string {
+	bytes, err := json.Marshal(f.Action.Data)
+	if err != nil {
+		panic(err)
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(bytes, &data)
+	if err != nil {
+		panic(err)
+	}
+
+	// 1. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
+	// 2. Use redirect URI in webapp.Session.
+	// 3. DerivePostLoginRedirectURIFromRequest
+
+	if finishRedirectURI, ok := data["finish_redirect_uri"].(string); ok {
+		return finishRedirectURI
+	}
+	if s.RedirectURI != "" {
+		return s.RedirectURI
+	}
+
+	postLoginRedirectURI := webapp.DerivePostLoginRedirectURIFromRequest(r, c.OAuthClientResolver, c.UIConfig)
+	return webapp.GetRedirectURI(r, bool(c.TrustProxy), postLoginRedirectURI)
 }
 
 func (c *AuthflowController) makeSessionOptionsFromQuery(r *http.Request) *authflow.SessionOptions {
