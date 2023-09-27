@@ -135,27 +135,27 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	//	return oauthPostAction(providerAlias)
 	//})
 
-	//handlers.PostAction("login_id", func() error {
-	//	result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-	//		err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
-	//		if err != nil {
-	//			return
-	//		}
+	handlers.PostAction("login_id", func() error {
+		err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
 
-	//		loginID := r.Form.Get("q_login_id")
+		loginID := r.Form.Get("q_login_id")
+		identification := webapp.GetMostAppropriateIdentification(f, loginID)
+		input := map[string]interface{}{
+			"identification": identification,
+			"login_id":       loginID,
+		}
 
-	//		input = &InputUseLoginID{
-	//			LoginID: loginID,
-	//		}
-	//		return
-	//	})
-	//	if err != nil {
-	//		return err
-	//	}
+		result, err := h.Controller.FeedInput(r, s, f, input)
+		if err != nil {
+			return err
+		}
 
-	//	result.WriteResponse(w, r)
-	//	return nil
-	//})
+		result.WriteResponse(w, r)
+		return nil
+	})
 
 	//handlers.PostAction("passkey", func() error {
 	//	result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {

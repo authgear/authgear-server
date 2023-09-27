@@ -2,12 +2,11 @@ package viewmodels
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -161,17 +160,7 @@ func (m *AuthenticationViewModeler) NewWithCandidates(candidates []identity.Cand
 }
 
 func (m *AuthenticationViewModeler) NewWithAuthflow(f *authflow.FlowResponse, form url.Values) AuthenticationViewModel {
-	var options []declarative.IdentificationOption
-	switch data := f.Action.Data.(type) {
-	case declarative.IntentLoginFlowStepIdentifyData:
-		options = data.Options
-	case declarative.IntentSignupFlowStepIdentifyData:
-		options = data.Options
-	case declarative.IntentSignupLoginFlowStepIdentifyData:
-		options = data.Options
-	default:
-		panic(fmt.Errorf("unexpected type of data: %T", f.Action.Data))
-	}
+	options := webapp.GetIdentificationOptions(f)
 
 	var firstLoginIDIdentification config.AuthenticationFlowIdentification
 	hasEmail := false

@@ -13,6 +13,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ControllerFactory), "*"),
 
 	wire.Struct(new(AuthflowController), "*"),
+	NewAuthflowControllerLogger,
 
 	NewPublisher,
 	wire.Struct(new(GlobalSessionServiceFactory), "*"),

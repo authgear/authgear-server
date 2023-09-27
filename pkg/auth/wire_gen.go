@@ -7286,8 +7286,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
-	request := p.Request
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
+	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -7337,7 +7339,6 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store: store,
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
-	factory := appProvider.LoggerFactory
 	logger := event.NewLogger(factory)
 	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
@@ -8092,7 +8093,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
+	uiConfig := appConfig.UI
 	authflowController := &webapp.AuthflowController{
+		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
 		ErrorCookie:             errorCookie,
 		TrustProxy:              trustProxy,
@@ -8103,8 +8106,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authflows:               authenticationflowService,
 		OAuthSessions:           oauthsessionStoreRedis,
 		UIInfoResolver:          uiInfoResolver,
+		UIConfig:                uiConfig,
+		OAuthClientResolver:     oauthclientResolver,
 	}
-	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
 	googleTagManagerConfig := appConfig.GoogleTagManager
