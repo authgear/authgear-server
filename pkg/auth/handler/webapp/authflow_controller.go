@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -19,6 +20,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
+
+//go:generate mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
 
 type AuthflowControllerHandler func() error
 
@@ -36,6 +39,12 @@ func (h *AuthflowControllerHandlers) PostAction(action string, f AuthflowControl
 		h.PostHandlers = make(map[string]AuthflowControllerHandler)
 	}
 	h.PostHandlers[action] = f
+}
+
+type AuthflowControllerCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
+	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type AuthflowControllerSessionStore interface {
@@ -76,7 +85,7 @@ type AuthflowController struct {
 	TrustProxy              config.TrustProxy
 	Clock                   clock.Clock
 
-	Cookies       CookieManager
+	Cookies       AuthflowControllerCookieManager
 	Sessions      AuthflowControllerSessionStore
 	SessionCookie webapp.SessionCookieDef
 
@@ -111,36 +120,51 @@ func (c *AuthflowController) GetOrCreateWebSession(w http.ResponseWriter, r *htt
 	return s, nil
 }
 
-func (c *AuthflowController) GetAuthflow(r *http.Request, s *webapp.Session) (*authflow.FlowResponse, error) {
+func (c *AuthflowController) GetScreen(r *http.Request, s *webapp.Session) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	if s.Authflow == nil {
 		return nil, authflow.ErrFlowNotFound
 	}
 
-	xStep := r.URL.Query().Get("x_step")
+	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
 
-	var state *webapp.AuthflowState
+	var screen *webapp.AuthflowScreen
 
 	// entrypoint does not have x_step.
 	if xStep == "" {
-		state = s.Authflow.InitialState
+		screen = s.Authflow.InitialScreen
 	} else {
 		var ok bool
-		state, ok = s.Authflow.AllStates[xStep]
+		screen, ok = s.Authflow.AllScreens[xStep]
 		if !ok {
 			return nil, authflow.ErrFlowNotFound
 		}
 	}
 
-	output, err := c.Authflows.Get(state.StateToken)
+	screenWithResponse := &webapp.AuthflowScreenWithFlowResponse{
+		Screen: screen,
+	}
+
+	output, err := c.Authflows.Get(screen.StateToken.StateToken)
 	if err != nil {
 		return nil, err
 	}
-
 	flowResponse := output.ToFlowResponse()
-	return &flowResponse, nil
+	screenWithResponse.StateTokenFlowResponse = &flowResponse
+
+	if screen.BranchStateToken != nil {
+		output, err = c.Authflows.Get(screen.BranchStateToken.StateToken)
+		if err != nil {
+			return nil, err
+		}
+
+		flowResponse := output.ToFlowResponse()
+		screenWithResponse.BranchStateTokenFlowResponse = &flowResponse
+	}
+
+	return screenWithResponse, nil
 }
 
-func (c *AuthflowController) CreateAuthflow(r *http.Request, oauthSessionID string, flowReference authflow.FlowReference) (*authflow.FlowResponse, error) {
+func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID string, flowReference authflow.FlowReference) (*authflow.ServiceOutput, error) {
 	flow, err := authflow.InstantiateFlow(flowReference)
 	if err != nil {
 		return nil, err
@@ -166,12 +190,11 @@ func (c *AuthflowController) CreateAuthflow(r *http.Request, oauthSessionID stri
 		return nil, err
 	}
 
-	flowResponse := output.ToFlowResponse()
-	return &flowResponse, nil
+	return output, err
 }
 
-func (c *AuthflowController) GetOrCreateAuthflow(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*authflow.FlowResponse, error) {
-	flowResponse, err := c.GetAuthflow(r, s)
+func (c *AuthflowController) GetOrCreateScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*webapp.AuthflowScreenWithFlowResponse, error) {
+	screen, err := c.GetScreen(r, s)
 	if err != nil {
 		// Return critical error.
 		if !errors.Is(err, authflow.ErrFlowNotFound) {
@@ -179,27 +202,39 @@ func (c *AuthflowController) GetOrCreateAuthflow(r *http.Request, s *webapp.Sess
 		}
 	}
 
-	if flowResponse != nil {
-		ok := checkFn(flowResponse)
+	if screen != nil {
+		ok := checkFn(screen.StateTokenFlowResponse)
 		if ok {
-			return flowResponse, nil
+			return screen, nil
 		}
 	}
 
-	// If we reach here, either flowResponse is nil or it does not the check.
+	return c.createScreen(r, s, flowReference, checkFn)
+}
+
+func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*webapp.AuthflowScreenWithFlowResponse, error) {
+	// If we reach here, either screen is nil or its flowResponse does not pass the check.
 	// We create a new authflow instead.
-	flowResponse, err = c.CreateAuthflow(r, s.OAuthSessionID, flowReference)
+	output, err := c.createAuthflow(r, s.OAuthSessionID, flowReference)
 	if err != nil {
 		return nil, err
 	}
 
-	ok := checkFn(flowResponse)
+	flowResponse := output.ToFlowResponse()
+	ok := checkFn(&flowResponse)
 	if !ok {
 		panic(fmt.Errorf("a freshly created authflow must pass the check"))
 	}
 
-	af := webapp.NewAuthflow(flowResponse)
+	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
+	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
+
+	output, newScreen, err := c.takeBranchIfNeeded(s, screen)
+	if err != nil {
+		return nil, err
+	}
+
 	now := c.Clock.NowUTC()
 	s.UpdatedAt = now
 	err = c.Sessions.Update(s)
@@ -207,34 +242,35 @@ func (c *AuthflowController) GetOrCreateAuthflow(r *http.Request, s *webapp.Sess
 		return nil, err
 	}
 
-	return flowResponse, nil
+	return newScreen, nil
 }
 
-func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, f *authflow.FlowResponse, input interface{}) (*webapp.Result, error) {
-	rawMessageBytes, err := json.Marshal(input)
-	if err != nil {
-		return nil, err
-	}
+func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input interface{}) (result *webapp.Result, err error) {
+	result = &webapp.Result{}
 
-	rawMessage := json.RawMessage(rawMessageBytes)
-
-	result := &webapp.Result{}
-	output, err := c.Authflows.FeedInput(f.StateToken, rawMessage)
-	if err != nil {
-		if !apierrors.IsAPIError(err) {
-			c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("feed input: %v", err)
-		}
-		errCookie, err := c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
+	defer func() {
 		if err != nil {
-			return nil, err
+			if !apierrors.IsAPIError(err) {
+				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("feed input: %v", err)
+			}
+			var errCookie *http.Cookie
+			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
+			if err != nil {
+				result = nil
+				return
+			}
+			result.IsInteractionErr = true
+			result.Cookies = append(result.Cookies, errCookie)
+			result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
 		}
-		result.IsInteractionErr = true
-		result.Cookies = append(result.Cookies, errCookie)
-		result.RedirectURI = c.deriveErrorRedirectURI(r, f)
-		return result, nil
+	}()
+
+	output, err := c.feedInput(screen.Screen.StateToken.StateToken, input)
+	if err != nil {
+		return
 	}
 
-	result.Cookies = output.Cookies
+	result.Cookies = append(result.Cookies, output.Cookies...)
 	newF := output.ToFlowResponse()
 	if newF.Action.Type == authflow.FlowActionTypeFinished {
 		result.RemoveQueries = setutil.Set[string]{
@@ -245,7 +281,7 @@ func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, f *au
 
 		err = c.Sessions.Delete(s.ID)
 		if err != nil {
-			return nil, err
+			return
 		}
 
 		// Forget the session.
@@ -253,20 +289,78 @@ func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, f *au
 		// Reset visitor ID.
 		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
 	} else {
-		s.Authflow.Add(&newF)
-		err = c.Sessions.Update(s)
+		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF)
+		s.Authflow.RememberScreen(newScreen)
+
+		output, newScreen, err = c.takeBranchIfNeeded(s, newScreen)
 		if err != nil {
-			return nil, err
+			return
 		}
 
-		// FIXME(authflow): derive redirectURI
-		result.RedirectURI = "/authflow/FIXME"
+		now := c.Clock.NowUTC()
+		s.UpdatedAt = now
+		err = c.Sessions.Update(s)
+		if err != nil {
+			return
+		}
+
+		if output != nil {
+			result.Cookies = append(result.Cookies, output.Cookies...)
+		}
+
+		newScreen.Navigate(r, result)
 	}
 
-	return result, nil
+	return
 }
 
-func (c *AuthflowController) deriveErrorRedirectURI(r *http.Request, f *authflow.FlowResponse) string {
+func (c *AuthflowController) takeBranchIfNeeded(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
+	if screen.HasBranchToTake() {
+		// Take the first branch, and first channel by default.
+		var zeroIndex int
+		var zeroChannel model.AuthenticatorOOBChannel
+		takeBranchResult := screen.TakeBranch(zeroIndex, zeroChannel)
+
+		switch takeBranchResult := takeBranchResult.(type) {
+		// This taken branch does not require an input to select.
+		case webapp.TakeBranchResultSimple:
+			s.Authflow.RememberScreen(takeBranchResult.Screen)
+			newScreen = takeBranchResult.Screen
+			return
+		// This taken branch require an input to select.
+		case webapp.TakeBranchResultInput:
+			output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
+			if err != nil {
+				return
+			}
+
+			flowResponse := output.ToFlowResponse()
+			newScreen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
+			s.Authflow.RememberScreen(newScreen)
+
+			return
+		}
+	}
+
+	newScreen = screen
+	return
+}
+
+func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*authflow.ServiceOutput, error) {
+	rawMessageBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+	rawMessage := json.RawMessage(rawMessageBytes)
+	output, err := c.Authflows.FeedInput(stateToken, rawMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
+}
+
+func (c *AuthflowController) deriveErrorRedirectURI(r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) string {
 	// Just redirect to the current location.
 	u := *r.URL
 	u.Scheme = ""
