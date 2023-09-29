@@ -79,6 +79,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerwebapp.AuthflowControllerCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerUIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(oauthhandler.CookieManager), new(*httputil.CookieManager)),

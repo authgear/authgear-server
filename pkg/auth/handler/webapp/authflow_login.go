@@ -16,7 +16,7 @@ import (
 func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/authflow/login")
+		WithPathPattern(webapp.AuthflowRouteLogin)
 }
 
 type AuthflowLoginHandler struct {
@@ -30,14 +30,14 @@ type AuthflowLoginHandler struct {
 	ErrorCookie             ErrorCookie
 }
 
-func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, f *authflow.FlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
+func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := h.AuthenticationViewModel.NewWithAuthflow(f, r.Form)
+	authenticationViewModel := h.AuthenticationViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
 	viewmodels.Embed(data, NewLoginViewModel(allowLoginOnly, r))
 	return data, nil
@@ -72,7 +72,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	checkFn := func(f *authflow.FlowResponse) bool {
 		return f.Type == authflow.FlowTypeLogin && f.Name == flowName && f.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeIdentify)
 	}
-	f, err := h.Controller.GetOrCreateAuthflow(r, s, flowReference, checkFn)
+	screen, err := h.Controller.GetOrCreateScreen(r, s, flowReference, checkFn)
 	if err != nil {
 		// FIXME(authflow): log the error.
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -121,7 +121,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		//	return oauthPostAction(oauthProviderAlias)
 		//}
 
-		data, err := h.GetData(w, r, f, allowLoginOnly)
+		data, err := h.GetData(w, r, screen, allowLoginOnly)
 		if err != nil {
 			return err
 		}
@@ -142,13 +142,13 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		}
 
 		loginID := r.Form.Get("q_login_id")
-		identification := webapp.GetMostAppropriateIdentification(f, loginID)
+		identification := webapp.GetMostAppropriateIdentification(screen.StateTokenFlowResponse, loginID)
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
 		}
 
-		result, err := h.Controller.FeedInput(r, s, f, input)
+		result, err := h.Controller.FeedInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}
