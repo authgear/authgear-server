@@ -458,7 +458,6 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 type ConstructOAuthAuthorizationURLOptions struct {
 	RedirectURI  string
 	Alias        string
-	State        string
 	ResponseMode sso.ResponseMode
 }
 
@@ -474,7 +473,6 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	param := sso.GetAuthURLParam{
 		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.ResponseMode,
-		State:        opts.State,
 		Prompt:       uiParam.Prompt,
 	}
 

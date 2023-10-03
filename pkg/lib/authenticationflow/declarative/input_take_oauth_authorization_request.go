@@ -26,7 +26,6 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) SchemaBuilder() validation.Sc
 	b.Required("alias", "redirect_uri")
 
 	b.Properties().Property("redirect_uri", validation.SchemaBuilder{}.Type(validation.TypeString).Format("uri"))
-	b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))
 	b.Properties().Property("response_mode", validation.SchemaBuilder{}.
 		Type(validation.TypeString).
 		Enum(sso.ResponseModeFormPost, sso.ResponseModeQuery))
@@ -54,7 +53,6 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) MakeInput(rawMessage json.Raw
 type InputTakeOAuthAuthorizationRequest struct {
 	Alias        string           `json:"alias"`
 	RedirectURI  string           `json:"redirect_uri"`
-	State        string           `json:"state,omitempty"`
 	ResponseMode sso.ResponseMode `json:"ResponseMode,omitempty"`
 }
 
@@ -65,10 +63,6 @@ func (*InputTakeOAuthAuthorizationRequest) Input() {}
 
 func (i *InputTakeOAuthAuthorizationRequest) GetOAuthAlias() string {
 	return i.Alias
-}
-
-func (i *InputTakeOAuthAuthorizationRequest) GetOAuthState() string {
-	return i.State
 }
 
 func (i *InputTakeOAuthAuthorizationRequest) GetOAuthRedirectURI() string {

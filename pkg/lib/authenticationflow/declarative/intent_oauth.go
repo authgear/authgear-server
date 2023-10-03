@@ -48,7 +48,6 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			alias := inputOAuth.GetOAuthAlias()
-			state := inputOAuth.GetOAuthState()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
 			responseMode := inputOAuth.GetOAuthResponseMode()
 
@@ -56,7 +55,6 @@ func (i *IntentOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, 
 				JSONPointer:  i.JSONPointer,
 				NewUserID:    i.NewUserID,
 				Alias:        alias,
-				State:        state,
 				RedirectURI:  redirectURI,
 				ResponseMode: responseMode,
 			}), nil

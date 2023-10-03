@@ -29,7 +29,6 @@ type NodeLookupIdentityOAuth struct {
 	JSONPointer    jsonpointer.T      `json:"json_pointer,omitempty"`
 	SyntheticInput *InputStepIdentify `json:"synthetic_input,omitempty"`
 	Alias          string             `json:"alias,omitempty"`
-	State          string             `json:"state,omitempty"`
 	RedirectURI    string             `json:"redirect_uri,omitempty"`
 	ResponseMode   sso.ResponseMode   `json:"response_mode,omitempty"`
 }
@@ -69,7 +68,6 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 		syntheticInput := &SyntheticInputOAuth{
 			Identification: n.SyntheticInput.Identification,
 			Alias:          n.SyntheticInput.Alias,
-			State:          n.SyntheticInput.State,
 			RedirectURI:    n.SyntheticInput.RedirectURI,
 			ResponseMode:   n.SyntheticInput.ResponseMode,
 			IdentitySpec:   spec,
@@ -108,7 +106,6 @@ func (n *NodeLookupIdentityOAuth) OutputData(ctx context.Context, deps *authflow
 	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
 		RedirectURI:  n.RedirectURI,
 		Alias:        n.Alias,
-		State:        n.State,
 		ResponseMode: n.ResponseMode,
 	})
 	if err != nil {

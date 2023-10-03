@@ -26,7 +26,6 @@ type NodeOAuth struct {
 	JSONPointer  jsonpointer.T    `json:"json_pointer,omitempty"`
 	NewUserID    string           `json:"new_user_id,omitempty"`
 	Alias        string           `json:"alias,omitempty"`
-	State        string           `json:"state,omitempty"`
 	RedirectURI  string           `json:"redirect_uri,omitempty"`
 	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
 }
@@ -76,7 +75,6 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
 		RedirectURI:  n.RedirectURI,
 		Alias:        n.Alias,
-		State:        n.State,
 		ResponseMode: n.ResponseMode,
 	})
 	if err != nil {

@@ -48,14 +48,12 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 		var inputOAuth inputTakeOAuthAuthorizationRequest
 		if authflow.AsInput(input, &inputOAuth) {
 			alias := inputOAuth.GetOAuthAlias()
-			state := inputOAuth.GetOAuthState()
 			redirectURI := inputOAuth.GetOAuthRedirectURI()
 			responseMode := inputOAuth.GetOAuthResponseMode()
 
 			syntheticInput := &InputStepIdentify{
 				Identification: i.SyntheticInput.Identification,
 				Alias:          alias,
-				State:          state,
 				RedirectURI:    redirectURI,
 				ResponseMode:   responseMode,
 			}
@@ -64,7 +62,6 @@ func (i *IntentLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.
 				JSONPointer:    i.JSONPointer,
 				SyntheticInput: syntheticInput,
 				Alias:          alias,
-				State:          state,
 				RedirectURI:    redirectURI,
 				ResponseMode:   responseMode,
 			}), nil
