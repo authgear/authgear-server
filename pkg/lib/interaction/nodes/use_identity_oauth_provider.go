@@ -61,7 +61,6 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
-	state := ctx.WebSessionID
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {
@@ -74,7 +73,6 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		RedirectURI: ctx.OAuthRedirectURIBuilder.SSOCallbackURL(oauthProvider.Config()).String(),
 		// We use response_mode=form_post if it is supported.
 		ResponseMode: sso.ResponseModeFormPost,
-		State:        state,
 		Nonce:        nonce,
 		Prompt:       input.GetPrompt(),
 	}
