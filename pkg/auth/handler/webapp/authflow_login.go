@@ -3,10 +3,12 @@ package webapp
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -19,6 +21,10 @@ func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern(webapp.AuthflowRouteLogin)
 }
 
+type AuthflowLoginEndpointsProvider interface {
+	SSOCallbackURL(alias string) *url.URL
+}
+
 type AuthflowLoginHandler struct {
 	Controller              *AuthflowController
 	BaseViewModel           *viewmodels.BaseViewModeler
@@ -28,6 +34,7 @@ type AuthflowLoginHandler struct {
 	MeterService            MeterService
 	TutorialCookie          TutorialCookie
 	ErrorCookie             ErrorCookie
+	Endpoints               AuthflowLoginEndpointsProvider
 }
 
 func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -82,21 +89,23 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	oauthProviderAlias := s.OAuthProviderAlias
 	allowLoginOnly := s.UserIDHint != ""
 
-	//oauthPostAction := func(providerAlias string) error {
-	//	result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-	//		input = &InputUseOAuth{
-	//			ProviderAlias:    providerAlias,
-	//			ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
-	//		}
-	//		return
-	//	})
-	//	if err != nil {
-	//		return err
-	//	}
+	oauthPostAction := func(providerAlias string) error {
+		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
+		input := map[string]interface{}{
+			"identification": "oauth",
+			"alias":          providerAlias,
+			"redirect_uri":   callbackURL,
+			"response_mode":  string(sso.ResponseModeFormPost),
+		}
 
-	//	result.WriteResponse(w, r)
-	//	return nil
-	//}
+		result, err := h.Controller.FeedInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	}
 
 	handlers.Get(func() error {
 		visitorID := webapp.GetVisitorID(r.Context())
@@ -110,16 +119,14 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		// FIXME(authflow): support oauthProviderAlias
-		_ = oauthProviderAlias
-		//_, hasErr := h.ErrorCookie.GetError(r)
+		_, hasErr := h.ErrorCookie.GetError(r)
 		// If x_oauth_provider_alias is provided via authz endpoint
 		// redirect the user to the oauth provider
 		// If there is error in the ErrorCookie, the user will stay in the login
 		// page to see the error message and the redirection won't be performed
-		//if !hasErr && oauthProviderAlias != "" {
-		//	return oauthPostAction(oauthProviderAlias)
-		//}
+		if !hasErr && oauthProviderAlias != "" {
+			return oauthPostAction(oauthProviderAlias)
+		}
 
 		data, err := h.GetData(w, r, screen, allowLoginOnly)
 		if err != nil {
@@ -130,10 +137,10 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	//handlers.PostAction("oauth", func() error {
-	//	providerAlias := r.Form.Get("x_provider_alias")
-	//	return oauthPostAction(providerAlias)
-	//})
+	handlers.PostAction("oauth", func() error {
+		providerAlias := r.Form.Get("x_provider_alias")
+		return oauthPostAction(providerAlias)
+	})
 
 	handlers.PostAction("login_id", func() error {
 		err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
