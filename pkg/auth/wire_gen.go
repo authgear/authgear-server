@@ -10737,60 +10737,63 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.AppDatabase
-	appredisHandle := appProvider.Redis
-	appContext := appProvider.AppContext
-	config := appContext.Config
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	serviceLogger := webapp2.NewServiceLogger(factory)
+	authflowControllerLogger := webapp.NewAuthflowControllerLogger(factory)
 	request := p.Request
-	sessionStoreRedis := &webapp2.SessionStoreRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
-	sessionCookieDef := webapp2.NewSessionCookieDef()
-	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
-	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	errorCookieDef := webapp2.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	httpConfig := appConfig.HTTP
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	errorCookie := &webapp2.ErrorCookie{
-		Cookie:  errorCookieDef,
-		Cookies: cookieManager,
-	}
-	oAuthConfig := appConfig.OAuth
-	uiConfig := appConfig.UI
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
 		HTTPProto: httpProto,
 	}
-	clockClock := _wireSystemClockValue
-	promptResolver := &oauth2.PromptResolver{
-		Clock: clockClock,
+	errorCookieDef := webapp2.NewErrorCookieDef()
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	errorCookie := &webapp2.ErrorCookie{
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
+	clockClock := _wireSystemClockValue
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	sessionStoreRedis := &webapp2.SessionStoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	sessionCookieDef := webapp2.NewSessionCookieDef()
+	contextContext := deps.ProvideRequestContext(request)
+	featureConfig := config.FeatureConfig
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	secretConfig := config.SecretConfig
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	contextContext := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	rawCommands := &user.RawCommands{
+		Store: store,
+		Clock: clockClock,
+	}
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
+	userAgentString := deps.ProvideUserAgentString(request)
+	logger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
-	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -10852,7 +10855,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	store2 := &passkey2.Store{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -10865,8 +10868,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	engine := &template.Engine{
 		Resolver: resolver,
 	}
-	localizationConfig := appConfig.Localization
-	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -10901,22 +10902,21 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Context: contextContext,
-		Redis:   appredisHandle,
+		Redis:   handle,
 		AppID:   appID,
 		Clock:   clockClock,
 	}
-	logger := ratelimit.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: appredisHandle,
+		Redis: handle,
 	}
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
-		Logger:  logger,
+		Logger:  ratelimitLogger,
 		Storage: storageRedis,
 		Config:  rateLimitsFeatureConfig,
 	}
@@ -11011,17 +11011,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
 	lookupStoreRedis := &otp.LookupStoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
 	attemptTrackerRedis := &otp.AttemptTrackerRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11046,7 +11046,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	lockoutLogger := lockout.NewLogger(factory)
 	lockoutStorageRedis := &lockout.StorageRedis{
 		AppID: appID,
-		Redis: appredisHandle,
+		Redis: handle,
 	}
 	lockoutService := &lockout.Service{
 		Logger:  lockoutLogger,
@@ -11114,74 +11114,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CustomAttributes:   customattrsServiceNoEvent,
 		Web3:               web3Service,
 	}
-	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsEndpoints,
-		Users:   queries,
-		Clock:   clockClock,
-	}
-	userAgentString := deps.ProvideUserAgentString(request)
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	sessionConfig := appConfig.Session
-	idpsessionRand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
-		RemoteIP:        remoteIP,
-		UserAgentString: userAgentString,
-		AppID:           appID,
-		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
-		AccessEvents:    eventProvider,
-		TrustProxy:      trustProxy,
-		Config:          sessionConfig,
-		Clock:           clockClock,
-		Random:          idpsessionRand,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	idTokenHintResolver := &oidc.IDTokenHintResolver{
-		Issuer:        idTokenIssuer,
-		Sessions:      idpsessionProvider,
-		OfflineGrants: redisStore,
-	}
-	oauthclientResolver := &oauthclient.Resolver{
-		OAuthConfig:     oAuthConfig,
-		TesterEndpoints: endpointsEndpoints,
-	}
-	uiInfoResolver := &oidc.UIInfoResolver{
-		Config:              oAuthConfig,
-		EndpointsProvider:   endpointsEndpoints,
-		PromptResolver:      promptResolver,
-		IDTokenHintResolver: idTokenHintResolver,
-		Clock:               clockClock,
-		Cookies:             cookieManager,
-		ClientResolver:      oauthclientResolver,
-	}
-	interactionLogger := interaction.NewLogger(factory)
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
 	}
@@ -11248,11 +11180,25 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
 		Service:  elasticsearchService,
-		Database: handle,
+		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, logger, appdbHandle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	commands := &user.Commands{
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Web3:               web3Service,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11274,20 +11220,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
-	rawCommands := &user.RawCommands{
-		Store: store,
-		Clock: clockClock,
-	}
-	commands := &user.Commands{
-		RawCommands:        rawCommands,
-		RawQueries:         rawQueries,
-		Events:             eventService,
-		Verification:       verificationService,
-		UserProfileConfig:  userProfileConfig,
-		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -11300,12 +11232,56 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  handle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     idpsessionStoreRedis,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
-		CookieDef: cookieDef2,
+		CookieDef: cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          idpsessionRand,
+	}
+	oauthclientResolver := &oauthclient.Resolver{
+		OAuthConfig:     oAuthConfig,
+		TesterEndpoints: endpointsEndpoints,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
@@ -11344,11 +11320,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+	mfaFacade := &facade.MFAFacade{
+		Coordinator: coordinator,
+	}
+	customattrsService := &customattrs.Service{
+		Config:         userProfileConfig,
+		ServiceNoEvent: customattrsServiceNoEvent,
+		Events:         eventService,
 	}
 	messagingLogger := messaging.NewLogger(factory)
 	usageLogger := usage.NewLogger(factory)
@@ -11356,7 +11334,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger: usageLogger,
 		Clock:  clockClock,
 		AppID:  appID,
-		Redis:  appredisHandle,
+		Redis:  handle,
 	}
 	messagingConfig := appConfig.Messaging
 	messagingRateLimitsConfig := messagingConfig.RateLimits
@@ -11371,20 +11349,20 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
-	whatsappServiceLogger := whatsapp.NewServiceLogger(factory)
+	serviceLogger := whatsapp.NewServiceLogger(factory)
 	devMode := environmentConfig.DevMode
 	testModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
 	whatsappConfig := messagingConfig.Whatsapp
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
 		Context:                    contextContext,
-		Logger:                     whatsappServiceLogger,
+		Logger:                     serviceLogger,
 		DevMode:                    devMode,
 		TestModeWhatsappSuppressed: testModeWhatsappSuppressed,
 		Config:                     whatsappConfig,
@@ -11404,6 +11382,53 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Sender:          sender,
 		WhatsappService: whatsappService,
 	}
+	workflowVerificationFacade := facade.WorkflowVerificationFacade{
+		Verification: verificationService,
+	}
+	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	forgotpasswordService := &forgotpassword.Service{
+		Logger:         forgotpasswordLogger,
+		Config:         appConfig,
+		FeatureConfig:  featureConfig,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		OTPCodes:       otpService,
+		OTPSender:      messageSender,
+	}
+	accountMigrationConfig := appConfig.AccountMigration
+	accountMigrationHookConfig := accountMigrationConfig.Hook
+	hookDenoClient := accountmigration.NewHookDenoClient(denoEndpoint, hookLogger, accountMigrationHookConfig)
+	denoMiddlewareLogger := accountmigration.NewDenoMiddlewareLogger(factory)
+	accountMigrationDenoHook := &accountmigration.AccountMigrationDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
+		Logger:   denoMiddlewareLogger,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := accountmigration.NewHookHTTPClient(accountMigrationHookConfig)
+	webhookMiddlewareLogger := accountmigration.NewWebhookMiddlewareLogger(factory)
+	accountMigrationWebHook := &accountmigration.AccountMigrationWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+		Logger:  webhookMiddlewareLogger,
+	}
+	accountmigrationService := &accountmigration.Service{
+		Config:   accountMigrationHookConfig,
+		DenoHook: accountMigrationDenoHook,
+		WebHook:  accountMigrationWebHook,
+	}
+	captchaConfig := appConfig.Captcha
+	providerLogger := captcha.NewProviderLogger(factory)
+	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
+	cloudflareClient := captcha2.NewCloudflareClient(captchaCloudflareCredentials)
+	captchaProvider := &captcha.Provider{
+		RemoteIP:         remoteIP,
+		Config:           captchaConfig,
+		Logger:           providerLogger,
+		CloudflareClient: cloudflareClient,
+	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
@@ -11416,18 +11441,131 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
-	mfaFacade := &facade.MFAFacade{
-		Coordinator: coordinator,
+	requestOptionsService := &passkey2.RequestOptionsService{
+		ConfigService:   configService,
+		IdentityService: serviceService,
+		Store:           store2,
 	}
-	forgotpasswordLogger := forgotpassword.NewLogger(factory)
-	forgotpasswordService := &forgotpassword.Service{
-		Logger:         forgotpasswordLogger,
-		Config:         appConfig,
-		FeatureConfig:  featureConfig,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		OTPCodes:       otpService,
-		OTPSender:      messageSender,
+	creationOptionsService := &passkey2.CreationOptionsService{
+		ConfigService:   configService,
+		UserService:     queries,
+		IdentityService: serviceService,
+		Store:           store2,
+	}
+	manager2 := &session.Manager{
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+		Events:              eventService,
+	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
+	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
+	dependencies := &authenticationflow.Dependencies{
+		Config:                        appConfig,
+		FeatureConfig:                 featureConfig,
+		Clock:                         clockClock,
+		RemoteIP:                      remoteIP,
+		HTTPOrigin:                    httpOrigin,
+		HTTPRequest:                   request,
+		Users:                         userProvider,
+		Identities:                    identityFacade,
+		Authenticators:                authenticatorFacade,
+		MFA:                           mfaFacade,
+		StdAttrsService:               stdattrsService,
+		CustomAttrsService:            customattrsService,
+		OTPCodes:                      otpService,
+		OTPSender:                     messageSender,
+		Verification:                  workflowVerificationFacade,
+		ForgotPassword:                forgotpasswordService,
+		ResetPassword:                 forgotpasswordService,
+		AccountMigrations:             accountmigrationService,
+		Captcha:                       captchaProvider,
+		OAuthProviderFactory:          oAuthProviderFactory,
+		PasskeyRequestOptionsService:  requestOptionsService,
+		PasskeyCreationOptionsService: creationOptionsService,
+		PasskeyService:                passkeyService,
+		IDPSessions:                   idpsessionProvider,
+		Sessions:                      manager2,
+		AuthenticationInfos:           authenticationinfoStoreRedis,
+		SessionCookie:                 cookieDef,
+		MFADeviceTokenCookie:          mfaCookieDef,
+		Cookies:                       cookieManager,
+		Events:                        eventService,
+		RateLimiter:                   limiter,
+		FlowEvents:                    eventStoreImpl,
+		OfflineGrants:                 redisStore,
+	}
+	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	promptResolver := &oauth2.PromptResolver{
+		Clock: clockClock,
+	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsEndpoints,
+		Users:   queries,
+		Clock:   clockClock,
+	}
+	idTokenHintResolver := &oidc.IDTokenHintResolver{
+		Issuer:        idTokenIssuer,
+		Sessions:      idpsessionProvider,
+		OfflineGrants: redisStore,
+	}
+	uiInfoResolver := &oidc.UIInfoResolver{
+		Config:              oAuthConfig,
+		EndpointsProvider:   endpointsEndpoints,
+		PromptResolver:      promptResolver,
+		IDTokenHintResolver: idTokenHintResolver,
+		Clock:               clockClock,
+		Cookies:             cookieManager,
+		ClientResolver:      oauthclientResolver,
+	}
+	authenticationflowService := &authenticationflow.Service{
+		ContextDoNotUseDirectly: contextContext,
+		Deps:                    dependencies,
+		Logger:                  authenticationflowServiceLogger,
+		Store:                   authenticationflowStoreImpl,
+		Database:                appdbHandle,
+		UIInfoResolver:          uiInfoResolver,
+	}
+	oauthsessionStoreRedis := &oauthsession.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+	}
+	uiConfig := appConfig.UI
+	authflowController := &webapp.AuthflowController{
+		Logger:                  authflowControllerLogger,
+		TesterEndpointsProvider: endpointsEndpoints,
+		ErrorCookie:             errorCookie,
+		TrustProxy:              trustProxy,
+		Clock:                   clockClock,
+		Cookies:                 cookieManager,
+		Sessions:                sessionStoreRedis,
+		SessionCookie:           sessionCookieDef,
+		Authflows:               authenticationflowService,
+		OAuthSessions:           oauthsessionStoreRedis,
+		UIInfoResolver:          uiInfoResolver,
+		UIConfig:                uiConfig,
+		OAuthClientResolver:     oauthclientResolver,
+	}
+	webappServiceLogger := webapp2.NewServiceLogger(factory)
+	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
+	interactionLogger := interaction.NewLogger(factory)
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
@@ -11436,23 +11574,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
-	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-	}
-	manager2 := &session.Manager{
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -11487,11 +11611,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationInfoService:       authenticationinfoStoreRedis,
 		Sessions:                        idpsessionProvider,
 		SessionManager:                  manager2,
-		SessionCookie:                   cookieDef2,
-		MFADeviceTokenCookie:            cookieDef,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: appredisHandle,
+		Redis: handle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -11500,12 +11624,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store:   interactionStoreRedis,
 	}
 	webappService2 := &webapp2.Service2{
-		Logger:               serviceLogger,
+		Logger:               webappServiceLogger,
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
 		SignedUpCookie:       signedUpCookieDef,
-		MFADeviceTokenCookie: cookieDef,
+		MFADeviceTokenCookie: mfaCookieDef,
 		ErrorCookie:          errorCookie,
 		Cookies:              cookieManager,
 		OAuthConfig:          oAuthConfig,
@@ -11543,10 +11667,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
 	}
-	publisher := webapp.NewPublisher(appID, appredisHandle)
+	publisher := webapp.NewPublisher(appID, handle)
 	controllerDeps := webapp.ControllerDeps{
-		Database:                handle,
-		RedisHandle:             appredisHandle,
+		Database:                appdbHandle,
+		RedisHandle:             handle,
 		AppID:                   appID,
 		Page:                    webappService2,
 		BaseViewModel:           baseViewModeler,
@@ -11563,7 +11687,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	ssoCallbackHandler := &webapp.SSOCallbackHandler{
-		ControllerFactory: controllerFactory,
+		AuthflowController: authflowController,
+		ControllerFactory:  controllerFactory,
 	}
 	return ssoCallbackHandler
 }
