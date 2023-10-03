@@ -44,9 +44,6 @@ func TestInputSchemaTakeOAuthAuthorizationRequest(t *testing.T) {
             "type": "string",
             "format": "uri"
         },
-        "state": {
-            "type": "string"
-        },
         "response_mode": {
             "type": "string",
             "enum": [

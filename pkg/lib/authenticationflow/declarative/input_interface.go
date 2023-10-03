@@ -28,9 +28,15 @@ type inputTakeLoginID interface {
 
 type inputTakeOAuthAuthorizationRequest interface {
 	GetOAuthAlias() string
-	GetOAuthState() string
 	GetOAuthRedirectURI() string
 	GetOAuthResponseMode() sso.ResponseMode
+	// We used to accept `state`.
+	// But it turns out to be confusing.
+	// `state` is used to maintain state between the request and the callback.
+	// So ideally, `state` should contain the `state_token` of an authflow.
+	// Therefore, we DO NOT accept `state`.
+	// Instead, when the caller receive a authflow response that contains `oauth_authorization_url`,
+	// they MUST add `state` to the URL, and then redirect.
 }
 
 type inputTakeOAuthAuthorizationResponse interface {
