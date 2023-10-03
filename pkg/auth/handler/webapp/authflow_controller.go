@@ -3,7 +3,6 @@ package webapp
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -199,6 +198,20 @@ func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID stri
 	return output, err
 }
 
+func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input interface{}) (*webapp.Result, error) {
+	screen, err := c.createScreen(r, s, flowReference)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.FeedInput(r, s, screen, input)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (c *AuthflowController) GetOrCreateScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
 	screen, err := c.GetScreen(s, xStep)
@@ -216,10 +229,10 @@ func (c *AuthflowController) GetOrCreateScreen(r *http.Request, s *webapp.Sessio
 		}
 	}
 
-	return c.createScreen(r, s, flowReference, checkFn)
+	return c.createScreen(r, s, flowReference)
 }
 
-func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*webapp.AuthflowScreenWithFlowResponse, error) {
+func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	// If we reach here, either screen is nil or its flowResponse does not pass the check.
 	// We create a new authflow instead.
 	output, err := c.createAuthflow(r, s.OAuthSessionID, flowReference)
@@ -228,10 +241,6 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	}
 
 	flowResponse := output.ToFlowResponse()
-	ok := checkFn(&flowResponse)
-	if !ok {
-		panic(fmt.Errorf("a freshly created authflow must pass the check"))
-	}
 
 	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
 	af := webapp.NewAuthflow(flowResponse.ID, screen)

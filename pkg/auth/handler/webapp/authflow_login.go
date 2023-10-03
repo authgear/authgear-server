@@ -72,14 +72,13 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	flowName := "default"
-	flowReference := authflow.FlowReference{
-		Type: authflow.FlowTypeLogin,
-		Name: flowName,
-	}
 	checkFn := func(f *authflow.FlowResponse) bool {
 		return f.Type == authflow.FlowTypeLogin && f.Name == flowName && f.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeIdentify)
 	}
-	screen, err := h.Controller.GetOrCreateScreen(r, s, flowReference, checkFn)
+	screen, err := h.Controller.GetOrCreateScreen(r, s, authflow.FlowReference{
+		Type: authflow.FlowTypeLogin,
+		Name: flowName,
+	}, checkFn)
 	if err != nil {
 		// FIXME(authflow): log the error.
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -98,7 +97,10 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"response_mode":  string(sso.ResponseModeFormPost),
 		}
 
-		result, err := h.Controller.FeedInput(r, s, screen, input)
+		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowReference{
+			Type: authflow.FlowTypeSignupLogin,
+			Name: flowName,
+		}, input)
 		if err != nil {
 			return err
 		}
