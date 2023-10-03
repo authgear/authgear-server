@@ -538,8 +538,16 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, r
 		result.RedirectURI = httputil.HostRelative(r.URL).String()
 	case config.AuthenticationFlowIdentificationOAuth:
 		// Redirect to the external OAuth provider.
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeOAuthData)
-		authorizationURLStr := data.OAuthAuthorizationURL
+		var authorizationURLStr string
+		switch data := s.StateTokenFlowResponse.Action.Data.(type) {
+		case declarative.NodeOAuthData:
+			authorizationURLStr = data.OAuthAuthorizationURL
+		case declarative.NodeLookupIdentityOAuthData:
+			authorizationURLStr = data.OAuthAuthorizationURL
+		default:
+			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+		}
+
 		authorizationURL, _ := url.Parse(authorizationURLStr)
 		q := authorizationURL.Query()
 		// Set state=<value of x_step> so that the frontend can resume.
