@@ -81,17 +81,13 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		}
 
 		Convey("return ErrFlowNotFound if session has no authflow", func() {
-			ctx := context.Background()
 			s := &webapp.Session{}
 
-			r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
-
-			_, err := c.GetScreen(r, s)
+			_, err := c.GetScreen(s, "")
 			So(err, ShouldBeError, authflow.ErrFlowNotFound)
 		})
 
 		Convey("return screen even x_step is absent", func() {
-			ctx := context.Background()
 			serviceOutput := &authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
@@ -120,11 +116,9 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
-
 			mockAuthflows.EXPECT().Get(flowResponse.StateToken).Times(1).Return(serviceOutput, nil)
 
-			actual, err := c.GetScreen(r, s)
+			actual, err := c.GetScreen(s, "")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen:                 screen,
@@ -133,7 +127,6 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		})
 
 		Convey("return screen as specified by x_step", func() {
-			ctx := context.Background()
 			screen0 := &webapp.AuthflowScreen{
 				StateToken: &webapp.AuthflowStateToken{
 					XStep:      "step_0",
@@ -158,8 +151,6 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			r, _ := http.NewRequestWithContext(ctx, "GET", "?x_step=step_1", nil)
-
 			mockAuthflows.EXPECT().Get("authflowstate_1").Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
@@ -171,7 +162,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}, nil)
 
-			actual, err := c.GetScreen(r, s)
+			actual, err := c.GetScreen(s, "step_1")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen: screen1,

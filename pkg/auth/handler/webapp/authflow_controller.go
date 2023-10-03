@@ -98,6 +98,14 @@ type AuthflowController struct {
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 }
 
+func (c *AuthflowController) GetWebSession(r *http.Request) (*webapp.Session, error) {
+	s := webapp.GetSession(r.Context())
+	if s == nil {
+		return nil, webapp.ErrSessionNotFound
+	}
+	return s, nil
+}
+
 func (c *AuthflowController) GetOrCreateWebSession(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
 	now := c.Clock.NowUTC()
 	s := webapp.GetSession(r.Context())
@@ -120,12 +128,10 @@ func (c *AuthflowController) GetOrCreateWebSession(w http.ResponseWriter, r *htt
 	return s, nil
 }
 
-func (c *AuthflowController) GetScreen(r *http.Request, s *webapp.Session) (*webapp.AuthflowScreenWithFlowResponse, error) {
+func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	if s.Authflow == nil {
 		return nil, authflow.ErrFlowNotFound
 	}
-
-	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
 
 	var screen *webapp.AuthflowScreen
 
@@ -194,7 +200,8 @@ func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID stri
 }
 
 func (c *AuthflowController) GetOrCreateScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*webapp.AuthflowScreenWithFlowResponse, error) {
-	screen, err := c.GetScreen(r, s)
+	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
+	screen, err := c.GetScreen(s, xStep)
 	if err != nil {
 		// Return critical error.
 		if !errors.Is(err, authflow.ErrFlowNotFound) {
@@ -353,7 +360,7 @@ func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*a
 	}
 	rawMessage := json.RawMessage(rawMessageBytes)
 	output, err := c.Authflows.FeedInput(stateToken, rawMessage)
-	if err != nil {
+	if err != nil && !errors.Is(err, authflow.ErrEOF) {
 		return nil, err
 	}
 
@@ -463,14 +470,14 @@ func (c *AuthflowController) MakeHTTPHandler(handlers *AuthflowControllerHandler
 		}
 
 		if apierrors.IsAPIError(err) {
-			c.renderError(w, r, err)
+			c.RenderError(w, r, err)
 		} else {
 			panic(err)
 		}
 	})
 }
 
-func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
+func (c *AuthflowController) RenderError(w http.ResponseWriter, r *http.Request, err error) {
 	apierror := apierrors.AsAPIError(err)
 
 	u := *r.URL
