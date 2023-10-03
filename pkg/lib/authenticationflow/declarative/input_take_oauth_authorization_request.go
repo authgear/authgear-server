@@ -53,7 +53,7 @@ func (i *InputSchemaTakeOAuthAuthorizationRequest) MakeInput(rawMessage json.Raw
 type InputTakeOAuthAuthorizationRequest struct {
 	Alias        string           `json:"alias"`
 	RedirectURI  string           `json:"redirect_uri"`
-	ResponseMode sso.ResponseMode `json:"ResponseMode,omitempty"`
+	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeOAuthAuthorizationRequest{}
