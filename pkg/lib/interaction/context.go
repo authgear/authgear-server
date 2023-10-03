@@ -140,7 +140,7 @@ type OAuthProviderFactory interface {
 }
 
 type OAuthRedirectURIBuilder interface {
-	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
+	SSOCallbackURL(alias string) *url.URL
 }
 
 type ForgotPasswordService interface {
