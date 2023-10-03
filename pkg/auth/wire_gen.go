@@ -8169,6 +8169,7 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		MeterService:            meterService,
 		TutorialCookie:          tutorialCookie,
 		ErrorCookie:             errorCookie,
+		Endpoints:               endpointsEndpoints,
 	}
 	return authflowLoginHandler
 }
