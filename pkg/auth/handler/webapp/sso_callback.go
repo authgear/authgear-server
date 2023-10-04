@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -32,35 +33,25 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case state != "":
 		// authflow
-		s, err := h.AuthflowController.GetWebSession(r)
-		if err != nil {
-			h.AuthflowController.RenderError(w, r, err)
-			return
-		}
-
 		xStep := state
-		screen, err := h.AuthflowController.GetScreen(s, xStep)
-		if err != nil {
-			h.AuthflowController.RenderError(w, r, err)
-			return
-		}
+		h.AuthflowController.HandleOAuthCallback(w, r, xStep, func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+			input := map[string]interface{}{}
+			switch {
+			case code != "":
+				input["code"] = code
+			case error_ != "":
+				input["error"] = error_
+				input["error_description"] = errorDescription
+				input["error_uri"] = errorURI
+			}
+			result, err := h.AuthflowController.FeedInput(r, s, screen, input)
+			if err != nil {
+				return err
+			}
 
-		input := map[string]interface{}{}
-		switch {
-		case code != "":
-			input["code"] = code
-		case error_ != "":
-			input["error"] = error_
-			input["error_description"] = errorDescription
-			input["error_uri"] = errorURI
-		}
-		result, err := h.AuthflowController.FeedInput(r, s, screen, input)
-		if err != nil {
-			h.AuthflowController.RenderError(w, r, err)
-			return
-		}
-
-		result.WriteResponse(w, r)
+			result.WriteResponse(w, r)
+			return nil
+		})
 	default:
 		// interaction
 		ctrl, err := h.ControllerFactory.New(r, w)

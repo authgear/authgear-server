@@ -22,7 +22,7 @@ import (
 
 //go:generate mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
 
-type AuthflowControllerHandler func() error
+type AuthflowControllerHandler func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error
 
 type AuthflowControllerHandlers struct {
 	GetHandler   AuthflowControllerHandler
@@ -102,7 +102,66 @@ type AuthflowController struct {
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 }
 
-func (c *AuthflowController) GetWebSession(r *http.Request) (*webapp.Session, error) {
+func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions, flowReference authflow.FlowReference, handlers *AuthflowControllerHandlers) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	s, err := c.getOrCreateWebSession(w, r, opts)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to get or create web session")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	screen, err := c.getScreen(s, GetXStepFromQuery(r))
+	if err != nil {
+		if errors.Is(err, authflow.ErrFlowNotFound) {
+			result, err := c.createScreen(r, s, flowReference)
+			if err != nil {
+				c.Logger.WithError(err).Errorf("failed to create screen")
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			result.WriteResponse(w, r)
+			return
+		}
+
+		c.Logger.WithError(err).Errorf("failed to get screen")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	handler := c.makeHTTPHandler(s, screen, handlers)
+	handler.ServeHTTP(w, r)
+}
+
+func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, xStep string, h AuthflowControllerHandler) {
+	s, err := c.getWebSession(r)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to get web session")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	screen, err := c.getScreen(s, xStep)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to get screen")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	err = h(s, screen)
+	if apierrors.IsAPIError(err) {
+		c.renderError(w, r, err)
+	} else {
+		panic(err)
+	}
+}
+
+func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, error) {
 	s := webapp.GetSession(r.Context())
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
@@ -110,7 +169,7 @@ func (c *AuthflowController) GetWebSession(r *http.Request) (*webapp.Session, er
 	return s, nil
 }
 
-func (c *AuthflowController) GetOrCreateWebSession(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
+func (c *AuthflowController) getOrCreateWebSession(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
 	now := c.Clock.NowUTC()
 	s := webapp.GetSession(r.Context())
 	if s != nil {
@@ -132,7 +191,7 @@ func (c *AuthflowController) GetOrCreateWebSession(w http.ResponseWriter, r *htt
 	return s, nil
 }
 
-func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp.AuthflowScreenWithFlowResponse, error) {
+func (c *AuthflowController) getScreen(s *webapp.Session, xStep string) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	if s.Authflow == nil {
 		return nil, authflow.ErrFlowNotFound
 	}
@@ -250,7 +309,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	return result, nil
 }
 
-func (c *AuthflowController) CreateScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (result *webapp.Result, err error) {
+func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (result *webapp.Result, err error) {
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
@@ -497,13 +556,13 @@ func (c *AuthflowController) RedirectURI(r *http.Request) string {
 	return ruri
 }
 
-func (c *AuthflowController) MakeHTTPHandler(handlers *AuthflowControllerHandlers) http.Handler {
+func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, handlers *AuthflowControllerHandlers) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 
 		switch r.Method {
 		case http.MethodGet:
-			err = handlers.GetHandler()
+			err = handlers.GetHandler(s, screen)
 		case http.MethodPost:
 			xAction := r.FormValue("x_action")
 			handler, ok := handlers.PostHandlers[xAction]
@@ -512,21 +571,21 @@ func (c *AuthflowController) MakeHTTPHandler(handlers *AuthflowControllerHandler
 				return
 			}
 
-			err = handler()
+			err = handler(s, screen)
 		default:
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
 
 		if apierrors.IsAPIError(err) {
-			c.RenderError(w, r, err)
+			c.renderError(w, r, err)
 		} else {
 			panic(err)
 		}
 	})
 }
 
-func (c *AuthflowController) RenderError(w http.ResponseWriter, r *http.Request, err error) {
+func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
 	apierror := apierrors.AsAPIError(err)
 
 	u := *r.URL
