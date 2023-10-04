@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/base32"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
@@ -22,9 +21,6 @@ const AuthflowQueryKey = "x_step"
 type Authflow struct {
 	// FlowID is the ID of the authflow.
 	FlowID string `json:"flow_id"`
-	// InitialScreen is the screen we look at when the URL does not have x_step.
-	// This is typically the first step of an authflow.
-	InitialScreen *AuthflowScreen `json:"initial_screen,omitempty"`
 	// AllScreens is x_step => screen.
 	AllScreens map[string]*AuthflowScreen `json:"all_screens,omitempty"`
 }
@@ -35,7 +31,6 @@ func NewAuthflow(flowID string, initialScreen *AuthflowScreenWithFlowResponse) *
 		AllScreens: map[string]*AuthflowScreen{},
 	}
 	af.RememberScreen(initialScreen)
-	af.InitialScreen = initialScreen.Screen
 	return af
 }
 
@@ -526,6 +521,8 @@ func (s *AuthflowScreenWithFlowResponse) advance(p string, result *Result) {
 func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, result *Result) {
 	identification := s.StateTokenFlowResponse.Action.Identification
 	switch identification {
+	case "":
+		fallthrough
 	case config.AuthenticationFlowIdentificationEmail:
 		fallthrough
 	case config.AuthenticationFlowIdentificationPhone:
@@ -533,9 +530,14 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, r
 	case config.AuthenticationFlowIdentificationUsername:
 		fallthrough
 	case config.AuthenticationFlowIdentificationPasskey:
-		// Stay in the same screen.
+		// Stay in the same page with x_step set.
+		u := *r.URL
+		q := u.Query()
+		q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
+		u.RawQuery = q.Encode()
+
 		result.NavigationAction = "replace"
-		result.RedirectURI = httputil.HostRelative(r.URL).String()
+		result.RedirectURI = u.String()
 	case config.AuthenticationFlowIdentificationOAuth:
 		// Redirect to the external OAuth provider.
 		var authorizationURLStr string
