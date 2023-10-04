@@ -62724,13 +62724,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
-	}
-	formPrefiller := &webapp.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -62751,15 +62747,14 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authflowLoginHandler := &webapp.AuthflowLoginHandler{
-		Controller:              authflowController,
-		BaseViewModel:           baseViewModeler,
-		AuthenticationViewModel: authenticationViewModeler,
-		FormPrefiller:           formPrefiller,
-		Renderer:                responseRenderer,
-		MeterService:            meterService,
-		TutorialCookie:          tutorialCookie,
-		ErrorCookie:             errorCookie,
-		Endpoints:               endpointsEndpoints,
+		Controller:        authflowController,
+		BaseViewModel:     baseViewModeler,
+		AuthflowViewModel: authflowViewModeler,
+		Renderer:          responseRenderer,
+		MeterService:      meterService,
+		TutorialCookie:    tutorialCookie,
+		ErrorCookie:       errorCookie,
+		Endpoints:         endpointsEndpoints,
 	}
 	return authflowLoginHandler
 }
@@ -63613,13 +63608,9 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		AuthUISentryDSN:       authUISentryDSN,
 		OAuthClientResolver:   oauthclientResolver,
 	}
-	authenticationViewModeler := &viewmodels.AuthenticationViewModeler{
+	authflowViewModeler := &viewmodels.AuthflowViewModeler{
 		Authentication: authenticationConfig,
 		LoginID:        loginIDConfig,
-	}
-	formPrefiller := &webapp.FormPrefiller{
-		LoginID: loginIDConfig,
-		UI:      uiConfig,
 	}
 	responseRenderer := &webapp.ResponseRenderer{
 		TemplateEngine: engine,
@@ -63640,15 +63631,14 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	authflowSignupHandler := &webapp.AuthflowSignupHandler{
-		Controller:              authflowController,
-		BaseViewModel:           baseViewModeler,
-		AuthenticationViewModel: authenticationViewModeler,
-		FormPrefiller:           formPrefiller,
-		Renderer:                responseRenderer,
-		MeterService:            meterService,
-		TutorialCookie:          tutorialCookie,
-		ErrorCookie:             errorCookie,
-		Endpoints:               endpointsEndpoints,
+		Controller:        authflowController,
+		BaseViewModel:     baseViewModeler,
+		AuthflowViewModel: authflowViewModeler,
+		Renderer:          responseRenderer,
+		MeterService:      meterService,
+		TutorialCookie:    tutorialCookie,
+		ErrorCookie:       errorCookie,
+		Endpoints:         endpointsEndpoints,
 	}
 	return authflowSignupHandler
 }

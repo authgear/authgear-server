@@ -1,12 +1,9 @@
 package viewmodels
 
 import (
-	"encoding/json"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -152,140 +149,6 @@ func (m *AuthenticationViewModeler) NewWithCandidates(candidates []identity.Cand
 		EmailLoginIDEnabled:    hasEmail,
 		UsernameLoginIDEnabled: hasUsername,
 		PasskeyEnabled:         passkeyEnabled,
-
-		NonPhoneLoginIDInputType: nonPhoneLoginIDInputType,
-		NonPhoneLoginIDType:      nonPhoneLoginIDType,
-		LoginIDContextualType:    loginIDContextualType,
-	}
-}
-
-func (m *AuthenticationViewModeler) NewWithAuthflow(f *authflow.FlowResponse, form url.Values) AuthenticationViewModel {
-	options := webapp.GetIdentificationOptions(f)
-
-	var firstLoginIDIdentification config.AuthenticationFlowIdentification
-	hasEmail := false
-	hasUsername := false
-	hasPhone := false
-	passkeyEnabled := false
-	passkeyRequestOptionsJSON := ""
-
-	for _, o := range options {
-		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
-			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
-			}
-			hasEmail = true
-		case config.AuthenticationFlowIdentificationPhone:
-			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationPhone
-			}
-			hasPhone = true
-		case config.AuthenticationFlowIdentificationUsername:
-			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
-			}
-			hasUsername = true
-		case config.AuthenticationFlowIdentificationPasskey:
-			passkeyEnabled = true
-			bytes, err := json.Marshal(o.RequestOptions)
-			if err != nil {
-				panic(err)
-			}
-			passkeyRequestOptionsJSON = string(bytes)
-		}
-	}
-
-	// Then we determine NonPhoneLoginIDInputType.
-	nonPhoneLoginIDInputType := "text"
-	if hasEmail && !hasUsername {
-		nonPhoneLoginIDInputType = "email"
-	}
-
-	nonPhoneLoginIDType := "email"
-	switch {
-	case hasEmail && hasUsername:
-		nonPhoneLoginIDType = "email_or_username"
-	case hasUsername:
-		nonPhoneLoginIDType = "username"
-	}
-
-	xLoginIDInputType := "text"
-	if _, ok := form["q_login_id_input_type"]; ok {
-		xLoginIDInputType = form.Get("q_login_id_input_type")
-	} else {
-		if firstLoginIDIdentification != "" {
-			if firstLoginIDIdentification == config.AuthenticationFlowIdentificationPhone {
-				xLoginIDInputType = "phone"
-			} else {
-				xLoginIDInputType = nonPhoneLoginIDInputType
-			}
-		}
-	}
-
-	var loginIDContextualType string
-	switch {
-	case xLoginIDInputType == "phone":
-		loginIDContextualType = "phone"
-	default:
-		loginIDContextualType = nonPhoneLoginIDType
-	}
-
-	loginIDDisabled := !hasEmail && !hasUsername && !hasPhone
-
-	makeLoginIDCandidate := func(t model.LoginIDKeyType) identity.Candidate {
-		candidate := identity.Candidate{
-			identity.CandidateKeyIdentityID:   "",
-			identity.CandidateKeyType:         string(model.IdentityTypeLoginID),
-			identity.CandidateKeyLoginIDType:  string(t),
-			identity.CandidateKeyLoginIDKey:   string(t),
-			identity.CandidateKeyLoginIDValue: "",
-			identity.CandidateKeyDisplayID:    "",
-			// This is irrelevant.
-			identity.CandidateKeyModifyDisabled: false,
-		}
-		return candidate
-	}
-
-	var candidates []identity.Candidate
-	for _, o := range options {
-		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
-			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeEmail))
-		case config.AuthenticationFlowIdentificationPhone:
-			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypePhone))
-		case config.AuthenticationFlowIdentificationUsername:
-			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeUsername))
-		case config.AuthenticationFlowIdentificationOAuth:
-			candidate := identity.Candidate{
-				identity.CandidateKeyIdentityID:        "",
-				identity.CandidateKeyType:              string(model.IdentityTypeOAuth),
-				identity.CandidateKeyProviderType:      string(o.ProviderType),
-				identity.CandidateKeyProviderAlias:     o.Alias,
-				identity.CandidateKeyProviderSubjectID: "",
-				identity.CandidateKeyProviderAppType:   string(o.WechatAppType),
-				identity.CandidateKeyDisplayID:         "",
-				// This is irrelevant.
-				identity.CandidateKeyModifyDisabled: false,
-			}
-			candidates = append(candidates, candidate)
-		case config.AuthenticationFlowIdentificationPasskey:
-			// Passkey was not handled by candidates.
-			break
-		}
-	}
-
-	return AuthenticationViewModel{
-		IdentityCandidates: candidates,
-		// IdentityCount is relevant only in settings.
-		IdentityCount: 0,
-
-		LoginIDDisabled:           loginIDDisabled,
-		PhoneLoginIDEnabled:       hasPhone,
-		EmailLoginIDEnabled:       hasEmail,
-		UsernameLoginIDEnabled:    hasUsername,
-		PasskeyEnabled:            passkeyEnabled,
-		PasskeyRequestOptionsJSON: passkeyRequestOptionsJSON,
 
 		NonPhoneLoginIDInputType: nonPhoneLoginIDInputType,
 		NonPhoneLoginIDType:      nonPhoneLoginIDType,
