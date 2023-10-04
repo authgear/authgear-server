@@ -14,12 +14,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebAuthflowSignupHTML = template.RegisterHTML(
 	"web/authflow_signup.html",
 	components...,
 )
+
+var AuthflowSignupLoginIDSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"q_login_id_key": { "type": "string" },
+			"q_login_id": { "type": "string" }
+		},
+		"required": ["q_login_id_key", "q_login_id"]
+	}
+`)
 
 func ConfigureAuthflowSignupRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -32,15 +44,14 @@ type AuthflowSignupEndpointsProvider interface {
 }
 
 type AuthflowSignupHandler struct {
-	Controller              *AuthflowController
-	BaseViewModel           *viewmodels.BaseViewModeler
-	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	MeterService            MeterService
-	TutorialCookie          TutorialCookie
-	ErrorCookie             ErrorCookie
-	Endpoints               AuthflowSignupEndpointsProvider
+	Controller        *AuthflowController
+	BaseViewModel     *viewmodels.BaseViewModeler
+	AuthflowViewModel *viewmodels.AuthflowViewModeler
+	Renderer          Renderer
+	MeterService      MeterService
+	TutorialCookie    TutorialCookie
+	ErrorCookie       ErrorCookie
+	Endpoints         AuthflowSignupEndpointsProvider
 }
 
 func (h *AuthflowSignupHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -50,9 +61,8 @@ func (h *AuthflowSignupHandler) GetData(w http.ResponseWriter, r *http.Request, 
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := h.AuthenticationViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r.Form)
-	viewmodels.Embed(data, authenticationViewModel)
-	viewmodels.Embed(data, NewSignupViewModel(r))
+	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
+	viewmodels.Embed(data, authflowViewModel)
 	return data, nil
 }
 
@@ -61,8 +71,6 @@ func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	h.FormPrefiller.Prefill(r.Form)
 
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
@@ -144,14 +152,14 @@ func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	})
 
 	handlers.PostAction("login_id", func() error {
-		err = SignupWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowSignupLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
-		loginIDType := r.Form.Get("q_login_id_type")
+		loginIDKey := r.Form.Get("q_login_id_key")
 		loginID := r.Form.Get("q_login_id")
-		identification := loginIDType
+		identification := loginIDKey
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,

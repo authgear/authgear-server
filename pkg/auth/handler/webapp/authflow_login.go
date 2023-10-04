@@ -14,12 +14,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebAuthflowLoginHTML = template.RegisterHTML(
 	"web/authflow_login.html",
 	components...,
 )
+
+var AuthflowLoginLoginIDSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"q_login_id": { "type": "string" }
+		},
+		"required": ["q_login_id"]
+	}
+`)
 
 func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -31,16 +42,25 @@ type AuthflowLoginEndpointsProvider interface {
 	SSOCallbackURL(alias string) *url.URL
 }
 
+type AuthflowLoginViewModel struct {
+	AllowLoginOnly bool
+}
+
+func NewAuthflowLoginViewModel(allowLoginOnly bool) AuthflowLoginViewModel {
+	return AuthflowLoginViewModel{
+		AllowLoginOnly: allowLoginOnly,
+	}
+}
+
 type AuthflowLoginHandler struct {
-	Controller              *AuthflowController
-	BaseViewModel           *viewmodels.BaseViewModeler
-	AuthenticationViewModel *viewmodels.AuthenticationViewModeler
-	FormPrefiller           *FormPrefiller
-	Renderer                Renderer
-	MeterService            MeterService
-	TutorialCookie          TutorialCookie
-	ErrorCookie             ErrorCookie
-	Endpoints               AuthflowLoginEndpointsProvider
+	Controller        *AuthflowController
+	BaseViewModel     *viewmodels.BaseViewModeler
+	AuthflowViewModel *viewmodels.AuthflowViewModeler
+	Renderer          Renderer
+	MeterService      MeterService
+	TutorialCookie    TutorialCookie
+	ErrorCookie       ErrorCookie
+	Endpoints         AuthflowLoginEndpointsProvider
 }
 
 func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -50,9 +70,9 @@ func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authenticationViewModel := h.AuthenticationViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r.Form)
-	viewmodels.Embed(data, authenticationViewModel)
-	viewmodels.Embed(data, NewLoginViewModel(allowLoginOnly, r))
+	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
+	viewmodels.Embed(data, authflowViewModel)
+	viewmodels.Embed(data, NewAuthflowLoginViewModel(allowLoginOnly))
 	return data, nil
 }
 
@@ -61,8 +81,6 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	h.FormPrefiller.Prefill(r.Form)
 
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
@@ -160,7 +178,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	})
 
 	handlers.PostAction("login_id", func() error {
-		err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		err := AuthflowLoginLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
