@@ -16,12 +16,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
-	Convey("AuthflowController.GetOrCreateWebSession", t, func() {
+	Convey("AuthflowController.getOrCreateWebSession", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -46,7 +47,7 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 			mockSessionStore.EXPECT().Create(gomock.Any()).Times(1).Return(nil)
 			mockCookieManager.EXPECT().ValueCookie(c.SessionCookie.Def, gomock.Any()).Times(1).Return(&http.Cookie{})
 
-			s, err := c.GetOrCreateWebSession(w, r, opts)
+			s, err := c.getOrCreateWebSession(w, r, opts)
 			So(err, ShouldBeNil)
 			So(s, ShouldNotBeNil)
 		})
@@ -63,7 +64,7 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			opts := webapp.SessionOptions{}
-			ss, err := c.GetOrCreateWebSession(w, r, opts)
+			ss, err := c.getOrCreateWebSession(w, r, opts)
 			So(err, ShouldBeNil)
 			So(ss, ShouldEqual, s)
 		})
@@ -71,7 +72,7 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 }
 
 func TestAuthflowControllerGetScreen(t *testing.T) {
-	Convey("AuthflowController.GetScreen", t, func() {
+	Convey("AuthflowController.getScreen", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -84,7 +85,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		Convey("return ErrFlowNotFound if session has no authflow", func() {
 			s := &webapp.Session{}
 
-			_, err := c.GetScreen(s, "")
+			_, err := c.getScreen(s, "")
 			So(err, ShouldBeError, authflow.ErrFlowNotFound)
 		})
 
@@ -116,7 +117,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			_, err := c.GetScreen(s, "")
+			_, err := c.getScreen(s, "")
 			So(errors.Is(err, authflow.ErrFlowNotFound), ShouldBeTrue)
 		})
 
@@ -155,7 +156,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}, nil)
 
-			actual, err := c.GetScreen(s, "step_1")
+			actual, err := c.getScreen(s, "step_1")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen: screen1,
@@ -171,7 +172,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 }
 
 func TestAuthflowControllerCreateScreen(t *testing.T) {
-	Convey("AuthflowController.CreateScreen", t, func() {
+	Convey("AuthflowController.createScreen", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -206,7 +207,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
 
-			result, err := c.CreateScreen(r, s, authflow.FlowReference{
+			result, err := c.createScreen(r, s, authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: "default",
 			})
@@ -370,7 +371,9 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				FlowAction: &authflow.FlowAction{
 					Type:           authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-					Data:           declarative.NodeVerifyClaimData{},
+					Data: declarative.NodeVerifyClaimData{
+						OTPForm: otp.FormCode,
+					},
 				},
 			}, nil)
 
