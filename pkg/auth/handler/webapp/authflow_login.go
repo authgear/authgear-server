@@ -13,6 +13,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/template"
+)
+
+var TemplateWebAuthflowLoginHTML = template.RegisterHTML(
+	"web/authflow_login.html",
+	components...,
 )
 
 func ConfigureAuthflowLoginRoute(route httproute.Route) httproute.Route {
@@ -144,7 +150,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebLoginHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowLoginHTML, data)
 		return nil
 	})
 
