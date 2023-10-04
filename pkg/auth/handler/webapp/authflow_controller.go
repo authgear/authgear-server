@@ -77,6 +77,11 @@ func NewAuthflowControllerLogger(lf *log.Factory) AuthflowControllerLogger {
 	return AuthflowControllerLogger{lf.New("authflow_controller")}
 }
 
+func GetXStepFromQuery(r *http.Request) string {
+	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
+	return xStep
+}
+
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
@@ -132,17 +137,9 @@ func (c *AuthflowController) GetScreen(s *webapp.Session, xStep string) (*webapp
 		return nil, authflow.ErrFlowNotFound
 	}
 
-	var screen *webapp.AuthflowScreen
-
-	// entrypoint does not have x_step.
-	if xStep == "" {
-		screen = s.Authflow.InitialScreen
-	} else {
-		var ok bool
-		screen, ok = s.Authflow.AllScreens[xStep]
-		if !ok {
-			return nil, authflow.ErrFlowNotFound
-		}
+	screen, ok := s.Authflow.AllScreens[xStep]
+	if !ok {
+		return nil, authflow.ErrFlowNotFound
 	}
 
 	screenWithResponse := &webapp.AuthflowScreenWithFlowResponse{
@@ -198,13 +195,54 @@ func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID stri
 	return output, err
 }
 
-func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input interface{}) (*webapp.Result, error) {
-	screen, err := c.createScreen(r, s, flowReference)
+func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input interface{}) (result *webapp.Result, err error) {
+	var screen *webapp.AuthflowScreenWithFlowResponse
+	result = &webapp.Result{}
+
+	defer func() {
+		if err != nil {
+			if !apierrors.IsAPIError(err) {
+				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("create screen: %v", err)
+			}
+			var errCookie *http.Cookie
+			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
+			if err != nil {
+				result = nil
+				return
+			}
+			result.IsInteractionErr = true
+			result.Cookies = append(result.Cookies, errCookie)
+			if screen != nil {
+				result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
+			} else {
+				result.RedirectURI = r.URL.String()
+			}
+		}
+	}()
+
+	output, err := c.createAuthflow(r, s.OAuthSessionID, flowReference)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	result, err := c.FeedInput(r, s, screen, input)
+	flowResponse := output.ToFlowResponse()
+	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
+	af := webapp.NewAuthflow(flowResponse.ID, screen)
+	s.Authflow = af
+
+	output, screen, err = c.takeBranchIfNeeded(s, screen)
+	if err != nil {
+		return
+	}
+
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	err = c.Sessions.Update(s)
+	if err != nil {
+		return
+	}
+
+	result, err = c.FeedInput(r, s, screen, input)
 	if err != nil {
 		return nil, err
 	}
@@ -212,53 +250,55 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	return result, nil
 }
 
-func (c *AuthflowController) GetOrCreateScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, checkFn func(*authflow.FlowResponse) bool) (*webapp.AuthflowScreenWithFlowResponse, error) {
-	xStep := r.URL.Query().Get(webapp.AuthflowQueryKey)
-	screen, err := c.GetScreen(s, xStep)
-	if err != nil {
-		// Return critical error.
-		if !errors.Is(err, authflow.ErrFlowNotFound) {
-			return nil, err
+func (c *AuthflowController) CreateScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (result *webapp.Result, err error) {
+	var screen *webapp.AuthflowScreenWithFlowResponse
+	result = &webapp.Result{}
+
+	defer func() {
+		if err != nil {
+			if !apierrors.IsAPIError(err) {
+				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("create screen: %v", err)
+			}
+			var errCookie *http.Cookie
+			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
+			if err != nil {
+				result = nil
+				return
+			}
+			result.IsInteractionErr = true
+			result.Cookies = append(result.Cookies, errCookie)
+			if screen != nil {
+				result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
+			} else {
+				result.RedirectURI = r.URL.String()
+			}
 		}
-	}
+	}()
 
-	if screen != nil {
-		ok := checkFn(screen.StateTokenFlowResponse)
-		if ok {
-			return screen, nil
-		}
-	}
-
-	return c.createScreen(r, s, flowReference)
-}
-
-func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (*webapp.AuthflowScreenWithFlowResponse, error) {
-	// If we reach here, either screen is nil or its flowResponse does not pass the check.
-	// We create a new authflow instead.
 	output, err := c.createAuthflow(r, s.OAuthSessionID, flowReference)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	flowResponse := output.ToFlowResponse()
-
-	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
+	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
-	output, newScreen, err := c.takeBranchIfNeeded(s, screen)
+	output, screen, err = c.takeBranchIfNeeded(s, screen)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	now := c.Clock.NowUTC()
 	s.UpdatedAt = now
 	err = c.Sessions.Update(s)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return newScreen, nil
+	screen.Navigate(r, result)
+	return
 }
 
 func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input interface{}) (result *webapp.Result, err error) {

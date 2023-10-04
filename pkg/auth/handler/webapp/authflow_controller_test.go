@@ -3,6 +3,7 @@ package webapp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -87,7 +88,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 			So(err, ShouldBeError, authflow.ErrFlowNotFound)
 		})
 
-		Convey("return screen even x_step is absent", func() {
+		Convey("return ErrFlowNotFound if x_step is absent", func() {
 			serviceOutput := &authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
@@ -108,22 +109,15 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 			}
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
-					FlowID:        flowResponse.ID,
-					InitialScreen: screen,
+					FlowID: flowResponse.ID,
 					AllScreens: map[string]*webapp.AuthflowScreen{
 						state.XStep: screen,
 					},
 				},
 			}
 
-			mockAuthflows.EXPECT().Get(flowResponse.StateToken).Times(1).Return(serviceOutput, nil)
-
-			actual, err := c.GetScreen(s, "")
-			So(err, ShouldBeNil)
-			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
-				Screen:                 screen,
-				StateTokenFlowResponse: &flowResponse,
-			})
+			_, err := c.GetScreen(s, "")
+			So(errors.Is(err, authflow.ErrFlowNotFound), ShouldBeTrue)
 		})
 
 		Convey("return screen as specified by x_step", func() {
@@ -142,8 +136,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
-					FlowID:        "authflow_id",
-					InitialScreen: screen0,
+					FlowID: "authflow_id",
 					AllScreens: map[string]*webapp.AuthflowScreen{
 						"step_0": screen0,
 						"step_1": screen1,
@@ -177,8 +170,8 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 	})
 }
 
-func TestAuthflowControllerGetOrCreateScreen(t *testing.T) {
-	Convey("AuthflowController.GetOrCreateScreen", t, func() {
+func TestAuthflowControllerCreateScreen(t *testing.T) {
+	Convey("AuthflowController.CreateScreen", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -196,7 +189,7 @@ func TestAuthflowControllerGetOrCreateScreen(t *testing.T) {
 			ctx := context.Background()
 			s := &webapp.Session{}
 
-			r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
+			r, _ := http.NewRequestWithContext(ctx, "GET", "/authflow/login", nil)
 
 			mockAuthflows.EXPECT().CreateNewFlow(gomock.Any(), gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
@@ -213,25 +206,14 @@ func TestAuthflowControllerGetOrCreateScreen(t *testing.T) {
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
 
-			screen, err := c.GetOrCreateScreen(r, s, authflow.FlowReference{
+			result, err := c.CreateScreen(r, s, authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: "default",
-			}, func(*authflow.FlowResponse) bool { return true })
-			So(err, ShouldBeNil)
-			So(screen, ShouldNotBeNil)
-			So(screen.Screen.StateToken.StateToken, ShouldEqual, "authflowstate_0")
-			So(screen.Screen.BranchStateToken, ShouldNotBeNil)
-			So(screen.Screen.BranchStateToken.StateToken, ShouldEqual, "authflowstate_0")
-			So(screen.HasBranchToTake(), ShouldBeFalse)
-			So(screen.StateTokenFlowResponse, ShouldResemble, &authflow.FlowResponse{
-				ID:         "authflow_id",
-				StateToken: "authflowstate_0",
-				Type:       authflow.FlowTypeLogin,
-				Name:       "default",
-				Action: &authflow.FlowAction{
-					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeIdentify),
-				},
 			})
+			So(err, ShouldBeNil)
+			So(result, ShouldNotBeNil)
+			So(result.NavigationAction, ShouldEqual, "replace")
+			So(strings.HasPrefix(result.RedirectURI, "/authflow/login?x_step="), ShouldBeTrue)
 		})
 	})
 }

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -58,9 +58,6 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	h.FormPrefiller.Prefill(r.Form)
 
-	var handlers AuthflowControllerHandlers
-	defer h.Controller.MakeHTTPHandler(&handlers).ServeHTTP(w, r)
-
 	opts := webapp.SessionOptions{
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
@@ -72,18 +69,30 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	flowName := "default"
-	checkFn := func(f *authflow.FlowResponse) bool {
-		return f.Type == authflow.FlowTypeLogin && f.Name == flowName && f.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeIdentify)
-	}
-	screen, err := h.Controller.GetOrCreateScreen(r, s, authflow.FlowReference{
-		Type: authflow.FlowTypeLogin,
-		Name: flowName,
-	}, checkFn)
+	screen, err := h.Controller.GetScreen(s, GetXStepFromQuery(r))
 	if err != nil {
+		if errors.Is(err, authflow.ErrFlowNotFound) {
+			result, err := h.Controller.CreateScreen(r, s, authflow.FlowReference{
+				Type: authflow.FlowTypeLogin,
+				Name: flowName,
+			})
+			if err != nil {
+				// FIXME(authflow): log the error.
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+
+			result.WriteResponse(w, r)
+			return
+		}
+
 		// FIXME(authflow): log the error.
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
+	var handlers AuthflowControllerHandlers
+	defer h.Controller.MakeHTTPHandler(&handlers).ServeHTTP(w, r)
 
 	oauthProviderAlias := s.OAuthProviderAlias
 	allowLoginOnly := s.UserIDHint != ""
