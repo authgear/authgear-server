@@ -26,7 +26,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(RootHandler), "*"),
 	wire.Struct(new(OAuthEntrypointHandler), "*"),
 	wire.Struct(new(LoginHandler), "*"),
-	wire.Struct(new(AuthflowLoginHandler), "*"),
 	wire.Struct(new(SignupHandler), "*"),
 	wire.Struct(new(PromoteHandler), "*"),
 	wire.Struct(new(SelectAccountHandler), "*"),
@@ -86,6 +85,9 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ConnectWeb3AccountHandler), "*"),
 	wire.Struct(new(MissingWeb3WalletHandler), "*"),
 	wire.Struct(new(FeatureDisabledHandler), "*"),
+
+	wire.Struct(new(AuthflowLoginHandler), "*"),
+	wire.Struct(new(AuthflowSignupHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
 )
