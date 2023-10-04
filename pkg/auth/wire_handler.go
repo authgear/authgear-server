@@ -161,13 +161,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowLoginHandler)),
-	))
-}
-
 func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -648,5 +641,19 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerapi.AuthenticationFlowV1WebsocketHandler)),
+	))
+}
+
+func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowLoginHandler)),
+	))
+}
+
+func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowSignupHandler)),
 	))
 }
