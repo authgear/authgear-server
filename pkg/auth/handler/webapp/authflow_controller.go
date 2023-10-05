@@ -282,7 +282,7 @@ func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID stri
 	return output, err
 }
 
-func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input map[string]interface{}) (result *webapp.Result, err error) {
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
@@ -313,7 +313,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	}
 
 	flowResponse := output.ToFlowResponse()
-	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
+	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, nil)
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
@@ -368,7 +368,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	}
 
 	flowResponse := output.ToFlowResponse()
-	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse)
+	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, nil)
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
@@ -388,7 +388,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	return
 }
 
-func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
 
 	defer func() {
@@ -432,7 +432,7 @@ func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, scree
 		// Reset visitor ID.
 		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
 	} else {
-		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF)
+		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF, input)
 		s.Authflow.RememberScreen(newScreen)
 
 		output, newScreen, err = c.takeBranchIfNeeded(s, newScreen)

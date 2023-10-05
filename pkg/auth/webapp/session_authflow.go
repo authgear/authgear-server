@@ -65,6 +65,9 @@ func newXStep() string {
 // Some steps in an authflow can have branches.
 // In order to be able to switch between branches, we need to remember the state that has branches.
 type AuthflowScreen struct {
+	// Input is the input that leads to this screen.
+	// It can be nil.
+	Input map[string]interface{} `json:"input,omitempty"`
 	// StateToken is always present.
 	StateToken *AuthflowStateToken `json:"state_token,omitempty"`
 	// BranchStateToken is only present when the underlying authflow step has branches.
@@ -75,22 +78,23 @@ type AuthflowScreen struct {
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
 }
 
-func newAuthflowScreen(flowResponse *authflow.FlowResponse) *AuthflowScreen {
+func newAuthflowScreen(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
 	switch flowResponse.Type {
 	case authflow.FlowTypeSignup:
-		return newAuthflowScreenSignup(flowResponse)
+		return newAuthflowScreenSignup(flowResponse, input)
 	case authflow.FlowTypeLogin:
-		return newAuthflowScreenLogin(flowResponse)
+		return newAuthflowScreenLogin(flowResponse, input)
 	case authflow.FlowTypeSignupLogin:
-		return newAuthflowScreenSignupLogin(flowResponse)
+		return newAuthflowScreenSignupLogin(flowResponse, input)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
 	}
 }
 
-func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse) *AuthflowScreen {
+func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
+		Input:      input,
 		StateToken: state,
 	}
 	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
@@ -121,9 +125,10 @@ func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse) *AuthflowScree
 	return screen
 }
 
-func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse) *AuthflowScreen {
+func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
+		Input:      input,
 		StateToken: state,
 	}
 
@@ -147,9 +152,10 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse) *AuthflowScreen
 	return screen
 }
 
-func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse) *AuthflowScreen {
+func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
+		Input:      input,
 		StateToken: state,
 	}
 
@@ -170,8 +176,8 @@ type AuthflowScreenWithFlowResponse struct {
 	BranchStateTokenFlowResponse *authflow.FlowResponse
 }
 
-func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-	screen := newAuthflowScreen(flowResponse)
+func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreenWithFlowResponse {
+	screen := newAuthflowScreen(flowResponse, input)
 	screenWithResponse := &AuthflowScreenWithFlowResponse{
 		Screen:                 screen,
 		StateTokenFlowResponse: flowResponse,
@@ -247,7 +253,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 			return TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-					screen := NewAuthflowScreenWithFlowResponse(flowResponse)
+					screen := NewAuthflowScreenWithFlowResponse(flowResponse, input)
 					screen.Screen.BranchStateToken = s.Screen.StateToken
 					screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
 					screen.Screen.TakenBranchIndex = &index
@@ -269,7 +275,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 		return TakeBranchResultInput{
 			Input: input,
 			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-				screen := NewAuthflowScreenWithFlowResponse(flowResponse)
+				screen := NewAuthflowScreenWithFlowResponse(flowResponse, input)
 				screen.Screen.BranchStateToken = s.Screen.StateToken
 				screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
 				screen.Screen.TakenChannel = channel
@@ -322,7 +328,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			return TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-					screen := NewAuthflowScreenWithFlowResponse(flowResponse)
+					screen := NewAuthflowScreenWithFlowResponse(flowResponse, input)
 					screen.Screen.BranchStateToken = s.Screen.StateToken
 					screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
 					screen.Screen.TakenBranchIndex = &index
@@ -350,7 +356,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int) TakeBr
 }
 
 func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int) TakeBranchResultSimple {
-	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse)
+	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse, nil)
 	screen.Screen.BranchStateToken = s.Screen.StateToken
 	screen.BranchStateTokenFlowResponse = s.BranchStateTokenFlowResponse
 	screen.Screen.TakenBranchIndex = &index
