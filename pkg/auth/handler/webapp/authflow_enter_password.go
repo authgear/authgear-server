@@ -17,6 +17,16 @@ var TemplateWebAuthflowEnterPasswordHTML = template.RegisterHTML(
 	components...,
 )
 
+var AuthflowEnterPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_password": { "type": "string" }
+		},
+		"required": ["x_password"]
+	}
+`)
+
 func ConfigureAuthflowEnterPasswordRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
@@ -103,7 +113,31 @@ func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		// FIXME(authflow): feed input.
+		err := AuthflowEnterPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		index := *screen.Screen.TakenBranchIndex
+		flowResponse := screen.BranchStateTokenFlowResponse
+		data := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
+		option := data.Options[index]
+
+		plainPassword := r.Form.Get("x_password")
+		requestDeviceToken := r.Form.Get("x_device_token") == "true"
+
+		input := map[string]interface{}{
+			"authentication":       option.Authentication,
+			"password":             plainPassword,
+			"request_device_token": requestDeviceToken,
+		}
+
+		result, err := h.Controller.FeedInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
 		return nil
 	})
 	h.Controller.HandleStep(w, r, &handlers)
