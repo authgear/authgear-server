@@ -24,6 +24,7 @@ func ConfigureAuthflowEnterPasswordRoute(route httproute.Route) httproute.Route 
 
 type AuthflowEnterPasswordViewModel struct {
 	AuthenticationStage string
+	DeviceTokenEnabled  bool
 	FlowType            string
 }
 
@@ -44,6 +45,7 @@ func NewAuthflowEnterPasswordViewModel(screen *webapp.AuthflowScreenWithFlowResp
 
 	return AuthflowEnterPasswordViewModel{
 		AuthenticationStage: string(authenticationStage),
+		DeviceTokenEnabled:  data.DeviceTokenEnabled,
 		FlowType:            string(flowType),
 	}
 }
