@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebAuthflowEnterPasswordHTML = template.RegisterHTML(
@@ -23,9 +24,12 @@ func ConfigureAuthflowEnterPasswordRoute(route httproute.Route) httproute.Route 
 }
 
 type AuthflowEnterPasswordViewModel struct {
-	AuthenticationStage string
-	DeviceTokenEnabled  bool
-	FlowType            string
+	AuthenticationStage     string
+	DeviceTokenEnabled      bool
+	FlowType                string
+	PasswordManagerUsername string
+	ForgotPasswordInputType string
+	ForgotPasswordLoginID   string
 }
 
 type AuthflowEnterPasswordHandler struct {
@@ -34,7 +38,7 @@ type AuthflowEnterPasswordHandler struct {
 	Renderer      Renderer
 }
 
-func NewAuthflowEnterPasswordViewModel(screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
+func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
 	flowType := screen.StateTokenFlowResponse.Type
 
 	index := *screen.Screen.TakenBranchIndex
@@ -43,20 +47,45 @@ func NewAuthflowEnterPasswordViewModel(screen *webapp.AuthflowScreenWithFlowResp
 	option := data.Options[index]
 	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
 
+	// Use the previous input to derive some information.
+	branchXStep := screen.Screen.BranchStateToken.XStep
+	branchScreen := s.Authflow.AllScreens[branchXStep]
+	previousInput := branchScreen.Input
+	passwordManagerUsername := ""
+	forgotPasswordInputType := ""
+	forgotPasswordLoginID := ""
+	if loginID, ok := previousInput["login_id"].(string); ok {
+		passwordManagerUsername = loginID
+
+		phoneFormat := validation.FormatPhone{}
+		emailFormat := validation.FormatEmail{AllowName: false}
+
+		if err := phoneFormat.CheckFormat(loginID); err == nil {
+			forgotPasswordInputType = "phone"
+			forgotPasswordLoginID = loginID
+		} else if err := emailFormat.CheckFormat(loginID); err == nil {
+			forgotPasswordInputType = "email"
+			forgotPasswordLoginID = loginID
+		}
+	}
+
 	return AuthflowEnterPasswordViewModel{
-		AuthenticationStage: string(authenticationStage),
-		DeviceTokenEnabled:  data.DeviceTokenEnabled,
-		FlowType:            string(flowType),
+		AuthenticationStage:     string(authenticationStage),
+		DeviceTokenEnabled:      data.DeviceTokenEnabled,
+		FlowType:                string(flowType),
+		PasswordManagerUsername: passwordManagerUsername,
+		ForgotPasswordInputType: forgotPasswordInputType,
+		ForgotPasswordLoginID:   forgotPasswordLoginID,
 	}
 }
 
-func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthflowEnterPasswordViewModel(screen)
+	screenViewModel := NewAuthflowEnterPasswordViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
 
 	return data, nil
@@ -65,7 +94,7 @@ func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, screen)
+		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
 		}
