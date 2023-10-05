@@ -10,12 +10,26 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebAuthflowEnterOOBOTPHTML = template.RegisterHTML(
 	"web/authflow_enter_oob_otp.html",
 	components...,
 )
+
+var AuthflowEnterOOBOTPSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_code": {
+				"type": "string",
+				"format": "x_oob_otp_code"
+			}
+		},
+		"required": ["x_code"]
+	}
+`)
 
 func ConfigureAuthflowEnterOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -68,6 +82,7 @@ type AuthflowEnterOOBOTPHandler struct {
 	Controller    *AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
+	FlashMessage  FlashMessage
 	Clock         clock.Clock
 }
 
@@ -96,9 +111,41 @@ func (h *AuthflowEnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		input := map[string]interface{}{
+			"resend": true,
+		}
+
+		result, err := h.Controller.FeedInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		if !result.IsInteractionErr {
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		err := AuthflowEnterOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		code := r.Form.Get("x_code")
+		requestDeviceToken := r.Form.Get("x_device_token") == "true"
+
+		input := map[string]interface{}{
+			"code":                 code,
+			"request_device_token": requestDeviceToken,
+		}
+
+		result, err := h.Controller.FeedInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
 		return nil
 	})
 	h.Controller.HandleStep(w, r, &handlers)
