@@ -14,7 +14,10 @@ type CreateAuthenticationOption struct {
 
 func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep) []CreateAuthenticationOption {
 	options := []CreateAuthenticationOption{}
-	passwordPolicy := NewPasswordPolicy(deps.Config.Authenticator.Password.Policy)
+	passwordPolicy := NewPasswordPolicy(
+		deps.FeatureConfig.Authenticator,
+		deps.Config.Authenticator.Password.Policy,
+	)
 	for _, b := range step.OneOf {
 		switch b.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
