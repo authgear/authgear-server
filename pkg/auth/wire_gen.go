@@ -65359,6 +65359,7 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Controller:    authflowController,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
+		FlashMessage:  flashMessage,
 		Clock:         clockClock,
 	}
 	return authflowEnterOOBOTPHandler
