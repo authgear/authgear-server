@@ -22,7 +22,8 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Options []UseAuthenticationOption `json:"options"`
+	Options            []UseAuthenticationOption `json:"options"`
+	DeviceTokenEnabled bool                      `json:"device_token_enable"`
 }
 
 var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -243,8 +244,16 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	deviceTokenEnabled := i.deviceTokenEnabled(step)
 	return IntentLoginFlowStepAuthenticateData{
-		Options: i.Options,
+		Options:            i.Options,
+		DeviceTokenEnabled: deviceTokenEnabled,
 	}, nil
 }
 
