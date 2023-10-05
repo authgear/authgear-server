@@ -22,12 +22,7 @@ type PasswordPolicy struct {
 	ExcludedKeywords   []string               `json:"excluded_keywords,omitempty"`
 }
 
-func NewPasswordPolicy(c *config.PasswordPolicyConfig) *PasswordPolicy {
-	history := &PasswordPolicyHistory{
-		Enabled: c.IsEnabled(),
-		Size:    c.HistorySize,
-		Days:    int(c.HistoryDays),
-	}
+func NewPasswordPolicy(featureCfg *config.AuthenticatorFeatureConfig, c *config.PasswordPolicyConfig) *PasswordPolicy {
 
 	policy := &PasswordPolicy{
 		MinimumLength:     c.MinLength,
@@ -36,15 +31,22 @@ func NewPasswordPolicy(c *config.PasswordPolicyConfig) *PasswordPolicy {
 		AlphabetRequired:  c.AlphabetRequired,
 		DigitRequired:     c.DigitRequired,
 		SymbolRequired:    c.SymbolRequired,
-		History:           history,
 	}
 
-	if c.MinimumGuessableLevel > 0 {
+	if !*featureCfg.Password.Policy.MinimumGuessableLevel.Disabled && c.MinimumGuessableLevel > 0 {
 		score := c.MinimumGuessableLevel - 1
 		policy.MinimumZxcvbnScore = &score
 	}
 
-	if len(c.ExcludedKeywords) > 0 {
+	history := &PasswordPolicyHistory{}
+	if !*featureCfg.Password.Policy.History.Disabled {
+		history.Enabled = c.IsEnabled()
+		history.Size = c.HistorySize
+		history.Days = int(c.HistoryDays)
+	}
+	policy.History = history
+
+	if !*featureCfg.Password.Policy.ExcludedKeywords.Disabled && len(c.ExcludedKeywords) > 0 {
 		policy.ExcludedKeywords = c.ExcludedKeywords
 	}
 
