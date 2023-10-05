@@ -141,7 +141,9 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, xStep string, h AuthflowControllerHandler) {
 	s, err := c.getWebSession(r)
 	if err != nil {
-		c.Logger.WithError(err).Errorf("failed to get web session")
+		if !errors.Is(err, webapp.ErrSessionNotFound) {
+			c.Logger.WithError(err).Errorf("failed to get web session")
+		}
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -159,6 +161,32 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 	} else {
 		panic(err)
 	}
+}
+
+func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	s, err := c.getWebSession(r)
+	if err != nil {
+		if !errors.Is(err, webapp.ErrSessionNotFound) {
+			c.Logger.WithError(err).Errorf("failed to get web session")
+		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	screen, err := c.getScreen(s, GetXStepFromQuery(r))
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to get screen")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	handler := c.makeHTTPHandler(s, screen, handlers)
+	handler.ServeHTTP(w, r)
 }
 
 func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, error) {
