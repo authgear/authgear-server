@@ -2,7 +2,9 @@ package viewmodels
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type PasswordPolicyViewModel struct {
@@ -46,4 +48,33 @@ func NewPasswordPolicyViewModel(policies []password.Policy, rules string, apiErr
 		}
 	}
 	return PasswordPolicyViewModel{PasswordPolicies: policies, IsNew: opt.IsNew, PasswordRulesString: rules}
+}
+
+func NewPasswordPolicyViewModelFromAuthflow(p *declarative.PasswordPolicy, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
+	pwMinLength := 0
+	if p.MinimumLength != nil {
+		pwMinLength = *p.MinimumLength
+	}
+
+	pwMinGuessableLevel := 0
+	if p.MinimumZxcvbnScore != nil {
+		pwMinGuessableLevel = *p.MinimumZxcvbnScore + 1
+	}
+
+	checker := &password.Checker{
+		PwMinLength:            pwMinLength,
+		PwUppercaseRequired:    p.UppercaseRequired,
+		PwLowercaseRequired:    p.LowercaseRequired,
+		PwAlphabetRequired:     p.AlphabetRequired,
+		PwDigitRequired:        p.DigitRequired,
+		PwSymbolRequired:       p.SymbolRequired,
+		PwMinGuessableLevel:    pwMinGuessableLevel,
+		PwExcludedKeywords:     p.ExcludedKeywords,
+		PwHistorySize:          p.History.Size,
+		PwHistoryDays:          config.DurationDays(p.History.Days),
+		PasswordHistoryEnabled: p.History.Enabled,
+	}
+	policies := checker.PasswordPolicy()
+	rules := checker.PasswordRules()
+	return NewPasswordPolicyViewModel(policies, rules, apiError, opt)
 }

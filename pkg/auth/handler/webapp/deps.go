@@ -90,6 +90,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowSignupHandler), "*"),
 	wire.Struct(new(AuthflowEnterPasswordHandler), "*"),
 	wire.Struct(new(AuthflowEnterOOBOTPHandler), "*"),
+	wire.Struct(new(AuthflowCreatePasswordHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
 )
