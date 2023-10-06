@@ -313,7 +313,9 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	}
 
 	flowResponse := output.ToFlowResponse()
-	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, nil)
+	emptyXStep := ""
+	var emptyInput map[string]interface{}
+	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
@@ -368,7 +370,9 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	}
 
 	flowResponse := output.ToFlowResponse()
-	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, nil)
+	emptyXStep := ""
+	var emptyInput map[string]interface{}
+	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
@@ -432,7 +436,7 @@ func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, scree
 		// Reset visitor ID.
 		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
 	} else {
-		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF, input)
+		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF, screen.Screen.StateToken.XStep, input)
 		s.Authflow.RememberScreen(newScreen)
 
 		output, newScreen, err = c.takeBranchIfNeeded(s, newScreen)

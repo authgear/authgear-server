@@ -65,6 +65,8 @@ func newXStep() string {
 // Some steps in an authflow can have branches.
 // In order to be able to switch between branches, we need to remember the state that has branches.
 type AuthflowScreen struct {
+	// PreviousXStep is the x_step of the screen that leads to this screen.
+	PreviousXStep string `json:"previous_x_step,omitempty"`
 	// PreviousInput is the input that leads to this screen.
 	// It can be nil.
 	PreviousInput map[string]interface{} `json:"previous_input,omitempty"`
@@ -78,22 +80,23 @@ type AuthflowScreen struct {
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
 }
 
-func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	switch flowResponse.Type {
 	case authflow.FlowTypeSignup:
-		return newAuthflowScreenSignup(flowResponse, previousInput)
+		return newAuthflowScreenSignup(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeLogin:
-		return newAuthflowScreenLogin(flowResponse, previousInput)
+		return newAuthflowScreenLogin(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeSignupLogin:
-		return newAuthflowScreenSignupLogin(flowResponse, previousInput)
+		return newAuthflowScreenSignupLogin(flowResponse, previousXStep, previousInput)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
 	}
 }
 
-func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
+		PreviousXStep: previousXStep,
 		PreviousInput: previousInput,
 		StateToken:    state,
 	}
@@ -125,9 +128,10 @@ func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousInput 
 	return screen
 }
 
-func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
+		PreviousXStep: previousXStep,
 		PreviousInput: previousInput,
 		StateToken:    state,
 	}
@@ -152,9 +156,10 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousInput m
 	return screen
 }
 
-func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
+		PreviousXStep: previousXStep,
 		PreviousInput: previousInput,
 		StateToken:    state,
 	}
@@ -176,8 +181,8 @@ type AuthflowScreenWithFlowResponse struct {
 	BranchStateTokenFlowResponse *authflow.FlowResponse
 }
 
-func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreenWithFlowResponse {
-	screen := newAuthflowScreen(flowResponse, previousInput)
+func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreenWithFlowResponse {
+	screen := newAuthflowScreen(flowResponse, previousXStep, previousInput)
 	screenWithResponse := &AuthflowScreenWithFlowResponse{
 		Screen:                 screen,
 		StateTokenFlowResponse: flowResponse,
@@ -253,7 +258,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 			return TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-					screen := NewAuthflowScreenWithFlowResponse(flowResponse, input)
+					xStep := s.Screen.StateToken.XStep
+					screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
 					screen.Screen.BranchStateToken = s.Screen.StateToken
 					screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
 					screen.Screen.TakenBranchIndex = &index
@@ -275,7 +281,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 		return TakeBranchResultInput{
 			Input: input,
 			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-				screen := NewAuthflowScreenWithFlowResponse(flowResponse, input)
+				xStep := s.Screen.StateToken.XStep
+				screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
 				screen.Screen.BranchStateToken = s.Screen.StateToken
 				screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
 				screen.Screen.TakenChannel = channel
@@ -328,7 +335,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			return TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-					screen := NewAuthflowScreenWithFlowResponse(flowResponse, input)
+					xStep := s.Screen.StateToken.XStep
+					screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
 					screen.Screen.BranchStateToken = s.Screen.StateToken
 					screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
 					screen.Screen.TakenBranchIndex = &index
@@ -356,7 +364,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int) TakeBr
 }
 
 func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int) TakeBranchResultSimple {
-	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse, nil)
+	xStep := s.Screen.StateToken.XStep
+	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse, xStep, nil)
 	screen.Screen.BranchStateToken = s.Screen.StateToken
 	screen.BranchStateTokenFlowResponse = s.BranchStateTokenFlowResponse
 	screen.Screen.TakenBranchIndex = &index
