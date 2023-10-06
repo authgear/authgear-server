@@ -316,34 +316,21 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 }
 
 func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig) []model.AuthenticatorOOBChannel {
-	email := false
-	sms := false
-	whatsapp := false
+	channels := []model.AuthenticatorOOBChannel{}
 
 	switch claimName {
 	case model.ClaimEmail:
-		email = true
+		channels = append(channels, model.AuthenticatorOOBChannelEmail)
 	case model.ClaimPhoneNumber:
 		switch oobConfig.SMS.PhoneOTPMode {
 		case config.AuthenticatorPhoneOTPModeSMSOnly:
-			sms = true
+			channels = append(channels, model.AuthenticatorOOBChannelSMS)
 		case config.AuthenticatorPhoneOTPModeWhatsappOnly:
-			whatsapp = true
+			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
 		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
-			sms = true
-			whatsapp = true
+			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+			channels = append(channels, model.AuthenticatorOOBChannelSMS)
 		}
-	}
-
-	channels := []model.AuthenticatorOOBChannel{}
-	if email {
-		channels = append(channels, model.AuthenticatorOOBChannelEmail)
-	}
-	if sms {
-		channels = append(channels, model.AuthenticatorOOBChannelSMS)
-	}
-	if whatsapp {
-		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
 	}
 
 	return channels
