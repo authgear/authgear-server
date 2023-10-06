@@ -58,13 +58,10 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
 
 	// Use the previous input to derive some information.
-	branchXStep := screen.Screen.BranchStateToken.XStep
-	branchScreen := s.Authflow.AllScreens[branchXStep]
-	previousInput := branchScreen.PreviousInput
 	passwordManagerUsername := ""
 	forgotPasswordInputType := ""
 	forgotPasswordLoginID := ""
-	if loginID, ok := previousInput["login_id"].(string); ok {
+	if loginID, ok := findLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
 		passwordManagerUsername = loginID
 
 		phoneFormat := validation.FormatPhone{}
