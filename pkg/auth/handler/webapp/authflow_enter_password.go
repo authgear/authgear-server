@@ -60,7 +60,7 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 	// Use the previous input to derive some information.
 	branchXStep := screen.Screen.BranchStateToken.XStep
 	branchScreen := s.Authflow.AllScreens[branchXStep]
-	previousInput := branchScreen.Input
+	previousInput := branchScreen.PreviousInput
 	passwordManagerUsername := ""
 	forgotPasswordInputType := ""
 	forgotPasswordLoginID := ""

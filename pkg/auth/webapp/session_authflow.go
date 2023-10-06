@@ -65,9 +65,9 @@ func newXStep() string {
 // Some steps in an authflow can have branches.
 // In order to be able to switch between branches, we need to remember the state that has branches.
 type AuthflowScreen struct {
-	// Input is the input that leads to this screen.
+	// PreviousInput is the input that leads to this screen.
 	// It can be nil.
-	Input map[string]interface{} `json:"input,omitempty"`
+	PreviousInput map[string]interface{} `json:"previous_input,omitempty"`
 	// StateToken is always present.
 	StateToken *AuthflowStateToken `json:"state_token,omitempty"`
 	// BranchStateToken is only present when the underlying authflow step has branches.
@@ -78,24 +78,24 @@ type AuthflowScreen struct {
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
 }
 
-func newAuthflowScreen(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
 	switch flowResponse.Type {
 	case authflow.FlowTypeSignup:
-		return newAuthflowScreenSignup(flowResponse, input)
+		return newAuthflowScreenSignup(flowResponse, previousInput)
 	case authflow.FlowTypeLogin:
-		return newAuthflowScreenLogin(flowResponse, input)
+		return newAuthflowScreenLogin(flowResponse, previousInput)
 	case authflow.FlowTypeSignupLogin:
-		return newAuthflowScreenSignupLogin(flowResponse, input)
+		return newAuthflowScreenSignupLogin(flowResponse, previousInput)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
 	}
 }
 
-func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
-		Input:      input,
-		StateToken: state,
+		PreviousInput: previousInput,
+		StateToken:    state,
 	}
 	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
@@ -125,11 +125,11 @@ func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, input map[stri
 	return screen
 }
 
-func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
-		Input:      input,
-		StateToken: state,
+		PreviousInput: previousInput,
+		StateToken:    state,
 	}
 
 	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
@@ -152,11 +152,11 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, input map[strin
 	return screen
 }
 
-func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreen {
+func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
-		Input:      input,
-		StateToken: state,
+		PreviousInput: previousInput,
+		StateToken:    state,
 	}
 
 	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
@@ -176,8 +176,8 @@ type AuthflowScreenWithFlowResponse struct {
 	BranchStateTokenFlowResponse *authflow.FlowResponse
 }
 
-func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, input map[string]interface{}) *AuthflowScreenWithFlowResponse {
-	screen := newAuthflowScreen(flowResponse, input)
+func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, previousInput map[string]interface{}) *AuthflowScreenWithFlowResponse {
+	screen := newAuthflowScreen(flowResponse, previousInput)
 	screenWithResponse := &AuthflowScreenWithFlowResponse{
 		Screen:                 screen,
 		StateTokenFlowResponse: flowResponse,
