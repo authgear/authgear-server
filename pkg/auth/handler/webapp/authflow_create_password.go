@@ -60,7 +60,10 @@ func (h *AuthflowCreatePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 	isPrimary := authenticationStage == authn.AuthenticationStagePrimary
 
 	screenViewModel.AuthenticationStage = string(authenticationStage)
-	// FIXME(authflow): PasswordManagerUsername
+
+	if loginID, ok := findLoginIDInPreviousInput(s, screen.Screen.StateToken.XStep); ok {
+		screenViewModel.PasswordManagerUsername = loginID
+	}
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModelFromAuthflow(
 		option.PasswordPolicy,
