@@ -108,10 +108,14 @@ func (c *TOTP) QRCodeImage(opts QRCodeImageOptions) (image.Image, error) {
 		AccountName: opts.AccountName,
 	})
 
-	key, err := otp.NewKeyFromURL(u.String())
+	return QRCodeImageFromURI(u.String(), opts.Width, opts.Height)
+}
+
+func QRCodeImageFromURI(uri string, width int, height int) (image.Image, error) {
+	key, err := otp.NewKeyFromURL(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	return key.Image(opts.Width, opts.Height)
+	return key.Image(width, height)
 }
