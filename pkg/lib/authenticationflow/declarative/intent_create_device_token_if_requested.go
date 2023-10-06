@@ -3,6 +3,8 @@ package declarative
 import (
 	"context"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 )
 
@@ -11,7 +13,8 @@ func init() {
 }
 
 type IntentCreateDeviceTokenIfRequested struct {
-	UserID string `json:"user_id,omitempty"`
+	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	UserID      string        `json:"user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentCreateDeviceTokenIfRequested{}
@@ -25,10 +28,11 @@ func (*IntentCreateDeviceTokenIfRequested) Kind() string {
 func (*IntentCreateDeviceTokenIfRequested) Milestone()                               {}
 func (*IntentCreateDeviceTokenIfRequested) MilestoneDoCreateDeviceTokenIfRequested() {}
 
-func (*IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentCreateDeviceTokenIfRequested) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		// Take the previous input.
-		return nil, nil
+		return &InputSchemaCreateDeviceToken{
+			JSONPointer: i.JSONPointer,
+		}, nil
 	}
 	return nil, authflow.ErrEOF
 }
