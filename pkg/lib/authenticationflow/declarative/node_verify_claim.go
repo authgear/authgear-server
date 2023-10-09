@@ -11,10 +11,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
@@ -168,12 +170,25 @@ func (n *NodeVerifyClaim) otpForm(deps *authflow.Dependencies) otp.Form {
 }
 
 func (n *NodeVerifyClaim) invalidOTPCodeError() error {
-	// FIXME(authflow): Add AuthenticationType to error info.
 	switch n.Purpose {
 	case otp.PurposeVerification:
 		return verification.ErrInvalidVerificationCode
 	case otp.PurposeOOBOTP:
-		return api.ErrInvalidCredentials
+		var authenticationType authn.AuthenticationType
+		switch n.Channel {
+		case model.AuthenticatorOOBChannelEmail:
+			authenticationType = authn.AuthenticationTypeOOBOTPEmail
+		case model.AuthenticatorOOBChannelSMS:
+			authenticationType = authn.AuthenticationTypeOOBOTPSMS
+		case model.AuthenticatorOOBChannelWhatsapp:
+			authenticationType = authn.AuthenticationTypeOOBOTPSMS
+		default:
+			panic(fmt.Errorf("unexpected channel: %v", n.Channel))
+		}
+
+		return errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
+			"AuthenticationType": apierrors.APIErrorDetail.Value(authenticationType),
+		})
 	default:
 		panic(fmt.Errorf("unexpected otp purpose: %v", n.Purpose))
 	}
