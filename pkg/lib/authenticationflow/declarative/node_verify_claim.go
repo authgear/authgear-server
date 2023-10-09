@@ -239,8 +239,8 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		n.otpTarget(),
 		n.otpForm(deps),
 		&otp.GenerateOptions{
-			// FIXME(authflow): Include web session ID.
 			UserID:               n.UserID,
+			WebSessionID:         authflow.GetWebSessionID(ctx),
 			AuthenticationFlowID: authflow.GetFlowID(ctx),
 		},
 	)
