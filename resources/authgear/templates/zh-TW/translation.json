@@ -40,7 +40,7 @@
   "error-username-not-allowed": "你所輸入的用戶名稱被禁用。請避免使用已保留的用戶名稱，例如「admin」",
   "error-invalid-web3-network": "請以 {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} 的密碼貨幣錢包來登入",
 
-  "error-account-not-found": "找不到{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此電郵地址} phone {此電話號碼} username {此用戶名稱} other {此身份資料} }} oauth {此電郵地址} other {此身份資料} }。請確保帳號正確。",
+  "error-account-not-found": "找不到{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此電郵地址} phone {此電話號碼} username {此用戶名稱} other {此身份資料} }} oauth {此電郵地址} other {此身份資料} }。請確保帳戶正確。",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此電郵地址} phone {此電話號碼} username {此用戶名稱} other {此身份資料} }} oauth {此電郵地址} other {此身份資料}}已被使用。",
   "error-suggestion-sign-in": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {你想以{ LoginIDTypeExisting, select, email {電郵地址} phone {電話號碼} username {用戶名稱} other {登入名稱} }登入嗎？} oauth {你想以{ OAuthProviderTypeExisting, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }登入嗎？} other {你想登入嗎？} }} other {} }",
   "error-suggestion-connect-oauth": "{ IntentKind, select, IntentAuthenticate {{ IdentityTypeExisting, select, login_id {{ IdentityTypeIncoming, select, oauth {你可於登入後連結你的{ OAuthProviderTypeIncoming, select, google {Google} facebook {Facebook} github {GitHub} linkedin {LinkedIn} azureadv2 {Azure AD} azureadb2c {Azure AD B2C} adfs {AD FS} apple {Apple} wechat {Wechat} other {OAuth} }帳戶。} other {} }} other {} }} other {} }",
@@ -73,13 +73,13 @@
   "error-webhook-disallowed-action": "返回",
   "error-webhook-invalid-response": "[To Developer] Your webhook handler did NOT return a valid response. Please visit <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",
   "error-webhook-delivery-timeout": "因Webhook逾時，操作已被禁止",
-  "error-disabled-user": "你的帳號已被管理員停用。",
+  "error-disabled-user": "你的帳戶已被管理員停用。",
   "error-disabled-user-reason": "原因： {reason}",
   "error-deactivated-user": "你已停用你的帳戶。",
   "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
-  "error-account-locked--countdown": "你的帳號已被鎖定。請於 <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span> 後再試。",
-  "error-account-locked": "你的帳號已被鎖定。",
+  "error-account-locked--countdown": "你的帳戶已被鎖定。請於 <span data-date=\"{rfc3339}\" data-date-type=\"luxon-relative-duration\">{datetime, time, long}</span> 後再試。",
+  "error-account-locked": "你的帳戶已被鎖定。",
 
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
@@ -100,7 +100,7 @@
   "success-resend-code": "成功重發驗證碼！",
   "success-resend-login-link": "成功重發登錄鏈接",
 
-  "public-signup-disabled-notice": "請聯絡管理員以註冊新帳號。",
+  "public-signup-disabled-notice": "請聯絡管理員以註冊新帳戶。",
   "feature-disabled-notice": "功能已被禁用。",
 
   "google-play-store-label": "Google Play Store",
@@ -211,8 +211,8 @@
   "verify-user-resend-button-label": "重發",
   "verify-user-resend-button-label--unit": "重發 (%ds)",
 
-  "verify-user-success-page-title": "帳號驗證",
-  "verify-user-success-description": "你的帳號已完成驗證",
+  "verify-user-success-page-title": "帳戶驗證",
+  "verify-user-success-description": "你的帳戶已完成驗證",
 
   "use-login-id-key": "改為用{key, select, email{電郵地址} username{用戶名稱} phone{電話號碼} other{{key}}}",
 
@@ -266,7 +266,7 @@
   "forgot-password-send-to-phone-description": "我們將發送重設密碼之指示至以下電話號碼",
   "forgot-password-send-button-label": "發送指示",
   "forgot-password-success-page-title": "已收到重設密碼之要求",
-  "forgot-password-success-description": "如我們能確認你輸入的資訊, 重設密碼之指示將會被發至 {target}，請按照指示重設你的帳號密碼。",
+  "forgot-password-success-description": "如我們能確認你輸入的資訊, 重設密碼之指示將會被發至 {target}，請按照指示重設你的帳戶密碼。",
   "login-button-label--forgot-password-success-page": "登入",
 
   "tester-success-page-title": "登錄成功",
@@ -322,7 +322,7 @@
   "settings-page-secondary-password-title": "輔助密碼",
   "settings-page-secondary-password-description": "上次更新時間: <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "settings-page-recovery-code-title": "備用碼",
-  "settings-page-recovery-code-description": "當你無法使用你的裝置／電郵／電話／應用程式時，你可以這些備用碼登入你的帳號。",
+  "settings-page-recovery-code-description": "當你無法使用你的裝置／電郵／電話／應用程式時，你可以這些備用碼登入你的帳戶。",
   "settings-page-session-section-title": "已登入的裝置{hasThirdPartyClient, select, true{及應用程式} other{}}",
   "settings-page-session-section-description": "管理你已登入的裝置{hasThirdPartyClient, select, true{及應用程式} other{}}",
   "settings-page-biometric-section-title": "生物驗證登入",
@@ -334,7 +334,7 @@
 
   "settings-my-profile-title": "我的個人檔案",
   "settings-my-profile-empty-label": "增添你的個人資料以完成你的個人檔案",
-  "settings-my-account-title": "我的帳號",
+  "settings-my-account-title": "我的帳戶",
   "settings-identity-title": "登入方式",
   "settings-identity-description": "以下為可用的登入方式",
   "settings-identity-oauth-google": "Google",
@@ -433,7 +433,7 @@
   "setup-totp-description": "以驗證器應用程式／裝置掃描QR碼或輸入密鑰",
   "setup-totp-raw-secret": "{secret}",
   "setup-totp-get-google-authenticator-description": "如果你沒有驗證器應用程式／裝置，你可從 <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> 或 <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a> 下載 Google Authenticator 應用程式",
-  "setup-totp-use-google-authenticator-description": "在應用程式中選擇<b>新增帳號</b>，然後<b>掃描QR碼</b>",
+  "setup-totp-use-google-authenticator-description": "在應用程式中選擇<b>新增帳戶</b>，然後<b>掃描QR碼</b>",
   "setup-totp-code-description": "完成掃描後，在下方輸入6位碼",
 
   "enter-totp-title": "雙重驗證",
@@ -446,7 +446,7 @@
 
   "recovery-code-title": "備用碼",
   "recovery-code-not-available-description": "你沒有任何備用碼。點擊以下按鈕以取得新的備用碼",
-  "recovery-code-storage-description": "當無法使用你的驗證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
+  "recovery-code-storage-description": "當無法使用你的驗證裝置時，你可以這些備用碼登入你的帳戶，請保存至安全的地方",
   "recovery-code-consumption-description": "每個備用碼只可使用一次",
 
   "show-password-label": "顯示密碼",
