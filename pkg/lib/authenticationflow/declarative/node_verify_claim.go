@@ -30,6 +30,7 @@ type NodeVerifyClaimData struct {
 	MaskedClaimValue               string                        `json:"masked_claim_value,omitempty"`
 	CodeLength                     int                           `json:"code_length,omitempty"`
 	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
+	CanCheck                       bool                          `json:"can_check"`
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
 }
 
@@ -145,6 +146,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		MaskedClaimValue:               n.maskedOTPTarget(),
 		CodeLength:                     otpForm.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
+		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
 }
