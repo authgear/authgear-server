@@ -79,7 +79,6 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			return nil, n.invalidOTPCodeError()
-			//return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
 			return nil, err
 		}
@@ -169,6 +168,7 @@ func (n *NodeVerifyClaim) otpForm(deps *authflow.Dependencies) otp.Form {
 }
 
 func (n *NodeVerifyClaim) invalidOTPCodeError() error {
+	// FIXME(authflow): Add AuthenticationType to error info.
 	switch n.Purpose {
 	case otp.PurposeVerification:
 		return verification.ErrInvalidVerificationCode
