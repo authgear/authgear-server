@@ -154,7 +154,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"login_id":       loginID,
 		}
 
-		result, err := h.Controller.FeedInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}

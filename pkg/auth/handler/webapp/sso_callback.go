@@ -44,7 +44,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				input["error_description"] = errorDescription
 				input["error_uri"] = errorURI
 			}
-			result, err := h.AuthflowController.FeedInput(r, s, screen, input)
+			result, err := h.AuthflowController.AdvanceWithInput(r, s, screen, input)
 			if err != nil {
 				return err
 			}
