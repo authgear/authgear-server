@@ -193,6 +193,20 @@ func NewAuthflowScreenWithFlowResponse(flowResponse *authflow.FlowResponse, prev
 	return screenWithResponse
 }
 
+func UpdateAuthflowScreenWithFlowResponse(screen *AuthflowScreenWithFlowResponse, flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+	clonedScreenWithFlowResponse := *screen
+	clonedScreenWithFlowResponse.StateTokenFlowResponse = flowResponse
+
+	clonedScreen := *clonedScreenWithFlowResponse.Screen
+	clonedScreen.StateToken = &AuthflowStateToken{
+		XStep:      screen.Screen.StateToken.XStep,
+		StateToken: flowResponse.StateToken,
+	}
+	clonedScreenWithFlowResponse.Screen = &clonedScreen
+
+	return &clonedScreenWithFlowResponse
+}
+
 func (s *AuthflowScreenWithFlowResponse) HasBranchToTake() bool {
 	return s.Screen.BranchStateToken != nil && (s.Screen.TakenBranchIndex == nil && s.Screen.TakenChannel == "")
 }

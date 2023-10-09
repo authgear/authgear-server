@@ -282,6 +282,7 @@ func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID stri
 	return output, err
 }
 
+// ReplaceScreen is for switching flow.
 func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference, input map[string]interface{}) (result *webapp.Result, err error) {
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
@@ -392,6 +393,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	return
 }
 
+// AdvanceWithInput is for feeding an input that would advance the flow.
 func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
 
@@ -458,6 +460,53 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 		newScreen.Navigate(r, result)
 	}
 
+	return
+}
+
+// UpdateWithInput is for feeding an input that would just update the current node.
+// One application is resend.
+func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
+	result = &webapp.Result{}
+
+	defer func() {
+		if err != nil {
+			if !apierrors.IsAPIError(err) {
+				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("feed input: %v", err)
+			}
+			var errCookie *http.Cookie
+			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
+			if err != nil {
+				result = nil
+				return
+			}
+			result.IsInteractionErr = true
+			result.Cookies = append(result.Cookies, errCookie)
+			result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
+		}
+	}()
+
+	output, err := c.feedInput(screen.Screen.StateToken.StateToken, input)
+	if err != nil {
+		return
+	}
+
+	result.Cookies = append(result.Cookies, output.Cookies...)
+	newF := output.ToFlowResponse()
+	newScreen := webapp.UpdateAuthflowScreenWithFlowResponse(screen, &newF)
+	s.Authflow.RememberScreen(newScreen)
+
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	err = c.Sessions.Update(s)
+	if err != nil {
+		return
+	}
+
+	if output != nil {
+		result.Cookies = append(result.Cookies, output.Cookies...)
+	}
+
+	newScreen.Navigate(r, result)
 	return
 }
 
