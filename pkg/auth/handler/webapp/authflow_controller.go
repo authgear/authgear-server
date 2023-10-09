@@ -253,15 +253,15 @@ func (c *AuthflowController) getScreen(s *webapp.Session, xStep string) (*webapp
 	return screenWithResponse, nil
 }
 
-func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID string, flowReference authflow.FlowReference) (*authflow.ServiceOutput, error) {
+func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (*authflow.ServiceOutput, error) {
 	flow, err := authflow.InstantiateFlow(flowReference)
 	if err != nil {
 		return nil, err
 	}
 
 	var sessionOptionsFromOAuth *authflow.SessionOptions
-	if oauthSessionID != "" {
-		sessionOptionsFromOAuth, err = c.makeSessionOptionsFromOAuth(oauthSessionID)
+	if s.OAuthSessionID != "" {
+		sessionOptionsFromOAuth, err = c.makeSessionOptionsFromOAuth(s.OAuthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Ignore this error.
 		} else if err != nil {
@@ -273,6 +273,7 @@ func (c *AuthflowController) createAuthflow(r *http.Request, oauthSessionID stri
 
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
+	sessionOptions.WebSessionID = s.ID
 
 	output, err := c.Authflows.CreateNewFlow(flow, sessionOptions)
 	if err != nil {
@@ -308,7 +309,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 		}
 	}()
 
-	output, err := c.createAuthflow(r, s.OAuthSessionID, flowReference)
+	output, err := c.createAuthflow(r, s, flowReference)
 	if err != nil {
 		return
 	}
@@ -365,7 +366,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 		}
 	}()
 
-	output, err := c.createAuthflow(r, s.OAuthSessionID, flowReference)
+	output, err := c.createAuthflow(r, s, flowReference)
 	if err != nil {
 		return
 	}

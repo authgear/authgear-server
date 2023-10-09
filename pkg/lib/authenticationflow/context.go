@@ -6,6 +6,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+type contextKeyTypeWebSessionID struct{}
+
+var contextKeyWebSessionID = contextKeyTypeWebSessionID{}
+
+func GetWebSessionID(ctx context.Context) string {
+	return ctx.Value(contextKeyWebSessionID).(string)
+}
+
 type contextKeyTypeOAuthSessionID struct{}
 
 var contextKeyOAuthSessionID = contextKeyTypeOAuthSessionID{}
