@@ -331,7 +331,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 		return
 	}
 
-	result, err = c.FeedInput(r, s, screen, input)
+	result, err = c.AdvanceWithInput(r, s, screen, input)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +392,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	return
 }
 
-func (c *AuthflowController) FeedInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
 
 	defer func() {

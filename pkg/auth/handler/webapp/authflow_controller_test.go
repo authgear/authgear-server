@@ -293,7 +293,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			}, nil)
 			mockSessionStore.EXPECT().Update(s).Times(1).Return(nil)
 
-			result, err := c.FeedInput(r, s, screen, input)
+			result, err := c.AdvanceWithInput(r, s, screen, input)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_password?x_step="), ShouldBeTrue)
 		})
@@ -377,7 +377,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				},
 			}, nil)
 
-			result, err := c.FeedInput(r, s, screen, input)
+			result, err := c.AdvanceWithInput(r, s, screen, input)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_oob_otp?x_step="), ShouldBeTrue)
 		})
