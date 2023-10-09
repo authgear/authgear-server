@@ -347,6 +347,60 @@ export class PasskeyRequestController extends Controller {
   }
 }
 
+export class AuthflowPasskeyRequestController extends Controller {
+  static targets = ["button", "submit", "input"];
+  static values = {
+    options: String,
+    auto: String,
+  };
+
+  declare buttonTarget: HTMLButtonElement;
+  declare submitTarget: HTMLButtonElement;
+  declare inputTarget: HTMLInputElement;
+
+  declare optionsValue: string;
+  declare autoValue: string;
+
+  connect() {
+    // Disable the button if PublicKeyCredential is unavailable.
+    if (!passkeyIsAvailable()) {
+      this.buttonTarget.disabled = true;
+      return;
+    }
+
+    if (this.autoValue === "true") {
+      this._use();
+    }
+  }
+
+  use(e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    this._use();
+  }
+
+  async _use() {
+    try {
+      const optionsJSON = JSON.parse(this.optionsValue);
+      const options = deserializeRequestOptions(optionsJSON);
+      const rawResponse = await window.navigator.credentials.get(options);
+      if (rawResponse instanceof PublicKeyCredential) {
+        const response = serializeAssertionResponse(rawResponse);
+        const responseString = JSON.stringify(response);
+        this.inputTarget.value = responseString;
+        // It seems that we should use form.submit() to submit the form.
+        // but form.submit() does NOT trigger submit event,
+        // which is essential for XHR form submission to work.
+        // Therefore, we emulate form submission here by clicking the submit button.
+        this.submitTarget.click();
+      }
+    } catch (e: unknown) {
+      handleError(e);
+    }
+  }
+}
+
 // TODO(passkey): autofill is buggy on iOS 16 Beta 4.
 // The call navigator.credentials.get will have a high possibility of resulting in
 // DOMException with name NotAllowedError instantly.

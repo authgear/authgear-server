@@ -20,12 +20,6 @@
 		</div>
 		{{ end }}{{ end }}
 
-		<form method="post" novalidate>
-			{{ $.CSRFField }}
-			<input type="hidden" name="x_assertion_response" data-passkey-autofill-target="input">
-			<button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-autofill-target="submit"></button>
-		</form>
-
 		<div class="twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 			<form
 				class="twc-container-vertical"
@@ -123,13 +117,13 @@
 			<div class="grid grid-cols-1 auto-rows-auto gap-y-2">
 				{{ if $.PasskeyEnabled }}
 				<div class="flex flex-col"
-					data-controller="passkey-request"
-					data-passkey-request-auto-value="false"
-					data-passkey-request-allow-credentials-value="false">
+					data-controller="authflow-passkey-request"
+					data-authflow-passkey-request-options-value="{{ $.PasskeyRequestOptionsJSON }}"
+					data-authflow-passkey-request-auto-value="false">
 					<button class="btn passkey-btn"
 						type="button"
-						data-action="click->passkey-request#use"
-						data-passkey-request-target="button"
+						data-action="click->authflow-passkey-request#use"
+						data-authflow-passkey-request-target="button"
 						data-authgear-event="authgear.button.use_passkey">
 						<span class="passkey-btn-content">
 							<div class="passkey-btn-icon authgear-icons authgear-icons-passkey"></div>
@@ -140,8 +134,8 @@
 					</button>
 					<form class="hidden" method="post" novalidate>
 					{{ $.CSRFField }}
-					<input type="hidden" name="x_assertion_response" data-passkey-request-target="input">
-					<button type="submit" class="hidden" name="x_action" value="passkey" data-passkey-request-target="submit"></button>
+					<input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
+					<button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
 					</form>
 				</div>
 				{{ end }}
