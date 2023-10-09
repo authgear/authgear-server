@@ -720,3 +720,10 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowChangePasswordHandler)),
 	))
 }
+
+func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowUsePasskeyHandler)),
+	))
+}

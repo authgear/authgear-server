@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -163,30 +164,28 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	//handlers.PostAction("passkey", func() error {
-	//	result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-	//		err = PasskeyAutofillSchema.Validator().ValidateValue(FormToJSON(r.Form))
-	//		if err != nil {
-	//			return
-	//		}
+	handlers.PostAction("passkey", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		assertionResponseStr := r.Form.Get("x_assertion_response")
 
-	//		assertionResponseStr := r.Form.Get("x_assertion_response")
-	//		assertionResponse := []byte(assertionResponseStr)
-	//		stage := string(authn.AuthenticationStagePrimary)
+		var assertionResponseJSON interface{}
+		err := json.Unmarshal([]byte(assertionResponseStr), &assertionResponseJSON)
+		if err != nil {
+			return err
+		}
 
-	//		input = &InputPasskeyAssertionResponse{
-	//			Stage:             stage,
-	//			AssertionResponse: assertionResponse,
-	//		}
-	//		return
-	//	})
-	//	if err != nil {
-	//		return err
-	//	}
+		input := map[string]interface{}{
+			"identification":     "passkey",
+			"assertion_response": assertionResponseJSON,
+		}
 
-	//	result.WriteResponse(w, r)
-	//	return nil
-	//})
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
 
 	h.Controller.HandleLoginFlowSignupFlowSignupLoginFlow(w, r, opts, authflow.FlowReference{
 		Type: authflow.FlowTypeLogin,

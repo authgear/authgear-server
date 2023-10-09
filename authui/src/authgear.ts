@@ -30,6 +30,7 @@ import { SimpleModalController } from "./simpleModal";
 import {
   PasskeyCreationController,
   PasskeyRequestController,
+  AuthflowPasskeyRequestController,
   PasskeyAutofillController,
 } from "./passkey";
 import { WalletConfirmationController, WalletIconController } from "./web3";
@@ -102,6 +103,7 @@ Stimulus.register("back-button", BackButtonController);
 Stimulus.register("passkey-creation", PasskeyCreationController);
 Stimulus.register("passkey-request", PasskeyRequestController);
 Stimulus.register("passkey-autofill", PasskeyAutofillController);
+Stimulus.register("authflow-passkey-request", AuthflowPasskeyRequestController);
 
 Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
 Stimulus.register("web3-wallet-icon", WalletIconController);
