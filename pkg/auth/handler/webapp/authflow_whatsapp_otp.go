@@ -109,7 +109,7 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"resend": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
 		if err != nil {
 			return err
 		}
