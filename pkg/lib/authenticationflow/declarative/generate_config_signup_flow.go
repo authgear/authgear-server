@@ -240,10 +240,16 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 		Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication) {
+	addOneOf := func(am config.AuthenticationFlowAuthentication, verify bool) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 				Authentication: am,
+			}
+			if verify {
+				oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
+					Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
+					TargetStep: step.Name,
+				})
 			}
 			if recoveryCodeStep != nil {
 				oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
@@ -256,13 +262,13 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, false)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, true)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, true)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, false)
 		}
 	}
 
