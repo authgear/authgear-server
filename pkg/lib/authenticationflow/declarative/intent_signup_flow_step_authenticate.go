@@ -58,7 +58,9 @@ func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, 
 }
 
 func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *authflow.Dependencies, _ authflow.Flows) otp.Purpose {
-	return otp.PurposeOOBOTP
+	// Using PurposeOOBOTP will use login_link to verify.
+	// But we want to always verify by code.
+	return otp.PurposeVerification
 }
 
 func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) otp.MessageType {
