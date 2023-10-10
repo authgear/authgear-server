@@ -14,8 +14,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
@@ -469,4 +471,15 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	}
 
 	return
+}
+
+func getMaskedOTPTarget(claimName model.ClaimName, claimValue string) string {
+	switch claimName {
+	case model.ClaimEmail:
+		return mail.MaskAddress(claimValue)
+	case model.ClaimPhoneNumber:
+		return phone.Mask(claimValue)
+	default:
+		panic(fmt.Errorf("unexpected claim name: %v", claimName))
+	}
 }
