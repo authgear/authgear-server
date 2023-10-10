@@ -15,9 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func init() {
@@ -75,7 +73,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 
 		err := deps.OTPCodes.VerifyOTP(
 			n.otpKind(deps),
-			n.otpTarget(),
+			n.ClaimValue,
 			code,
 			&otp.VerifyOptions{UserID: n.UserID},
 		)
@@ -89,7 +87,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		verifiedClaim := deps.Verification.NewVerifiedClaim(
 			n.UserID,
 			string(n.ClaimName),
-			n.otpTarget(),
+			n.ClaimValue,
 		)
 		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
@@ -99,7 +97,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 
 		err := deps.OTPCodes.VerifyOTP(
 			n.otpKind(deps),
-			n.otpTarget(),
+			n.ClaimValue,
 			emptyCode,
 			&otp.VerifyOptions{
 				UseSubmittedCode: true,
@@ -116,7 +114,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		verifiedClaim := deps.Verification.NewVerifiedClaim(
 			n.UserID,
 			string(n.ClaimName),
-			n.otpTarget(),
+			n.ClaimValue,
 		)
 		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
@@ -133,7 +131,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 }
 
 func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	state, err := deps.OTPCodes.InspectState(n.otpKind(deps), n.otpTarget())
+	state, err := deps.OTPCodes.InspectState(n.otpKind(deps), n.ClaimValue)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +141,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 	return NodeVerifyClaimData{
 		Channel:                        n.Channel,
 		OTPForm:                        otpForm,
-		MaskedClaimValue:               n.maskedOTPTarget(),
+		MaskedClaimValue:               getMaskedOTPTarget(n.ClaimName, n.ClaimValue),
 		CodeLength:                     otpForm.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
@@ -196,21 +194,6 @@ func (n *NodeVerifyClaim) invalidOTPCodeError() error {
 	}
 }
 
-func (n *NodeVerifyClaim) otpTarget() string {
-	return n.ClaimValue
-}
-
-func (n *NodeVerifyClaim) maskedOTPTarget() string {
-	switch n.ClaimName {
-	case model.ClaimEmail:
-		return mail.MaskAddress(n.otpTarget())
-	case model.ClaimPhoneNumber:
-		return phone.Mask(n.otpTarget())
-	default:
-		panic(fmt.Errorf("unexpected claim name: %v", n.ClaimName))
-	}
-}
-
 func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependencies) error {
 	// Here is a bit tricky.
 	// Normally we should use the given message type to send a message.
@@ -225,7 +208,7 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 
 	msg, err := deps.OTPSender.Prepare(
 		n.Channel,
-		n.otpTarget(),
+		n.ClaimValue,
 		n.otpForm(deps),
 		typ,
 	)
@@ -236,7 +219,7 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
-		n.otpTarget(),
+		n.ClaimValue,
 		n.otpForm(deps),
 		&otp.GenerateOptions{
 			UserID:               n.UserID,
