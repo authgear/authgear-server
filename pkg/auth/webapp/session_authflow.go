@@ -421,28 +421,45 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignup(r *http.Request, result 
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
-			switch data.OTPForm {
-			case otp.FormCode:
-				s.advance(AuthflowRouteEnterOOBOTP, result)
-			case otp.FormLink:
-				s.advance(AuthflowRouteOOBOTPLink, result)
+			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
+			case declarative.NodeVerifyClaimData:
+				// 1. We do not need to enter the target.
+				switch data.OTPForm {
+				case otp.FormCode:
+					s.advance(AuthflowRouteEnterOOBOTP, result)
+				case otp.FormLink:
+					s.advance(AuthflowRouteOOBOTPLink, result)
+				default:
+					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				}
+			case declarative.IntentSignupFlowStepAuthenticateData:
+				// 2. We need to enter the target.
+				s.advance(AuthflowRouteSetupOOBOTP, result)
 			default:
-				panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.advance(AuthflowRouteSetupTOTP, result)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			channel := s.Screen.TakenChannel
-			switch channel {
-			case model.AuthenticatorOOBChannelSMS:
-				s.advance(AuthflowRouteEnterOOBOTP, result)
-			case model.AuthenticatorOOBChannelWhatsapp:
-				s.advance(AuthflowRouteWhatsappOTP, result)
+			switch s.StateTokenFlowResponse.Action.Data.(type) {
+			case declarative.NodeVerifyClaimData:
+				// 1. We do not need to enter the target.
+				channel := s.Screen.TakenChannel
+				switch channel {
+				case model.AuthenticatorOOBChannelSMS:
+					s.advance(AuthflowRouteEnterOOBOTP, result)
+				case model.AuthenticatorOOBChannelWhatsapp:
+					s.advance(AuthflowRouteWhatsappOTP, result)
+				default:
+					panic(fmt.Errorf("unexpected channel: %v", channel))
+				}
+			case declarative.IntentSignupFlowStepAuthenticateData:
+				// 2. We need to enter the target.
+				s.advance(AuthflowRouteSetupOOBOTP, result)
 			default:
-				panic(fmt.Errorf("unexpected channel: %v", channel))
+				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))

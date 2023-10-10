@@ -10,15 +10,15 @@ const (
 	AuthflowRouteCreatePassword = "/authflow/create_password"
 	// nolint: gosec
 	AuthflowRouteChangePassword = "/authflow/change_password"
-
 	// nolint: gosec
 	AuthflowRouteEnterPassword     = "/authflow/enter_password"
 	AuthflowRouteEnterRecoveryCode = "/authflow/enter_recovery_code"
 	AuthflowRouteEnterOOBOTP       = "/authflow/enter_oob_otp"
-	AuthflowRouteEnterTOTP         = "/authflow/enter_totp"
-	AuthflowRouteSetupTOTP         = "/authflow/setup_totp"
 	AuthflowRouteWhatsappOTP       = "/authflow/whatsapp_otp"
 	AuthflowRouteOOBOTPLink        = "/authflow/oob_otp_link"
+	AuthflowRouteEnterTOTP         = "/authflow/enter_totp"
+	AuthflowRouteSetupTOTP         = "/authflow/setup_totp"
+	AuthflowRouteSetupOOBOTP       = "/authflow/setup_oob_otp"
 	// nolint: gosec
 	AuthflowRouteUsePasskey = "/authflow/use_passkey"
 )
