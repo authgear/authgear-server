@@ -21,6 +21,7 @@
     + [grant_type](#grant_type)
     + [id_token_hint](#id_token_hint-1)
     + [jwt](#jwt)
+    + [`urn:authgear:params:oauth:grant-type:authorization_code`](#urnauthgearparamsoauthgrant-typeauthorization_code)
   * [Token Response](#token-response)
     + [token_type](#token_type)
     + [refresh_token](#refresh_token)
@@ -52,6 +53,7 @@
     + [Comparison with cookie sharing approach](#comparison-with-cookie-sharing-approach)
     + [Details of Silent Authentication](#details-of-silent-authentication)
   * [Clients](#clients)
+    + [Rationale of limitations](#rationale-of-limitations)
     + [First-party clients](#first-party-clients)
     + [First-party public clients](#first-party-public-clients)
     + [First-party confidential clients](#first-party-confidential-clients)
@@ -63,7 +65,7 @@
   * [How to construct authentication request to achieve different scenarios](#how-to-construct-authentication-request-to-achieve-different-scenarios)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
     + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
-    + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)⏎
+    + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)
 
 # OIDC
 
@@ -226,6 +228,7 @@ To mitigate replay attacks, provide a `nonce` in the authentication request. Aut
 - `urn:authgear:params:oauth:grant-type:anonymous-request`
 - `urn:authgear:params:oauth:grant-type:biometric-request`
 - `urn:authgear:params:oauth:grant-type:id-token`
+- `urn:authgear:params:oauth:grant-type:authorization_code`
 
 `urn:authgear:params:oauth:grant-type:anonymous-request` is for authenticating and issuing tokens directly for anonymous user.
 
@@ -245,6 +248,12 @@ The response will include an ID token with the following claims updated:
 When the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`, the value is specified [here](./user-model.md#anonymous-identity-jwt).
 
 When the grant type is `urn:authgear:params:oauth:grant-type:biometric-request`, the value is specified [here](./user-model.md#biometric-identity-jwt).
+
+### `urn:authgear:params:oauth:grant-type:authorization_code`
+
+This grant type is similar to `authorization_code`, except that it **DOES NOT** support the use of PKCE.
+`authorization_code` by definition is delivered by redirect, thus is subject to interception attack, as described in [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636).
+`urn:authgear:params:oauth:grant-type:authorization_code`, in contrast, is delivered in traditional HTTP request-response, thus the use of PKCE is redundant, and would add unnecessary friction.
 
 ## Token Response
 
