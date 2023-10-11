@@ -27,6 +27,7 @@ type IntentVerifyClaim struct {
 	UserID      string          `json:"user_id,omitempty"`
 	Purpose     otp.Purpose     `json:"purpose,omitempty"`
 	MessageType otp.MessageType `json:"message_type,omitempty"`
+	Form        otp.Form        `json:"form,omitempty"`
 	ClaimName   model.ClaimName `json:"claim_name,omitempty"`
 	ClaimValue  string          `json:"claim_value,omitempty"`
 }
@@ -81,6 +82,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 		UserID:      i.UserID,
 		Purpose:     i.Purpose,
 		MessageType: i.MessageType,
+		Form:        i.Form,
 		ClaimName:   i.ClaimName,
 		ClaimValue:  i.ClaimValue,
 		Channel:     channel,

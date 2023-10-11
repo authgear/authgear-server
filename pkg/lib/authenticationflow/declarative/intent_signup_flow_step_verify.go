@@ -118,8 +118,10 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 		UserID:      i.UserID,
 		Purpose:     purpose,
 		MessageType: messageType,
-		ClaimName:   claimName,
-		ClaimValue:  claimValue,
+		// Always use code to verify.
+		Form:       otp.FormCode,
+		ClaimName:  claimName,
+		ClaimValue: claimValue,
 	}), nil
 }
 

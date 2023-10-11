@@ -13,7 +13,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -41,6 +40,7 @@ type NodeVerifyClaim struct {
 	UserID      string                        `json:"user_id,omitempty"`
 	Purpose     otp.Purpose                   `json:"purpose,omitempty"`
 	MessageType otp.MessageType               `json:"message_type,omitempty"`
+	Form        otp.Form                      `json:"form,omitempty"`
 	ClaimName   model.ClaimName               `json:"claim_name,omitempty"`
 	ClaimValue  string                        `json:"claim_value,omitempty"`
 	Channel     model.AuthenticatorOOBChannel `json:"channel,omitempty"`
@@ -57,7 +57,7 @@ func (n *NodeVerifyClaim) Kind() string {
 func (n *NodeVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	return &InputSchemaNodeVerifyClaim{
 		JSONPointer: n.JSONPointer,
-		OTPForm:     n.otpForm(deps),
+		OTPForm:     n.Form,
 	}, nil
 }
 
@@ -136,13 +136,11 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		return nil, err
 	}
 
-	otpForm := n.otpForm(deps)
-
 	return NodeVerifyClaimData{
 		Channel:                        n.Channel,
-		OTPForm:                        otpForm,
+		OTPForm:                        n.Form,
 		MaskedClaimValue:               getMaskedOTPTarget(n.ClaimName, n.ClaimValue),
-		CodeLength:                     otpForm.CodeLength(),
+		CodeLength:                     n.Form.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
 		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
@@ -158,15 +156,6 @@ func (n *NodeVerifyClaim) otpKind(deps *authflow.Dependencies) otp.Kind {
 	default:
 		panic(fmt.Errorf("unexpected otp purpose: %v", n.Purpose))
 	}
-}
-
-func (n *NodeVerifyClaim) otpForm(deps *authflow.Dependencies) otp.Form {
-	if n.Purpose == otp.PurposeOOBOTP &&
-		n.Channel == model.AuthenticatorOOBChannelEmail &&
-		deps.Config.Authenticator.OOB.Email.EmailOTPMode == config.AuthenticatorEmailOTPModeLoginLinkOnly {
-		return otp.FormLink
-	}
-	return otp.FormCode
 }
 
 func (n *NodeVerifyClaim) invalidOTPCodeError() error {
@@ -209,7 +198,7 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 	msg, err := deps.OTPSender.Prepare(
 		n.Channel,
 		n.ClaimValue,
-		n.otpForm(deps),
+		n.Form,
 		typ,
 	)
 	if err != nil {
@@ -220,7 +209,7 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
 		n.ClaimValue,
-		n.otpForm(deps),
+		n.Form,
 		&otp.GenerateOptions{
 			UserID:               n.UserID,
 			WebSessionID:         authflow.GetWebSessionID(ctx),
