@@ -104,6 +104,8 @@ export class PasswordPolicyController extends Controller {
   static targets = [
     "input",
 
+    "submit",
+
     "currentMeter",
     "currentMeterDescription",
 
@@ -123,6 +125,9 @@ export class PasswordPolicyController extends Controller {
   declare currentMeterTarget: HTMLMeterElement;
   declare currentMeterDescriptionTarget: HTMLElement;
   declare itemTargets: HTMLElement[];
+
+  declare hasSubmitTarget: boolean;
+  declare submitTarget: HTMLElement;
 
   declare hasLengthTarget: boolean;
   declare lengthTarget: HTMLElement;
@@ -147,6 +152,22 @@ export class PasswordPolicyController extends Controller {
 
   declare hasRequiredMeterTarget: boolean;
   declare requiredMeterTarget: HTMLMeterElement;
+
+  connect() {
+    const value = this.inputTarget.value;
+    if (this.hasSubmitTarget) {
+      if (value === "") {
+        if (
+          this.submitTarget instanceof HTMLInputElement ||
+          this.submitTarget instanceof HTMLButtonElement
+        ) {
+          this.submitTarget.disabled = true;
+        }
+      } else {
+        this.check();
+      }
+    }
+  }
 
   check() {
     const value = this.inputTarget.value;
@@ -188,6 +209,16 @@ export class PasswordPolicyController extends Controller {
           this.strengthTarget
         )
       );
+    }
+
+    const invalid = results.some((b) => !b);
+    if (this.hasSubmitTarget) {
+      if (
+        this.submitTarget instanceof HTMLInputElement ||
+        this.submitTarget instanceof HTMLButtonElement
+      ) {
+        this.submitTarget.disabled = invalid;
+      }
     }
   }
 }
