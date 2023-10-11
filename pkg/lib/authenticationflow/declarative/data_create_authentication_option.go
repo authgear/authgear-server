@@ -1,12 +1,16 @@
 package declarative
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type CreateAuthenticationOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+
+	// Channels is specific to OOBOTP.
+	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 
 	// PasswordPolicy is specific to primary_password and secondary_password.
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
@@ -32,13 +36,19 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 			break
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			options = append(options, CreateAuthenticationOption{
 				Authentication: b.Authentication,
+				Channels:       channels,
+			})
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
+			options = append(options, CreateAuthenticationOption{
+				Authentication: b.Authentication,
+				Channels:       channels,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticationOption{
