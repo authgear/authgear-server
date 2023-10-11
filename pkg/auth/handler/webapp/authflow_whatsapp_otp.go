@@ -42,7 +42,6 @@ type AuthflowWhatsappOTPViewModel struct {
 	CodeLength                     int
 	FailedAttemptRateLimitExceeded bool
 	ResendCooldown                 int
-	DeviceTokenEnabled             bool
 }
 
 func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowWhatsappOTPViewModel {
@@ -56,19 +55,11 @@ func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 		resendCooldown = 0
 	}
 
-	deviceTokenEnabled := false
-	if screen.BranchStateTokenFlowResponse != nil {
-		if data, ok := screen.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData); ok {
-			deviceTokenEnabled = data.DeviceTokenEnabled
-		}
-	}
-
 	return AuthflowWhatsappOTPViewModel{
 		MaskedClaimValue:               maskedClaimValue,
 		CodeLength:                     codeLength,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
 		ResendCooldown:                 resendCooldown,
-		DeviceTokenEnabled:             deviceTokenEnabled,
 	}
 }
 
@@ -89,6 +80,9 @@ func (h *AuthflowWhatsappOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 
 	screenViewModel := NewAuthflowWhatsappOTPViewModel(s, screen, now)
 	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
 }

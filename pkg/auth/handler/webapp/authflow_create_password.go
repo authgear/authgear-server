@@ -77,6 +77,10 @@ func (h *AuthflowCreatePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 
 	viewmodels.Embed(data, screenViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
+
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
 	return data, nil
 }
 

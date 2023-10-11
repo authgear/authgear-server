@@ -60,6 +60,9 @@ func (h *AuthflowUsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Reque
 	}
 	viewmodels.Embed(data, *screenViewModel)
 
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
 	return data, nil
 }
 

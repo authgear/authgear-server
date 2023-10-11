@@ -1,0 +1,112 @@
+{{- define "__authflow_branch.html" }}
+
+{{- if (len $.Branches) }}
+<div class="alternative-separator flex flex-row items-center">
+	<span class="primary-txt mx-1.5 text-sm">{{ template "or-label" }}</span>
+</div>
+{{- end }}
+
+<div class="space-y-1">
+
+{{- range $.Branches }}
+{{- if eq $.FlowType "login" }}
+{{- if eq .Authentication "recovery_code" }}
+<form class="text-left text-sm" method="post" novalidate>
+{{ $.CSRFField }}
+<input type="hidden" name="x_index" value="{{ .Index }}">
+<input type="hidden" name="x_channel" value="{{ .Channel }}">
+<input type="hidden" name="x_action" value="take_branch">
+{{ if ($.Translations.HasKey "customer-support-link") }}
+    {{ template "enter-recovery-code-instead-with-customer-support-v1" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
+{{ else }}
+    {{ template "enter-recovery-code-instead-v1" }}
+{{ end }}
+</form>
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- range $.Branches }}
+<form method="post" novalidate>
+{{ $.CSRFField }}
+<input type="hidden" name="x_index" value="{{ .Index }}">
+<input type="hidden" name="x_channel" value="{{ .Channel }}">
+<input type="hidden" name="x_action" value="take_branch">
+<button class="btn secondary-btn text-left text-sm" type="submit">
+{{- if eq $.FlowType "signup" }}
+{{- if eq .Authentication "primary_password" }}
+	{{ template "setup-password-instead" }}
+{{- end }}
+{{- if eq .Authentication "secondary_password" }}
+	{{ template "setup-secondary-password-instead" }}
+{{- end }}
+{{- if eq .Authentication "secondary_totp" }}
+	{{ template "setup-totp-instead" }}
+{{- end }}
+{{- if eq .Authentication "primary_oob_otp_email" }}
+	{{ template "setup-primary-email-otp-instead" }}
+{{- end }}
+{{- if eq .Authentication "secondary_oob_otp_email" }}
+	{{ template "setup-email-otp-instead" }}
+{{- end }}
+{{- if eq .Authentication "primary_oob_otp_sms" }}
+	{{ template "setup-primary-phone-otp-instead" }}
+{{- end }}
+{{- if eq .Authentication "secondary_oob_otp_sms" }}
+	{{ template "setup-phone-otp-instead" }}
+{{- end }}
+{{- if eq .Authentication "" }}
+	{{- if eq .Channel "sms" }}
+	{{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+	{{- if eq .Channel "whatsapp" }}
+	{{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+{{- end }}
+{{- end }}
+
+{{- if eq $.FlowType "login" }}
+{{- if eq .Authentication "primary_password" }}
+	{{ template "enter-password-instead" }}
+{{- end }}
+{{- if eq .Authentication "secondary_password" }}
+	{{ template "enter-secondary-password-instead" }}
+{{- end }}
+{{- if eq .Authentication "primary_passkey" }}
+	{{ template "use-passkey-instead" }}
+{{- end }}
+{{- if eq .Authentication "secondary_totp" }}
+	{{ template "enter-totp-instead" }}
+{{- end }}
+{{- if eq .Authentication "primary_oob_otp_email" }}
+	{{/* FIXME(authflow): determine the code form here */}}
+	{{ template "enter-email-otp-code-instead" (dict "target" .MaskedClaimValue) }}
+{{- end }}
+{{- if eq .Authentication "secondary_oob_otp_email" }}
+	{{/* FIXME(authflow): determine the code form here */}}
+	{{ template "enter-email-otp-code-instead" (dict "target" .MaskedClaimValue) }}
+{{- end }}
+{{- if (or (eq .Authentication "primary_oob_otp_sms") (eq .Authentication "secondary_oob_otp_sms")) }}
+	{{- if eq .Channel "sms" }}
+	{{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+	{{- if eq .Channel "whatsapp" }}
+	{{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+{{- end }}
+{{- if eq .Authentication "" }}
+	{{- if eq .Channel "sms" }}
+	{{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+	{{- if eq .Channel "whatsapp" }}
+	{{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+{{- end }}
+{{- end }}
+</button>
+</form>
+{{- end }}
+
+</div>
+
+{{- end }}

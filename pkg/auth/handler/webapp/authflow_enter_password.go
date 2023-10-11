@@ -35,8 +35,6 @@ func ConfigureAuthflowEnterPasswordRoute(route httproute.Route) httproute.Route 
 
 type AuthflowEnterPasswordViewModel struct {
 	AuthenticationStage     string
-	DeviceTokenEnabled      bool
-	FlowType                string
 	PasswordManagerUsername string
 	ForgotPasswordInputType string
 	ForgotPasswordLoginID   string
@@ -49,8 +47,6 @@ type AuthflowEnterPasswordHandler struct {
 }
 
 func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
-	flowType := screen.StateTokenFlowResponse.Type
-
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
 	data := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
@@ -78,8 +74,6 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 
 	return AuthflowEnterPasswordViewModel{
 		AuthenticationStage:     string(authenticationStage),
-		DeviceTokenEnabled:      data.DeviceTokenEnabled,
-		FlowType:                string(flowType),
 		PasswordManagerUsername: passwordManagerUsername,
 		ForgotPasswordInputType: forgotPasswordInputType,
 		ForgotPasswordLoginID:   forgotPasswordLoginID,
@@ -94,6 +88,9 @@ func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 
 	screenViewModel := NewAuthflowEnterPasswordViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
 }
