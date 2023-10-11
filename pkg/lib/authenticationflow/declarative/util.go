@@ -170,9 +170,8 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 		case config.AuthenticationFlowAuthenticationDeviceToken:
 			// Device token is handled transparently.
 			break
-
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
-
+			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
@@ -184,7 +183,6 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 			if err != nil {
 				return nil, err
 			}
-
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
