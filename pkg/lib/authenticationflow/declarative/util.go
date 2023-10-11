@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -334,6 +335,20 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 	}
 
 	return channels
+}
+
+func getOTPForm(claimName model.ClaimName, cfg *config.AuthenticatorOOBEmailConfig) otp.Form {
+	switch claimName {
+	case model.ClaimEmail:
+		if cfg.EmailOTPMode == config.AuthenticatorEmailOTPModeLoginLinkOnly {
+			return otp.FormLink
+		}
+		return otp.FormCode
+	case model.ClaimPhoneNumber:
+		return otp.FormCode
+	default:
+		panic(fmt.Errorf("unexpected claim name: %v", claimName))
+	}
 }
 
 func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (*identity.Info, error) {
