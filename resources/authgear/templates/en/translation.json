@@ -412,7 +412,7 @@
   "enter-phone-otp-sms-instead": "Send one-time password to {target} via SMS instead",
   "enter-phone-otp-whatsapp-instead": "Send one-time password to {target} via Whatsapp instead",
   "enter-email-otp-code-instead": "Send one-time password to {target} instead",
-  "enter-email-otp-link-instead": "Send login link to {target} instead",
+  "use-email-otp-link-instead": "Send login link to {target} instead",
   "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>",
 

@@ -79,12 +79,20 @@
 	{{ template "enter-totp-instead" }}
 {{- end }}
 {{- if eq .Authentication "primary_oob_otp_email" }}
-	{{/* FIXME(authflow): determine the code form here */}}
+	{{- if eq .OTPForm "code" }}
 	{{ template "enter-email-otp-code-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+	{{- if eq .OTPForm "link" }}
+	{{ template "use-email-otp-link-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
 {{- end }}
 {{- if eq .Authentication "secondary_oob_otp_email" }}
-	{{/* FIXME(authflow): determine the code form here */}}
+	{{- if eq .OTPForm "code" }}
 	{{ template "enter-email-otp-code-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
+	{{- if eq .OTPForm "link" }}
+	{{ template "use-email-otp-link-instead" (dict "target" .MaskedClaimValue) }}
+	{{- end }}
 {{- end }}
 {{- if (or (eq .Authentication "primary_oob_otp_sms") (eq .Authentication "secondary_oob_otp_sms")) }}
 	{{- if eq .Channel "sms" }}
