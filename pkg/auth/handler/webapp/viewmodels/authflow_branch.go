@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -12,6 +13,7 @@ type AuthflowBranch struct {
 	Index            int
 	Channel          model.AuthenticatorOOBChannel
 	MaskedClaimValue string
+	OTPForm          otp.Form
 }
 
 func isAuthflowBranchSame(a AuthflowBranch, b AuthflowBranch) bool {
@@ -77,6 +79,7 @@ func newAuthflowBranchViewModelLoginFlow(screen *webapp.AuthflowScreenWithFlowRe
 				Index:            idx,
 				Channel:          channel,
 				MaskedClaimValue: o.MaskedDisplayName,
+				OTPForm:          o.OTPForm,
 			}
 			if !isAuthflowBranchSame(branch, takenBranch) {
 				branches = append(branches, branch)

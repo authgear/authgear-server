@@ -412,7 +412,7 @@
   "enter-phone-otp-sms-instead": "改為以短訊發送一次性密碼至 {target}",
   "enter-phone-otp-whatsapp-instead": "改為以Whatsapp發送一次性密碼至 {target}",
   "enter-email-otp-code-instead": "改為發送一次性密碼至 {target}",
-  "enter-email-otp-link-instead": "改為發送登錄鏈接至 {target}",
+  "use-email-otp-link-instead": "改為發送登錄鏈接至 {target}",
   "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
