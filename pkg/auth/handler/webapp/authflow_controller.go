@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -647,13 +648,18 @@ func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.A
 			err = handlers.GetHandler(s, screen)
 		case http.MethodPost:
 			xAction := r.FormValue("x_action")
-			handler, ok := handlers.PostHandlers[xAction]
-			if !ok {
-				http.Error(w, "Unknown action", http.StatusBadRequest)
-				return
-			}
+			switch xAction {
+			case "take_branch":
+				err = c.takeBranch(w, r, s, screen)
+			default:
+				handler, ok := handlers.PostHandlers[xAction]
+				if !ok {
+					http.Error(w, "Unknown action", http.StatusBadRequest)
+					return
+				}
 
-			err = handler(s, screen)
+				err = handler(s, screen)
+			}
 		default:
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
@@ -665,6 +671,58 @@ func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.A
 			panic(err)
 		}
 	})
+}
+
+func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	xStepAtBranch := screen.Screen.BranchStateToken.XStep
+	screen, err := c.getScreen(s, xStepAtBranch)
+	if err != nil {
+		return err
+	}
+
+	indexStr := r.Form.Get("x_index")
+	index, err := strconv.Atoi(indexStr)
+	if err != nil {
+		return err
+	}
+	channel := r.Form.Get("x_channel")
+
+	takeBranchResult := screen.TakeBranch(index, model.AuthenticatorOOBChannel(channel))
+
+	var output *authflow.ServiceOutput
+	var newScreen *webapp.AuthflowScreenWithFlowResponse
+	switch takeBranchResult := takeBranchResult.(type) {
+	// This taken branch does not require an input to select.
+	case webapp.TakeBranchResultSimple:
+		s.Authflow.RememberScreen(takeBranchResult.Screen)
+		newScreen = takeBranchResult.Screen
+	// This taken branch require an input to select.
+	case webapp.TakeBranchResultInput:
+		output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
+		if err != nil {
+			return err
+		}
+
+		flowResponse := output.ToFlowResponse()
+		newScreen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
+		s.Authflow.RememberScreen(newScreen)
+	}
+
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	err = c.Sessions.Update(s)
+	if err != nil {
+		return err
+	}
+
+	result := &webapp.Result{}
+	if output != nil {
+		result.Cookies = append(result.Cookies, output.Cookies...)
+	}
+
+	newScreen.Navigate(r, result)
+	result.WriteResponse(w, r)
+	return nil
 }
 
 func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
