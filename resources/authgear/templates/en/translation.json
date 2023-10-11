@@ -241,6 +241,7 @@
 
   "password-policy-required-password-strength-label": "Your new password must be",
   "password-policy-title": "Your new password must follow the below rules:",
+  "password-policy-strong-password": "Password is strong enough",
   "password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",
   "password-policy-uppercase": "At least 1 uppercase character",
   "password-policy-lowercase": "At least 1 lowercase character",

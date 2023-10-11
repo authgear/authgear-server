@@ -80,6 +80,7 @@ function checkPasswordStrength(
   currentMeterDescription.textContent = "";
 
   if (value === "") {
+    strengthTarget?.classList.add("error-txt");
     return;
   }
 

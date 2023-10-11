@@ -241,6 +241,7 @@
 
   "password-policy-required-password-strength-label": "你的新密碼必須為",
   "password-policy-title": "你的密碼必須符合以下條件:",
+  "password-policy-strong-password": "密碼有足夠強度",
   "password-policy-minimum-length": "最少 {length, plural, other{# 位}}",
   "password-policy-uppercase": "請輸入最少一個大寫英文字母",
   "password-policy-lowercase": "請輸入最少一個小寫英文字母",
