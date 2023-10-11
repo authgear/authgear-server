@@ -44,7 +44,6 @@ type AuthflowEnterOOBOTPViewModel struct {
 	CodeLength                     int
 	FailedAttemptRateLimitExceeded bool
 	ResendCooldown                 int
-	DeviceTokenEnabled             bool
 }
 
 func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowEnterOOBOTPViewModel {
@@ -60,13 +59,6 @@ func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 		resendCooldown = 0
 	}
 
-	deviceTokenEnabled := false
-	if screen.BranchStateTokenFlowResponse != nil {
-		if data, ok := screen.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData); ok {
-			deviceTokenEnabled = data.DeviceTokenEnabled
-		}
-	}
-
 	return AuthflowEnterOOBOTPViewModel{
 		FlowActionType:                 string(flowActionType),
 		Channel:                        string(channel),
@@ -74,7 +66,6 @@ func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 		CodeLength:                     codeLength,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
 		ResendCooldown:                 resendCooldown,
-		DeviceTokenEnabled:             deviceTokenEnabled,
 	}
 }
 
@@ -95,6 +86,9 @@ func (h *AuthflowEnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 
 	screenViewModel := NewAuthflowEnterOOBOTPViewModel(s, screen, now)
 	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
 }

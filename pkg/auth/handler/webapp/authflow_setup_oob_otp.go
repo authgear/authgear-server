@@ -73,6 +73,9 @@ func (h *AuthflowSetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	}
 	viewmodels.Embed(data, screenViewModel)
 
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
 	return data, nil
 }
 

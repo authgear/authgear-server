@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -33,10 +32,6 @@ func ConfigureAuthflowEnterTOTPRoute(route httproute.Route) httproute.Route {
 		WithPathPattern(webapp.AuthflowRouteEnterTOTP)
 }
 
-type AuthflowEnterTOTPViewModel struct {
-	DeviceTokenEnabled bool
-}
-
 type AuthflowEnterTOTPHandler struct {
 	Controller    *AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -49,12 +44,8 @@ func (h *AuthflowEnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Reques
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	flowResponse := screen.BranchStateTokenFlowResponse
-	branchData := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
-	screenViewModel := AuthflowEnterTOTPViewModel{
-		DeviceTokenEnabled: branchData.DeviceTokenEnabled,
-	}
-	viewmodels.Embed(data, screenViewModel)
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
 }

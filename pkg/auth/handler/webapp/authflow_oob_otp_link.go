@@ -24,10 +24,9 @@ func ConfigureAuthflowOOBOTPLinkRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowOOBOTPLinkViewModel struct {
-	StateQuery         LoginLinkOTPPageQueryState
-	MaskedClaimValue   string
-	ResendCooldown     int
-	DeviceTokenEnabled bool
+	StateQuery       LoginLinkOTPPageQueryState
+	MaskedClaimValue string
+	ResendCooldown   int
 }
 
 func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowOOBOTPLinkViewModel {
@@ -37,12 +36,6 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 	if resendCooldown < 0 {
 		resendCooldown = 0
 	}
-	deviceTokenEnabled := false
-	if screen.BranchStateTokenFlowResponse != nil {
-		if data, ok := screen.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData); ok {
-			deviceTokenEnabled = data.DeviceTokenEnabled
-		}
-	}
 
 	stateQuery := LoginLinkOTPPageQueryStateInitial
 	if data.CanCheck {
@@ -50,10 +43,9 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 	}
 
 	return AuthflowOOBOTPLinkViewModel{
-		StateQuery:         stateQuery,
-		MaskedClaimValue:   maskedClaimValue,
-		ResendCooldown:     resendCooldown,
-		DeviceTokenEnabled: deviceTokenEnabled,
+		StateQuery:       stateQuery,
+		MaskedClaimValue: maskedClaimValue,
+		ResendCooldown:   resendCooldown,
 	}
 }
 
@@ -74,6 +66,9 @@ func (h *AuthflowOOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Reque
 	now := h.Clock.NowUTC()
 	screenViewModel := NewAuthflowOOBOTPLinkViewModel(s, screen, now)
 	viewmodels.Embed(data, screenViewModel)
+
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
 }

@@ -30,8 +30,6 @@
 </div>
 {{ end }}
 
-{{/* FIXME(authflow): use recovery code */}}
-
 <button
 	form="main-form"
 	class="btn primary-btn mt-5"
@@ -45,7 +43,7 @@
 
 </form>
 
-{{/* FIXME(authflow): show alternatives */}}
+{{ template "__authflow_branch.html" . }}
 
 {{ template "__watermark.html" . }}
 

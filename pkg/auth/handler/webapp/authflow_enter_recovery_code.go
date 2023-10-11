@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -35,10 +34,6 @@ func ConfigureAuthflowEnterRecoveryCodeRoute(route httproute.Route) httproute.Ro
 		WithPathPattern(webapp.AuthflowRouteEnterRecoveryCode)
 }
 
-type AuthflowEnterRecoveryCodeViewModel struct {
-	DeviceTokenEnabled bool
-}
-
 type AuthflowEnterRecoveryCodeHandler struct {
 	Controller    *AuthflowController
 	BaseViewModel *viewmodels.BaseViewModeler
@@ -51,11 +46,8 @@ func (h *AuthflowEnterRecoveryCodeHandler) GetData(w http.ResponseWriter, r *htt
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	branchScreenData := screen.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
-	screenViewModel := AuthflowEnterRecoveryCodeViewModel{
-		DeviceTokenEnabled: branchScreenData.DeviceTokenEnabled,
-	}
-	viewmodels.Embed(data, screenViewModel)
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
 
 	return data, nil
 }

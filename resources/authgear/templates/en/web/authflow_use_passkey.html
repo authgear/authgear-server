@@ -21,6 +21,8 @@
 {{ template "use-passkey-label" }}
 </button>
 
+{{ template "__authflow_branch.html" . }}
+
 <form class="hidden" method="post" novalidate>
 {{ $.CSRFField }}
 <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">

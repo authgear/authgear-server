@@ -70,6 +70,9 @@ func (h *AuthflowSetupTOTPHandler) GetData(w http.ResponseWriter, r *http.Reques
 	}
 	viewmodels.Embed(data, screenViewModel)
 
+	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
+	viewmodels.Embed(data, branchViewModel)
+
 	return data, nil
 }
 
