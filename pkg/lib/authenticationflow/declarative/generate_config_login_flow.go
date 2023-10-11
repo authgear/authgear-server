@@ -238,20 +238,6 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		step.Optional = &optional
 	}
 
-	// If device token is enabled, add it to oneOf.
-	if !cfg.Authentication.DeviceToken.Disabled {
-		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
-		})
-	}
-
-	// If recovery code is enabled, add it to oneOf.
-	if !*cfg.Authentication.RecoveryCode.Disabled {
-		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
-		})
-	}
-
 	addOneOf := func(am config.AuthenticationFlowAuthentication) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
@@ -273,6 +259,22 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		case model.AuthenticatorTypeTOTP:
 			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
 		}
+	}
+
+	// The order is important here.
+	// If there are other authentication, we want them to appear before recovery code.
+	// If recovery code is enabled, add it to oneOf.
+	if !*cfg.Authentication.RecoveryCode.Disabled {
+		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
+			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+		})
+	}
+
+	// If device token is enabled, add it to oneOf.
+	if !cfg.Authentication.DeviceToken.Disabled {
+		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
+			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+		})
 	}
 
 	return step, true
