@@ -1,102 +1,102 @@
 import { Controller } from "@hotwired/stimulus";
 import zxcvbn from "zxcvbn";
 
-function checkPasswordLength(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
+function checkPasswordLength(value: string, el: HTMLElement): boolean {
   const minLength = Number(el.getAttribute("data-min-length"));
   const codePoints = Array.from(value);
   if (codePoints.length >= minLength) {
     el.classList.add("good-txt");
+    return true;
   } else {
     el.classList.add("error-txt");
+    return false;
   }
 }
 
-function checkPasswordUppercase(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
+function checkPasswordUppercase(value: string, el: HTMLElement): boolean {
   if (/[A-Z]/.test(value)) {
     el.classList.add("good-txt");
+    return true;
   } else {
     el.classList.add("error-txt");
+    return false;
   }
 }
 
-function checkPasswordLowercase(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
+function checkPasswordLowercase(value: string, el: HTMLElement): boolean {
   if (/[a-z]/.test(value)) {
     el.classList.add("good-txt");
+    return true;
   } else {
     el.classList.add("error-txt");
+    return false;
   }
 }
 
-function checkPasswordAlphabet(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
+function checkPasswordAlphabet(value: string, el: HTMLElement): boolean {
   if (/[a-zA-Z]/.test(value)) {
     el.classList.add("good-txt");
+    return true;
   } else {
     el.classList.add("error-txt");
+    return false;
   }
 }
 
-function checkPasswordDigit(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
+function checkPasswordDigit(value: string, el: HTMLElement): boolean {
   if (/[0-9]/.test(value)) {
     el.classList.add("good-txt");
+    return true;
   } else {
     el.classList.add("error-txt");
+    return false;
   }
 }
 
-function checkPasswordSymbol(value: string, el: HTMLElement) {
-  if (el == null) {
-    return;
-  }
+function checkPasswordSymbol(value: string, el: HTMLElement): boolean {
   if (/[^a-zA-Z0-9]/.test(value)) {
     el.classList.add("good-txt");
+    return true;
   } else {
     el.classList.add("error-txt");
+    return false;
+  }
+}
+
+function getZXCVBNScore(value: string): number {
+  const result = zxcvbn(value);
+  const score = Math.min(5, Math.max(1, result.score + 1));
+  return score;
+}
+
+function setCurrentMeterStrength(
+  value: string,
+  score: number,
+  currentMeter: HTMLMeterElement,
+  currentMeterDescription: HTMLElement
+) {
+  if (value === "") {
+    currentMeter.value = 0;
+    currentMeterDescription.textContent = "";
+  } else {
+    currentMeter.value = score;
+    currentMeterDescription.textContent = currentMeterDescription.getAttribute(
+      "data-desc-" + score
+    );
   }
 }
 
 function checkPasswordStrength(
-  value: string,
   currentMeter: HTMLMeterElement,
-  currentMeterDescription: HTMLElement,
-  requiredMeter: HTMLMeterElement | null | undefined,
-  strengthTarget: HTMLElement | null | undefined
-) {
-  currentMeter.value = 0;
-  currentMeterDescription.textContent = "";
-
-  if (value === "") {
-    strengthTarget?.classList.add("error-txt");
-    return;
-  }
-
-  const result = zxcvbn(value);
-  const score = Math.min(5, Math.max(1, result.score + 1));
-  currentMeter.value = score;
-  currentMeterDescription.textContent = currentMeterDescription.getAttribute(
-    "data-desc-" + score
-  );
-
-  if (requiredMeter != null && strengthTarget != null) {
-    if (currentMeter.value >= requiredMeter.value) {
-      strengthTarget.classList.add("good-txt");
-    } else {
-      strengthTarget.classList.add("error-txt");
-    }
+  requiredMeter: HTMLMeterElement,
+  strengthTarget: HTMLElement
+): boolean {
+  if (currentMeter.value >= requiredMeter.value) {
+    strengthTarget.classList.add("good-txt");
+    return true;
+  } else {
+    strengthTarget.classList.add("error-txt");
+    return false;
   }
 }
 
@@ -153,39 +153,40 @@ export class PasswordPolicyController extends Controller {
     for (let i = 0; i < this.itemTargets.length; i++) {
       this.itemTargets[i].classList.remove("error-txt", "good-txt");
     }
+    const results: boolean[] = [];
     if (this.hasLengthTarget) {
-      checkPasswordLength(value, this.lengthTarget);
+      results.push(checkPasswordLength(value, this.lengthTarget));
     }
     if (this.hasUppercaseTarget) {
-      checkPasswordUppercase(value, this.uppercaseTarget);
+      results.push(checkPasswordUppercase(value, this.uppercaseTarget));
     }
     if (this.hasLowercaseTarget) {
-      checkPasswordLowercase(value, this.lowercaseTarget);
+      results.push(checkPasswordLowercase(value, this.lowercaseTarget));
     }
     if (this.hasAlphabetTarget) {
-      checkPasswordAlphabet(value, this.alphabetTarget);
+      results.push(checkPasswordAlphabet(value, this.alphabetTarget));
     }
     if (this.hasDigitTarget) {
-      checkPasswordDigit(value, this.digitTarget);
+      results.push(checkPasswordDigit(value, this.digitTarget));
     }
     if (this.hasSymbolTarget) {
-      checkPasswordSymbol(value, this.symbolTarget);
+      results.push(checkPasswordSymbol(value, this.symbolTarget));
     }
+
+    const score = getZXCVBNScore(value);
+    setCurrentMeterStrength(
+      value,
+      score,
+      this.currentMeterTarget,
+      this.currentMeterDescriptionTarget
+    );
     if (this.hasStrengthTarget && this.hasRequiredMeterTarget) {
-      checkPasswordStrength(
-        value,
-        this.currentMeterTarget,
-        this.currentMeterDescriptionTarget,
-        this.requiredMeterTarget,
-        this.strengthTarget
-      );
-    } else {
-      checkPasswordStrength(
-        value,
-        this.currentMeterTarget,
-        this.currentMeterDescriptionTarget,
-        null,
-        null
+      results.push(
+        checkPasswordStrength(
+          this.currentMeterTarget,
+          this.requiredMeterTarget,
+          this.strengthTarget
+        )
       );
     }
   }
