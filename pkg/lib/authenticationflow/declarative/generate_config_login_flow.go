@@ -15,6 +15,10 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 		},
 	}
 
+	// We always include this step because the exact condition
+	// depends on the client ID, which is unknown at this point.
+	flow.Steps = append(flow.Steps, generateLoginFlowStepTerminateOtherSessions())
+
 	if step, ok := generateLoginFlowStepPromptCreatePasskey(cfg); ok {
 		flow.Steps = append(flow.Steps, step)
 	}
@@ -278,6 +282,12 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 	}
 
 	return step, true
+}
+
+func generateLoginFlowStepTerminateOtherSessions() *config.AuthenticationFlowLoginFlowStep {
+	return &config.AuthenticationFlowLoginFlowStep{
+		Type: config.AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions,
+	}
 }
 
 func generateLoginFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.AuthenticationFlowLoginFlowStep, bool) {
