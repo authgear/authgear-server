@@ -67,6 +67,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// email, otp
@@ -101,6 +102,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// phone, otp
@@ -135,6 +137,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// username, password
@@ -170,6 +173,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// email,phone, password,otp
@@ -244,6 +248,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// email,password, totp,recovery_code
@@ -281,6 +286,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// Disable device token recovery code.
@@ -318,6 +324,7 @@ steps:
           optional: true
           one_of:
           - authentication: secondary_totp
+- type: terminate_other_sessions
 `)
 
 		// No password force change
@@ -354,6 +361,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: terminate_other_sessions
 `)
 
 		// oauth
@@ -373,6 +381,7 @@ steps:
   type: identify
   one_of:
   - identification: oauth
+- type: terminate_other_sessions
 `)
 
 		// oauth does not require 2fa.
@@ -418,6 +427,7 @@ steps:
           one_of:
           - authentication: secondary_totp
   - identification: oauth
+- type: terminate_other_sessions
 `)
 
 		// passkey
@@ -457,6 +467,7 @@ steps:
           - authentication: device_token
       - authentication: primary_passkey
   - identification: passkey
+- type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
 
@@ -507,6 +518,7 @@ steps:
       - authentication: primary_passkey
   - identification: oauth
   - identification: passkey
+- type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
 	})
