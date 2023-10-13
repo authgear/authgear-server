@@ -1,8 +1,9 @@
 package webapp
 
 const (
-	AuthflowRouteLogin  = "/authflow/login"
-	AuthflowRouteSignup = "/authflow/signup"
+	AuthflowRouteLogin                  = "/authflow/login"
+	AuthflowRouteSignup                 = "/authflow/signup"
+	AuthflowRouteTerminateOtherSessions = "/authflow/terminate_other_sessions"
 	// nolint: gosec
 	AuthflowRoutePromptCreatePasskey = "/authflow/prompt_create_passkey"
 	AuthflowRouteViewRecoveryCode    = "/authflow/view_recovery_code"

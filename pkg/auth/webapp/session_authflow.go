@@ -143,6 +143,9 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep s
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		// authenticate contains branches.
 		screen.BranchStateToken = state
+	case config.AuthenticationFlowStepTypeTerminateOtherSessions:
+		// terminate_other_sessions contains NO branches.
+		break
 	case config.AuthenticationFlowStepTypeChangePassword:
 		// change_password contains NO branches.
 		break
@@ -536,6 +539,8 @@ func (s *AuthflowScreenWithFlowResponse) navigateLogin(r *http.Request, result *
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
+	case config.AuthenticationFlowStepTypeTerminateOtherSessions:
+		s.advance(AuthflowRouteTerminateOtherSessions, result)
 	case config.AuthenticationFlowStepTypeChangePassword:
 		s.advance(AuthflowRouteChangePassword, result)
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
