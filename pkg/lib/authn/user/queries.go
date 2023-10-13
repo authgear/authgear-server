@@ -11,6 +11,7 @@ import (
 
 type IdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUserIDs(userIDs []string) (map[string][]*identity.Info, error)
 }
 
 type AuthenticatorService interface {
@@ -85,6 +86,11 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 
 func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
 	rawUsers, err := p.GetManyRaw(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	identitiesByUserID, err := p.Identities.ListByUserIDs(ids)
 	if err != nil {
 		return nil, err
 	}
