@@ -411,7 +411,7 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, result *Resul
 func (s *AuthflowScreenWithFlowResponse) navigateSignup(r *http.Request, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		s.navigateStepIdentify(r, result)
+		s.navigateStepIdentify(r, result, AuthflowRouteSignup)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
@@ -496,7 +496,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignup(r *http.Request, result 
 func (s *AuthflowScreenWithFlowResponse) navigateLogin(r *http.Request, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		s.navigateStepIdentify(r, result)
+		s.navigateStepIdentify(r, result, AuthflowRouteLogin)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
@@ -553,7 +553,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateLogin(r *http.Request, result *
 func (s *AuthflowScreenWithFlowResponse) navigateSignupLogin(r *http.Request, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		s.navigateStepIdentify(r, result)
+		s.navigateStepIdentify(r, result, AuthflowRouteSignupLogin)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
@@ -569,7 +569,7 @@ func (s *AuthflowScreenWithFlowResponse) advance(p string, result *Result) {
 	result.RedirectURI = u.String()
 }
 
-func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, result *Result) {
+func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, result *Result, expectedPath string) {
 	identification := s.StateTokenFlowResponse.Action.Identification
 	switch identification {
 	case "":
@@ -581,8 +581,9 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, r
 	case config.AuthenticationFlowIdentificationUsername:
 		fallthrough
 	case config.AuthenticationFlowIdentificationPasskey:
-		// Stay in the same page with x_step set.
+		// Redirect to the expected path with x_step set.
 		u := *r.URL
+		u.Path = expectedPath
 		q := u.Query()
 		q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
 		u.RawQuery = q.Encode()
