@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
@@ -43,8 +45,8 @@ func (s *StorePQ) scan(scn db.Scanner) (*Claim, error) {
 	return c, nil
 }
 
-func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
-	q := s.selectQuery().Where("user_id = ?", userID)
+func (s *StorePQ) ListByUserIDs(userIDs []string) ([]*Claim, error) {
+	q := s.selectQuery().Where("user_id = ANY (?)", pq.Array(userIDs))
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
@@ -62,6 +64,10 @@ func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
 	}
 
 	return claims, nil
+}
+
+func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
+	return s.ListByUserIDs([]string{userID})
 }
 
 func (s *StorePQ) ListByClaimName(userID string, claimName string) ([]*Claim, error) {

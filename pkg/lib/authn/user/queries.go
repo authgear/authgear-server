@@ -21,6 +21,7 @@ type AuthenticatorService interface {
 
 type VerificationService interface {
 	IsUserVerified(identities []*identity.Info) (bool, error)
+	AreUsersVerified(identitiesByUserIDs map[string][]*identity.Info) (map[string]bool, error)
 }
 
 type StandardAttributesService interface {
@@ -97,6 +98,11 @@ func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
 	}
 
 	authenticatorsByUserID, err := p.Authenticators.ListByUserIDs(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	isVerifiedByUserID, err := p.Verification.AreUsersVerified(identitiesByUserID)
 	if err != nil {
 		return nil, err
 	}
