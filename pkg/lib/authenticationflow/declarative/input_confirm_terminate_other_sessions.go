@@ -26,14 +26,15 @@ func init() {
 }
 
 type InputConfirmTerminateOtherSessions struct {
+	JSONPointer jsonpointer.T
 }
 
 var _ authflow.InputSchema = &InputConfirmTerminateOtherSessions{}
 var _ authflow.Input = &InputConfirmTerminateOtherSessions{}
 var _ inputConfirmTerminateOtherSessions = &InputConfirmTerminateOtherSessions{}
 
-func (*InputConfirmTerminateOtherSessions) GetJSONPointer() jsonpointer.T {
-	return nil
+func (i *InputConfirmTerminateOtherSessions) GetJSONPointer() jsonpointer.T {
+	return i.JSONPointer
 }
 
 func (*InputConfirmTerminateOtherSessions) SchemaBuilder() validation.SchemaBuilder {
