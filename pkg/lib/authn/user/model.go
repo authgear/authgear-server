@@ -86,6 +86,7 @@ func (s AccountStatus) Type() AccountStatusType {
 }
 
 func (s AccountStatus) Check() error {
+	// This method must be in sync with IsAccountStatusError.
 	typ := s.Type()
 	switch typ {
 	case AccountStatusTypeNormal:
