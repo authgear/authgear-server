@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -113,7 +114,7 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 	s, err := c.getOrCreateWebSession(w, r, opts)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get or create web session")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		c.renderError(w, r, err)
 		return
 	}
 
@@ -123,7 +124,7 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 			result, err := c.createScreen(r, s, flowReference)
 			if err != nil {
 				c.Logger.WithError(err).Errorf("failed to create screen")
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				c.renderError(w, r, err)
 				return
 			}
 
@@ -132,7 +133,7 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 		}
 
 		c.Logger.WithError(err).Errorf("failed to get screen")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		c.renderError(w, r, err)
 		return
 	}
 
@@ -143,17 +144,17 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, xStep string, h AuthflowControllerHandler) {
 	s, err := c.getWebSession(r)
 	if err != nil {
-		if !errors.Is(err, webapp.ErrSessionNotFound) {
+		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		c.renderError(w, r, err)
 		return
 	}
 
 	screen, err := c.getScreen(s, xStep)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get screen")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		c.renderError(w, r, err)
 		return
 	}
 
@@ -173,17 +174,17 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 
 	s, err := c.getWebSession(r)
 	if err != nil {
-		if !errors.Is(err, webapp.ErrSessionNotFound) {
+		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
 		}
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		c.renderError(w, r, err)
 		return
 	}
 
 	screen, err := c.getScreen(s, GetXStepFromQuery(r))
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get screen")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		c.renderError(w, r, err)
 		return
 	}
 
@@ -748,20 +749,23 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 }
 
 func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
-	apierror := apierrors.AsAPIError(err)
-
 	u := *r.URL
 
-	// If the request method is Get, avoid redirect back to the same path
-	// which causes infinite redirect loop
-	if r.Method == http.MethodGet {
+	switch {
+	case errors.Is(err, authflow.ErrFlowNotFound):
 		u.Path = "/errors/error"
-	}
-	// Show WebUIInvalidSession error in different page.
-	if apierror.Reason == webapp.WebUIInvalidSession.Reason {
+	case user.IsAccountStatusError(err):
+		u.Path = webapp.AuthflowRouteAccountStatus
+	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
+		// Show WebUIInvalidSession error in different page.
+		u.Path = "/errors/error"
+	case r.Method == http.MethodGet:
+		// If the request method is Get, avoid redirect back to the same path
+		// which causes infinite redirect loop
 		u.Path = "/errors/error"
 	}
 
+	apierror := apierrors.AsAPIError(err)
 	cookie, err := c.ErrorCookie.SetError(r, apierror)
 	if err != nil {
 		panic(err)
