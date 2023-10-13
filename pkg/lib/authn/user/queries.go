@@ -26,6 +26,12 @@ type VerificationService interface {
 
 type StandardAttributesService interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributesForUsers(
+		role accesscontrol.Role,
+		userIDs []string,
+		updatedAts []time.Time,
+		attrsList []map[string]interface{},
+	) (map[string]map[string]interface{}, error)
 }
 
 type CustomAttributesService interface {
@@ -103,6 +109,25 @@ func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
 	}
 
 	isVerifiedByUserID, err := p.Verification.AreUsersVerified(identitiesByUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := []string{}
+	updatedAts := []time.Time{}
+	attrsList := []map[string]interface{}{}
+	for _, user := range rawUsers {
+		userIDs = append(userIDs, user.ID)
+		updatedAts = append(updatedAts, user.UpdatedAt)
+		attrsList = append(attrsList, user.StandardAttributes)
+	}
+
+	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsers(
+		accesscontrol.RoleGreatest,
+		userIDs,
+		updatedAts,
+		attrsList,
+	)
 	if err != nil {
 		return nil, err
 	}

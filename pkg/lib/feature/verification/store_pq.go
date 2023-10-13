@@ -70,8 +70,8 @@ func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
 	return s.ListByUserIDs([]string{userID})
 }
 
-func (s *StorePQ) ListByClaimName(userID string, claimName string) ([]*Claim, error) {
-	q := s.selectQuery().Where("user_id = ? AND name = ?", userID, claimName)
+func (s *StorePQ) ListByUserIDsAndClaimNames(userIDs []string, claimNames []string) ([]*Claim, error) {
+	q := s.selectQuery().Where("user_id = ANY (?) AND name = ANY (?)", pq.Array(userIDs), pq.Array(claimNames))
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
@@ -89,6 +89,10 @@ func (s *StorePQ) ListByClaimName(userID string, claimName string) ([]*Claim, er
 	}
 
 	return claims, nil
+}
+
+func (s *StorePQ) ListByClaimName(userID string, claimName string) ([]*Claim, error) {
+	return s.ListByUserIDsAndClaimNames([]string{userID}, []string{claimName})
 }
 
 func (s *StorePQ) Get(userID string, claimName string, claimValue string) (*Claim, error) {
