@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -340,6 +341,27 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	}
 
 	return result, nil
+}
+
+func (c *AuthflowController) Restart(s *webapp.Session) (result *webapp.Result, err error) {
+	s.Authflow = nil
+	// To be safe, also clear any interaction.
+	s.Steps = []webapp.SessionStep{}
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	err = c.Sessions.Update(s)
+	if err != nil {
+		return
+	}
+
+	u := webapp.MakeRelativeURL("/flows/select_account", url.Values{})
+	result = &webapp.Result{
+		RedirectURI: u.String(),
+		RemoveQueries: setutil.Set[string]{
+			"x_step": struct{}{},
+		},
+	}
+	return
 }
 
 func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (result *webapp.Result, err error) {
