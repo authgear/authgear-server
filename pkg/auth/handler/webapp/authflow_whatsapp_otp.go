@@ -108,9 +108,7 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		if !result.IsInteractionErr {
-			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
-		}
+		h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
 		result.WriteResponse(w, r)
 		return nil
 	})
