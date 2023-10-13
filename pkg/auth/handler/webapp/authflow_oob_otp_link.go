@@ -94,9 +94,7 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
-		if !result.IsInteractionErr {
-			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendLoginLinkSuccess))
-		}
+		h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendLoginLinkSuccess))
 		result.WriteResponse(w, r)
 		return nil
 	})

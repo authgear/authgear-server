@@ -304,27 +304,6 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
-	defer func() {
-		if err != nil {
-			if !apierrors.IsAPIError(err) {
-				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("create screen: %v", err)
-			}
-			var errCookie *http.Cookie
-			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
-			if err != nil {
-				result = nil
-				return
-			}
-			result.IsInteractionErr = true
-			result.Cookies = append(result.Cookies, errCookie)
-			if screen != nil {
-				result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
-			} else {
-				result.RedirectURI = r.URL.String()
-			}
-		}
-	}()
-
 	output, err := c.createAuthflow(r, s, flowReference)
 	if err != nil {
 		return
@@ -382,27 +361,6 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
-	defer func() {
-		if err != nil {
-			if !apierrors.IsAPIError(err) {
-				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("create screen: %v", err)
-			}
-			var errCookie *http.Cookie
-			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
-			if err != nil {
-				result = nil
-				return
-			}
-			result.IsInteractionErr = true
-			result.Cookies = append(result.Cookies, errCookie)
-			if screen != nil {
-				result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
-			} else {
-				result.RedirectURI = r.URL.String()
-			}
-		}
-	}()
-
 	output, err := c.createAuthflow(r, s, flowReference)
 	if err != nil {
 		return
@@ -434,23 +392,6 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 // AdvanceWithInput is for feeding an input that would advance the flow.
 func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
-
-	defer func() {
-		if err != nil {
-			if !apierrors.IsAPIError(err) {
-				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("feed input: %v", err)
-			}
-			var errCookie *http.Cookie
-			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
-			if err != nil {
-				result = nil
-				return
-			}
-			result.IsInteractionErr = true
-			result.Cookies = append(result.Cookies, errCookie)
-			result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
-		}
-	}()
 
 	output, err := c.feedInput(screen.Screen.StateToken.StateToken, input)
 	if err != nil {
@@ -505,23 +446,6 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 // One application is resend.
 func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
-
-	defer func() {
-		if err != nil {
-			if !apierrors.IsAPIError(err) {
-				c.Logger.WithField("path", r.URL.Path).WithError(err).Errorf("feed input: %v", err)
-			}
-			var errCookie *http.Cookie
-			errCookie, err = c.ErrorCookie.SetError(r, apierrors.AsAPIError(err))
-			if err != nil {
-				result = nil
-				return
-			}
-			result.IsInteractionErr = true
-			result.Cookies = append(result.Cookies, errCookie)
-			result.RedirectURI = c.deriveErrorRedirectURI(r, screen)
-		}
-	}()
 
 	output, err := c.feedInput(screen.Screen.StateToken.StateToken, input)
 	if err != nil {
@@ -592,14 +516,6 @@ func (c *AuthflowController) feedInput(stateToken string, input interface{}) (*a
 	}
 
 	return output, nil
-}
-
-func (c *AuthflowController) deriveErrorRedirectURI(r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) string {
-	// Just redirect to the current location.
-	u := *r.URL
-	u.Scheme = ""
-	u.Host = ""
-	return u.String()
 }
 
 func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.Session, f *authflow.FlowResponse) string {
