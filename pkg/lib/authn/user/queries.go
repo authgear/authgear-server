@@ -16,6 +16,7 @@ type IdentityService interface {
 
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	ListByUserIDs(userIDs []string, filters ...authenticator.Filter) (map[string][]*authenticator.Info, error)
 }
 
 type VerificationService interface {
@@ -91,6 +92,11 @@ func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
 	}
 
 	identitiesByUserID, err := p.Identities.ListByUserIDs(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	authenticatorsByUserID, err := p.Authenticators.ListByUserIDs(ids)
 	if err != nil {
 		return nil, err
 	}
