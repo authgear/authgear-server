@@ -3,6 +3,7 @@ package webapp
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -137,6 +138,12 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 		return
 	}
 
+	err = c.checkPath(w, r, screen)
+	if err != nil {
+		c.renderError(w, r, err)
+		return
+	}
+
 	handler := c.makeHTTPHandler(s, screen, handlers)
 	handler.ServeHTTP(w, r)
 }
@@ -184,6 +191,12 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 	screen, err := c.getScreen(s, GetXStepFromQuery(r))
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get screen")
+		c.renderError(w, r, err)
+		return
+	}
+
+	err = c.checkPath(w, r, screen)
+	if err != nil {
 		c.renderError(w, r, err)
 		return
 	}
@@ -777,4 +790,29 @@ func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request,
 		Cookies:          []*http.Cookie{cookie},
 	}
 	result.WriteResponse(w, r)
+}
+
+func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	// We derive the intended path of the screen,
+	// and check if the paths match.
+	result := &webapp.Result{}
+	screen.Navigate(r, result)
+	redirectURI := result.RedirectURI
+
+	if redirectURI == "" {
+		panic(fmt.Errorf("expected Navigate to set RedirectURI"))
+	}
+
+	u, err := url.Parse(redirectURI)
+	if err != nil {
+		return err
+	}
+
+	if u.Path != r.URL.Path {
+		// We do not know what causes the mismatch.
+		// Maybe x_step was tempered.
+		return webapp.ErrInvalidSession
+	}
+
+	return nil
 }
