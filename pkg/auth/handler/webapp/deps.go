@@ -102,6 +102,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowEnterRecoveryCodeHandler), "*"),
 	wire.Struct(new(AuthflowSetupOOBOTPHandler), "*"),
 	wire.Struct(new(AuthflowTerminateOtherSessionsHandler), "*"),
+	wire.Struct(new(AuthflowAccountStatusHandler), "*"),
 
 	wire.Struct(new(ResponseWriter), "*"),
 )

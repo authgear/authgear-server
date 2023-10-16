@@ -755,3 +755,10 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowTerminateOtherSessionsHandler)),
 	))
 }
+
+func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowAccountStatusHandler)),
+	))
+}
