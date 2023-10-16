@@ -10,12 +10,10 @@ import (
 )
 
 type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
 	ListByUserIDs(userIDs []string) (map[string][]*identity.Info, error)
 }
 
 type AuthenticatorService interface {
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	ListByUserIDs(userIDs []string, filters ...authenticator.Filter) (map[string][]*authenticator.Info, error)
 }
 
