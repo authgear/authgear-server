@@ -49,7 +49,7 @@ error: |-
   /steps/0/one_of/0/steps/1/optional: type
     map[actual:[string] expected:[boolean]]
   /steps/1/type: enum
-    map[actual:foobar expected:[identify authenticate terminate_other_sessions change_password prompt_create_passkey]]
+    map[actual:foobar expected:[identify authenticate check_account_status terminate_other_sessions change_password prompt_create_passkey]]
 value:
   name: id
   steps:
