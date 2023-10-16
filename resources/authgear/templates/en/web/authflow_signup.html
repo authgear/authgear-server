@@ -15,7 +15,7 @@
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 		<p class="primary-txt m-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
-		<a class="as-btn not-a btn primary-btn my-5" href="{{ call $.MakeURL "/authflow/login" }} " data-turbo="false">{{ template "login-label" }}</a>
+		<a class="as-btn not-a btn primary-btn my-5" href="{{ call $.MakeURL "/login" }} " data-turbo="false">{{ template "login-label" }}</a>
 		{{ template "__watermark.html" . }}
 	</div>
 	{{ else }}
@@ -23,8 +23,8 @@
 	<div class="pane flex flex-col">
 		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
 		<div class="flex flex-row">
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/authflow/login" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}" data-turbo-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/authflow/signup" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt" href="{{ call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}" data-turbo-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 py-4 signin-signup-link secondary-txt current" href="{{ call $.MakeURL "/signup" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}" data-turbo-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 

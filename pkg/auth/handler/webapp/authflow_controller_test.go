@@ -214,7 +214,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(result, ShouldNotBeNil)
 			So(result.NavigationAction, ShouldEqual, "replace")
-			So(strings.HasPrefix(result.RedirectURI, "/authflow/login?x_step="), ShouldBeTrue)
+			So(strings.HasPrefix(result.RedirectURI, "/login?x_step="), ShouldBeTrue)
 		})
 	})
 }
