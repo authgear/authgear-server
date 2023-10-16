@@ -86,6 +86,14 @@ func GetXStepFromQuery(r *http.Request) string {
 	return xStep
 }
 
+type AuthflowOAuthCallbackResponse struct {
+	State            string
+	Code             string
+	Error            string
+	ErrorDescription string
+	ErrorURI         string
+}
+
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
@@ -148,7 +156,14 @@ func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.Res
 	handler.ServeHTTP(w, r)
 }
 
-func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, xStep string, h AuthflowControllerHandler) {
+func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
+	state, err := webapp.DecodeAuthflowOAuthState(callbackResponse.State)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to get screen")
+		c.renderError(w, r, err)
+		return
+	}
+
 	s, err := c.getWebSession(r)
 	if err != nil {
 		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
@@ -158,19 +173,35 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	screen, err := c.getScreen(s, xStep)
+	screen, err := c.getScreen(s, state.XStep)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get screen")
 		c.renderError(w, r, err)
 		return
 	}
 
-	err = h(s, screen)
-	if apierrors.IsAPIError(err) {
-		c.renderError(w, r, err)
-	} else {
-		panic(err)
+	input := map[string]interface{}{}
+	switch {
+	case callbackResponse.Code != "":
+		input["code"] = callbackResponse.Code
+	case callbackResponse.Error != "":
+		input["error"] = callbackResponse.Error
+		input["error_description"] = callbackResponse.ErrorDescription
+		input["error_uri"] = callbackResponse.ErrorURI
 	}
+	result, err := c.AdvanceWithInput(r, s, screen, input)
+	if err != nil {
+		u, parseURLErr := url.Parse(state.ErrorRedirectURI)
+		if parseURLErr != nil {
+			panic(parseURLErr)
+		}
+
+		c.makeErrorResult(w, r, *u, err).WriteResponse(w, r)
+		return
+	}
+
+	result.WriteResponse(w, r)
+	return
 }
 
 func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
@@ -677,9 +708,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 	return nil
 }
 
-func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
-	u := *r.URL
-
+func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
 	switch {
 	case errors.Is(err, authflow.ErrFlowNotFound):
 		u.Path = "/errors/error"
@@ -700,12 +729,17 @@ func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request,
 		panic(err)
 	}
 
-	result := webapp.Result{
+	result := &webapp.Result{
 		RedirectURI:      u.String(),
 		NavigationAction: "replace",
 		Cookies:          []*http.Cookie{cookie},
 	}
-	result.WriteResponse(w, r)
+
+	return result
+}
+
+func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
+	c.makeErrorResult(w, r, *r.URL, err).WriteResponse(w, r)
 }
 
 func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) error {
