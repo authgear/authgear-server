@@ -73,6 +73,12 @@ func (i *IntentLoginFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depen
 			return nil, err
 		}
 		return authflow.NewSubFlow(stepAuthenticate), nil
+	case config.AuthenticationFlowLoginFlowStepTypeCheckAccountStatus:
+		return authflow.NewSubFlow(&IntentLoginFlowStepCheckAccountStatus{
+			StepName:    step.Name,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(flows),
+		}), nil
 	case config.AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions:
 		return authflow.NewSubFlow(&IntentLoginFlowStepTerminateOtherSessions{
 			StepName:    step.Name,
