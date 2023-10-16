@@ -238,6 +238,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 			"enum": [
 				"identify",
 				"authenticate",
+				"check_account_status",
 				"terminate_other_sessions",
 				"change_password",
 				"prompt_create_passkey"
@@ -623,6 +624,7 @@ const (
 	AuthenticationFlowStepTypeRecoveryCode           AuthenticationFlowStepType = "recovery_code"
 	AuthenticationFlowStepTypePromptCreatePasskey    AuthenticationFlowStepType = "prompt_create_passkey"
 	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
+	AuthenticationFlowStepTypeCheckAccountStatus     AuthenticationFlowStepType = "check_account_status"
 	AuthenticationFlowStepTypeChangePassword         AuthenticationFlowStepType = "change_password"
 )
 
@@ -762,6 +764,7 @@ type AuthenticationFlowLoginFlowStepType string
 const (
 	AuthenticationFlowLoginFlowStepTypeIdentify               = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeIdentify)
 	AuthenticationFlowLoginFlowStepTypeAuthenticate           = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeAuthenticate)
+	AuthenticationFlowLoginFlowStepTypeCheckAccountStatus     = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeCheckAccountStatus)
 	AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeTerminateOtherSessions)
 	AuthenticationFlowLoginFlowStepTypeChangePassword         = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeChangePassword)
 	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey    = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
