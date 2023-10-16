@@ -15,6 +15,10 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 		},
 	}
 
+	// The steps after this step contain side effects.
+	// Therefore, we check account status BEFORE we perform those steps.
+	flow.Steps = append(flow.Steps, generateLoginFlowStepCheckAccountStatus())
+
 	// We always include this step because the exact condition
 	// depends on the client ID, which is unknown at this point.
 	flow.Steps = append(flow.Steps, generateLoginFlowStepTerminateOtherSessions())
@@ -282,6 +286,12 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 	}
 
 	return step, true
+}
+
+func generateLoginFlowStepCheckAccountStatus() *config.AuthenticationFlowLoginFlowStep {
+	return &config.AuthenticationFlowLoginFlowStep{
+		Type: config.AuthenticationFlowLoginFlowStepTypeCheckAccountStatus,
+	}
 }
 
 func generateLoginFlowStepTerminateOtherSessions() *config.AuthenticationFlowLoginFlowStep {
