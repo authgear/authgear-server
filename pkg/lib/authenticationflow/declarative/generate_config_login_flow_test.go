@@ -67,6 +67,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -102,6 +103,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -137,6 +139,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -173,6 +176,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -248,6 +252,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -286,6 +291,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -324,6 +330,7 @@ steps:
           optional: true
           one_of:
           - authentication: secondary_totp
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -361,6 +368,7 @@ steps:
           - authentication: secondary_totp
           - authentication: recovery_code
           - authentication: device_token
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -381,6 +389,7 @@ steps:
   type: identify
   one_of:
   - identification: oauth
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -427,6 +436,7 @@ steps:
           one_of:
           - authentication: secondary_totp
   - identification: oauth
+- type: check_account_status
 - type: terminate_other_sessions
 `)
 
@@ -467,6 +477,7 @@ steps:
           - authentication: device_token
       - authentication: primary_passkey
   - identification: passkey
+- type: check_account_status
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
@@ -518,6 +529,7 @@ steps:
       - authentication: primary_passkey
   - identification: oauth
   - identification: passkey
+- type: check_account_status
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
