@@ -248,12 +248,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
-	router.Add(webapphandler.ConfigureLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
-	router.Add(webapphandler.ConfigureSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
-	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
-
+	//router.Add(webapphandler.ConfigureLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
+	//router.Add(webapphandler.ConfigureSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
 	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppAuthflowLoginHandler))
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppAuthflowSignupHandler))
+	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
+
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))
 	router.Add(webapphandler.ConfigureAuthflowCreatePasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowCreatePasswordHandler))
