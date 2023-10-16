@@ -3,7 +3,6 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -33,24 +32,12 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case state != "":
 		// authflow
-		xStep := state
-		h.AuthflowController.HandleOAuthCallback(w, r, xStep, func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-			input := map[string]interface{}{}
-			switch {
-			case code != "":
-				input["code"] = code
-			case error_ != "":
-				input["error"] = error_
-				input["error_description"] = errorDescription
-				input["error_uri"] = errorURI
-			}
-			result, err := h.AuthflowController.AdvanceWithInput(r, s, screen, input)
-			if err != nil {
-				return err
-			}
-
-			result.WriteResponse(w, r)
-			return nil
+		h.AuthflowController.HandleOAuthCallback(w, r, AuthflowOAuthCallbackResponse{
+			State:            state,
+			Code:             code,
+			Error:            error_,
+			ErrorDescription: errorDescription,
+			ErrorURI:         errorURI,
 		})
 	default:
 		// interaction

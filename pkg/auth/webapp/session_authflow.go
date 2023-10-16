@@ -1,6 +1,8 @@
 package webapp
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -13,6 +15,35 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
+
+type AuthflowOAuthState struct {
+	XStep            string `json:"x_step"`
+	ErrorRedirectURI string `json:"error_redirect_uri"`
+}
+
+func (s AuthflowOAuthState) Encode() string {
+	b, err := json.Marshal(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
+func DecodeAuthflowOAuthState(stateStr string) (*AuthflowOAuthState, error) {
+	b, err := base64.RawURLEncoding.DecodeString(stateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	var state AuthflowOAuthState
+	err = json.Unmarshal(b, &state)
+	if err != nil {
+		return nil, err
+	}
+
+	return &state, nil
+}
 
 const AuthflowQueryKey = "x_step"
 
@@ -609,8 +640,13 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, r
 
 		authorizationURL, _ := url.Parse(authorizationURLStr)
 		q := authorizationURL.Query()
-		// Set state=<value of x_step> so that the frontend can resume.
-		q.Set("state", s.Screen.StateToken.XStep)
+
+		state := AuthflowOAuthState{
+			XStep:            s.Screen.StateToken.XStep,
+			ErrorRedirectURI: expectedPath,
+		}
+
+		q.Set("state", state.Encode())
 		authorizationURL.RawQuery = q.Encode()
 
 		result.NavigationAction = "redirect"
