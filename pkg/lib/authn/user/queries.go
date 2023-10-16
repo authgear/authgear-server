@@ -36,6 +36,11 @@ type StandardAttributesService interface {
 
 type CustomAttributesService interface {
 	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
+	ReadCustomAttributesInStorageFormForUsers(
+		role accesscontrol.Role,
+		userIDs []string,
+		storageForms []map[string]interface{},
+	) (map[string]map[string]interface{}, error)
 }
 
 type Web3Service interface {
@@ -54,56 +59,40 @@ type Queries struct {
 }
 
 func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
-	user, err := p.RawQueries.GetRaw(id)
+	users, err := p.GetMany([]string{id}, role)
 	if err != nil {
 		return nil, err
 	}
 
-	identities, err := p.Identities.ListByUser(id)
-	if err != nil {
-		return nil, err
-	}
-
-	authenticators, err := p.Authenticators.List(id)
-	if err != nil {
-		return nil, err
-	}
-
-	isVerified, err := p.Verification.IsUserVerified(identities)
-	if err != nil {
-		return nil, err
-	}
-
-	stdAttrs, err := p.StandardAttributes.DeriveStandardAttributes(role, id, user.UpdatedAt, user.StandardAttributes)
-	if err != nil {
-		return nil, err
-	}
-
-	customAttrs, err := p.CustomAttributes.ReadCustomAttributesInStorageForm(role, id, user.CustomAttributes)
-	if err != nil {
-		return nil, err
-	}
-
-	web3Info, err := p.Web3.GetWeb3Info(identities)
-	if err != nil {
-		return nil, err
-	}
-
-	return newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs, web3Info), nil
+	return users[0], nil
 }
 
-func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
+func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model.User, err error) {
 	rawUsers, err := p.GetManyRaw(ids)
 	if err != nil {
 		return nil, err
 	}
 
-	identitiesByUserID, err := p.Identities.ListByUserIDs(ids)
+	userIDs := []string{}
+	updatedAts := []time.Time{}
+	stdAttrsList := []map[string]interface{}{}
+	customAttrsList := []map[string]interface{}{}
+	for _, rawUser := range rawUsers {
+		if rawUser == nil {
+			continue
+		}
+		userIDs = append(userIDs, rawUser.ID)
+		updatedAts = append(updatedAts, rawUser.UpdatedAt)
+		stdAttrsList = append(stdAttrsList, rawUser.StandardAttributes)
+		customAttrsList = append(customAttrsList, rawUser.CustomAttributes)
+	}
+
+	identitiesByUserID, err := p.Identities.ListByUserIDs(userIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	authenticatorsByUserID, err := p.Authenticators.ListByUserIDs(ids)
+	authenticatorsByUserID, err := p.Authenticators.ListByUserIDs(userIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -113,21 +102,20 @@ func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
 		return nil, err
 	}
 
-	userIDs := []string{}
-	updatedAts := []time.Time{}
-	attrsList := []map[string]interface{}{}
-	for _, user := range rawUsers {
-		userIDs = append(userIDs, user.ID)
-		updatedAts = append(updatedAts, user.UpdatedAt)
-		attrsList = append(attrsList, user.StandardAttributes)
-	}
-
 	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsers(
-		accesscontrol.RoleGreatest,
+		role,
 		userIDs,
 		updatedAts,
-		attrsList,
+		stdAttrsList,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	customAttrsByUserID, err := p.CustomAttributes.ReadCustomAttributesInStorageFormForUsers(
+		role,
+		userIDs,
+		customAttrsList)
 	if err != nil {
 		return nil, err
 	}
@@ -136,11 +124,25 @@ func (p *Queries) GetMany(ids []string) (users []*model.User, err error) {
 		if rawUser == nil {
 			users = append(users, nil)
 		} else {
-			var u *model.User
-			u, err = p.Get(rawUser.ID, accesscontrol.RoleGreatest)
-			if err != nil {
-				return
+			identities := identitiesByUserID[rawUser.ID]
+			authenticators := authenticatorsByUserID[rawUser.ID]
+			isVerified := isVerifiedByUserID[rawUser.ID]
+			stdAttrs := stdAttrsByUserID[rawUser.ID]
+			customAttrs := customAttrsByUserID[rawUser.ID]
+			web3Info, web3err := p.Web3.GetWeb3Info(identities)
+			if web3err != nil {
+				return nil, err
 			}
+			u := newUserModel(
+				rawUser,
+				identities,
+				authenticators,
+				isVerified,
+				stdAttrs,
+				customAttrs,
+				web3Info,
+			)
+
 			users = append(users, u)
 		}
 	}
