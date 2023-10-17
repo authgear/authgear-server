@@ -119,6 +119,7 @@ func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowR
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
 		Index:          takenBranchIndex,
+		Channel:        screen.Screen.TakenChannel,
 	}
 
 	branches := []AuthflowBranch{}
@@ -133,20 +134,35 @@ func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowR
 		}
 	}
 
+	addChannelBranch := func(idx int, o declarative.CreateAuthenticationOption) {
+		for _, channel := range o.Channels {
+			branch := AuthflowBranch{
+				Authentication:   o.Authentication,
+				Index:            idx,
+				Channel:          channel,
+				MaskedClaimValue: "",
+				OTPForm:          o.OTPForm,
+			}
+			if !isAuthflowBranchSame(branch, takenBranch) {
+				branches = append(branches, branch)
+			}
+		}
+	}
+
 	for idx, o := range branchData.Options {
 		switch o.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			addIndexBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			addIndexBranch(idx, o)
+			addChannelBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			addIndexBranch(idx, o)
+			addChannelBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			addIndexBranch(idx, o)
+			addChannelBranch(idx, o)
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			addIndexBranch(idx, o)
+			addChannelBranch(idx, o)
 		default:
 			// Ignore other authentications.
 			break

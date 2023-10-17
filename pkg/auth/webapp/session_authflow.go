@@ -291,15 +291,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			// All these can take the branch simply by setting index.
+			// Password branches can be taken by setting index.
 			return s.takeBranchResultSimple(index)
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			// This branch requires input to take.
@@ -309,12 +301,38 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 			return TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-					xStep := s.Screen.StateToken.XStep
-					screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
-					screen.Screen.BranchStateToken = s.Screen.StateToken
-					screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
-					screen.Screen.TakenBranchIndex = &index
-					return screen
+					var emptyChannel model.AuthenticatorOOBChannel
+					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
+						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeAuthenticate) &&
+							flowResponse.Action.Authentication == config.AuthenticationFlowAuthenticationSecondaryTOTP
+					}
+
+					return s.makeScreenForTakenBranch(flowResponse, input, &index, emptyChannel, isContinuation)
+				},
+			}
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			if channel == "" {
+				channel = option.Channels[0]
+			}
+			input := map[string]interface{}{
+				"authentication": option.Authentication,
+				"channel":        channel,
+			}
+			return TakeBranchResultInput{
+				Input: input,
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
+						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeAuthenticate) &&
+							flowResponse.Action.Authentication == option.Authentication
+					}
+
+					return s.makeScreenForTakenBranch(flowResponse, input, &index, channel, isContinuation)
 				},
 			}
 		default:
@@ -332,12 +350,11 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel mod
 		return TakeBranchResultInput{
 			Input: input,
 			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-				xStep := s.Screen.StateToken.XStep
-				screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
-				screen.Screen.BranchStateToken = s.Screen.StateToken
-				screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
-				screen.Screen.TakenChannel = channel
-				return screen
+				var nilIndex *int
+				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
+					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeVerify)
+				}
+				return s.makeScreenForTakenBranch(flowResponse, input, nilIndex, channel, isContinuation)
 			},
 		}
 	default:
@@ -386,13 +403,12 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			return TakeBranchResultInput{
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
-					xStep := s.Screen.StateToken.XStep
-					screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
-					screen.Screen.BranchStateToken = s.Screen.StateToken
-					screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
-					screen.Screen.TakenBranchIndex = &index
-					screen.Screen.TakenChannel = channel
-					return screen
+					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
+						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowLoginFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
+					}
+
+					return s.makeScreenForTakenBranch(flowResponse, input, &index, channel, isContinuation)
+
 				},
 			}
 		default:
@@ -422,6 +438,38 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int) TakeB
 	screen.Screen.TakenBranchIndex = &index
 	return TakeBranchResultSimple{
 		Screen: screen,
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) makeScreenForTakenBranch(
+	flowResponse *authflow.FlowResponse,
+	input map[string]interface{},
+	index *int,
+	channel model.AuthenticatorOOBChannel,
+	isContinuation func(flowResponse *authflow.FlowResponse) bool,
+) *AuthflowScreenWithFlowResponse {
+	// Sometimes, when we take a branch, the branch ends immediately.
+	// In that case, we consider the screen as another branching point.
+	// One particular case is the following signup flow
+	// 1. identify with email
+	// 2. email is required to verify
+	// 3. primary_oob_otp_email is taken. But verification was done in Step 2, so this step ends immediately.
+	// 4. secondary_totp is pending to be taken. This is another branching point.
+	//
+	// Therefore, we need to tell if the screen created from flowResponse is
+	// the continuation of s.
+	if isContinuation(flowResponse) {
+		xStep := s.Screen.StateToken.XStep
+		screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
+		screen.Screen.BranchStateToken = s.Screen.StateToken
+		screen.BranchStateTokenFlowResponse = s.StateTokenFlowResponse
+		screen.Screen.TakenBranchIndex = index
+		screen.Screen.TakenChannel = channel
+		return screen
+	} else {
+		xStep := s.Screen.StateToken.XStep
+		screen := NewAuthflowScreenWithFlowResponse(flowResponse, xStep, input)
+		return screen
 	}
 }
 
@@ -503,18 +551,24 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignup(r *http.Request, result 
 		}
 	case config.AuthenticationFlowStepTypeVerify:
 		channel := s.Screen.TakenChannel
-		switch channel {
-		case model.AuthenticatorOOBChannelEmail:
-			s.advance(AuthflowRouteEnterOOBOTP, result)
-		case model.AuthenticatorOOBChannelSMS:
-			s.advance(AuthflowRouteEnterOOBOTP, result)
-		case model.AuthenticatorOOBChannelWhatsapp:
-			s.advance(AuthflowRouteWhatsappOTP, result)
-		case "":
-			// Verify may not have branches.
-			s.advance(AuthflowRouteEnterOOBOTP, result)
-		default:
-			panic(fmt.Errorf("unexpected channel: %v", channel))
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+		switch data.OTPForm {
+		case otp.FormCode:
+			switch channel {
+			case model.AuthenticatorOOBChannelEmail:
+				s.advance(AuthflowRouteEnterOOBOTP, result)
+			case model.AuthenticatorOOBChannelSMS:
+				s.advance(AuthflowRouteEnterOOBOTP, result)
+			case model.AuthenticatorOOBChannelWhatsapp:
+				s.advance(AuthflowRouteWhatsappOTP, result)
+			case "":
+				// Verify may not have branches.
+				s.advance(AuthflowRouteEnterOOBOTP, result)
+			default:
+				panic(fmt.Errorf("unexpected channel: %v", channel))
+			}
+		case otp.FormLink:
+			s.advance(AuthflowRouteOOBOTPLink, result)
 		}
 	case config.AuthenticationFlowStepTypeUserProfile:
 		panic(fmt.Errorf("user_profile is not supported yet"))
