@@ -87,9 +87,6 @@ steps:
       one_of:
       - authentication: primary_oob_otp_email
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_email
-          type: verify
 `)
 
 		// phone, otp
@@ -118,9 +115,6 @@ steps:
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_phone
-          type: verify
 `)
 
 		// username, password
@@ -178,9 +172,6 @@ steps:
       - authentication: primary_password
       - authentication: primary_oob_otp_email
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_email
-          type: verify
   - identification: phone
     steps:
     - target_step: identify
@@ -191,9 +182,6 @@ steps:
       - authentication: primary_password
       - authentication: primary_oob_otp_sms
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_phone
-          type: verify
 `)
 
 		// email,password, totp,recovery_code
@@ -266,9 +254,6 @@ steps:
       type: authenticate
       one_of:
       - authentication: secondary_oob_otp_sms
-        steps:
-        - type: verify
-          target_step: authenticate_secondary_email
 `)
 
 		// oauth
