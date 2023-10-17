@@ -39,6 +39,8 @@ func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowRefe
 	switch flowReference.Type {
 	case authflow.FlowTypeSignup:
 		return flowRootObjectForSignupFlow(deps, flowReference)
+	case authflow.FlowTypePromote:
+		return flowRootObjectForPromoteFlow(deps, flowReference)
 	case authflow.FlowTypeLogin:
 		return flowRootObjectForLoginFlow(deps, flowReference)
 	case authflow.FlowTypeSignupLogin:
@@ -55,6 +57,29 @@ func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference auth
 		root = GenerateSignupFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
+			f := f
+			if f.Name == flowReference.Name {
+				root = f
+				break
+			}
+		}
+
+	}
+
+	if root == nil {
+		return nil, ErrFlowNotFound
+	}
+
+	return root, nil
+}
+
+func flowRootObjectForPromoteFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+	var root config.AuthenticationFlowObject
+
+	if flowReference.Name == nameGeneratedFlow {
+		root = GeneratePromoteFlowConfig(deps.Config)
+	} else {
+		for _, f := range deps.Config.AuthenticationFlow.PromoteFlows {
 			f := f
 			if f.Name == flowReference.Name {
 				root = f
