@@ -65,8 +65,9 @@ func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, 
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimEmail, oobConfig)
-		otpForm := getOTPForm(model.ClaimEmail, oobConfig.Email)
+		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 		return UseAuthenticationOption{
 			Authentication:    am,
 			OTPForm:           otpForm,
@@ -77,8 +78,9 @@ func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, 
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
-		otpForm := getOTPForm(model.ClaimPhoneNumber, oobConfig.Email)
+		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 		return UseAuthenticationOption{
 			Authentication:    am,
 			OTPForm:           otpForm,

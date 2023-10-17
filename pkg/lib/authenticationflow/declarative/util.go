@@ -337,17 +337,28 @@ func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBCo
 	return channels
 }
 
-func getOTPForm(claimName model.ClaimName, cfg *config.AuthenticatorOOBEmailConfig) otp.Form {
-	switch claimName {
-	case model.ClaimEmail:
-		if cfg.EmailOTPMode == config.AuthenticatorEmailOTPModeLoginLinkOnly {
-			return otp.FormLink
+func getOTPForm(purpose otp.Purpose, claimName model.ClaimName, cfg *config.AuthenticatorOOBEmailConfig) otp.Form {
+	switch purpose {
+	case otp.PurposeVerification:
+		// Always use code.
+		return otp.FormCode
+	case otp.PurposeForgotPassword:
+		// Always use link.
+		return otp.FormLink
+	case otp.PurposeOOBOTP:
+		switch claimName {
+		case model.ClaimEmail:
+			if cfg.EmailOTPMode == config.AuthenticatorEmailOTPModeLoginLinkOnly {
+				return otp.FormLink
+			}
+			return otp.FormCode
+		case model.ClaimPhoneNumber:
+			return otp.FormCode
+		default:
+			panic(fmt.Errorf("unexpected claim name: %v", claimName))
 		}
-		return otp.FormCode
-	case model.ClaimPhoneNumber:
-		return otp.FormCode
 	default:
-		panic(fmt.Errorf("unexpected claim name: %v", claimName))
+		panic(fmt.Errorf("unexpected purpose: %v", purpose))
 	}
 }
 
