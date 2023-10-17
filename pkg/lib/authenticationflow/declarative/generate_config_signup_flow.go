@@ -177,13 +177,6 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify,
-					Steps: []*config.AuthenticationFlowSignupFlowStep{
-						// Must verify.
-						&config.AuthenticationFlowSignupFlowStep{
-							Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-							TargetStep: step.Name,
-						},
-					},
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -194,13 +187,6 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify,
-					Steps: []*config.AuthenticationFlowSignupFlowStep{
-						// Must verify.
-						&config.AuthenticationFlowSignupFlowStep{
-							Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-							TargetStep: step.Name,
-						},
-					},
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -240,16 +226,10 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 		Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication, verify bool) {
+	addOneOf := func(am config.AuthenticationFlowAuthentication) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 				Authentication: am,
-			}
-			if verify {
-				oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-					Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-					TargetStep: step.Name,
-				})
 			}
 			if recoveryCodeStep != nil {
 				oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
@@ -262,13 +242,13 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, false)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, true)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, true)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, false)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
 		}
 	}
 
