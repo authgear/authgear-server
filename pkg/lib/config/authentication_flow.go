@@ -707,6 +707,8 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	// TargetStep is specific to authenticate.
 	TargetStep string `json:"target_step,omitempty"`
+	// VerificationRequired is specific to OOB.
+	VerificationRequired *bool `json:"verification_required,omitempty"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
@@ -730,6 +732,11 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 		Identification: f.Identification,
 		Authentication: f.Authentication,
 	}
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) IsVerificationRequired() bool {
+	// If it is unspecified (i.e. nil), then verification is required.
+	return f.VerificationRequired == nil || *f.VerificationRequired
 }
 
 type AuthenticationFlowSignupFlowUserProfile struct {
