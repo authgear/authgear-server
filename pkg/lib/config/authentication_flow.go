@@ -16,6 +16,11 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 			"minItems": 1,
 			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlow" }
 		},
+		"promote_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/AuthenticationFlowSignupFlow" }
+		},
 		"login_flows": {
 			"type": "array",
 			"minItems": 1,
@@ -629,7 +634,9 @@ const (
 )
 
 type AuthenticationFlowConfig struct {
-	SignupFlows      []*AuthenticationFlowSignupFlow      `json:"signup_flows,omitempty"`
+	SignupFlows []*AuthenticationFlowSignupFlow `json:"signup_flows,omitempty"`
+	// PromoteFlows is intentionally of type AuthenticationFlowSignupFlow
+	PromoteFlows     []*AuthenticationFlowSignupFlow      `json:"promote_flows,omitempty"`
 	LoginFlows       []*AuthenticationFlowLoginFlow       `json:"login_flows,omitempty"`
 	SignupLoginFlows []*AuthenticationFlowSignupLoginFlow `json:"signup_login_flows,omitempty"`
 	ReauthFlows      []*AuthenticationFlowReauthFlow      `json:"reauth_flows,omitempty"`
