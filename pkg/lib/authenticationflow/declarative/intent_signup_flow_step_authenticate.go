@@ -8,7 +8,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -42,39 +41,6 @@ func (i *IntentSignupFlowStepAuthenticate) GetName() string {
 
 func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
-}
-
-var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepAuthenticate{}
-
-func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
-	m, ok := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
-	if !ok {
-		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
-	}
-
-	info := m.MilestoneDoCreateAuthenticator()
-
-	return info.StandardClaims(), nil
-}
-
-func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *authflow.Dependencies, _ authflow.Flows) otp.Purpose {
-	return otp.PurposeOOBOTP
-}
-
-func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) otp.MessageType {
-	authenticationMethod := i.authenticationMethod(flows)
-	switch authenticationMethod {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		return otp.MessageTypeSetupPrimaryOOB
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		return otp.MessageTypeSetupPrimaryOOB
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		return otp.MessageTypeSetupSecondaryOOB
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		return otp.MessageTypeSetupSecondaryOOB
-	default:
-		panic(fmt.Errorf("unexpected authentication method: %v", authenticationMethod))
-	}
 }
 
 var _ authflow.Intent = &IntentSignupFlowStepAuthenticate{}
@@ -146,7 +112,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-				return authflow.NewNodeSimple(&NodeCreateAuthenticatorOOBOTP{
+				return authflow.NewSubFlow(&IntentCreateAuthenticatorOOBOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
