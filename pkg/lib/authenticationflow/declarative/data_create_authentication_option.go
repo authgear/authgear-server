@@ -3,12 +3,15 @@ package declarative
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type CreateAuthenticationOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
+	// OTPForm is specific to OOBOTP.
+	OTPForm otp.Form `json:"otp_form,omitempty"`
 	// Channels is specific to OOBOTP.
 	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 
@@ -37,17 +40,23 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
+			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticationOption{
 				Authentication: b.Authentication,
+				OTPForm:        otpForm,
 				Channels:       channels,
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
+			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticationOption{
 				Authentication: b.Authentication,
+				OTPForm:        otpForm,
 				Channels:       channels,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:

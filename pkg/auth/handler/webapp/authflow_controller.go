@@ -347,7 +347,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
-	output, screen, err = c.takeBranchIfNeeded(s, screen)
+	output, screen, err = c.takeBranchRecursively(s, screen)
 	if err != nil {
 		return
 	}
@@ -404,7 +404,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	af := webapp.NewAuthflow(flowResponse.ID, screen)
 	s.Authflow = af
 
-	output, screen, err = c.takeBranchIfNeeded(s, screen)
+	output, screen, err = c.takeBranchRecursively(s, screen)
 	if err != nil {
 		return
 	}
@@ -451,7 +451,7 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF, screen.Screen.StateToken.XStep, input)
 		s.Authflow.RememberScreen(newScreen)
 
-		output, newScreen, err = c.takeBranchIfNeeded(s, newScreen)
+		output, newScreen, err = c.takeBranchRecursively(s, newScreen)
 		if err != nil {
 			return
 		}
@@ -503,8 +503,8 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 	return
 }
 
-func (c *AuthflowController) takeBranchIfNeeded(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
-	if screen.HasBranchToTake() {
+func (c *AuthflowController) takeBranchRecursively(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (output *authflow.ServiceOutput, newScreen *webapp.AuthflowScreenWithFlowResponse, err error) {
+	for screen.HasBranchToTake() {
 		// Take the first branch, and first channel by default.
 		var zeroIndex int
 		var zeroChannel model.AuthenticatorOOBChannel
@@ -514,8 +514,7 @@ func (c *AuthflowController) takeBranchIfNeeded(s *webapp.Session, screen *webap
 		// This taken branch does not require an input to select.
 		case webapp.TakeBranchResultSimple:
 			s.Authflow.RememberScreen(takeBranchResult.Screen)
-			newScreen = takeBranchResult.Screen
-			return
+			screen = takeBranchResult.Screen
 		// This taken branch require an input to select.
 		case webapp.TakeBranchResultInput:
 			output, err = c.feedInput(screen.Screen.StateToken.StateToken, takeBranchResult.Input)
@@ -524,10 +523,8 @@ func (c *AuthflowController) takeBranchIfNeeded(s *webapp.Session, screen *webap
 			}
 
 			flowResponse := output.ToFlowResponse()
-			newScreen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
-			s.Authflow.RememberScreen(newScreen)
-
-			return
+			screen = takeBranchResult.NewAuthflowScreenFull(&flowResponse)
+			s.Authflow.RememberScreen(screen)
 		}
 	}
 
