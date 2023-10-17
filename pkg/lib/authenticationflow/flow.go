@@ -21,12 +21,14 @@ type FlowType string
 
 const (
 	FlowTypeSignup      FlowType = "signup"
+	FlowTypePromote     FlowType = "promote"
 	FlowTypeLogin       FlowType = "login"
 	FlowTypeSignupLogin FlowType = "signup_login"
 )
 
 var AllFlowTypes []FlowType = []FlowType{
 	FlowTypeSignup,
+	FlowTypePromote,
 	FlowTypeLogin,
 	FlowTypeSignupLogin,
 }

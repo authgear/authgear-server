@@ -115,6 +115,8 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 	switch flowResponse.Type {
 	case authflow.FlowTypeSignup:
 		return newAuthflowScreenSignup(flowResponse, previousXStep, previousInput)
+	case authflow.FlowTypePromote:
+		return newAuthflowScreenPromote(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeLogin:
 		return newAuthflowScreenLogin(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeSignupLogin:
@@ -125,6 +127,14 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 }
 
 func newAuthflowScreenSignup(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+	return newAuthflowScreenSignupPromote(flowResponse, previousXStep, previousInput)
+}
+
+func newAuthflowScreenPromote(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+	return newAuthflowScreenSignupPromote(flowResponse, previousXStep, previousInput)
+}
+
+func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
 	state := NewAuthflowStateToken(flowResponse)
 	screen := &AuthflowScreen{
 		PreviousXStep: previousXStep,
@@ -269,6 +279,8 @@ func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.Aut
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
 		return s.takeBranchSignup(index, channel)
+	case authflow.FlowTypePromote:
+		return s.takeBranchPromote(index, channel)
 	case authflow.FlowTypeLogin:
 		return s.takeBranchLogin(index, channel)
 	case authflow.FlowTypeSignupLogin:
@@ -279,6 +291,14 @@ func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.Aut
 }
 
 func (s *AuthflowScreenWithFlowResponse) takeBranchSignup(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+	return s.takeBranchSignupPromote(index, channel)
+}
+
+func (s *AuthflowScreenWithFlowResponse) takeBranchPromote(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+	return s.takeBranchSignupPromote(index, channel)
+}
+
+func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
@@ -481,6 +501,8 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, result *Resul
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
 		s.navigateSignup(r, result)
+	case authflow.FlowTypePromote:
+		s.navigatePromote(r, result)
 	case authflow.FlowTypeLogin:
 		s.navigateLogin(r, result)
 	case authflow.FlowTypeSignupLogin:
@@ -491,6 +513,14 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, result *Resul
 }
 
 func (s *AuthflowScreenWithFlowResponse) navigateSignup(r *http.Request, result *Result) {
+	s.navigateSignupPromote(r, result)
+}
+
+func (s *AuthflowScreenWithFlowResponse) navigatePromote(r *http.Request, result *Result) {
+	s.navigateSignupPromote(r, result)
+}
+
+func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, result, AuthflowRouteSignup)
