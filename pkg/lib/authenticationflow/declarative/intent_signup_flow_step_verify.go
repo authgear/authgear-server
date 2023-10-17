@@ -113,15 +113,15 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 
 	purpose := target.GetPurpose(ctx, deps, flows.Replace(targetStepFlow))
 	messageType := target.GetMessageType(ctx, deps, flows.Replace(targetStepFlow))
+	otpForm := getOTPForm(purpose, claimName, deps.Config.Authenticator.OOB.Email)
 	return authflow.NewSubFlow(&IntentVerifyClaim{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 		Purpose:     purpose,
 		MessageType: messageType,
-		// Always use code to verify.
-		Form:       otp.FormCode,
-		ClaimName:  claimName,
-		ClaimValue: claimValue,
+		Form:        otpForm,
+		ClaimName:   claimName,
+		ClaimValue:  claimValue,
 	}), nil
 }
 
