@@ -275,7 +275,7 @@ func (s *Service) ListByUserIDs(userIDs []string, filters ...authenticator.Filte
 	}
 
 	infosByUserID := map[string][]*authenticator.Info{}
-	for _, info := range infos {
+	for _, info := range filteredInfos {
 		arr := infosByUserID[info.UserID]
 		arr = append(arr, info)
 		infosByUserID[info.UserID] = arr
