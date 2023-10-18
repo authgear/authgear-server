@@ -718,6 +718,8 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, r
 			authorizationURLStr = data.OAuthAuthorizationURL
 		case declarative.NodeLookupIdentityOAuthData:
 			authorizationURLStr = data.OAuthAuthorizationURL
+		case declarative.NodePromoteIdentityOAuthData:
+			authorizationURLStr = data.OAuthAuthorizationURL
 		default:
 			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
 		}
