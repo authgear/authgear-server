@@ -114,7 +114,7 @@ type AuthflowController struct {
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 }
 
-func (c *AuthflowController) HandleLoginFlowSignupFlowSignupLoginFlow(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions, flowReference authflow.FlowReference, handlers *AuthflowControllerHandlers) {
+func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions, flowReference authflow.FlowReference, handlers *AuthflowControllerHandlers) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
