@@ -513,17 +513,17 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, result *Resul
 }
 
 func (s *AuthflowScreenWithFlowResponse) navigateSignup(r *http.Request, result *Result) {
-	s.navigateSignupPromote(r, result)
+	s.navigateSignupPromote(r, result, AuthflowRouteSignup)
 }
 
 func (s *AuthflowScreenWithFlowResponse) navigatePromote(r *http.Request, result *Result) {
-	s.navigateSignupPromote(r, result)
+	s.navigateSignupPromote(r, result, AuthflowRoutePromote)
 }
 
-func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, result *Result) {
+func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, result *Result, expectedPath string) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		s.navigateStepIdentify(r, result, AuthflowRouteSignup)
+		s.navigateStepIdentify(r, result, expectedPath)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
