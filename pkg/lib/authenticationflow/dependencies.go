@@ -38,6 +38,7 @@ type IdentityService interface {
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	Create(is *identity.Info) error
 	Update(oldIs *identity.Info, newIs *identity.Info) error
+	Delete(is *identity.Info) error
 }
 
 type AuthenticatorService interface {
