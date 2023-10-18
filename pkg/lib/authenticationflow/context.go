@@ -38,6 +38,14 @@ func GetUserIDHint(ctx context.Context) string {
 	return ctx.Value(contextKeyUserIDHint).(string)
 }
 
+type contextKeyTypeLoginHint struct{}
+
+var contextKeyLoginHint = contextKeyTypeLoginHint{}
+
+func GetLoginHint(ctx context.Context) string {
+	return ctx.Value(contextKeyLoginHint).(string)
+}
+
 type contextKeyTypeFlowID struct{}
 
 var contextKeyFlowID = contextKeyTypeFlowID{}

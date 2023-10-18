@@ -604,6 +604,7 @@ func (c *AuthflowController) makeSessionOptionsFromOAuth(oauthSessionID string) 
 
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		UserIDHint:               uiInfo.UserIDHint,
+		LoginHint:                uiInfo.LoginHint,
 	}
 
 	return sessionOptions, nil
