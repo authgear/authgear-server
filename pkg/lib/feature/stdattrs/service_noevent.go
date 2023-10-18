@@ -212,10 +212,16 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 		return nil, err
 	}
 
+	claimsByUserID := map[string][]*verification.Claim{}
+	for _, c := range allClaims {
+		claimsByUserID[c.UserID] = append(claimsByUserID[c.UserID], c)
+	}
+
 	result := map[string]map[string]interface{}{}
 
 	for idx, userID := range userIDs {
 		attrs := attrsList[idx]
+		userClaims := claimsByUserID[userID]
 		updatedAt := updatedAts[idx]
 		out := make(map[string]interface{})
 		for key, value := range attrs {
@@ -231,8 +237,8 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 			if key == stdattrs.Email {
 				verified := false
 				if str, ok := value.(string); ok {
-					for _, claim := range allClaims {
-						if claim.UserID != userID || claim.Name != stdattrs.Email {
+					for _, claim := range userClaims {
+						if claim.Name != stdattrs.Email {
 							continue
 						}
 						if claim.Value == str {
@@ -247,8 +253,8 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 			if key == stdattrs.PhoneNumber {
 				verified := false
 				if str, ok := value.(string); ok {
-					for _, claim := range allClaims {
-						if claim.UserID != userID || claim.Name != stdattrs.PhoneNumber {
+					for _, claim := range userClaims {
+						if claim.Name != stdattrs.PhoneNumber {
 							continue
 						}
 						if claim.Value == str {
