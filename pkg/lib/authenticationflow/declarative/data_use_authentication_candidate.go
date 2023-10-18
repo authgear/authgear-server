@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -14,6 +15,8 @@ import (
 type UseAuthenticationOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
+	// OTPForm is specific to OOBOTP.
+	OTPForm otp.Form `json:"otp_form,omitempty"`
 	// MaskedDisplayName is specific to OOBOTP.
 	MaskedDisplayName string `json:"masked_display_name,omitempty"`
 	// Channels is specific to OOBOTP.
@@ -62,9 +65,12 @@ func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, 
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimEmail, oobConfig)
+		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
 		return UseAuthenticationOption{
 			Authentication:    am,
+			OTPForm:           otpForm,
 			Channels:          channels,
 			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
 			AuthenticatorID:   i.ID,
@@ -72,9 +78,12 @@ func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, 
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
+		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
 		return UseAuthenticationOption{
 			Authentication:    am,
+			OTPForm:           otpForm,
 			Channels:          channels,
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
 			AuthenticatorID:   i.ID,

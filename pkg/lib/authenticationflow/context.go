@@ -6,6 +6,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+type contextKeyTypeWebSessionID struct{}
+
+var contextKeyWebSessionID = contextKeyTypeWebSessionID{}
+
+func GetWebSessionID(ctx context.Context) string {
+	return ctx.Value(contextKeyWebSessionID).(string)
+}
+
 type contextKeyTypeOAuthSessionID struct{}
 
 var contextKeyOAuthSessionID = contextKeyTypeOAuthSessionID{}
@@ -20,6 +28,14 @@ var contextKeySuppressIDPSessionCookie = contextKeyTypeSuppressIDPSessionCookie{
 
 func GetSuppressIDPSessionCookie(ctx context.Context) bool {
 	return ctx.Value(contextKeySuppressIDPSessionCookie).(bool)
+}
+
+type contextKeyTypeUserIDHint struct{}
+
+var contextKeyUserIDHint = contextKeyTypeUserIDHint{}
+
+func GetUserIDHint(ctx context.Context) string {
+	return ctx.Value(contextKeyUserIDHint).(string)
 }
 
 type contextKeyTypeFlowID struct{}

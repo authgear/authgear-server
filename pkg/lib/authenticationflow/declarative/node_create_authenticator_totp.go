@@ -2,17 +2,17 @@ package declarative
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -90,22 +90,26 @@ func (n *NodeCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *auth
 	}, nil
 }
 
-func (i *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (n *NodeCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputSetupTOTP inputSetupTOTP
 	if authflow.AsInput(input, &inputSetupTOTP) {
-		_, err := deps.Authenticators.VerifyWithSpec(i.Authenticator, &authenticator.Spec{
+		_, err := deps.Authenticators.VerifyWithSpec(n.Authenticator, &authenticator.Spec{
 			TOTP: &authenticator.TOTPSpec{
 				Code: inputSetupTOTP.GetCode(),
 			},
-		}, nil)
-		if errors.Is(err, api.ErrInvalidCredentials) {
-			return nil, api.ErrInvalidCredentials
-		} else if err != nil {
+		}, &facade.VerifyOptions{
+			AuthenticationDetails: facade.NewAuthenticationDetails(
+				n.UserID,
+				authn.AuthenticationStageFromAuthenticationMethod(n.Authentication),
+				authn.AuthenticationTypeTOTP,
+			),
+		})
+		if err != nil {
 			return nil, err
 		}
 
 		return authflow.NewNodeSimple(&NodeDoCreateAuthenticator{
-			Authenticator: i.Authenticator,
+			Authenticator: n.Authenticator,
 		}), nil
 	}
 

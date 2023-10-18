@@ -68,6 +68,9 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 
 func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	return NodeLoginFlowChangePasswordData{
-		PasswordPolicy: NewPasswordPolicy(deps.Config.Authenticator.Password.Policy),
+		PasswordPolicy: NewPasswordPolicy(
+			deps.FeatureConfig.Authenticator,
+			deps.Config.Authenticator.Password.Policy,
+		),
 	}, nil
 }

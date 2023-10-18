@@ -59,9 +59,6 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			required = append(required, "alias")
 			b.Properties().Property("alias", validation.SchemaBuilder{}.Type(validation.TypeString).Const(option.Alias))
 
-			// state is optional.
-			b.Properties().Property("state", validation.SchemaBuilder{}.Type(validation.TypeString))
-
 			// response_mode is optional.
 			b.Properties().Property("response_mode", validation.SchemaBuilder{}.
 				Type(validation.TypeString).
@@ -102,7 +99,6 @@ type InputStepIdentify struct {
 	LoginID string `json:"login,omitempty"`
 
 	Alias        string           `json:"alias,omitempty"`
-	State        string           `json:"state,omitempty"`
 	RedirectURI  string           `json:"redirect_uri,omitempty"`
 	ResponseMode sso.ResponseMode `json:"response_mode,omitempty"`
 }
@@ -124,10 +120,6 @@ func (i *InputStepIdentify) GetLoginID() string {
 
 func (i *InputStepIdentify) GetOAuthAlias() string {
 	return i.Alias
-}
-
-func (i *InputStepIdentify) GetOAuthState() string {
-	return i.State
 }
 
 func (i *InputStepIdentify) GetOAuthRedirectURI() string {

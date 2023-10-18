@@ -110,11 +110,14 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	case !claimVerified:
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
+		purpose := otp.PurposeOOBOTP
+		otpForm := getOTPForm(purpose, claimName, deps.Config.Authenticator.OOB.Email)
 		return authflow.NewSubFlow(&IntentVerifyClaim{
 			JSONPointer: n.JSONPointer,
 			UserID:      n.UserID,
-			Purpose:     otp.PurposeOOBOTP,
+			Purpose:     purpose,
 			MessageType: n.otpMessageType(info),
+			Form:        otpForm,
 			ClaimName:   claimName,
 			ClaimValue:  claimValue,
 		}), nil

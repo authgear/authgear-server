@@ -12,10 +12,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
@@ -168,9 +171,8 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 		case config.AuthenticationFlowAuthenticationDeviceToken:
 			// Device token is handled transparently.
 			break
-
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
-
+			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
@@ -182,7 +184,6 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 			if err != nil {
 				return nil, err
 			}
-
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -316,37 +317,49 @@ func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spe
 }
 
 func getChannels(claimName model.ClaimName, oobConfig *config.AuthenticatorOOBConfig) []model.AuthenticatorOOBChannel {
-	email := false
-	sms := false
-	whatsapp := false
+	channels := []model.AuthenticatorOOBChannel{}
 
 	switch claimName {
 	case model.ClaimEmail:
-		email = true
+		channels = append(channels, model.AuthenticatorOOBChannelEmail)
 	case model.ClaimPhoneNumber:
 		switch oobConfig.SMS.PhoneOTPMode {
 		case config.AuthenticatorPhoneOTPModeSMSOnly:
-			sms = true
+			channels = append(channels, model.AuthenticatorOOBChannelSMS)
 		case config.AuthenticatorPhoneOTPModeWhatsappOnly:
-			whatsapp = true
+			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
 		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
-			sms = true
-			whatsapp = true
+			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+			channels = append(channels, model.AuthenticatorOOBChannelSMS)
 		}
 	}
 
-	channels := []model.AuthenticatorOOBChannel{}
-	if email {
-		channels = append(channels, model.AuthenticatorOOBChannelEmail)
-	}
-	if sms {
-		channels = append(channels, model.AuthenticatorOOBChannelSMS)
-	}
-	if whatsapp {
-		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
-	}
-
 	return channels
+}
+
+func getOTPForm(purpose otp.Purpose, claimName model.ClaimName, cfg *config.AuthenticatorOOBEmailConfig) otp.Form {
+	switch purpose {
+	case otp.PurposeVerification:
+		// Always use code.
+		return otp.FormCode
+	case otp.PurposeForgotPassword:
+		// Always use link.
+		return otp.FormLink
+	case otp.PurposeOOBOTP:
+		switch claimName {
+		case model.ClaimEmail:
+			if cfg.EmailOTPMode == config.AuthenticatorEmailOTPModeLoginLinkOnly {
+				return otp.FormLink
+			}
+			return otp.FormCode
+		case model.ClaimPhoneNumber:
+			return otp.FormCode
+		default:
+			panic(fmt.Errorf("unexpected claim name: %v", claimName))
+		}
+	default:
+		panic(fmt.Errorf("unexpected purpose: %v", purpose))
+	}
 }
 
 func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (*identity.Info, error) {
@@ -458,7 +471,6 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 type ConstructOAuthAuthorizationURLOptions struct {
 	RedirectURI  string
 	Alias        string
-	State        string
 	ResponseMode sso.ResponseMode
 }
 
@@ -474,7 +486,6 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	param := sso.GetAuthURLParam{
 		RedirectURI:  opts.RedirectURI,
 		ResponseMode: opts.ResponseMode,
-		State:        opts.State,
 		Prompt:       uiParam.Prompt,
 	}
 
@@ -484,4 +495,15 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 	}
 
 	return
+}
+
+func getMaskedOTPTarget(claimName model.ClaimName, claimValue string) string {
+	switch claimName {
+	case model.ClaimEmail:
+		return mail.MaskAddress(claimValue)
+	case model.ClaimPhoneNumber:
+		return phone.Mask(claimValue)
+	default:
+		panic(fmt.Errorf("unexpected claim name: %v", claimName))
+	}
 }

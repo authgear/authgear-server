@@ -238,6 +238,8 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 			"enum": [
 				"identify",
 				"authenticate",
+				"check_account_status",
+				"terminate_other_sessions",
 				"change_password",
 				"prompt_create_passkey"
 			]
@@ -615,13 +617,15 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.Authenticato
 type AuthenticationFlowStepType string
 
 const (
-	AuthenticationFlowStepTypeIdentify            AuthenticationFlowStepType = "identify"
-	AuthenticationFlowStepTypeAuthenticate        AuthenticationFlowStepType = "authenticate"
-	AuthenticationFlowStepTypeVerify              AuthenticationFlowStepType = "verify"
-	AuthenticationFlowStepTypeUserProfile         AuthenticationFlowStepType = "user_profile"
-	AuthenticationFlowStepTypeRecoveryCode        AuthenticationFlowStepType = "recovery_code"
-	AuthenticationFlowStepTypePromptCreatePasskey AuthenticationFlowStepType = "prompt_create_passkey"
-	AuthenticationFlowStepTypeChangePassword      AuthenticationFlowStepType = "change_password"
+	AuthenticationFlowStepTypeIdentify               AuthenticationFlowStepType = "identify"
+	AuthenticationFlowStepTypeAuthenticate           AuthenticationFlowStepType = "authenticate"
+	AuthenticationFlowStepTypeVerify                 AuthenticationFlowStepType = "verify"
+	AuthenticationFlowStepTypeUserProfile            AuthenticationFlowStepType = "user_profile"
+	AuthenticationFlowStepTypeRecoveryCode           AuthenticationFlowStepType = "recovery_code"
+	AuthenticationFlowStepTypePromptCreatePasskey    AuthenticationFlowStepType = "prompt_create_passkey"
+	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
+	AuthenticationFlowStepTypeCheckAccountStatus     AuthenticationFlowStepType = "check_account_status"
+	AuthenticationFlowStepTypeChangePassword         AuthenticationFlowStepType = "change_password"
 )
 
 type AuthenticationFlowConfig struct {
@@ -703,6 +707,8 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	// TargetStep is specific to authenticate.
 	TargetStep string `json:"target_step,omitempty"`
+	// VerificationRequired is specific to OOB.
+	VerificationRequired *bool `json:"verification_required,omitempty"`
 
 	// Steps are common.
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
@@ -726,6 +732,11 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 		Identification: f.Identification,
 		Authentication: f.Authentication,
 	}
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) IsVerificationRequired() bool {
+	// If it is unspecified (i.e. nil), then verification is required.
+	return f.VerificationRequired == nil || *f.VerificationRequired
 }
 
 type AuthenticationFlowSignupFlowUserProfile struct {
@@ -758,10 +769,12 @@ func (f *AuthenticationFlowLoginFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowLoginFlowStepType string
 
 const (
-	AuthenticationFlowLoginFlowStepTypeIdentify            = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeIdentify)
-	AuthenticationFlowLoginFlowStepTypeAuthenticate        = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeAuthenticate)
-	AuthenticationFlowLoginFlowStepTypeChangePassword      = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeChangePassword)
-	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
+	AuthenticationFlowLoginFlowStepTypeIdentify               = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeIdentify)
+	AuthenticationFlowLoginFlowStepTypeAuthenticate           = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeAuthenticate)
+	AuthenticationFlowLoginFlowStepTypeCheckAccountStatus     = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeCheckAccountStatus)
+	AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeTerminateOtherSessions)
+	AuthenticationFlowLoginFlowStepTypeChangePassword         = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypeChangePassword)
+	AuthenticationFlowLoginFlowStepTypePromptCreatePasskey    = AuthenticationFlowLoginFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
 
 type AuthenticationFlowLoginFlowStep struct {

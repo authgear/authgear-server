@@ -87,9 +87,6 @@ steps:
       one_of:
       - authentication: primary_oob_otp_email
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_email
-          type: verify
 `)
 
 		// phone, otp
@@ -118,9 +115,6 @@ steps:
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_phone
-          type: verify
 `)
 
 		// username, password
@@ -178,9 +172,6 @@ steps:
       - authentication: primary_password
       - authentication: primary_oob_otp_email
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_email
-          type: verify
   - identification: phone
     steps:
     - target_step: identify
@@ -191,9 +182,6 @@ steps:
       - authentication: primary_password
       - authentication: primary_oob_otp_sms
         target_step: identify
-        steps:
-        - target_step: authenticate_primary_phone
-          type: verify
 `)
 
 		// email,password, totp,recovery_code
@@ -230,6 +218,42 @@ steps:
       - authentication: secondary_totp
         steps:
         - type: recovery_code
+`)
+
+		// email,password, phone
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  secondary_authenticators:
+  - oob_otp_sms
+  secondary_authentication_mode: required
+  recovery_code:
+    disabled: true
+identity:
+  login_id:
+    keys:
+    - type: email
+`, `
+name: default
+steps:
+- name: identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - target_step: identify
+      type: verify
+    - name: authenticate_primary_email
+      type: authenticate
+      one_of:
+      - authentication: primary_password
+    - name: authenticate_secondary_email
+      type: authenticate
+      one_of:
+      - authentication: secondary_oob_otp_sms
 `)
 
 		// oauth

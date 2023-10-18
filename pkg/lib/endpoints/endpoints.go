@@ -78,9 +78,9 @@ func (e *Endpoints) ResetPasswordURL(code string) *url.URL {
 	)
 }
 
-func (e *Endpoints) SSOCallbackURL(c config.OAuthSSOProviderConfig) *url.URL {
+func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
 	u := e.SSOCallbackEndpointURL()
-	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
+	u.Path = path.Join(u.Path, url.PathEscape(alias))
 	return u
 }
 

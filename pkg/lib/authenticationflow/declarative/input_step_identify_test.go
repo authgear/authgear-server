@@ -100,9 +100,6 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                     "format": "uri",
                     "type": "string"
                 },
-                "state": {
-                    "type": "string"
-                },
                 "response_mode": {
                     "type": "string",
                     "enum": ["form_post", "query"]
@@ -125,9 +122,6 @@ func TestInputSchemaStepIdentify(t *testing.T) {
                 },
                 "redirect_uri": {
                     "format": "uri",
-                    "type": "string"
-                },
-                "state": {
                     "type": "string"
                 },
                 "response_mode": {

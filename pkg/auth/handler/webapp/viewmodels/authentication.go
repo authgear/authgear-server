@@ -37,6 +37,8 @@ type AuthenticationViewModel struct {
 	// It depends on q_login_id_input_type.
 	// It is "email", "phone", "username", or "email_or_username".
 	LoginIDContextualType string
+
+	PasskeyRequestOptionsJSON string
 }
 
 type AuthenticationViewModeler struct {

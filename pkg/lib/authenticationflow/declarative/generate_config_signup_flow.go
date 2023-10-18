@@ -177,13 +177,6 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify,
-					Steps: []*config.AuthenticationFlowSignupFlowStep{
-						// Must verify.
-						&config.AuthenticationFlowSignupFlowStep{
-							Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-							TargetStep: step.Name,
-						},
-					},
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -194,13 +187,6 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify,
-					Steps: []*config.AuthenticationFlowSignupFlowStep{
-						// Must verify.
-						&config.AuthenticationFlowSignupFlowStep{
-							Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-							TargetStep: step.Name,
-						},
-					},
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}

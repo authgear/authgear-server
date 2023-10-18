@@ -16,9 +16,9 @@ type IntentSignupFlowStepRecoveryCodeData struct {
 	RecoveryCodes []string `json:"recovery_codes"`
 }
 
-var _ authflow.Data = &IntentSignupFlowStepRecoveryCodeData{}
+var _ authflow.Data = IntentSignupFlowStepRecoveryCodeData{}
 
-func (*IntentSignupFlowStepRecoveryCodeData) Data() {}
+func (IntentSignupFlowStepRecoveryCodeData) Data() {}
 
 type IntentSignupFlowStepRecoveryCode struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -65,7 +65,7 @@ func (i *IntentSignupFlowStepRecoveryCode) ReactTo(ctx context.Context, deps *au
 }
 
 func (i *IntentSignupFlowStepRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return &IntentSignupFlowStepRecoveryCodeData{
+	return IntentSignupFlowStepRecoveryCodeData{
 		RecoveryCodes: i.RecoveryCodes,
 	}, nil
 }

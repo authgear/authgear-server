@@ -11,11 +11,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -28,6 +27,7 @@ type NodeVerifyClaimData struct {
 	MaskedClaimValue               string                        `json:"masked_claim_value,omitempty"`
 	CodeLength                     int                           `json:"code_length,omitempty"`
 	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
+	CanCheck                       bool                          `json:"can_check"`
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
 }
 
@@ -40,6 +40,7 @@ type NodeVerifyClaim struct {
 	UserID      string                        `json:"user_id,omitempty"`
 	Purpose     otp.Purpose                   `json:"purpose,omitempty"`
 	MessageType otp.MessageType               `json:"message_type,omitempty"`
+	Form        otp.Form                      `json:"form,omitempty"`
 	ClaimName   model.ClaimName               `json:"claim_name,omitempty"`
 	ClaimValue  string                        `json:"claim_value,omitempty"`
 	Channel     model.AuthenticatorOOBChannel `json:"channel,omitempty"`
@@ -56,7 +57,7 @@ func (n *NodeVerifyClaim) Kind() string {
 func (n *NodeVerifyClaim) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	return &InputSchemaNodeVerifyClaim{
 		JSONPointer: n.JSONPointer,
-		OTPForm:     n.otpForm(deps),
+		OTPForm:     n.Form,
 	}, nil
 }
 
@@ -72,14 +73,13 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 
 		err := deps.OTPCodes.VerifyOTP(
 			n.otpKind(deps),
-			n.otpTarget(),
+			n.ClaimValue,
 			code,
 			&otp.VerifyOptions{UserID: n.UserID},
 		)
 
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			return nil, n.invalidOTPCodeError()
-			//return nil, verification.ErrInvalidVerificationCode
 		} else if err != nil {
 			return nil, err
 		}
@@ -87,7 +87,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		verifiedClaim := deps.Verification.NewVerifiedClaim(
 			n.UserID,
 			string(n.ClaimName),
-			n.otpTarget(),
+			n.ClaimValue,
 		)
 		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
@@ -97,7 +97,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 
 		err := deps.OTPCodes.VerifyOTP(
 			n.otpKind(deps),
-			n.otpTarget(),
+			n.ClaimValue,
 			emptyCode,
 			&otp.VerifyOptions{
 				UseSubmittedCode: true,
@@ -114,7 +114,7 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 		verifiedClaim := deps.Verification.NewVerifiedClaim(
 			n.UserID,
 			string(n.ClaimName),
-			n.otpTarget(),
+			n.ClaimValue,
 		)
 		return authflow.NewNodeSimple(&NodeDoMarkClaimVerified{
 			Claim: verifiedClaim,
@@ -131,19 +131,18 @@ func (n *NodeVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependenci
 }
 
 func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	state, err := deps.OTPCodes.InspectState(n.otpKind(deps), n.otpTarget())
+	state, err := deps.OTPCodes.InspectState(n.otpKind(deps), n.ClaimValue)
 	if err != nil {
 		return nil, err
 	}
 
-	otpForm := n.otpForm(deps)
-
 	return NodeVerifyClaimData{
 		Channel:                        n.Channel,
-		OTPForm:                        otpForm,
-		MaskedClaimValue:               n.maskedOTPTarget(),
-		CodeLength:                     otpForm.CodeLength(),
+		OTPForm:                        n.Form,
+		MaskedClaimValue:               getMaskedOTPTarget(n.ClaimName, n.ClaimValue),
+		CodeLength:                     n.Form.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
+		CanCheck:                       state.SubmittedCode != "",
 		FailedAttemptRateLimitExceeded: state.TooManyAttempts,
 	}, nil
 }
@@ -159,38 +158,28 @@ func (n *NodeVerifyClaim) otpKind(deps *authflow.Dependencies) otp.Kind {
 	}
 }
 
-func (n *NodeVerifyClaim) otpForm(deps *authflow.Dependencies) otp.Form {
-	if n.Purpose == otp.PurposeOOBOTP &&
-		n.Channel == model.AuthenticatorOOBChannelEmail &&
-		deps.Config.Authenticator.OOB.Email.EmailOTPMode == config.AuthenticatorEmailOTPModeLoginLinkOnly {
-		return otp.FormLink
-	}
-	return otp.FormCode
-}
-
 func (n *NodeVerifyClaim) invalidOTPCodeError() error {
 	switch n.Purpose {
 	case otp.PurposeVerification:
 		return verification.ErrInvalidVerificationCode
 	case otp.PurposeOOBOTP:
-		return api.ErrInvalidCredentials
+		var authenticationType authn.AuthenticationType
+		switch n.Channel {
+		case model.AuthenticatorOOBChannelEmail:
+			authenticationType = authn.AuthenticationTypeOOBOTPEmail
+		case model.AuthenticatorOOBChannelSMS:
+			authenticationType = authn.AuthenticationTypeOOBOTPSMS
+		case model.AuthenticatorOOBChannelWhatsapp:
+			authenticationType = authn.AuthenticationTypeOOBOTPSMS
+		default:
+			panic(fmt.Errorf("unexpected channel: %v", n.Channel))
+		}
+
+		return errorutil.WithDetails(api.ErrInvalidCredentials, errorutil.Details{
+			"AuthenticationType": apierrors.APIErrorDetail.Value(authenticationType),
+		})
 	default:
 		panic(fmt.Errorf("unexpected otp purpose: %v", n.Purpose))
-	}
-}
-
-func (n *NodeVerifyClaim) otpTarget() string {
-	return n.ClaimValue
-}
-
-func (n *NodeVerifyClaim) maskedOTPTarget() string {
-	switch n.ClaimName {
-	case model.ClaimEmail:
-		return mail.MaskAddress(n.otpTarget())
-	case model.ClaimPhoneNumber:
-		return phone.Mask(n.otpTarget())
-	default:
-		panic(fmt.Errorf("unexpected claim name: %v", n.ClaimName))
 	}
 }
 
@@ -208,8 +197,8 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 
 	msg, err := deps.OTPSender.Prepare(
 		n.Channel,
-		n.otpTarget(),
-		n.otpForm(deps),
+		n.ClaimValue,
+		n.Form,
 		typ,
 	)
 	if err != nil {
@@ -219,10 +208,11 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 
 	code, err := deps.OTPCodes.GenerateOTP(
 		n.otpKind(deps),
-		n.otpTarget(),
-		n.otpForm(deps),
+		n.ClaimValue,
+		n.Form,
 		&otp.GenerateOptions{
 			UserID:               n.UserID,
+			WebSessionID:         authflow.GetWebSessionID(ctx),
 			AuthenticationFlowID: authflow.GetFlowID(ctx),
 		},
 	)
