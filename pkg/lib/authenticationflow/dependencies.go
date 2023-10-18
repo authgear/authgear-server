@@ -10,7 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -65,6 +67,18 @@ type OTPCodeService interface {
 type OTPSender interface {
 	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
+}
+
+type AnonymousIdentityService interface {
+	Get(userID string, id string) (*identity.Anonymous, error)
+	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
+	GetByKeyID(keyID string) (*identity.Anonymous, error)
+	ParseRequest(requestJWT string, identity *identity.Anonymous) (*anonymous.Request, error)
+}
+
+type AnonymousUserPromotionCodeStore interface {
+	GetPromotionCode(codeHash string) (*anonymous.PromotionCode, error)
+	DeletePromotionCode(code *anonymous.PromotionCode) error
 }
 
 type VerificationService interface {
@@ -147,6 +161,11 @@ type CaptchaService interface {
 	VerifyToken(token string) error
 }
 
+type ChallengeService interface {
+	Consume(token string) (*challenge.Purpose, error)
+	Get(token string) (*challenge.Challenge, error)
+}
+
 type MFAService interface {
 	GenerateRecoveryCodes() []string
 	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
@@ -191,23 +210,26 @@ type Dependencies struct {
 
 	HTTPRequest *http.Request
 
-	Users                         UserService
-	Identities                    IdentityService
-	Authenticators                AuthenticatorService
-	MFA                           MFAService
-	StdAttrsService               StdAttrsService
-	CustomAttrsService            CustomAttrsService
-	OTPCodes                      OTPCodeService
-	OTPSender                     OTPSender
-	Verification                  VerificationService
-	ForgotPassword                ForgotPasswordService
-	ResetPassword                 ResetPasswordService
-	AccountMigrations             AccountMigrationService
-	Captcha                       CaptchaService
-	OAuthProviderFactory          OAuthProviderFactory
-	PasskeyRequestOptionsService  PasskeyRequestOptionsService
-	PasskeyCreationOptionsService PasskeyCreationOptionsService
-	PasskeyService                PasskeyService
+	Users                           UserService
+	Identities                      IdentityService
+	AnonymousIdentities             AnonymousIdentityService
+	AnonymousUserPromotionCodeStore AnonymousUserPromotionCodeStore
+	Authenticators                  AuthenticatorService
+	MFA                             MFAService
+	StdAttrsService                 StdAttrsService
+	CustomAttrsService              CustomAttrsService
+	OTPCodes                        OTPCodeService
+	OTPSender                       OTPSender
+	Verification                    VerificationService
+	ForgotPassword                  ForgotPasswordService
+	ResetPassword                   ResetPasswordService
+	AccountMigrations               AccountMigrationService
+	Challenges                      ChallengeService
+	Captcha                         CaptchaService
+	OAuthProviderFactory            OAuthProviderFactory
+	PasskeyRequestOptionsService    PasskeyRequestOptionsService
+	PasskeyCreationOptionsService   PasskeyCreationOptionsService
+	PasskeyService                  PasskeyService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

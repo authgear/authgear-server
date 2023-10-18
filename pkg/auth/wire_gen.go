@@ -10428,6 +10428,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -10530,6 +10536,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -10581,39 +10592,42 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -10672,22 +10686,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webappServiceLogger := webapp2.NewServiceLogger(factory)
 	signedUpCookieDef := webapp2.NewSignedUpCookieDef()
 	interactionLogger := interaction.NewLogger(factory)
-	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
-		Clock:   clockClock,
-	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
 		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
-	}
-	challengeProvider := &challenge.Provider{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
 	}
 	interactionContext := &interaction.Context{
 		Request:                         request,
@@ -59992,6 +59995,12 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -60094,6 +60103,11 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -60145,39 +60159,42 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -60805,6 +60822,12 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -60907,6 +60930,11 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -60958,39 +60986,42 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -61611,6 +61642,12 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -61713,6 +61750,11 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -61764,39 +61806,42 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -62458,6 +62503,12 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -62560,6 +62611,11 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -62611,39 +62667,42 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -63342,6 +63401,12 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -63444,6 +63509,11 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -63495,39 +63565,42 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -64226,6 +64299,12 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -64328,6 +64407,11 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -64379,39 +64463,42 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -65086,6 +65173,12 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -65188,6 +65281,11 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -65239,39 +65337,42 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -65948,6 +66049,12 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -66050,6 +66157,11 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -66101,39 +66213,42 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -66808,6 +66923,12 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -66910,6 +67031,11 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -66961,39 +67087,42 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -67668,6 +67797,12 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -67770,6 +67905,11 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -67821,39 +67961,42 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -68528,6 +68671,12 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -68630,6 +68779,11 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -68681,39 +68835,42 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -69388,6 +69545,12 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -69490,6 +69653,11 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -69541,39 +69709,42 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -70250,6 +70421,12 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -70352,6 +70529,11 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -70403,39 +70585,42 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -71112,6 +71297,12 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -71214,6 +71405,11 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -71265,39 +71461,42 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -71972,6 +72171,12 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -72074,6 +72279,11 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -72125,39 +72335,42 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -72832,6 +73045,12 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -72934,6 +73153,11 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -72985,39 +73209,42 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -73692,6 +73919,12 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -73794,6 +74027,11 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -73845,39 +74083,42 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -74552,6 +74793,12 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -74654,6 +74901,11 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -74705,39 +74957,42 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -75412,6 +75667,12 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -75514,6 +75775,11 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -75565,39 +75831,42 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
@@ -76272,6 +76541,12 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   handle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
@@ -76374,6 +76649,11 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 		DenoHook: accountMigrationDenoHook,
 		WebHook:  accountMigrationWebHook,
 	}
+	challengeProvider := &challenge.Provider{
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
+	}
 	captchaConfig := appConfig.Captcha
 	providerLogger := captcha.NewProviderLogger(factory)
 	captchaCloudflareCredentials := deps.ProvideCaptchaCloudflareCredentials(secretConfig)
@@ -76425,39 +76705,42 @@ func newWebAppAuthflowAccountStatusHandler(p *deps.RequestProvider) http.Handler
 	}
 	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
-		Config:                        appConfig,
-		FeatureConfig:                 featureConfig,
-		Clock:                         clockClock,
-		RemoteIP:                      remoteIP,
-		HTTPOrigin:                    httpOrigin,
-		HTTPRequest:                   request,
-		Users:                         userProvider,
-		Identities:                    identityFacade,
-		Authenticators:                authenticatorFacade,
-		MFA:                           mfaFacade,
-		StdAttrsService:               stdattrsService,
-		CustomAttrsService:            customattrsService,
-		OTPCodes:                      otpService,
-		OTPSender:                     messageSender,
-		Verification:                  workflowVerificationFacade,
-		ForgotPassword:                forgotpasswordService,
-		ResetPassword:                 forgotpasswordService,
-		AccountMigrations:             accountmigrationService,
-		Captcha:                       captchaProvider,
-		OAuthProviderFactory:          oAuthProviderFactory,
-		PasskeyRequestOptionsService:  requestOptionsService,
-		PasskeyCreationOptionsService: creationOptionsService,
-		PasskeyService:                passkeyService,
-		IDPSessions:                   idpsessionProvider,
-		Sessions:                      manager2,
-		AuthenticationInfos:           authenticationinfoStoreRedis,
-		SessionCookie:                 cookieDef,
-		MFADeviceTokenCookie:          mfaCookieDef,
-		Cookies:                       cookieManager,
-		Events:                        eventService,
-		RateLimiter:                   limiter,
-		FlowEvents:                    eventStoreImpl,
-		OfflineGrants:                 redisStore,
+		Config:                          appConfig,
+		FeatureConfig:                   featureConfig,
+		Clock:                           clockClock,
+		RemoteIP:                        remoteIP,
+		HTTPOrigin:                      httpOrigin,
+		HTTPRequest:                     request,
+		Users:                           userProvider,
+		Identities:                      identityFacade,
+		AnonymousIdentities:             anonymousProvider,
+		AnonymousUserPromotionCodeStore: anonymousStoreRedis,
+		Authenticators:                  authenticatorFacade,
+		MFA:                             mfaFacade,
+		StdAttrsService:                 stdattrsService,
+		CustomAttrsService:              customattrsService,
+		OTPCodes:                        otpService,
+		OTPSender:                       messageSender,
+		Verification:                    workflowVerificationFacade,
+		ForgotPassword:                  forgotpasswordService,
+		ResetPassword:                   forgotpasswordService,
+		AccountMigrations:               accountmigrationService,
+		Challenges:                      challengeProvider,
+		Captcha:                         captchaProvider,
+		OAuthProviderFactory:            oAuthProviderFactory,
+		PasskeyRequestOptionsService:    requestOptionsService,
+		PasskeyCreationOptionsService:   creationOptionsService,
+		PasskeyService:                  passkeyService,
+		IDPSessions:                     idpsessionProvider,
+		Sessions:                        manager2,
+		AuthenticationInfos:             authenticationinfoStoreRedis,
+		SessionCookie:                   cookieDef,
+		MFADeviceTokenCookie:            mfaCookieDef,
+		Cookies:                         cookieManager,
+		Events:                          eventService,
+		RateLimiter:                     limiter,
+		FlowEvents:                      eventStoreImpl,
+		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	promptResolver := &oauth2.PromptResolver{
