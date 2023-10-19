@@ -256,3 +256,27 @@ func (s *ServiceNoEvent) ReadCustomAttributesInStorageForm(
 	repr = repr.ReadWithAccessControl(accessControl, role)
 	return repr.ToMap(), nil
 }
+
+// Batch ReadCustomAttributesInStorageForm
+func (s *ServiceNoEvent) ReadCustomAttributesInStorageFormForUsers(
+	role accesscontrol.Role,
+	userIDs []string,
+	storageForms []map[string]interface{},
+) (map[string]map[string]interface{}, error) {
+	if len(userIDs) != len(storageForms) {
+		panic("customattrs: expeceted same length of arguments")
+	}
+
+	customAttrsByUserID := map[string]map[string]interface{}{}
+
+	for idx, userID := range userIDs {
+		storageForm := storageForms[idx]
+		c, err := s.ReadCustomAttributesInStorageForm(role, userID, storageForm)
+		if err != nil {
+			return nil, err
+		}
+		customAttrsByUserID[userID] = c
+	}
+
+	return customAttrsByUserID, nil
+}

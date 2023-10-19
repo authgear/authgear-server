@@ -360,64 +360,118 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 	return
 }
 
-func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
-	var infos []*identity.Info
-
-	// login id
-	lis, err := s.LoginID.List(userID)
+func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, error) {
+	refs, err := s.Store.ListRefsByUsers(userIDs, nil)
 	if err != nil {
 		return nil, err
 	}
-	for _, i := range lis {
-		infos = append(infos, i.ToInfo())
+	refsByType := map[model.IdentityType]([]*model.IdentityRef){}
+	for _, ref := range refs {
+		arr := refsByType[ref.Type]
+		arr = append(arr, ref)
+		refsByType[ref.Type] = arr
+	}
+
+	extractIDs := func(idRefs []*model.IdentityRef) []string {
+		ids := []string{}
+		for _, idRef := range idRefs {
+			ids = append(ids, idRef.ID)
+		}
+		return ids
+	}
+
+	infos := []*identity.Info{}
+
+	// login id
+	if loginIDRefs, ok := refsByType[model.IdentityTypeLoginID]; ok && len(loginIDRefs) > 0 {
+		loginIDs, err := s.LoginID.GetMany(extractIDs(loginIDRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range loginIDs {
+			infos = append(infos, i.ToInfo())
+		}
 	}
 
 	// oauth
-	ois, err := s.OAuth.List(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range ois {
-		infos = append(infos, i.ToInfo())
+	if oauthRefs, ok := refsByType[model.IdentityTypeOAuth]; ok && len(oauthRefs) > 0 {
+		oauthIdens, err := s.OAuth.GetMany(extractIDs(oauthRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range oauthIdens {
+			infos = append(infos, i.ToInfo())
+		}
 	}
 
 	// anonymous
-	ais, err := s.Anonymous.List(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range ais {
-		infos = append(infos, i.ToInfo())
+	if anonymousRefs, ok := refsByType[model.IdentityTypeAnonymous]; ok && len(anonymousRefs) > 0 {
+		anonymousIdens, err := s.Anonymous.GetMany(extractIDs(anonymousRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range anonymousIdens {
+			infos = append(infos, i.ToInfo())
+		}
 	}
 
 	// biometric
-	bis, err := s.Biometric.List(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range bis {
-		infos = append(infos, i.ToInfo())
+	if biometricRefs, ok := refsByType[model.IdentityTypeBiometric]; ok && len(biometricRefs) > 0 {
+		biometricIdens, err := s.Biometric.GetMany(extractIDs(biometricRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range biometricIdens {
+			infos = append(infos, i.ToInfo())
+		}
 	}
 
 	// passkey
-	pis, err := s.Passkey.List(userID)
-	if err != nil {
-		return nil, err
-	}
-	for _, i := range pis {
-		infos = append(infos, i.ToInfo())
+	if passkeyRefs, ok := refsByType[model.IdentityTypePasskey]; ok && len(passkeyRefs) > 0 {
+		passkeyIdens, err := s.Passkey.GetMany(extractIDs(passkeyRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range passkeyIdens {
+			infos = append(infos, i.ToInfo())
+		}
 	}
 
 	// siwe
-	sis, err := s.SIWE.List(userID)
+	if siweRefs, ok := refsByType[model.IdentityTypeSIWE]; ok && len(siweRefs) > 0 {
+		siweIdens, err := s.SIWE.GetMany(extractIDs(siweRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range siweIdens {
+			infos = append(infos, i.ToInfo())
+		}
+	}
+
+	infosByUserID := map[string][]*identity.Info{}
+	for _, info := range infos {
+		arr := infosByUserID[info.UserID]
+		arr = append(arr, info)
+		infosByUserID[info.UserID] = arr
+	}
+
+	return infosByUserID, nil
+}
+
+func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
+	infosByUserID, err := s.ListByUserIDs([]string{userID})
 	if err != nil {
 		return nil, err
 	}
-	for _, i := range sis {
-		infos = append(infos, i.ToInfo())
+
+	infos, ok := infosByUserID[userID]
+
+	if !ok || len(infos) == 0 {
+		return []*identity.Info{}, nil
 	}
 
 	return infos, nil
+
 }
 
 func (s *Service) Count(userID string) (uint64, error) {

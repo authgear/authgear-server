@@ -181,11 +181,11 @@ func TestService(t *testing.T) {
 			for i, c := range cases {
 				Convey(fmt.Sprintf("case %d", i), func() {
 					service.Config.Criteria = config.VerificationCriteriaAny
-					claimStore.EXPECT().ListByUser("user-id").Return(c.Claims, nil).MaxTimes(1)
+					claimStore.EXPECT().ListByUserIDs([]string{"user-id"}).Return(c.Claims, nil).MaxTimes(1)
 					So(mustBool(service.IsUserVerified(c.Identities)), ShouldEqual, c.AnyResult)
 
 					service.Config.Criteria = config.VerificationCriteriaAll
-					claimStore.EXPECT().ListByUser("user-id").Return(c.Claims, nil).MaxTimes(1)
+					claimStore.EXPECT().ListByUserIDs([]string{"user-id"}).Return(c.Claims, nil).MaxTimes(1)
 					So(mustBool(service.IsUserVerified(c.Identities)), ShouldEqual, c.AllResult)
 				})
 			}

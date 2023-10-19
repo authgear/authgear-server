@@ -15,6 +15,7 @@ import (
 
 type ClaimStore interface {
 	ListByClaimName(userID string, claimName string) ([]*verification.Claim, error)
+	ListByUserIDsAndClaimNames(userIDs []string, claimNames []string) ([]*verification.Claim, error)
 }
 
 type ServiceNoEvent struct {
@@ -193,63 +194,108 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 	return nil
 }
 
-// DeriveStandardAttributes populates email_verified and phone_number_verified,
-// if email or phone_number are found in attrs.
-func (s *ServiceNoEvent) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
-	out := make(map[string]interface{})
+// Batch implementation of DeriveStandardAttributes
+func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
+	role accesscontrol.Role,
+	userIDs []string,
+	updatedAts []time.Time,
+	attrsList []map[string]interface{},
+) (map[string]map[string]interface{}, error) {
 
-	for key, value := range attrs {
-		value, err := s.Transformer.StorageFormToRepresentationForm(key, value)
-		if err != nil {
-			return nil, err
-		}
-
-		// Copy
-		out[key] = value
-
-		// Email
-		if key == stdattrs.Email {
-			verified := false
-			if str, ok := value.(string); ok {
-				claims, err := s.ClaimStore.ListByClaimName(userID, stdattrs.Email)
-				if err != nil {
-					return nil, err
-				}
-				for _, claim := range claims {
-					if claim.Value == str {
-						verified = true
-					}
-				}
-			}
-			out[stdattrs.EmailVerified] = verified
-		}
-
-		// Phone number
-		if key == stdattrs.PhoneNumber {
-			verified := false
-			if str, ok := value.(string); ok {
-				claims, err := s.ClaimStore.ListByClaimName(userID, stdattrs.PhoneNumber)
-				if err != nil {
-					return nil, err
-				}
-				for _, claim := range claims {
-					if claim.Value == str {
-						verified = true
-					}
-				}
-			}
-			out[stdattrs.PhoneNumberVerified] = verified
-		}
+	if len(userIDs) != len(updatedAts) || len(userIDs) != len(attrsList) {
+		panic("stdattrs: expeceted same length of arguments")
 	}
 
-	// updated_at
-	out[stdattrs.UpdatedAt] = updatedAt.Unix()
+	allClaims, err := s.ClaimStore.ListByUserIDsAndClaimNames(
+		userIDs, []string{stdattrs.Email, stdattrs.PhoneNumber})
+	if err != nil {
+		return nil, err
+	}
 
-	accessControl := s.UserProfileConfig.StandardAttributes.GetAccessControl()
-	out = stdattrs.T(out).ReadWithAccessControl(
-		accessControl,
-		role,
-	).ToClaims()
+	claimsByUserID := map[string][]*verification.Claim{}
+	for _, c := range allClaims {
+		claimsByUserID[c.UserID] = append(claimsByUserID[c.UserID], c)
+	}
 
-	return out, nil
+	result := map[string]map[string]interface{}{}
+
+	for idx, userID := range userIDs {
+		attrs := attrsList[idx]
+		userClaims := claimsByUserID[userID]
+		updatedAt := updatedAts[idx]
+		out := make(map[string]interface{})
+		for key, value := range attrs {
+			value, err := s.Transformer.StorageFormToRepresentationForm(key, value)
+			if err != nil {
+				return nil, err
+			}
+
+			// Copy
+			out[key] = value
+
+			// Email
+			if key == stdattrs.Email {
+				verified := false
+				if str, ok := value.(string); ok {
+					for _, claim := range userClaims {
+						if claim.Name != stdattrs.Email {
+							continue
+						}
+						if claim.Value == str {
+							verified = true
+						}
+					}
+				}
+				out[stdattrs.EmailVerified] = verified
+			}
+
+			// Phone number
+			if key == stdattrs.PhoneNumber {
+				verified := false
+				if str, ok := value.(string); ok {
+					for _, claim := range userClaims {
+						if claim.Name != stdattrs.PhoneNumber {
+							continue
+						}
+						if claim.Value == str {
+							verified = true
+						}
+					}
+				}
+				out[stdattrs.PhoneNumberVerified] = verified
+			}
+		}
+
+		// updated_at
+		out[stdattrs.UpdatedAt] = updatedAt.Unix()
+
+		accessControl := s.UserProfileConfig.StandardAttributes.GetAccessControl()
+		out = stdattrs.T(out).ReadWithAccessControl(
+			accessControl,
+			role,
+		).ToClaims()
+
+		result[userID] = out
+	}
+
+	return result, nil
+}
+
+// DeriveStandardAttributes populates email_verified and phone_number_verified,
+// if email or phone_number are found in attrs.
+func (s *ServiceNoEvent) DeriveStandardAttributes(
+	role accesscontrol.Role,
+	userID string,
+	updatedAt time.Time,
+	attrs map[string]interface{},
+) (map[string]interface{}, error) {
+	result, err := s.DeriveStandardAttributesForUsers(role,
+		[]string{userID},
+		[]time.Time{updatedAt},
+		[]map[string]interface{}{attrs},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return result[userID], nil
 }

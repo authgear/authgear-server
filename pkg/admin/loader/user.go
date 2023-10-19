@@ -2,11 +2,12 @@ package loader
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserLoaderUserService interface {
-	GetMany(ids []string) ([]*model.User, error)
+	GetMany(ids []string, role accesscontrol.Role) ([]*model.User, error)
 }
 
 type UserLoader struct {
@@ -31,7 +32,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	entities, err := l.Users.GetMany(ids)
+	entities, err := l.Users.GetMany(ids, accesscontrol.RoleGreatest)
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,7 @@ import (
 
 type ClaimStore interface {
 	ListByUser(userID string) ([]*Claim, error)
+	ListByUserIDs(userIDs []string) ([]*Claim, error)
 	ListByClaimName(userID string, claimName string) ([]*Claim, error)
 	Get(userID string, claimName string, claimValue string) (*Claim, error)
 	Create(claim *Claim) error
@@ -84,25 +85,49 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]Cla
 		return nil, nil
 	}
 
-	// Assuming user ID of all identities is same
-	userID := is[0].UserID
-	claims, err := s.ClaimStore.ListByUser(userID)
+	idensByUserID := map[string][]*identity.Info{}
+	for _, iden := range is {
+		arr := idensByUserID[iden.UserID]
+		idensByUserID[iden.UserID] = append(arr, iden)
+	}
+
+	userIDs := []string{}
+	for userID := range idensByUserID {
+		userIDs = append(userIDs, userID)
+	}
+
+	allClaims, err := s.ClaimStore.ListByUserIDs(userIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	verifiedClaims := make(map[claim]struct{})
-	for _, c := range claims {
-		verifiedClaims[claim{c.Name, c.Value}] = struct{}{}
+	claimsByUserIDs := map[string][]*Claim{}
+	for _, c := range allClaims {
+		arr := claimsByUserIDs[c.UserID]
+		claimsByUserIDs[c.UserID] = append(arr, c)
 	}
 
 	statuses := map[string][]ClaimStatus{}
-	for _, i := range is {
-		if i.UserID != userID {
-			panic("verification: expect all user ID is same")
+
+	for userID, idens := range idensByUserID {
+		claims, ok := claimsByUserIDs[userID]
+		if !ok {
+			claims = []*Claim{}
 		}
-		statuses[i.ID] = s.getVerificationStatus(i, verifiedClaims)
+
+		verifiedClaims := make(map[claim]struct{})
+		for _, c := range claims {
+			verifiedClaims[claim{c.Name, c.Value}] = struct{}{}
+		}
+
+		for _, i := range idens {
+			if i.UserID != userID {
+				panic("verification: expect all user ID is same")
+			}
+			statuses[i.ID] = s.getVerificationStatus(i, verifiedClaims)
+		}
 	}
+
 	return statuses, nil
 }
 
@@ -164,16 +189,30 @@ func (s *Service) GetClaimStatus(userID string, claimName model.ClaimName, claim
 	}, nil
 }
 
-func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
-	statuses, err := s.GetVerificationStatuses(identities)
-	if err != nil {
-		return false, err
+func (s *Service) AreUsersVerified(identitiesByUserIDs map[string][]*identity.Info) (map[string]bool, error) {
+	allIdens := []*identity.Info{}
+	for _, arr := range identitiesByUserIDs {
+		allIdens = append(allIdens, arr...)
 	}
 
-	numVerifiable := 0
-	numVerified := 0
-	for _, claimStatuses := range statuses {
-		for _, claim := range claimStatuses {
+	allStatuses, err := s.GetVerificationStatuses(allIdens)
+	if err != nil {
+		return nil, err
+	}
+
+	results := map[string]bool{}
+
+	for userID, userIdens := range identitiesByUserIDs {
+		statuses := []ClaimStatus{}
+		for _, iden := range userIdens {
+			if iden.UserID != userID {
+				panic("verification: unexpected identity user ID")
+			}
+			statuses = append(statuses, allStatuses[iden.ID]...)
+		}
+		numVerifiable := 0
+		numVerified := 0
+		for _, claim := range statuses {
 			if claim.IsVerifiable() {
 				numVerifiable++
 			}
@@ -181,16 +220,33 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 				numVerified++
 			}
 		}
+
+		switch s.Config.Criteria {
+		case config.VerificationCriteriaAny:
+			results[userID] = numVerifiable > 0 && numVerified >= 1
+		case config.VerificationCriteriaAll:
+			results[userID] = numVerifiable > 0 && numVerified == numVerifiable
+		default:
+			panic("verification: unknown criteria " + s.Config.Criteria)
+		}
 	}
 
-	switch s.Config.Criteria {
-	case config.VerificationCriteriaAny:
-		return numVerifiable > 0 && numVerified >= 1, nil
-	case config.VerificationCriteriaAll:
-		return numVerifiable > 0 && numVerified == numVerifiable, nil
-	default:
-		panic("verification: unknown criteria " + s.Config.Criteria)
+	return results, nil
+}
+
+func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
+	if len(identities) < 1 {
+		return false, nil
 	}
+	userID := identities[0].UserID
+	verifieds, err := s.AreUsersVerified(map[string][]*identity.Info{userID: identities})
+	if err != nil {
+		return false, err
+	}
+	if len(verifieds) != 1 {
+		panic("verification: unexpected number of results returned")
+	}
+	return verifieds[userID], nil
 }
 
 func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue string) *Claim {

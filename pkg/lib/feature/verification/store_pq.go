@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
@@ -43,8 +45,33 @@ func (s *StorePQ) scan(scn db.Scanner) (*Claim, error) {
 	return c, nil
 }
 
+func (s *StorePQ) ListByUserIDs(userIDs []string) ([]*Claim, error) {
+	q := s.selectQuery().Where("user_id = ANY (?)", pq.Array(userIDs))
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var claims []*Claim
+	for rows.Next() {
+		a, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		claims = append(claims, a)
+	}
+
+	return claims, nil
+}
+
 func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
-	q := s.selectQuery().Where("user_id = ?", userID)
+	return s.ListByUserIDs([]string{userID})
+}
+
+func (s *StorePQ) ListByUserIDsAndClaimNames(userIDs []string, claimNames []string) ([]*Claim, error) {
+	q := s.selectQuery().Where("user_id = ANY (?) AND name = ANY (?)", pq.Array(userIDs), pq.Array(claimNames))
 
 	rows, err := s.SQLExecutor.QueryWith(q)
 	if err != nil {
@@ -65,24 +92,7 @@ func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
 }
 
 func (s *StorePQ) ListByClaimName(userID string, claimName string) ([]*Claim, error) {
-	q := s.selectQuery().Where("user_id = ? AND name = ?", userID, claimName)
-
-	rows, err := s.SQLExecutor.QueryWith(q)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var claims []*Claim
-	for rows.Next() {
-		a, err := s.scan(rows)
-		if err != nil {
-			return nil, err
-		}
-		claims = append(claims, a)
-	}
-
-	return claims, nil
+	return s.ListByUserIDsAndClaimNames([]string{userID}, []string{claimName})
 }
 
 func (s *StorePQ) Get(userID string, claimName string, claimValue string) (*Claim, error) {

@@ -119,3 +119,18 @@ func (mr *MockClaimStoreMockRecorder) ListByUser(userID interface{}) *gomock.Cal
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockClaimStore)(nil).ListByUser), userID)
 }
+
+// ListByUserIDs mocks base method.
+func (m *MockClaimStore) ListByUserIDs(userIDs []string) ([]*Claim, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByUserIDs", userIDs)
+	ret0, _ := ret[0].([]*Claim)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByUserIDs indicates an expected call of ListByUserIDs.
+func (mr *MockClaimStoreMockRecorder) ListByUserIDs(userIDs interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUserIDs", reflect.TypeOf((*MockClaimStore)(nil).ListByUserIDs), userIDs)
+}
