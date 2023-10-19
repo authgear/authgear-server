@@ -22,6 +22,7 @@ type Session struct {
 
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
 	UserIDHint               string `json:"user_id_hint,omitempty"`
+	LoginHint                string `json:"login_hint,omitempty"`
 }
 
 type SessionOutput struct {
@@ -43,6 +44,7 @@ type SessionOptions struct {
 
 	SuppressIDPSessionCookie bool
 	UserIDHint               string
+	LoginHint                string
 }
 
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
@@ -60,6 +62,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
 		out.UserIDHint = s.UserIDHint
+		out.LoginHint = s.LoginHint
 	}
 	if o != nil {
 		if o.ClientID != "" {
@@ -94,6 +97,7 @@ func NewSession(opts *SessionOptions) *Session {
 
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
 		UserIDHint:               opts.UserIDHint,
+		LoginHint:                opts.LoginHint,
 	}
 }
 
@@ -122,6 +126,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)
+	ctx = context.WithValue(ctx, contextKeyLoginHint, s.LoginHint)
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
 

@@ -103,6 +103,7 @@ var CommonDependencySet = wire.NewSet(
 		challenge.DependencySet,
 		wire.Bind(new(interaction.ChallengeProvider), new(*challenge.Provider)),
 		wire.Bind(new(oauthhandler.ChallengeProvider), new(*challenge.Provider)),
+		wire.Bind(new(authenticationflow.ChallengeService), new(*challenge.Provider)),
 	),
 
 	wire.NewSet(
@@ -200,6 +201,8 @@ var CommonDependencySet = wire.NewSet(
 		identityanonymous.DependencySet,
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(interaction.AnonymousUserPromotionCodeStore), new(*identityanonymous.StoreRedis)),
+		wire.Bind(new(authenticationflow.AnonymousIdentityService), new(*identityanonymous.Provider)),
+		wire.Bind(new(authenticationflow.AnonymousUserPromotionCodeStore), new(*identityanonymous.StoreRedis)),
 
 		identitypasskey.DependencySet,
 

@@ -185,3 +185,8 @@ type MilestoneDidUseAuthenticationLockoutMethod interface {
 	authflow.Milestone
 	MilestoneDidUseAuthenticationLockoutMethod() (config.AuthenticationLockoutMethod, bool)
 }
+
+type MilestoneDoUseAnonymousUser interface {
+	authflow.Milestone
+	MilestoneDoUseAnonymousUser() *identity.Info
+}

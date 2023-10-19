@@ -187,7 +187,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	h.Controller.HandleLoginFlowSignupFlowSignupLoginFlow(w, r, opts, authflow.FlowReference{
+	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
 		Type: authflow.FlowTypeLogin,
 		Name: flowName,
 	}, &handlers)

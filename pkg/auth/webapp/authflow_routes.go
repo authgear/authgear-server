@@ -1,8 +1,9 @@
 package webapp
 
 const (
-	AuthflowRouteLogin  = "/login"
-	AuthflowRouteSignup = "/signup"
+	AuthflowRouteLogin   = "/login"
+	AuthflowRouteSignup  = "/signup"
+	AuthflowRoutePromote = "/flows/promote_user"
 	// AuthflowRouteSignupLogin is login because login page has passkey.
 	AuthflowRouteSignupLogin = AuthflowRouteLogin
 

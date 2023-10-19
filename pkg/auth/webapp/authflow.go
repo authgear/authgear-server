@@ -21,6 +21,8 @@ func GetIdentificationOptions(f *authflow.FlowResponse) []declarative.Identifica
 		options = data.Options
 	case declarative.IntentSignupFlowStepIdentifyData:
 		options = data.Options
+	case declarative.IntentPromoteFlowStepIdentifyData:
+		options = data.Options
 	case declarative.IntentSignupLoginFlowStepIdentifyData:
 		options = data.Options
 	default:

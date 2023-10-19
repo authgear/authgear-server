@@ -658,6 +658,13 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowPromoteHandler)),
+	))
+}
+
 func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

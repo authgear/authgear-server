@@ -187,6 +187,7 @@ func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromOAuth(oauthSes
 
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		UserIDHint:               uiInfo.UserIDHint,
+		LoginHint:                uiInfo.LoginHint,
 	}
 
 	return sessionOptions, nil
