@@ -17,14 +17,6 @@ func init() {
 	authflow.RegisterIntent(&IntentUseAuthenticatorOOBOTP{})
 }
 
-type IntentUseAuthenticatorOOBOTPData struct {
-	Options []UseAuthenticationOption `json:"options"`
-}
-
-var _ authflow.Data = IntentUseAuthenticatorOOBOTPData{}
-
-func (m IntentUseAuthenticatorOOBOTPData) Data() {}
-
 type IntentUseAuthenticatorOOBOTP struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
 	UserID         string                                  `json:"user_id,omitempty"`
@@ -34,7 +26,6 @@ type IntentUseAuthenticatorOOBOTP struct {
 var _ authflow.Intent = &IntentUseAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentUseAuthenticatorOOBOTP{}
 var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
-var _ authflow.DataOutputer = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Kind() string {
 	return "IntentUseAuthenticatorOOBOTP"
@@ -129,23 +120,6 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	}
 
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.jsonPointerToStep())
-	if err != nil {
-		return nil, err
-	}
-	step := n.step(current)
-
-	options, err := getAuthenticationOptionsForStep(ctx, deps, flows, n.UserID, step)
-	if err != nil {
-		return nil, err
-	}
-
-	return IntentUseAuthenticatorOOBOTPData{
-		Options: options,
-	}, nil
 }
 
 func (*IntentUseAuthenticatorOOBOTP) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
