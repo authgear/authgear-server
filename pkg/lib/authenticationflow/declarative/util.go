@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
@@ -569,4 +570,50 @@ func getMaskedOTPTarget(claimName model.ClaimName, claimValue string) string {
 	default:
 		panic(fmt.Errorf("unexpected claim name: %v", claimName))
 	}
+}
+
+func createAuthenticator(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
+	spec := &authenticator.Spec{
+		UserID: userID,
+		OOBOTP: &authenticator.OOBOTPSpec{},
+	}
+
+	switch authentication {
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		spec.Kind = model.AuthenticatorKindPrimary
+		spec.Type = model.AuthenticatorTypeOOBEmail
+		spec.OOBOTP.Email = target
+
+	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		spec.Kind = model.AuthenticatorKindPrimary
+		spec.Type = model.AuthenticatorTypeOOBSMS
+		spec.OOBOTP.Phone = target
+
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		spec.Kind = model.AuthenticatorKindSecondary
+		spec.Type = model.AuthenticatorTypeOOBEmail
+		spec.OOBOTP.Email = target
+
+	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		spec.Kind = model.AuthenticatorKindSecondary
+		spec.Type = model.AuthenticatorTypeOOBSMS
+		spec.OOBOTP.Phone = target
+
+	default:
+		panic(fmt.Errorf("unexpected authentication method: %v", authentication))
+	}
+
+	isDefault, err := authenticatorIsDefault(deps, userID, spec.Kind)
+	if err != nil {
+		return nil, err
+	}
+	spec.IsDefault = isDefault
+
+	authenticatorID := uuid.New()
+	info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
 }
