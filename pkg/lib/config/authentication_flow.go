@@ -35,6 +35,11 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 			"type": "array",
 			"minItems": 1,
 			"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlow" }
+		},
+		"request_account_recovery_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/AuthenticationFlowRequestAccountRecoveryFlow" }
 		}
 	}
 }
@@ -484,6 +489,79 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 }
 `)
 
+var _ = Schema.Add("AuthenticationFlowRequestAccountRecoveryFlow", `
+{
+	"type": "object",
+	"required": ["name", "steps"],
+	"properties": {
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"steps": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/AuthenticationFlowRequestAccountRecoveryFlowStep" }
+		}
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowRequestAccountRecoveryFlowStep", `
+{
+	"type": "object",
+	"required": ["type"],
+	"properties": {
+		"name": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+		"type": {
+			"type": "string",
+			"enum": [
+				"identify",
+				"select_destination"
+			]
+		}
+	},
+	"allOf": [
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "identify" }
+				}
+			},
+			"then": {
+				"required": ["one_of"],
+				"properties": {
+					"one_of": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryFlowOneOf" }
+					}
+				}
+			}
+		}
+	]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowOneOf", `
+{
+	"type": "object",
+	"required": ["identification"],
+	"properties": {
+		"identification": { "$ref": "#/$defs/AuthenticationFlowRequestAccountRecoveryIdentification" },
+		"on_failure": { "type": "string", "enum": [ "error", "ignore"] },
+		"enumerate_destinations": { "type": "boolean" }
+	}
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowRequestAccountRecoveryIdentification", `
+{
+	"type": "string",
+	"enum": [
+		"email",
+		"phone"
+	]
+}
+`)
+
 type AuthenticationFlowObject interface {
 	IsFlowObject()
 }
@@ -637,10 +715,11 @@ const (
 type AuthenticationFlowConfig struct {
 	SignupFlows []*AuthenticationFlowSignupFlow `json:"signup_flows,omitempty"`
 	// PromoteFlows is intentionally of type AuthenticationFlowSignupFlow
-	PromoteFlows     []*AuthenticationFlowSignupFlow      `json:"promote_flows,omitempty"`
-	LoginFlows       []*AuthenticationFlowLoginFlow       `json:"login_flows,omitempty"`
-	SignupLoginFlows []*AuthenticationFlowSignupLoginFlow `json:"signup_login_flows,omitempty"`
-	ReauthFlows      []*AuthenticationFlowReauthFlow      `json:"reauth_flows,omitempty"`
+	PromoteFlows                []*AuthenticationFlowSignupFlow                 `json:"promote_flows,omitempty"`
+	LoginFlows                  []*AuthenticationFlowLoginFlow                  `json:"login_flows,omitempty"`
+	SignupLoginFlows            []*AuthenticationFlowSignupLoginFlow            `json:"signup_login_flows,omitempty"`
+	ReauthFlows                 []*AuthenticationFlowReauthFlow                 `json:"reauth_flows,omitempty"`
+	RequestAccountRecoveryFlows []*AuthenticationFlowRequestAccountRecoveryFlow `json:"request_account_recovery_flows,omitempty"`
 }
 
 type AuthenticationFlowSignupFlow struct {
@@ -1018,3 +1097,45 @@ func (f *AuthenticationFlowReauthFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 		Authentication: f.Authentication,
 	}
 }
+
+type AuthenticationFlowRequestAccountRecoveryFlow struct {
+	Name  string                                              `json:"name,omitempty"`
+	Steps []*AuthenticationFlowRequestAccountRecoveryFlowStep `json:"steps,omitempty"`
+}
+
+type AuthenticationFlowRequestAccountRecoveryFlowStep struct {
+	Name string                                    `json:"name,omitempty"`
+	Type AuthenticationFlowAccountRecoveryFlowType `json:"type,omitempty"`
+	// OneOf is relevant when Type is identify.
+	OneOf []*AuthenticationFlowAccountRecoveryFlowOneOf `json:"one_of,omitempty"`
+}
+
+type AuthenticationFlowAccountRecoveryFlowType string
+
+const (
+	AuthenticationFlowAccountRecoveryFlowTypeIdentify          = AuthenticationFlowAccountRecoveryFlowType("identity")
+	AuthenticationFlowAccountRecoveryFlowTypeSelectDestination = AuthenticationFlowAccountRecoveryFlowType("select_destination")
+)
+
+type AuthenticationFlowAccountRecoveryFlowOneOf struct {
+	// Identification is specific to identify.
+	Identification AuthenticationFlowRequestAccountRecoveryIdentification `json:"identification,omitempty"`
+	// OnFailure is specific to identify.
+	OnFailure AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
+	// EnumerateDestinations is specific to identify.
+	EnumerateDestinations bool `json:"enumerate_destinations,omitempty"`
+}
+
+type AuthenticationFlowRequestAccountRecoveryIdentification string
+
+const (
+	AuthenticationFlowRequestAccountRecoveryIdentificationEmail = AuthenticationFlowRequestAccountRecoveryIdentification("email")
+	AuthenticationFlowRequestAccountRecoveryIdentificationPhone = AuthenticationFlowRequestAccountRecoveryIdentification("phone")
+)
+
+type AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure string
+
+const (
+	AuthenticationFlowRequestAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure("ignore")
+	AuthenticationFlowRequestAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure("error")
+)
