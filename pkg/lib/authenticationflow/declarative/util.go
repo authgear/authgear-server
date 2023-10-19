@@ -11,7 +11,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -143,53 +142,44 @@ func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference
 func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationOption, error) {
 	options := []UseAuthenticationOption{}
 
-	infos, err := deps.Authenticators.List(userID)
+	identities, err := deps.Identities.ListByUser(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	recoveryCodes, err := deps.MFA.ListRecoveryCodes(userID)
+	authenticators, err := deps.Authenticators.List(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	byTarget := func(am config.AuthenticationFlowAuthentication, targetStepName string) error {
+	findIdentity := func(targetStepName string) (*identity.Info, error) {
 		// Find the target step from the root.
 		targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		target, ok := targetStepFlow.Intent.(IntentLoginFlowStepAuthenticateTarget)
 		if !ok {
-			return InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
+			return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
 				"target_step": targetStepName,
 			})
 		}
 
-		identityInfo := target.GetIdentity(ctx, deps, flows.Replace(targetStepFlow))
+		info := target.GetIdentity(ctx, deps, flows.Replace(targetStepFlow))
 
-		allAllowed := []config.AuthenticationFlowAuthentication{am}
-		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(am), IsDependentOf(identityInfo))
-		moreOptions, err := getAuthenticationOptions(deps, userID, filteredInfos, recoveryCodes, allAllowed)
-		if err != nil {
-			return err
-		}
-
-		options = append(options, moreOptions...)
-		return nil
+		return info, nil
 	}
 
-	byUser := func(am config.AuthenticationFlowAuthentication) error {
-		allAllowed := []config.AuthenticationFlowAuthentication{am}
-		filteredInfos := authenticator.ApplyFilters(infos, KeepAuthenticationMethod(allAllowed...))
-		moreOptions, err := getAuthenticationOptions(deps, userID, filteredInfos, recoveryCodes, allAllowed)
-		if err != nil {
-			return err
-		}
-		options = append(options, moreOptions...)
-		return nil
-	}
+	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
+	primaryPasskeys := authenticator.ApplyFilters(authenticators,
+		authenticator.KeepKind(model.AuthenticatorKindPrimary),
+		authenticator.KeepType(model.AuthenticatorTypePasskey),
+	)
+
+	isOptional := step.IsOptional()
+	userHasSomeSecondaryAuthenticators := len(secondaryAuthenticators) > 0
+	userHasPrimaryPasskeys := len(primaryPasskeys) > 0
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
@@ -197,122 +187,170 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 			// Device token is handled transparently.
 			break
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
-			fallthrough
+			options = useAuthenticationOptionAddRecoveryCodes(options, isOptional, userHasSomeSecondaryAuthenticators)
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
-			fallthrough
+			options = useAuthenticationOptionAddPrimaryPassword(options)
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			err := byUser(branch.Authentication)
+			options, err = useAuthenticationOptionAddPasskey(options, deps, userID, userHasPrimaryPasskeys)
 			if err != nil {
 				return nil, err
 			}
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			options = useAuthenticationOptionAddSecondaryPassword(options, isOptional, userHasSomeSecondaryAuthenticators)
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			options = useAuthenticationOptionAddTOTP(options, isOptional, userHasSomeSecondaryAuthenticators)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			fallthrough
+			if targetStepName := branch.TargetStep; targetStepName != "" {
+				info, err := findIdentity(targetStepName)
+				if err != nil {
+					return nil, err
+				}
+
+				options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, branch.Authentication, info)
+			} else {
+				options = useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options, deps, branch.Authentication, identities)
+			}
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			if targetStepName := branch.TargetStep; targetStepName != "" {
-				err := byTarget(branch.Authentication, targetStepName)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				err := byUser(branch.Authentication)
-				if err != nil {
-					return nil, err
-				}
-			}
+			options = useAuthenticationOptionAddSecondaryOOBOTP(options, deps, branch.Authentication, authenticators)
 		}
 	}
 
 	return options, nil
 }
 
-func getAuthenticationOptions(deps *authflow.Dependencies, userID string, as []*authenticator.Info, recoveryCodes []*mfa.RecoveryCode, allAllowed []config.AuthenticationFlowAuthentication) (allUsable []UseAuthenticationOption, err error) {
-	addPrimaryPassword := func() {
-		count := len(as)
-		allUsable = append(allUsable, NewUseAuthenticationOptionPassword(
-			config.AuthenticationFlowAuthenticationPrimaryPassword,
-			count,
+func useAuthenticationOptionAddRecoveryCodes(options []UseAuthenticationOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []UseAuthenticationOption {
+	shouldAdd := false
+	switch {
+	case !isOptional:
+		// We always add recovery_code even though the end-user does not actually has any.
+		// One case that this situation will happen:
+		// 1. The project makes 2FA required, disable recovery code, and enable TOTP.
+		// 2. Alice enrolls TOTP. She does not have recovery code.
+		// 3. The project enables recovery code.
+		//
+		// Alice can still use her TOTP.
+		shouldAdd = true
+	case isOptional && userHasSomeSecondaryAuthenticators:
+		shouldAdd = true
+	}
+
+	if shouldAdd {
+		options = append(options, NewUseAuthenticationOptionRecoveryCode())
+	}
+
+	return options
+}
+
+func useAuthenticationOptionAddPrimaryPassword(options []UseAuthenticationOption) []UseAuthenticationOption {
+	// We always add primary_password even though the end-user does not actually has one.
+	// Showing this branch is necessary to convince the frontend to show a primary password page, where
+	// the end-user can trigger account recovery flow and create a new password.
+	options = append(options, NewUseAuthenticationOptionPassword(
+		config.AuthenticationFlowAuthenticationPrimaryPassword),
+	)
+	return options
+}
+
+func useAuthenticationOptionAddSecondaryPassword(options []UseAuthenticationOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []UseAuthenticationOption {
+	shouldAdd := false
+	switch {
+	case !isOptional:
+		// We always add secondary_password even though the end-user does not actually has one.
+		// One case that this situation will happen:
+		// 1. The project makes 2FA required, and enable TOTP.
+		// 2. Alice enrolls TOTP.
+		// 3. The project enables secondary password, and disable TOTP.
+		// 4. Alice does not have secondary password.
+		//
+		// If recovery code is also disabled, Alice is locked out.
+		shouldAdd = true
+	case isOptional && userHasSomeSecondaryAuthenticators:
+		shouldAdd = true
+	}
+
+	if shouldAdd {
+		options = append(options, NewUseAuthenticationOptionPassword(
+			config.AuthenticationFlowAuthenticationSecondaryPassword,
 		))
 	}
 
-	addPasskeyIfPresent := func() error {
-		if len(as) > 0 {
-			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
-			if err != nil {
-				return err
+	return options
+}
+
+func useAuthenticationOptionAddTOTP(options []UseAuthenticationOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []UseAuthenticationOption {
+	shouldAdd := false
+	switch {
+	case !isOptional:
+		// We always add secondary_totp even though the end-user does not actually has one.
+		// One case that this situation will happen:
+		// 1. The project makes 2FA required, and enable OOBOTP.
+		// 2. Alice enrolls OOBOTP with her phone number.
+		// 3. The project enables TOTP.
+		// 4. Alice does not have TOTP.
+		//
+		// Alice can still use her OOBOTP with phone number.
+		shouldAdd = true
+	case isOptional && userHasSomeSecondaryAuthenticators:
+		shouldAdd = true
+	}
+
+	if shouldAdd {
+		options = append(options, NewUseAuthenticationOptionTOTP())
+	}
+
+	return options
+}
+
+func useAuthenticationOptionAddPasskey(options []UseAuthenticationOption, deps *authflow.Dependencies, userID string, userHasPrimaryPasskeys bool) ([]UseAuthenticationOption, error) {
+	// We only add primary_passkey when the end-user has at least one passkey.
+	if !userHasPrimaryPasskeys {
+		return options, nil
+	}
+
+	requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	options = append(options, NewUseAuthenticationOptionPasskey(requestOptions))
+	return options, nil
+}
+
+func useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options []UseAuthenticationOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info) []UseAuthenticationOption {
+	option, ok := NewUseAuthenticationOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info)
+	if !ok {
+		return options
+	}
+
+	if option.Authentication != authentication {
+		return options
+	}
+
+	options = append(options, *option)
+	return options
+}
+
+func useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options []UseAuthenticationOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*identity.Info) []UseAuthenticationOption {
+	for _, info := range infos {
+		options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info)
+	}
+
+	return options
+}
+
+func useAuthenticationOptionAddSecondaryOOBOTP(options []UseAuthenticationOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info) []UseAuthenticationOption {
+	for _, info := range infos {
+		if option, ok := NewUseAuthenticationOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info); ok {
+			if option.Authentication == authentication {
+				options = append(options, *option)
 			}
-
-			allUsable = append(allUsable, NewUseAuthenticationOptionPasskey(requestOptions))
-		}
-		return nil
-	}
-
-	addSecondaryPasswordIfPresent := func() {
-		count := len(as)
-		if count > 0 {
-			allUsable = append(allUsable, NewUseAuthenticationOptionPassword(
-				config.AuthenticationFlowAuthenticationSecondaryPassword,
-				count,
-			))
 		}
 	}
-
-	addTOTPIfPresent := func() {
-		if len(as) > 0 {
-			allUsable = append(allUsable, NewUseAuthenticationOptionTOTP())
-		}
-	}
-
-	addAllOOBOTP := func() {
-		for _, a := range as {
-			option := NewUseAuthenticationOptionOOBOTP(deps.Config.Authenticator.OOB, a)
-			allUsable = append(allUsable, option)
-		}
-	}
-
-	addRecoveryCodeIfPresent := func() {
-		if len(recoveryCodes) > 0 {
-			allUsable = append(allUsable, NewUseAuthenticationOptionRecoveryCode())
-		}
-	}
-
-	for _, allowed := range allAllowed {
-		switch allowed {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
-			addPrimaryPassword()
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			err = addPasskeyIfPresent()
-			if err != nil {
-				return
-			}
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			addSecondaryPasswordIfPresent()
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			addAllOOBOTP()
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			addTOTPIfPresent()
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
-			addRecoveryCodeIfPresent()
-		case config.AuthenticationFlowAuthenticationDeviceToken:
-			// Device token is handled transparently.
-			break
-		}
-	}
-
-	return
+	return options
 }
 
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {

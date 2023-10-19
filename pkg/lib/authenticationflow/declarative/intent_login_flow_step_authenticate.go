@@ -115,7 +115,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		return nil, nil
 	case !authenticationMethodSelected:
 		if len(i.Options) == 0 {
-			if step.Optional != nil && *step.Optional {
+			if step.IsOptional() {
 				// Skip this step and any nested step.
 				return nil, authflow.ErrEOF
 			}
