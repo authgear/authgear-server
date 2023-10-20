@@ -173,14 +173,9 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 	}
 
 	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
-	primaryPasskeys := authenticator.ApplyFilters(authenticators,
-		authenticator.KeepKind(model.AuthenticatorKindPrimary),
-		authenticator.KeepType(model.AuthenticatorTypePasskey),
-	)
 
 	isOptional := step.IsOptional()
 	userHasSomeSecondaryAuthenticators := len(secondaryAuthenticators) > 0
-	userHasPrimaryPasskeys := len(primaryPasskeys) > 0
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
@@ -192,7 +187,7 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			options = useAuthenticationOptionAddPrimaryPassword(options)
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			options, err = useAuthenticationOptionAddPasskey(options, deps, userID, userHasPrimaryPasskeys)
+			options, err = useAuthenticationOptionAddPasskey(options, deps, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -306,12 +301,7 @@ func useAuthenticationOptionAddTOTP(options []UseAuthenticationOption, isOptiona
 	return options
 }
 
-func useAuthenticationOptionAddPasskey(options []UseAuthenticationOption, deps *authflow.Dependencies, userID string, userHasPrimaryPasskeys bool) ([]UseAuthenticationOption, error) {
-	// We only add primary_passkey when the end-user has at least one passkey.
-	if !userHasPrimaryPasskeys {
-		return options, nil
-	}
-
+func useAuthenticationOptionAddPasskey(options []UseAuthenticationOption, deps *authflow.Dependencies, userID string) ([]UseAuthenticationOption, error) {
 	requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
 	if err != nil {
 		return nil, err
