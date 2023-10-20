@@ -43,6 +43,8 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 	}
 
 	info, _, err := ctx.Authenticators.VerifyOneWithSpec(
+		graph.MustGetUserID(),
+		model.AuthenticatorTypeTOTP,
 		e.Authenticators,
 		spec,
 		&facade.VerifyOptions{

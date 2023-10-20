@@ -80,6 +80,8 @@ func (n *NodeUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.Dep
 		}
 
 		authenticatorInfo, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
+			userID,
+			model.AuthenticatorTypePasskey,
 			authenticators,
 			authenticatorSpec,
 			&facade.VerifyOptions{
