@@ -14,7 +14,7 @@ import (
 
 type InputSchemaLoginFlowStepAuthenticate struct {
 	JSONPointer        jsonpointer.T
-	Options            []UseAuthenticationOption
+	Options            []AuthenticateOption
 	DeviceTokenEnabled bool
 }
 

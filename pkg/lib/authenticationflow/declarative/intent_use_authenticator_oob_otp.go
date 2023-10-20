@@ -138,7 +138,7 @@ func (*IntentUseAuthenticatorOOBOTP) step(o config.AuthenticationFlowObject) *co
 	return step
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []UseAuthenticationOption, index int) (info *authenticator.Info, isNew bool, err error) {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []AuthenticateOption, index int) (info *authenticator.Info, isNew bool, err error) {
 	for idx, c := range options {
 		if idx == index {
 			switch {

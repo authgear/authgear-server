@@ -62,7 +62,7 @@ func newAuthflowBranchViewModelLoginFlow(screen *webapp.AuthflowScreenWithFlowRe
 
 	branches := []AuthflowBranch{}
 
-	addIndexBranch := func(idx int, o declarative.UseAuthenticationOption) {
+	addIndexBranch := func(idx int, o declarative.AuthenticateOption) {
 		branch := AuthflowBranch{
 			Authentication: o.Authentication,
 			Index:          idx,
@@ -72,7 +72,7 @@ func newAuthflowBranchViewModelLoginFlow(screen *webapp.AuthflowScreenWithFlowRe
 		}
 	}
 
-	addChannelBranch := func(idx int, o declarative.UseAuthenticationOption) {
+	addChannelBranch := func(idx int, o declarative.AuthenticateOption) {
 		for _, channel := range o.Channels {
 			branch := AuthflowBranch{
 				Authentication:   o.Authentication,
