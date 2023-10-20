@@ -15,7 +15,7 @@ func init() {
 }
 
 type IntentRequestAccountRecoveryFlowStepIdentifyData struct {
-	Options []IdentificationOption `json:"options"`
+	Options []AccountRecoveryIdentificationOption `json:"options"`
 }
 
 var _ authflow.Data = IntentRequestAccountRecoveryFlowStepIdentifyData{}
@@ -23,9 +23,9 @@ var _ authflow.Data = IntentRequestAccountRecoveryFlowStepIdentifyData{}
 func (IntentRequestAccountRecoveryFlowStepIdentifyData) Data() {}
 
 type IntentRequestAccountRecoveryFlowStepIdentify struct {
-	JSONPointer jsonpointer.T          `json:"json_pointer,omitempty"`
-	StepName    string                 `json:"step_name,omitempty"`
-	Options     []IdentificationOption `json:"options"`
+	JSONPointer jsonpointer.T                         `json:"json_pointer,omitempty"`
+	StepName    string                                `json:"step_name,omitempty"`
+	Options     []AccountRecoveryIdentificationOption `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentRequestAccountRecoveryFlowStepIdentify{}
@@ -48,13 +48,13 @@ func NewIntentRequestAccountRecoveryFlowStepIdentify(ctx context.Context, deps *
 	}
 	step := i.step(current)
 
-	options := []IdentificationOption{}
+	options := []AccountRecoveryIdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
 		case config.AuthenticationFlowRequestAccountRecoveryIdentificationEmail:
 			fallthrough
 		case config.AuthenticationFlowRequestAccountRecoveryIdentificationPhone:
-			c := NewIdentificationOptionLoginID(b.Identification.AuthenticationFlowIdentification())
+			c := AccountRecoveryIdentificationOption{Identification: b.Identification}
 			options = append(options, c)
 		}
 	}
@@ -70,7 +70,7 @@ func (*IntentRequestAccountRecoveryFlowStepIdentify) Kind() string {
 func (i *IntentRequestAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
-		return &InputSchemaStepIdentify{
+		return &InputSchemaStepAccountRecoveryIdentify{
 			JSONPointer: i.JSONPointer,
 			Options:     i.Options,
 		}, nil
@@ -96,22 +96,23 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Conte
 	step := i.step(current)
 
 	if len(flows.Nearest.Nodes) == 0 {
-		var inputTakeIdentificationMethod inputTakeIdentificationMethod
-		if authflow.AsInput(input, &inputTakeIdentificationMethod) {
-			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
+		var inputTakeAccountRecoveryIdentificationMethod inputTakeAccountRecoveryIdentificationMethod
+		if authflow.AsInput(input, &inputTakeAccountRecoveryIdentificationMethod) {
+			identification := inputTakeAccountRecoveryIdentificationMethod.GetAccountRecoveryIdentificationMethod()
 			idx, err := i.checkIdentificationMethod(deps, step, identification)
 			if err != nil {
 				return nil, err
 			}
+			branch := step.OneOf[idx]
 
 			switch identification {
-			case config.AuthenticationFlowIdentificationEmail:
+			case config.AuthenticationFlowRequestAccountRecoveryIdentificationEmail:
 				fallthrough
-			case config.AuthenticationFlowIdentificationPhone:
-				// FIXME(tung)
-				return authflow.NewNodeSimple(&NodeUseIdentityLoginID{
+			case config.AuthenticationFlowRequestAccountRecoveryIdentificationPhone:
+				return authflow.NewNodeSimple(&NodeUseAccountRecoveryIdentity{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
+					OnFailure:      branch.OnFailure,
 				}), nil
 			}
 		}
@@ -133,7 +134,7 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Conte
 }
 
 func (i *IntentRequestAccountRecoveryFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentLoginFlowStepIdentifyData{
+	return IntentRequestAccountRecoveryFlowStepIdentifyData{
 		Options: i.Options,
 	}, nil
 }
@@ -150,13 +151,13 @@ func (*IntentRequestAccountRecoveryFlowStepIdentify) step(o config.Authenticatio
 func (*IntentRequestAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 	deps *authflow.Dependencies,
 	step *config.AuthenticationFlowRequestAccountRecoveryFlowStep,
-	im config.AuthenticationFlowIdentification,
+	im config.AuthenticationFlowRequestAccountRecoveryIdentification,
 ) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
 		branch := branch
-		if im == branch.Identification.AuthenticationFlowIdentification() {
+		if im == branch.Identification {
 			idx = index
 		}
 	}
@@ -169,24 +170,24 @@ func (*IntentRequestAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 	return
 }
 
-func (*IntentRequestAccountRecoveryFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowIdentification {
-	m, ok := authflow.FindMilestone[MilestoneIdentificationMethod](w)
+func (*IntentRequestAccountRecoveryFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowRequestAccountRecoveryIdentification {
+	m, ok := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}
 
-	im := m.MilestoneIdentificationMethod()
+	im := m.MilestoneAccountRecoveryIdentificationMethod()
 
 	return im
 }
 
 func (i *IntentRequestAccountRecoveryFlowStepIdentify) jsonPointer(
 	step *config.AuthenticationFlowRequestAccountRecoveryFlowStep,
-	im config.AuthenticationFlowIdentification,
+	im config.AuthenticationFlowRequestAccountRecoveryIdentification,
 ) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
-		if branch.Identification.AuthenticationFlowIdentification() == im {
+		if branch.Identification == im {
 			return authflow.JSONPointerForOneOf(i.JSONPointer, idx)
 		}
 	}
