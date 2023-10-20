@@ -200,8 +200,9 @@ func TestAuthenticationFlowRequestAccountRecoveryFlow(t *testing.T) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
-			So(err, ShouldBeNil)
+			// NOTE(tung): Disable the schema test for now because it was removed from config schema
+			// err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			// So(err, ShouldBeNil)
 
 			var cfg AuthenticationFlowConfig
 			err = json.Unmarshal([]byte(inputJSON), &cfg)
@@ -217,8 +218,9 @@ func TestAuthenticationFlowRequestAccountRecoveryFlow(t *testing.T) {
 			encodedInput, err := json.Marshal(input)
 			So(err, ShouldBeNil)
 
-			err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
-			So(err, ShouldBeNil)
+			// NOTE(tung): Disable the schema test for now because it was removed from config schema
+			// err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			// So(err, ShouldBeNil)
 
 			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
 		}
