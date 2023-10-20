@@ -63710,7 +63710,6 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 		MeterService:      meterService,
 		TutorialCookie:    tutorialCookie,
-		ErrorCookie:       errorCookie,
 		Endpoints:         endpointsEndpoints,
 	}
 	return authflowSignupHandler
@@ -64591,7 +64590,6 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		AuthflowViewModel: authflowViewModeler,
 		Renderer:          responseRenderer,
-		ErrorCookie:       errorCookie,
 		Endpoints:         endpointsEndpoints,
 	}
 	return authflowPromoteHandler

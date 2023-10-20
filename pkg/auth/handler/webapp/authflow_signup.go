@@ -49,7 +49,6 @@ type AuthflowSignupHandler struct {
 	Renderer          Renderer
 	MeterService      MeterService
 	TutorialCookie    TutorialCookie
-	ErrorCookie       ErrorCookie
 	Endpoints         AuthflowSignupEndpointsProvider
 }
 
