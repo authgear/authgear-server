@@ -1202,6 +1202,10 @@ const (
 	AuthenticationFlowRequestAccountRecoveryIdentificationPhone = AuthenticationFlowRequestAccountRecoveryIdentification(AuthenticationFlowIdentificationPhone)
 )
 
+func (i AuthenticationFlowRequestAccountRecoveryIdentification) AuthenticationFlowIdentification() AuthenticationFlowIdentification {
+	return AuthenticationFlowIdentification(i)
+}
+
 type AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure string
 
 const (
