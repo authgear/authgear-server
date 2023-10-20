@@ -47,12 +47,12 @@ signup_flows:
     name: my_step
     one_of:
     - identification: email
-  - type: authenticate
+  - type: create_authenticator
     one_of:
     - authentication: primary_password
   - type: verify
     target_step: my_step
-  - type: user_profile
+  - type: fill_in_user_profile
     user_profile:
     - pointer: /given_name
       required: true

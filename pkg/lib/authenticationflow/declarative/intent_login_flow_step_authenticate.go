@@ -22,8 +22,8 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Options            []UseAuthenticationOption `json:"options"`
-	DeviceTokenEnabled bool                      `json:"device_token_enable"`
+	Options            []AuthenticateOption `json:"options"`
+	DeviceTokenEnabled bool                 `json:"device_token_enable"`
 }
 
 var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -31,10 +31,10 @@ var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
 func (m IntentLoginFlowStepAuthenticateData) Data() {}
 
 type IntentLoginFlowStepAuthenticate struct {
-	JSONPointer jsonpointer.T             `json:"json_pointer,omitempty"`
-	StepName    string                    `json:"step_name,omitempty"`
-	UserID      string                    `json:"user_id,omitempty"`
-	Options     []UseAuthenticationOption `json:"options"`
+	JSONPointer jsonpointer.T        `json:"json_pointer,omitempty"`
+	StepName    string               `json:"step_name,omitempty"`
+	UserID      string               `json:"user_id,omitempty"`
+	Options     []AuthenticateOption `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}

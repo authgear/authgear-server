@@ -5,7 +5,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 )
 
@@ -40,12 +39,9 @@ func (i *IntentLoginFlowStepCheckAccountStatus) ReactTo(ctx context.Context, dep
 		return nil, err
 	}
 
-	checkErr := u.AccountStatus().Check()
-	if checkErr != nil {
-		return authflow.NewNodeSimple(&NodeDidCheckAccountStatus{
-			JSONPointer: i.JSONPointer,
-			Error:       apierrors.AsAPIError(checkErr),
-		}), nil
+	err = u.AccountStatus().Check()
+	if err != nil {
+		return nil, err
 	}
 
 	return authflow.NewNodeSimple(&NodeSentinel{}), nil

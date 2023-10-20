@@ -13,7 +13,7 @@ import (
 
 type InputSchemaUseAuthenticatorOOBOTP struct {
 	JSONPointer jsonpointer.T
-	Options     []UseAuthenticationOption
+	Options     []AuthenticateOption
 }
 
 var _ authflow.InputSchema = &InputSchemaUseAuthenticatorOOBOTP{}

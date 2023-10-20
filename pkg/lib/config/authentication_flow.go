@@ -85,10 +85,10 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"type": "string",
 			"enum": [
 				"identify",
-				"authenticate",
+				"create_authenticator",
 				"verify",
-				"user_profile",
-				"recovery_code",
+				"fill_in_user_profile",
+				"view_recovery_code",
 				"prompt_create_passkey"
 			]
 		}
@@ -115,7 +115,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"if": {
 				"required": ["type"],
 				"properties": {
-					"type": { "const": "authenticate" }
+					"type": { "const": "create_authenticator" }
 				}
 			},
 			"then": {
@@ -146,7 +146,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"if": {
 				"required": ["type"],
 				"properties": {
-					"type": { "const": "user_profile" }
+					"type": { "const": "fill_in_user_profile" }
 				}
 			},
 			"then": {
@@ -624,9 +624,10 @@ type AuthenticationFlowStepType string
 const (
 	AuthenticationFlowStepTypeIdentify               AuthenticationFlowStepType = "identify"
 	AuthenticationFlowStepTypeAuthenticate           AuthenticationFlowStepType = "authenticate"
+	AuthenticationFlowStepTypeCreateAuthenticator    AuthenticationFlowStepType = "create_authenticator"
 	AuthenticationFlowStepTypeVerify                 AuthenticationFlowStepType = "verify"
-	AuthenticationFlowStepTypeUserProfile            AuthenticationFlowStepType = "user_profile"
-	AuthenticationFlowStepTypeRecoveryCode           AuthenticationFlowStepType = "recovery_code"
+	AuthenticationFlowStepTypeFillInUserProfile      AuthenticationFlowStepType = "fill_in_user_profile"
+	AuthenticationFlowStepTypeViewRecoveryCode       AuthenticationFlowStepType = "view_recovery_code"
 	AuthenticationFlowStepTypePromptCreatePasskey    AuthenticationFlowStepType = "prompt_create_passkey"
 	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
 	AuthenticationFlowStepTypeCheckAccountStatus     AuthenticationFlowStepType = "check_account_status"
@@ -664,10 +665,10 @@ type AuthenticationFlowSignupFlowStepType string
 
 const (
 	AuthenticationFlowSignupFlowStepTypeIdentify            = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeIdentify)
-	AuthenticationFlowSignupFlowStepTypeAuthenticate        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeAuthenticate)
+	AuthenticationFlowSignupFlowStepTypeCreateAuthenticator = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeCreateAuthenticator)
 	AuthenticationFlowSignupFlowStepTypeVerify              = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeVerify)
-	AuthenticationFlowSignupFlowStepTypeUserProfile         = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeUserProfile)
-	AuthenticationFlowSignupFlowStepTypeRecoveryCode        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeRecoveryCode)
+	AuthenticationFlowSignupFlowStepTypeFillInUserProfile   = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeFillInUserProfile)
+	AuthenticationFlowSignupFlowStepTypeViewRecoveryCode    = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeViewRecoveryCode)
 	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
 
@@ -679,7 +680,7 @@ type AuthenticationFlowSignupFlowStep struct {
 	OneOf []*AuthenticationFlowSignupFlowOneOf `json:"one_of,omitempty"`
 	// TargetStep is relevant when Type is verify.
 	TargetStep string `json:"target_step,omitempty"`
-	// UserProfile is relevant when Type is user_profile.
+	// UserProfile is relevant when Type is fill_in_user_profile.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
 }
 
@@ -694,7 +695,7 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
 		fallthrough
-	case AuthenticationFlowSignupFlowStepTypeAuthenticate:
+	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
 			v := v

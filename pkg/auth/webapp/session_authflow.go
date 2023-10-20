@@ -153,11 +153,11 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 		if _, ok := flowResponse.Action.Data.(declarative.IntentVerifyClaimData); ok {
 			screen.BranchStateToken = state
 		}
-	case config.AuthenticationFlowStepTypeUserProfile:
-		// user_profile contains NO branches.
+	case config.AuthenticationFlowStepTypeFillInUserProfile:
+		// fill_in_user_profile contains NO branches.
 		break
-	case config.AuthenticationFlowStepTypeRecoveryCode:
-		// recovery_code contains NO branches.
+	case config.AuthenticationFlowStepTypeViewRecoveryCode:
+		// view_recovery_code contains NO branches.
 		break
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		// prompt_create_passkey contains NO branches.
@@ -305,7 +305,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		// The branch taken here is unimportant.
 		return s.takeBranchResultSimple(index)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepAuthenticateData)
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := data.Options[index]
 		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -323,7 +323,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
 					var emptyChannel model.AuthenticatorOOBChannel
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
-						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeAuthenticate) &&
+						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
 							flowResponse.Action.Authentication == config.AuthenticationFlowAuthenticationSecondaryTOTP
 					}
 
@@ -348,7 +348,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 				Input: input,
 				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
-						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeAuthenticate) &&
+						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
 							flowResponse.Action.Authentication == option.Authentication
 					}
 
@@ -525,7 +525,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, result, expectedPath)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepAuthenticateData).Options
+		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
@@ -547,7 +547,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 				default:
 					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
 				}
-			case declarative.IntentSignupFlowStepAuthenticateData:
+			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.advance(AuthflowRouteSetupOOBOTP, result)
 			default:
@@ -570,7 +570,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 				default:
 					panic(fmt.Errorf("unexpected channel: %v", channel))
 				}
-			case declarative.IntentSignupFlowStepAuthenticateData:
+			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.advance(AuthflowRouteSetupOOBOTP, result)
 			default:
@@ -600,9 +600,9 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 		case otp.FormLink:
 			s.advance(AuthflowRouteOOBOTPLink, result)
 		}
-	case config.AuthenticationFlowStepTypeUserProfile:
-		panic(fmt.Errorf("user_profile is not supported yet"))
-	case config.AuthenticationFlowStepTypeRecoveryCode:
+	case config.AuthenticationFlowStepTypeFillInUserProfile:
+		panic(fmt.Errorf("fill_in_user_profile is not supported yet"))
+	case config.AuthenticationFlowStepTypeViewRecoveryCode:
 		s.advance(AuthflowRouteViewRecoveryCode, result)
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		s.advance(AuthflowRoutePromptCreatePasskey, result)

@@ -77,7 +77,7 @@ type inputConfirmRecoveryCode interface {
 	ConfirmRecoveryCode()
 }
 
-type inputFillUserProfile interface {
+type inputFillInUserProfile interface {
 	GetAttributes() []attrs.T
 }
 

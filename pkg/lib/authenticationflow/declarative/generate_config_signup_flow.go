@@ -70,12 +70,12 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 			}
 
 			// Add authenticate step primary if necessary
-			if stepAuthenticatePrimary, ok := generateSignupFlowStepAuthenticatePrimary(cfg, oneOf.Identification); ok {
+			if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
 			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateSignupFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
+			if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 			}
 
@@ -96,12 +96,12 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 			}
 
 			// Add authenticate step primary if necessary
-			if stepAuthenticatePrimary, ok := generateSignupFlowStepAuthenticatePrimary(cfg, oneOf.Identification); ok {
+			if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
 			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateSignupFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
+			if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 			}
 
@@ -116,12 +116,12 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 			// Username cannot be verified.
 
 			// Add authenticate step primary if necessary
-			if stepAuthenticatePrimary, ok := generateSignupFlowStepAuthenticatePrimary(cfg, oneOf.Identification); ok {
+			if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
 			}
 
 			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateSignupFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
+			if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
 				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 			}
 		}
@@ -142,7 +142,7 @@ func generateSignupFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.Authen
 	}
 }
 
-func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
+func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
 	allowed := identification.PrimaryAuthentications()
 
 	// This identification does not require primary authentication.
@@ -157,7 +157,7 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 
 	step := &config.AuthenticationFlowSignupFlowStep{
 		Name: fmt.Sprintf(nameFormatStepAuthenticatePrimary, identification),
-		Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
+		Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 	}
 
 	for _, authenticatorType := range *cfg.Authentication.PrimaryAuthenticators {
@@ -196,7 +196,7 @@ func generateSignupFlowStepAuthenticatePrimary(cfg *config.AppConfig, identifica
 	return step, true
 }
 
-func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
+func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, identification config.AuthenticationFlowIdentification) (*config.AuthenticationFlowSignupFlowStep, bool) {
 	// Do not need this step if mode is not required.
 	if cfg.Authentication.SecondaryAuthenticationMode != config.SecondaryAuthenticationModeRequired {
 		return nil, false
@@ -217,13 +217,13 @@ func generateSignupFlowStepAuthenticateSecondary(cfg *config.AppConfig, identifi
 	var recoveryCodeStep *config.AuthenticationFlowSignupFlowStep
 	if !*cfg.Authentication.RecoveryCode.Disabled {
 		recoveryCodeStep = &config.AuthenticationFlowSignupFlowStep{
-			Type: config.AuthenticationFlowSignupFlowStepTypeRecoveryCode,
+			Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
 		}
 	}
 
 	step := &config.AuthenticationFlowSignupFlowStep{
 		Name: fmt.Sprintf(nameFormatStepAuthenticateSecondary, identification),
-		Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
+		Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 	}
 
 	addOneOf := func(am config.AuthenticationFlowAuthentication) {

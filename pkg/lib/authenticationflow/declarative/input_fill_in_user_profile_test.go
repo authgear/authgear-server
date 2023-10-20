@@ -10,9 +10,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func TestInputSchemaFillUserProfile(t *testing.T) {
-	Convey("InputSchemaFillUserProfile", t, func() {
-		test := func(s *InputSchemaFillUserProfile, rawMessage json.RawMessage, expected error) {
+func TestInputSchemaFillInUserProfile(t *testing.T) {
+	Convey("InputSchemaFillInUserProfile", t, func() {
+		test := func(s *InputSchemaFillInUserProfile, rawMessage json.RawMessage, expected error) {
 			_, err := s.MakeInput(rawMessage)
 			if expected == nil {
 				So(err, ShouldBeNil)
@@ -28,7 +28,7 @@ func TestInputSchemaFillUserProfile(t *testing.T) {
 		}
 
 		// Validate individual value.
-		test(&InputSchemaFillUserProfile{
+		test(&InputSchemaFillInUserProfile{
 			Attributes: attributes,
 		}, json.RawMessage(`{
 			"attributes": [
@@ -40,7 +40,7 @@ func TestInputSchemaFillUserProfile(t *testing.T) {
   map[actual:[integer number] expected:[string]]`))
 
 		// Validate missing required pointers.
-		test(&InputSchemaFillUserProfile{
+		test(&InputSchemaFillInUserProfile{
 			Attributes: attributes,
 		}, json.RawMessage(`{
 			"attributes": [
@@ -51,7 +51,7 @@ func TestInputSchemaFillUserProfile(t *testing.T) {
   map[actual:/given_name expected:/family_name]`))
 
 		// Validate missing required pointers.
-		test(&InputSchemaFillUserProfile{
+		test(&InputSchemaFillInUserProfile{
 			Attributes: attributes,
 		}, json.RawMessage(`{
 			"attributes": [
@@ -62,7 +62,7 @@ func TestInputSchemaFillUserProfile(t *testing.T) {
   map[actual:/family_name expected:/given_name]`))
 
 		// Validate unknown pointers.
-		test(&InputSchemaFillUserProfile{
+		test(&InputSchemaFillInUserProfile{
 			Attributes: attributes,
 		}, json.RawMessage(`{
 			"attributes": [
@@ -75,7 +75,7 @@ func TestInputSchemaFillUserProfile(t *testing.T) {
   map[actual:/unknown expected:[/given_name /family_name /nickname]]`))
 
 		// Valid with required pointer.
-		test(&InputSchemaFillUserProfile{
+		test(&InputSchemaFillInUserProfile{
 			Attributes: attributes,
 		}, json.RawMessage(`{
 			"attributes": [
@@ -85,7 +85,7 @@ func TestInputSchemaFillUserProfile(t *testing.T) {
 		}`), nil)
 
 		// Valid with optional pointer.
-		test(&InputSchemaFillUserProfile{
+		test(&InputSchemaFillInUserProfile{
 			Attributes: attributes,
 		}, json.RawMessage(`{
 			"attributes": [

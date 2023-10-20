@@ -140,8 +140,8 @@ func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference
 	return root, nil
 }
 
-func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]UseAuthenticationOption, error) {
-	options := []UseAuthenticationOption{}
+func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]AuthenticateOption, error) {
+	options := []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(userID)
 	if err != nil {
@@ -218,7 +218,7 @@ func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Depende
 	return options, nil
 }
 
-func useAuthenticationOptionAddRecoveryCodes(options []UseAuthenticationOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []UseAuthenticationOption {
+func useAuthenticationOptionAddRecoveryCodes(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
 	shouldAdd := false
 	switch {
 	case !isOptional:
@@ -235,23 +235,23 @@ func useAuthenticationOptionAddRecoveryCodes(options []UseAuthenticationOption, 
 	}
 
 	if shouldAdd {
-		options = append(options, NewUseAuthenticationOptionRecoveryCode())
+		options = append(options, NewAuthenticateOptionRecoveryCode())
 	}
 
 	return options
 }
 
-func useAuthenticationOptionAddPrimaryPassword(options []UseAuthenticationOption) []UseAuthenticationOption {
+func useAuthenticationOptionAddPrimaryPassword(options []AuthenticateOption) []AuthenticateOption {
 	// We always add primary_password even though the end-user does not actually has one.
 	// Showing this branch is necessary to convince the frontend to show a primary password page, where
 	// the end-user can trigger account recovery flow and create a new password.
-	options = append(options, NewUseAuthenticationOptionPassword(
+	options = append(options, NewAuthenticateOptionPassword(
 		config.AuthenticationFlowAuthenticationPrimaryPassword),
 	)
 	return options
 }
 
-func useAuthenticationOptionAddSecondaryPassword(options []UseAuthenticationOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []UseAuthenticationOption {
+func useAuthenticationOptionAddSecondaryPassword(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
 	shouldAdd := false
 	switch {
 	case !isOptional:
@@ -269,7 +269,7 @@ func useAuthenticationOptionAddSecondaryPassword(options []UseAuthenticationOpti
 	}
 
 	if shouldAdd {
-		options = append(options, NewUseAuthenticationOptionPassword(
+		options = append(options, NewAuthenticateOptionPassword(
 			config.AuthenticationFlowAuthenticationSecondaryPassword,
 		))
 	}
@@ -277,7 +277,7 @@ func useAuthenticationOptionAddSecondaryPassword(options []UseAuthenticationOpti
 	return options
 }
 
-func useAuthenticationOptionAddTOTP(options []UseAuthenticationOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []UseAuthenticationOption {
+func useAuthenticationOptionAddTOTP(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
 	shouldAdd := false
 	switch {
 	case !isOptional:
@@ -295,24 +295,24 @@ func useAuthenticationOptionAddTOTP(options []UseAuthenticationOption, isOptiona
 	}
 
 	if shouldAdd {
-		options = append(options, NewUseAuthenticationOptionTOTP())
+		options = append(options, NewAuthenticateOptionTOTP())
 	}
 
 	return options
 }
 
-func useAuthenticationOptionAddPasskey(options []UseAuthenticationOption, deps *authflow.Dependencies, userID string) ([]UseAuthenticationOption, error) {
+func useAuthenticationOptionAddPasskey(options []AuthenticateOption, deps *authflow.Dependencies, userID string) ([]AuthenticateOption, error) {
 	requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	options = append(options, NewUseAuthenticationOptionPasskey(requestOptions))
+	options = append(options, NewAuthenticateOptionPasskey(requestOptions))
 	return options, nil
 }
 
-func useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options []UseAuthenticationOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info) []UseAuthenticationOption {
-	option, ok := NewUseAuthenticationOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info)
+func useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info) []AuthenticateOption {
+	option, ok := NewAuthenticateOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info)
 	if !ok {
 		return options
 	}
@@ -325,7 +325,7 @@ func useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options []UseAuthenticati
 	return options
 }
 
-func useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options []UseAuthenticationOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*identity.Info) []UseAuthenticationOption {
+func useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*identity.Info) []AuthenticateOption {
 	for _, info := range infos {
 		options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info)
 	}
@@ -333,9 +333,9 @@ func useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options []UseAuthent
 	return options
 }
 
-func useAuthenticationOptionAddSecondaryOOBOTP(options []UseAuthenticationOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info) []UseAuthenticationOption {
+func useAuthenticationOptionAddSecondaryOOBOTP(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info) []AuthenticateOption {
 	for _, info := range infos {
-		if option, ok := NewUseAuthenticationOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info); ok {
+		if option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info); ok {
 			if option.Authentication == authentication {
 				options = append(options, *option)
 			}

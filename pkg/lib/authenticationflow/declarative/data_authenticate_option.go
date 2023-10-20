@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
-type UseAuthenticationOption struct {
+type AuthenticateOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
 	// OTPForm is specific to OOBOTP.
@@ -34,32 +34,32 @@ type UseAuthenticationOption struct {
 	IdentityID string `json:"-"`
 }
 
-func NewUseAuthenticationOptionRecoveryCode() UseAuthenticationOption {
-	return UseAuthenticationOption{
+func NewAuthenticateOptionRecoveryCode() AuthenticateOption {
+	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
 	}
 }
 
-func NewUseAuthenticationOptionPassword(am config.AuthenticationFlowAuthentication) UseAuthenticationOption {
-	return UseAuthenticationOption{
+func NewAuthenticateOptionPassword(am config.AuthenticationFlowAuthentication) AuthenticateOption {
+	return AuthenticateOption{
 		Authentication: am,
 	}
 }
 
-func NewUseAuthenticationOptionPasskey(requestOptions *model.WebAuthnRequestOptions) UseAuthenticationOption {
-	return UseAuthenticationOption{
+func NewAuthenticateOptionPasskey(requestOptions *model.WebAuthnRequestOptions) AuthenticateOption {
+	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationPrimaryPasskey,
 		RequestOptions: requestOptions,
 	}
 }
 
-func NewUseAuthenticationOptionTOTP() UseAuthenticationOption {
-	return UseAuthenticationOption{
+func NewAuthenticateOptionTOTP() AuthenticateOption {
+	return AuthenticateOption{
 		Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
 	}
 }
 
-func NewUseAuthenticationOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) (*UseAuthenticationOption, bool) {
+func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) (*AuthenticateOption, bool) {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
@@ -68,7 +68,7 @@ func NewUseAuthenticationOptionOOBOTPFromAuthenticator(oobConfig *config.Authent
 		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimEmail, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
-		return &UseAuthenticationOption{
+		return &AuthenticateOption{
 			Authentication:    am,
 			OTPForm:           otpForm,
 			Channels:          channels,
@@ -81,7 +81,7 @@ func NewUseAuthenticationOptionOOBOTPFromAuthenticator(oobConfig *config.Authent
 		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
-		return &UseAuthenticationOption{
+		return &AuthenticateOption{
 			Authentication:    am,
 			OTPForm:           otpForm,
 			Channels:          channels,
@@ -93,7 +93,7 @@ func NewUseAuthenticationOptionOOBOTPFromAuthenticator(oobConfig *config.Authent
 	}
 }
 
-func NewUseAuthenticationOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBConfig, i *identity.Info) (*UseAuthenticationOption, bool) {
+func NewAuthenticateOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBConfig, i *identity.Info) (*AuthenticateOption, bool) {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		switch i.LoginID.LoginIDType {
@@ -101,7 +101,7 @@ func NewUseAuthenticationOptionOOBOTPFromIdentity(oobConfig *config.Authenticato
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimEmail, oobConfig)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
-			return &UseAuthenticationOption{
+			return &AuthenticateOption{
 				Authentication:    config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 				OTPForm:           otpForm,
 				Channels:          channels,
@@ -112,7 +112,7 @@ func NewUseAuthenticationOptionOOBOTPFromIdentity(oobConfig *config.Authenticato
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
-			return &UseAuthenticationOption{
+			return &AuthenticateOption{
 				Authentication:    config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
 				OTPForm:           otpForm,
 				Channels:          channels,

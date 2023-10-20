@@ -94,7 +94,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 				return nil, err
 			}
 
-			target, ok := targetStepFlow.Intent.(IntentSignupFlowStepAuthenticateTarget)
+			target, ok := targetStepFlow.Intent.(IntentSignupFlowStepCreateAuthenticatorTarget)
 			if !ok {
 				return nil, InvalidTargetStep.NewWithInfo("invalid target_step", apierrors.Details{
 					"target_step": targetStepName,

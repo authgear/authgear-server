@@ -44,7 +44,6 @@ type AuthflowPromoteHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	AuthflowViewModel *viewmodels.AuthflowViewModeler
 	Renderer          Renderer
-	ErrorCookie       ErrorCookie
 	Endpoints         AuthflowPromoteEndpointsProvider
 }
 

@@ -62,7 +62,7 @@ func (*IntentSignupFlowStepIdentify) GetMessageType(_ context.Context, _ *authfl
 	return otp.MessageTypeVerification
 }
 
-var _ IntentSignupFlowStepAuthenticateTarget = &IntentSignupFlowStepIdentify{}
+var _ IntentSignupFlowStepCreateAuthenticatorTarget = &IntentSignupFlowStepIdentify{}
 
 func (n *IntentSignupFlowStepIdentify) GetOOBOTPClaims(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
 	return n.GetVerifiableClaims(ctx, deps, flows)

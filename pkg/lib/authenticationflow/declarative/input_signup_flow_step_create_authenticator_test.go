@@ -10,15 +10,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-func TestInputSchemaSignupFlowStepAuthenticate(t *testing.T) {
-	Convey("InputSchemaSignupFlowStepAuthenticate", t, func() {
+func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
+	Convey("InputSchemaSignupFlowStepCreateAuthenticator", t, func() {
 		test := func(b validation.SchemaBuilder, expected string) {
 			bytes, err := json.Marshal(b)
 			So(err, ShouldBeNil)
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
 
-		test((&InputSchemaSignupFlowStepAuthenticate{
+		test((&InputSchemaSignupFlowStepCreateAuthenticator{
 			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
