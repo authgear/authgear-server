@@ -231,11 +231,14 @@ request_account_recovery_flows:
       one_of:
       - identification: email
         on_failure: ignore
-        enumerate_destinations: true
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
       - identification: phone
         on_failure: ignore
-        enumerate_destinations: true
-    - type: select_destination
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
 `)
 	})
 }

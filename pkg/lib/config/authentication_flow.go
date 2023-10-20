@@ -535,6 +535,21 @@ var _ = Schema.Add("AuthenticationFlowRequestAccountRecoveryFlowStep", `
 					}
 				}
 			}
+		},
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "select_destination" }
+				}
+			},
+			"then": {
+				"properties": {
+					"enumerate_destinations": {
+						"type": "boolean"
+					}
+				}
+			}
 		}
 	]
 }
@@ -547,7 +562,11 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowOneOf", `
 	"properties": {
 		"identification": { "$ref": "#/$defs/AuthenticationFlowRequestAccountRecoveryIdentification" },
 		"on_failure": { "type": "string", "enum": [ "error", "ignore"] },
-		"enumerate_destinations": { "type": "boolean" }
+		"steps": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/AuthenticationFlowRequestAccountRecoveryFlowStep" }
+		}
 	}
 }
 `)
@@ -1108,6 +1127,8 @@ type AuthenticationFlowRequestAccountRecoveryFlowStep struct {
 	Type AuthenticationFlowAccountRecoveryFlowType `json:"type,omitempty"`
 	// OneOf is relevant when Type is identify.
 	OneOf []*AuthenticationFlowAccountRecoveryFlowOneOf `json:"one_of,omitempty"`
+	// EnumerateDestinations is specific to select_destination.
+	EnumerateDestinations bool `json:"enumerate_destinations,omitempty"`
 }
 
 type AuthenticationFlowAccountRecoveryFlowType string
@@ -1118,12 +1139,9 @@ const (
 )
 
 type AuthenticationFlowAccountRecoveryFlowOneOf struct {
-	// Identification is specific to identify.
-	Identification AuthenticationFlowRequestAccountRecoveryIdentification `json:"identification,omitempty"`
-	// OnFailure is specific to identify.
-	OnFailure AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
-	// EnumerateDestinations is specific to identify.
-	EnumerateDestinations bool `json:"enumerate_destinations,omitempty"`
+	Identification AuthenticationFlowRequestAccountRecoveryIdentification          `json:"identification,omitempty"`
+	OnFailure      AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
+	Steps          []*AuthenticationFlowRequestAccountRecoveryFlowStep             `json:"steps,omitempty"`
 }
 
 type AuthenticationFlowRequestAccountRecoveryIdentification string
