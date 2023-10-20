@@ -37,7 +37,7 @@ func (h *AuthflowViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepRecoveryCodeData)
+	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepViewRecoveryCodeData)
 
 	screenViewModel := AuthflowViewRecoveryCodeViewModel{
 		RecoveryCodes: formatRecoveryCodes(screenData.RecoveryCodes),

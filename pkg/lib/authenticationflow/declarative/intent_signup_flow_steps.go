@@ -77,8 +77,8 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
-	case config.AuthenticationFlowSignupFlowStepTypeRecoveryCode:
-		return authflow.NewSubFlow(NewIntentSignupFlowStepRecoveryCode(deps, &IntentSignupFlowStepRecoveryCode{
+	case config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode:
+		return authflow.NewSubFlow(NewIntentSignupFlowStepViewRecoveryCode(deps, &IntentSignupFlowStepViewRecoveryCode{
 			StepName:    step.Name,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,

@@ -217,7 +217,7 @@ steps:
       one_of:
       - authentication: secondary_totp
         steps:
-        - type: recovery_code
+        - type: view_recovery_code
 `)
 
 		// email,password, phone

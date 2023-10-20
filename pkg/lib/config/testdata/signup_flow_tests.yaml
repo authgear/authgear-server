@@ -18,7 +18,7 @@ value:
     user_profile:
     - pointer: /given_name
       required: true
-  - type: recovery_code
+  - type: view_recovery_code
 
 ---
 part: AuthenticationFlowSignupFlow
@@ -36,7 +36,7 @@ error: |-
   /steps/2/user_profile/0/pointer: format
     map[error:0: expecting / but found: "g" format:json-pointer]
   /steps/3/type: enum
-    map[actual:foobar expected:[identify create_authenticator verify user_profile recovery_code prompt_create_passkey]]
+    map[actual:foobar expected:[identify create_authenticator verify user_profile view_recovery_code prompt_create_passkey]]
 value:
   name: id
   steps:
