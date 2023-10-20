@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type CreateAuthenticationOption struct {
+type CreateAuthenticatorOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
 	// OTPForm is specific to OOBOTP.
@@ -19,8 +19,8 @@ type CreateAuthenticationOption struct {
 	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
 }
 
-func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep) []CreateAuthenticationOption {
-	options := []CreateAuthenticationOption{}
+func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep) []CreateAuthenticatorOption {
+	options := []CreateAuthenticatorOption{}
 	passwordPolicy := NewPasswordPolicy(
 		deps.FeatureConfig.Authenticator,
 		deps.Config.Authenticator.Password.Policy,
@@ -30,7 +30,7 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			options = append(options, CreateAuthenticationOption{
+			options = append(options, CreateAuthenticatorOption{
 				Authentication: b.Authentication,
 				PasswordPolicy: passwordPolicy,
 			})
@@ -43,7 +43,7 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimEmail, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimEmail, deps.Config.Authenticator.OOB.Email)
-			options = append(options, CreateAuthenticationOption{
+			options = append(options, CreateAuthenticatorOption{
 				Authentication: b.Authentication,
 				OTPForm:        otpForm,
 				Channels:       channels,
@@ -54,13 +54,13 @@ func NewCreateAuthenticationOptions(deps *authflow.Dependencies, step *config.Au
 			purpose := otp.PurposeOOBOTP
 			channels := getChannels(model.ClaimPhoneNumber, deps.Config.Authenticator.OOB)
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
-			options = append(options, CreateAuthenticationOption{
+			options = append(options, CreateAuthenticatorOption{
 				Authentication: b.Authentication,
 				OTPForm:        otpForm,
 				Channels:       channels,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			options = append(options, CreateAuthenticationOption{
+			options = append(options, CreateAuthenticatorOption{
 				Authentication: b.Authentication,
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:

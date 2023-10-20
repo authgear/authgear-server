@@ -54,7 +54,7 @@ func (h *AuthflowCreatePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepAuthenticateData)
+	screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 	option := screenData.Options[index]
 	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
 	isPrimary := authenticationStage == authn.AuthenticationStagePrimary
@@ -103,7 +103,7 @@ func (h *AuthflowCreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.IntentSignupFlowStepAuthenticateData)
+		data := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := data.Options[index]
 
 		newPlainPassword := r.Form.Get("x_password")

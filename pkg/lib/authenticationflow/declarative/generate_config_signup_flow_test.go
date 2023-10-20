@@ -56,7 +56,7 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
 `)
@@ -83,7 +83,7 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_oob_otp_email
         target_step: identify
@@ -111,7 +111,7 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_phone
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_oob_otp_sms
         target_step: identify
@@ -137,7 +137,7 @@ steps:
   - identification: username
     steps:
     - name: authenticate_primary_username
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
 `)
@@ -167,7 +167,7 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
       - authentication: primary_oob_otp_email
@@ -177,7 +177,7 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_phone
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
       - authentication: primary_oob_otp_sms
@@ -209,11 +209,11 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
     - name: authenticate_secondary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: secondary_totp
         steps:
@@ -247,11 +247,11 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
     - name: authenticate_secondary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: secondary_oob_otp_sms
 `)
@@ -309,11 +309,11 @@ steps:
     - target_step: identify
       type: verify
     - name: authenticate_primary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: primary_password
     - name: authenticate_secondary_email
-      type: authenticate
+      type: create_authenticator
       one_of:
       - authentication: secondary_totp
   - identification: oauth

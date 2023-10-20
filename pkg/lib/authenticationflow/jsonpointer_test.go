@@ -28,13 +28,13 @@ var fixtureSignupFlow *config.AuthenticationFlowSignupFlow = &config.Authenticat
 			TargetStep: "step0",
 		},
 		{
-			Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
+			Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 					Steps: []*config.AuthenticationFlowSignupFlowStep{
 						{
-							Type: config.AuthenticationFlowSignupFlowStepTypeAuthenticate,
+							Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 							OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 								{
 									Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,

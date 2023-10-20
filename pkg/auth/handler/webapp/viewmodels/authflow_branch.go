@@ -38,7 +38,7 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 		case declarative.IntentLoginFlowStepAuthenticateData:
 			deviceTokenEnabled = branchData.DeviceTokenEnabled
 			branches = newAuthflowBranchViewModelLoginFlow(screen, branchData)
-		case declarative.IntentSignupFlowStepAuthenticateData:
+		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
 			branches = newAuthflowBranchViewModelSignupFlow(screen, branchData)
 		case declarative.IntentVerifyClaimData:
 			branches = newAuthflowBranchViewModelVerify(screen, branchData)
@@ -114,7 +114,7 @@ func newAuthflowBranchViewModelLoginFlow(screen *webapp.AuthflowScreenWithFlowRe
 	return branches
 }
 
-func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepAuthenticateData) []AuthflowBranch {
+func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepCreateAuthenticatorData) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
@@ -124,7 +124,7 @@ func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowR
 
 	branches := []AuthflowBranch{}
 
-	addIndexBranch := func(idx int, o declarative.CreateAuthenticationOption) {
+	addIndexBranch := func(idx int, o declarative.CreateAuthenticatorOption) {
 		branch := AuthflowBranch{
 			Authentication: o.Authentication,
 			Index:          idx,
@@ -134,7 +134,7 @@ func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowR
 		}
 	}
 
-	addChannelBranch := func(idx int, o declarative.CreateAuthenticationOption) {
+	addChannelBranch := func(idx int, o declarative.CreateAuthenticatorOption) {
 		for _, channel := range o.Channels {
 			branch := AuthflowBranch{
 				Authentication:   o.Authentication,
