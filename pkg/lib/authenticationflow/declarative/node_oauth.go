@@ -14,14 +14,6 @@ func init() {
 	authflow.RegisterNode(&NodeOAuth{})
 }
 
-type NodeOAuthData struct {
-	OAuthAuthorizationURL string `json:"oauth_authorization_url,omitempty"`
-}
-
-var _ authflow.Data = NodeOAuthData{}
-
-func (NodeOAuthData) Data() {}
-
 type NodeOAuth struct {
 	JSONPointer  jsonpointer.T    `json:"json_pointer,omitempty"`
 	NewUserID    string           `json:"new_user_id,omitempty"`
@@ -72,7 +64,7 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 }
 
 func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
+	data, err := getOAuthData(ctx, deps, GetOAuthDataOptions{
 		RedirectURI:  n.RedirectURI,
 		Alias:        n.Alias,
 		ResponseMode: n.ResponseMode,
@@ -81,9 +73,7 @@ func (n *NodeOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies,
 		return nil, err
 	}
 
-	return NodeOAuthData{
-		OAuthAuthorizationURL: authorizationURL,
-	}, nil
+	return data, nil
 }
 
 func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, spec *identity.Spec) (*authflow.Node, error) {

@@ -711,32 +711,27 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, r
 		result.NavigationAction = "replace"
 		result.RedirectURI = u.String()
 	case config.AuthenticationFlowIdentificationOAuth:
-		// Redirect to the external OAuth provider.
-		var authorizationURLStr string
-		switch data := s.StateTokenFlowResponse.Action.Data.(type) {
-		case declarative.NodeOAuthData:
-			authorizationURLStr = data.OAuthAuthorizationURL
-		case declarative.NodeLookupIdentityOAuthData:
-			authorizationURLStr = data.OAuthAuthorizationURL
-		case declarative.NodePromoteIdentityOAuthData:
-			authorizationURLStr = data.OAuthAuthorizationURL
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.OAuthData)
+
+		switch data.OAuthProviderType {
+		case config.OAuthSSOProviderTypeWechat:
+			s.advance(AuthflowRouteWechat, result)
 		default:
-			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+			authorizationURL, _ := url.Parse(data.OAuthAuthorizationURL)
+			q := authorizationURL.Query()
+
+			state := AuthflowOAuthState{
+				XStep:            s.Screen.StateToken.XStep,
+				ErrorRedirectURI: expectedPath,
+			}
+
+			q.Set("state", state.Encode())
+			authorizationURL.RawQuery = q.Encode()
+
+			result.NavigationAction = "redirect"
+			result.RedirectURI = authorizationURL.String()
 		}
 
-		authorizationURL, _ := url.Parse(authorizationURLStr)
-		q := authorizationURL.Query()
-
-		state := AuthflowOAuthState{
-			XStep:            s.Screen.StateToken.XStep,
-			ErrorRedirectURI: expectedPath,
-		}
-
-		q.Set("state", state.Encode())
-		authorizationURL.RawQuery = q.Encode()
-
-		result.NavigationAction = "redirect"
-		result.RedirectURI = authorizationURL.String()
 	default:
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}

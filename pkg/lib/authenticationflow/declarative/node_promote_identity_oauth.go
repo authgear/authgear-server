@@ -15,14 +15,6 @@ func init() {
 	authflow.RegisterNode(&NodePromoteIdentityOAuth{})
 }
 
-type NodePromoteIdentityOAuthData struct {
-	OAuthAuthorizationURL string `json:"oauth_authorization_url,omitempty"`
-}
-
-var _ authflow.Data = NodePromoteIdentityOAuthData{}
-
-func (NodePromoteIdentityOAuthData) Data() {}
-
 type NodePromoteIdentityOAuth struct {
 	JSONPointer    jsonpointer.T      `json:"json_pointer,omitempty"`
 	UserID         string             `json:"user_id,omitempty"`
@@ -98,7 +90,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 }
 
 func (n *NodePromoteIdentityOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
+	data, err := getOAuthData(ctx, deps, GetOAuthDataOptions{
 		RedirectURI:  n.RedirectURI,
 		Alias:        n.Alias,
 		ResponseMode: n.ResponseMode,
@@ -107,7 +99,5 @@ func (n *NodePromoteIdentityOAuth) OutputData(ctx context.Context, deps *authflo
 		return nil, err
 	}
 
-	return NodePromoteIdentityOAuthData{
-		OAuthAuthorizationURL: authorizationURL,
-	}, nil
+	return data, nil
 }
