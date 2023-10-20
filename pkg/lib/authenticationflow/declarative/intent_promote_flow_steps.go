@@ -73,8 +73,8 @@ func (i *IntentPromoteFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dep
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,
 		}), nil
-	case config.AuthenticationFlowSignupFlowStepTypeAuthenticate:
-		return authflow.NewSubFlow(&IntentSignupFlowStepAuthenticate{
+	case config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
+		return authflow.NewSubFlow(&IntentSignupFlowStepCreateAuthenticator{
 			StepName:    step.Name,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:      i.UserID,

@@ -10,18 +10,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type InputSchemaSignupFlowStepAuthenticate struct {
+type InputSchemaSignupFlowStepCreateAuthenticator struct {
 	JSONPointer jsonpointer.T
 	OneOf       []*config.AuthenticationFlowSignupFlowOneOf
 }
 
-var _ authflow.InputSchema = &InputSchemaSignupFlowStepAuthenticate{}
+var _ authflow.InputSchema = &InputSchemaSignupFlowStepCreateAuthenticator{}
 
-func (i *InputSchemaSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
+func (i *InputSchemaSignupFlowStepCreateAuthenticator) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-func (i *InputSchemaSignupFlowStepAuthenticate) SchemaBuilder() validation.SchemaBuilder {
+func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
 	for _, branch := range i.OneOf {
@@ -68,8 +68,8 @@ func (i *InputSchemaSignupFlowStepAuthenticate) SchemaBuilder() validation.Schem
 	return validation.SchemaBuilder{}.Type(validation.TypeObject).OneOf(oneOf...)
 }
 
-func (i *InputSchemaSignupFlowStepAuthenticate) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
-	var input InputSignupFlowStepAuthenticate
+func (i *InputSchemaSignupFlowStepCreateAuthenticator) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+	var input InputSignupFlowStepCreateAuthenticator
 	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
 	if err != nil {
 		return nil, err
@@ -77,27 +77,27 @@ func (i *InputSchemaSignupFlowStepAuthenticate) MakeInput(rawMessage json.RawMes
 	return &input, nil
 }
 
-type InputSignupFlowStepAuthenticate struct {
+type InputSignupFlowStepCreateAuthenticator struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	NewPassword    string                                  `json:"new_password,omitempty"`
 	Target         string                                  `json:"target,omitempty"`
 }
 
-var _ authflow.Input = &InputSignupFlowStepAuthenticate{}
-var _ inputTakeAuthenticationMethod = &InputSignupFlowStepAuthenticate{}
-var _ inputTakeOOBOTPTarget = &InputSignupFlowStepAuthenticate{}
-var _ inputTakeNewPassword = &InputSignupFlowStepAuthenticate{}
+var _ authflow.Input = &InputSignupFlowStepCreateAuthenticator{}
+var _ inputTakeAuthenticationMethod = &InputSignupFlowStepCreateAuthenticator{}
+var _ inputTakeOOBOTPTarget = &InputSignupFlowStepCreateAuthenticator{}
+var _ inputTakeNewPassword = &InputSignupFlowStepCreateAuthenticator{}
 
-func (i *InputSignupFlowStepAuthenticate) Input() {}
+func (i *InputSignupFlowStepCreateAuthenticator) Input() {}
 
-func (i *InputSignupFlowStepAuthenticate) GetAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (i *InputSignupFlowStepCreateAuthenticator) GetAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return i.Authentication
 }
 
-func (i *InputSignupFlowStepAuthenticate) GetTarget() string {
+func (i *InputSignupFlowStepCreateAuthenticator) GetTarget() string {
 	return i.Target
 }
 
-func (i *InputSignupFlowStepAuthenticate) GetNewPassword() string {
+func (i *InputSignupFlowStepCreateAuthenticator) GetNewPassword() string {
 	return i.NewPassword
 }

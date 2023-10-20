@@ -85,7 +85,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"type": "string",
 			"enum": [
 				"identify",
-				"authenticate",
+				"create_authenticator",
 				"verify",
 				"user_profile",
 				"recovery_code",
@@ -115,7 +115,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"if": {
 				"required": ["type"],
 				"properties": {
-					"type": { "const": "authenticate" }
+					"type": { "const": "create_authenticator" }
 				}
 			},
 			"then": {
@@ -624,6 +624,7 @@ type AuthenticationFlowStepType string
 const (
 	AuthenticationFlowStepTypeIdentify               AuthenticationFlowStepType = "identify"
 	AuthenticationFlowStepTypeAuthenticate           AuthenticationFlowStepType = "authenticate"
+	AuthenticationFlowStepTypeCreateAuthenticator    AuthenticationFlowStepType = "create_authenticator"
 	AuthenticationFlowStepTypeVerify                 AuthenticationFlowStepType = "verify"
 	AuthenticationFlowStepTypeUserProfile            AuthenticationFlowStepType = "user_profile"
 	AuthenticationFlowStepTypeRecoveryCode           AuthenticationFlowStepType = "recovery_code"
@@ -664,7 +665,7 @@ type AuthenticationFlowSignupFlowStepType string
 
 const (
 	AuthenticationFlowSignupFlowStepTypeIdentify            = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeIdentify)
-	AuthenticationFlowSignupFlowStepTypeAuthenticate        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeAuthenticate)
+	AuthenticationFlowSignupFlowStepTypeCreateAuthenticator = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeCreateAuthenticator)
 	AuthenticationFlowSignupFlowStepTypeVerify              = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeVerify)
 	AuthenticationFlowSignupFlowStepTypeUserProfile         = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeUserProfile)
 	AuthenticationFlowSignupFlowStepTypeRecoveryCode        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeRecoveryCode)
@@ -694,7 +695,7 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
 		fallthrough
-	case AuthenticationFlowSignupFlowStepTypeAuthenticate:
+	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
 			v := v
