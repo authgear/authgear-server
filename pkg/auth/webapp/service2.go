@@ -449,7 +449,7 @@ func (s *Service2) afterPost(
 		if !apierrors.IsAPIError(interactionErr) {
 			s.Logger.Errorf("interaction error: %v", interactionErr)
 		}
-		errCookie, err := s.ErrorCookie.SetError(s.Request, apierrors.AsAPIError(interactionErr))
+		errCookie, err := s.ErrorCookie.SetRecoverableError(s.Request, apierrors.AsAPIError(interactionErr))
 		if err != nil {
 			return err
 		}
