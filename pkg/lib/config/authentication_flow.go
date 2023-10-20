@@ -87,7 +87,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 				"identify",
 				"create_authenticator",
 				"verify",
-				"user_profile",
+				"fill_in_user_profile",
 				"view_recovery_code",
 				"prompt_create_passkey"
 			]
@@ -146,7 +146,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"if": {
 				"required": ["type"],
 				"properties": {
-					"type": { "const": "user_profile" }
+					"type": { "const": "fill_in_user_profile" }
 				}
 			},
 			"then": {
@@ -626,7 +626,7 @@ const (
 	AuthenticationFlowStepTypeAuthenticate           AuthenticationFlowStepType = "authenticate"
 	AuthenticationFlowStepTypeCreateAuthenticator    AuthenticationFlowStepType = "create_authenticator"
 	AuthenticationFlowStepTypeVerify                 AuthenticationFlowStepType = "verify"
-	AuthenticationFlowStepTypeUserProfile            AuthenticationFlowStepType = "user_profile"
+	AuthenticationFlowStepTypeFillInUserProfile      AuthenticationFlowStepType = "fill_in_user_profile"
 	AuthenticationFlowStepTypeViewRecoveryCode       AuthenticationFlowStepType = "view_recovery_code"
 	AuthenticationFlowStepTypePromptCreatePasskey    AuthenticationFlowStepType = "prompt_create_passkey"
 	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
@@ -667,7 +667,7 @@ const (
 	AuthenticationFlowSignupFlowStepTypeIdentify            = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeIdentify)
 	AuthenticationFlowSignupFlowStepTypeCreateAuthenticator = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeCreateAuthenticator)
 	AuthenticationFlowSignupFlowStepTypeVerify              = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeVerify)
-	AuthenticationFlowSignupFlowStepTypeUserProfile         = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeUserProfile)
+	AuthenticationFlowSignupFlowStepTypeFillInUserProfile   = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeFillInUserProfile)
 	AuthenticationFlowSignupFlowStepTypeViewRecoveryCode    = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeViewRecoveryCode)
 	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
@@ -680,7 +680,7 @@ type AuthenticationFlowSignupFlowStep struct {
 	OneOf []*AuthenticationFlowSignupFlowOneOf `json:"one_of,omitempty"`
 	// TargetStep is relevant when Type is verify.
 	TargetStep string `json:"target_step,omitempty"`
-	// UserProfile is relevant when Type is user_profile.
+	// UserProfile is relevant when Type is fill_in_user_profile.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
 }
 

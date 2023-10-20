@@ -52,7 +52,7 @@ signup_flows:
     - authentication: primary_password
   - type: verify
     target_step: my_step
-  - type: user_profile
+  - type: fill_in_user_profile
     user_profile:
     - pointer: /given_name
       required: true
