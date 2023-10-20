@@ -113,7 +113,7 @@ type StaticAssetResolver interface {
 
 type ErrorCookie interface {
 	GetError(r *http.Request) (*webapp.ErrorState, bool)
-	ResetError() *http.Cookie
+	ResetRecoverableError() *http.Cookie
 }
 
 type FlashMessage interface {
@@ -236,7 +236,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	if errorState, ok := m.ErrorCookie.GetError(r); ok {
 		model.SetFormJSON(errorState.Form)
 		model.SetError(errorState.Error)
-		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
+		httputil.UpdateCookie(rw, m.ErrorCookie.ResetRecoverableError())
 	}
 
 	if s := webapp.GetSession(r.Context()); s != nil {

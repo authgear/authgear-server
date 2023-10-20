@@ -183,7 +183,7 @@ func (c *Controller) renderError(err error) {
 		u.Path = "/errors/error"
 	}
 
-	cookie, err := c.ErrorCookie.SetError(c.request, apierror)
+	cookie, err := c.ErrorCookie.SetRecoverableError(c.request, apierror)
 	if err != nil {
 		panic(err)
 	}
