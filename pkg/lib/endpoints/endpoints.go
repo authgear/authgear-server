@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
@@ -84,9 +83,9 @@ func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {
 	return u
 }
 
-func (e *Endpoints) WeChatAuthorizeURL(c config.OAuthSSOProviderConfig) *url.URL {
+func (e *Endpoints) WeChatAuthorizeURL(alias string) *url.URL {
 	u := e.WeChatAuthorizeEndpointURL()
-	u.Path = path.Join(u.Path, url.PathEscape(c.Alias))
+	u.Path = path.Join(u.Path, url.PathEscape(alias))
 	return u
 }
 
