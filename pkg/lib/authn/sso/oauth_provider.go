@@ -68,7 +68,6 @@ type OAuthProviderFactory struct {
 	IdentityConfig               *config.IdentityConfig
 	Credentials                  *config.OAuthSSOProviderCredentials
 	Clock                        clock.Clock
-	WechatURLProvider            WechatURLProvider
 	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
@@ -140,7 +139,6 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		return &WechatImpl{
 			ProviderConfig:               *providerConfig,
 			Credentials:                  *credentials,
-			URLProvider:                  p.WechatURLProvider,
 			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	}

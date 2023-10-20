@@ -141,6 +141,8 @@ type OAuthProviderFactory interface {
 
 type OAuthRedirectURIBuilder interface {
 	SSOCallbackURL(alias string) *url.URL
+	WeChatAuthorizeURL(alias string) *url.URL
+	WeChatCallbackEndpointURL() *url.URL
 }
 
 type ForgotPasswordService interface {
