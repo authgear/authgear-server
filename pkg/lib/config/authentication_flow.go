@@ -724,6 +724,7 @@ const (
 	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
 	AuthenticationFlowStepTypeCheckAccountStatus     AuthenticationFlowStepType = "check_account_status"
 	AuthenticationFlowStepTypeChangePassword         AuthenticationFlowStepType = "change_password"
+	AuthenticationFlowStepTypeSelectDestination      AuthenticationFlowStepType = "select_destination"
 )
 
 type AuthenticationFlowConfig struct {
@@ -1117,6 +1118,23 @@ type AuthenticationFlowRequestAccountRecoveryFlow struct {
 	Steps []*AuthenticationFlowRequestAccountRecoveryFlowStep `json:"steps,omitempty"`
 }
 
+var _ AuthenticationFlowObjectFlowRoot = &AuthenticationFlowRequestAccountRecoveryFlow{}
+
+func (f *AuthenticationFlowRequestAccountRecoveryFlow) IsFlowObject() {}
+
+func (f *AuthenticationFlowRequestAccountRecoveryFlow) GetName() string {
+	return f.Name
+}
+
+func (f *AuthenticationFlowRequestAccountRecoveryFlow) GetSteps() []AuthenticationFlowObject {
+	out := make([]AuthenticationFlowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out
+}
+
 type AuthenticationFlowRequestAccountRecoveryFlowStep struct {
 	Name string                                    `json:"name,omitempty"`
 	Type AuthenticationFlowAccountRecoveryFlowType `json:"type,omitempty"`
@@ -1126,11 +1144,32 @@ type AuthenticationFlowRequestAccountRecoveryFlowStep struct {
 	EnumerateDestinations bool `json:"enumerate_destinations,omitempty"`
 }
 
+var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowRequestAccountRecoveryFlowStep{}
+
+func (s *AuthenticationFlowRequestAccountRecoveryFlowStep) IsFlowObject()   {}
+func (s *AuthenticationFlowRequestAccountRecoveryFlowStep) GetName() string { return s.Name }
+func (s *AuthenticationFlowRequestAccountRecoveryFlowStep) GetType() AuthenticationFlowStepType {
+	return AuthenticationFlowStepType(s.Type)
+}
+func (s *AuthenticationFlowRequestAccountRecoveryFlowStep) GetOneOf() []AuthenticationFlowObject {
+	switch s.Type {
+	case AuthenticationFlowAccountRecoveryFlowTypeIdentify:
+		out := make([]AuthenticationFlowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
 type AuthenticationFlowAccountRecoveryFlowType string
 
 const (
-	AuthenticationFlowAccountRecoveryFlowTypeIdentify          = AuthenticationFlowAccountRecoveryFlowType("identity")
-	AuthenticationFlowAccountRecoveryFlowTypeSelectDestination = AuthenticationFlowAccountRecoveryFlowType("select_destination")
+	AuthenticationFlowAccountRecoveryFlowTypeIdentify          = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeIdentify)
+	AuthenticationFlowAccountRecoveryFlowTypeSelectDestination = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeSelectDestination)
 )
 
 type AuthenticationFlowAccountRecoveryFlowOneOf struct {
@@ -1139,11 +1178,28 @@ type AuthenticationFlowAccountRecoveryFlowOneOf struct {
 	Steps          []*AuthenticationFlowRequestAccountRecoveryFlowStep             `json:"steps,omitempty"`
 }
 
-type AuthenticationFlowRequestAccountRecoveryIdentification string
+var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+
+func (f *AuthenticationFlowAccountRecoveryFlowOneOf) IsFlowObject() {}
+func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []AuthenticationFlowObject {
+	out := make([]AuthenticationFlowObject, len(f.Steps))
+	for i, v := range f.Steps {
+		v := v
+		out[i] = v
+	}
+	return out
+}
+func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
+	return AuthenticationFlowObjectFlowBranchInfo{
+		Identification: AuthenticationFlowIdentification(f.Identification),
+	}
+}
+
+type AuthenticationFlowRequestAccountRecoveryIdentification AuthenticationFlowIdentification
 
 const (
-	AuthenticationFlowRequestAccountRecoveryIdentificationEmail = AuthenticationFlowRequestAccountRecoveryIdentification("email")
-	AuthenticationFlowRequestAccountRecoveryIdentificationPhone = AuthenticationFlowRequestAccountRecoveryIdentification("phone")
+	AuthenticationFlowRequestAccountRecoveryIdentificationEmail = AuthenticationFlowRequestAccountRecoveryIdentification(AuthenticationFlowIdentificationEmail)
+	AuthenticationFlowRequestAccountRecoveryIdentificationPhone = AuthenticationFlowRequestAccountRecoveryIdentification(AuthenticationFlowIdentificationPhone)
 )
 
 type AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure string

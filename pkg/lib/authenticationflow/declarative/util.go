@@ -45,6 +45,8 @@ func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowRefe
 		return flowRootObjectForLoginFlow(deps, flowReference)
 	case authflow.FlowTypeSignupLogin:
 		return flowRootObjectForSignupLoginFlow(deps, flowReference)
+	case authflow.FlowTypeRequestAccountRecovery:
+		return flowRootObjectForRequestAccountRecoveryFlow(deps, flowReference)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowReference.Type))
 	}
@@ -132,6 +134,17 @@ func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference
 			}
 		}
 	}
+
+	if root == nil {
+		return nil, ErrFlowNotFound
+	}
+
+	return root, nil
+}
+
+func flowRootObjectForRequestAccountRecoveryFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+	// RequestAccountRecoveryFlow is not configurable at the moment
+	var root config.AuthenticationFlowObject = GenerateRequestAccountRecoveryFlowConfig(deps.Config)
 
 	if root == nil {
 		return nil, ErrFlowNotFound
