@@ -153,8 +153,8 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 		if _, ok := flowResponse.Action.Data.(declarative.IntentVerifyClaimData); ok {
 			screen.BranchStateToken = state
 		}
-	case config.AuthenticationFlowStepTypeUserProfile:
-		// user_profile contains NO branches.
+	case config.AuthenticationFlowStepTypeFillInUserProfile:
+		// fill_in_user_profile contains NO branches.
 		break
 	case config.AuthenticationFlowStepTypeViewRecoveryCode:
 		// view_recovery_code contains NO branches.
@@ -600,8 +600,8 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 		case otp.FormLink:
 			s.advance(AuthflowRouteOOBOTPLink, result)
 		}
-	case config.AuthenticationFlowStepTypeUserProfile:
-		panic(fmt.Errorf("user_profile is not supported yet"))
+	case config.AuthenticationFlowStepTypeFillInUserProfile:
+		panic(fmt.Errorf("fill_in_user_profile is not supported yet"))
 	case config.AuthenticationFlowStepTypeViewRecoveryCode:
 		s.advance(AuthflowRouteViewRecoveryCode, result)
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:

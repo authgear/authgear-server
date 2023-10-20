@@ -14,15 +14,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type InputSchemaFillUserProfile struct {
+type InputSchemaFillInUserProfile struct {
 	JSONPointer      jsonpointer.T
 	Attributes       []*config.AuthenticationFlowSignupFlowUserProfile
 	CustomAttributes []*config.CustomAttributesAttributeConfig
 }
 
-var _ authflow.InputSchema = &InputSchemaFillUserProfile{}
+var _ authflow.InputSchema = &InputSchemaFillInUserProfile{}
 
-func (s *InputSchemaFillUserProfile) buildCustomAttrPointerToItsConfigMap() map[string]*config.CustomAttributesAttributeConfig {
+func (s *InputSchemaFillInUserProfile) buildCustomAttrPointerToItsConfigMap() map[string]*config.CustomAttributesAttributeConfig {
 	customAttrPointerToItsConfig := make(map[string]*config.CustomAttributesAttributeConfig)
 	for _, c := range s.CustomAttributes {
 		c := c
@@ -32,7 +32,7 @@ func (s *InputSchemaFillUserProfile) buildCustomAttrPointerToItsConfigMap() map[
 	return customAttrPointerToItsConfig
 }
 
-func (s *InputSchemaFillUserProfile) buildContainsSchema(pointer string) validation.SchemaBuilder {
+func (s *InputSchemaFillInUserProfile) buildContainsSchema(pointer string) validation.SchemaBuilder {
 	contains := validation.SchemaBuilder{}
 	contains.Properties().Property("pointer", validation.SchemaBuilder{}.Const(pointer))
 	b := validation.SchemaBuilder{}.
@@ -40,7 +40,7 @@ func (s *InputSchemaFillUserProfile) buildContainsSchema(pointer string) validat
 	return b
 }
 
-func (s *InputSchemaFillUserProfile) buildItemsSchema(pointer string, schema validation.SchemaBuilder) validation.SchemaBuilder {
+func (s *InputSchemaFillInUserProfile) buildItemsSchema(pointer string, schema validation.SchemaBuilder) validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}
 	if_ := validation.SchemaBuilder{}
 	if_.Properties().Property("pointer", validation.SchemaBuilder{}.Const(pointer))
@@ -50,11 +50,11 @@ func (s *InputSchemaFillUserProfile) buildItemsSchema(pointer string, schema val
 	return b
 }
 
-func (s *InputSchemaFillUserProfile) GetJSONPointer() jsonpointer.T {
+func (s *InputSchemaFillInUserProfile) GetJSONPointer() jsonpointer.T {
 	return s.JSONPointer
 }
 
-func (s *InputSchemaFillUserProfile) SchemaBuilder() validation.SchemaBuilder {
+func (s *InputSchemaFillInUserProfile) SchemaBuilder() validation.SchemaBuilder {
 	m := s.buildCustomAttrPointerToItsConfigMap()
 
 	items := validation.SchemaBuilder{}.
@@ -102,8 +102,8 @@ func (s *InputSchemaFillUserProfile) SchemaBuilder() validation.SchemaBuilder {
 	return b
 }
 
-func (s *InputSchemaFillUserProfile) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
-	var input InputFillUserProfile
+func (s *InputSchemaFillInUserProfile) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
+	var input InputFillInUserProfile
 	err := s.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
 	if err != nil {
 		return nil, err
@@ -111,15 +111,15 @@ func (s *InputSchemaFillUserProfile) MakeInput(rawMessage json.RawMessage) (auth
 	return &input, nil
 }
 
-type InputFillUserProfile struct {
+type InputFillInUserProfile struct {
 	Attributes []attrs.T `json:"attributes,omitempty"`
 }
 
-var _ authflow.Input = &InputFillUserProfile{}
-var _ inputFillUserProfile = &InputFillUserProfile{}
+var _ authflow.Input = &InputFillInUserProfile{}
+var _ inputFillInUserProfile = &InputFillInUserProfile{}
 
-func (i *InputFillUserProfile) Input() {}
+func (i *InputFillInUserProfile) Input() {}
 
-func (i *InputFillUserProfile) GetAttributes() []attrs.T {
+func (i *InputFillInUserProfile) GetAttributes() []attrs.T {
 	return i.Attributes
 }

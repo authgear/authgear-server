@@ -13,22 +13,22 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentSignupFlowStepUserProfile{})
+	authflow.RegisterIntent(&IntentSignupFlowStepFillInUserProfile{})
 }
 
-type IntentSignupFlowStepUserProfile struct {
+type IntentSignupFlowStepFillInUserProfile struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepName    string        `json:"step_name,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ authflow.Intent = &IntentSignupFlowStepUserProfile{}
+var _ authflow.Intent = &IntentSignupFlowStepFillInUserProfile{}
 
-func (*IntentSignupFlowStepUserProfile) Kind() string {
-	return "IntentSignupFlowStepUserProfile"
+func (*IntentSignupFlowStepFillInUserProfile) Kind() string {
+	return "IntentSignupFlowStepFillInUserProfile"
 }
 
-func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentSignupFlowStepFillInUserProfile) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 		if err != nil {
@@ -39,7 +39,7 @@ func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *
 		if err != nil {
 			return nil, err
 		}
-		return &InputSchemaFillUserProfile{
+		return &InputSchemaFillInUserProfile{
 			JSONPointer:      i.JSONPointer,
 			Attributes:       step.UserProfile,
 			CustomAttributes: deps.Config.UserProfile.CustomAttributes.Attributes,
@@ -48,9 +48,9 @@ func (i *IntentSignupFlowStepUserProfile) CanReactTo(ctx context.Context, deps *
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	var inputFillUserProfile inputFillUserProfile
-	if authflow.AsInput(input, &inputFillUserProfile) {
+func (i *IntentSignupFlowStepFillInUserProfile) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+	var inputFillInUserProfile inputFillInUserProfile
+	if authflow.AsInput(input, &inputFillInUserProfile) {
 		current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 		if err != nil {
 			return nil, err
@@ -61,7 +61,7 @@ func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *aut
 			return nil, err
 		}
 
-		attributes := inputFillUserProfile.GetAttributes()
+		attributes := inputFillInUserProfile.GetAttributes()
 		allAbsent, err := i.validate(step, attributes)
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func (i *IntentSignupFlowStepUserProfile) ReactTo(ctx context.Context, deps *aut
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (*IntentSignupFlowStepUserProfile) validate(step *config.AuthenticationFlowSignupFlowStep, attributes []attrs.T) (absent []string, err error) {
+func (*IntentSignupFlowStepFillInUserProfile) validate(step *config.AuthenticationFlowSignupFlowStep, attributes []attrs.T) (absent []string, err error) {
 	allAllowed := []string{}
 	allRequired := []string{}
 	for _, spec := range step.UserProfile {
@@ -111,11 +111,11 @@ func (*IntentSignupFlowStepUserProfile) validate(step *config.AuthenticationFlow
 	return
 }
 
-func (*IntentSignupFlowStepUserProfile) addAbsent(attributes []attrs.T, allAbsent []string) attrs.List {
+func (*IntentSignupFlowStepFillInUserProfile) addAbsent(attributes []attrs.T, allAbsent []string) attrs.List {
 	return attrs.List(attributes).AddAbsent(allAbsent)
 }
 
-func (*IntentSignupFlowStepUserProfile) separate(deps *authflow.Dependencies, attributes attrs.List) (stdAttrs attrs.List, customAttrs attrs.List) {
+func (*IntentSignupFlowStepFillInUserProfile) separate(deps *authflow.Dependencies, attributes attrs.List) (stdAttrs attrs.List, customAttrs attrs.List) {
 	stdAttrs, customAttrs, unknownAttrs := attrs.List(attributes).Separate(deps.Config.UserProfile)
 	if len(unknownAttrs) > 0 {
 		panic(fmt.Errorf("the input schema should have ensured there are no unknown attributes"))
@@ -123,7 +123,7 @@ func (*IntentSignupFlowStepUserProfile) separate(deps *authflow.Dependencies, at
 	return
 }
 
-func (*IntentSignupFlowStepUserProfile) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {
+func (*IntentSignupFlowStepFillInUserProfile) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {
 	step, ok := o.(*config.AuthenticationFlowSignupFlowStep)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
