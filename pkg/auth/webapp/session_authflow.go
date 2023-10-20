@@ -156,8 +156,8 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 	case config.AuthenticationFlowStepTypeUserProfile:
 		// user_profile contains NO branches.
 		break
-	case config.AuthenticationFlowStepTypeRecoveryCode:
-		// recovery_code contains NO branches.
+	case config.AuthenticationFlowStepTypeViewRecoveryCode:
+		// view_recovery_code contains NO branches.
 		break
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		// prompt_create_passkey contains NO branches.
@@ -602,7 +602,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 		}
 	case config.AuthenticationFlowStepTypeUserProfile:
 		panic(fmt.Errorf("user_profile is not supported yet"))
-	case config.AuthenticationFlowStepTypeRecoveryCode:
+	case config.AuthenticationFlowStepTypeViewRecoveryCode:
 		s.advance(AuthflowRouteViewRecoveryCode, result)
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		s.advance(AuthflowRoutePromptCreatePasskey, result)

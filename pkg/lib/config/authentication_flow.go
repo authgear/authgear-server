@@ -88,7 +88,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 				"create_authenticator",
 				"verify",
 				"user_profile",
-				"recovery_code",
+				"view_recovery_code",
 				"prompt_create_passkey"
 			]
 		}
@@ -627,7 +627,7 @@ const (
 	AuthenticationFlowStepTypeCreateAuthenticator    AuthenticationFlowStepType = "create_authenticator"
 	AuthenticationFlowStepTypeVerify                 AuthenticationFlowStepType = "verify"
 	AuthenticationFlowStepTypeUserProfile            AuthenticationFlowStepType = "user_profile"
-	AuthenticationFlowStepTypeRecoveryCode           AuthenticationFlowStepType = "recovery_code"
+	AuthenticationFlowStepTypeViewRecoveryCode       AuthenticationFlowStepType = "view_recovery_code"
 	AuthenticationFlowStepTypePromptCreatePasskey    AuthenticationFlowStepType = "prompt_create_passkey"
 	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
 	AuthenticationFlowStepTypeCheckAccountStatus     AuthenticationFlowStepType = "check_account_status"
@@ -668,7 +668,7 @@ const (
 	AuthenticationFlowSignupFlowStepTypeCreateAuthenticator = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeCreateAuthenticator)
 	AuthenticationFlowSignupFlowStepTypeVerify              = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeVerify)
 	AuthenticationFlowSignupFlowStepTypeUserProfile         = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeUserProfile)
-	AuthenticationFlowSignupFlowStepTypeRecoveryCode        = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeRecoveryCode)
+	AuthenticationFlowSignupFlowStepTypeViewRecoveryCode    = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypeViewRecoveryCode)
 	AuthenticationFlowSignupFlowStepTypePromptCreatePasskey = AuthenticationFlowSignupFlowStepType(AuthenticationFlowStepTypePromptCreatePasskey)
 )
 

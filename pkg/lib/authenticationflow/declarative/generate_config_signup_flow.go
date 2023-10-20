@@ -217,7 +217,7 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 	var recoveryCodeStep *config.AuthenticationFlowSignupFlowStep
 	if !*cfg.Authentication.RecoveryCode.Disabled {
 		recoveryCodeStep = &config.AuthenticationFlowSignupFlowStep{
-			Type: config.AuthenticationFlowSignupFlowStepTypeRecoveryCode,
+			Type: config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode,
 		}
 	}
 
