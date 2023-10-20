@@ -9,10 +9,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 func init() {
@@ -190,44 +188,7 @@ func (i *IntentCreateAuthenticatorOOBOTP) otpMessageType() otp.MessageType {
 }
 
 func (n *IntentCreateAuthenticatorOOBOTP) newDidSelectAuthenticatorNode(deps *authflow.Dependencies, target string) (*authflow.Node, error) {
-	spec := &authenticator.Spec{
-		UserID: n.UserID,
-		OOBOTP: &authenticator.OOBOTPSpec{},
-	}
-
-	switch n.Authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		spec.Kind = model.AuthenticatorKindPrimary
-		spec.Type = model.AuthenticatorTypeOOBEmail
-		spec.OOBOTP.Email = target
-
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		spec.Kind = model.AuthenticatorKindPrimary
-		spec.Type = model.AuthenticatorTypeOOBSMS
-		spec.OOBOTP.Phone = target
-
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		spec.Kind = model.AuthenticatorKindSecondary
-		spec.Type = model.AuthenticatorTypeOOBEmail
-		spec.OOBOTP.Email = target
-
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		spec.Kind = model.AuthenticatorKindSecondary
-		spec.Type = model.AuthenticatorTypeOOBSMS
-		spec.OOBOTP.Phone = target
-
-	default:
-		panic(fmt.Errorf("unexpected authentication method: %v", n.Authentication))
-	}
-
-	isDefault, err := authenticatorIsDefault(deps, n.UserID, spec.Kind)
-	if err != nil {
-		return nil, err
-	}
-	spec.IsDefault = isDefault
-
-	authenticatorID := uuid.New()
-	info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
+	info, err := createAuthenticator(deps, n.UserID, n.Authentication, target)
 	if err != nil {
 		return nil, err
 	}

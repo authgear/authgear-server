@@ -63,6 +63,8 @@ func (n *NodeUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.D
 		}
 
 		info, _, err := deps.Authenticators.VerifyOneWithSpec(
+			n.UserID,
+			model.AuthenticatorTypeTOTP,
 			as,
 			spec,
 			&facade.VerifyOptions{

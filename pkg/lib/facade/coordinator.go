@@ -50,7 +50,7 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
+	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
 	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
 	RemoveOrphans(identities []*identity.Info) error
 	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
@@ -347,7 +347,13 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 }
 
 func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (requireUpdate bool, err error) {
-	_, requireUpdate, err = c.AuthenticatorVerifyOneWithSpec([]*authenticator.Info{info}, spec, options)
+	_, requireUpdate, err = c.AuthenticatorVerifyOneWithSpec(
+		info.UserID,
+		info.Type,
+		[]*authenticator.Info{info},
+		spec,
+		options,
+	)
 	return
 }
 
@@ -373,11 +379,11 @@ func (c *Coordinator) addAuthenticationTypeToError(err error, authnType authn.Au
 	return newe
 }
 
-func (c *Coordinator) AuthenticatorVerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
+func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
 	if options == nil {
 		options = &VerifyOptions{}
 	}
-	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(infos, spec, options.toServiceOptions())
+	info, requireUpdate, err = c.Authenticators.VerifyOneWithSpec(userID, authenticatorType, infos, spec, options.toServiceOptions())
 	if err != nil && errors.Is(err, api.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
 		eventerr := c.dispatchAuthenticationFailedEvent(
 			options.AuthenticationDetails.UserID,

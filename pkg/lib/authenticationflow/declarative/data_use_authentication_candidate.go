@@ -22,15 +22,16 @@ type UseAuthenticationOption struct {
 	// Channels is specific to OOBOTP.
 	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
 
-	// Count is specific to password.
-	Count *int `json:"count,omitempty"`
-
 	// WebAuthnRequestOptions is specific to Passkey.
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 
 	// AuthenticatorID is omitted from the output.
 	// The caller must use index to select a option.
 	AuthenticatorID string `json:"-"`
+
+	// IdentityID is omitted from the output.
+	// The caller must use index to select a option.
+	IdentityID string `json:"-"`
 }
 
 func NewUseAuthenticationOptionRecoveryCode() UseAuthenticationOption {
@@ -39,10 +40,9 @@ func NewUseAuthenticationOptionRecoveryCode() UseAuthenticationOption {
 	}
 }
 
-func NewUseAuthenticationOptionPassword(am config.AuthenticationFlowAuthentication, count int) UseAuthenticationOption {
+func NewUseAuthenticationOptionPassword(am config.AuthenticationFlowAuthentication) UseAuthenticationOption {
 	return UseAuthenticationOption{
 		Authentication: am,
-		Count:          &count,
 	}
 }
 
@@ -59,7 +59,7 @@ func NewUseAuthenticationOptionTOTP() UseAuthenticationOption {
 	}
 }
 
-func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) UseAuthenticationOption {
+func NewUseAuthenticationOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info) (*UseAuthenticationOption, bool) {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
@@ -68,29 +68,63 @@ func NewUseAuthenticationOptionOOBOTP(oobConfig *config.AuthenticatorOOBConfig, 
 		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimEmail, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
-		return UseAuthenticationOption{
+		return &UseAuthenticationOption{
 			Authentication:    am,
 			OTPForm:           otpForm,
 			Channels:          channels,
 			MaskedDisplayName: mail.MaskAddress(i.OOBOTP.Email),
 			AuthenticatorID:   i.ID,
-		}
+		}, true
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 		purpose := otp.PurposeOOBOTP
 		channels := getChannels(model.ClaimPhoneNumber, oobConfig)
 		otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
-		return UseAuthenticationOption{
+		return &UseAuthenticationOption{
 			Authentication:    am,
 			OTPForm:           otpForm,
 			Channels:          channels,
 			MaskedDisplayName: phone.Mask(i.OOBOTP.Phone),
 			AuthenticatorID:   i.ID,
-		}
+		}, true
+	default:
+		return nil, false
 	}
+}
 
-	panic(fmt.Errorf("NewUseAuthenticationOptionOOBOTP: unexpected authentication method: %v %v", i.Kind, i.Type))
+func NewUseAuthenticationOptionOOBOTPFromIdentity(oobConfig *config.AuthenticatorOOBConfig, i *identity.Info) (*UseAuthenticationOption, bool) {
+	switch i.Type {
+	case model.IdentityTypeLoginID:
+		switch i.LoginID.LoginIDType {
+		case model.LoginIDKeyTypeEmail:
+			purpose := otp.PurposeOOBOTP
+			channels := getChannels(model.ClaimEmail, oobConfig)
+			otpForm := getOTPForm(purpose, model.ClaimEmail, oobConfig.Email)
+			return &UseAuthenticationOption{
+				Authentication:    config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+				OTPForm:           otpForm,
+				Channels:          channels,
+				MaskedDisplayName: mail.MaskAddress(i.LoginID.LoginID),
+				IdentityID:        i.ID,
+			}, true
+		case model.LoginIDKeyTypePhone:
+			purpose := otp.PurposeOOBOTP
+			channels := getChannels(model.ClaimPhoneNumber, oobConfig)
+			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, oobConfig.Email)
+			return &UseAuthenticationOption{
+				Authentication:    config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
+				OTPForm:           otpForm,
+				Channels:          channels,
+				MaskedDisplayName: phone.Mask(i.LoginID.LoginID),
+				IdentityID:        i.ID,
+			}, true
+		default:
+			return nil, false
+		}
+	default:
+		return nil, false
+	}
 }
 
 func AuthenticationFromAuthenticator(i *authenticator.Info) config.AuthenticationFlowAuthentication {

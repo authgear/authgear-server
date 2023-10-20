@@ -822,6 +822,13 @@ func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject 
 	}
 }
 
+func (s *AuthenticationFlowLoginFlowStep) IsOptional() bool {
+	if s.Optional != nil && *s.Optional {
+		return true
+	}
+	return false
+}
+
 type AuthenticationFlowLoginFlowOneOf struct {
 	// Identification is specific to identify.
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`

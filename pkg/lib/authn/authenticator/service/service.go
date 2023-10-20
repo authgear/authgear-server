@@ -517,20 +517,14 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 
 // Given a list of authenticators, try to verify one of them
 func (s *Service) VerifyOneWithSpec(
+	userID string,
+	authenticatorType model.AuthenticatorType,
 	infos []*authenticator.Info,
 	spec *authenticator.Spec,
 	options *VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error) {
 	if options == nil {
 		options = &VerifyOptions{}
 	}
-
-	if len(infos) == 0 {
-		err = fmt.Errorf("no available authenticator")
-		return
-	}
-
-	authenticatorType := infos[0].Type
-	userID := infos[0].UserID
 
 	r := s.RateLimits.Reserve(userID, authenticatorType)
 	defer s.RateLimits.Cancel(r)
@@ -562,6 +556,24 @@ func (s *Service) VerifyOneWithSpec(
 		}
 		break
 	}
+
+	switch {
+	case info == nil && err == nil:
+		// If we reach here, it means infos is empty.
+		// Here is one case that infos is empty.
+		// The end-user remove their passkey in Authgear, but keep the passkey in their browser.
+		// Authgear will see an passkey that it does not know.
+		err = api.ErrInvalidCredentials
+	case info != nil && err == nil:
+		// Authenticated.
+		break
+	case info == nil && err != nil:
+		// Some error.
+		break
+	default:
+		panic(fmt.Errorf("unexpected post condition: info != nil && err != nil"))
+	}
+
 	// If error is ErrInvalidCredentials, consume rate limit token and increment lockout attempt
 	if errors.Is(err, api.ErrInvalidCredentials) {
 		r.Consume()
