@@ -522,13 +522,13 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 	return identitySpec, nil
 }
 
-type ConstructOAuthAuthorizationURLOptions struct {
+type GetOAuthDataOptions struct {
 	RedirectURI  string
 	Alias        string
 	ResponseMode sso.ResponseMode
 }
 
-func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependencies, opts ConstructOAuthAuthorizationURLOptions) (authorizationURL string, err error) {
+func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAuthDataOptions) (data OAuthData, err error) {
 	oauthProvider := deps.OAuthProviderFactory.NewOAuthProvider(opts.Alias)
 	if oauthProvider == nil {
 		err = api.ErrOAuthProviderNotFound
@@ -543,11 +543,17 @@ func constructOAuthAuthorizationURL(ctx context.Context, deps *authflow.Dependen
 		Prompt:       uiParam.Prompt,
 	}
 
-	authorizationURL, err = oauthProvider.GetAuthURL(param)
+	authorizationURL, err := oauthProvider.GetAuthURL(param)
 	if err != nil {
 		return
 	}
 
+	data = OAuthData{
+		Alias:                 opts.Alias,
+		OAuthProviderType:     oauthProvider.Config().Type,
+		OAuthAuthorizationURL: authorizationURL,
+		WechatAppType:         oauthProvider.Config().AppType,
+	}
 	return
 }
 
