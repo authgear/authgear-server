@@ -176,14 +176,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappRequireAuthEnabledAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware((newRequireAuthenticationEnabledMiddleware)),
+		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 		// A unique visit is started when the user visit auth entry point
 		p.Middleware(newWebAppVisitorIDMiddleware),
 	)
 	webappPromoteChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware((newRequireAuthenticationEnabledMiddleware)),
+		p.Middleware(newRequireAuthenticationEnabledMiddleware),
+		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
