@@ -61,8 +61,6 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 		// nolint: gosec
 		ImageURI: htmltemplate.URL(dataURI),
 	}
-	// FIXME(authflow): x_wechat_redirect_uri should be validated by Authflow API, and
-	// included in data.
 	wechatRedirectURI := wechat.GetWeChatRedirectURI(r.Context())
 	if wechatRedirectURI != "" {
 		u, err := url.Parse(wechatRedirectURI)
