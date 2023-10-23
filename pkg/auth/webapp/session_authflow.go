@@ -16,6 +16,13 @@ import (
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
+type AuthflowWechatCallbackData struct {
+	State            string `json:"state"`
+	Code             string `json:"code,omitempty"`
+	Error            string `json:"error,omitempty"`
+	ErrorDescription string `json:"error_description,omitempty"`
+}
+
 type AuthflowOAuthState struct {
 	WebSessionID     string `json:"web_session_id"`
 	XStep            string `json:"x_step"`
@@ -110,6 +117,8 @@ type AuthflowScreen struct {
 	TakenBranchIndex *int `json:"taken_branch_index,omitempty"`
 	// TakenChannel tracks the taken channel.
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
+	// WechatCallbackData is only relevant for wechat login.
+	WechatCallbackData *AuthflowWechatCallbackData `json:"wechat_callback_data,omitempty"`
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {

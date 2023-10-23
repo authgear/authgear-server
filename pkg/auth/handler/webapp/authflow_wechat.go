@@ -94,8 +94,34 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 
 func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
+
+	submit := func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		data := screen.Screen.WechatCallbackData
+
+		input := map[string]interface{}{}
+		switch {
+		case data.Code != "":
+			input["code"] = data.Code
+		case data.Error != "":
+			input["error"] = data.Error
+			input["error_description"] = data.ErrorDescription
+		}
+
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	}
+
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		// FIXME(authflow): submit
+		if screen.Screen.WechatCallbackData != nil {
+			return submit(s, screen)
+		}
+
+		// Otherwise render the page.
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -105,7 +131,11 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		// FIXME(authflow): submit
+		if screen.Screen.WechatCallbackData != nil {
+			return submit(s, screen)
+		}
+
+		// Otherwise redirect to the same page.
 		redirectURI := &url.URL{
 			Path:     r.URL.Path,
 			RawQuery: r.URL.Query().Encode(),
