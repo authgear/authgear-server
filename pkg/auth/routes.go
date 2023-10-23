@@ -176,6 +176,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappRequireAuthEnabledAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
+		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 		// A unique visit is started when the user visit auth entry point
@@ -183,6 +184,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappPromoteChain := httproute.Chain(
 		webappPageChain,
+		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
@@ -249,11 +251,19 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
-	//router.Add(webapphandler.ConfigureLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
-	//router.Add(webapphandler.ConfigureSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
-	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppAuthflowLoginHandler))
-	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppAuthflowSignupHandler))
-	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), p.Handler(newWebAppAuthflowPromoteHandler))
+	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppLoginHandler),
+		Authflow:    p.Handler(newWebAppAuthflowLoginHandler),
+	})
+	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppSignupHandler),
+		Authflow:    p.Handler(newWebAppAuthflowSignupHandler),
+	})
+	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppPromoteHandler),
+		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
+	})
+
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 
 	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
@@ -273,7 +283,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAuthflowAccountStatusRoute(webappPageRoute), p.Handler(newWebAppAuthflowAccountStatusHandler))
 	router.Add(webapphandler.ConfigureAuthflowWechatRoute(webappPageRoute), p.Handler(newWebAppAuthflowWechatHandler))
 
-	//router.Add(webapphandler.ConfigurePromoteRoute(webappPromoteRoute), p.Handler(newWebAppPromoteHandler))
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureConfirmTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebConfirmTerminateOtherSessionsHandler))
 	router.Add(webapphandler.ConfigureUsePasskeyRoute(webappPageRoute), p.Handler(newWebAppUsePasskeyHandler))
