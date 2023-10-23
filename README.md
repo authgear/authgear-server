@@ -14,14 +14,14 @@ With a comprehensive range of out-of-the-box features to accelerate your project
 - and more...
 
 ## What is Authgear Server?
-Authgear server is an open-source project that contains the code that powers Authgear's authentication-as-a-service solution. It includes the code for the server, AuthUI, the Portal, and Admin API. You can use Authgear Server to set up your own self-hosted instance of Authgear service.
+Authgear server is the open-source project that powers Authgear's authentication-as-a-service solution. It includes the code for the server, AuthUI, the Portal, and Admin API. You can use Authgear Server to set up your own self-hosted instance of Authgear service.
 
-## Features and Component
-Authgear Server contains the following fears and components of Authgear:
+## Features and Components
+Authgear Server includes the following features and components of Authgear:
 - Authgear server (the actual service)
-- Portal (A GUI tool for managing Authgear projects)
-- AuthUI
-- Admin API
+- Portal (a GUI tool for managing Authgear projects)
+- AuthUI  (a customizable User Interface (UI) for login, user registration, and profile settings pages)
+- Admin API (provides a GraphQL interface for developers to interact with services and data on Authgear)
 
 ## Documentation and quick-start guide
 To get started with using Authgear, check out the official documentation site at https://docs.authgear.com.
@@ -38,10 +38,12 @@ We've provided detailed instructions on how to set up a self-hosted instance of 
 [Helm Chart](https://docs.authgear.com/deploy-on-your-cloud/helm) is the recommended way to deploy Authgear on Kubernetes for production usage
 
 ## How to contribute
-Please refer to [CONTRIBUTING.md](https://github.com/authgear/authgear-server/blob/main/CONTRIBUTING.md) if you need instructions on contributing to the development of authgear-server.
+Please refer to [CONTRIBUTING.md](https://github.com/authgear/authgear-server/blob/main/CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.
 
 ### Authgear SDK
-In addition to Authgear Server, we provide the following SDKs as standalone projects:
+In addition to Authgear Server, we provide SDKs that developers can use to integrate Authgear into their apps.
+
+These SDKs exist as standalone projects under the following repositories:
 
 - [JavaScript/React native](https://github.com/authgear/authgear-sdk-js)
 - [iOS](https://github.com/authgear/authgear-sdk-ios)
