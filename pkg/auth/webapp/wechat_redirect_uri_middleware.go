@@ -3,6 +3,8 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
@@ -21,8 +23,12 @@ var PlatformCookieDef = &httputil.CookieDef{
 	SameSite:   http.SameSiteNoneMode,
 }
 
+// WeChatRedirectURIMiddleware validates x_wechat_redirect_uri and stores it in context.
+// Ideally we should store x_wechat_redirect_uri in web app session.
+// But we can link wechat in settings page so that is not possible at the moment.
 type WeChatRedirectURIMiddleware struct {
-	Cookies CookieManager
+	Cookies        CookieManager
+	IdentityConfig *config.IdentityConfig
 }
 
 func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
@@ -30,6 +36,20 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 		q := r.URL.Query()
 
 		weChatRedirectURI := q.Get("x_wechat_redirect_uri")
+		if weChatRedirectURI != "" {
+			// Validate x_wechat_redirect_uri
+			valid := false
+			for _, providerConfig := range m.IdentityConfig.OAuth.Providers {
+				for _, allowed := range providerConfig.WeChatRedirectURIs {
+					if weChatRedirectURI == allowed {
+						valid = true
+					}
+				}
+			}
+			if !valid {
+				panic(apierrors.NewInvalid("wechat redirect URI is not allowed"))
+			}
+		}
 
 		// Persist weChatRedirectURI.
 		if weChatRedirectURI != "" {
