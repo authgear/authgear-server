@@ -14,7 +14,11 @@ var _ = Schema.Add("UIConfig", `
 		"default_redirect_uri": { "type": "string", "format": "uri" },
 		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" },
 		"authentication_disabled": { "type": "boolean" },
-		"settings_disabled": { "type": "boolean" }
+		"settings_disabled": { "type": "boolean" },
+		"implementation": {
+			"type": "string",
+			"enum": ["interaction", "authflow"]
+		}
 	}
 }
 `)
@@ -32,6 +36,8 @@ type UIConfig struct {
 	// NOTE: Internal use only, use authentication_disabled to disable auth-ui when custom ui is used
 	AuthenticationDisabled bool `json:"authentication_disabled,omitempty"`
 	SettingsDisabled       bool `json:"settings_disabled,omitempty"`
+	// Implementation is a temporary flag to switch between authflow and interaction.
+	Implementation UIImplementation `json:"implementation,omitempty"`
 }
 
 var _ = Schema.Add("PhoneInputConfig", `
@@ -59,3 +65,11 @@ func (c *PhoneInputConfig) SetDefaults() {
 		c.AllowList = phone.AllAlpha2
 	}
 }
+
+type UIImplementation string
+
+const (
+	UIImplementationDefault     UIImplementation = ""
+	UIImplementationInteraction UIImplementation = "interaction"
+	UIImplementationAuthflow    UIImplementation = "authflow"
+)
