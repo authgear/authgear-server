@@ -80219,3 +80219,15 @@ func newWorkflowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	intlMiddleware := &workflow.IntlMiddleware{}
 	return intlMiddleware
 }
+
+func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	config := appContext.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
+	implementationSwitcherMiddleware := &webapp.ImplementationSwitcherMiddleware{
+		UIConfig: uiConfig,
+	}
+	return implementationSwitcherMiddleware
+}
