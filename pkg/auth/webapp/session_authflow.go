@@ -155,7 +155,7 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 	case config.AuthenticationFlowStepTypeIdentify:
 		// identify contains branches.
 		screen.BranchStateToken = state
-	case config.AuthenticationFlowStepTypeAuthenticate:
+	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		// authentication contains branches.
 		screen.BranchStateToken = state
 	case config.AuthenticationFlowStepTypeVerify:
@@ -314,7 +314,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
 		return s.takeBranchResultSimple(index)
-	case config.AuthenticationFlowStepTypeAuthenticate:
+	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := data.Options[index]
 		switch option.Authentication {
@@ -534,7 +534,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupPromote(r *http.Request, 
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, webSessionID, result, expectedPath)
-	case config.AuthenticationFlowStepTypeAuthenticate:
+	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
