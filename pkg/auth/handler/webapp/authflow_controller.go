@@ -146,7 +146,7 @@ func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = c.checkPath(w, r, screen)
+	err = c.checkPath(w, r, s, screen)
 	if err != nil {
 		c.renderError(w, r, err)
 		return
@@ -226,7 +226,7 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	err = c.checkPath(w, r, screen)
+	err = c.checkPath(w, r, s, screen)
 	if err != nil {
 		c.renderError(w, r, err)
 		return
@@ -416,7 +416,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 		return
 	}
 
-	screen.Navigate(r, result)
+	screen.Navigate(r, s.ID, result)
 	return
 }
 
@@ -467,7 +467,7 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 			result.Cookies = append(result.Cookies, output.Cookies...)
 		}
 
-		newScreen.Navigate(r, result)
+		newScreen.Navigate(r, s.ID, result)
 	}
 
 	return
@@ -499,7 +499,7 @@ func (c *AuthflowController) UpdateWithInput(r *http.Request, s *webapp.Session,
 		result.Cookies = append(result.Cookies, output.Cookies...)
 	}
 
-	newScreen.Navigate(r, result)
+	newScreen.Navigate(r, s.ID, result)
 	return
 }
 
@@ -701,7 +701,7 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		result.Cookies = append(result.Cookies, output.Cookies...)
 	}
 
-	newScreen.Navigate(r, result)
+	newScreen.Navigate(r, s.ID, result)
 	result.WriteResponse(w, r)
 	return nil
 }
@@ -762,11 +762,11 @@ func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request,
 	c.makeErrorResult(w, r, *r.URL, err).WriteResponse(w, r)
 }
 
-func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) error {
+func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 	// We derive the intended path of the screen,
 	// and check if the paths match.
 	result := &webapp.Result{}
-	screen.Navigate(r, result)
+	screen.Navigate(r, s.ID, result)
 	redirectURI := result.RedirectURI
 
 	if redirectURI == "" {
