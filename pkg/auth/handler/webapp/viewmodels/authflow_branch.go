@@ -3,6 +3,7 @@ package viewmodels
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -21,14 +22,12 @@ func isAuthflowBranchSame(a AuthflowBranch, b AuthflowBranch) bool {
 }
 
 type AuthflowBranchViewModel struct {
-	FlowType           string
+	ActionType         authflow.FlowActionType
 	DeviceTokenEnabled bool
 	Branches           []AuthflowBranch
 }
 
 func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) AuthflowBranchViewModel {
-	flowType := screen.StateTokenFlowResponse.Type
-
 	branchFlowResponse := screen.BranchStateTokenFlowResponse
 
 	deviceTokenEnabled := false
@@ -37,22 +36,22 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 		switch branchData := branchFlowResponse.Action.Data.(type) {
 		case declarative.IntentLoginFlowStepAuthenticateData:
 			deviceTokenEnabled = branchData.DeviceTokenEnabled
-			branches = newAuthflowBranchViewModelLoginFlow(screen, branchData)
+			branches = newAuthflowBranchViewModelStepAuthenticate(screen, branchData)
 		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
-			branches = newAuthflowBranchViewModelSignupFlow(screen, branchData)
+			branches = newAuthflowBranchViewModelStepCreateAuthenticator(screen, branchData)
 		case declarative.IntentVerifyClaimData:
 			branches = newAuthflowBranchViewModelVerify(screen, branchData)
 		}
 	}
 
 	return AuthflowBranchViewModel{
-		FlowType:           string(flowType),
+		ActionType:         branchFlowResponse.Action.Type,
 		DeviceTokenEnabled: deviceTokenEnabled,
 		Branches:           branches,
 	}
 }
 
-func newAuthflowBranchViewModelLoginFlow(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentLoginFlowStepAuthenticateData) []AuthflowBranch {
+func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentLoginFlowStepAuthenticateData) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
@@ -114,7 +113,7 @@ func newAuthflowBranchViewModelLoginFlow(screen *webapp.AuthflowScreenWithFlowRe
 	return branches
 }
 
-func newAuthflowBranchViewModelSignupFlow(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepCreateAuthenticatorData) []AuthflowBranch {
+func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepCreateAuthenticatorData) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
