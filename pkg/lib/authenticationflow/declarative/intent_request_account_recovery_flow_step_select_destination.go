@@ -49,16 +49,16 @@ var _ authflow.DataOutputer = &IntentRequestAccountRecoveryFlowStepSelectDestina
 func NewIntentRequestAccountRecoveryFlowStepSelectDestination(
 	ctx context.Context,
 	deps *authflow.Dependencies,
-	parentFlow *authflow.Flow,
+	flows authflow.Flows,
 	i *IntentRequestAccountRecoveryFlowStepSelectDestination,
 ) (*IntentRequestAccountRecoveryFlowStepSelectDestination, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
-	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentity](parentFlow)
+	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentity](flows.Root)
 	if !ok {
-		return i, fmt.Errorf("IntentRequestAccountRecoveryFlowStepSelectDestination depends on MilestoneDoUseAccountRecoveryIdentity")
+		return i, InvalidFlowConfig.New("IntentRequestAccountRecoveryFlowStepSelectDestination depends on MilestoneDoUseAccountRecoveryIdentity")
 	}
 	iden := milestone.MilestoneDoUseAccountRecoveryIdentity()
 	step := i.step(current)

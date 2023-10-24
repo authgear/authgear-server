@@ -67,7 +67,7 @@ func (i *IntentRequestAccountRecoveryFlowSteps) ReactTo(ctx context.Context, dep
 		stepSelectDestination, err := NewIntentRequestAccountRecoveryFlowStepSelectDestination(
 			ctx,
 			deps,
-			flows.Nearest,
+			flows,
 			&IntentRequestAccountRecoveryFlowStepSelectDestination{
 				StepName:    step.Name,
 				JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
