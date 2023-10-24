@@ -22,7 +22,8 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Options []UseAuthenticationOption `json:"options"`
+	Options            []AuthenticateOption `json:"options"`
+	DeviceTokenEnabled bool                 `json:"device_token_enable"`
 }
 
 var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -30,10 +31,10 @@ var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
 func (m IntentLoginFlowStepAuthenticateData) Data() {}
 
 type IntentLoginFlowStepAuthenticate struct {
-	JSONPointer jsonpointer.T             `json:"json_pointer,omitempty"`
-	StepName    string                    `json:"step_name,omitempty"`
-	UserID      string                    `json:"user_id,omitempty"`
-	Options     []UseAuthenticationOption `json:"options"`
+	JSONPointer jsonpointer.T        `json:"json_pointer,omitempty"`
+	StepName    string               `json:"step_name,omitempty"`
+	UserID      string               `json:"user_id,omitempty"`
+	Options     []AuthenticateOption `json:"options"`
 }
 
 var _ authflow.TargetStep = &IntentLoginFlowStepAuthenticate{}
@@ -95,7 +96,8 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 	}
 	step := i.step(current)
 
-	deviceTokenEnabled := i.deviceTokenEnabled(step)
+	deviceTokenIndex := i.deviceTokenIndex(step)
+	deviceTokenEnabled := deviceTokenIndex >= 0
 
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
@@ -113,7 +115,7 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 		return nil, nil
 	case !authenticationMethodSelected:
 		if len(i.Options) == 0 {
-			if step.Optional != nil && *step.Optional {
+			if step.IsOptional() {
 				// Skip this step and any nested step.
 				return nil, authflow.ErrEOF
 			}
@@ -152,7 +154,8 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 	}
 	step := i.step(current)
 
-	deviceTokenEnabled := i.deviceTokenEnabled(step)
+	deviceTokenIndex := i.deviceTokenIndex(step)
+	deviceTokenEnabled := deviceTokenIndex >= 0
 
 	_, deviceTokenInspected := authflow.FindMilestone[MilestoneDeviceTokenInspected](flows.Nearest)
 
@@ -230,7 +233,8 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		panic(fmt.Errorf("unauthenticated"))
 	case deviceTokenEnabled && !deviceTokenCreatedIfRequested:
 		return authflow.NewSubFlow(&IntentCreateDeviceTokenIfRequested{
-			UserID: i.UserID,
+			JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, deviceTokenIndex),
+			UserID:      i.UserID,
 		}), nil
 	case !nestedStepsHandled:
 		authentication := i.authenticationMethod(flows)
@@ -243,8 +247,17 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 }
 
 func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
+	if err != nil {
+		return nil, err
+	}
+	step := i.step(current)
+
+	deviceTokenIndex := i.deviceTokenIndex(step)
+	deviceTokenEnabled := deviceTokenIndex >= 0
 	return IntentLoginFlowStepAuthenticateData{
-		Options: i.Options,
+		Options:            i.Options,
+		DeviceTokenEnabled: deviceTokenEnabled,
 	}, nil
 }
 
@@ -282,14 +295,14 @@ func (*IntentLoginFlowStepAuthenticate) getAllAllowed(step *config.Authenticatio
 	return allAllowed
 }
 
-func (i *IntentLoginFlowStepAuthenticate) deviceTokenEnabled(step *config.AuthenticationFlowLoginFlowStep) bool {
+func (i *IntentLoginFlowStepAuthenticate) deviceTokenIndex(step *config.AuthenticationFlowLoginFlowStep) int {
 	allAllowed := i.getAllAllowed(step)
-	for _, am := range allAllowed {
+	for idx, am := range allAllowed {
 		if am == config.AuthenticationFlowAuthenticationDeviceToken {
-			return true
+			return idx
 		}
 	}
-	return false
+	return -1
 }
 
 func (*IntentLoginFlowStepAuthenticate) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {

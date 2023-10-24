@@ -17,19 +17,10 @@ func init() {
 	authflow.RegisterNode(&NodeLookupIdentityOAuth{})
 }
 
-type NodeLookupIdentityOAuthData struct {
-	OAuthAuthorizationURL string `json:"oauth_authorization_url,omitempty"`
-}
-
-var _ authflow.Data = NodeLookupIdentityOAuthData{}
-
-func (NodeLookupIdentityOAuthData) Data() {}
-
 type NodeLookupIdentityOAuth struct {
 	JSONPointer    jsonpointer.T      `json:"json_pointer,omitempty"`
 	SyntheticInput *InputStepIdentify `json:"synthetic_input,omitempty"`
 	Alias          string             `json:"alias,omitempty"`
-	State          string             `json:"state,omitempty"`
 	RedirectURI    string             `json:"redirect_uri,omitempty"`
 	ResponseMode   sso.ResponseMode   `json:"response_mode,omitempty"`
 }
@@ -69,7 +60,6 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 		syntheticInput := &SyntheticInputOAuth{
 			Identification: n.SyntheticInput.Identification,
 			Alias:          n.SyntheticInput.Alias,
-			State:          n.SyntheticInput.State,
 			RedirectURI:    n.SyntheticInput.RedirectURI,
 			ResponseMode:   n.SyntheticInput.ResponseMode,
 			IdentitySpec:   spec,
@@ -105,19 +95,16 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (n *NodeLookupIdentityOAuth) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	authorizationURL, err := constructOAuthAuthorizationURL(ctx, deps, ConstructOAuthAuthorizationURLOptions{
+	data, err := getOAuthData(ctx, deps, GetOAuthDataOptions{
 		RedirectURI:  n.RedirectURI,
 		Alias:        n.Alias,
-		State:        n.State,
 		ResponseMode: n.ResponseMode,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return NodeLookupIdentityOAuthData{
-		OAuthAuthorizationURL: authorizationURL,
-	}, nil
+	return data, nil
 }
 
 func (n *NodeLookupIdentityOAuth) oneOf(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupLoginFlowOneOf {

@@ -16,7 +16,8 @@ func init() {
 }
 
 type IntentVerifyClaimData struct {
-	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
+	Channels         []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
+	MaskedClaimValue string                          `json:"masked_claim_value,omitempty"`
 }
 
 func (IntentVerifyClaimData) Data() {}
@@ -26,6 +27,7 @@ type IntentVerifyClaim struct {
 	UserID      string          `json:"user_id,omitempty"`
 	Purpose     otp.Purpose     `json:"purpose,omitempty"`
 	MessageType otp.MessageType `json:"message_type,omitempty"`
+	Form        otp.Form        `json:"form,omitempty"`
 	ClaimName   model.ClaimName `json:"claim_name,omitempty"`
 	ClaimValue  string          `json:"claim_value,omitempty"`
 }
@@ -80,13 +82,14 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 		UserID:      i.UserID,
 		Purpose:     i.Purpose,
 		MessageType: i.MessageType,
+		Form:        i.Form,
 		ClaimName:   i.ClaimName,
 		ClaimValue:  i.ClaimValue,
 		Channel:     channel,
 	}
 	kind := node.otpKind(deps)
 	err := node.SendCode(ctx, deps)
-	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.otpTarget()).Name) {
+	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.ClaimValue).Name) {
 		// Ignore trigger cooldown rate limit error; continue the flow
 	} else if err != nil {
 		return nil, err
@@ -98,7 +101,8 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 func (i *IntentVerifyClaim) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	channels := i.getChannels(deps)
 	return IntentVerifyClaimData{
-		Channels: channels,
+		Channels:         channels,
+		MaskedClaimValue: getMaskedOTPTarget(i.ClaimName, i.ClaimValue),
 	}, nil
 }
 

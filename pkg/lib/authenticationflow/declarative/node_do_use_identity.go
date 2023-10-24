@@ -1,8 +1,10 @@
 package declarative
 
 import (
+	"context"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -15,7 +17,7 @@ type NodeDoUseIdentity struct {
 	Identity *identity.Info `json:"identity,omitempty"`
 }
 
-func NewNodeDoUseIdentity(flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
+func NewNodeDoUseIdentity(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUseIdentity, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
@@ -26,6 +28,12 @@ func NewNodeDoUseIdentity(flows authflow.Flows, n *NodeDoUseIdentity) (*NodeDoUs
 
 	if userID != "" && userID != n.Identity.UserID {
 		return nil, ErrDifferentUserID
+	}
+
+	if userIDHint := authflow.GetUserIDHint(ctx); userIDHint != "" {
+		if userIDHint != n.Identity.UserID {
+			return nil, api.ErrMismatchedUser
+		}
 	}
 
 	return n, nil

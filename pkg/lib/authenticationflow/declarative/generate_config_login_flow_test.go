@@ -64,9 +64,11 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// email, otp
@@ -98,9 +100,11 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// phone, otp
@@ -132,9 +136,11 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// username, password
@@ -167,9 +173,11 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// email,phone, password,otp
@@ -205,9 +213,9 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
       - authentication: primary_oob_otp_email
         target_step: identify
         steps:
@@ -215,9 +223,9 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
   - identification: phone
     steps:
     - name: authenticate_primary_phone
@@ -231,9 +239,9 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
       - authentication: primary_oob_otp_sms
         target_step: identify
         steps:
@@ -241,9 +249,11 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// email,password, totp,recovery_code
@@ -278,9 +288,11 @@ steps:
         - name: authenticate_secondary_email
           type: authenticate
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// Disable device token recovery code.
@@ -318,6 +330,8 @@ steps:
           optional: true
           one_of:
           - authentication: secondary_totp
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// No password force change
@@ -351,9 +365,11 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// oauth
@@ -373,6 +389,8 @@ steps:
   type: identify
   one_of:
   - identification: oauth
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// oauth does not require 2fa.
@@ -418,6 +436,8 @@ steps:
           one_of:
           - authentication: secondary_totp
   - identification: oauth
+- type: check_account_status
+- type: terminate_other_sessions
 `)
 
 		// passkey
@@ -452,11 +472,13 @@ steps:
           type: authenticate
           optional: true
           one_of:
-          - authentication: device_token
-          - authentication: recovery_code
           - authentication: secondary_totp
+          - authentication: recovery_code
+          - authentication: device_token
       - authentication: primary_passkey
   - identification: passkey
+- type: check_account_status
+- type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
 
@@ -507,6 +529,8 @@ steps:
       - authentication: primary_passkey
   - identification: oauth
   - identification: passkey
+- type: check_account_status
+- type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
 	})

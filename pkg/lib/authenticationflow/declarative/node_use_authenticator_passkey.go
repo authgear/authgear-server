@@ -66,6 +66,8 @@ func (n *NodeUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authflo
 		}
 
 		authenticatorInfo, requireUpdate, err := deps.Authenticators.VerifyOneWithSpec(
+			n.UserID,
+			model.AuthenticatorTypePasskey,
 			authenticators,
 			authenticatorSpec,
 			&facade.VerifyOptions{

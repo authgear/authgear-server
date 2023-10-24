@@ -8,7 +8,9 @@ import (
 )
 
 type Session struct {
-	FlowID         string `json:"flow_id"`
+	FlowID string `json:"flow_id"`
+
+	WebSessionID   string `json:"web_session_id,omitempty"`
 	OAuthSessionID string `json:"oauth_session_id,omitempty"`
 
 	ClientID    string   `json:"client_id,omitempty"`
@@ -18,7 +20,9 @@ type Session struct {
 	XState      string   `json:"x_state,omitempty"`
 	UILocales   string   `json:"ui_locales,omitempty"`
 
-	SuppressIDPSessionCookie bool `json:"suppress_idp_session_cookie,omitempty"`
+	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
+	UserIDHint               string `json:"user_id_hint,omitempty"`
+	LoginHint                string `json:"login_hint,omitempty"`
 }
 
 type SessionOutput struct {
@@ -28,6 +32,7 @@ type SessionOutput struct {
 }
 
 type SessionOptions struct {
+	WebSessionID   string
 	OAuthSessionID string
 
 	ClientID    string
@@ -38,11 +43,14 @@ type SessionOptions struct {
 	UILocales   string
 
 	SuppressIDPSessionCookie bool
+	UserIDHint               string
+	LoginHint                string
 }
 
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 	out := &SessionOptions{}
 	if s != nil {
+		out.WebSessionID = s.WebSessionID
 		out.OAuthSessionID = s.OAuthSessionID
 
 		out.ClientID = s.ClientID
@@ -53,6 +61,8 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.UILocales = s.UILocales
 
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
+		out.UserIDHint = s.UserIDHint
+		out.LoginHint = s.LoginHint
 	}
 	if o != nil {
 		if o.ClientID != "" {
@@ -73,17 +83,21 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 
 func NewSession(opts *SessionOptions) *Session {
 	return &Session{
-		FlowID:         newFlowID(),
+		FlowID: newFlowID(),
+
+		WebSessionID:   opts.WebSessionID,
 		OAuthSessionID: opts.OAuthSessionID,
 
 		ClientID:    opts.ClientID,
 		RedirectURI: opts.RedirectURI,
 		Prompt:      opts.Prompt,
 		State:       opts.State,
+		XState:      opts.XState,
 		UILocales:   opts.UILocales,
 
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
-		XState:                   opts.XState,
+		UserIDHint:               opts.UserIDHint,
+		LoginHint:                opts.LoginHint,
 	}
 }
 
@@ -98,6 +112,8 @@ func (s *Session) ToOutput() *SessionOutput {
 func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlow PublicFlow) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 
+	ctx = context.WithValue(ctx, contextKeyWebSessionID, s.WebSessionID)
+
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,
 		Prompt:    s.Prompt,
@@ -109,6 +125,8 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
+	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)
+	ctx = context.WithValue(ctx, contextKeyLoginHint, s.LoginHint)
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
 

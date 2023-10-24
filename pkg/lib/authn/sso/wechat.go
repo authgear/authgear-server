@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/url"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -11,15 +9,9 @@ const (
 	wechatAuthorizationURL string = "https://open.weixin.qq.com/connect/oauth2/authorize"
 )
 
-type WechatURLProvider interface {
-	WeChatAuthorizeURL(c config.OAuthSSOProviderConfig) *url.URL
-	WeChatCallbackEndpointURL() *url.URL
-}
-
 type WechatImpl struct {
 	ProviderConfig               config.OAuthSSOProviderConfig
 	Credentials                  config.OAuthSSOProviderCredentialsItem
-	URLProvider                  WechatURLProvider
 	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
@@ -32,21 +24,17 @@ func (w *WechatImpl) Config() config.OAuthSSOProviderConfig {
 }
 
 func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
-	authURL := MakeAuthorizationURL(wechatAuthorizationURL, AuthorizationURLParams{
+	return MakeAuthorizationURL(wechatAuthorizationURL, AuthorizationURLParams{
 		// ClientID is not used by wechat.
 		WechatAppID:  w.ProviderConfig.ClientID,
-		RedirectURI:  w.URLProvider.WeChatCallbackEndpointURL().String(),
+		RedirectURI:  param.RedirectURI,
 		Scope:        w.ProviderConfig.Type.Scope(),
 		ResponseType: ResponseTypeCode,
 		// ResponseMode is unset.
 		State:  param.State,
 		Prompt: w.GetPrompt(param.Prompt),
 		// Nonce is unset.
-	}.Query())
-
-	v := url.Values{}
-	v.Add("x_auth_url", authURL)
-	return w.URLProvider.WeChatAuthorizeURL(w.ProviderConfig).String() + "?" + v.Encode(), nil
+	}.Query()), nil
 }
 
 func (w *WechatImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error) {

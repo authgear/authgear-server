@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -20,7 +21,7 @@ type NodeDoUseIdentityPasskey struct {
 	RequireUpdate     bool                `json:"require_update,omitempty"`
 }
 
-func NewNodeDoUseIdentityPasskey(flows authflow.Flows, n *NodeDoUseIdentityPasskey) (*NodeDoUseIdentityPasskey, error) {
+func NewNodeDoUseIdentityPasskey(ctx context.Context, flows authflow.Flows, n *NodeDoUseIdentityPasskey) (*NodeDoUseIdentityPasskey, error) {
 	userID, err := getUserID(flows)
 	if errors.Is(err, ErrNoUserID) {
 		err = nil
@@ -31,6 +32,12 @@ func NewNodeDoUseIdentityPasskey(flows authflow.Flows, n *NodeDoUseIdentityPassk
 
 	if userID != "" && userID != n.Identity.UserID {
 		return nil, ErrDifferentUserID
+	}
+
+	if userIDHint := authflow.GetUserIDHint(ctx); userIDHint != "" {
+		if userIDHint != n.Identity.UserID {
+			return nil, api.ErrMismatchedUser
+		}
 	}
 
 	return n, nil

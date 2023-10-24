@@ -62,14 +62,6 @@ func (i *IntentLoginFlow) ReactTo(ctx context.Context, deps *authflow.Dependenci
 			JSONPointer: i.JSONPointer,
 		}), nil
 	case len(flows.Nearest.Nodes) == 1:
-		return authflow.NewNodeSimple(&NodeDoCheckAccountStatus{
-			UserID: i.userID(flows),
-		}), nil
-	case len(flows.Nearest.Nodes) == 2:
-		return authflow.NewSubFlow(&IntentConfirmTerminateOtherSessions{
-			UserID: i.userID(flows),
-		}), nil
-	case len(flows.Nearest.Nodes) == 3:
 		n, err := NewNodeDoCreateSession(ctx, deps, flows, &NodeDoCreateSession{
 			UserID:       i.userID(flows),
 			CreateReason: session.CreateReasonLogin,

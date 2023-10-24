@@ -176,14 +176,18 @@ func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromOAuth(oauthSes
 	}
 
 	sessionOptions := &authflow.SessionOptions{
-		OAuthSessionID:           oauthSessionID,
-		ClientID:                 uiInfo.ClientID,
-		RedirectURI:              uiInfo.RedirectURI,
-		Prompt:                   uiInfo.Prompt,
+		OAuthSessionID: oauthSessionID,
+
+		ClientID:    uiInfo.ClientID,
+		RedirectURI: uiInfo.RedirectURI,
+		Prompt:      uiInfo.Prompt,
+		State:       uiInfo.State,
+		XState:      uiInfo.XState,
+		UILocales:   req.UILocalesRaw(),
+
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
-		State:                    uiInfo.State,
-		XState:                   uiInfo.XState,
-		UILocales:                req.UILocalesRaw(),
+		UserIDHint:               uiInfo.UserIDHint,
+		LoginHint:                uiInfo.LoginHint,
 	}
 
 	return sessionOptions, nil

@@ -53,7 +53,7 @@ type AuthenticatorService interface {
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (requireUpdate bool, err error)
-	VerifyOneWithSpec(infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
+	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, requireUpdate bool, err error)
 	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
 	MarkOOBIdentityVerified(info *authenticator.Info) error
 }
@@ -140,7 +140,9 @@ type OAuthProviderFactory interface {
 }
 
 type OAuthRedirectURIBuilder interface {
-	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
+	SSOCallbackURL(alias string) *url.URL
+	WeChatAuthorizeURL(alias string) *url.URL
+	WeChatCallbackEndpointURL() *url.URL
 }
 
 type ForgotPasswordService interface {

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"net/url"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -61,7 +63,6 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 
 	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
-	state := ctx.WebSessionID
 
 	oauthProvider := ctx.OAuthProviderFactory.NewOAuthProvider(alias)
 	if oauthProvider == nil {
@@ -70,18 +71,29 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 
 	nonce := crypto.SHA256String(nonceSource)
 
+	redirectURIForOAuthProvider := ctx.OAuthRedirectURIBuilder.SSOCallbackURL(alias).String()
+	// Special case: wechat needs to use a special callback endpoint.
+	if oauthProvider.Config().Type == config.OAuthSSOProviderTypeWechat {
+		redirectURIForOAuthProvider = ctx.OAuthRedirectURIBuilder.WeChatCallbackEndpointURL().String()
+	}
+
 	param := sso.GetAuthURLParam{
-		RedirectURI: ctx.OAuthRedirectURIBuilder.SSOCallbackURL(oauthProvider.Config()).String(),
+		RedirectURI: redirectURIForOAuthProvider,
 		// We use response_mode=form_post if it is supported.
 		ResponseMode: sso.ResponseModeFormPost,
-		State:        state,
 		Nonce:        nonce,
 		Prompt:       input.GetPrompt(),
 	}
-
 	redirectURI, err := oauthProvider.GetAuthURL(param)
 	if err != nil {
 		return nil, err
+	}
+
+	// Special case: wechat needs to redirect a special page.
+	if oauthProvider.Config().Type == config.OAuthSSOProviderTypeWechat {
+		v := url.Values{}
+		v.Add("x_auth_url", redirectURI)
+		redirectURI = ctx.OAuthRedirectURIBuilder.WeChatAuthorizeURL(alias).String() + "?" + v.Encode()
 	}
 
 	return &NodeUseIdentityOAuthProvider{

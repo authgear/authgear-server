@@ -15,7 +15,6 @@ func TestWechatImpl(t *testing.T) {
 				ClientID: "client_id",
 				Type:     config.OAuthSSOProviderTypeWechat,
 			},
-			URLProvider: mockWechatURLProvider{},
 		}
 
 		u, err := g.GetAuthURL(GetAuthURLParam{
@@ -24,6 +23,6 @@ func TestWechatImpl(t *testing.T) {
 			Prompt: []string{"login"},
 		})
 		So(err, ShouldBeNil)
-		So(u, ShouldEqual, "https://localhost/wechat/authorize?x_auth_url=https%3A%2F%2Fopen.weixin.qq.com%2Fconnect%2Foauth2%2Fauthorize%3Fappid%3Dclient_id%26redirect_uri%3Dhttps%253A%252F%252Flocalhost%252Fwechat%252Fcallback%26response_type%3Dcode%26scope%3Dsnsapi_userinfo%26state%3Dstate")
+		So(u, ShouldEqual, "https://open.weixin.qq.com/connect/oauth2/authorize?appid=client_id&redirect_uri=&response_type=code&scope=snsapi_userinfo&state=state")
 	})
 }

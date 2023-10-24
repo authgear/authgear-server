@@ -829,7 +829,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
-		WechatURLProvider:            endpointsEndpoints,
 		StandardAttributesNormalizer: normalizer,
 	}
 	mfaFacade := &facade.MFAFacade{

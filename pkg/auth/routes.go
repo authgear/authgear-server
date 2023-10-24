@@ -176,14 +176,17 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappRequireAuthEnabledAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware((newRequireAuthenticationEnabledMiddleware)),
+		p.Middleware(newImplementationSwitcherMiddleware),
+		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 		// A unique visit is started when the user visit auth entry point
 		p.Middleware(newWebAppVisitorIDMiddleware),
 	)
 	webappPromoteChain := httproute.Chain(
 		webappPageChain,
-		p.Middleware((newRequireAuthenticationEnabledMiddleware)),
+		p.Middleware(newImplementationSwitcherMiddleware),
+		p.Middleware(newRequireAuthenticationEnabledMiddleware),
+		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
@@ -248,11 +251,38 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
-	router.Add(webapphandler.ConfigureLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
-	router.Add(webapphandler.ConfigureSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
+	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppLoginHandler),
+		Authflow:    p.Handler(newWebAppAuthflowLoginHandler),
+	})
+	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppSignupHandler),
+		Authflow:    p.Handler(newWebAppAuthflowSignupHandler),
+	})
+	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppPromoteHandler),
+		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
+	})
+
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))
 
-	router.Add(webapphandler.ConfigurePromoteRoute(webappPromoteRoute), p.Handler(newWebAppPromoteHandler))
+	router.Add(webapphandler.ConfigureAuthflowEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterPasswordHandler))
+	router.Add(webapphandler.ConfigureAuthflowEnterOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterOOBOTPHandler))
+	router.Add(webapphandler.ConfigureAuthflowCreatePasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowCreatePasswordHandler))
+	router.Add(webapphandler.ConfigureAuthflowEnterTOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterTOTPHandler))
+	router.Add(webapphandler.ConfigureAuthflowSetupTOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowSetupTOTPHandler))
+	router.Add(webapphandler.ConfigureAuthflowViewRecoveryCodeRoute(webappPageRoute), p.Handler(newWebAppAuthflowViewRecoveryCodeHandler))
+	router.Add(webapphandler.ConfigureAuthflowWhatsappOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowWhatsappOTPHandler))
+	router.Add(webapphandler.ConfigureAuthflowOOBOTPLinkRoute(webappPageRoute), p.Handler(newWebAppAuthflowOOBOTPLinkHandler))
+	router.Add(webapphandler.ConfigureAuthflowChangePasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowChangePasswordHandler))
+	router.Add(webapphandler.ConfigureAuthflowUsePasskeyRoute(webappPageRoute), p.Handler(newWebAppAuthflowUsePasskeyHandler))
+	router.Add(webapphandler.ConfigureAuthflowPromptCreatePasskeyRoute(webappPageRoute), p.Handler(newWebAppAuthflowPromptCreatePasskeyHandler))
+	router.Add(webapphandler.ConfigureAuthflowEnterRecoveryCodeRoute(webappPageRoute), p.Handler(newWebAppAuthflowEnterRecoveryCodeHandler))
+	router.Add(webapphandler.ConfigureAuthflowSetupOOBOTPRoute(webappPageRoute), p.Handler(newWebAppAuthflowSetupOOBOTPHandler))
+	router.Add(webapphandler.ConfigureAuthflowTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebAppAuthflowTerminateOtherSessionsHandler))
+	router.Add(webapphandler.ConfigureAuthflowAccountStatusRoute(webappPageRoute), p.Handler(newWebAppAuthflowAccountStatusHandler))
+	router.Add(webapphandler.ConfigureAuthflowWechatRoute(webappPageRoute), p.Handler(newWebAppAuthflowWechatHandler))
+
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureConfirmTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebConfirmTerminateOtherSessionsHandler))
 	router.Add(webapphandler.ConfigureUsePasskeyRoute(webappPageRoute), p.Handler(newWebAppUsePasskeyHandler))

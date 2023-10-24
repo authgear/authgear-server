@@ -8,83 +8,49 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type IntentSignupFlowStepAuthenticateTarget interface {
+type IntentSignupFlowStepCreateAuthenticatorTarget interface {
 	GetOOBOTPClaims(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error)
 }
 
 func init() {
-	authflow.RegisterIntent(&IntentSignupFlowStepAuthenticate{})
+	authflow.RegisterIntent(&IntentSignupFlowStepCreateAuthenticator{})
 }
 
-type IntentSignupFlowStepAuthenticateData struct {
-	Options []CreateAuthenticationOption `json:"options,omitempty"`
+type IntentSignupFlowStepCreateAuthenticatorData struct {
+	Options []CreateAuthenticatorOption `json:"options,omitempty"`
 }
 
-var _ authflow.Data = &IntentSignupFlowStepAuthenticateData{}
+var _ authflow.Data = &IntentSignupFlowStepCreateAuthenticatorData{}
 
-func (m IntentSignupFlowStepAuthenticateData) Data() {}
+func (m IntentSignupFlowStepCreateAuthenticatorData) Data() {}
 
-type IntentSignupFlowStepAuthenticate struct {
+type IntentSignupFlowStepCreateAuthenticator struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepName    string        `json:"step_name,omitempty"`
 	UserID      string        `json:"user_id,omitempty"`
 }
 
-var _ authflow.TargetStep = &IntentSignupFlowStepAuthenticate{}
+var _ authflow.TargetStep = &IntentSignupFlowStepCreateAuthenticator{}
 
-func (i *IntentSignupFlowStepAuthenticate) GetName() string {
+func (i *IntentSignupFlowStepCreateAuthenticator) GetName() string {
 	return i.StepName
 }
 
-func (i *IntentSignupFlowStepAuthenticate) GetJSONPointer() jsonpointer.T {
+func (i *IntentSignupFlowStepCreateAuthenticator) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ IntentSignupFlowStepVerifyTarget = &IntentSignupFlowStepAuthenticate{}
+var _ authflow.Intent = &IntentSignupFlowStepCreateAuthenticator{}
+var _ authflow.DataOutputer = &IntentSignupFlowStepCreateAuthenticator{}
 
-func (*IntentSignupFlowStepAuthenticate) GetVerifiableClaims(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error) {
-	m, ok := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
-	if !ok {
-		return nil, fmt.Errorf("MilestoneDoCreateAuthenticator cannot be found in IntentSignupFlowStepAuthenticate")
-	}
-
-	info := m.MilestoneDoCreateAuthenticator()
-
-	return info.StandardClaims(), nil
+func (*IntentSignupFlowStepCreateAuthenticator) Kind() string {
+	return "IntentSignupFlowStepCreateAuthenticator"
 }
 
-func (*IntentSignupFlowStepAuthenticate) GetPurpose(_ context.Context, _ *authflow.Dependencies, _ authflow.Flows) otp.Purpose {
-	return otp.PurposeOOBOTP
-}
-
-func (i *IntentSignupFlowStepAuthenticate) GetMessageType(_ context.Context, _ *authflow.Dependencies, flows authflow.Flows) otp.MessageType {
-	authenticationMethod := i.authenticationMethod(flows)
-	switch authenticationMethod {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		return otp.MessageTypeSetupPrimaryOOB
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		return otp.MessageTypeSetupPrimaryOOB
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		return otp.MessageTypeSetupSecondaryOOB
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		return otp.MessageTypeSetupSecondaryOOB
-	default:
-		panic(fmt.Errorf("unexpected authentication method: %v", authenticationMethod))
-	}
-}
-
-var _ authflow.Intent = &IntentSignupFlowStepAuthenticate{}
-var _ authflow.DataOutputer = &IntentSignupFlowStepAuthenticate{}
-
-func (*IntentSignupFlowStepAuthenticate) Kind() string {
-	return "IntentSignupFlowStepAuthenticate"
-}
-
-func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which authentication method to use.
 	if len(flows.Nearest.Nodes) == 0 {
 		current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
@@ -92,7 +58,7 @@ func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 			return nil, err
 		}
 		step := i.step(current)
-		return &InputSchemaSignupFlowStepAuthenticate{
+		return &InputSchemaSignupFlowStepCreateAuthenticator{
 			JSONPointer: i.JSONPointer,
 			OneOf:       step.OneOf,
 		}, nil
@@ -110,7 +76,7 @@ func (i *IntentSignupFlowStepAuthenticate) CanReactTo(ctx context.Context, deps 
 	}
 }
 
-func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -146,7 +112,7 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 				fallthrough
 			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-				return authflow.NewNodeSimple(&NodeCreateAuthenticatorOOBOTP{
+				return authflow.NewSubFlow(&IntentCreateAuthenticatorOOBOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -181,19 +147,19 @@ func (i *IntentSignupFlowStepAuthenticate) ReactTo(ctx context.Context, deps *au
 	}
 }
 
-func (i *IntentSignupFlowStepAuthenticate) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
 	step := i.step(current)
 
-	return IntentSignupFlowStepAuthenticateData{
+	return IntentSignupFlowStepCreateAuthenticatorData{
 		Options: NewCreateAuthenticationOptions(deps, step),
 	}, nil
 }
 
-func (*IntentSignupFlowStepAuthenticate) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {
+func (*IntentSignupFlowStepCreateAuthenticator) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowStep {
 	step, ok := o.(*config.AuthenticationFlowSignupFlowStep)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
@@ -202,7 +168,7 @@ func (*IntentSignupFlowStepAuthenticate) step(o config.AuthenticationFlowObject)
 	return step
 }
 
-func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
+func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps *authflow.Dependencies, step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) (idx int, err error) {
 	idx = -1
 
 	for index, branch := range step.OneOf {
@@ -220,7 +186,7 @@ func (i *IntentSignupFlowStepAuthenticate) checkAuthenticationMethod(deps *authf
 	return
 }
 
-func (*IntentSignupFlowStepAuthenticate) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
+func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
 	m, ok := authflow.FindMilestone[MilestoneAuthenticationMethod](flows.Nearest)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
@@ -231,7 +197,7 @@ func (*IntentSignupFlowStepAuthenticate) authenticationMethod(flows authflow.Flo
 	return am
 }
 
-func (i *IntentSignupFlowStepAuthenticate) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) jsonpointer.T {
+func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch
 		if branch.Authentication == am {

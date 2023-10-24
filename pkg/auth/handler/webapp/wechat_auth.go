@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -40,7 +39,6 @@ type WechatAuthHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
-	IdentityConfig    *config.IdentityConfig
 }
 
 func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -71,8 +69,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 
 	weChatRedirectURIFromCtx := wechat.GetWeChatRedirectURI(r.Context())
 	if weChatRedirectURIFromCtx != "" {
-		alias := httproute.GetParam(r, "alias")
-		u, err := parseWeChatRedirectURI(h.IdentityConfig, alias, weChatRedirectURIFromCtx)
+		u, err := url.Parse(weChatRedirectURIFromCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -183,32 +180,4 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		result.WriteResponse(w, r)
 		return nil
 	})
-}
-
-func parseWeChatRedirectURI(identityConfig *config.IdentityConfig, alias string, weChatRedirectURI string) (*url.URL, error) {
-	providerConfig, ok := identityConfig.OAuth.GetProviderConfig(alias)
-	if !ok {
-		return nil, apierrors.NewInvalid("invalid sso alias")
-	}
-
-	allowedURIs := providerConfig.WeChatRedirectURIs
-
-	uri, err := url.Parse(weChatRedirectURI)
-	if err != nil {
-		return nil, apierrors.NewInvalid("invalid wechat redirect URI")
-	}
-
-	allowed := false
-	for _, u := range allowedURIs {
-		if u == weChatRedirectURI {
-			allowed = true
-			break
-		}
-	}
-
-	if !allowed {
-		return nil, apierrors.NewInvalid("wechat redirect URI is not allowed")
-	}
-
-	return uri, nil
 }

@@ -15,6 +15,14 @@ func GenerateLoginFlowConfig(cfg *config.AppConfig) *config.AuthenticationFlowLo
 		},
 	}
 
+	// The steps after this step contain side effects.
+	// Therefore, we check account status BEFORE we perform those steps.
+	flow.Steps = append(flow.Steps, generateLoginFlowStepCheckAccountStatus())
+
+	// We always include this step because the exact condition
+	// depends on the client ID, which is unknown at this point.
+	flow.Steps = append(flow.Steps, generateLoginFlowStepTerminateOtherSessions())
+
 	if step, ok := generateLoginFlowStepPromptCreatePasskey(cfg); ok {
 		flow.Steps = append(flow.Steps, step)
 	}
@@ -238,20 +246,6 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		step.Optional = &optional
 	}
 
-	// If device token is enabled, add it to oneOf.
-	if !cfg.Authentication.DeviceToken.Disabled {
-		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
-		})
-	}
-
-	// If recovery code is enabled, add it to oneOf.
-	if !*cfg.Authentication.RecoveryCode.Disabled {
-		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
-			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
-		})
-	}
-
 	addOneOf := func(am config.AuthenticationFlowAuthentication) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowLoginFlowOneOf{
@@ -275,7 +269,35 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 		}
 	}
 
+	// The order is important here.
+	// If there are other authentication, we want them to appear before recovery code.
+	// If recovery code is enabled, add it to oneOf.
+	if !*cfg.Authentication.RecoveryCode.Disabled {
+		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
+			Authentication: config.AuthenticationFlowAuthenticationRecoveryCode,
+		})
+	}
+
+	// If device token is enabled, add it to oneOf.
+	if !cfg.Authentication.DeviceToken.Disabled {
+		step.OneOf = append(step.OneOf, &config.AuthenticationFlowLoginFlowOneOf{
+			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
+		})
+	}
+
 	return step, true
+}
+
+func generateLoginFlowStepCheckAccountStatus() *config.AuthenticationFlowLoginFlowStep {
+	return &config.AuthenticationFlowLoginFlowStep{
+		Type: config.AuthenticationFlowLoginFlowStepTypeCheckAccountStatus,
+	}
+}
+
+func generateLoginFlowStepTerminateOtherSessions() *config.AuthenticationFlowLoginFlowStep {
+	return &config.AuthenticationFlowLoginFlowStep{
+		Type: config.AuthenticationFlowLoginFlowStepTypeTerminateOtherSessions,
+	}
 }
 
 func generateLoginFlowStepPromptCreatePasskey(cfg *config.AppConfig) (*config.AuthenticationFlowLoginFlowStep, bool) {

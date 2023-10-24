@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -16,14 +17,6 @@ import (
 func init() {
 	authflow.RegisterIntent(&IntentUseAuthenticatorOOBOTP{})
 }
-
-type IntentUseAuthenticatorOOBOTPData struct {
-	Options []UseAuthenticationOption `json:"options"`
-}
-
-var _ authflow.Data = IntentUseAuthenticatorOOBOTPData{}
-
-func (m IntentUseAuthenticatorOOBOTPData) Data() {}
 
 type IntentUseAuthenticatorOOBOTP struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
@@ -34,7 +27,6 @@ type IntentUseAuthenticatorOOBOTP struct {
 var _ authflow.Intent = &IntentUseAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentUseAuthenticatorOOBOTP{}
 var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
-var _ authflow.DataOutputer = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Kind() string {
 	return "IntentUseAuthenticatorOOBOTP"
@@ -98,9 +90,15 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 			}
 
 			index := inputTakeAuthenticationOptionIndex.GetIndex()
-			info, err := n.pickAuthenticator(deps, options, index)
+			info, isNew, err := n.pickAuthenticator(deps, options, index)
 			if err != nil {
 				return nil, err
+			}
+
+			if isNew {
+				return authflow.NewNodeSimple(&NodeDoJustInTimeCreateAuthenticator{
+					Authenticator: info,
+				}), nil
 			}
 
 			return authflow.NewNodeSimple(&NodeDidSelectAuthenticator{
@@ -110,11 +108,14 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	case !claimVerified:
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
+		purpose := otp.PurposeOOBOTP
+		otpForm := getOTPForm(purpose, claimName, deps.Config.Authenticator.OOB.Email)
 		return authflow.NewSubFlow(&IntentVerifyClaim{
 			JSONPointer: n.JSONPointer,
 			UserID:      n.UserID,
-			Purpose:     otp.PurposeOOBOTP,
+			Purpose:     purpose,
 			MessageType: n.otpMessageType(info),
+			Form:        otpForm,
 			ClaimName:   claimName,
 			ClaimValue:  claimValue,
 		}), nil
@@ -128,23 +129,6 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), n.jsonPointerToStep())
-	if err != nil {
-		return nil, err
-	}
-	step := n.step(current)
-
-	options, err := getAuthenticationOptionsForStep(ctx, deps, flows, n.UserID, step)
-	if err != nil {
-		return nil, err
-	}
-
-	return IntentUseAuthenticatorOOBOTPData{
-		Options: options,
-	}, nil
-}
-
 func (*IntentUseAuthenticatorOOBOTP) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
 	step, ok := o.(*config.AuthenticationFlowLoginFlowStep)
 	if !ok {
@@ -154,19 +138,70 @@ func (*IntentUseAuthenticatorOOBOTP) step(o config.AuthenticationFlowObject) *co
 	return step
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []UseAuthenticationOption, index int) (*authenticator.Info, error) {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []AuthenticateOption, index int) (info *authenticator.Info, isNew bool, err error) {
 	for idx, c := range options {
 		if idx == index {
-			id := c.AuthenticatorID
-			info, err := deps.Authenticators.Get(id)
-			if err != nil {
-				return nil, err
+			switch {
+			case c.AuthenticatorID != "":
+				info, err = deps.Authenticators.Get(c.AuthenticatorID)
+				if err != nil {
+					return
+				}
+
+				return
+			case c.IdentityID != "":
+				var identityInfo *identity.Info
+				identityInfo, err = deps.Identities.Get(c.IdentityID)
+				if err != nil {
+					return
+				}
+
+				info, err = n.createAuthenticator(deps, identityInfo)
+				if err != nil {
+					return
+				}
+
+				// Check if the just-in-time authenticator is a duplicate.
+				var allAuthenticators []*authenticator.Info
+				allAuthenticators, err = deps.Authenticators.List(n.UserID)
+				if err != nil {
+					return
+				}
+
+				for _, authenticator := range allAuthenticators {
+					if authenticator.Equal(info) {
+						// An existing authenticator is found.
+						info = authenticator
+						isNew = false
+						return
+					}
+				}
+
+				// If we reach here, then we need to just-in-time create the authenticator.
+				isNew = true
+				return
+			default:
+				panic(fmt.Errorf("expected option to have either IdentityID or AuthenticatorID"))
 			}
-			return info, nil
 		}
 	}
 
-	return nil, authflow.ErrIncompatibleInput
+	err = authflow.ErrIncompatibleInput
+	return
+}
+
+func (n *IntentUseAuthenticatorOOBOTP) createAuthenticator(deps *authflow.Dependencies, info *identity.Info) (*authenticator.Info, error) {
+	if info.Type != model.IdentityTypeLoginID || info.LoginID == nil {
+		panic(fmt.Errorf("expected only Login ID identity can create OOB OTP authenticator just-in-time"))
+	}
+
+	target := info.LoginID.LoginID
+	authenticatorInfo, err := createAuthenticator(deps, n.UserID, n.Authentication, target)
+	if err != nil {
+		return nil, err
+	}
+
+	return authenticatorInfo, nil
 }
 
 func (*IntentUseAuthenticatorOOBOTP) otpMessageType(info *authenticator.Info) otp.MessageType {

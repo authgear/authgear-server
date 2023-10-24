@@ -52,19 +52,50 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 	defer ctrl.Serve()
 
-	sessionID := r.Form.Get("state")
+	state := r.Form.Get("state")
+	code := r.Form.Get("code")
+	error_ := r.Form.Get("error")
+	errorDescription := r.Form.Get("error_description")
 
 	updateWebSession := func() error {
-		session, err := ctrl.GetSession(sessionID)
+		if authflowOAuthState, err := webapp.DecodeAuthflowOAuthState(state); err == nil {
+			session, err := ctrl.GetSession(authflowOAuthState.WebSessionID)
+			if err != nil {
+				return err
+			}
+
+			screen, ok := session.Authflow.AllScreens[authflowOAuthState.XStep]
+			if !ok {
+				return webapp.WebUIInvalidSession.New("x_step does not reference a valid screen")
+			}
+
+			screen.WechatCallbackData = &webapp.AuthflowWechatCallbackData{
+				State:            state,
+				Code:             code,
+				Error:            error_,
+				ErrorDescription: errorDescription,
+			}
+
+			err = ctrl.UpdateSession(session)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		}
+
+		// interaction
+		webSessionID := state
+		session, err := ctrl.GetSession(webSessionID)
 		if err != nil {
 			return err
 		}
 
 		step := session.CurrentStep()
 		step.FormData["x_action"] = WechatActionCallback
-		step.FormData["x_code"] = r.Form.Get("code")
-		step.FormData["x_error"] = r.Form.Get("error")
-		step.FormData["x_error_description"] = r.Form.Get("error_description")
+		step.FormData["x_code"] = code
+		step.FormData["x_error"] = error_
+		step.FormData["x_error_description"] = errorDescription
 		session.Steps[len(session.Steps)-1] = step
 
 		err = ctrl.UpdateSession(session)
