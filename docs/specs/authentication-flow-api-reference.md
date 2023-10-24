@@ -1,0 +1,1518 @@
+- [Authentication Flow API](#authentication-flow-api)
+- [State and Branching](#state-and-branching)
+- [HTTP API](#http-api)
+  * [HTTP response](#http-response)
+    + [Successful response](#successful-response)
+    + [Finish response](#finish-response)
+    + [Error response](#error-response)
+  * [Create an authentication flow](#create-an-authentication-flow)
+  * [Pass an input to a state of an authentication flow](#pass-an-input-to-a-state-of-an-authentication-flow)
+  * [Retrieve a state again](#retrieve-a-state-again)
+  * [Listen for change with Websocket](#listen-for-change-with-websocket)
+- [Reference on input and output](#reference-on-input-and-output)
+  * [type: signup; step.type: identification](#type-signup-steptype-identification)
+    + [identification: email](#identification-email)
+    + [identification: phone](#identification-phone)
+    + [identification: username](#identification-username)
+    + [identification: oauth](#identification-oauth)
+  * [type: signup; step.type: verify](#type-signup-steptype-verify)
+  * [type: signup; step.type: create_authenticator](#type-signup-steptype-create_authenticator)
+    + [authentication: primary_password](#authentication-primary_password)
+    + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email)
+    + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms)
+    + [authentication: secondary_password](#authentication-secondary_password)
+    + [authentication: secondary_oob_otp_email](#authentication-secondary_oob_otp_email)
+    + [authentication: secondary_oob_otp_sms](#authentication-secondary_oob_otp_sms)
+    + [authentication: secondary_totp](#authentication-secondary_totp)
+  * [type: signup; step.type: view_recovery_code](#type-signup-steptype-view_recovery_code)
+  * [type: signup; step.type: prompt_create_passkey](#type-signup-steptype-prompt_create_passkey)
+  * [type: login; step.type: identify](#type-login-steptype-identify)
+  * [type: login; step.type: authenticate](#type-login-steptype-authenticate)
+    + [authentication: primary_password](#authentication-primary_password-1)
+    + [authentication: primary_oob_otp_email](#authentication-primary_oob_otp_email-1)
+    + [authentication: primary_oob_otp_sms](#authentication-primary_oob_otp_sms-1)
+    + [authentication: primary_passkey](#authentication-primary_passkey)
+    + [authentication: secondary_password](#authentication-secondary_password-1)
+    + [authentication: secondary_oob_otp_email](#authentication-secondary_oob_otp_email-1)
+    + [authentication: secondary_oob_otp_sms](#authentication-secondary_oob_otp_sms-1)
+    + [authentication: secondary_totp](#authentication-secondary_totp-1)
+  * [type: login; step.type: change_password](#type-login-steptype-change_password)
+  * [type: login; step.type: prompt_create_passkey](#type-login-steptype-prompt_create_passkey)
+  * [type: signup_login; step.type: identify](#type-signup_login-steptype-identify)
+
+# Authentication Flow API
+
+Authentication Flow API is a HTTP API to create and run an authentication flow. It is the same API that powers that the default UI of Authgear. With Authentication Flow API, you can build your own UI while preserving the capability of running complicated authentication flow as the default UI does.
+
+# State and Branching
+
+An authentication flow has a constant ID that never changes. When an authentication flow is created, it has one state. A state of an authentication flow is identified by its unique state token. A particular state of authentication flow reacts to an input, and produce a new state. You keep track of the latest state token and feed an input to it to obtain another state token. In doing this you move forward in the authentication flow.
+
+In some steps in an authentication flow, you can take any one branch to continue. For example, your project may be configured to let the end-user to sign in with email address or phone number. In this case, there are two branches. Assume the current state is **StateA**. You pass an input to **StateA** to select the email address branch, you get a new state **StateB** with the email address branch selected. If the end-user changes their mind and taps the back button, we have to allow them to select phone number. This can be done by passing an input to **StateA** to select the phone number branch, resulting in a new state **StateC**. What if the end-user changes their mind again? All you need to do is to pass an input to **StateA** to select the email address branch, and get a new state **StateB’**. **StateB** and **StateB’** are equal in their contents, only the state tokens are different.
+
+As long as you associate the state token with the navigation, you can easily build multi-step UI.
+
+- On the web where the [History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API) is usually used to implement navigation, you can store the state ID in the `state` of a history entry.
+- On iOS where [UIViewController](https://developer.apple.com/documentation/uikit/uiviewcontroller) usually represents a screen, you can store the state ID as a property of the view controller.
+- On Android where Activity or Fragment usually represents a screen, you can store the state token as a property of the Activity or the Fragment, and implement onSaveInstanceState and onRestoreInstanceState to ensure the state token is persisted.
+
+# HTTP API
+
+## HTTP response
+
+Authentication Flow API always returns a JSON response of the same shape.
+
+### Successful response
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "authenticate",
+      "authentication": "primary_oob_otp_email",
+      "data": {}
+    }
+  }
+}
+```
+
+- `state_token`: The token that refers to this particular state of an authentication flow.
+- `id`: The ID of the authentication flow. It is a constant for a particular authentication flow.
+- `type`: The type of the authentication flow. Possible values are
+  - `signup`: The flow to sign up as a new user.
+  - `login`: The flow to sign in as a new user.
+  - `signup_login`: This flow will either become `signup` or `login` depending on the input. If the end-user enters an existing login ID, then the flow will becomes `login`, otherwise, it is `signup`.
+- `name`: The name of the authentication flow. See [Create an authentication flow](#create-an-authentication-flow)
+- `action`: An object containing information about the current action.
+  - `action.type`: The type of step. See [Reference on input and output](#reference-on-input-and-output)
+  - `action.authentication`: The taken authentication branch.
+  - `action.identification`: The taken identification branch.
+  - `action.data`: An object containing action-specific data. See [Reference on input and output](#reference-on-input-and-output)
+
+### Finish response
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "finished",
+      "data": {
+        "finish_redirect_uri": "https://myapp.authgear.cloud/..."
+      }
+    }
+  }
+}
+```
+
+- `action.type`: When the flow has finished, the value is `finished`.
+- `action.type.data.finish_redirect_uri`: When the flow has finished, you must redirect to this URI to return the control back to Authgear.
+
+### Error response
+
+```json
+{
+  "error": {
+    "name": "Unauthorized",
+    "reason": "InvalidCredentials",
+    "message": "invalid credentials",
+    "code": 401,
+    "info": {}
+  }
+}
+```
+
+- `reason`: You use this string to distinguish between different errors. Do NOT use `message` as it could change anytime.
+- `info`: An object containing extra information about the error. It can be absent (i.e. not `null`, but absent)
+
+## Create an authentication flow
+
+```
+POST /api/v1/authentication_flows
+Content-Type: application/json
+
+{
+  "type": "login",
+  "name": "default"
+}
+```
+
+Create an authentication flow by specifying the `type` and the `name`. Use the name `default` to refer to the generated flow according to your project configuration. This is the same flow that the default UI runs.
+
+## Pass an input to a state of an authentication flow
+
+```
+POST /api/v1/authentication_flows/states/input
+Content-Type: application/json
+
+{
+  "state_token": "{{ STATE_TOKEN }}"
+  "input": {}
+}
+```
+
+```
+POST /api/v1/authentication_flows/states/input
+Content-Type: application/json
+
+{
+  "state_token": "{{ STATE_TOKEN }}"
+  "batch_input": [{}, {}]
+}
+```
+
+Pass an input to a state of an authentication flow by specifying `state_token` and `input`. See [Reference on input and output](#reference-on-input-and-output) for details on `input`.
+
+Or if you want to pass multiple input at once, replace `input` with `batch_input`. `batch_input` must be an array with at least one element.
+
+## Retrieve a state again
+
+```
+POST /api/v1/authentication_flows/states
+Content-Type: application/json
+
+{
+  "state_token": "{{ state_token }}"
+}
+```
+
+Retrieve a state by by specifying `state_token`. Typically you do not need this because the state is returned after creation or after input was passed.
+
+## Listen for change with Websocket
+
+```
+GET /api/v1/authentication_flows/ws?flow_id={{ FLOW_ID }}
+Connection: Upgrade
+```
+
+Connect to the websocket by specifying `flow_id`. The only message you will receive is `{"kind":"refresh"}`. Upon receiving the message, you should retrieve the state again with [Retrieve a state again](#retrieve-a-state-again). The `step.data` should contain updated information.
+
+# Reference on input and output
+
+## type: signup; step.type: identification
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "id": "authflow_GKHBTN2H37D6BSAFFPXWSDPXPYCN5TH2",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "data": {
+        "options": [
+          {
+            "identification": "email"
+          },
+          {
+            "identification": "phone"
+          },
+          {
+            "identification": "oauth",
+            "provider_type": "google",
+            "alias": "google"
+          },
+          {
+            "identification": "oauth",
+            "provider_type": "wechat",
+            "alias": "wechat_mobile",
+            "wechat_app_type": "mobile"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### identification: email
+
+The presence of this means you can sign up with an email address.
+
+```json
+{
+  "identification": "email"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "email",
+  "login_id": "johndoe@example.com"
+}
+```
+
+### identification: phone
+
+The presence of this means you can sign up with a phone number.
+
+```json
+{
+  "identification": "phone"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "phone",
+  "login_id": "+85298765432"
+}
+```
+
+Note that the phone number **MUST BE** in **E.164** format without any separators nor spaces.
+
+### identification: username
+
+The presence of this means you can sign up with a username.
+
+```json
+{
+  "identification": "username"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "username",
+  "login_id": "johndoe"
+}
+```
+
+### identification: oauth
+
+The presence of this means you can sign up with an OAuth provider.
+
+```json
+{
+  "identification": "oauth",
+  "provider_type": "google",
+  "alias": "google"
+}
+```
+
+- `provider_type`: The type of the OAuth provider. Possible values are
+  - `google`
+  - `facebook`
+  - `github`
+  - `linkedin`
+  - `azureadv2`
+  - `azureadb2c`
+  - `adfs`
+  - `apple`
+  - `wechat`
+- `alias`: The identifier of the OAuth provider. You pass this in the input.
+
+The corresponding input is
+
+```json
+{
+  "identification": "oauth",
+  "alias": "google",
+  "redirect_uri": "<https://example.com/oauth/redirect/google>"
+}
+```
+
+- `alias`: The `alias` you see in the response. You pass this to tell Authgear which OAuth provider you choose.
+- `redirect_uri`: The redirect URI after the provider has finished authenticating the end-user. This should be an URL to your website, where you must continue the authentication flow.
+
+After passing this input, you will see a response like this
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_PZMX4FG4N82WGSSY0Y398YH0F9BX4FPX",
+    "id": "authflow_6890X76BVDGEA7Q9KGFD1MEGV21K0449",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "identification": "oauth",
+      "data": {
+        "alias": "google",
+        "oauth_provider_type": "google",
+        "oauth_authorization_url": "<https://google.com/oauth2>"
+      }
+    }
+  }
+}
+```
+
+You must redirect the end user to `oauth_authorization_url`. This is typically done by `window.location.href = {{ oauth_authorization_url }}`. Before you perform redirection, you typically need to add the query parameter `state` to `oauth_authorization_url`, so that you can resume the authentication flow.
+
+The OAuth provider will authenticate the end-user. There will be 2 cases:
+
+- The OAuth provider authenticated the end-user successfully. `code` and `state` will be present in the query string.
+- The OAuth provider encountered an error. `error` and `state` will be present in the query string. Additionally, `error_description` and `error_uri` may be present as well.
+
+In either case, use `state` to resume your authentication flow. After that pass the following input
+
+```json
+{
+  "code": "{{ code }}"
+}
+```
+
+for the successful case. Or this input
+
+```json
+{
+  "error": "{{ error }}",
+  "error_description": "{{ error_description }}",
+  "error_uri": "{{ error_uri }}"
+}
+```
+
+for the failure case. `error_description` and `error_uri` are optional.
+
+## type: signup; step.type: verify
+
+When you are in this step, you **MAY** see a response like the following
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_PZMX4FG4N82WGSSY0Y398YH0F9BX4FPX",
+    "id": "authflow_6890X76BVDGEA7Q9KGFD1MEGV21K0449",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "verify",
+      "data": {
+        "channels": [
+          "sms",
+          "whatsapp"
+        ]
+      }
+    }
+  }
+}
+```
+
+It is asking how to deliver the OTP. You pass the following input
+
+```json
+{
+  "channel": "sms"
+}
+```
+
+When you are in this step, you WILL see a response like the following
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "verify",
+      "data": {
+        "channel": "email",
+        "otp_form": "code",
+        "masked_claim_value": "john******@example.com",
+        "code_length": 6,
+        "can_resend_at": "2023-09-21T00:00:00+08:00",
+        "failed_attempt_rate_limit_exceeded": false
+      }
+    }
+  }
+}
+```
+
+If `otp_form` is `code`, a OTP will be sent to the end-user at `masked_claim_value`.
+
+To request a resend, pass this input
+
+```json
+{
+  "resend": true
+}
+```
+
+After the end-user has entered the code in your UI, pass this input
+
+```json
+{
+  "code": "000000"
+}
+```
+
+If `otp_form` is `link`, a link will be sent to the end-user at `masked_claim_value`. Clicking the link will open an approval page in the default UI. When the user has approved, a websocket message is sent. If you have connected the websocket, you should receive a message. The state will NOT automatically proceed itself. Pass this input to check if the link has been approved.
+
+```json
+{
+  "check": true
+}
+```
+
+Alternatively, you can have a button in the UI to send the above input per tap.
+
+To request a resend, pass this input
+
+```json
+{
+  "resend": true
+}
+```
+
+`can_resend_at` tells you the earliest time you can trigger resend without encountering rate limit error. Use this information to implement a cooldown counter in your UI.
+
+`code_length` tells you the length of the OTP. It is typically relevant when `otp_form` is `code`, because it gives an hint to the end-user how long the OTP is. When `otp_form` is `link`, the OTP is included in the link, the length is not an important information to the end-user.
+
+## type: signup; step.type: create_authenticator
+
+When you are in this step, you will see the following response if you are setting up a primary authenticator.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_DVW3H3Q9YDB3BRAA15D74V1PYGX6XYJB",
+    "id": "authflow_TV51H1K29SMGATW1W69DKTDEQH9KF5WW",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "create_authenticator",
+      "data": {
+        "options": [
+          {
+            "authentication": "primary_oob_otp_email",
+            "otp_form": "code",
+            "channels": [
+              "email"
+            ]
+          },
+          {
+            "authentication": "primary_password",
+            "password_policy": {
+              "minimum_length": 8,
+              "alphabet_required": true,
+              "digit_required": true,
+              "history": {
+                "enabled": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+Or this response if you are setting up 2FA.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "create_authenticator",
+      "data": {
+        "options": [
+          {
+            "authentication": "secondary_totp"
+          },
+          {
+            "authentication": "secondary_password",
+            "password_policy": {
+              "minimum_length": 8,
+              "alphabet_required": true,
+              "digit_required": true
+            }
+          },
+          {
+            "authentication": "secondary_oob_otp_email"
+          },
+          {
+            "authentication": "secondary_oob_otp_sms"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### authentication: primary_password
+
+The presence of this means you can create a primary password.
+
+```json
+{
+  "authentication": "primary_password",
+  "password_policy": {
+    "minimum_length": 8
+  }
+}
+```
+
+`password_policy` tells you the requirements on the password. Here is the full version of it
+
+```json
+{
+  "minimum_length": 8,
+  "uppercase_required": true,
+  "lowercase_required": true,
+  "alphabet_required": true,
+  "digit_required": true,
+  "symbol_required": true,
+  "minimum_zxcvbn_score": 4
+}
+```
+
+Any of the properties can be absent. If a property is absent, then the requirement indicated by the property DOES NOT apply.
+
+- `minimum_length`: The minimum length of the password.
+- `uppercase_required`: The password must contain at least one uppercase character.
+- `lowercase_required`: The password must contain at least one lowercase character.
+- `alphabet_required`: The password must contain at least one uppercase or lowercase character.
+- `digit_required`: The password must contain at least one digit.
+- `symbol_required`: The password must contain at least one non-alphanumeric character.
+- `minimum_zxcvbn_score`: The minimum [zxcvbn](https://github.com/dropbox/zxcvbn#usage) score. Possible values are 0,1,2,3,4.
+
+The corresponding input is
+
+```json
+{
+  "authentication": "primary_password",
+  "new_password": "some.very.secure.password"
+}
+```
+
+### authentication: primary_oob_otp_email
+
+The presence of this means you can create a primary Out-of-band (OOB) One-time-password (OTP) authenticator using an email address.
+
+```json
+{
+  "authentication": "primary_oob_otp_email"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "primary_oob_otp_email"
+}
+```
+
+After passing the input, you **MAY** enter a state where you need to verify the email address.
+
+### authentication: primary_oob_otp_sms
+
+The presence of this means you can create a primary OOB OTP authenticator using phone number.
+
+```json
+{
+  "authentication": "primary_oob_otp_sms"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "primary_oob_otp_sms"
+}
+```
+
+After passing the input, you **MAY** enter a state where you need to verify the phone number.
+
+### authentication: secondary_password
+
+The presence of this means you can create a secondary password.
+
+```json
+{
+  "authentication": "secondary_password",
+  "password_policy": {
+    "minimum_length": 8
+  }
+}
+```
+
+Use `password_policy` to implement your password strength validator in the UI. The corresponding input is
+
+```json
+{
+  "authentication": "secondary_password",
+  "new_password": "some.very.secure.password"
+}
+```
+
+### authentication: secondary_oob_otp_email
+
+The presence of this means you can create a secondary Out-of-band (OOB) One-time-password (OTP) authenticator using an email address.
+
+```json
+{
+  "authentication": "secondary_oob_otp_email"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_oob_otp_email",
+  "target": "johndoe@example.com"
+}
+```
+
+`target` can be different (and is usually different) from the email address the end-user uses to sign in.
+
+After passing the input, you **WILL** enter a state where you need to verify the email address.
+
+### authentication: secondary_oob_otp_sms
+
+The presence of this means you can create a secondary OOB OTP authenticator using phone number.
+
+```json
+{
+  "authentication": "secondary_oob_otp_sms"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_oob_otp_sms",
+  "target": "+85298765432"
+}
+```
+
+`target` **MUST BE** in **E.164** format without any separators nor spaces. It can be different (and is usually different) from the phone number the end-user uses to sign in.
+
+After passing the input, you **WILL** enter a state where you need to verify the phone number.
+
+### authentication: secondary_totp
+
+The presence of this means you can create a secondary Time-based One-time-password (TOTP) authenticator.
+
+```json
+{
+  "authentication": "secondary_totp"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_totp"
+}
+```
+
+After passing the above input, you will see a response like this
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "authenticate",
+      "authentication": "secondary_totp",
+      "data": {
+        "secret": "SEURUM6364TM7TRL5SSGDVURZRHZY34O",
+        "otpauth_uri": "otpauth://totp/johndoe@example.com?algorithm=SHA1&digits=6&issuer=http%3A%2F%2Flocalhost%3A3100&period=30&secret=SEURUM6364TM7TRL5SSGDVURZRHZY34O"
+      }
+    }
+  }
+}
+```
+
+- `secret`: It is the value the end-user need to enter if they want to set up TOTP manually.
+- `otpauth_uri`: The intended usage of this URI is construct a QR code image of it. Present the QR code image to the end-user and ask them to scan the code with their TOTP authenticator application, such as Google Authenticator.
+
+After the end-user has set up the TOTP, they have to verify once to prove that the setup is fine. Collect the TOTP from the end-user and pass this input.
+
+```json
+{
+  "code": "000000"
+}
+```
+
+## type: signup; step.type: view_recovery_code
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_VN0JDCRTFJBPW230WXVX17RD0FKHC23B",
+    "id": "authflow_Y2CBYPNWTBYDE5KJWHKE891VA413XR28",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "view_recovery_code",
+      "data": {
+        "recovery_codes": [
+          "94X5NST2VM",
+          "ZTC1BQJSMX",
+          "R6NA5BS8Z0",
+          "WFKDRJPHXB",
+          "K6V6EWJ6NZ",
+          "0XHS2ARPDM",
+          "4Q0GPJTC9H",
+          "7MWXG4SJFN",
+          "PN5DX4B9JV",
+          "NRW9NP8MXK",
+          "WPJQARRRKN",
+          "QDS53NPH8D",
+          "SC1AVJYT9Z",
+          "KY1D2EXZM2",
+          "ZVG3HMEFTC",
+          "0Z6YXC5W95"
+        ]
+      }
+    }
+  }
+}
+```
+
+You need to present `recovery_codes` to the end-user, preferably allow them to download the recovery codes. Ask confirmation from the end-user that they have saved the recovery codes. After that pass this input
+
+```json
+{
+  "confirm_recovery_code": true
+}
+```
+
+## type: signup; step.type: prompt_create_passkey
+
+When you are in this step of this flow, you will see a response like the following
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "prompt_create_passkey",
+      "data": {
+        "creation_options": {
+          "publicKey": {
+            "challenge": "muG_Yk_VyupxTyF6A9v1RO3fwBLfYxZ4N1JtVZ6OtlU",
+            "rp": {
+              "id": "localhost",
+              "name": "redacted"
+            },
+            "user": {
+              "id": "ZDAzZjg2YTktMDA2MS00NDFiLTk1NjQtYTk3ZmVmMzFhM2E0",
+              "name": "johndoe@oursky.com",
+              "displayName": "johndoe@oursky.com"
+            },
+            "pubKeyCredParams": [
+            {
+              "type": "public-key",
+              "alg": -7
+            },
+            {
+              "type": "public-key",
+              "alg": -257
+            }
+            ],
+            "timeout": 300000,
+            "authenticatorSelection": {
+              "residentKey": "preferred",
+              "userVerification": "preferred"
+            },
+            "attestation": "direct",
+            "extensions": {
+              "credProps": true,
+              "uvm": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+To skip creation, pass this input
+
+```json
+{
+  "skip": true
+}
+```
+
+To create the passkey, you need to run some javascript
+
+```jsx
+function b64ToUint6(nChr) {
+  return nChr > 64 && nChr < 91
+    ? nChr - 65
+    : nChr > 96 && nChr < 123
+    ? nChr - 71
+    : nChr > 47 && nChr < 58
+    ? nChr + 4
+    : nChr === 43
+    ? 62
+    : nChr === 47
+    ? 63
+    : 0;
+}
+
+function base64DecToArr(sBase64, nBlocksSize) {
+  var sB64Enc = sBase64.replace(/[^A-Za-z0-9\\+\\/]/g, ""),
+    nInLen = sB64Enc.length,
+    nOutLen = nBlocksSize
+      ? Math.ceil(((nInLen * 3 + 1) >> 2) / nBlocksSize) * nBlocksSize
+      : (nInLen * 3 + 1) >> 2,
+    taBytes = new Uint8Array(nOutLen);
+
+  for (
+    var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0;
+    nInIdx < nInLen;
+    nInIdx++
+  ) {
+    nMod4 = nInIdx & 3;
+    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << (6 * (3 - nMod4));
+    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+      for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+        taBytes[nOutIdx] = (nUint24 >>> ((16 >>> nMod3) & 24)) & 255;
+      }
+      nUint24 = 0;
+    }
+  }
+
+  return taBytes;
+}
+
+function uint6ToB64(nUint6) {
+  return nUint6 < 26
+    ? nUint6 + 65
+    : nUint6 < 52
+    ? nUint6 + 71
+    : nUint6 < 62
+    ? nUint6 - 4
+    : nUint6 === 62
+    ? 43
+    : nUint6 === 63
+    ? 47
+    : 65;
+}
+
+function base64EncArr(aBytes) {
+  var nMod3 = 2,
+    sB64Enc = "";
+
+  for (var nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
+    nMod3 = nIdx % 3;
+    if (nIdx > 0 && ((nIdx * 4) / 3) % 76 === 0) {
+      sB64Enc += "\\r\\n";
+    }
+    nUint24 |= aBytes[nIdx] << ((16 >>> nMod3) & 24);
+    if (nMod3 === 2 || aBytes.length - nIdx === 1) {
+      sB64Enc += String.fromCodePoint(
+        uint6ToB64((nUint24 >>> 18) & 63),
+        uint6ToB64((nUint24 >>> 12) & 63),
+        uint6ToB64((nUint24 >>> 6) & 63),
+        uint6ToB64(nUint24 & 63),
+      );
+      nUint24 = 0;
+    }
+  }
+
+  return (
+    sB64Enc.substr(0, sB64Enc.length - 2 + nMod3) +
+    (nMod3 === 2 ? "" : nMod3 === 1 ? "=" : "==")
+  );
+}
+
+function base64URLToBase64(base64url) {
+  let base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  if (base64.length % 4 !== 0) {
+    const count = 4 - (base64.length % 4);
+    base64 += "=".repeat(count);
+  }
+  return base64;
+}
+
+function base64ToBase64URL(base64) {
+  return base64.replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=/g, "");
+}
+
+function trimNewline(str) {
+  return str.replace(/\\r/g, "").replace(/\\n/g, "");
+}
+
+function deserializeCreationOptions(creationOptions) {
+  const base64URLChallenge = creationOptions.publicKey.challenge;
+  const challenge = base64DecToArr(base64URLToBase64(base64URLChallenge));
+  creationOptions.publicKey.challenge = challenge;
+
+  const base64URLUserID = creationOptions.publicKey.user.id;
+  const userID = base64DecToArr(base64URLToBase64(base64URLUserID));
+  creationOptions.publicKey.user.id = userID;
+
+  if (creationOptions.publicKey.excludeCredentials != null) {
+    for (const c of creationOptions.publicKey.excludeCredentials) {
+      c.id = base64DecToArr(base64URLToBase64(c.id));
+    }
+  }
+  return creationOptions;
+}
+
+function serializeAttestationResponse(credential) {
+  const response = credential.response;
+
+  const attestationObject = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.attestationObject))),
+  );
+  const clientDataJSON = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.clientDataJSON))),
+  );
+
+  let transports = [];
+  if (typeof response.getTransports === "function") {
+    transports = response.getTransports();
+  }
+
+  const clientExtensionResults = credential.getClientExtensionResults();
+
+  return {
+    id: credential.id,
+    rawId: credential.id,
+    type: credential.type,
+    response: {
+      attestationObject,
+      clientDataJSON,
+      transports,
+    },
+    clientExtensionResults,
+  };
+}
+
+// Basically you need to deserialize the creation_options, and
+// pass it to window.navigator.credentials.create(), and then
+// serialize the return value and pass it back to the API.
+async function main(creationOptions) {
+  creationOptions = deserializeCreationOptions(options);
+  const rawResponse = await window.navigator.credentials.create(creationOptions);
+  if (rawResponse instanceof PublicKeyCredential) {
+    const response = serializeAttestationResponse(rawResponse);
+    return response;
+  }
+}
+```
+
+Pass `creation_options` to `main` and then pass this input
+
+```json
+{
+  "creation_response": {{ resolved return value of main }}
+}
+```
+
+## type: login; step.type: identify
+
+See [type: signup; step.type: identification](#type-signup-steptype-identification). They are the same except that `type` is `login`.
+
+## type: login; step.type: authenticate
+
+When you are in this step, you will see a response like the following if you are performing primary authentication.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_X0BJ22Y0P4MB6A98X75AMQ8ADVQC94MK",
+    "id": "authflow_1ZCPQJT1FYNE8F5SHQYEHPN3MHG83H68",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "authenticate",
+      "data": {
+        "options": [
+          {
+            "authentication": "primary_passkey",
+            "request_options": {
+              "publicKey": {
+                "challenge": "3PzOb9VvB54BIdrOC5b88ewjYt1wEOmKbCd0IM8FQSA",
+                "timeout": 300000,
+                "rpId": "localhost",
+                "userVerification": "preferred",
+                "allowCredentials": [],
+                "extensions": {
+                  "uvm": true
+                }
+              }
+            }
+          },
+          {
+            "authentication": "primary_oob_otp_email",
+            "otp_form": "code",
+            "masked_display_name": "loui*****@oursky.com",
+            "channels": [
+              "email"
+            ]
+          },
+          {
+            "authentication": "primary_password"
+          }
+        ],
+        "device_token_enable": false
+      }
+    }
+  }
+}
+```
+
+Or this response if you are performing secondary authentication.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_HYQ33WWMZM2AV91VPQWJE2M0HXWT02AK",
+    "id": "authflow_EENC60VM5T0S1GBY9YERTKAVRJ4RF9CY",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "authenticate",
+      "data": {
+        "options": [
+          {
+            "authentication": "secondary_totp"
+          },
+          {
+            "authentication": "secondary_password"
+          },
+          {
+            "authentication": "recovery_code"
+          }
+        ],
+        "device_token_enable": true
+      }
+    }
+  }
+}
+```
+
+### authentication: primary_password
+
+The presence of this means you can sign in with primary password.
+
+```json
+{
+  "authentication": "primary_password"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "primary_password",
+  "password": "12345678"
+}
+```
+
+### authentication: primary_oob_otp_email
+
+The presence of this means you can sign in by receiving a OOB OTP via email.
+
+```json
+{
+  "authentication": "primary_oob_otp_email",
+  "otp_form": "code",
+  "masked_display_name": "john****@example.com",
+  "channels": ["email"]
+}
+```
+
+To reference this authentication, use its index in `options` array.
+`otp_form` tells you what kind of OTP will be sent. `masked_display_name` tells you what email address the OTP will be sent to. `channels` tells you the available channels you must choose from.
+
+The corresponding input is
+
+```json
+{
+  "authentication": "primary_oob_otp_email",
+  "index": 1,
+  "channel": "email"
+}
+```
+
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+
+### authentication: primary_oob_otp_sms
+
+The presence of this means you can sign in by receiving a OOB OTP via phone number.
+
+```json
+{
+  "authentication": "primary_oob_otp_sms",
+  "otp_form": "code",
+  "masked_display_name": "+8529876****",
+  "channels": ["sms", "whatsapp"]
+}
+```
+
+To reference this authentication, use its index in `options` array.
+`otp_form` tells you what kind of OTP will be sent. `masked_display_name` tells you what phone number the OTP will be sent to. `channels` tells you the available channels you must choose from.
+
+The corresponding input is
+
+```json
+{
+  "authentication": "primary_oob_otp_sms",
+  "index": 2,
+  "channel": "sms"
+}
+```
+
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+
+### authentication: primary_passkey
+
+The presence of this means you can sign in with passkey.
+
+```json
+{
+  "authentication": "primary_passkey",
+  "request_options": {
+    "publicKey": {
+      "challenge": "2tVbbyG9dJ0KuM1yHlXeah1fZ6grtP4YyOIORYxIzUM",
+      "timeout": 300000,
+      "rpId": "localhost",
+      "userVerification": "preferred",
+      "allowCredentials": [
+        {
+          "type": "public-key",
+          "id": "dFcL6B0cTujk-mONTRqsP4TXVrLWWvzWfa7oG_b36T8"
+        }
+      ],
+      "extensions": {
+        "uvm": true
+      }
+    }
+  }
+}
+```
+
+To use passkey, you need to run some javascript
+
+```jsx
+function b64ToUint6(nChr) {
+  return nChr > 64 && nChr < 91
+    ? nChr - 65
+    : nChr > 96 && nChr < 123
+    ? nChr - 71
+    : nChr > 47 && nChr < 58
+    ? nChr + 4
+    : nChr === 43
+    ? 62
+    : nChr === 47
+    ? 63
+    : 0;
+}
+
+function base64DecToArr(sBase64, nBlocksSize) {
+  var sB64Enc = sBase64.replace(/[^A-Za-z0-9\\+\\/]/g, ""),
+    nInLen = sB64Enc.length,
+    nOutLen = nBlocksSize
+      ? Math.ceil(((nInLen * 3 + 1) >> 2) / nBlocksSize) * nBlocksSize
+      : (nInLen * 3 + 1) >> 2,
+    taBytes = new Uint8Array(nOutLen);
+
+  for (
+    var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0;
+    nInIdx < nInLen;
+    nInIdx++
+  ) {
+    nMod4 = nInIdx & 3;
+    nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << (6 * (3 - nMod4));
+    if (nMod4 === 3 || nInLen - nInIdx === 1) {
+      for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+        taBytes[nOutIdx] = (nUint24 >>> ((16 >>> nMod3) & 24)) & 255;
+      }
+      nUint24 = 0;
+    }
+  }
+
+  return taBytes;
+}
+
+function uint6ToB64(nUint6) {
+  return nUint6 < 26
+    ? nUint6 + 65
+    : nUint6 < 52
+    ? nUint6 + 71
+    : nUint6 < 62
+    ? nUint6 - 4
+    : nUint6 === 62
+    ? 43
+    : nUint6 === 63
+    ? 47
+    : 65;
+}
+
+function base64EncArr(aBytes) {
+  var nMod3 = 2,
+    sB64Enc = "";
+
+  for (var nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
+    nMod3 = nIdx % 3;
+    if (nIdx > 0 && ((nIdx * 4) / 3) % 76 === 0) {
+      sB64Enc += "\\r\\n";
+    }
+    nUint24 |= aBytes[nIdx] << ((16 >>> nMod3) & 24);
+    if (nMod3 === 2 || aBytes.length - nIdx === 1) {
+      sB64Enc += String.fromCodePoint(
+        uint6ToB64((nUint24 >>> 18) & 63),
+        uint6ToB64((nUint24 >>> 12) & 63),
+        uint6ToB64((nUint24 >>> 6) & 63),
+        uint6ToB64(nUint24 & 63),
+      );
+      nUint24 = 0;
+    }
+  }
+
+  return (
+    sB64Enc.substr(0, sB64Enc.length - 2 + nMod3) +
+    (nMod3 === 2 ? "" : nMod3 === 1 ? "=" : "==")
+  );
+}
+
+function base64URLToBase64(base64url) {
+  let base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  if (base64.length % 4 !== 0) {
+    const count = 4 - (base64.length % 4);
+    base64 += "=".repeat(count);
+  }
+  return base64;
+}
+
+function base64ToBase64URL(base64) {
+  return base64.replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=/g, "");
+}
+
+function trimNewline(str) {
+  return str.replace(/\\r/g, "").replace(/\\n/g, "");
+}
+
+function deserializeRequestOptions(requestOptions) {
+  const base64URLChallenge = requestOptions.publicKey.challenge;
+  const challenge = base64DecToArr(base64URLToBase64(base64URLChallenge));
+  requestOptions.publicKey.challenge = challenge;
+  if (requestOptions.publicKey.allowCredentials) {
+    for (const c of requestOptions.publicKey.allowCredentials) {
+      c.id = base64DecToArr(base64URLToBase64(c.id));
+    }
+  }
+  return requestOptions;
+}
+
+function serializeAssertionResponse(credential) {
+  const response = credential.response;
+  const authenticatorData = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.authenticatorData))),
+  );
+  const clientDataJSON = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.clientDataJSON))),
+  );
+  const signature = trimNewline(
+    base64ToBase64URL(base64EncArr(new Uint8Array(response.signature))),
+  );
+  const userHandle =
+    response.userHandle == null
+      ? undefined
+      : trimNewline(
+          base64ToBase64URL(base64EncArr(new Uint8Array(response.userHandle))),
+        );
+  const clientExtensionResults = credential.getClientExtensionResults();
+  return {
+    id: credential.id,
+    rawId: credential.id,
+    type: credential.type,
+    response: {
+      authenticatorData,
+      clientDataJSON,
+      signature,
+      userHandle,
+    },
+    clientExtensionResults,
+  };
+}
+
+async function main(options) {
+  options = deserializeRequestOptions(options);
+  const rawResponse = await window.navigator.credentials.get(options);
+  if (rawResponse instanceof PublicKeyCredential) {
+    const response = serializeAssertionResponse(rawResponse);
+    return response
+  }
+}
+```
+
+Pass `request_options` to `main`, and then pass this input
+
+```json
+{
+  "assertion_response": {{ resolved return value of main }}
+}
+```
+
+### authentication: secondary_password
+
+The presence of this means you can sign in with secondary password.
+
+```json
+{
+  "authentication": "secondary_password"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_password",
+  "password": "12345678"
+}
+```
+
+### authentication: secondary_oob_otp_email
+
+The presence of this means you can sign in by receiving a OOB OTP via email.
+
+```json
+{
+  "authentication": "secondary_oob_otp_email",
+  "otp_form": "code",
+  "masked_display_name": "john****@example.com",
+  "channels": ["email"]
+}
+```
+
+To reference this authentication, use its index in `options` array.
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_oob_otp_email",
+  "index": 1,
+  "channel": "email"
+}
+```
+
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+
+### authentication: secondary_oob_otp_sms
+
+The presence of this means you can sign in by receiving a OOB OTP via phone number.
+
+```json
+{
+  "authentication": "secondary_oob_otp_sms",
+  "otp_form": "code",
+  "masked_display_name": "+8529876****",
+  "channels": ["sms", "whatsapp"]
+}
+```
+
+To reference this authentication, use its index in `options` array.
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_oob_otp_sms",
+  "index": 2,
+  "channel": "sms"
+}
+```
+
+After passing the input, you **WILL** enter a state where you need to verify the OTP. [type: signup; step.type: verify](#type-signup-steptype-verify)
+
+### authentication: secondary_totp
+
+The presence of this means you can sign in with TOTP.
+
+```json
+{
+  "authentication": "secondary_totp"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "authentication": "secondary_totp",
+  "code": "000000"
+}
+```
+
+## type: login; step.type: change_password
+
+When you are in this step, you will see a response like the following
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "id": "authflow_blahblahblah",
+    "type": "login",
+    "name": "default",
+    "action": {
+      "type": "change_password",
+      "data": {
+        "password_policy": {
+          "minimum_length": 8,
+          "alphabet_required": true,
+          "digit_required": true
+        }
+      }
+    }
+  }
+}
+```
+
+The end-user is forced to change their password because their current password does not meet the password policy.
+
+The corresponding input is
+
+```json
+{
+  "new_password": "a.new.password.that.meet.the.password.policy"
+}
+```
+
+## type: login; step.type: prompt_create_passkey
+
+See [type: signup; step.type: prompt_create_passkey](#type-signup-steptype-prompt_create_passkey). They are the same except that `type` is `login`.
+
+## type: signup_login; step.type: identify
+
+See [type: signup; step.type: identification](#type-signup-steptype-identification). They are the same except that `type` is `signup_login`.
