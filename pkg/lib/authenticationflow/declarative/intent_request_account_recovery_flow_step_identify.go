@@ -76,7 +76,7 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Co
 		}, nil
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
+	_, identityUsed := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](flows.Nearest)
 	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
@@ -119,7 +119,7 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Conte
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneDoUseIdentity](flows.Nearest)
+	_, identityUsed := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](flows.Nearest)
 	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
 
 	switch {

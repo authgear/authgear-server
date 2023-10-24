@@ -153,7 +153,7 @@ type MilestoneDoUseIdentity interface {
 
 type MilestoneDoUseAccountRecoveryIdentity interface {
 	authflow.Milestone
-	MilestoneDoUseAccountRecoveryIdentity() *identity.Info
+	MilestoneDoUseAccountRecoveryIdentity() AccountRecoveryIdentity
 }
 
 type MilestoneAccountRecoveryIdentificationMethod interface {

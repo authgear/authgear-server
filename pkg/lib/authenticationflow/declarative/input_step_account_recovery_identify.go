@@ -62,7 +62,7 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 }
 
 func (i *InputSchemaStepAccountRecoveryIdentify) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
-	var input InputStepIdentify
+	var input InputStepAccountRecoveryIdentify
 	err := i.SchemaBuilder().ToSimpleSchema().Validator().ParseJSONRawMessage(rawMessage, &input)
 	if err != nil {
 		return nil, err

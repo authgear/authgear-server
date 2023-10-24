@@ -22,6 +22,10 @@ type inputTakeAccountRecoveryIdentificationMethod interface {
 	GetAccountRecoveryIdentificationMethod() config.AuthenticationFlowRequestAccountRecoveryIdentification
 }
 
+type inputTakeAccountRecoveryDestinationOptionID interface {
+	GetAccountRecoveryDestinationOptionID() string
+}
+
 type inputTakeAuthenticationMethod interface {
 	GetAuthenticationMethod() config.AuthenticationFlowAuthentication
 }

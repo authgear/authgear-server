@@ -68,11 +68,13 @@ func (n *NodeUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *auth
 			}
 		}
 
-		n := &NodeDoUseAccountRecoveryIdentity{
-			MaybeIdentity: exactMatch,
+		nextNode := &NodeDoUseAccountRecoveryIdentity{
+			Identification: n.Identification,
+			Spec:           spec,
+			MaybeIdentity:  exactMatch,
 		}
 
-		return authflow.NewNodeSimple(n), nil
+		return authflow.NewNodeSimple(nextNode), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput

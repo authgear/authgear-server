@@ -64,8 +64,19 @@ func (i *IntentRequestAccountRecoveryFlowSteps) ReactTo(ctx context.Context, dep
 		}
 		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination:
-		// FIXME(tung)
-		return nil, nil
+		stepSelectDestination, err := NewIntentRequestAccountRecoveryFlowStepSelectDestination(
+			ctx,
+			deps,
+			flows.Nearest,
+			&IntentRequestAccountRecoveryFlowStepSelectDestination{
+				StepName:    step.Name,
+				JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(stepSelectDestination), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput
