@@ -28,7 +28,6 @@ type ServiceOutput struct {
 func (o *ServiceOutput) ToFlowResponse() FlowResponse {
 	return FlowResponse{
 		StateToken: o.Flow.StateToken,
-		ID:         o.Flow.FlowID,
 		Type:       o.FlowReference.Type,
 		Name:       o.FlowReference.Name,
 		Action:     o.FlowAction,

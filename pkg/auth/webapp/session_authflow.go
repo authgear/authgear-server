@@ -58,15 +58,12 @@ const AuthflowQueryKey = "x_step"
 // Authflow stores the necessary information for webapp to run an authflow, including
 // navigation, and branching.
 type Authflow struct {
-	// FlowID is the ID of the authflow.
-	FlowID string `json:"flow_id"`
 	// AllScreens is x_step => screen.
 	AllScreens map[string]*AuthflowScreen `json:"all_screens,omitempty"`
 }
 
-func NewAuthflow(flowID string, initialScreen *AuthflowScreenWithFlowResponse) *Authflow {
+func NewAuthflow(initialScreen *AuthflowScreenWithFlowResponse) *Authflow {
 	af := &Authflow{
-		FlowID:     flowID,
 		AllScreens: map[string]*AuthflowScreen{},
 	}
 	af.RememberScreen(initialScreen)

@@ -58,19 +58,11 @@ type FlowAction struct {
 }
 
 // FlowResponse is an API object.
-//
-// When the flow finished, `finished` is true.
-// In this case, `finish_redirect_uri` may be present.
 type FlowResponse struct {
-	// StateToken is the StateToken.
-	StateToken string `json:"state_token"`
-
-	// ID is the flow ID.
-	ID   string   `json:"id"`
-	Type FlowType `json:"type,omitempty"`
-	Name string   `json:"name,omitempty"`
-
-	Action *FlowAction `json:"action,omitempty"`
+	StateToken string      `json:"state_token"`
+	Type       FlowType    `json:"type,omitempty"`
+	Name       string      `json:"name,omitempty"`
+	Action     *FlowAction `json:"action,omitempty"`
 }
 
 type flowFactory func() PublicFlow
