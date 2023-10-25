@@ -1209,6 +1209,6 @@ func (i AuthenticationFlowAccountRecoveryIdentification) AuthenticationFlowIdent
 type AuthenticationFlowAccountRecoveryIdentificationOnFailure string
 
 const (
-	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
-	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
+	AuthenticationFlowAccountRecoveryIdentificationOnFailureError  = AuthenticationFlowAccountRecoveryIdentificationOnFailure("error")
+	AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore = AuthenticationFlowAccountRecoveryIdentificationOnFailure("ignore")
 )
