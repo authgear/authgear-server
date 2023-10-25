@@ -407,7 +407,7 @@ It is asking how to deliver the OTP. You pass the following input
 }
 ```
 
-When you are in this step, you WILL see a response like the following
+When you are in this step, you WILL see a response like the following if the otp is a code.
 
 ```json
 {
@@ -423,6 +423,7 @@ When you are in this step, you WILL see a response like the following
         "masked_claim_value": "john******@example.com",
         "code_length": 6,
         "can_resend_at": "2023-09-21T00:00:00+08:00",
+        "can_check": false,
         "failed_attempt_rate_limit_exceeded": false
       }
     }
@@ -448,7 +449,39 @@ After the end-user has entered the code in your UI, pass this input
 }
 ```
 
-If `otp_form` is `link`, a link will be sent to the end-user at `masked_claim_value`. Clicking the link will open an approval page in the default UI. When the user has approved, a websocket message is sent. If you have connected the websocket, you should receive a message. The state will NOT automatically proceed itself. Pass this input to check if the link has been approved.
+Or you WILL see a response like the following if the otp is a link.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_blahblahblah",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "verify",
+      "data": {
+        "channel": "email",
+        "otp_form": "link",
+        "websocket_url": "wss://...",
+        "masked_claim_value": "john******@example.com",
+        "code_length": 32,
+        "can_resend_at": "2023-09-21T00:00:00+08:00",
+        "can_check": false,
+        "failed_attempt_rate_limit_exceeded": false
+      }
+    }
+  }
+}
+```
+
+if `otp_form` is `link`, `can_check` initially is `false` and `websocket_url` will be present in `data`.
+You can connect to a websocket with this URL to listen for the event of the link being approved.
+
+The link will be sent to the end-user at `masked_claim_value`. Clicking the link will open an approval page in the default UI.
+When the user has approved the link, a websocket message of a JSON object `{"type": "refresh"}` is sent.
+Upon receiving the message, you can [retrieve a state again](#retrieve-a-state-again).
+The retrieved state should have `can_check=true`.
+Now you can pass this input to check if the link has been approved.
 
 ```json
 {
