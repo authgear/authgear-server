@@ -19,7 +19,6 @@ type IntentAccountRecoveryFlow struct {
 }
 
 var _ authflow.PublicFlow = &IntentAccountRecoveryFlow{}
-var _ authflow.EffectGetter = &IntentAccountRecoveryFlow{}
 
 func (*IntentAccountRecoveryFlow) Kind() string {
 	return "IntentAccountRecoveryFlow"
@@ -59,8 +58,4 @@ func (i *IntentAccountRecoveryFlow) ReactTo(ctx context.Context, deps *authflow.
 	}
 
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (i *IntentAccountRecoveryFlow) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
-	return []authflow.Effect{}, nil
 }
