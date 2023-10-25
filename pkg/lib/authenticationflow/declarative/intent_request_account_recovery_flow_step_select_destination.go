@@ -16,49 +16,49 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentRequestAccountRecoveryFlowStepSelectDestination{})
+	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepSelectDestination{})
 }
 
-type IntentRequestAccountRecoveryFlowStepSelectDestinationData struct {
+type IntentAccountRecoveryFlowStepSelectDestinationData struct {
 	Options []AccountRecoveryDestinationOption `json:"options"`
 }
 
-var _ authflow.Data = IntentRequestAccountRecoveryFlowStepSelectDestinationData{}
+var _ authflow.Data = IntentAccountRecoveryFlowStepSelectDestinationData{}
 
-func (IntentRequestAccountRecoveryFlowStepSelectDestinationData) Data() {}
+func (IntentAccountRecoveryFlowStepSelectDestinationData) Data() {}
 
-type IntentRequestAccountRecoveryFlowStepSelectDestination struct {
+type IntentAccountRecoveryFlowStepSelectDestination struct {
 	JSONPointer jsonpointer.T                              `json:"json_pointer,omitempty"`
 	StepName    string                                     `json:"step_name,omitempty"`
 	Options     []AccountRecoveryDestinationOptionInternal `json:"options"`
 }
 
-var _ authflow.TargetStep = &IntentRequestAccountRecoveryFlowStepSelectDestination{}
+var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepSelectDestination{}
 
-func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) GetName() string {
+func (i *IntentAccountRecoveryFlowStepSelectDestination) GetName() string {
 	return i.StepName
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) GetJSONPointer() jsonpointer.T {
+func (i *IntentAccountRecoveryFlowStepSelectDestination) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ authflow.Intent = &IntentRequestAccountRecoveryFlowStepSelectDestination{}
-var _ authflow.DataOutputer = &IntentRequestAccountRecoveryFlowStepSelectDestination{}
+var _ authflow.Intent = &IntentAccountRecoveryFlowStepSelectDestination{}
+var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepSelectDestination{}
 
-func NewIntentRequestAccountRecoveryFlowStepSelectDestination(
+func NewIntentAccountRecoveryFlowStepSelectDestination(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	i *IntentRequestAccountRecoveryFlowStepSelectDestination,
-) (*IntentRequestAccountRecoveryFlowStepSelectDestination, error) {
+	i *IntentAccountRecoveryFlowStepSelectDestination,
+) (*IntentAccountRecoveryFlowStepSelectDestination, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
 	}
 	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentity](flows.Root)
 	if !ok {
-		return i, InvalidFlowConfig.New("IntentRequestAccountRecoveryFlowStepSelectDestination depends on MilestoneDoUseAccountRecoveryIdentity")
+		return i, InvalidFlowConfig.New("IntentAccountRecoveryFlowStepSelectDestination depends on MilestoneDoUseAccountRecoveryIdentity")
 	}
 	iden := milestone.MilestoneDoUseAccountRecoveryIdentity()
 	step := i.step(current)
@@ -67,7 +67,7 @@ func NewIntentRequestAccountRecoveryFlowStepSelectDestination(
 
 	// Always include the user inputted login id
 	switch iden.Identification {
-	case config.AuthenticationFlowRequestAccountRecoveryIdentificationEmail:
+	case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 		optionsByUniqueKey[iden.IdentitySpec.LoginID.Value] = AccountRecoveryDestinationOptionInternal{
 			AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
 				MaskedDisplayName: mail.MaskAddress(iden.IdentitySpec.LoginID.Value),
@@ -75,7 +75,7 @@ func NewIntentRequestAccountRecoveryFlowStepSelectDestination(
 			},
 			TargetLoginID: iden.IdentitySpec.LoginID.Value,
 		}
-	case config.AuthenticationFlowRequestAccountRecoveryIdentificationPhone:
+	case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
 		optionsByUniqueKey[iden.IdentitySpec.LoginID.Value] = AccountRecoveryDestinationOptionInternal{
 			AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
 				MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value),
@@ -135,11 +135,11 @@ func NewIntentRequestAccountRecoveryFlowStepSelectDestination(
 	return i, nil
 }
 
-func (*IntentRequestAccountRecoveryFlowStepSelectDestination) Kind() string {
-	return "IntentRequestAccountRecoveryFlowStepSelectDestination"
+func (*IntentAccountRecoveryFlowStepSelectDestination) Kind() string {
+	return "IntentAccountRecoveryFlowStepSelectDestination"
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	switch len(flows.Nearest.Nodes) {
 	case 0:
 		return &InputSchemaStepAccountRecoverySelectDestination{
@@ -151,7 +151,7 @@ func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx c
 	}
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	if len(flows.Nearest.Nodes) == 0 {
 		var inputTakeAccountRecoveryDestinationOptionID inputTakeAccountRecoveryDestinationOptionID
 		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionID) {
@@ -179,14 +179,14 @@ func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) ReactTo(ctx cont
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentRequestAccountRecoveryFlowStepSelectDestinationData{
+func (i *IntentAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	return IntentAccountRecoveryFlowStepSelectDestinationData{
 		Options: i.getOptions(),
 	}, nil
 }
 
-func (*IntentRequestAccountRecoveryFlowStepSelectDestination) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowRequestAccountRecoveryFlowStep {
-	step, ok := o.(*config.AuthenticationFlowRequestAccountRecoveryFlowStep)
+func (*IntentAccountRecoveryFlowStepSelectDestination) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowAccountRecoveryFlowStep {
+	step, ok := o.(*config.AuthenticationFlowAccountRecoveryFlowStep)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
 	}
@@ -194,7 +194,7 @@ func (*IntentRequestAccountRecoveryFlowStepSelectDestination) step(o config.Auth
 	return step
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepSelectDestination) getOptions() []AccountRecoveryDestinationOption {
+func (i *IntentAccountRecoveryFlowStepSelectDestination) getOptions() []AccountRecoveryDestinationOption {
 
 	ops := []AccountRecoveryDestinationOption{}
 	for _, op := range i.Options {

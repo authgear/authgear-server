@@ -11,9 +11,9 @@ func init() {
 }
 
 type NodeDoUseAccountRecoveryIdentity struct {
-	Identification config.AuthenticationFlowRequestAccountRecoveryIdentification `json:"identification,omitempty"`
-	Spec           *identity.Spec                                                `json:"spec,omitempty"`
-	MaybeIdentity  *identity.Info                                                `json:"maybe_identity,omitempty"`
+	Identification config.AuthenticationFlowAccountRecoveryIdentification `json:"identification,omitempty"`
+	Spec           *identity.Spec                                         `json:"spec,omitempty"`
+	MaybeIdentity  *identity.Info                                         `json:"maybe_identity,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoUseAccountRecoveryIdentity{}

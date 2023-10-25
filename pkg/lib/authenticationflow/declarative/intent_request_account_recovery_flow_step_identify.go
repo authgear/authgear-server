@@ -11,37 +11,37 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentRequestAccountRecoveryFlowStepIdentify{})
+	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepIdentify{})
 }
 
-type IntentRequestAccountRecoveryFlowStepIdentifyData struct {
+type IntentAccountRecoveryFlowStepIdentifyData struct {
 	Options []AccountRecoveryIdentificationOption `json:"options"`
 }
 
-var _ authflow.Data = IntentRequestAccountRecoveryFlowStepIdentifyData{}
+var _ authflow.Data = IntentAccountRecoveryFlowStepIdentifyData{}
 
-func (IntentRequestAccountRecoveryFlowStepIdentifyData) Data() {}
+func (IntentAccountRecoveryFlowStepIdentifyData) Data() {}
 
-type IntentRequestAccountRecoveryFlowStepIdentify struct {
+type IntentAccountRecoveryFlowStepIdentify struct {
 	JSONPointer jsonpointer.T                         `json:"json_pointer,omitempty"`
 	StepName    string                                `json:"step_name,omitempty"`
 	Options     []AccountRecoveryIdentificationOption `json:"options"`
 }
 
-var _ authflow.TargetStep = &IntentRequestAccountRecoveryFlowStepIdentify{}
+var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepIdentify{}
 
-func (i *IntentRequestAccountRecoveryFlowStepIdentify) GetName() string {
+func (i *IntentAccountRecoveryFlowStepIdentify) GetName() string {
 	return i.StepName
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepIdentify) GetJSONPointer() jsonpointer.T {
+func (i *IntentAccountRecoveryFlowStepIdentify) GetJSONPointer() jsonpointer.T {
 	return i.JSONPointer
 }
 
-var _ authflow.Intent = &IntentRequestAccountRecoveryFlowStepIdentify{}
-var _ authflow.DataOutputer = &IntentRequestAccountRecoveryFlowStepIdentify{}
+var _ authflow.Intent = &IntentAccountRecoveryFlowStepIdentify{}
+var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepIdentify{}
 
-func NewIntentRequestAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentRequestAccountRecoveryFlowStepIdentify) (*IntentRequestAccountRecoveryFlowStepIdentify, error) {
+func NewIntentAccountRecoveryFlowStepIdentify(ctx context.Context, deps *authflow.Dependencies, i *IntentAccountRecoveryFlowStepIdentify) (*IntentAccountRecoveryFlowStepIdentify, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -51,9 +51,9 @@ func NewIntentRequestAccountRecoveryFlowStepIdentify(ctx context.Context, deps *
 	options := []AccountRecoveryIdentificationOption{}
 	for _, b := range step.OneOf {
 		switch b.Identification {
-		case config.AuthenticationFlowRequestAccountRecoveryIdentificationEmail:
+		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 			fallthrough
-		case config.AuthenticationFlowRequestAccountRecoveryIdentificationPhone:
+		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
 			c := AccountRecoveryIdentificationOption{Identification: b.Identification}
 			options = append(options, c)
 		}
@@ -63,11 +63,11 @@ func NewIntentRequestAccountRecoveryFlowStepIdentify(ctx context.Context, deps *
 	return i, nil
 }
 
-func (*IntentRequestAccountRecoveryFlowStepIdentify) Kind() string {
-	return "IntentRequestAccountRecoveryFlowStepIdentify"
+func (*IntentAccountRecoveryFlowStepIdentify) Kind() string {
+	return "IntentAccountRecoveryFlowStepIdentify"
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	// Let the input to select which identification method to use.
 	if len(flows.Nearest.Nodes) == 0 {
 		return &InputSchemaStepAccountRecoveryIdentify{
@@ -88,7 +88,7 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Co
 	}
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -106,9 +106,9 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Conte
 			branch := step.OneOf[idx]
 
 			switch identification {
-			case config.AuthenticationFlowRequestAccountRecoveryIdentificationEmail:
+			case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 				fallthrough
-			case config.AuthenticationFlowRequestAccountRecoveryIdentificationPhone:
+			case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
 				return authflow.NewNodeSimple(&NodeUseAccountRecoveryIdentity{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
@@ -125,7 +125,7 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Conte
 	switch {
 	case identityUsed && !nestedStepsHandled:
 		identification := i.identificationMethod(flows.Nearest)
-		return authflow.NewSubFlow(&IntentRequestAccountRecoveryFlowSteps{
+		return authflow.NewSubFlow(&IntentAccountRecoveryFlowSteps{
 			JSONPointer: i.jsonPointer(step, identification),
 		}), nil
 	default:
@@ -133,14 +133,14 @@ func (i *IntentRequestAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Conte
 	}
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentRequestAccountRecoveryFlowStepIdentifyData{
+func (i *IntentAccountRecoveryFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
+	return IntentAccountRecoveryFlowStepIdentifyData{
 		Options: i.Options,
 	}, nil
 }
 
-func (*IntentRequestAccountRecoveryFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowRequestAccountRecoveryFlowStep {
-	step, ok := o.(*config.AuthenticationFlowRequestAccountRecoveryFlowStep)
+func (*IntentAccountRecoveryFlowStepIdentify) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowAccountRecoveryFlowStep {
+	step, ok := o.(*config.AuthenticationFlowAccountRecoveryFlowStep)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
 	}
@@ -148,10 +148,10 @@ func (*IntentRequestAccountRecoveryFlowStepIdentify) step(o config.Authenticatio
 	return step
 }
 
-func (*IntentRequestAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
+func (*IntentAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 	deps *authflow.Dependencies,
-	step *config.AuthenticationFlowRequestAccountRecoveryFlowStep,
-	im config.AuthenticationFlowRequestAccountRecoveryIdentification,
+	step *config.AuthenticationFlowAccountRecoveryFlowStep,
+	im config.AuthenticationFlowAccountRecoveryIdentification,
 ) (idx int, err error) {
 	idx = -1
 
@@ -170,7 +170,7 @@ func (*IntentRequestAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 	return
 }
 
-func (*IntentRequestAccountRecoveryFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowRequestAccountRecoveryIdentification {
+func (*IntentAccountRecoveryFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowAccountRecoveryIdentification {
 	m, ok := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
@@ -181,9 +181,9 @@ func (*IntentRequestAccountRecoveryFlowStepIdentify) identificationMethod(w *aut
 	return im
 }
 
-func (i *IntentRequestAccountRecoveryFlowStepIdentify) jsonPointer(
-	step *config.AuthenticationFlowRequestAccountRecoveryFlowStep,
-	im config.AuthenticationFlowRequestAccountRecoveryIdentification,
+func (i *IntentAccountRecoveryFlowStepIdentify) jsonPointer(
+	step *config.AuthenticationFlowAccountRecoveryFlowStep,
+	im config.AuthenticationFlowAccountRecoveryIdentification,
 ) jsonpointer.T {
 	for idx, branch := range step.OneOf {
 		branch := branch

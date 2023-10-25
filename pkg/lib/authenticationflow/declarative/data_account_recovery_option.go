@@ -6,7 +6,7 @@ import (
 )
 
 type AccountRecoveryIdentificationOption struct {
-	Identification config.AuthenticationFlowRequestAccountRecoveryIdentification `json:"identification"`
+	Identification config.AuthenticationFlowAccountRecoveryIdentification `json:"identification"`
 }
 
 type AccountRecoveryChannel string
@@ -28,7 +28,7 @@ type AccountRecoveryDestinationOptionInternal struct {
 }
 
 type AccountRecoveryIdentity struct {
-	Identification config.AuthenticationFlowRequestAccountRecoveryIdentification
+	Identification config.AuthenticationFlowAccountRecoveryIdentification
 	IdentitySpec   *identity.Spec
 	MaybeIdentity  *identity.Info
 }

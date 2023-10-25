@@ -40,10 +40,10 @@ func (i *InputSchemaStepAccountRecoveryIdentify) SchemaBuilder() validation.Sche
 		}
 
 		switch option.Identification {
-		case config.AuthenticationFlowRequestAccountRecoveryIdentificationEmail:
+		case config.AuthenticationFlowAccountRecoveryIdentificationEmail:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
-		case config.AuthenticationFlowRequestAccountRecoveryIdentificationPhone:
+		case config.AuthenticationFlowAccountRecoveryIdentificationPhone:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
 		default:
@@ -71,7 +71,7 @@ func (i *InputSchemaStepAccountRecoveryIdentify) MakeInput(rawMessage json.RawMe
 }
 
 type InputStepAccountRecoveryIdentify struct {
-	Identification config.AuthenticationFlowRequestAccountRecoveryIdentification `json:"identification,omitempty"`
+	Identification config.AuthenticationFlowAccountRecoveryIdentification `json:"identification,omitempty"`
 
 	LoginID string `json:"login,omitempty"`
 }
@@ -82,7 +82,7 @@ var _ inputTakeLoginID = &InputStepAccountRecoveryIdentify{}
 
 func (*InputStepAccountRecoveryIdentify) Input() {}
 
-func (i *InputStepAccountRecoveryIdentify) GetAccountRecoveryIdentificationMethod() config.AuthenticationFlowRequestAccountRecoveryIdentification {
+func (i *InputStepAccountRecoveryIdentify) GetAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification {
 	return i.Identification
 }
 

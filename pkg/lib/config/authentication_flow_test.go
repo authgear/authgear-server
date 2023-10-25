@@ -194,8 +194,8 @@ reauth_flows:
 	})
 }
 
-func TestAuthenticationFlowRequestAccountRecoveryFlow(t *testing.T) {
-	Convey("AuthenticationFlowRequestAccountRecoveryFlow", t, func() {
+func TestAuthenticationFlowAccountRecoveryFlow(t *testing.T) {
+	Convey("AuthenticationFlowAccountRecoveryFlow", t, func() {
 		test := func(inputYAML string) {
 			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
 			So(err, ShouldBeNil)
@@ -226,7 +226,7 @@ func TestAuthenticationFlowRequestAccountRecoveryFlow(t *testing.T) {
 		}
 
 		test(`
-request_account_recovery_flows:
+account_recovery_flows:
 - name: default
   steps:
     - type: identify

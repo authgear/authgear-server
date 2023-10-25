@@ -19,7 +19,7 @@ type inputTakeIdentificationMethod interface {
 }
 
 type inputTakeAccountRecoveryIdentificationMethod interface {
-	GetAccountRecoveryIdentificationMethod() config.AuthenticationFlowRequestAccountRecoveryIdentification
+	GetAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
 }
 
 type inputTakeAccountRecoveryDestinationOptionID interface {

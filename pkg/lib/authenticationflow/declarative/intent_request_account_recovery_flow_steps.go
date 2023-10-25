@@ -11,25 +11,25 @@ import (
 )
 
 func init() {
-	authflow.RegisterIntent(&IntentRequestAccountRecoveryFlowSteps{})
+	authflow.RegisterIntent(&IntentAccountRecoveryFlowSteps{})
 }
 
-type IntentRequestAccountRecoveryFlowSteps struct {
+type IntentAccountRecoveryFlowSteps struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 }
 
-var _ authflow.Intent = &IntentRequestAccountRecoveryFlowSteps{}
-var _ authflow.Milestone = &IntentRequestAccountRecoveryFlowSteps{}
-var _ MilestoneNestedSteps = &IntentRequestAccountRecoveryFlowSteps{}
+var _ authflow.Intent = &IntentAccountRecoveryFlowSteps{}
+var _ authflow.Milestone = &IntentAccountRecoveryFlowSteps{}
+var _ MilestoneNestedSteps = &IntentAccountRecoveryFlowSteps{}
 
-func (*IntentRequestAccountRecoveryFlowSteps) Kind() string {
-	return "IntentRequestAccountRecoveryFlowSteps"
+func (*IntentAccountRecoveryFlowSteps) Kind() string {
+	return "IntentAccountRecoveryFlowSteps"
 }
 
-func (*IntentRequestAccountRecoveryFlowSteps) Milestone()            {}
-func (*IntentRequestAccountRecoveryFlowSteps) MilestoneNestedSteps() {}
+func (*IntentAccountRecoveryFlowSteps) Milestone()            {}
+func (*IntentAccountRecoveryFlowSteps) MilestoneNestedSteps() {}
 
-func (i *IntentRequestAccountRecoveryFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+func (i *IntentAccountRecoveryFlowSteps) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (i *IntentRequestAccountRecoveryFlowSteps) CanReactTo(ctx context.Context, 
 	return nil, authflow.ErrEOF
 }
 
-func (i *IntentRequestAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
+func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, _ authflow.Input) (*authflow.Node, error) {
 	current, err := authflow.FlowObject(authflow.GetFlowRootObject(ctx), i.JSONPointer)
 	if err != nil {
 		return nil, err
@@ -51,11 +51,11 @@ func (i *IntentRequestAccountRecoveryFlowSteps) ReactTo(ctx context.Context, dep
 
 	steps := i.steps(current)
 	nextStepIndex := len(flows.Nearest.Nodes)
-	step := steps[nextStepIndex].(*config.AuthenticationFlowRequestAccountRecoveryFlowStep)
+	step := steps[nextStepIndex].(*config.AuthenticationFlowAccountRecoveryFlowStep)
 
 	switch step.Type {
 	case config.AuthenticationFlowAccountRecoveryFlowTypeIdentify:
-		stepIdentify, err := NewIntentRequestAccountRecoveryFlowStepIdentify(ctx, deps, &IntentRequestAccountRecoveryFlowStepIdentify{
+		stepIdentify, err := NewIntentAccountRecoveryFlowStepIdentify(ctx, deps, &IntentAccountRecoveryFlowStepIdentify{
 			StepName:    step.Name,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		})
@@ -64,11 +64,11 @@ func (i *IntentRequestAccountRecoveryFlowSteps) ReactTo(ctx context.Context, dep
 		}
 		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination:
-		stepSelectDestination, err := NewIntentRequestAccountRecoveryFlowStepSelectDestination(
+		stepSelectDestination, err := NewIntentAccountRecoveryFlowStepSelectDestination(
 			ctx,
 			deps,
 			flows,
-			&IntentRequestAccountRecoveryFlowStepSelectDestination{
+			&IntentAccountRecoveryFlowStepSelectDestination{
 				StepName:    step.Name,
 				JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			},
@@ -82,7 +82,7 @@ func (i *IntentRequestAccountRecoveryFlowSteps) ReactTo(ctx context.Context, dep
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (*IntentRequestAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) []config.AuthenticationFlowObject {
+func (*IntentAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) []config.AuthenticationFlowObject {
 	steps, ok := authflow.FlowObjectGetSteps(o)
 	if !ok {
 		panic(fmt.Errorf("flow object does not have steps %T", o))

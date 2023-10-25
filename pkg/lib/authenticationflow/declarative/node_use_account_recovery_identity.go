@@ -16,9 +16,9 @@ func init() {
 }
 
 type NodeUseAccountRecoveryIdentity struct {
-	JSONPointer    jsonpointer.T                                                          `json:"json_pointer,omitempty"`
-	Identification config.AuthenticationFlowRequestAccountRecoveryIdentification          `json:"identification,omitempty"`
-	OnFailure      config.AuthenticationFlowRequestAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
+	JSONPointer    jsonpointer.T                                                   `json:"json_pointer,omitempty"`
+	Identification config.AuthenticationFlowAccountRecoveryIdentification          `json:"identification,omitempty"`
+	OnFailure      config.AuthenticationFlowAccountRecoveryIdentificationOnFailure `json:"on_failure,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeUseAccountRecoveryIdentity{}
@@ -31,7 +31,7 @@ func (*NodeUseAccountRecoveryIdentity) Kind() string {
 }
 
 func (*NodeUseAccountRecoveryIdentity) Milestone() {}
-func (n *NodeUseAccountRecoveryIdentity) MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowRequestAccountRecoveryIdentification {
+func (n *NodeUseAccountRecoveryIdentity) MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification {
 	return n.Identification
 }
 
@@ -54,13 +54,13 @@ func (n *NodeUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *auth
 
 		var exactMatch *identity.Info = nil
 		switch n.OnFailure {
-		case config.AuthenticationFlowRequestAccountRecoveryIdentificationOnFailureIgnore:
+		case config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore:
 			var err error
 			exactMatch, _, err = deps.Identities.SearchBySpec(spec)
 			if err != nil {
 				return nil, err
 			}
-		case config.AuthenticationFlowRequestAccountRecoveryIdentificationOnFailureError:
+		case config.AuthenticationFlowAccountRecoveryIdentificationOnFailureError:
 			var err error
 			exactMatch, err = findExactOneIdentityInfo(deps, spec)
 			if err != nil {

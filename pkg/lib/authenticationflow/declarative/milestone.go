@@ -158,7 +158,7 @@ type MilestoneDoUseAccountRecoveryIdentity interface {
 
 type MilestoneAccountRecoveryIdentificationMethod interface {
 	authflow.Milestone
-	MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowRequestAccountRecoveryIdentification
+	MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
 }
 
 type MilestoneDidSelectAuthenticator interface {
