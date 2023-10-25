@@ -613,7 +613,6 @@ Example of a successful response.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "login_flow",
     "name": "default",
     "action": {
@@ -626,7 +625,6 @@ Example of a successful response.
 ```
 
 - `result.state_token`: The token that refers to a particular state of an Authentication Flow. You must keep this for the next request. This token changes every time you give an input to the flow. As a result, you can back-track by associating the token with your application navigation backstack very easily.
-- `result.id`: The ID of the Authentication Flow. It does not change for a given Authentication Flow. You supply this ID to the websocket endpoint.
 - `result.type`: The type of the flow. Valid values are `signup_flow`, `login_flow`, `signup_login_flow`, and `reauth_flow`.
 - `result.name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
 - `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
@@ -640,7 +638,6 @@ Example of a finished response.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "login_flow",
     "name": "default",
     "action": {
@@ -700,23 +697,6 @@ Content-Type: application/json
   "state_token": "{{ STATE_TOKEN }}"
 }
 ```
-
-### Connect websocket
-
-Under some situation, you are not the only driver of the flow. For example, if your project is configured to use login link, you cannot proceed until the User has approved the login link.
-
-To be notified of the approval of the login link, you connect to the websocket.
-
-```
-GET /api/v1/authentication_flows/ws?flow_id={{ FLOW_ID }}
-Connection: Upgrade
-```
-
-- `flow_id`: The constant ID of a Authentication Flow.
-
-The only websocket message you will receive is the JSON object `{"kind": "refresh"}`.
-Its meaning is to tell you to call the GET endpoint to refresh the flow.
-The flow would have updated `data` or `schema`, which allows you to continue the flow.
 
 ## Mobile apps using the Default UI
 
