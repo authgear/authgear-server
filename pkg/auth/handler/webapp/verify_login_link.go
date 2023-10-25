@@ -57,7 +57,7 @@ type WorkflowWebsocketEventStore interface {
 }
 
 type AuthenticationFlowWebsocketEventStore interface {
-	Publish(authenticationFlowID string, e authflow.Event) error
+	Publish(websocketChannelName string, e authflow.Event) error
 }
 
 type VerifyLoginLinkOTPHandler struct {

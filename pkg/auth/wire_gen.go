@@ -10576,12 +10576,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -10617,10 +10611,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -25916,7 +25914,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 		Context: contextContext,
 	}
-	authenticationflowEventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
+	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, authenticationflowStoreImpl)
 	verifyLoginLinkOTPHandler := &webapp.VerifyLoginLinkOTPHandler{
 		LoginLinkOTPCodeService:     otpService,
 		GlobalSessionServiceFactory: globalSessionServiceFactory,
@@ -25925,7 +25923,7 @@ func newWebAppVerifyLoginLinkOTPHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticationViewModel:     authenticationViewModeler,
 		Renderer:                    responseRenderer,
 		WorkflowEvents:              eventStoreImpl,
-		AuthenticationFlowEvents:    authenticationflowEventStoreImpl,
+		AuthenticationFlowEvents:    websocketEventStore,
 		Config:                      appConfig,
 	}
 	return verifyLoginLinkOTPHandler
@@ -60087,12 +60085,6 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -60128,10 +60120,14 @@ func newAPIAuthenticationFlowV1CreateHandler(p *deps.RequestProvider) http.Handl
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -60913,12 +60909,6 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -60954,10 +60944,14 @@ func newAPIAuthenticationFlowV1InputHandler(p *deps.RequestProvider) http.Handle
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -61732,12 +61726,6 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -61773,10 +61761,14 @@ func newAPIAuthenticationFlowV1GetHandler(p *deps.RequestProvider) http.Handler 
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -61843,12 +61835,12 @@ func newAPIAuthenticationFlowV1WebsocketHandler(p *deps.RequestProvider) http.Ha
 		AppID:   appID,
 		Context: contextContext,
 	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, storeImpl)
+	websocketEventStore := authenticationflow.NewWebsocketEventStore(appID, handle, storeImpl)
 	authenticationFlowV1WebsocketHandler := &api.AuthenticationFlowV1WebsocketHandler{
 		LoggerFactory: factory,
 		RedisHandle:   handle,
 		OriginMatcher: corsMatcher,
-		Events:        eventStoreImpl,
+		Events:        websocketEventStore,
 	}
 	return authenticationFlowV1WebsocketHandler
 }
@@ -62592,12 +62584,6 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -62633,10 +62619,14 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -63489,12 +63479,6 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -63530,10 +63514,14 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -64385,12 +64373,6 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -64426,10 +64408,14 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -65264,12 +65250,6 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -65305,10 +65285,14 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -66137,12 +66121,6 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -66178,10 +66156,14 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -67012,12 +66994,6 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -67053,10 +67029,14 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -67885,12 +67865,6 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -67926,10 +67900,14 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -68758,12 +68736,6 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -68799,10 +68771,14 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -69631,12 +69607,6 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -69672,10 +69642,14 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -70504,12 +70478,6 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -70545,10 +70513,14 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -71379,12 +71351,6 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -71420,10 +71386,14 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -72254,12 +72224,6 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -72295,10 +72259,14 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -73127,12 +73095,6 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -73168,10 +73130,14 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -74000,12 +73966,6 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -74041,10 +74001,14 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -74873,12 +74837,6 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -74914,10 +74872,14 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -75746,12 +75708,6 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -75787,10 +75743,14 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -76619,12 +76579,6 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -76660,10 +76614,14 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}
@@ -77588,12 +77546,6 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
-	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
-		Redis:   handle,
-		AppID:   appID,
-		Context: contextContext,
-	}
-	eventStoreImpl := authenticationflow.NewEventStore(appID, handle, authenticationflowStoreImpl)
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -77629,10 +77581,14 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Cookies:                         cookieManager,
 		Events:                          eventService,
 		RateLimiter:                     limiter,
-		FlowEvents:                      eventStoreImpl,
 		OfflineGrants:                   redisStore,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
+	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
+		Redis:   handle,
+		AppID:   appID,
+		Context: contextContext,
+	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
 	}

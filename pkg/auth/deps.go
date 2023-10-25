@@ -157,7 +157,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.AuthenticationFlowV1WorkflowService), new(*authenticationflow.Service)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
 	wire.Bind(new(handlerapi.WorkflowWebsocketOriginMatcher), new(*middleware.CORSMatcher)),
-	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketEventStore), new(*authenticationflow.EventStoreImpl)),
+	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketEventStore), new(*authenticationflow.WebsocketEventStore)),
 	wire.Bind(new(handlerapi.AuthenticationFlowV1WebsocketOriginMatcher), new(*middleware.CORSMatcher)),
 
 	viewmodelswebapp.DependencySet,
@@ -202,7 +202,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
-	wire.Bind(new(handlerwebapp.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.EventStoreImpl)),
+	wire.Bind(new(handlerwebapp.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.WebsocketEventStore)),
 	wire.Bind(new(handlerwebapp.TesterAuthTokensIssuer), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handlerwebapp.TesterCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TesterAppSessionTokenService), new(*oauth.AppSessionTokenService)),

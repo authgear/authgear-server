@@ -5,6 +5,7 @@ import (
 
 	"github.com/iawaknahc/originmatcher"
 
+	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -12,11 +13,11 @@ import (
 )
 
 func ConfigureAuthenticationFlowV1WebsocketRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "GET").WithPathPattern("/api/v1/authentication_flows/ws")
+	return route.WithMethods("OPTIONS", "GET").WithPathPattern(authflow.WebsocketEndpointV1)
 }
 
 type AuthenticationFlowV1WebsocketEventStore interface {
-	ChannelName(authenticationFlowID string) (string, error)
+	ChannelName(websocketChannelName string) string
 }
 
 type AuthenticationFlowV1WebsocketOriginMatcher interface {
@@ -48,8 +49,8 @@ func (h *AuthenticationFlowV1WebsocketHandler) ServeHTTP(w http.ResponseWriter, 
 }
 
 func (h *AuthenticationFlowV1WebsocketHandler) Accept(r *http.Request) (string, error) {
-	flowID := r.FormValue("flow_id")
-	return h.Events.ChannelName(flowID)
+	websocketChannelName := authflow.WebsocketChannelName(r)
+	return h.Events.ChannelName(websocketChannelName), nil
 }
 
 func (h *AuthenticationFlowV1WebsocketHandler) OnRedisSubscribe(r *http.Request) error {
