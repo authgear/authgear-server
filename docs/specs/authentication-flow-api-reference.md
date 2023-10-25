@@ -68,7 +68,6 @@ Authentication Flow API always returns a JSON response of the same shape.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "login",
     "name": "default",
     "action": {
@@ -99,7 +98,6 @@ Authentication Flow API always returns a JSON response of the same shape.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "login",
     "name": "default",
     "action": {
@@ -204,7 +202,6 @@ When you are in this step of this flow, you will see a response like the followi
 {
   "result": {
     "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
-    "id": "authflow_GKHBTN2H37D6BSAFFPXWSDPXPYCN5TH2",
     "type": "signup",
     "name": "default",
     "action": {
@@ -337,7 +334,6 @@ After passing this input, you will see a response like this
 {
   "result": {
     "state_token": "authflowstate_PZMX4FG4N82WGSSY0Y398YH0F9BX4FPX",
-    "id": "authflow_6890X76BVDGEA7Q9KGFD1MEGV21K0449",
     "type": "signup",
     "name": "default",
     "action": {
@@ -388,7 +384,6 @@ When you are in this step, you **MAY** see a response like the following
 {
   "result": {
     "state_token": "authflowstate_PZMX4FG4N82WGSSY0Y398YH0F9BX4FPX",
-    "id": "authflow_6890X76BVDGEA7Q9KGFD1MEGV21K0449",
     "type": "signup",
     "name": "default",
     "action": {
@@ -418,7 +413,6 @@ When you are in this step, you WILL see a response like the following
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "signup",
     "name": "default",
     "action": {
@@ -484,7 +478,6 @@ When you are in this step, you will see the following response if you are settin
 {
   "result": {
     "state_token": "authflowstate_DVW3H3Q9YDB3BRAA15D74V1PYGX6XYJB",
-    "id": "authflow_TV51H1K29SMGATW1W69DKTDEQH9KF5WW",
     "type": "signup",
     "name": "default",
     "action": {
@@ -522,7 +515,6 @@ Or this response if you are setting up 2FA.
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "signup",
     "name": "default",
     "action": {
@@ -731,7 +723,6 @@ After passing the above input, you will see a response like this
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "signup",
     "name": "default",
     "action": {
@@ -765,7 +756,6 @@ When you are in this step of this flow, you will see a response like the followi
 {
   "result": {
     "state_token": "authflowstate_VN0JDCRTFJBPW230WXVX17RD0FKHC23B",
-    "id": "authflow_Y2CBYPNWTBYDE5KJWHKE891VA413XR28",
     "type": "signup",
     "name": "default",
     "action": {
@@ -811,7 +801,6 @@ When you are in this step of this flow, you will see a response like the followi
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "signup",
     "name": "default",
     "action": {
@@ -1046,7 +1035,6 @@ When you are in this step, you will see a response like the following if you are
 {
   "result": {
     "state_token": "authflowstate_X0BJ22Y0P4MB6A98X75AMQ8ADVQC94MK",
-    "id": "authflow_1ZCPQJT1FYNE8F5SHQYEHPN3MHG83H68",
     "type": "login",
     "name": "default",
     "action": {
@@ -1093,7 +1081,6 @@ Or this response if you are performing secondary authentication.
 {
   "result": {
     "state_token": "authflowstate_HYQ33WWMZM2AV91VPQWJE2M0HXWT02AK",
-    "id": "authflow_EENC60VM5T0S1GBY9YERTKAVRJ4RF9CY",
     "type": "login",
     "name": "default",
     "action": {
@@ -1482,7 +1469,6 @@ When you are in this step, you will see a response like the following
 {
   "result": {
     "state_token": "authflowstate_blahblahblah",
-    "id": "authflow_blahblahblah",
     "type": "login",
     "name": "default",
     "action": {
