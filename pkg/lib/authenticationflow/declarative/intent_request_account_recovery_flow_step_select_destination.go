@@ -122,7 +122,6 @@ func NewIntentAccountRecoveryFlowStepSelectDestination(
 
 		options = append(options, AccountRecoveryDestinationOptionInternal{
 			AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-				ID:                fmt.Sprintf("%d", idx),
 				MaskedDisplayName: op.MaskedDisplayName,
 				Channel:           op.Channel,
 			},
@@ -153,20 +152,10 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) CanReactTo(ctx context.
 
 func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	if len(flows.Nearest.Nodes) == 0 {
-		var inputTakeAccountRecoveryDestinationOptionID inputTakeAccountRecoveryDestinationOptionID
-		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionID) {
-			optionID := inputTakeAccountRecoveryDestinationOptionID.GetAccountRecoveryDestinationOptionID()
-			var option *AccountRecoveryDestinationOptionInternal = nil
-			for _, op := range i.Options {
-				if op.ID == optionID {
-					o := op
-					option = &o
-					break
-				}
-			}
-			if option == nil {
-				return nil, authflow.ErrIncompatibleInput
-			}
+		var inputTakeAccountRecoveryDestinationOptionIndex inputTakeAccountRecoveryDestinationOptionIndex
+		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionIndex) {
+			optionIdx := inputTakeAccountRecoveryDestinationOptionIndex.GetAccountRecoveryDestinationOptionIndex()
+			option := i.Options[optionIdx]
 			err := deps.ForgotPassword.SendCode(option.TargetLoginID)
 			if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
 				return nil, err

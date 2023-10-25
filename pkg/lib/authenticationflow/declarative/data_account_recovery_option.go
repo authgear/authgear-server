@@ -17,7 +17,6 @@ const (
 )
 
 type AccountRecoveryDestinationOption struct {
-	ID                string                 `json:"id"`
 	MaskedDisplayName string                 `json:"masked_display_name"`
 	Channel           AccountRecoveryChannel `json:"channel"`
 }

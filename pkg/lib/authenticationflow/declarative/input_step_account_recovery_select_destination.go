@@ -22,12 +22,12 @@ func (i *InputSchemaStepAccountRecoverySelectDestination) GetJSONPointer() jsonp
 
 func (i *InputSchemaStepAccountRecoverySelectDestination) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}
-	ids := []interface{}{}
-	for _, op := range i.Options {
-		ids = append(ids, op.ID)
+	indices := []interface{}{}
+	for idx := range i.Options {
+		indices = append(indices, idx)
 	}
-	b.Properties().Property("option_id", validation.SchemaBuilder{}.Type(validation.TypeString).Enum(ids...))
-	b.Required("option_id")
+	b.Properties().Property("index", validation.SchemaBuilder{}.Type(validation.TypeInteger).Enum(indices...))
+	b.Required("index")
 
 	return b
 }
@@ -42,14 +42,14 @@ func (i *InputSchemaStepAccountRecoverySelectDestination) MakeInput(rawMessage j
 }
 
 type InputStepAccountRecoverySelectDestination struct {
-	OptionID string `json:"option_id,omitempty"`
+	Index int `json:"index,omitempty"`
 }
 
 var _ authflow.Input = &InputStepAccountRecoverySelectDestination{}
-var _ inputTakeAccountRecoveryDestinationOptionID = &InputStepAccountRecoverySelectDestination{}
+var _ inputTakeAccountRecoveryDestinationOptionIndex = &InputStepAccountRecoverySelectDestination{}
 
 func (*InputStepAccountRecoverySelectDestination) Input() {}
 
-func (i *InputStepAccountRecoverySelectDestination) GetAccountRecoveryDestinationOptionID() string {
-	return i.OptionID
+func (i *InputStepAccountRecoverySelectDestination) GetAccountRecoveryDestinationOptionIndex() int {
+	return i.Index
 }
