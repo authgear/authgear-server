@@ -9,7 +9,7 @@
 <div class="space-y-1">
 
 {{- range $.Branches }}
-{{- if eq $.FlowType "login" }}
+{{- if eq $.ActionType "authenticate" }}
 {{- if eq .Authentication "recovery_code" }}
 <form class="text-left text-sm" method="post" novalidate>
 {{ $.CSRFField }}
@@ -33,7 +33,7 @@
 <input type="hidden" name="x_channel" value="{{ .Channel }}">
 <input type="hidden" name="x_action" value="take_branch">
 <button class="btn secondary-btn text-left text-sm" type="submit">
-{{- if eq $.FlowType "signup" }}
+{{- if eq $.ActionType "create_authenticator" }}
 {{- if eq .Authentication "primary_password" }}
 	{{ template "setup-password-instead" }}
 {{- end }}
@@ -85,7 +85,7 @@
 {{- end }}
 {{- end }}
 
-{{- if eq $.FlowType "login" }}
+{{- if eq $.ActionType "authenticate" }}
 {{- if eq .Authentication "primary_password" }}
 	{{ template "enter-password-instead" }}
 {{- end }}
