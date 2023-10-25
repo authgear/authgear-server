@@ -229,7 +229,6 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		n.Form,
 		&otp.GenerateOptions{
 			UserID:                                 n.UserID,
-			WebSessionID:                           authflow.GetWebSessionID(ctx),
 			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
 		},
 	)

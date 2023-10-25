@@ -320,7 +320,6 @@ func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, 
 
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
-	sessionOptions.WebSessionID = s.ID
 
 	output, err := c.Authflows.CreateNewFlow(flow, sessionOptions)
 	if err != nil {
