@@ -161,6 +161,11 @@ type MilestoneAccountRecoveryIdentificationMethod interface {
 	MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
 }
 
+type MilestoneAccountRecoveryCode interface {
+	authflow.Milestone
+	MilestoneAccountRecoveryCode() string
+}
+
 type MilestoneDidSelectAuthenticator interface {
 	authflow.Milestone
 	MilestoneDidSelectAuthenticator() *authenticator.Info

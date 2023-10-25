@@ -86,6 +86,15 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 			return nil, err
 		}
 		return authflow.NewSubFlow(nextStep), nil
+	case config.AuthenticationFlowAccountRecoveryFlowTypeResetPassword:
+		nextStep := &IntentAccountRecoveryFlowStepResetPassword{
+			StepName:    step.Name,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+		}
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(nextStep), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput

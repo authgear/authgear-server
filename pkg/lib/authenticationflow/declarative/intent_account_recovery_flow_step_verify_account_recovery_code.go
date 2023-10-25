@@ -12,13 +12,6 @@ func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{})
 }
 
-type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData struct {
-}
-
-var _ authflow.Data = IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{}
-
-func (IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData) Data() {}
-
 type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
 	StepName    string        `json:"step_name,omitempty"`
@@ -35,7 +28,6 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) GetJSONPointer(
 }
 
 var _ authflow.Intent = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
-var _ authflow.DataOutputer = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
 
 func (*IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Kind() string {
 	return "IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode"
@@ -60,12 +52,8 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			if err != nil {
 				return nil, err
 			}
-			return authflow.NewNodeSimple(&NodeSentinel{}), nil
+			return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
 		}
 	}
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentAccountRecoveryFlowStepVerifyAccountRecoveryCodeData{}, nil
 }
