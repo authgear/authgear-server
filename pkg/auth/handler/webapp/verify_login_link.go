@@ -184,8 +184,8 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		// For authentication flow
-		if state.AuthenticationFlowID != "" {
-			err = h.AuthenticationFlowEvents.Publish(state.AuthenticationFlowID, authflow.NewEventRefresh())
+		if state.AuthenticationFlowWebsocketChannelName != "" {
+			err = h.AuthenticationFlowEvents.Publish(state.AuthenticationFlowWebsocketChannelName, authflow.NewEventRefresh())
 			if err != nil {
 				return err
 			}

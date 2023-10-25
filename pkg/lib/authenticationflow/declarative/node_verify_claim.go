@@ -24,6 +24,7 @@ func init() {
 type NodeVerifyClaimData struct {
 	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
 	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
+	WebsocketURL                   string                        `json:"websocket_url,omitempty"`
 	MaskedClaimValue               string                        `json:"masked_claim_value,omitempty"`
 	CodeLength                     int                           `json:"code_length,omitempty"`
 	CanResendAt                    time.Time                     `json:"can_resend_at,omitempty"`
@@ -36,14 +37,20 @@ var _ authflow.Data = &NodeVerifyClaimData{}
 func (m NodeVerifyClaimData) Data() {}
 
 type NodeVerifyClaim struct {
-	JSONPointer jsonpointer.T                 `json:"json_pointer,omitempty"`
-	UserID      string                        `json:"user_id,omitempty"`
-	Purpose     otp.Purpose                   `json:"purpose,omitempty"`
-	MessageType otp.MessageType               `json:"message_type,omitempty"`
-	Form        otp.Form                      `json:"form,omitempty"`
-	ClaimName   model.ClaimName               `json:"claim_name,omitempty"`
-	ClaimValue  string                        `json:"claim_value,omitempty"`
-	Channel     model.AuthenticatorOOBChannel `json:"channel,omitempty"`
+	JSONPointer          jsonpointer.T                 `json:"json_pointer,omitempty"`
+	UserID               string                        `json:"user_id,omitempty"`
+	Purpose              otp.Purpose                   `json:"purpose,omitempty"`
+	MessageType          otp.MessageType               `json:"message_type,omitempty"`
+	Form                 otp.Form                      `json:"form,omitempty"`
+	ClaimName            model.ClaimName               `json:"claim_name,omitempty"`
+	ClaimValue           string                        `json:"claim_value,omitempty"`
+	Channel              model.AuthenticatorOOBChannel `json:"channel,omitempty"`
+	WebsocketChannelName string                        `json:"websocket_channel_name,omitempty"`
+}
+
+func NewNodeVerifyClaim(n *NodeVerifyClaim) *NodeVerifyClaim {
+	n.WebsocketChannelName = authflow.NewWebsocketChannelName()
+	return n
 }
 
 var _ authflow.NodeSimple = &NodeVerifyClaim{}
@@ -136,9 +143,19 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		return nil, err
 	}
 
+	websocketURL := ""
+	switch n.Form {
+	case otp.FormLink:
+		websocketURL, err = authflow.WebsocketURL(string(deps.HTTPOrigin), n.WebsocketChannelName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return NodeVerifyClaimData{
 		Channel:                        n.Channel,
 		OTPForm:                        n.Form,
+		WebsocketURL:                   websocketURL,
 		MaskedClaimValue:               getMaskedOTPTarget(n.ClaimName, n.ClaimValue),
 		CodeLength:                     n.Form.CodeLength(),
 		CanResendAt:                    state.CanResendAt,
@@ -211,9 +228,9 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		n.ClaimValue,
 		n.Form,
 		&otp.GenerateOptions{
-			UserID:               n.UserID,
-			WebSessionID:         authflow.GetWebSessionID(ctx),
-			AuthenticationFlowID: authflow.GetFlowID(ctx),
+			UserID:                                 n.UserID,
+			WebSessionID:                           authflow.GetWebSessionID(ctx),
+			AuthenticationFlowWebsocketChannelName: n.WebsocketChannelName,
 		},
 	)
 	if err != nil {

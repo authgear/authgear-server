@@ -77,7 +77,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	node := &NodeVerifyClaim{
+	node := NewNodeVerifyClaim(&NodeVerifyClaim{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 		Purpose:     i.Purpose,
@@ -86,7 +86,7 @@ func (i *IntentVerifyClaim) ReactTo(ctx context.Context, deps *authflow.Dependen
 		ClaimName:   i.ClaimName,
 		ClaimValue:  i.ClaimValue,
 		Channel:     channel,
-	}
+	})
 	kind := node.otpKind(deps)
 	err := node.SendCode(ctx, deps)
 	if ratelimit.IsRateLimitErrorWithBucketName(err, kind.RateLimitTriggerCooldown(node.ClaimValue).Name) {
