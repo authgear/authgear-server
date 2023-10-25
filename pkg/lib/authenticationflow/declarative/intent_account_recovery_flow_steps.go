@@ -55,16 +55,16 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 
 	switch step.Type {
 	case config.AuthenticationFlowAccountRecoveryFlowTypeIdentify:
-		stepIdentify, err := NewIntentAccountRecoveryFlowStepIdentify(ctx, deps, &IntentAccountRecoveryFlowStepIdentify{
+		nextStep, err := NewIntentAccountRecoveryFlowStepIdentify(ctx, deps, &IntentAccountRecoveryFlowStepIdentify{
 			StepName:    step.Name,
 			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 		})
 		if err != nil {
 			return nil, err
 		}
-		return authflow.NewSubFlow(stepIdentify), nil
+		return authflow.NewSubFlow(nextStep), nil
 	case config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination:
-		stepSelectDestination, err := NewIntentAccountRecoveryFlowStepSelectDestination(
+		nextStep, err := NewIntentAccountRecoveryFlowStepSelectDestination(
 			ctx,
 			deps,
 			flows,
@@ -76,7 +76,16 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 		if err != nil {
 			return nil, err
 		}
-		return authflow.NewSubFlow(stepSelectDestination), nil
+		return authflow.NewSubFlow(nextStep), nil
+	case config.AuthenticationFlowAccountRecoveryFlowTypeVerifyAccountRecoveryCode:
+		nextStep := &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{
+			StepName:    step.Name,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+		}
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(nextStep), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput
