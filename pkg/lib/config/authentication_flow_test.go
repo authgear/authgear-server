@@ -241,6 +241,8 @@ account_recovery_flows:
         steps:
         - type: select_destination
           enumerate_destinations: true
+		- type: verify_account_recovery_code
+		- type: reset_password
 `)
 	})
 }

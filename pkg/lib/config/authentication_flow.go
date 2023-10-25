@@ -509,7 +509,9 @@ var _ = Schema.Add("AuthenticationFlowAccountRecoveryFlowStep", `
 			"type": "string",
 			"enum": [
 				"identify",
-				"select_destination"
+				"select_destination",
+				"verify_account_recovery_code",
+				"reset_password"
 			]
 		}
 	},
@@ -714,17 +716,19 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.Authenticato
 type AuthenticationFlowStepType string
 
 const (
-	AuthenticationFlowStepTypeIdentify               AuthenticationFlowStepType = "identify"
-	AuthenticationFlowStepTypeAuthenticate           AuthenticationFlowStepType = "authenticate"
-	AuthenticationFlowStepTypeCreateAuthenticator    AuthenticationFlowStepType = "create_authenticator"
-	AuthenticationFlowStepTypeVerify                 AuthenticationFlowStepType = "verify"
-	AuthenticationFlowStepTypeFillInUserProfile      AuthenticationFlowStepType = "fill_in_user_profile"
-	AuthenticationFlowStepTypeViewRecoveryCode       AuthenticationFlowStepType = "view_recovery_code"
-	AuthenticationFlowStepTypePromptCreatePasskey    AuthenticationFlowStepType = "prompt_create_passkey"
-	AuthenticationFlowStepTypeTerminateOtherSessions AuthenticationFlowStepType = "terminate_other_sessions"
-	AuthenticationFlowStepTypeCheckAccountStatus     AuthenticationFlowStepType = "check_account_status"
-	AuthenticationFlowStepTypeChangePassword         AuthenticationFlowStepType = "change_password"
-	AuthenticationFlowStepTypeSelectDestination      AuthenticationFlowStepType = "select_destination"
+	AuthenticationFlowStepTypeIdentify                  AuthenticationFlowStepType = "identify"
+	AuthenticationFlowStepTypeAuthenticate              AuthenticationFlowStepType = "authenticate"
+	AuthenticationFlowStepTypeCreateAuthenticator       AuthenticationFlowStepType = "create_authenticator"
+	AuthenticationFlowStepTypeVerify                    AuthenticationFlowStepType = "verify"
+	AuthenticationFlowStepTypeFillInUserProfile         AuthenticationFlowStepType = "fill_in_user_profile"
+	AuthenticationFlowStepTypeViewRecoveryCode          AuthenticationFlowStepType = "view_recovery_code"
+	AuthenticationFlowStepTypePromptCreatePasskey       AuthenticationFlowStepType = "prompt_create_passkey"
+	AuthenticationFlowStepTypeTerminateOtherSessions    AuthenticationFlowStepType = "terminate_other_sessions"
+	AuthenticationFlowStepTypeCheckAccountStatus        AuthenticationFlowStepType = "check_account_status"
+	AuthenticationFlowStepTypeChangePassword            AuthenticationFlowStepType = "change_password"
+	AuthenticationFlowStepTypeSelectDestination         AuthenticationFlowStepType = "select_destination"
+	AuthenticationFlowStepTypeVerifyAccountRecoveryCode AuthenticationFlowStepType = "verify_account_recovery_code"
+	AuthenticationFlowStepTypeResetPassword             AuthenticationFlowStepType = "reset_password"
 )
 
 type AuthenticationFlowConfig struct {
@@ -1168,8 +1172,10 @@ func (s *AuthenticationFlowAccountRecoveryFlowStep) GetOneOf() []AuthenticationF
 type AuthenticationFlowAccountRecoveryFlowType string
 
 const (
-	AuthenticationFlowAccountRecoveryFlowTypeIdentify          = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeIdentify)
-	AuthenticationFlowAccountRecoveryFlowTypeSelectDestination = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeSelectDestination)
+	AuthenticationFlowAccountRecoveryFlowTypeIdentify                  = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeIdentify)
+	AuthenticationFlowAccountRecoveryFlowTypeSelectDestination         = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeSelectDestination)
+	AuthenticationFlowAccountRecoveryFlowTypeVerifyAccountRecoveryCode = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeVerifyAccountRecoveryCode)
+	AuthenticationFlowAccountRecoveryFlowTypeResetPassword             = AuthenticationFlowAccountRecoveryFlowType(AuthenticationFlowStepTypeResetPassword)
 )
 
 type AuthenticationFlowAccountRecoveryFlowOneOf struct {
