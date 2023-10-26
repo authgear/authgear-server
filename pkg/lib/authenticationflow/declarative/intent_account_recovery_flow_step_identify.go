@@ -76,7 +76,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) CanReactTo(ctx context.Context, 
 		}, nil
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](flows.Nearest)
+	_, identityUsed := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](flows.Nearest)
 	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
@@ -119,7 +119,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 		return nil, authflow.ErrIncompatibleInput
 	}
 
-	_, identityUsed := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](flows.Nearest)
+	_, identityUsed := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](flows.Nearest)
 	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
@@ -171,12 +171,12 @@ func (*IntentAccountRecoveryFlowStepIdentify) checkIdentificationMethod(
 }
 
 func (*IntentAccountRecoveryFlowStepIdentify) identificationMethod(w *authflow.Flow) config.AuthenticationFlowAccountRecoveryIdentification {
-	m, ok := authflow.FindMilestone[MilestoneAccountRecoveryIdentificationMethod](w)
+	m, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryIdentificationMethod](w)
 	if !ok {
 		panic(fmt.Errorf("identification method not yet selected"))
 	}
 
-	im := m.MilestoneAccountRecoveryIdentificationMethod()
+	im := m.MilestoneDoUseAccountRecoveryIdentificationMethod()
 
 	return im
 }

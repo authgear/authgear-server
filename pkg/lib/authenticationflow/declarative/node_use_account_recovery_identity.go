@@ -23,7 +23,7 @@ type NodeUseAccountRecoveryIdentity struct {
 
 var _ authflow.NodeSimple = &NodeUseAccountRecoveryIdentity{}
 var _ authflow.Milestone = &NodeUseAccountRecoveryIdentity{}
-var _ MilestoneAccountRecoveryIdentificationMethod = &NodeUseAccountRecoveryIdentity{}
+var _ MilestoneDoUseAccountRecoveryIdentificationMethod = &NodeUseAccountRecoveryIdentity{}
 var _ authflow.InputReactor = &NodeUseAccountRecoveryIdentity{}
 
 func (*NodeUseAccountRecoveryIdentity) Kind() string {
@@ -31,7 +31,7 @@ func (*NodeUseAccountRecoveryIdentity) Kind() string {
 }
 
 func (*NodeUseAccountRecoveryIdentity) Milestone() {}
-func (n *NodeUseAccountRecoveryIdentity) MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification {
+func (n *NodeUseAccountRecoveryIdentity) MilestoneDoUseAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification {
 	return n.Identification
 }
 

@@ -156,9 +156,14 @@ type MilestoneDoUseAccountRecoveryIdentity interface {
 	MilestoneDoUseAccountRecoveryIdentity() AccountRecoveryIdentity
 }
 
-type MilestoneAccountRecoveryIdentificationMethod interface {
+type MilestoneDoUseAccountRecoveryIdentificationMethod interface {
 	authflow.Milestone
-	MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
+	MilestoneDoUseAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
+}
+
+type MilestoneDoUseAccountRecoveryDestination interface {
+	authflow.Milestone
+	MilestoneDoUseAccountRecoveryDestination() string
 }
 
 type MilestoneAccountRecoveryCode interface {

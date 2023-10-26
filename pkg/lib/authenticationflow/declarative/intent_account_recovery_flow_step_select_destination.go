@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -10,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -156,11 +154,7 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 		if authflow.AsInput(input, &inputTakeAccountRecoveryDestinationOptionIndex) {
 			optionIdx := inputTakeAccountRecoveryDestinationOptionIndex.GetAccountRecoveryDestinationOptionIndex()
 			option := i.Options[optionIdx]
-			err := deps.ForgotPassword.SendCode(option.TargetLoginID)
-			if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
-				return nil, err
-			}
-			return authflow.NewNodeSimple(&NodeAccountRecoveryCodeSent{
+			return authflow.NewNodeSimple(&NodeUseAccountRecoveryDestination{
 				TargetLoginID: option.TargetLoginID,
 			}), nil
 		}
