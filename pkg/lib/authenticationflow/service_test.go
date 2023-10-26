@@ -206,7 +206,7 @@ func (*intentNilInput) FlowType() FlowType {
 	return ""
 }
 
-func (*intentNilInput) FlowInit(r FlowReference) {}
+func (*intentNilInput) FlowInit(r FlowReference, startFrom jsonpointer.T) {}
 
 func (*intentNilInput) FlowFlowReference() FlowReference {
 	return FlowReference{}
@@ -256,7 +256,7 @@ func (*intentServiceContext) FlowType() FlowType {
 	return ""
 }
 
-func (*intentServiceContext) FlowInit(r FlowReference) {}
+func (*intentServiceContext) FlowInit(r FlowReference, startFrom jsonpointer.T) {}
 
 func (*intentServiceContext) FlowFlowReference() FlowReference {
 	return FlowReference{}

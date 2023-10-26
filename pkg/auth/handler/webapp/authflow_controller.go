@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 //go:generate mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
@@ -301,7 +302,7 @@ func (c *AuthflowController) getScreen(s *webapp.Session, xStep string) (*webapp
 }
 
 func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (*authflow.ServiceOutput, error) {
-	flow, err := authflow.InstantiateFlow(flowReference)
+	flow, err := authflow.InstantiateFlow(flowReference, jsonpointer.T{})
 	if err != nil {
 		return nil, err
 	}

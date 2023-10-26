@@ -18,6 +18,7 @@ type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 	StepName      string                 `json:"step_name,omitempty"`
+	StartFrom     jsonpointer.T          `json:"start_from,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
@@ -28,6 +29,10 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Instantiate(
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 ) error {
+	if i.isRestored() {
+		// We don't want to send the code again if this step was restored
+		return nil
+	}
 	milestone, ok := authflow.FindMilestone[MilestoneDoUseAccountRecoveryDestination](flows.Root)
 	if !ok {
 		return InvalidFlowConfig.New("IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode depends on MilestoneDoUseAccountRecoveryDestination")
@@ -80,4 +85,8 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 		}
 	}
 	return nil, authflow.ErrIncompatibleInput
+}
+
+func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {
+	return authflow.JSONPointerSubtract(i.JSONPointer, i.StartFrom).More()
 }

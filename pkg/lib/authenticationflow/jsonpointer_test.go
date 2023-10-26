@@ -261,3 +261,18 @@ func TestJSONPointerToParent(t *testing.T) {
 		})
 	})
 }
+
+func TestJSONPointerSubtract(t *testing.T) {
+	Convey("JSONPointerSubtract", t, func() {
+		test := func(p1 jsonpointer.T, p2 jsonpointer.T, expected string) {
+			actual := JSONPointerSubtract(p1, p2)
+			So(actual.String(), ShouldEqual, expected)
+		}
+
+		test(jsonpointer.MustParse("/steps/0"), jsonpointer.MustParse("/steps/0"), "")
+		test(jsonpointer.MustParse("/steps/0"), jsonpointer.MustParse("/steps/0/steps/1"), "")
+		test(jsonpointer.MustParse("/steps/0/one_of/1/steps/2"), jsonpointer.MustParse("/steps/0"), "/one_of/1/steps/2")
+		test(jsonpointer.MustParse("/steps/0/one_of/1/steps/2"), jsonpointer.MustParse("/steps/0/one_of/3"), "/1/steps/2")
+		test(jsonpointer.MustParse("/steps/0/one_of/3"), jsonpointer.MustParse("/steps/0/one_of/1/steps/2"), "/3")
+	})
+}

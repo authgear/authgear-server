@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
@@ -375,7 +376,7 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 }
 
 func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (output *ServiceOutput, err error) {
-	publicFlow, err := InstantiateFlow(errSwitchFlow.FlowReference)
+	publicFlow, err := InstantiateFlow(errSwitchFlow.FlowReference, jsonpointer.T{})
 	if err != nil {
 		return
 	}

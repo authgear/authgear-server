@@ -16,6 +16,7 @@ func init() {
 type IntentAccountRecoveryFlow struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StartFrom     jsonpointer.T          `json:"start_from,omitempty"`
 }
 
 var _ authflow.PublicFlow = &IntentAccountRecoveryFlow{}
@@ -28,8 +29,9 @@ func (*IntentAccountRecoveryFlow) FlowType() authflow.FlowType {
 	return authflow.FlowTypeAccountRecovery
 }
 
-func (i *IntentAccountRecoveryFlow) FlowInit(r authflow.FlowReference) {
+func (i *IntentAccountRecoveryFlow) FlowInit(r authflow.FlowReference, startFrom jsonpointer.T) {
 	i.FlowReference = r
+	i.StartFrom = startFrom
 }
 
 func (i *IntentAccountRecoveryFlow) FlowFlowReference() authflow.FlowReference {
@@ -55,6 +57,7 @@ func (i *IntentAccountRecoveryFlow) ReactTo(ctx context.Context, deps *authflow.
 		return authflow.NewSubFlow(&IntentAccountRecoveryFlowSteps{
 			JSONPointer:   i.JSONPointer,
 			FlowReference: i.FlowReference,
+			StartFrom:     i.StartFrom,
 		}), nil
 	}
 

@@ -127,6 +127,21 @@ func JSONPointerToParent(p jsonpointer.T) jsonpointer.T {
 	return p[:len(p)-2]
 }
 
+func JSONPointerSubtract(p1 jsonpointer.T, p2 jsonpointer.T) jsonpointer.T {
+	result := jsonpointer.T{}
+	isDifferent := false
+	for idx, el := range p1 {
+		// Compare the element at same position, until found a different
+		if (len(p2)-1) < idx || el != p2[idx] {
+			isDifferent = true
+		}
+		if isDifferent {
+			result = append(result, el)
+		}
+	}
+	return result
+}
+
 func FlowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {
 	entries, err := Traverse(flowRootObject, pointer)
 	if err != nil {

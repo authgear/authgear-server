@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/validation"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func ConfigureAuthenticationFlowV1CreateRoute(route httproute.Route) httproute.Route {
@@ -119,7 +120,7 @@ func (h *AuthenticationFlowV1CreateHandler) create(w http.ResponseWriter, r *htt
 }
 
 func (h *AuthenticationFlowV1CreateHandler) create0(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*authflow.ServiceOutput, error) {
-	flow, err := authflow.InstantiateFlow(*request.GetFlowReference())
+	flow, err := authflow.InstantiateFlow(*request.GetFlowReference(), jsonpointer.T{})
 	if err != nil {
 		return nil, err
 	}

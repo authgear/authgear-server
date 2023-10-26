@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -17,6 +18,7 @@ func init() {
 type IntentAccountRecoveryFlowSteps struct {
 	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StartFrom     jsonpointer.T          `json:"start_from,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountRecoveryFlowSteps{}
@@ -51,7 +53,13 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 	}
 
 	steps := i.steps(current)
-	nextStepIndex := len(flows.Nearest.Nodes)
+	nextStepIndex := i.nextStepIndex(flows)
+
+	if i.initialStepIndex() > nextStepIndex {
+		// fast forward by inserting NodeSentinel
+		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+	}
+
 	step := steps[nextStepIndex].(*config.AuthenticationFlowAccountRecoveryFlowStep)
 
 	switch step.Type {
@@ -83,6 +91,7 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 			StepName:      step.Name,
 			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			FlowReference: i.FlowReference,
+			StartFrom:     i.StartFrom,
 		}
 		if err != nil {
 			return nil, err
@@ -109,4 +118,20 @@ func (*IntentAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) 
 	}
 
 	return steps
+}
+
+func (i *IntentAccountRecoveryFlowSteps) initialStepIndex() int {
+	startFrom := authflow.JSONPointerSubtract(i.StartFrom, i.JSONPointer)
+	if !startFrom.More() {
+		return 0
+	}
+	currentIdx, err := strconv.Atoi(startFrom[0])
+	if err != nil {
+		return 0
+	}
+	return currentIdx
+}
+
+func (i *IntentAccountRecoveryFlowSteps) nextStepIndex(flows authflow.Flows) int {
+	return len(flows.Nearest.Nodes)
 }
