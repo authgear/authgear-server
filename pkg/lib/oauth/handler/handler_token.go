@@ -536,7 +536,6 @@ func (h *TokenHandler) handleAnonymousRequest(
 		resp,
 		opts,
 		true)
-
 	if err != nil {
 		return nil, err
 	}
@@ -547,6 +546,20 @@ func (h *TokenHandler) handleAnonymousRequest(
 		err = h.translateAccessTokenError(err)
 		return nil, err
 	}
+
+	if h.IDTokenIssuer == nil {
+		return nil, errors.New("id token issuer is not provided")
+	}
+	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+		ClientID:           client.ClientID,
+		SID:                oidc.EncodeSID(offlineGrant),
+		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+		ClientLike:         oauth.ClientClientLike(client, scopes),
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.IDToken(idToken)
 
 	return tokenResultOK{Response: resp}, nil
 }
