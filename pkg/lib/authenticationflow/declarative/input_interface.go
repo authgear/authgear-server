@@ -18,6 +18,14 @@ type inputTakeIdentificationMethod interface {
 	GetIdentificationMethod() config.AuthenticationFlowIdentification
 }
 
+type inputTakeAccountRecoveryIdentificationMethod interface {
+	GetAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
+}
+
+type inputTakeAccountRecoveryDestinationOptionIndex interface {
+	GetAccountRecoveryDestinationOptionIndex() int
+}
+
 type inputTakeAuthenticationMethod interface {
 	GetAuthenticationMethod() config.AuthenticationFlowAuthentication
 }

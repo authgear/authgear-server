@@ -151,6 +151,16 @@ type MilestoneDoUseIdentity interface {
 	MilestoneDoUseIdentity() *identity.Info
 }
 
+type MilestoneDoUseAccountRecoveryIdentity interface {
+	authflow.Milestone
+	MilestoneDoUseAccountRecoveryIdentity() AccountRecoveryIdentity
+}
+
+type MilestoneAccountRecoveryIdentificationMethod interface {
+	authflow.Milestone
+	MilestoneAccountRecoveryIdentificationMethod() config.AuthenticationFlowAccountRecoveryIdentification
+}
+
 type MilestoneDidSelectAuthenticator interface {
 	authflow.Milestone
 	MilestoneDidSelectAuthenticator() *authenticator.Info

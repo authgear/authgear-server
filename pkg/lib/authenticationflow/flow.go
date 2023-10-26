@@ -20,10 +20,11 @@ type PublicFlow interface {
 type FlowType string
 
 const (
-	FlowTypeSignup      FlowType = "signup"
-	FlowTypePromote     FlowType = "promote"
-	FlowTypeLogin       FlowType = "login"
-	FlowTypeSignupLogin FlowType = "signup_login"
+	FlowTypeSignup          FlowType = "signup"
+	FlowTypePromote         FlowType = "promote"
+	FlowTypeLogin           FlowType = "login"
+	FlowTypeSignupLogin     FlowType = "signup_login"
+	FlowTypeAccountRecovery FlowType = "account_recovery"
 )
 
 var AllFlowTypes []FlowType = []FlowType{
@@ -31,6 +32,7 @@ var AllFlowTypes []FlowType = []FlowType{
 	FlowTypePromote,
 	FlowTypeLogin,
 	FlowTypeSignupLogin,
+	FlowTypeAccountRecovery,
 }
 
 // FlowReference is an API object.

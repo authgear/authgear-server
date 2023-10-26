@@ -193,3 +193,54 @@ reauth_flows:
 `)
 	})
 }
+
+func TestAuthenticationFlowAccountRecoveryFlow(t *testing.T) {
+	Convey("AuthenticationFlowAccountRecoveryFlow", t, func() {
+		test := func(inputYAML string) {
+			inputJSON, err := yaml.YAMLToJSON([]byte(inputYAML))
+			So(err, ShouldBeNil)
+
+			// NOTE(tung): Disable the schema test for now because it was removed from config schema
+			// err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(inputJSON))
+			// So(err, ShouldBeNil)
+
+			var cfg AuthenticationFlowConfig
+			err = json.Unmarshal([]byte(inputJSON), &cfg)
+			So(err, ShouldBeNil)
+
+			var input interface{}
+			err = json.Unmarshal([]byte(inputJSON), &input)
+			So(err, ShouldBeNil)
+
+			encodedCfg, err := json.Marshal(cfg)
+			So(err, ShouldBeNil)
+
+			encodedInput, err := json.Marshal(input)
+			So(err, ShouldBeNil)
+
+			// NOTE(tung): Disable the schema test for now because it was removed from config schema
+			// err = Schema.PartValidator("AuthenticationFlowConfig").Validate(bytes.NewReader(encodedCfg))
+			// So(err, ShouldBeNil)
+
+			So(string(encodedInput), ShouldEqualJSON, string(encodedCfg))
+		}
+
+		test(`
+account_recovery_flows:
+- name: default
+  steps:
+    - type: identify
+      one_of:
+      - identification: email
+        on_failure: ignore
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
+      - identification: phone
+        on_failure: ignore
+        steps:
+        - type: select_destination
+          enumerate_destinations: true
+`)
+	})
+}
