@@ -227,6 +227,13 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 }
 
 func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+	if stateToken == "" {
+		stateToken, err = s.resolveStateTokenFromInput(rawMessage)
+		if err != nil {
+			return
+		}
+	}
+
 	flow, err := s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
@@ -546,4 +553,25 @@ func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flo
 	}
 
 	return
+}
+
+func (s *Service) resolveStateTokenFromInput(inputRawMessage json.RawMessage) (string, error) {
+	if input, ok := MakeInputTakeAccountRecoveryCode(inputRawMessage); ok {
+		state, err := s.Deps.ResetPassword.VerifyCode(input.AccountRecoveryCode)
+		if err != nil {
+			return "", err
+		}
+		flow, err := InstantiateFlow(FlowReference{
+			Type: FlowType(state.AuthenticationFlowType),
+			Name: state.AuthenticationFlowName,
+		}, state.AuthenticationFlowJSONPointer)
+		if err != nil {
+			return "", err
+		}
+		// In account recovery flow, session options are not important
+		newFlowOutput, err := s.CreateNewFlow(flow, &SessionOptions{})
+		return newFlowOutput.Flow.StateToken, nil
+
+	}
+	return "", ErrFlowNotFound
 }

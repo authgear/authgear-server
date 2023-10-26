@@ -9,19 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputTakeAccountRecoveryCodeSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputTakeAccountRecoveryCodeSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("account_recovery_code")
-
-	InputTakeAccountRecoveryCodeSchemaBuilder.Properties().Property(
-		"account_recovery_code",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-}
-
 type InputSchemaTakeAccountRecoveryCode struct {
 	JSONPointer jsonpointer.T
 }
@@ -33,7 +20,7 @@ func (i *InputSchemaTakeAccountRecoveryCode) GetJSONPointer() jsonpointer.T {
 }
 
 func (*InputSchemaTakeAccountRecoveryCode) SchemaBuilder() validation.SchemaBuilder {
-	return InputTakeAccountRecoveryCodeSchemaBuilder
+	return authflow.InputTakeAccountRecoveryCodeSchemaBuilder
 }
 
 func (i *InputSchemaTakeAccountRecoveryCode) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {

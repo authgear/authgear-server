@@ -122,10 +122,10 @@ func (*IntentAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) 
 
 func (i *IntentAccountRecoveryFlowSteps) initialStepIndex() int {
 	startFrom := authflow.JSONPointerSubtract(i.StartFrom, i.JSONPointer)
-	if !startFrom.More() {
+	if len(startFrom) < 2 || startFrom[0] != "steps" {
 		return 0
 	}
-	currentIdx, err := strconv.Atoi(startFrom[0])
+	currentIdx, err := strconv.Atoi(startFrom[1])
 	if err != nil {
 		return 0
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -38,7 +39,7 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordService interface {
-	VerifyCode(code string) (userID string, err error)
+	VerifyCode(code string) (state *otp.State, err error)
 }
 
 type ResetPasswordHandler struct {

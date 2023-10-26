@@ -94,7 +94,7 @@ type ForgotPasswordService interface {
 }
 
 type ResetPasswordService interface {
-	VerifyCode(code string) (userID string, err error)
+	VerifyCode(code string) (state *otp.State, err error)
 	ResetPassword(code string, newPassword string) error
 }
 

@@ -335,6 +335,9 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		state.UserID = code.UserID
 		state.WorkflowID = code.WorkflowID
 		state.AuthenticationFlowWebsocketChannelName = code.AuthenticationFlowWebsocketChannelName
+		state.AuthenticationFlowJSONPointer = code.AuthenticationFlowJSONPointer
+		state.AuthenticationFlowName = code.AuthenticationFlowName
+		state.AuthenticationFlowType = code.AuthenticationFlowType
 		state.WebSessionID = code.WebSessionID
 	}
 

@@ -1,6 +1,10 @@
 package otp
 
-import "time"
+import (
+	"time"
+
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+)
 
 type State struct {
 	ExpireAt        time.Time
@@ -12,4 +16,7 @@ type State struct {
 	WebSessionID                           string
 	WorkflowID                             string
 	AuthenticationFlowWebsocketChannelName string
+	AuthenticationFlowType                 string
+	AuthenticationFlowName                 string
+	AuthenticationFlowJSONPointer          jsonpointer.T
 }

@@ -211,7 +211,7 @@ func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (er
 	return
 }
 
-func (s *Service) doVerifyCode(code string) (target string, userID string, err error) {
+func (s *Service) doVerifyCode(code string) (target string, state *otp.State, err error) {
 	target, err = s.OTPCodes.LookupCode(otp.PurposeForgotPassword, code)
 	if apierrors.IsKind(err, otp.InvalidOTPCode) {
 		err = ErrInvalidCode
@@ -227,7 +227,7 @@ func (s *Service) doVerifyCode(code string) (target string, userID string, err e
 	}
 	kind := otp.KindForgotPassword(s.Config, channel)
 
-	state, err := s.OTPCodes.InspectState(kind, target)
+	state, err = s.OTPCodes.InspectState(kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
 		err = ErrUsedCode
 		return
@@ -252,21 +252,20 @@ func (s *Service) doVerifyCode(code string) (target string, userID string, err e
 		return
 	}
 
-	userID = state.UserID
 	return
 }
 
-func (s *Service) VerifyCode(code string) (userID string, err error) {
+func (s *Service) VerifyCode(code string) (state *otp.State, err error) {
 	if !*s.Config.ForgotPassword.Enabled {
-		return "", ErrFeatureDisabled
+		return nil, ErrFeatureDisabled
 	}
 
-	_, userID, err = s.doVerifyCode(code)
+	_, state, err = s.doVerifyCode(code)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return userID, nil
+	return state, nil
 }
 
 // ResetPassword consumes code and reset password to newPassword.
@@ -278,12 +277,12 @@ func (s *Service) ResetPassword(code string, newPassword string) error {
 		return ErrFeatureDisabled
 	}
 
-	target, userID, err := s.doVerifyCode(code)
+	target, state, err := s.doVerifyCode(code)
 	if err != nil {
 		return err
 	}
 
-	err = s.SetPassword(userID, newPassword)
+	err = s.SetPassword(state.UserID, newPassword)
 	if err != nil {
 		return err
 	}
