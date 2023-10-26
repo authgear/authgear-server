@@ -15,8 +15,9 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	StepName    string        `json:"step_name,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StepName      string                 `json:"step_name,omitempty"`
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
@@ -31,7 +32,11 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Instantiate(
 	if !ok {
 		return InvalidFlowConfig.New("IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode depends on MilestoneDoUseAccountRecoveryDestination")
 	}
-	err := deps.ForgotPassword.SendCode(milestone.MilestoneDoUseAccountRecoveryDestination())
+	err := deps.ForgotPassword.SendCode(milestone.MilestoneDoUseAccountRecoveryDestination(), &forgotpassword.CodeOptions{
+		AuthenticationFlowType:        string(i.FlowReference.Type),
+		AuthenticationFlowName:        i.FlowReference.Name,
+		AuthenticationFlowJSONPointer: i.JSONPointer,
+	})
 	if err != nil && !errors.Is(err, forgotpassword.ErrUserNotFound) {
 		return err
 	}

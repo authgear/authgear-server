@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type Logger struct{ *log.Logger }
@@ -61,9 +62,18 @@ type Service struct {
 	OTPSender      OTPSender
 }
 
+type CodeOptions struct {
+	AuthenticationFlowType        string
+	AuthenticationFlowName        string
+	AuthenticationFlowJSONPointer jsonpointer.T
+}
+
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
 // For each looked up login ID, a code is generated and delivered asynchronously.
-func (s *Service) SendCode(loginID string) error {
+func (s *Service) SendCode(loginID string, options *CodeOptions) error {
+	if options == nil {
+		options = &CodeOptions{}
+	}
 	if !*s.Config.ForgotPassword.Enabled {
 		return ErrFeatureDisabled
 	}
@@ -86,7 +96,7 @@ func (s *Service) SendCode(loginID string) error {
 	for _, info := range emailIdentities {
 		standardClaims := info.IdentityAwareStandardClaims()
 		email := standardClaims[model.ClaimEmail]
-		if err := s.sendEmail(email, info.UserID); err != nil {
+		if err := s.sendEmail(email, info.UserID, options); err != nil {
 			return err
 		}
 	}
@@ -94,7 +104,7 @@ func (s *Service) SendCode(loginID string) error {
 	for _, info := range phoneIdentities {
 		standardClaims := info.IdentityAwareStandardClaims()
 		phone := standardClaims[model.ClaimPhoneNumber]
-		if err := s.sendSMS(phone, info.UserID); err != nil {
+		if err := s.sendSMS(phone, info.UserID, options); err != nil {
 			return err
 		}
 	}
@@ -111,7 +121,7 @@ func (s *Service) getPrimaryPasswordList(userID string) ([]*authenticator.Info, 
 	)
 }
 
-func (s *Service) sendEmail(email string, userID string) error {
+func (s *Service) sendEmail(email string, userID string, options *CodeOptions) error {
 	ais, err := s.getPrimaryPasswordList(userID)
 	if err != nil {
 		return err
@@ -134,7 +144,10 @@ func (s *Service) sendEmail(email string, userID string) error {
 		email,
 		otp.FormLink,
 		&otp.GenerateOptions{
-			UserID: userID,
+			UserID:                        userID,
+			AuthenticationFlowType:        options.AuthenticationFlowType,
+			AuthenticationFlowName:        options.AuthenticationFlowName,
+			AuthenticationFlowJSONPointer: options.AuthenticationFlowJSONPointer,
 		})
 	if err != nil {
 		return err
@@ -151,7 +164,7 @@ func (s *Service) sendEmail(email string, userID string) error {
 	return nil
 }
 
-func (s *Service) sendSMS(phone string, userID string) (err error) {
+func (s *Service) sendSMS(phone string, userID string, options *CodeOptions) (err error) {
 	ais, err := s.getPrimaryPasswordList(userID)
 	if err != nil {
 		return err
@@ -178,7 +191,10 @@ func (s *Service) sendSMS(phone string, userID string) (err error) {
 		phone,
 		otp.FormLink,
 		&otp.GenerateOptions{
-			UserID: userID,
+			UserID:                        userID,
+			AuthenticationFlowType:        options.AuthenticationFlowType,
+			AuthenticationFlowName:        options.AuthenticationFlowName,
+			AuthenticationFlowJSONPointer: options.AuthenticationFlowJSONPointer,
 		})
 	if err != nil {
 		return err

@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -146,7 +147,7 @@ type OAuthRedirectURIBuilder interface {
 }
 
 type ForgotPasswordService interface {
-	SendCode(loginID string) error
+	SendCode(loginID string, options *forgotpassword.CodeOptions) error
 }
 
 type ResetPasswordService interface {

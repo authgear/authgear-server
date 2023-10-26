@@ -15,7 +15,8 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowSteps struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountRecoveryFlowSteps{}
@@ -79,8 +80,9 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 		return authflow.NewSubFlow(nextStep), nil
 	case config.AuthenticationFlowAccountRecoveryFlowTypeVerifyAccountRecoveryCode:
 		nextStep := &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			FlowReference: i.FlowReference,
 		}
 		if err != nil {
 			return nil, err

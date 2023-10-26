@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -112,7 +113,7 @@ type OTPCodeService interface {
 }
 
 type ForgotPasswordService interface {
-	SendCode(loginID string) error
+	SendCode(loginID string, options *forgotpassword.CodeOptions) error
 }
 
 type EventService interface {

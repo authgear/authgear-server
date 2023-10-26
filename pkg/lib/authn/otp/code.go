@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 const (
@@ -28,5 +29,8 @@ type Code struct {
 	WorkflowID string `json:"workflow_id,omitempty"`
 
 	// For authentication flow
-	AuthenticationFlowWebsocketChannelName string `json:"authentication_flow_websocket_channel_name,omitempty"`
+	AuthenticationFlowWebsocketChannelName string        `json:"authentication_flow_websocket_channel_name,omitempty"`
+	AuthenticationFlowType                 string        `json:"authentication_flow_type,omitempty"`
+	AuthenticationFlowName                 string        `json:"authentication_flow_name,omitempty"`
+	AuthenticationFlowJSONPointer          jsonpointer.T `json:"authentication_flow_json_pointer,omitempty"`
 }

@@ -114,7 +114,7 @@ func (*IntentForgotPasswordV2) sendCodeForChannel(
 	if err == nil || errors.Is(err, ErrNoMatchingLoginIDForForgotPasswordChannel) {
 
 		if targetLoginID != "" {
-			err = deps.ForgotPassword.SendCode(targetLoginID)
+			err = deps.ForgotPassword.SendCode(targetLoginID, nil)
 			if err != nil {
 				return nil, err
 			}

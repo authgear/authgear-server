@@ -53,7 +53,8 @@ func (i *IntentAccountRecoveryFlow) ReactTo(ctx context.Context, deps *authflow.
 	switch {
 	case len(flows.Nearest.Nodes) == 0:
 		return authflow.NewSubFlow(&IntentAccountRecoveryFlowSteps{
-			JSONPointer: i.JSONPointer,
+			JSONPointer:   i.JSONPointer,
+			FlowReference: i.FlowReference,
 		}), nil
 	}
 

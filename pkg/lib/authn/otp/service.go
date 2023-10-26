@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 type GenerateOptions struct {
@@ -16,6 +17,9 @@ type GenerateOptions struct {
 	WebSessionID                           string
 	WorkflowID                             string
 	AuthenticationFlowWebsocketChannelName string
+	AuthenticationFlowType                 string
+	AuthenticationFlowName                 string
+	AuthenticationFlowJSONPointer          jsonpointer.T
 	SkipRateLimits                         bool
 }
 
@@ -150,6 +154,9 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 		UserID:                                 opts.UserID,
 		WorkflowID:                             opts.WorkflowID,
 		AuthenticationFlowWebsocketChannelName: opts.AuthenticationFlowWebsocketChannelName,
+		AuthenticationFlowType:                 opts.AuthenticationFlowType,
+		AuthenticationFlowName:                 opts.AuthenticationFlowName,
+		AuthenticationFlowJSONPointer:          opts.AuthenticationFlowJSONPointer,
 		WebSessionID:                           opts.WebSessionID,
 	}
 
