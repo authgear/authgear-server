@@ -46,9 +46,22 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 	verificationRequired := oneOf.IsVerificationRequired()
 	targetStepName := oneOf.TargetStep
 
-	_, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
-	_, claimVerified := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
+	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
+	claimVerifiedAlready := false
+	_, claimVerifiedInThisFlow := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
 	_, created := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
+
+	if authenticatorSelected {
+		info := m.MilestoneDidSelectAuthenticator()
+		claimName, claimValue := info.OOBOTP.ToClaimPair()
+		claimStatus, err := deps.Verification.GetClaimStatus(n.UserID, claimName, claimValue)
+		if err != nil {
+			return nil, err
+		}
+		claimVerifiedAlready = claimStatus.Verified
+	}
+
+	shouldVerifyInThisFlow := !claimVerifiedAlready && verificationRequired
 
 	switch {
 	case !authenticatorSelected:
@@ -60,7 +73,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 		return &InputSchemaTakeOOBOTPTarget{
 			JSONPointer: n.JSONPointer,
 		}, nil
-	case verificationRequired && !claimVerified:
+	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		// Verify the claim
 		return nil, nil
 	case !created:
@@ -82,8 +95,21 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	targetStepName := oneOf.TargetStep
 
 	m, authenticatorSelected := authflow.FindMilestone[MilestoneDidSelectAuthenticator](flows.Nearest)
-	_, claimVerified := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
+	claimVerifiedAlready := false
+	_, claimVerifiedInThisFlow := authflow.FindMilestone[MilestoneDoMarkClaimVerified](flows.Nearest)
 	_, created := authflow.FindMilestone[MilestoneDoCreateAuthenticator](flows.Nearest)
+
+	if authenticatorSelected {
+		info := m.MilestoneDidSelectAuthenticator()
+		claimName, claimValue := info.OOBOTP.ToClaimPair()
+		claimStatus, err := deps.Verification.GetClaimStatus(n.UserID, claimName, claimValue)
+		if err != nil {
+			return nil, err
+		}
+		claimVerifiedAlready = claimStatus.Verified
+	}
+
+	shouldVerifyInThisFlow := !claimVerifiedAlready && verificationRequired
 
 	switch {
 	case !authenticatorSelected:
@@ -139,7 +165,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 			oobOTPTarget := inputTakeOOBOTPTarget.GetTarget()
 			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
 		}
-	case verificationRequired && !claimVerified:
+	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
 		purpose := otp.PurposeOOBOTP
