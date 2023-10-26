@@ -18,7 +18,6 @@ import {
   FormatDateRelativeController,
   FormatInputDateController,
 } from "./date";
-import { TransferClickController } from "./click";
 import {
   XHRSubmitFormController,
   RestoreFormController,
@@ -39,6 +38,7 @@ import { WalletConfirmationController, WalletIconController } from "./web3";
 import { init as SentryInit } from "@sentry/browser";
 import { BrowserTracing } from "@sentry/tracing";
 import { LockoutController } from "./lockout";
+import { MirrorButtonController } from "./mirrorbutton";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -92,8 +92,6 @@ Stimulus.register("authflow-websocket", AuthflowWebsocketController);
 Stimulus.register("format-date-relative", FormatDateRelativeController);
 Stimulus.register("format-input-date", FormatInputDateController);
 
-Stimulus.register("transfer-click", TransferClickController);
-
 Stimulus.register("restore-form", RestoreFormController);
 Stimulus.register("retain-form-form", RetainFormFormController);
 Stimulus.register("retain-form-input", RetainFormInputController);
@@ -116,3 +114,5 @@ Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
 Stimulus.register("web3-wallet-icon", WalletIconController);
 
 Stimulus.register("lockout", LockoutController);
+
+Stimulus.register("mirror-button", MirrorButtonController);

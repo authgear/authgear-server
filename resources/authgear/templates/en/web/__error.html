@@ -174,14 +174,15 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     {{ else if eq .Error.reason "InvalidVerificationCode" }}
     <li>
       {{ template "error-verification-code-invalid" }}
-      <a
-        href="#"
-        data-transfer-click-click-value="#resend-button"
-        data-controller="transfer-click"
-        data-action="transfer-click#click"
+      <button
+        class="btn secondary-btn"
+        type="button"
+        data-controller="mirror-button"
+        data-mirror-button-selector-value="#resend-button"
+        data-action="mirror-button#click"
       >
         {{ template "error-verification-code-invalid-click-to-resend" }}
-      </a>
+      </button>
     </li>
     {{ else if eq .Error.reason "RateLimited" }}
       {{ if eq .Error.info.bucket_name "MessagingSMSPerTarget" }}
