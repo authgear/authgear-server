@@ -22,3 +22,7 @@ func newFlowID() string {
 func newStateToken() string {
 	return fmt.Sprintf("authflowstate_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
+
+func NewWebsocketChannelName() string {
+	return fmt.Sprintf("ws_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
+}

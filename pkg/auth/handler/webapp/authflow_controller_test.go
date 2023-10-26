@@ -110,7 +110,6 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 			}
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
-					FlowID: flowResponse.ID,
 					AllScreens: map[string]*webapp.AuthflowScreen{
 						state.XStep: screen,
 					},
@@ -137,7 +136,6 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
-					FlowID: "authflow_id",
 					AllScreens: map[string]*webapp.AuthflowScreen{
 						"step_0": screen0,
 						"step_1": screen1,
@@ -161,7 +159,6 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen: screen1,
 				StateTokenFlowResponse: &authflow.FlowResponse{
-					ID:         "authflow_id",
 					StateToken: "authflowstate_1",
 					Type:       authflow.FlowTypeLogin,
 					Name:       "default",
@@ -238,7 +235,6 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", nil)
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
-					FlowID:     "authflow_id",
 					AllScreens: map[string]*webapp.AuthflowScreen{},
 				},
 			}
@@ -255,7 +251,6 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 					},
 				},
 				StateTokenFlowResponse: &authflow.FlowResponse{
-					ID:         "authflow_id",
 					StateToken: "authflowstate_0",
 					Type:       authflow.FlowTypeLogin,
 					Name:       "default",
@@ -302,7 +297,6 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", nil)
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
-					FlowID:     "authflow_id",
 					AllScreens: map[string]*webapp.AuthflowScreen{},
 				},
 			}
@@ -319,7 +313,6 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 					},
 				},
 				StateTokenFlowResponse: &authflow.FlowResponse{
-					ID:         "authflow_id",
 					StateToken: "authflowstate_0",
 					Type:       authflow.FlowTypeLogin,
 					Name:       "default",

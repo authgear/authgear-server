@@ -13,6 +13,7 @@ import { IntlTelInputController } from "./intlTelInput";
 import { SelectEmptyValueController, GenderSelectController } from "./select";
 import { ImagePickerController } from "./imagepicker";
 import { WebSocketController } from "./websocket";
+import { AuthflowWebsocketController } from "./authflow_websocket";
 import {
   FormatDateRelativeController,
   FormatInputDateController,
@@ -86,6 +87,7 @@ Stimulus.register("gender-select", GenderSelectController);
 Stimulus.register("image-picker", ImagePickerController);
 
 Stimulus.register("websocket", WebSocketController);
+Stimulus.register("authflow-websocket", AuthflowWebsocketController);
 
 Stimulus.register("format-date-relative", FormatDateRelativeController);
 Stimulus.register("format-input-date", FormatInputDateController);

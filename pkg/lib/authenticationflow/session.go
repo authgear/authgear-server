@@ -7,10 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
+// Session must not contain web session ID.
+// This is to ensure webapp does not have privilege in authflow.
 type Session struct {
 	FlowID string `json:"flow_id"`
 
-	WebSessionID   string `json:"web_session_id,omitempty"`
 	OAuthSessionID string `json:"oauth_session_id,omitempty"`
 
 	ClientID    string   `json:"client_id,omitempty"`
@@ -32,7 +33,6 @@ type SessionOutput struct {
 }
 
 type SessionOptions struct {
-	WebSessionID   string
 	OAuthSessionID string
 
 	ClientID    string
@@ -50,7 +50,6 @@ type SessionOptions struct {
 func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 	out := &SessionOptions{}
 	if s != nil {
-		out.WebSessionID = s.WebSessionID
 		out.OAuthSessionID = s.OAuthSessionID
 
 		out.ClientID = s.ClientID
@@ -85,7 +84,6 @@ func NewSession(opts *SessionOptions) *Session {
 	return &Session{
 		FlowID: newFlowID(),
 
-		WebSessionID:   opts.WebSessionID,
 		OAuthSessionID: opts.OAuthSessionID,
 
 		ClientID:    opts.ClientID,
@@ -111,8 +109,6 @@ func (s *Session) ToOutput() *SessionOutput {
 
 func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlow PublicFlow) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
-
-	ctx = context.WithValue(ctx, contextKeyWebSessionID, s.WebSessionID)
 
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,

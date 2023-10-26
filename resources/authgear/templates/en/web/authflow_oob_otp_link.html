@@ -3,6 +3,8 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
+<div class="hidden" data-controller="authflow-websocket" data-authflow-websocket-url-value="{{ $.WebsocketURL }}"></div>
+
 <h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "login-link-otp-page-title" }}</h1>
 
 {{- if eq $.StateQuery "matched" }}

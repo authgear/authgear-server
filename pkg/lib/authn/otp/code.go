@@ -28,5 +28,5 @@ type Code struct {
 	WorkflowID string `json:"workflow_id,omitempty"`
 
 	// For authentication flow
-	AuthenticationFlowID string `json:"authentication_flow_id,omitempty"`
+	AuthenticationFlowWebsocketChannelName string `json:"authentication_flow_websocket_channel_name,omitempty"`
 }

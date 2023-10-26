@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	htmltemplate "html/template"
 	"net/http"
 	"time"
 
@@ -24,6 +25,7 @@ func ConfigureAuthflowOOBOTPLinkRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowOOBOTPLinkViewModel struct {
+	WebsocketURL     htmltemplate.URL
 	StateQuery       LoginLinkOTPPageQueryState
 	MaskedClaimValue string
 	ResendCooldown   int
@@ -43,6 +45,8 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 	}
 
 	return AuthflowOOBOTPLinkViewModel{
+		// nolint: gosec
+		WebsocketURL:     htmltemplate.URL(data.WebsocketURL),
 		StateQuery:       stateQuery,
 		MaskedClaimValue: maskedClaimValue,
 		ResendCooldown:   resendCooldown,

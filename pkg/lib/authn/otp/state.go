@@ -9,7 +9,7 @@ type State struct {
 	UserID          string
 	TooManyAttempts bool
 
-	WebSessionID         string
-	WorkflowID           string
-	AuthenticationFlowID string
+	WebSessionID                           string
+	WorkflowID                             string
+	AuthenticationFlowWebsocketChannelName string
 }

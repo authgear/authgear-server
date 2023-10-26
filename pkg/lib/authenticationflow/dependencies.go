@@ -149,10 +149,6 @@ type CookieManager interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
-type EventStore interface {
-	Publish(flowID string, e Event) error
-}
-
 type AccountMigrationService interface {
 	Run(migrationTokenString string) (*accountmigration.HookResponse, error)
 }
@@ -241,7 +237,6 @@ type Dependencies struct {
 
 	Events      EventService
 	RateLimiter RateLimiter
-	FlowEvents  EventStore
 
 	OfflineGrants OfflineGrantStore
 }

@@ -320,7 +320,6 @@ func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, 
 
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
-	sessionOptions.WebSessionID = s.ID
 
 	output, err := c.Authflows.CreateNewFlow(flow, sessionOptions)
 	if err != nil {
@@ -344,7 +343,7 @@ func (c *AuthflowController) ReplaceScreen(r *http.Request, s *webapp.Session, f
 	emptyXStep := ""
 	var emptyInput map[string]interface{}
 	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
-	af := webapp.NewAuthflow(flowResponse.ID, screen)
+	af := webapp.NewAuthflow(screen)
 	s.Authflow = af
 
 	output, screen, err = c.takeBranchRecursively(s, screen)
@@ -401,7 +400,7 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 	emptyXStep := ""
 	var emptyInput map[string]interface{}
 	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
-	af := webapp.NewAuthflow(flowResponse.ID, screen)
+	af := webapp.NewAuthflow(screen)
 	s.Authflow = af
 
 	output, screen, err = c.takeBranchRecursively(s, screen)
