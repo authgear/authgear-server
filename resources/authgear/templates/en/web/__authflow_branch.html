@@ -75,14 +75,6 @@
 	{{ template "setup-phone-otp-whatsapp-instead" }}
 	{{- end }}
 {{- end }}
-{{- if eq .Authentication "" }}
-	{{- if eq .Channel "sms" }}
-	{{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
-	{{- end }}
-	{{- if eq .Channel "whatsapp" }}
-	{{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
-	{{- end }}
-{{- end }}
 {{- end }}
 
 {{- if eq $.ActionType "authenticate" }}
@@ -122,15 +114,18 @@
 	{{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
 	{{- end }}
 {{- end }}
-{{- if eq .Authentication "" }}
-	{{- if eq .Channel "sms" }}
+{{- end }}
+
+
+{{- if eq $.ActionType "verify" }}
+{{- if eq .Channel "sms" }}
 	{{ template "enter-phone-otp-sms-instead" (dict "target" .MaskedClaimValue) }}
-	{{- end }}
-	{{- if eq .Channel "whatsapp" }}
+{{- end }}
+{{- if eq .Channel "whatsapp" }}
 	{{ template "enter-phone-otp-whatsapp-instead" (dict "target" .MaskedClaimValue) }}
-	{{- end }}
 {{- end }}
 {{- end }}
+
 </button>
 </form>
 {{- end }}

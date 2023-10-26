@@ -45,7 +45,7 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 	}
 
 	return AuthflowBranchViewModel{
-		ActionType:         branchFlowResponse.Action.Type,
+		ActionType:         screen.StateTokenFlowResponse.Action.Type,
 		DeviceTokenEnabled: deviceTokenEnabled,
 		Branches:           branches,
 	}
