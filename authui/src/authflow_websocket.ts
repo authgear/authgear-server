@@ -42,12 +42,12 @@ export class AuthflowWebsocketController extends Controller {
     this.ws = new WebSocket(url);
 
     this.ws.onopen = (e) => {
-      console.log("authflow_websocket onopen", e);
+      console.info("authflow_websocket onopen", e);
       this.retryEventTarget?.markSuccess();
     };
 
     this.ws.onclose = (e) => {
-      console.log("authflow_websocket onclose", e);
+      console.info("authflow_websocket onclose", e);
       // Close code 1000 means we do not need to reconnect.
       if (e.code === 1000) {
         return;
@@ -60,7 +60,7 @@ export class AuthflowWebsocketController extends Controller {
     };
 
     this.ws.onmessage = (e) => {
-      console.log("authflow_websocket onmessage", e);
+      console.info("authflow_websocket onmessage", e);
       const message = JSON.parse(e.data);
       switch (message.kind) {
         case "refresh":
