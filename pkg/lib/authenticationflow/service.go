@@ -570,6 +570,9 @@ func (s *Service) resolveStateTokenFromInput(inputRawMessage json.RawMessage) (s
 		}
 		// In account recovery flow, session options are not important
 		newFlowOutput, err := s.CreateNewFlow(flow, &SessionOptions{})
+		if err != nil {
+			return "", err
+		}
 		return newFlowOutput.Flow.StateToken, nil
 
 	}

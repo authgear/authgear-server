@@ -2,12 +2,10 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -60,15 +58,6 @@ func (i *IntentAccountRecoveryFlowStepResetPassword) ReactTo(ctx context.Context
 	}
 
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (*IntentAccountRecoveryFlowStepResetPassword) step(o config.AuthenticationFlowObject) *config.AuthenticationFlowLoginFlowStep {
-	step, ok := o.(*config.AuthenticationFlowLoginFlowStep)
-	if !ok {
-		panic(fmt.Errorf("flow object is %T", o))
-	}
-
-	return step
 }
 
 func (i *IntentAccountRecoveryFlowStepResetPassword) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
