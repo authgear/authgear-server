@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const (
@@ -536,7 +537,6 @@ func (h *TokenHandler) handleAnonymousRequest(
 		resp,
 		opts,
 		true)
-
 	if err != nil {
 		return nil, err
 	}
@@ -546,6 +546,19 @@ func (h *TokenHandler) handleAnonymousRequest(
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
+	}
+
+	if slice.ContainsString(scopes, "openid") {
+		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+			ClientID:           client.ClientID,
+			SID:                oidc.EncodeSID(offlineGrant),
+			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+			ClientLike:         oauth.ClientClientLike(client, scopes),
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
 	}
 
 	return tokenResultOK{Response: resp}, nil
@@ -758,19 +771,18 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	if h.IDTokenIssuer == nil {
-		return nil, errors.New("id token issuer is not provided")
+	if slice.ContainsString(scopes, "openid") {
+		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+			ClientID:           client.ClientID,
+			SID:                oidc.EncodeSID(offlineGrant),
+			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+			ClientLike:         oauth.ClientClientLike(client, scopes),
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
 	}
-	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
-		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(offlineGrant),
-		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		ClientLike:         oauth.ClientClientLike(client, scopes),
-	})
-	if err != nil {
-		return nil, err
-	}
-	resp.IDToken(idToken)
 
 	// Biometric login should fire event user.authenticated
 	// for other scenarios, ref: https://github.com/authgear/authgear-server/issues/2930
@@ -1121,9 +1133,6 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 
 	if issueIDToken {
-		if h.IDTokenIssuer == nil {
-			return nil, errors.New("id token issuer is not provided")
-		}
 		if sid == "" {
 			return nil, protocol.NewError("invalid_request", "cannot issue ID token")
 		}
@@ -1159,9 +1168,6 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	resp := protocol.TokenResponse{}
 
 	if issueIDToken {
-		if h.IDTokenIssuer == nil {
-			return nil, errors.New("id token issuer is not provided")
-		}
 		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrant),
