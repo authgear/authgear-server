@@ -431,11 +431,29 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowStep", `
 		"type": {
 			"type": "string",
 			"enum": [
+				"identify",
 				"authenticate"
 			]
 		}
 	},
 	"allOf": [
+		{
+			"if": {
+				"required": ["type"],
+				"properties": {
+					"type": { "const": "identify" }
+				}
+			},
+			"then": {
+				"required": ["one_of"],
+				"properties": {
+					"one_of": {
+						"type": "array",
+						"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowIdentify" }
+					}
+				}
+			}
+		},
 		{
 			"if": {
 				"required": ["type"],
@@ -446,7 +464,6 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowStep", `
 			"then": {
 				"required": ["one_of"],
 				"properties": {
-					"optional": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowAuthenticate" }
@@ -455,6 +472,25 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowStep", `
 			}
 		}
 	]
+}
+`)
+
+var _ = Schema.Add("AuthenticationFlowReauthFlowIdentify", `
+{
+	"type": "object",
+	"required": ["identification"],
+	"properties": {
+		"identification": {
+			"type": "string",
+			"enum": [
+				"id_token"
+			]
+		},
+		"steps": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowStep" }
+		}
+	}
 }
 `)
 
@@ -467,6 +503,7 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 			"type": "string",
 			"enum": [
 				"primary_password",
+				"primary_passkey",
 				"primary_oob_otp_email",
 				"primary_oob_otp_sms",
 				"secondary_password",
@@ -475,7 +512,6 @@ var _ = Schema.Add("AuthenticationFlowReauthFlowAuthenticate", `
 				"secondary_oob_otp_sms"
 			]
 		},
-		"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
 		"steps": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlowStep" }
@@ -612,6 +648,7 @@ const (
 	AuthenticationFlowIdentificationUsername AuthenticationFlowIdentification = "username"
 	AuthenticationFlowIdentificationOAuth    AuthenticationFlowIdentification = "oauth"
 	AuthenticationFlowIdentificationPasskey  AuthenticationFlowIdentification = "passkey"
+	AuthenticationFlowIdentificationIDToken  AuthenticationFlowIdentification = "id_token"
 )
 
 func (m AuthenticationFlowIdentification) PrimaryAuthentications() []AuthenticationFlowAuthentication {
@@ -1052,17 +1089,15 @@ func (f *AuthenticationFlowReauthFlow) GetSteps() []AuthenticationFlowObject {
 type AuthenticationFlowReauthFlowStepType string
 
 const (
-	AuthenticationFlowReauthFlowStepTypeAuthenticate AuthenticationFlowReauthFlowStepType = "authenticate"
+	AuthenticationFlowReauthFlowStepTypeIdentify     = AuthenticationFlowReauthFlowStepType(AuthenticationFlowStepTypeIdentify)
+	AuthenticationFlowReauthFlowStepTypeAuthenticate = AuthenticationFlowReauthFlowStepType(AuthenticationFlowStepTypeAuthenticate)
 )
 
 type AuthenticationFlowReauthFlowStep struct {
 	Name string                               `json:"name,omitempty"`
 	Type AuthenticationFlowReauthFlowStepType `json:"type,omitempty"`
 
-	// Optional is relevant when Type is authenticate.
-	Optional *bool `json:"optional,omitempty"`
-
-	// OneOf is relevant when Type is authenticate.
+	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*AuthenticationFlowReauthFlowOneOf `json:"one_of,omitempty"`
 }
 
@@ -1076,6 +1111,8 @@ func (s *AuthenticationFlowReauthFlowStep) GetType() AuthenticationFlowStepType 
 
 func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
+	case AuthenticationFlowReauthFlowStepTypeIdentify:
+		fallthrough
 	case AuthenticationFlowReauthFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
 		for i, v := range s.OneOf {
@@ -1089,9 +1126,14 @@ func (s *AuthenticationFlowReauthFlowStep) GetOneOf() []AuthenticationFlowObject
 }
 
 type AuthenticationFlowReauthFlowOneOf struct {
-	Authentication AuthenticationFlowAuthentication    `json:"authentication,omitempty"`
-	TargetStep     string                              `json:"target_step,omitempty"`
-	Steps          []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
+	// Identification is specific to identify.
+	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
+
+	// Authentication is specific to authenticate.
+	Authentication AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+
+	// Steps are common.
+	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
 var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowReauthFlowOneOf{}
@@ -1109,6 +1151,7 @@ func (f *AuthenticationFlowReauthFlowOneOf) GetSteps() []AuthenticationFlowObjec
 
 func (f *AuthenticationFlowReauthFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
 	return AuthenticationFlowObjectFlowBranchInfo{
+		Identification: f.Identification,
 		Authentication: f.Authentication,
 	}
 }

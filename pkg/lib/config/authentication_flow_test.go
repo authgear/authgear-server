@@ -183,11 +183,13 @@ func TestAuthenticationFlowReauthFlow(t *testing.T) {
 reauth_flows:
 - name: reauth_flow
   steps:
+  - type: identify
+    one_of:
+    - identification: id_token
   - type: authenticate
     one_of:
     - authentication: primary_password
   - type: authenticate
-    optional: true
     one_of:
     - authentication: secondary_totp
 `)
