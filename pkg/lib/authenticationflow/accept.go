@@ -121,27 +121,6 @@ func accept(ctx context.Context, deps *Dependencies, flows Flows, inputFn func(i
 }
 
 func appendNode(ctx context.Context, deps *Dependencies, flows Flows, node Node) error {
-	var instantiator Instantiator = nil
-	switch node.Type {
-	case NodeTypeSimple:
-		i, ok := node.Simple.(Instantiator)
-		if ok {
-			instantiator = i
-		}
-	case NodeTypeSubFlow:
-		i, ok := node.SubFlow.Intent.(Instantiator)
-		if ok {
-			instantiator = i
-		}
-	}
-
-	if instantiator != nil {
-		err := instantiator.Instantiate(ctx, deps, flows)
-		if err != nil {
-			return err
-		}
-	}
-
 	flows.Nearest.Nodes = append(flows.Nearest.Nodes, node)
 
 	err := TraverseNode(Traverser{

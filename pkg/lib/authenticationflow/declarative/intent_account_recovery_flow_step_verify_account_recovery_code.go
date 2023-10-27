@@ -22,7 +22,6 @@ type IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode struct {
 }
 
 var _ authflow.TargetStep = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
-var _ authflow.Instantiator = &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{}
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Instantiate(
 	ctx context.Context,
@@ -63,7 +62,10 @@ func (*IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) Kind() string {
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	if len(flows.Nearest.Nodes) == 0 {
+	switch len(flows.Nearest.Nodes) {
+	case 0:
+		return nil, nil
+	case 1:
 		return &InputSchemaTakeAccountRecoveryCode{
 			JSONPointer: i.JSONPointer,
 		}, nil
@@ -73,7 +75,18 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) CanReactTo(ctx 
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	if len(flows.Nearest.Nodes) == 0 {
+	switch len(flows.Nearest.Nodes) {
+	case 0:
+		if i.isRestored() {
+			// We don't want to send the code again if this step was restored
+			return authflow.NewNodeSimple(&NodeSentinel{}), nil
+		}
+		nextNode, err := NewNodeDoSendAccountRecoveryCode(ctx, deps, flows, i.FlowReference, i.JSONPointer, i.StartFrom)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewNodeSimple(nextNode), nil
+	case 1:
 		var inputTakeAccountRecoveryCode inputTakeAccountRecoveryCode
 		if authflow.AsInput(input, &inputTakeAccountRecoveryCode) {
 			code := inputTakeAccountRecoveryCode.GetAccountRecoveryCode()
@@ -83,7 +96,9 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			}
 			return authflow.NewNodeSimple(&NodeUseAccountRecoveryCode{Code: code}), nil
 		}
+
 	}
+
 	return nil, authflow.ErrIncompatibleInput
 }
 
