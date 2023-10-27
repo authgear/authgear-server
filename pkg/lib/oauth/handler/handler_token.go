@@ -547,9 +547,6 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	if h.IDTokenIssuer == nil {
-		return nil, errors.New("id token issuer is not provided")
-	}
 	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(offlineGrant),
@@ -771,9 +768,6 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	if h.IDTokenIssuer == nil {
-		return nil, errors.New("id token issuer is not provided")
-	}
 	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(offlineGrant),
@@ -1134,9 +1128,6 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 
 	if issueIDToken {
-		if h.IDTokenIssuer == nil {
-			return nil, errors.New("id token issuer is not provided")
-		}
 		if sid == "" {
 			return nil, protocol.NewError("invalid_request", "cannot issue ID token")
 		}
@@ -1172,9 +1163,6 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	resp := protocol.TokenResponse{}
 
 	if issueIDToken {
-		if h.IDTokenIssuer == nil {
-			return nil, errors.New("id token issuer is not provided")
-		}
 		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrant),
