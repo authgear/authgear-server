@@ -88,5 +88,5 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) isRestored() bool {
-	return !authflow.JSONPointerSubtract(i.JSONPointer, i.StartFrom).More()
+	return isNodeRestored(i.JSONPointer, i.StartFrom)
 }

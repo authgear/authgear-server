@@ -13,6 +13,11 @@ import (
 var ErrInvalidJSONPointer = errors.New("invalid json pointer")
 var ErrNoEntries = errors.New("no entries")
 
+const (
+	JsonPointerTokenOneOf string = "one_of"
+	JsonPointerTokenSteps string = "steps"
+)
+
 type TraverseEntry struct {
 	FlowObject  config.AuthenticationFlowObject
 	JSONPointer jsonpointer.T
@@ -113,11 +118,11 @@ func GetCurrentObject(entries []TraverseEntry) (config.AuthenticationFlowObject,
 }
 
 func JSONPointerForStep(p jsonpointer.T, index int) jsonpointer.T {
-	return p.AddReferenceToken("steps").AddReferenceToken(strconv.Itoa(index))
+	return p.AddReferenceToken(JsonPointerTokenSteps).AddReferenceToken(strconv.Itoa(index))
 }
 
 func JSONPointerForOneOf(p jsonpointer.T, index int) jsonpointer.T {
-	return p.AddReferenceToken("one_of").AddReferenceToken(strconv.Itoa(index))
+	return p.AddReferenceToken(JsonPointerTokenOneOf).AddReferenceToken(strconv.Itoa(index))
 }
 
 func JSONPointerToParent(p jsonpointer.T) jsonpointer.T {

@@ -65,8 +65,10 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 	switch step.Type {
 	case config.AuthenticationFlowAccountRecoveryFlowTypeIdentify:
 		nextStep, err := NewIntentAccountRecoveryFlowStepIdentify(ctx, deps, &IntentAccountRecoveryFlowStepIdentify{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			StartFrom:     i.StartFrom,
 		})
 		if err != nil {
 			return nil, err
@@ -122,7 +124,7 @@ func (*IntentAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) 
 
 func (i *IntentAccountRecoveryFlowSteps) initialStepIndex() int {
 	startFrom := authflow.JSONPointerSubtract(i.StartFrom, i.JSONPointer)
-	if len(startFrom) < 2 || startFrom[0] != "steps" {
+	if len(startFrom) < 2 || startFrom[0] != authflow.JsonPointerTokenSteps {
 		return 0
 	}
 	currentIdx, err := strconv.Atoi(startFrom[1])
