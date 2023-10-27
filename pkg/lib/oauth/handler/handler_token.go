@@ -35,6 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pkce"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const (
@@ -547,16 +548,18 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
-		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(offlineGrant),
-		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		ClientLike:         oauth.ClientClientLike(client, scopes),
-	})
-	if err != nil {
-		return nil, err
+	if slice.ContainsString(scopes, "openid") {
+		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+			ClientID:           client.ClientID,
+			SID:                oidc.EncodeSID(offlineGrant),
+			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+			ClientLike:         oauth.ClientClientLike(client, scopes),
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
 	}
-	resp.IDToken(idToken)
 
 	return tokenResultOK{Response: resp}, nil
 }
@@ -768,16 +771,18 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
-		ClientID:           client.ClientID,
-		SID:                oidc.EncodeSID(offlineGrant),
-		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
-		ClientLike:         oauth.ClientClientLike(client, scopes),
-	})
-	if err != nil {
-		return nil, err
+	if slice.ContainsString(scopes, "openid") {
+		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+			ClientID:           client.ClientID,
+			SID:                oidc.EncodeSID(offlineGrant),
+			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
+			ClientLike:         oauth.ClientClientLike(client, scopes),
+		})
+		if err != nil {
+			return nil, err
+		}
+		resp.IDToken(idToken)
 	}
-	resp.IDToken(idToken)
 
 	// Biometric login should fire event user.authenticated
 	// for other scenarios, ref: https://github.com/authgear/authgear-server/issues/2930
