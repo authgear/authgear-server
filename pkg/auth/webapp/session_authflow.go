@@ -128,6 +128,9 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 		return newAuthflowScreenLogin(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeSignupLogin:
 		return newAuthflowScreenSignupLogin(flowResponse, previousXStep, previousInput)
+	case authflow.FlowTypeReauth:
+		// FIXME(authflow): support reauth flow
+		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
 	}
@@ -292,6 +295,9 @@ func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.Aut
 		return s.takeBranchLogin(index, channel)
 	case authflow.FlowTypeSignupLogin:
 		return s.takeBranchSignupLogin(index)
+	case authflow.FlowTypeReauth:
+		// FIXME(authflow): support reauth flow
+		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	}
@@ -514,6 +520,9 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, webSessionID 
 		s.navigateLogin(r, webSessionID, result)
 	case authflow.FlowTypeSignupLogin:
 		s.navigateSignupLogin(r, webSessionID, result)
+	case authflow.FlowTypeReauth:
+		// FIXME(authflow): support reauth flow
+		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	}

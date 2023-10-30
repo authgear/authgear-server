@@ -24,6 +24,7 @@ const (
 	FlowTypePromote         FlowType = "promote"
 	FlowTypeLogin           FlowType = "login"
 	FlowTypeSignupLogin     FlowType = "signup_login"
+	FlowTypeReauth          FlowType = "reauth"
 	FlowTypeAccountRecovery FlowType = "account_recovery"
 )
 
@@ -32,6 +33,7 @@ var AllFlowTypes []FlowType = []FlowType{
 	FlowTypePromote,
 	FlowTypeLogin,
 	FlowTypeSignupLogin,
+	FlowTypeReauth,
 	FlowTypeAccountRecovery,
 }
 

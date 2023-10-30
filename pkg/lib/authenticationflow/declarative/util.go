@@ -45,6 +45,8 @@ func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowRefe
 		return flowRootObjectForLoginFlow(deps, flowReference)
 	case authflow.FlowTypeSignupLogin:
 		return flowRootObjectForSignupLoginFlow(deps, flowReference)
+	case authflow.FlowTypeReauth:
+		return flowRootObjectForReauthFlow(deps, flowReference)
 	case authflow.FlowTypeAccountRecovery:
 		return flowRootObjectForAccountRecoveryFlow(deps, flowReference)
 	default:
@@ -127,6 +129,28 @@ func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference
 		root = GenerateSignupLoginFlowConfig(deps.Config)
 	} else {
 		for _, f := range deps.Config.AuthenticationFlow.SignupLoginFlows {
+			f := f
+			if f.Name == flowReference.Name {
+				root = f
+				break
+			}
+		}
+	}
+
+	if root == nil {
+		return nil, ErrFlowNotFound
+	}
+
+	return root, nil
+}
+
+func flowRootObjectForReauthFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
+	var root config.AuthenticationFlowObject
+
+	if flowReference.Name == nameGeneratedFlow {
+		root = GenerateReauthFlowConfig(deps.Config)
+	} else {
+		for _, f := range deps.Config.AuthenticationFlow.ReauthFlows {
 			f := f
 			if f.Name == flowReference.Name {
 				root = f

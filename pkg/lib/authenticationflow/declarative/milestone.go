@@ -200,3 +200,8 @@ type MilestoneDoUseAnonymousUser interface {
 	authflow.Milestone
 	MilestoneDoUseAnonymousUser() *identity.Info
 }
+
+type MilestoneDidReauthenticate interface {
+	authflow.Milestone
+	MilestoneDidReauthenticate()
+}
