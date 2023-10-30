@@ -26,11 +26,20 @@ type AuthflowForgotPasswordSuccessHandler struct {
 	Renderer      Renderer
 }
 
+type AuthflowForgotPasswordSuccessViewModel struct {
+	ReturnStep string
+}
+
 func (h *AuthflowForgotPasswordSuccessHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
+
+	forgotPasswordSuccessViewModel := &AuthflowForgotPasswordSuccessViewModel{
+		ReturnStep: r.URL.Query().Get("x_from_step"),
+	}
+	viewmodels.Embed(data, forgotPasswordSuccessViewModel)
 
 	return data, nil
 }

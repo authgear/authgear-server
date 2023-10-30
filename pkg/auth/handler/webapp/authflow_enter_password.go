@@ -38,6 +38,7 @@ type AuthflowEnterPasswordViewModel struct {
 	PasswordManagerUsername string
 	ForgotPasswordInputType string
 	ForgotPasswordLoginID   string
+	CurrentXStep            string
 }
 
 type AuthflowEnterPasswordHandler struct {
@@ -77,6 +78,7 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 		PasswordManagerUsername: passwordManagerUsername,
 		ForgotPasswordInputType: forgotPasswordInputType,
 		ForgotPasswordLoginID:   forgotPasswordLoginID,
+		CurrentXStep:            screen.Screen.StateToken.XStep,
 	}
 }
 
