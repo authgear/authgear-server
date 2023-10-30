@@ -278,7 +278,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				FlowAction: &authflow.FlowAction{
 					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
 					Data: declarative.IntentLoginFlowStepAuthenticateData{
-						Options: []declarative.AuthenticateOption{
+						Options: []declarative.AuthenticateOptionForOutput{
 							{
 								Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 							},
@@ -340,7 +340,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				FlowAction: &authflow.FlowAction{
 					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
 					Data: declarative.IntentLoginFlowStepAuthenticateData{
-						Options: []declarative.AuthenticateOption{
+						Options: []declarative.AuthenticateOptionForOutput{
 							{
 								Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
 								Channels: []model.AuthenticatorOOBChannel{

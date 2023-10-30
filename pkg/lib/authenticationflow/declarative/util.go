@@ -177,7 +177,7 @@ func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowRefer
 	return root, nil
 }
 
-func getAuthenticationOptionsForStep(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]AuthenticateOption, error) {
+func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]AuthenticateOption, error) {
 	options := []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(userID)
