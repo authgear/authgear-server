@@ -131,6 +131,8 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 	case authflow.FlowTypeReauth:
 		// FIXME(authflow): support reauth flow
 		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
+	case authflow.FlowTypeAccountRecovery:
+		return newAuthflowScreenAccountRecovery(flowResponse, previousXStep, previousInput)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
 	}
@@ -232,6 +234,34 @@ func newAuthflowScreenSignupLogin(flowResponse *authflow.FlowResponse, previousX
 	return screen
 }
 
+func newAuthflowScreenAccountRecovery(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+	state := NewAuthflowStateToken(flowResponse)
+	screen := &AuthflowScreen{
+		PreviousXStep: previousXStep,
+		PreviousInput: previousInput,
+		StateToken:    state,
+	}
+
+	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// identify contains branches.
+		screen.BranchStateToken = state
+	case config.AuthenticationFlowStepTypeSelectDestination:
+		// select_destination contains branches.
+		screen.BranchStateToken = state
+	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
+		// verify_account_recovery_code contains NO branches.
+		break
+	case config.AuthenticationFlowStepTypeResetPassword:
+		// reset_password contains NO branches.
+		break
+	default:
+		panic(fmt.Errorf("unexpected action type: %v", flowResponse.Action.Type))
+	}
+
+	return screen
+}
+
 type AuthflowScreenWithFlowResponse struct {
 	Screen                       *AuthflowScreen
 	StateTokenFlowResponse       *authflow.FlowResponse
@@ -298,6 +328,8 @@ func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.Aut
 	case authflow.FlowTypeReauth:
 		// FIXME(authflow): support reauth flow
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
+	case authflow.FlowTypeAccountRecovery:
+		return s.takeBranchAccountRecovery(index)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	}
@@ -463,6 +495,17 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int) TakeBr
 	}
 }
 
+func (s *AuthflowScreenWithFlowResponse) takeBranchAccountRecovery(index int) TakeBranchResult {
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// In identify, the user input actually takes the branch.
+		// The branch taken here is unimportant.
+		return s.takeBranchResultSimple(index)
+	default:
+		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
+	}
+}
+
 func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int) TakeBranchResultSimple {
 	xStep := s.Screen.StateToken.XStep
 	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse, xStep, nil)
@@ -523,6 +566,8 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, webSessionID 
 	case authflow.FlowTypeReauth:
 		// FIXME(authflow): support reauth flow
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
+	case authflow.FlowTypeAccountRecovery:
+		s.navigateAccountRecovery(r, webSessionID, result)
 	default:
 		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
 	}
@@ -690,6 +735,26 @@ func (s *AuthflowScreenWithFlowResponse) navigateSignupLogin(r *http.Request, we
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, webSessionID, result, AuthflowRouteSignupLogin)
+	default:
+		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) navigateAccountRecovery(r *http.Request, webSessionID string, result *Result) {
+	navigate := func(path string) {
+		u := *r.URL
+		u.Path = path
+		q := u.Query()
+		q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
+		u.RawQuery = q.Encode()
+		result.NavigationAction = "replace"
+		result.RedirectURI = u.String()
+	}
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		navigate(AuthflowRouteForgotPassword)
+	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
+		navigate(AuthflowRouteForgotPasswordSuccess)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}

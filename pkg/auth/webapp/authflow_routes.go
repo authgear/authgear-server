@@ -25,8 +25,10 @@ const (
 	AuthflowRouteSetupTOTP         = "/authflow/setup_totp"
 	AuthflowRouteSetupOOBOTP       = "/authflow/setup_oob_otp"
 	// nolint: gosec
-	AuthflowRouteUsePasskey    = "/authflow/use_passkey"
-	AuthflowRouteAccountStatus = "/authflow/account_status"
+	AuthflowRouteUsePasskey            = "/authflow/use_passkey"
+	AuthflowRouteAccountStatus         = "/authflow/account_status"
+	AuthflowRouteForgotPassword        = "/authflow/forgot_password"
+	AuthflowRouteForgotPasswordSuccess = "/authflow/forgot_password/success"
 
 	AuthflowRouteWechat = "/authflow/wechat"
 )
