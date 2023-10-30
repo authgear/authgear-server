@@ -190,6 +190,11 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return nil, err
 	}
 
+	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
+
+	isOptional := step.IsOptional()
+	userHasSomeSecondaryAuthenticators := len(secondaryAuthenticators) > 0
+
 	findIdentity := func(targetStepName string) (*identity.Info, error) {
 		// Find the target step from the root.
 		targetStepFlow, err := authflow.FindTargetStep(flows.Root, targetStepName)
@@ -209,10 +214,131 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		return info, nil
 	}
 
-	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
+	useAuthenticationOptionAddRecoveryCodes := func(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
+		shouldAdd := false
+		switch {
+		case !isOptional:
+			// We always add recovery_code even though the end-user does not actually has any.
+			// One case that this situation will happen:
+			// 1. The project makes 2FA required, disable recovery code, and enable TOTP.
+			// 2. Alice enrolls TOTP. She does not have recovery code.
+			// 3. The project enables recovery code.
+			//
+			// Alice can still use her TOTP.
+			shouldAdd = true
+		case isOptional && userHasSomeSecondaryAuthenticators:
+			shouldAdd = true
+		}
 
-	isOptional := step.IsOptional()
-	userHasSomeSecondaryAuthenticators := len(secondaryAuthenticators) > 0
+		if shouldAdd {
+			options = append(options, NewAuthenticateOptionRecoveryCode())
+		}
+
+		return options
+	}
+
+	useAuthenticationOptionAddPrimaryPassword := func(options []AuthenticateOption) []AuthenticateOption {
+		// We always add primary_password even though the end-user does not actually has one.
+		// Showing this branch is necessary to convince the frontend to show a primary password page, where
+		// the end-user can trigger account recovery flow and create a new password.
+		options = append(options, NewAuthenticateOptionPassword(
+			config.AuthenticationFlowAuthenticationPrimaryPassword),
+		)
+		return options
+	}
+
+	useAuthenticationOptionAddSecondaryPassword := func(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
+		shouldAdd := false
+		switch {
+		case !isOptional:
+			// We always add secondary_password even though the end-user does not actually has one.
+			// One case that this situation will happen:
+			// 1. The project makes 2FA required, and enable TOTP.
+			// 2. Alice enrolls TOTP.
+			// 3. The project enables secondary password, and disable TOTP.
+			// 4. Alice does not have secondary password.
+			//
+			// If recovery code is also disabled, Alice is locked out.
+			shouldAdd = true
+		case isOptional && userHasSomeSecondaryAuthenticators:
+			shouldAdd = true
+		}
+
+		if shouldAdd {
+			options = append(options, NewAuthenticateOptionPassword(
+				config.AuthenticationFlowAuthenticationSecondaryPassword,
+			))
+		}
+
+		return options
+	}
+
+	useAuthenticationOptionAddTOTP := func(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
+		shouldAdd := false
+		switch {
+		case !isOptional:
+			// We always add secondary_totp even though the end-user does not actually has one.
+			// One case that this situation will happen:
+			// 1. The project makes 2FA required, and enable OOBOTP.
+			// 2. Alice enrolls OOBOTP with her phone number.
+			// 3. The project enables TOTP.
+			// 4. Alice does not have TOTP.
+			//
+			// Alice can still use her OOBOTP with phone number.
+			shouldAdd = true
+		case isOptional && userHasSomeSecondaryAuthenticators:
+			shouldAdd = true
+		}
+
+		if shouldAdd {
+			options = append(options, NewAuthenticateOptionTOTP())
+		}
+
+		return options
+	}
+
+	useAuthenticationOptionAddPasskey := func(options []AuthenticateOption, deps *authflow.Dependencies, userID string) ([]AuthenticateOption, error) {
+		requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+		if err != nil {
+			return nil, err
+		}
+
+		options = append(options, NewAuthenticateOptionPasskey(requestOptions))
+		return options, nil
+	}
+
+	useAuthenticationOptionAddPrimaryOOBOTPOfIdentity := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info) []AuthenticateOption {
+		option, ok := NewAuthenticateOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info)
+		if !ok {
+			return options
+		}
+
+		if option.Authentication != authentication {
+			return options
+		}
+
+		options = append(options, *option)
+		return options
+	}
+
+	useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*identity.Info) []AuthenticateOption {
+		for _, info := range infos {
+			options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info)
+		}
+
+		return options
+	}
+
+	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info) []AuthenticateOption {
+		for _, info := range infos {
+			if option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info); ok {
+				if option.Authentication == authentication {
+					options = append(options, *option)
+				}
+			}
+		}
+		return options
+	}
 
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
@@ -253,132 +379,6 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	}
 
 	return options, nil
-}
-
-func useAuthenticationOptionAddRecoveryCodes(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
-	shouldAdd := false
-	switch {
-	case !isOptional:
-		// We always add recovery_code even though the end-user does not actually has any.
-		// One case that this situation will happen:
-		// 1. The project makes 2FA required, disable recovery code, and enable TOTP.
-		// 2. Alice enrolls TOTP. She does not have recovery code.
-		// 3. The project enables recovery code.
-		//
-		// Alice can still use her TOTP.
-		shouldAdd = true
-	case isOptional && userHasSomeSecondaryAuthenticators:
-		shouldAdd = true
-	}
-
-	if shouldAdd {
-		options = append(options, NewAuthenticateOptionRecoveryCode())
-	}
-
-	return options
-}
-
-func useAuthenticationOptionAddPrimaryPassword(options []AuthenticateOption) []AuthenticateOption {
-	// We always add primary_password even though the end-user does not actually has one.
-	// Showing this branch is necessary to convince the frontend to show a primary password page, where
-	// the end-user can trigger account recovery flow and create a new password.
-	options = append(options, NewAuthenticateOptionPassword(
-		config.AuthenticationFlowAuthenticationPrimaryPassword),
-	)
-	return options
-}
-
-func useAuthenticationOptionAddSecondaryPassword(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
-	shouldAdd := false
-	switch {
-	case !isOptional:
-		// We always add secondary_password even though the end-user does not actually has one.
-		// One case that this situation will happen:
-		// 1. The project makes 2FA required, and enable TOTP.
-		// 2. Alice enrolls TOTP.
-		// 3. The project enables secondary password, and disable TOTP.
-		// 4. Alice does not have secondary password.
-		//
-		// If recovery code is also disabled, Alice is locked out.
-		shouldAdd = true
-	case isOptional && userHasSomeSecondaryAuthenticators:
-		shouldAdd = true
-	}
-
-	if shouldAdd {
-		options = append(options, NewAuthenticateOptionPassword(
-			config.AuthenticationFlowAuthenticationSecondaryPassword,
-		))
-	}
-
-	return options
-}
-
-func useAuthenticationOptionAddTOTP(options []AuthenticateOption, isOptional bool, userHasSomeSecondaryAuthenticators bool) []AuthenticateOption {
-	shouldAdd := false
-	switch {
-	case !isOptional:
-		// We always add secondary_totp even though the end-user does not actually has one.
-		// One case that this situation will happen:
-		// 1. The project makes 2FA required, and enable OOBOTP.
-		// 2. Alice enrolls OOBOTP with her phone number.
-		// 3. The project enables TOTP.
-		// 4. Alice does not have TOTP.
-		//
-		// Alice can still use her OOBOTP with phone number.
-		shouldAdd = true
-	case isOptional && userHasSomeSecondaryAuthenticators:
-		shouldAdd = true
-	}
-
-	if shouldAdd {
-		options = append(options, NewAuthenticateOptionTOTP())
-	}
-
-	return options
-}
-
-func useAuthenticationOptionAddPasskey(options []AuthenticateOption, deps *authflow.Dependencies, userID string) ([]AuthenticateOption, error) {
-	requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	options = append(options, NewAuthenticateOptionPasskey(requestOptions))
-	return options, nil
-}
-
-func useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, info *identity.Info) []AuthenticateOption {
-	option, ok := NewAuthenticateOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info)
-	if !ok {
-		return options
-	}
-
-	if option.Authentication != authentication {
-		return options
-	}
-
-	options = append(options, *option)
-	return options
-}
-
-func useAuthenticationOptionAddPrimaryOOBOTPOfAllIdentities(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*identity.Info) []AuthenticateOption {
-	for _, info := range infos {
-		options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, authentication, info)
-	}
-
-	return options
-}
-
-func useAuthenticationOptionAddSecondaryOOBOTP(options []AuthenticateOption, deps *authflow.Dependencies, authentication config.AuthenticationFlowAuthentication, infos []*authenticator.Info) []AuthenticateOption {
-	for _, info := range infos {
-		if option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info); ok {
-			if option.Authentication == authentication {
-				options = append(options, *option)
-			}
-		}
-	}
-	return options
 }
 
 func identityFillDetails(err error, spec *identity.Spec, otherSpec *identity.Spec) error {
