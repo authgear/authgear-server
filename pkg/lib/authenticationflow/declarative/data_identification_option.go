@@ -20,6 +20,12 @@ type IdentificationOption struct {
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 }
 
+func NewIdentificationOptionIDToken(i config.AuthenticationFlowIdentification) IdentificationOption {
+	return IdentificationOption{
+		Identification: i,
+	}
+}
+
 func NewIdentificationOptionLoginID(i config.AuthenticationFlowIdentification) IdentificationOption {
 	return IdentificationOption{
 		Identification: i,

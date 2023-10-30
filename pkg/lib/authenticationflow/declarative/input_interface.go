@@ -34,6 +34,10 @@ type inputTakeLoginID interface {
 	GetLoginID() string
 }
 
+type inputTakeIDToken interface {
+	GetIDToken() string
+}
+
 type inputTakeOAuthAuthorizationRequest interface {
 	GetOAuthAlias() string
 	GetOAuthRedirectURI() string

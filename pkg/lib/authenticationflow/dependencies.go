@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
@@ -197,6 +199,10 @@ type PasskeyService interface {
 	ConsumeAssertionResponse(assertionResponse []byte) (err error)
 }
 
+type IDTokenService interface {
+	VerifyIDTokenHintWithoutClient(idTokenHint string) (jwt.Token, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -240,4 +246,5 @@ type Dependencies struct {
 	RateLimiter RateLimiter
 
 	OfflineGrants OfflineGrantStore
+	IDTokens      IDTokenService
 }
