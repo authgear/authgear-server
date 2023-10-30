@@ -64,15 +64,15 @@ func (i *IntentReauthFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 		}
 		return authflow.NewSubFlow(stepIdentify), nil
 	case config.AuthenticationFlowReauthFlowStepTypeAuthenticate:
-		//stepAuthenticate, err := NewIntentReauthFlowStepAuthenticate(ctx, deps, flows, &IntentReauthFlowStepAuthenticate{
-		//	StepName:    step.Name,
-		//	JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
-		//	UserID:      i.userID(flows),
-		//})
-		//if err != nil {
-		//	return nil, err
-		//}
-		//return authflow.NewSubFlow(stepAuthenticate), nil
+		stepAuthenticate, err := NewIntentReauthFlowStepAuthenticate(ctx, deps, flows, &IntentReauthFlowStepAuthenticate{
+			StepName:    step.Name,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			UserID:      i.userID(flows),
+		})
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(stepAuthenticate), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput
@@ -87,10 +87,10 @@ func (*IntentReauthFlowSteps) steps(o config.AuthenticationFlowObject) []config.
 	return steps
 }
 
-//func (*IntentReauthFlowSteps) userID(flows authflow.Flows) string {
-//	userID, err := getUserID(flows)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return userID
-//}
+func (*IntentReauthFlowSteps) userID(flows authflow.Flows) string {
+	userID, err := getUserID(flows)
+	if err != nil {
+		panic(err)
+	}
+	return userID
+}

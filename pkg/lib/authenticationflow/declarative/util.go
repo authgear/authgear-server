@@ -177,6 +177,7 @@ func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowRefer
 	return root, nil
 }
 
+// nolint: gocyclo
 func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]AuthenticateOption, error) {
 	options := []AuthenticateOption{}
 
@@ -375,6 +376,115 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, deps, branch.Authentication, authenticators)
+		}
+	}
+
+	return options, nil
+}
+
+func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowReauthFlowStep) ([]AuthenticateOption, error) {
+	options := []AuthenticateOption{}
+
+	authenticators, err := deps.Authenticators.List(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	checkHasAuthenticator := func(kind model.AuthenticatorKind, typ model.AuthenticatorType) bool {
+		as := authenticator.ApplyFilters(
+			authenticators,
+			authenticator.KeepKind(kind),
+			authenticator.KeepType(typ),
+		)
+		return len(as) > 0
+	}
+
+	useAuthenticationOptionAddPrimaryPassword := func(options []AuthenticateOption) []AuthenticateOption {
+		if checkHasAuthenticator(
+			model.AuthenticatorKindPrimary,
+			model.AuthenticatorTypePassword,
+		) {
+			options = append(options, NewAuthenticateOptionPassword(
+				config.AuthenticationFlowAuthenticationPrimaryPassword),
+			)
+		}
+		return options
+	}
+
+	useAuthenticationOptionAddSecondaryPassword := func(options []AuthenticateOption) []AuthenticateOption {
+		if checkHasAuthenticator(
+			model.AuthenticatorKindSecondary,
+			model.AuthenticatorTypePassword,
+		) {
+			options = append(options, NewAuthenticateOptionPassword(
+				config.AuthenticationFlowAuthenticationSecondaryPassword),
+			)
+		}
+		return options
+	}
+
+	useAuthenticationOptionAddTOTP := func(options []AuthenticateOption) []AuthenticateOption {
+		if checkHasAuthenticator(
+			model.AuthenticatorKindSecondary,
+			model.AuthenticatorTypeTOTP,
+		) {
+			options = append(options, NewAuthenticateOptionTOTP())
+		}
+		return options
+	}
+
+	useAuthenticationOptionAddPasskey := func(options []AuthenticateOption) ([]AuthenticateOption, error) {
+		if checkHasAuthenticator(
+			model.AuthenticatorKindPrimary,
+			model.AuthenticatorTypePasskey,
+		) {
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			options = append(options, NewAuthenticateOptionPasskey(requestOptions))
+		}
+
+		return options, nil
+	}
+
+	useAuthenticationOptionAddOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, kind model.AuthenticatorKind, typ model.AuthenticatorType) []AuthenticateOption {
+		as := authenticator.ApplyFilters(
+			authenticators,
+			authenticator.KeepKind(kind),
+			authenticator.KeepType(typ),
+		)
+		for _, info := range as {
+			option, ok := NewAuthenticateOptionOOBOTPFromAuthenticator(deps.Config.Authenticator.OOB, info)
+			if ok && option.Authentication == authentication {
+				options = append(options, *option)
+			}
+		}
+		return options
+	}
+
+	for _, branch := range step.OneOf {
+		switch branch.Authentication {
+		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			options = useAuthenticationOptionAddPrimaryPassword(options)
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			options, err = useAuthenticationOptionAddPasskey(options)
+			if err != nil {
+				return nil, err
+			}
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			options = useAuthenticationOptionAddSecondaryPassword(options)
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			options = useAuthenticationOptionAddTOTP(options)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindPrimary, model.AuthenticatorTypeOOBEmail)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindPrimary, model.AuthenticatorTypeOOBSMS)
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindSecondary, model.AuthenticatorTypeOOBEmail)
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindSecondary, model.AuthenticatorTypeOOBSMS)
 		}
 	}
 
