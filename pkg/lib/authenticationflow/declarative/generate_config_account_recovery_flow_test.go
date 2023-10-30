@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 
@@ -12,8 +13,15 @@ import (
 
 func TestGenerateAccountRecoveryFlowConfig(t *testing.T) {
 	Convey("GenerateAccountRecoveryFlowConfig", t, func() {
-		test := func(expected string) {
-			var appConfig config.AppConfig = config.AppConfig{}
+		test := func(cfgStr string, expected string) {
+
+			jsonData, err := yaml.YAMLToJSON([]byte(cfgStr))
+			So(err, ShouldBeNil)
+
+			var appConfig config.AppConfig
+			decoder := json.NewDecoder(bytes.NewReader(jsonData))
+			err = decoder.Decode(&appConfig)
+			So(err, ShouldBeNil)
 
 			config.PopulateDefaultValues(&appConfig)
 
@@ -27,7 +35,15 @@ func TestGenerateAccountRecoveryFlowConfig(t *testing.T) {
 			So(string(flowJSON), ShouldEqualJSON, string(expectedJSON))
 		}
 
-		test(`
+		test(
+			`
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+`,
+			`
 name: default
 steps:
 - type: identify
@@ -35,6 +51,44 @@ steps:
   - identification: email
     on_failure: ignore
   - identification: phone
+    on_failure: ignore
+- type: select_destination
+- type: verify_account_recovery_code
+- type: reset_password
+`)
+
+		test(
+			`
+identity:
+  login_id:
+    keys:
+      - type: phone
+`,
+			`
+name: default
+steps:
+- type: identify
+  one_of:
+  - identification: phone
+    on_failure: ignore
+- type: select_destination
+- type: verify_account_recovery_code
+- type: reset_password
+`)
+
+		test(
+			`
+identity:
+  login_id:
+    keys:
+      - type: email
+`,
+			`
+name: default
+steps:
+- type: identify
+  one_of:
+  - identification: email
     on_failure: ignore
 - type: select_destination
 - type: verify_account_recovery_code
