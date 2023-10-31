@@ -186,6 +186,7 @@ func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromOAuth(oauthSes
 		XState:      uiInfo.XState,
 		UILocales:   req.UILocalesRaw(),
 
+		IDToken:                  uiInfo.IDTokenHint,
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		UserIDHint:               uiInfo.UserIDHint,
 		LoginHint:                uiInfo.LoginHint,

@@ -50,6 +50,8 @@ type UIInfo struct {
 	OAuthProviderAlias string
 	// LoginHint is the OIDC login_hint parameter.
 	LoginHint string
+	// IDTokenHint is the OIDC id_token_hint parameter.
+	IDTokenHint string
 }
 
 type UIInfoByProduct struct {
@@ -209,6 +211,8 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 
 	loginIDHint, _ := req.LoginHint()
 
+	idTokenHint, _ := req.IDTokenHint()
+
 	info := &UIInfo{
 		ClientID:                   req.ClientID(),
 		RedirectURI:                redirectURI,
@@ -221,6 +225,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		SuppressIDPSessionCookie:   req.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:         req.OAuthProviderAlias(),
 		LoginHint:                  loginIDHint,
+		IDTokenHint:                idTokenHint,
 	}
 	byProduct := &UIInfoByProduct{
 		IDToken:        idToken,
@@ -254,10 +259,6 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	q.Set(queryNameOAuthSessionID, e.ID)
 	q.Set("client_id", r.ClientID())
 	q.Set("redirect_uri", r.RedirectURI())
-	// id_token_hint is forwarded for reauthentication.
-	if idTokenHint, ok := r.IDTokenHint(); ok && idTokenHint != "" {
-		q.Set("id_token_hint", idTokenHint)
-	}
 	if r.ColorScheme() != "" {
 		q.Set("x_color_scheme", r.ColorScheme())
 	}
