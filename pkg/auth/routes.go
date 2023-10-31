@@ -289,6 +289,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAuthflowWechatRoute(webappPageRoute), p.Handler(newWebAppAuthflowWechatHandler))
 	router.Add(webapphandler.ConfigureAuthflowForgotPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowForgotPasswordHandler))
 	router.Add(webapphandler.ConfigureAuthflowForgotPasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppAuthflowForgotPasswordSuccessHandler))
+	router.Add(webapphandler.ConfigureAuthflowResetPasswordRoute(webappPageRoute), p.Handler(newWebAppAuthflowResetPasswordHandler))
 
 	router.Add(webapphandler.ConfigureEnterPasswordRoute(webappPageRoute), p.Handler(newWebAppEnterPasswordHandler))
 	router.Add(webapphandler.ConfigureConfirmTerminateOtherSessionsRoute(webappPageRoute), p.Handler(newWebConfirmTerminateOtherSessionsHandler))

@@ -878,6 +878,8 @@ func (s *AuthflowScreenWithFlowResponse) navigateAccountRecovery(r *http.Request
 		navigate(AuthflowRouteForgotPassword)
 	case config.AuthenticationFlowStepTypeVerifyAccountRecoveryCode:
 		navigate(AuthflowRouteForgotPasswordSuccess)
+	case config.AuthenticationFlowStepTypeResetPassword:
+		navigate(AuthflowRouteResetPassword)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
