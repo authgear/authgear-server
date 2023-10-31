@@ -78439,6 +78439,13 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsEndpoints,
+		Users:   queries,
+		Clock:   clockClock,
+	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -78475,6 +78482,7 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Events:                          eventService,
 		RateLimiter:                     limiter,
 		OfflineGrants:                   redisStore,
+		IDTokens:                        idTokenIssuer,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
@@ -78484,13 +78492,6 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
-	}
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsEndpoints,
-		Users:   queries,
-		Clock:   clockClock,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
 		Issuer:        idTokenIssuer,
@@ -79310,6 +79311,13 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		AppID:   appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsEndpoints,
+		Users:   queries,
+		Clock:   clockClock,
+	}
 	dependencies := &authenticationflow.Dependencies{
 		Config:                          appConfig,
 		FeatureConfig:                   featureConfig,
@@ -79346,6 +79354,7 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Events:                          eventService,
 		RateLimiter:                     limiter,
 		OfflineGrants:                   redisStore,
+		IDTokens:                        idTokenIssuer,
 	}
 	authenticationflowServiceLogger := authenticationflow.NewServiceLogger(factory)
 	authenticationflowStoreImpl := &authenticationflow.StoreImpl{
@@ -79355,13 +79364,6 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	}
 	promptResolver := &oauth2.PromptResolver{
 		Clock: clockClock,
-	}
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
-	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsEndpoints,
-		Users:   queries,
-		Clock:   clockClock,
 	}
 	idTokenHintResolver := &oidc.IDTokenHintResolver{
 		Issuer:        idTokenIssuer,
