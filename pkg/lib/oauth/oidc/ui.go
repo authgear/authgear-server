@@ -254,6 +254,10 @@ func (b *UIURLBuilder) Build(client *config.OAuthClientConfig, r protocol.Author
 	q.Set(queryNameOAuthSessionID, e.ID)
 	q.Set("client_id", r.ClientID())
 	q.Set("redirect_uri", r.RedirectURI())
+	// id_token_hint is forwarded for reauthentication.
+	if idTokenHint, ok := r.IDTokenHint(); ok && idTokenHint != "" {
+		q.Set("id_token_hint", idTokenHint)
+	}
 	if r.ColorScheme() != "" {
 		q.Set("x_color_scheme", r.ColorScheme())
 	}

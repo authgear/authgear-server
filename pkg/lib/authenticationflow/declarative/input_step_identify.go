@@ -41,6 +41,9 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 		}
 
 		switch option.Identification {
+		case config.AuthenticationFlowIdentificationIDToken:
+			requireString("id_token")
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationEmail:
 			requireString("login_id")
 			setRequiredAndAppendOneOf()
@@ -96,6 +99,8 @@ func (i *InputSchemaStepIdentify) MakeInput(rawMessage json.RawMessage) (authflo
 type InputStepIdentify struct {
 	Identification config.AuthenticationFlowIdentification `json:"identification,omitempty"`
 
+	IDToken string `json:"id_token,omitempty"`
+
 	LoginID string `json:"login,omitempty"`
 
 	Alias        string           `json:"alias,omitempty"`
@@ -105,6 +110,7 @@ type InputStepIdentify struct {
 
 var _ authflow.Input = &InputStepIdentify{}
 var _ inputTakeIdentificationMethod = &InputStepIdentify{}
+var _ inputTakeIDToken = &InputStepIdentify{}
 var _ inputTakeLoginID = &InputStepIdentify{}
 var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
 
@@ -112,6 +118,10 @@ func (*InputStepIdentify) Input() {}
 
 func (i *InputStepIdentify) GetIdentificationMethod() config.AuthenticationFlowIdentification {
 	return i.Identification
+}
+
+func (i *InputStepIdentify) GetIDToken() string {
+	return i.IDToken
 }
 
 func (i *InputStepIdentify) GetLoginID() string {

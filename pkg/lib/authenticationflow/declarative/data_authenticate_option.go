@@ -12,6 +12,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
+type AuthenticateOptionForOutput struct {
+	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+
+	// OTPForm is specific to OOBOTP.
+	OTPForm otp.Form `json:"otp_form,omitempty"`
+	// MaskedDisplayName is specific to OOBOTP.
+	MaskedDisplayName string `json:"masked_display_name,omitempty"`
+	// Channels is specific to OOBOTP.
+	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
+
+	// WebAuthnRequestOptions is specific to Passkey.
+	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
+}
+
 type AuthenticateOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
@@ -25,13 +39,19 @@ type AuthenticateOption struct {
 	// WebAuthnRequestOptions is specific to Passkey.
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 
-	// AuthenticatorID is omitted from the output.
-	// The caller must use index to select a option.
-	AuthenticatorID string `json:"-"`
+	AuthenticatorID string `json:"authenticator_id,omitempty"`
 
-	// IdentityID is omitted from the output.
-	// The caller must use index to select a option.
-	IdentityID string `json:"-"`
+	IdentityID string `json:"identity_id,omitempty"`
+}
+
+func (o *AuthenticateOption) ToOutput() AuthenticateOptionForOutput {
+	return AuthenticateOptionForOutput{
+		Authentication:    o.Authentication,
+		OTPForm:           o.OTPForm,
+		MaskedDisplayName: o.MaskedDisplayName,
+		Channels:          o.Channels,
+		RequestOptions:    o.RequestOptions,
+	}
 }
 
 func NewAuthenticateOptionRecoveryCode() AuthenticateOption {

@@ -5,4 +5,5 @@ const (
 	nameStepIdentify                    = "identify"
 	nameFormatStepAuthenticatePrimary   = "authenticate_primary_%s"
 	nameFormatStepAuthenticateSecondary = "authenticate_secondary_%s"
+	nameStepReauthenticate              = "reauthenticate"
 )

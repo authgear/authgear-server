@@ -22,8 +22,8 @@ func init() {
 }
 
 type IntentLoginFlowStepAuthenticateData struct {
-	Options            []AuthenticateOption `json:"options"`
-	DeviceTokenEnabled bool                 `json:"device_token_enable"`
+	Options            []AuthenticateOptionForOutput `json:"options"`
+	DeviceTokenEnabled bool                          `json:"device_token_enable"`
 }
 
 var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
@@ -76,7 +76,7 @@ func NewIntentLoginFlowStepAuthenticate(ctx context.Context, deps *authflow.Depe
 	}
 	step := i.step(current)
 
-	options, err := getAuthenticationOptionsForStep(ctx, deps, flows, i.UserID, step)
+	options, err := getAuthenticationOptionsForLogin(ctx, deps, flows, i.UserID, step)
 	if err != nil {
 		return nil, err
 	}
@@ -209,6 +209,7 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
+					Options:        i.Options,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 				return authflow.NewNodeSimple(&NodeUseAuthenticatorTOTP{
@@ -255,8 +256,14 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 
 	deviceTokenIndex := i.deviceTokenIndex(step)
 	deviceTokenEnabled := deviceTokenIndex >= 0
+
+	options := []AuthenticateOptionForOutput{}
+	for _, o := range i.Options {
+		options = append(options, o.ToOutput())
+	}
+
 	return IntentLoginFlowStepAuthenticateData{
-		Options:            i.Options,
+		Options:            options,
 		DeviceTokenEnabled: deviceTokenEnabled,
 	}, nil
 }

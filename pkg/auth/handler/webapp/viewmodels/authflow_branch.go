@@ -61,7 +61,7 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 
 	branches := []AuthflowBranch{}
 
-	addIndexBranch := func(idx int, o declarative.AuthenticateOption) {
+	addIndexBranch := func(idx int, o declarative.AuthenticateOptionForOutput) {
 		branch := AuthflowBranch{
 			Authentication: o.Authentication,
 			Index:          idx,
@@ -71,7 +71,7 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 		}
 	}
 
-	addChannelBranch := func(idx int, o declarative.AuthenticateOption) {
+	addChannelBranch := func(idx int, o declarative.AuthenticateOptionForOutput) {
 		for _, channel := range o.Channels {
 			branch := AuthflowBranch{
 				Authentication:   o.Authentication,

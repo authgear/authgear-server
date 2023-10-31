@@ -322,6 +322,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*oidc.UIInfoResolver)),
 		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*oidc.UIInfoResolver)),
 		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*oidc.UIInfoResolver)),
+		wire.Bind(new(authenticationflow.IDTokenService), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(oauth.UserClaimsProvider), new(*oidc.IDTokenIssuer)),
