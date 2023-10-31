@@ -844,8 +844,6 @@ func (s *AuthflowScreenWithFlowResponse) navigateReauth(r *http.Request, webSess
 			default:
 				panic(fmt.Errorf("unexpected channel: %v", channel))
 			}
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
-			s.advance(AuthflowRouteEnterRecoveryCode, result)
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			s.advance(AuthflowRouteUsePasskey, result)
 		default:
