@@ -3,6 +3,7 @@ package declarative
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -15,7 +16,9 @@ func init() {
 }
 
 type IntentAccountRecoveryFlowSteps struct {
-	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
+	FlowReference authflow.FlowReference `json:"flow_reference,omitempty"`
+	JSONPointer   jsonpointer.T          `json:"json_pointer,omitempty"`
+	StartFrom     jsonpointer.T          `json:"start_from,omitempty"`
 }
 
 var _ authflow.Intent = &IntentAccountRecoveryFlowSteps{}
@@ -50,21 +53,29 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 	}
 
 	steps := i.steps(current)
-	nextStepIndex := len(flows.Nearest.Nodes)
+	nextStepIndex := i.nextStepIndex(flows)
+
+	if i.initialStepIndex() > nextStepIndex {
+		// fast forward by inserting NodeSentinel
+		return authflow.NewNodeSimple(&NodeSentinel{}), nil
+	}
+
 	step := steps[nextStepIndex].(*config.AuthenticationFlowAccountRecoveryFlowStep)
 
 	switch step.Type {
 	case config.AuthenticationFlowAccountRecoveryFlowTypeIdentify:
-		stepIdentify, err := NewIntentAccountRecoveryFlowStepIdentify(ctx, deps, &IntentAccountRecoveryFlowStepIdentify{
-			StepName:    step.Name,
-			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+		nextStep, err := NewIntentAccountRecoveryFlowStepIdentify(ctx, deps, &IntentAccountRecoveryFlowStepIdentify{
+			FlowReference: i.FlowReference,
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			StartFrom:     i.StartFrom,
 		})
 		if err != nil {
 			return nil, err
 		}
-		return authflow.NewSubFlow(stepIdentify), nil
+		return authflow.NewSubFlow(nextStep), nil
 	case config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination:
-		stepSelectDestination, err := NewIntentAccountRecoveryFlowStepSelectDestination(
+		nextStep, err := NewIntentAccountRecoveryFlowStepSelectDestination(
 			ctx,
 			deps,
 			flows,
@@ -76,7 +87,27 @@ func (i *IntentAccountRecoveryFlowSteps) ReactTo(ctx context.Context, deps *auth
 		if err != nil {
 			return nil, err
 		}
-		return authflow.NewSubFlow(stepSelectDestination), nil
+		return authflow.NewSubFlow(nextStep), nil
+	case config.AuthenticationFlowAccountRecoveryFlowTypeVerifyAccountRecoveryCode:
+		nextStep := &IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode{
+			StepName:      step.Name,
+			JSONPointer:   authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+			FlowReference: i.FlowReference,
+			StartFrom:     i.StartFrom,
+		}
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(nextStep), nil
+	case config.AuthenticationFlowAccountRecoveryFlowTypeResetPassword:
+		nextStep := &IntentAccountRecoveryFlowStepResetPassword{
+			StepName:    step.Name,
+			JSONPointer: authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
+		}
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewSubFlow(nextStep), nil
 	}
 
 	return nil, authflow.ErrIncompatibleInput
@@ -89,4 +120,20 @@ func (*IntentAccountRecoveryFlowSteps) steps(o config.AuthenticationFlowObject) 
 	}
 
 	return steps
+}
+
+func (i *IntentAccountRecoveryFlowSteps) initialStepIndex() int {
+	startFrom := authflow.JSONPointerSubtract(i.StartFrom, i.JSONPointer)
+	if len(startFrom) < 2 || startFrom[0] != authflow.JsonPointerTokenSteps {
+		return 0
+	}
+	currentIdx, err := strconv.Atoi(startFrom[1])
+	if err != nil {
+		return 0
+	}
+	return currentIdx
+}
+
+func (i *IntentAccountRecoveryFlowSteps) nextStepIndex(flows authflow.Flows) int {
+	return len(flows.Nearest.Nodes)
 }

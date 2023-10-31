@@ -24,6 +24,12 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 			{
 				Type: config.AuthenticationFlowAccountRecoveryFlowTypeSelectDestination,
 			},
+			{
+				Type: config.AuthenticationFlowAccountRecoveryFlowTypeVerifyAccountRecoveryCode,
+			},
+			{
+				Type: config.AuthenticationFlowAccountRecoveryFlowTypeResetPassword,
+			},
 		},
 	}
 }

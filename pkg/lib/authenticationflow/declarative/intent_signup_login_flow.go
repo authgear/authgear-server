@@ -28,7 +28,7 @@ func (*IntentSignupLoginFlow) FlowType() authflow.FlowType {
 	return authflow.FlowTypeSignupLogin
 }
 
-func (i *IntentSignupLoginFlow) FlowInit(r authflow.FlowReference) {
+func (i *IntentSignupLoginFlow) FlowInit(r authflow.FlowReference, startFrom jsonpointer.T) {
 	i.FlowReference = r
 }
 

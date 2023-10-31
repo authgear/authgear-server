@@ -33,7 +33,7 @@ func (*IntentPromoteFlow) Kind() string {
 func (*IntentPromoteFlow) FlowType() authflow.FlowType {
 	return authflow.FlowTypePromote
 }
-func (i *IntentPromoteFlow) FlowInit(r authflow.FlowReference) {
+func (i *IntentPromoteFlow) FlowInit(r authflow.FlowReference, startFrom jsonpointer.T) {
 	i.FlowReference = r
 }
 

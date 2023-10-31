@@ -180,7 +180,7 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.ForgotPassword.SendCode(loginID)
+			err := gqlCtx.ForgotPassword.SendCode(loginID, nil)
 			if err != nil {
 				return nil, err
 			}

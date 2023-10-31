@@ -5,13 +5,14 @@ import (
 	"reflect"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 // PublicFlow is a instantiable intent by the public.
 type PublicFlow interface {
 	Intent
 	FlowType() FlowType
-	FlowInit(r FlowReference)
+	FlowInit(r FlowReference, startFrom jsonpointer.T)
 	FlowFlowReference() FlowReference
 	FlowRootObject(deps *Dependencies) (config.AuthenticationFlowObject, error)
 }
@@ -90,13 +91,13 @@ func RegisterFlow(flow PublicFlow) {
 }
 
 // InstantiateFlow is used by the HTTP layer to instantiate a Flow.
-func InstantiateFlow(f FlowReference) (PublicFlow, error) {
+func InstantiateFlow(f FlowReference, startFrom jsonpointer.T) (PublicFlow, error) {
 	factory, ok := flowRegistry[f.Type]
 	if !ok {
 		return nil, ErrUnknownFlow
 	}
 
 	flow := factory()
-	flow.FlowInit(f)
+	flow.FlowInit(f, startFrom)
 	return flow, nil
 }

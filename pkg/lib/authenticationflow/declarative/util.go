@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
@@ -625,4 +626,8 @@ func createAuthenticator(deps *authflow.Dependencies, userID string, authenticat
 	}
 
 	return info, nil
+}
+
+func isNodeRestored(nodePointer jsonpointer.T, restoreTo jsonpointer.T) bool {
+	return !authflow.JSONPointerSubtract(nodePointer, restoreTo).More()
 }

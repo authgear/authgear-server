@@ -37,6 +37,8 @@ steps:
   - identification: phone
     on_failure: ignore
 - type: select_destination
+- type: verify_account_recovery_code
+- type: reset_password
 `)
 	})
 }

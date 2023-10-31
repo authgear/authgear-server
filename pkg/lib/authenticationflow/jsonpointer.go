@@ -13,6 +13,11 @@ import (
 var ErrInvalidJSONPointer = errors.New("invalid json pointer")
 var ErrNoEntries = errors.New("no entries")
 
+const (
+	JsonPointerTokenOneOf string = "one_of"
+	JsonPointerTokenSteps string = "steps"
+)
+
 type TraverseEntry struct {
 	FlowObject  config.AuthenticationFlowObject
 	JSONPointer jsonpointer.T
@@ -113,11 +118,11 @@ func GetCurrentObject(entries []TraverseEntry) (config.AuthenticationFlowObject,
 }
 
 func JSONPointerForStep(p jsonpointer.T, index int) jsonpointer.T {
-	return p.AddReferenceToken("steps").AddReferenceToken(strconv.Itoa(index))
+	return p.AddReferenceToken(JsonPointerTokenSteps).AddReferenceToken(strconv.Itoa(index))
 }
 
 func JSONPointerForOneOf(p jsonpointer.T, index int) jsonpointer.T {
-	return p.AddReferenceToken("one_of").AddReferenceToken(strconv.Itoa(index))
+	return p.AddReferenceToken(JsonPointerTokenOneOf).AddReferenceToken(strconv.Itoa(index))
 }
 
 func JSONPointerToParent(p jsonpointer.T) jsonpointer.T {
@@ -125,6 +130,21 @@ func JSONPointerToParent(p jsonpointer.T) jsonpointer.T {
 		panic(ErrInvalidJSONPointer)
 	}
 	return p[:len(p)-2]
+}
+
+func JSONPointerSubtract(p1 jsonpointer.T, p2 jsonpointer.T) jsonpointer.T {
+	result := jsonpointer.T{}
+	isDifferent := false
+	for idx, el := range p1 {
+		// Compare the element at same position, until found a different
+		if (len(p2)-1) < idx || el != p2[idx] {
+			isDifferent = true
+		}
+		if isDifferent {
+			result = append(result, el)
+		}
+	}
+	return result
 }
 
 func FlowObject(flowRootObject config.AuthenticationFlowObject, pointer jsonpointer.T) (config.AuthenticationFlowObject, error) {

@@ -21,7 +21,7 @@ func ConfigureAuthenticationFlowV1InputRoute(route httproute.Route) httproute.Ro
 var AuthenticationFlowV1NonRestfulInputRequestSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
-		"required": ["state_token"],
+		"required": [],
 		"properties": {
 			"state_token": { "type": "string" }
 		},

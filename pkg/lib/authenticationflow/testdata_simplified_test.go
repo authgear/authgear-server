@@ -39,7 +39,7 @@ func (*intentAuthenticate) FlowType() FlowType {
 	return ""
 }
 
-func (*intentAuthenticate) FlowInit(r FlowReference) {}
+func (*intentAuthenticate) FlowInit(r FlowReference, startFrom jsonpointer.T) {}
 
 func (*intentAuthenticate) FlowFlowReference() FlowReference {
 	return FlowReference{}

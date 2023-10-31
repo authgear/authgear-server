@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package authenticationflow
@@ -226,6 +227,13 @@ func (s *Service) get(ctx context.Context, session *Session, w *Flow) (output *S
 }
 
 func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+	if stateToken == "" {
+		stateToken, err = s.resolveStateTokenFromInput(rawMessage)
+		if err != nil {
+			return
+		}
+	}
+
 	flow, err := s.Store.GetFlowByStateToken(stateToken)
 	if err != nil {
 		return
@@ -375,7 +383,7 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 }
 
 func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (output *ServiceOutput, err error) {
-	publicFlow, err := InstantiateFlow(errSwitchFlow.FlowReference)
+	publicFlow, err := InstantiateFlow(errSwitchFlow.FlowReference, jsonpointer.T{})
 	if err != nil {
 		return
 	}
@@ -545,4 +553,28 @@ func (s *Service) getFlowAction(ctx context.Context, session *Session, flow *Flo
 	}
 
 	return
+}
+
+func (s *Service) resolveStateTokenFromInput(inputRawMessage json.RawMessage) (string, error) {
+	if input, ok := MakeInputTakeAccountRecoveryCode(inputRawMessage); ok {
+		state, err := s.Deps.ResetPassword.VerifyCode(input.AccountRecoveryCode)
+		if err != nil {
+			return "", err
+		}
+		flow, err := InstantiateFlow(FlowReference{
+			Type: FlowType(state.AuthenticationFlowType),
+			Name: state.AuthenticationFlowName,
+		}, state.AuthenticationFlowJSONPointer)
+		if err != nil {
+			return "", err
+		}
+		// In account recovery flow, session options are not important
+		newFlowOutput, err := s.CreateNewFlow(flow, &SessionOptions{})
+		if err != nil {
+			return "", err
+		}
+		return newFlowOutput.Flow.StateToken, nil
+
+	}
+	return "", ErrFlowNotFound
 }
