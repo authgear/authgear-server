@@ -41,7 +41,7 @@ type AuthflowEnterTOTPHandler struct {
 func (h *AuthflowEnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)

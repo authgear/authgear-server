@@ -75,7 +75,7 @@ func (h *AuthflowWhatsappOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	now := h.Clock.NowUTC()
 	data := make(map[string]interface{})
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
 	screenViewModel := NewAuthflowWhatsappOTPViewModel(s, screen, now)

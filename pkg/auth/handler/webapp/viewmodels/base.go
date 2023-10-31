@@ -67,6 +67,8 @@ type BaseViewModel struct {
 	AuthUISentryDSN     string
 
 	FirstNonPasskeyPrimaryAuthenticatorType string
+	// websocket is used in interaction only, we disable it in authflow
+	WebsocketDisabled bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -141,6 +143,12 @@ type BaseViewModeler struct {
 	SupportedLanguageTags template.SupportedLanguageTags
 	AuthUISentryDSN       config.AuthUISentryDSN
 	OAuthClientResolver   WebappOAuthClientResolver
+}
+
+func (m *BaseViewModeler) ViewModelForAuthFlow(r *http.Request, rw http.ResponseWriter) BaseViewModel {
+	vm := m.ViewModel(r, rw)
+	vm.WebsocketDisabled = true
+	return vm
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
