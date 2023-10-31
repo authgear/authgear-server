@@ -129,8 +129,7 @@ func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string
 	case authflow.FlowTypeSignupLogin:
 		return newAuthflowScreenSignupLogin(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeReauth:
-		// FIXME(authflow): support reauth flow
-		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
+		return newAuthflowScreenReauth(flowResponse, previousXStep, previousInput)
 	case authflow.FlowTypeAccountRecovery:
 		return newAuthflowScreenAccountRecovery(flowResponse, previousXStep, previousInput)
 	default:
@@ -208,6 +207,28 @@ func newAuthflowScreenLogin(flowResponse *authflow.FlowResponse, previousXStep s
 	case config.AuthenticationFlowStepTypePromptCreatePasskey:
 		// prompt_create_passkey contains NO branches.
 		break
+	default:
+		panic(fmt.Errorf("unexpected action type: %v", flowResponse.Action.Type))
+	}
+
+	return screen
+}
+
+func newAuthflowScreenReauth(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
+	state := NewAuthflowStateToken(flowResponse)
+	screen := &AuthflowScreen{
+		PreviousXStep: previousXStep,
+		PreviousInput: previousInput,
+		StateToken:    state,
+	}
+
+	switch config.AuthenticationFlowStepType(flowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// identify contains branches.
+		screen.BranchStateToken = state
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		// authenticate contains branches.
+		screen.BranchStateToken = state
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", flowResponse.Action.Type))
 	}
@@ -326,8 +347,7 @@ func (s *AuthflowScreenWithFlowResponse) TakeBranch(index int, channel model.Aut
 	case authflow.FlowTypeSignupLogin:
 		return s.takeBranchSignupLogin(index)
 	case authflow.FlowTypeReauth:
-		// FIXME(authflow): support reauth flow
-		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
+		return s.takeBranchReauth(index, channel)
 	case authflow.FlowTypeAccountRecovery:
 		return s.takeBranchAccountRecovery(index)
 	default:
@@ -484,6 +504,61 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 	}
 }
 
+func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel model.AuthenticatorOOBChannel) TakeBranchResult {
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// In identify, id_token is used.
+		// The branch taken here is unimportant.
+		return s.takeBranchResultSimple(index)
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentReauthFlowStepAuthenticateData)
+		option := data.Options[index]
+		switch option.Authentication {
+		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			// All these can take the branch simply by setting index.
+			return s.takeBranchResultSimple(index)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			// This branch requires input to take.
+			if channel == "" {
+				channel = option.Channels[0]
+			}
+			input := map[string]interface{}{
+				"authentication": option.Authentication,
+				"index":          index,
+				"channel":        channel,
+			}
+
+			return TakeBranchResultInput{
+				Input: input,
+				NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse) *AuthflowScreenWithFlowResponse {
+					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
+						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
+					}
+
+					return s.makeScreenForTakenBranch(flowResponse, input, &index, channel, isContinuation)
+
+				},
+			}
+		default:
+			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
+		}
+	default:
+		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
+	}
+}
+
 func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int) TakeBranchResult {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
@@ -564,8 +639,7 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(r *http.Request, webSessionID 
 	case authflow.FlowTypeSignupLogin:
 		s.navigateSignupLogin(r, webSessionID, result)
 	case authflow.FlowTypeReauth:
-		// FIXME(authflow): support reauth flow
-		panic(fmt.Errorf("unexpected flow type: %v", s.StateTokenFlowResponse.Type))
+		s.navigateReauth(r, webSessionID, result)
 	case authflow.FlowTypeAccountRecovery:
 		s.navigateAccountRecovery(r, webSessionID, result)
 	default:
@@ -731,6 +805,57 @@ func (s *AuthflowScreenWithFlowResponse) navigateLogin(r *http.Request, webSessi
 	}
 }
 
+func (s *AuthflowScreenWithFlowResponse) navigateReauth(r *http.Request, webSessionID string, result *Result) {
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		s.navigateStepIdentify(r, webSessionID, result, AuthflowRouteReauth)
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentReauthFlowStepAuthenticateData).Options
+		index := *s.Screen.TakenBranchIndex
+		option := options[index]
+		switch option.Authentication {
+		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			s.advance(AuthflowRouteEnterPassword, result)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			data := s.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+			switch data.OTPForm {
+			case otp.FormCode:
+				s.advance(AuthflowRouteEnterOOBOTP, result)
+			case otp.FormLink:
+				s.advance(AuthflowRouteOOBOTPLink, result)
+			default:
+				panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+			}
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			s.advance(AuthflowRouteEnterTOTP, result)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			channel := s.Screen.TakenChannel
+			switch channel {
+			case model.AuthenticatorOOBChannelSMS:
+				s.advance(AuthflowRouteEnterOOBOTP, result)
+			case model.AuthenticatorOOBChannelWhatsapp:
+				s.advance(AuthflowRouteWhatsappOTP, result)
+			default:
+				panic(fmt.Errorf("unexpected channel: %v", channel))
+			}
+		case config.AuthenticationFlowAuthenticationRecoveryCode:
+			s.advance(AuthflowRouteEnterRecoveryCode, result)
+		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+			s.advance(AuthflowRouteUsePasskey, result)
+		default:
+			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
+		}
+	default:
+		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
+	}
+}
+
 func (s *AuthflowScreenWithFlowResponse) navigateSignupLogin(r *http.Request, webSessionID string, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
@@ -774,6 +899,8 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, w
 	identification := s.StateTokenFlowResponse.Action.Identification
 	switch identification {
 	case "":
+		fallthrough
+	case config.AuthenticationFlowIdentificationIDToken:
 		fallthrough
 	case config.AuthenticationFlowIdentificationEmail:
 		fallthrough

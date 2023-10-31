@@ -4,6 +4,7 @@ const (
 	AuthflowRouteLogin   = "/login"
 	AuthflowRouteSignup  = "/signup"
 	AuthflowRoutePromote = "/flows/promote_user"
+	AuthflowRouteReauth  = "/reauth"
 	// AuthflowRouteSignupLogin is login because login page has passkey.
 	AuthflowRouteSignupLogin = AuthflowRouteLogin
 
