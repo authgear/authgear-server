@@ -5,7 +5,19 @@
 
 <div class="hidden" data-controller="authflow-websocket" data-authflow-websocket-url-value="{{ $.WebsocketURL }}"></div>
 
-<h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "login-link-otp-page-title" }}</h1>
+<h1 class="m-0 primary-txt text-center text-xl font-bold">
+{{- if eq $.FlowType "reauth" }}
+	{{ template "login-link-otp-page-title-reauth" }}
+{{- else }}
+	{{ template "login-link-otp-page-title" }}
+{{- end }}
+</h1>
+
+{{- if eq $.FlowType "reauth" }}
+<p class="text-sm m-0 break-words secondary-txt text-center">
+	{{ template "login-link-otp-tips-reauth" }}
+</p>
+{{- end }}
 
 {{- if eq $.StateQuery "matched" }}
 <form id="next-form" class="hidden" method="post" novalidate>

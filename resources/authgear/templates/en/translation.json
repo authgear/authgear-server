@@ -170,7 +170,10 @@
 
   "oob-otp-page-title--sms": "SMS one-time password",
   "oob-otp-page-title--email": "Email one-time password",
+  "oob-otp-page-title-reauth--sms": "Enter SMS one-time password to continue",
+  "oob-otp-page-title-reauth--email": "Enter Email one-time password to continue",
   "oob-otp-placeholder": "One-time password",
+  "oob-otp-tips-reauth": "This action you are trying to perform requires you to enter one-time password.",
   "oob-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
   "oob-otp-resend-button-hint": "Didn''t receive the one-time password? ",
   "oob-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
@@ -180,7 +183,9 @@
   "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
   "whatsapp-otp-page-title": "WhatsApp Verification",
+  "whatsapp-otp-page-title-reauth": "Enter Whatsapp one-time password to continue",
   "whatsapp-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
+  "whatsapp-otp-tips-reauth": "This action you are trying to perform requires you to enter one-time password.",
   "whatsapp-otp-placeholder": "One-time password",
   "whatsapp-otp-resend-button-hint": "Didn''t receive the one-time password? ",
   "whatsapp-otp-resend-button-rate-limited-hint": "You have exceeded the maximum of attempts for entering the one-time password. Please get a new one-time password. ",
@@ -188,6 +193,8 @@
   "whatsapp-otp-resend-button-label--unit": "Resend (%ds)",
 
   "login-link-otp-page-title": "Login link",
+  "login-link-otp-page-title-reauth": "Click the login link to continue",
+  "login-link-otp-tips-reauth": "This action you are trying to perform requires you to click the login link to continue.",
   "login-link-otp-initial-description": "We have sent a login link to {target}. \nPlease click on the link to continue",
   "login-link-otp-invalid-code-description": "This login link is invalid, used or expired. Please request a new one.",
   "login-link-otp-matched-description": "Link verified!",
@@ -238,6 +245,8 @@
   "prompt-create-passkey-skip-label": "Not now",
 
   "use-passkey-page-title": "Use passkey",
+  "use-passkey-page-title-reauth": "Use passkey to continue",
+  "use-passkey-tips-reauth": "This action you are trying to perform requires you to use passkey.",
   "use-passkey-label": "Use passkey",
 
   "password-policy-required-password-strength-label": "Your new password must be",
@@ -448,7 +457,9 @@
   "setup-totp-code-description": "After scanning the code, enter the 6-digit code below",
 
   "enter-totp-title": "2-step verification",
+  "enter-totp-title-reauth": "Enter the 6-digit code to continue",
   "enter-totp-description": "Enter the 6-digit code you see in the authenticator app / device",
+  "enter-totp-tips-reauth": "This action you are trying to perform requires you to re-enter the 6-digit code.",
   "enter-totp-code-placeholder": "6-digit code from the authenticator app / device",
 
   "enter-recovery-code-title": "2-step verification",
