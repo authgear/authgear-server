@@ -29,6 +29,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(LoginHandler), "*"),
 	wire.Struct(new(SignupHandler), "*"),
 	wire.Struct(new(PromoteHandler), "*"),
+	wire.Struct(new(ReauthHandler), "*"),
 	wire.Struct(new(SelectAccountHandler), "*"),
 	wire.Struct(new(SSOCallbackHandler), "*"),
 	wire.Struct(new(EnterLoginIDHandler), "*"),

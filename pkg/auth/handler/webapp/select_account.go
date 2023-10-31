@@ -3,14 +3,12 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -161,7 +159,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				path = "/login"
 			}
 			if path != "" {
-				h.continueLoginFlow(w, r, path)
+				h.continueFlow(w, r, path)
 				return
 			}
 		}
@@ -175,10 +173,13 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			path = "/login"
 		}
 
-		h.continueLoginFlow(w, r, path)
+		h.continueFlow(w, r, path)
 	}
 	gotoLogin := func() {
-		h.continueLoginFlow(w, r, "/login")
+		h.continueFlow(w, r, "/login")
+	}
+	gotoReauth := func() {
+		h.continueFlow(w, r, "/reauth")
 	}
 
 	// ctrl.Serve() always write response.
@@ -188,44 +189,15 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctrl.Get(func() error {
 		// When promote anonymous user, the end-user should not see this page.
 		if webSession != nil && webSession.LoginHint != "" {
-			h.continueLoginFlow(w, r, "/flows/promote_user")
+			h.continueFlow(w, r, "/flows/promote_user")
 			return nil
-		}
-
-		opts := webapp.SessionOptions{
-			RedirectURI: ctrl.RedirectURI(),
 		}
 
 		// When UserIDHint is present, the end-user should never need to select anything in /select_account,
 		// so this if block always ends with a return statement, and each branch must write response.
 		if userIDHint != "" {
 			if loginPrompt && canUseIntentReauthenticate {
-				// Reauthentication
-				// 1. UserIDHint present
-				// 2. prompt=login
-				// 3. canUseIntentReauthenticate
-				// 4. user.CanReauthenticate
-
-				user, err := h.Users.Get(userIDHint, accesscontrol.RoleGreatest)
-				if err != nil {
-					return err
-				}
-
-				if !user.CanReauthenticate {
-					return api.ErrNoAuthenticator
-				}
-
-				intent := &intents.IntentReauthenticate{
-					UserIDHint:               userIDHint,
-					SuppressIDPSessionCookie: suppressIDPSessionCookie,
-				}
-				result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-					return nil, nil
-				})
-				if err != nil {
-					return err
-				}
-				result.WriteResponse(w, r)
+				gotoReauth()
 			} else if !loginPrompt && idpSession != nil && idpSession.GetAuthenticationInfo().UserID == userIDHint {
 				// Continue without user interaction
 				// 1. UserIDHint present
@@ -279,7 +251,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *SelectAccountHandler) continueLoginFlow(w http.ResponseWriter, r *http.Request, path string) {
+func (h *SelectAccountHandler) continueFlow(w http.ResponseWriter, r *http.Request, path string) {
 	// preserve query only when continuing the login flow
 	u := webapp.MakeRelativeURL(path, webapp.PreserveQuery(r.URL.Query()))
 	http.Redirect(w, r, u.String(), http.StatusFound)
