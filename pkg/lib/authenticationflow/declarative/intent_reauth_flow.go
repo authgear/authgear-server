@@ -29,7 +29,7 @@ func (*IntentReauthFlow) FlowType() authflow.FlowType {
 	return authflow.FlowTypeReauth
 }
 
-func (i *IntentReauthFlow) FlowInit(r authflow.FlowReference) {
+func (i *IntentReauthFlow) FlowInit(r authflow.FlowReference, startFrom jsonpointer.T) {
 	i.FlowReference = r
 }
 
