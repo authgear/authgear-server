@@ -454,7 +454,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 		// The branch taken here is unimportant.
 		return s.takeBranchResultSimple(index)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
 		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -511,7 +511,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 		// The branch taken here is unimportant.
 		return s.takeBranchResultSimple(index)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentReauthFlowStepAuthenticateData)
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
 		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -751,7 +751,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateLogin(r *http.Request, webSessi
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, webSessionID, result, AuthflowRouteLogin)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData).Options
+		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
@@ -810,7 +810,7 @@ func (s *AuthflowScreenWithFlowResponse) navigateReauth(r *http.Request, webSess
 	case config.AuthenticationFlowStepTypeIdentify:
 		s.navigateStepIdentify(r, webSessionID, result, AuthflowRouteReauth)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentReauthFlowStepAuthenticateData).Options
+		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {

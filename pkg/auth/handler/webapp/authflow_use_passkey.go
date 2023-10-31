@@ -29,7 +29,7 @@ type AuthflowUsePasskeyViewModel struct {
 func NewAuthflowUsePasskeyViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (*AuthflowUsePasskeyViewModel, error) {
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	data := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
+	data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
 	option := data.Options[index]
 
 	requestOptionsJSONBytes, err := json.Marshal(option.RequestOptions)
@@ -88,7 +88,7 @@ func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
+		data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
 
 		input := map[string]interface{}{

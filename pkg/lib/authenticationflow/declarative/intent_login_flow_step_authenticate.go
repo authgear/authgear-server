@@ -21,15 +21,6 @@ func init() {
 	authflow.RegisterIntent(&IntentLoginFlowStepAuthenticate{})
 }
 
-type IntentLoginFlowStepAuthenticateData struct {
-	Options            []AuthenticateOptionForOutput `json:"options"`
-	DeviceTokenEnabled bool                          `json:"device_token_enable"`
-}
-
-var _ authflow.Data = IntentLoginFlowStepAuthenticateData{}
-
-func (m IntentLoginFlowStepAuthenticateData) Data() {}
-
 type IntentLoginFlowStepAuthenticate struct {
 	JSONPointer jsonpointer.T        `json:"json_pointer,omitempty"`
 	StepName    string               `json:"step_name,omitempty"`
@@ -262,7 +253,7 @@ func (i *IntentLoginFlowStepAuthenticate) OutputData(ctx context.Context, deps *
 		options = append(options, o.ToOutput())
 	}
 
-	return IntentLoginFlowStepAuthenticateData{
+	return StepAuthenticateData{
 		Options:            options,
 		DeviceTokenEnabled: deviceTokenEnabled,
 	}, nil

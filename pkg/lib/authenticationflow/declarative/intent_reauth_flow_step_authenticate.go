@@ -15,14 +15,6 @@ func init() {
 	authflow.RegisterIntent(&IntentReauthFlowStepAuthenticate{})
 }
 
-type IntentReauthFlowStepAuthenticateData struct {
-	Options []AuthenticateOptionForOutput `json:"options"`
-}
-
-var _ authflow.Data = IntentReauthFlowStepAuthenticateData{}
-
-func (m IntentReauthFlowStepAuthenticateData) Data() {}
-
 type IntentReauthFlowStepAuthenticate struct {
 	JSONPointer jsonpointer.T        `json:"json_pointer,omitempty"`
 	StepName    string               `json:"step_name,omitempty"`
@@ -163,7 +155,7 @@ func (i *IntentReauthFlowStepAuthenticate) OutputData(ctx context.Context, deps 
 		options = append(options, o.ToOutput())
 	}
 
-	return IntentReauthFlowStepAuthenticateData{
+	return StepAuthenticateData{
 		Options: options,
 	}, nil
 }
