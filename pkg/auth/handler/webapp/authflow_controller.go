@@ -28,6 +28,7 @@ import (
 //go:generate mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
 
 type AuthflowControllerHandler func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error
+type AuthflowControllerErrorHandler func(w http.ResponseWriter, r *http.Request, err error) error
 
 type AuthflowControllerHandlers struct {
 	GetHandler   AuthflowControllerHandler
@@ -209,7 +210,19 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	r *http.Request,
 	opts webapp.SessionOptions,
 	handlers *AuthflowControllerHandlers,
-	input map[string]interface{}) {
+	input map[string]interface{},
+	errorHandler *AuthflowControllerErrorHandler,
+) {
+
+	handleError := func(err error) {
+		if errorHandler != nil {
+			err = (*errorHandler)(w, r, err)
+			if err != nil {
+				c.renderError(w, r, err)
+			}
+		}
+	}
+
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -218,14 +231,14 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	s, err := c.getOrCreateWebSession(w, r, opts)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to get or create web session")
-		c.renderError(w, r, err)
+		handleError(err)
 		return
 	}
 
 	output, err := c.feedInput("", input)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to resume flow")
-		c.renderError(w, r, err)
+		handleError(err)
 		return
 	}
 
@@ -233,13 +246,13 @@ func (c *AuthflowController) HandleResumeOfFlow(
 	screen, err := c.createScreenWithOutput(r, s, output, result)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to create screen")
-		c.renderError(w, r, err)
+		handleError(err)
 		return
 	}
 
 	err = c.checkPath(w, r, s, screen)
 	if err != nil {
-		c.renderError(w, r, err)
+		handleError(err)
 		return
 	}
 

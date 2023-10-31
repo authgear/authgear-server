@@ -3,9 +3,11 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -40,7 +42,7 @@ type AuthflowResetPasswordHandler struct {
 	Renderer      Renderer
 }
 
-func (h *AuthflowResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -60,11 +62,21 @@ func (h *AuthflowResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 	return data, nil
 }
 
+func (h *AuthflowResetPasswordHandler) GetErrorData(w http.ResponseWriter, r *http.Request, err error) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+	baseViewModel.SetError(err)
+	viewmodels.Embed(data, baseViewModel)
+
+	return data, nil
+}
+
 func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
-		data, err := h.GetData(w, r, s, screen)
+		data, err := h.GetData(w, r, screen)
 		if err != nil {
 			return err
 		}
@@ -97,8 +109,21 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 
+	errorHandler := AuthflowControllerErrorHandler(func(w http.ResponseWriter, r *http.Request, err error) error {
+		if !apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
+			return err
+		}
+		data, err := h.GetErrorData(w, r, err)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
+		return nil
+	})
+
 	code := r.URL.Query().Get("code")
 	h.Controller.HandleResumeOfFlow(w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
 		"account_recovery_code": code,
-	})
+	}, &errorHandler)
 }
