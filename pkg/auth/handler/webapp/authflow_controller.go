@@ -780,7 +780,7 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	if u.Path != r.URL.Path {
 		// We do not know what causes the mismatch.
 		// Maybe x_step was tempered.
-		c.Logger.Error("path mismatch")
+		c.Logger.Warningln("path mismatch")
 		return webapp.ErrInvalidSession
 	}
 
