@@ -155,6 +155,9 @@ func (h *TokenHandler) doHandle(
 		allowedGrantTypes = []string{"authorization_code"}
 	}
 	allowedGrantTypes = append(allowedGrantTypes, whitelistedGrantTypes...)
+	if client.App2appEnabled {
+		allowedGrantTypes = append(allowedGrantTypes, App2AppRequestGrantType)
+	}
 
 	ok := false
 	for _, grantType := range allowedGrantTypes {
