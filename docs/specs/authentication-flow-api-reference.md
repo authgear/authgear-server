@@ -39,6 +39,8 @@
   * [type: login; step.type: change_password](#type-login-steptype-change_password)
   * [type: login; step.type: prompt_create_passkey](#type-login-steptype-prompt_create_passkey)
   * [type: signup_login; step.type: identify](#type-signup_login-steptype-identify)
+  * [type: account_recovery; step.type: identify](#type-account_recovery-steptype-identify)
+  * [type: account_recovery; step.type: select_destination](#type-account_recovery-steptype-select_destination)
 
 # Authentication Flow API
 
@@ -1535,3 +1537,109 @@ See [type: signup; step.type: prompt_create_passkey](#type-signup-steptype-promp
 ## type: signup_login; step.type: identify
 
 See [type: signup; step.type: identification](#type-signup-steptype-identification). They are the same except that `type` is `signup_login`.
+
+## type: account_recovery; step.type: identify
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "data": {
+        "options": [
+          {
+            "identification": "email"
+          },
+          {
+            "identification": "phone"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### identification: email
+
+The presence of this means you can receive an account recovery link with an email address.
+
+```json
+{
+  "identification": "email"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "email",
+  "login_id": "johndoe@example.com"
+}
+```
+
+### identification: phone
+
+The presence of this means you can receive an account recovery link with a phone number.
+
+```json
+{
+  "identification": "phone"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "phone",
+  "login_id": "+85298765432"
+}
+```
+
+Note that the phone number **MUST BE** in **E.164** format without any separators nor spaces.
+
+## type: account_recovery; step.type: select_destination
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "select_destination",
+      "data": {
+        "options": [
+          {
+            "masked_display_name": "+8529876****",
+            "channel": "sms"
+          },
+          {
+            "masked_display_name": "john****@example.com",
+            "channel": "email"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+It is asking where to deliver the account recovery link. You pass the following input:
+
+```json
+{
+  "index": 0
+}
+```
+
+`index` is the index of the option in `options` array. For `0`, it sends an sms with the account recovery link to `+8529876****`.
