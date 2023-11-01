@@ -49,7 +49,7 @@ type AuthflowEnterPasswordHandler struct {
 func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	data := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
+	data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
 	option := data.Options[index]
 	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
 
@@ -114,7 +114,7 @@ func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.IntentLoginFlowStepAuthenticateData)
+		data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
 
 		plainPassword := r.Form.Get("x_password")

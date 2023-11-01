@@ -2,13 +2,20 @@
 
 {{ define "page-content" }}
 
+{{ $is_reauth := (eq $.FlowType "reauth") }}
 {{ $is_verify := (eq $.FlowActionType "verify") }}
 {{ $is_email := (eq $.Channel "email") }}
 
 <div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
 <h1 class="m-0 primary-txt text-center text-xl font-bold">
-{{- if $is_verify }}
+{{- if $is_reauth }}
+	{{- if $is_email }}
+		{{ template "oob-otp-page-title-reauth--email" }}
+	{{- else }}
+		{{ template "oob-otp-page-title-reauth--sms" }}
+	{{- end }}
+{{- else if $is_verify }}
 	{{- if $is_email }}
 		{{ template "verify-user-page-title--email" }}
 	{{- else }}
@@ -32,6 +39,12 @@
 {{- end }}
 </div>
 {{- end }}{{- end }}
+
+{{- if $is_reauth }}
+<p class="text-sm m-0 break-words secondary-txt text-center">
+	{{ template "oob-otp-tips-reauth" }}
+</p>
+{{- end }}
 
 <form id="main-form" class="twc-container-vertical" method="post" novalidate>
 {{ $.CSRFField }}

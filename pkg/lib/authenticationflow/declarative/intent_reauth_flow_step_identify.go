@@ -56,18 +56,19 @@ func (*IntentReauthFlowStepIdentify) Kind() string {
 }
 
 func (i *IntentReauthFlowStepIdentify) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	// Let the input to select which identification method to use.
-	if len(flows.Nearest.Nodes) == 0 {
-		return &InputSchemaStepIdentify{
-			JSONPointer: i.JSONPointer,
-			Options:     i.Options,
-		}, nil
-	}
-
 	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
 	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
 
 	switch {
+	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":
+		// Special case: if id_token is available, use it automatically.
+		return nil, nil
+	case len(flows.Nearest.Nodes) == 0:
+		// Let the input to select which identification method to use.
+		return &InputSchemaStepIdentify{
+			JSONPointer: i.JSONPointer,
+			Options:     i.Options,
+		}, nil
 	case userIdentified && !nestedStepsHandled:
 		// Handle nested steps.
 		return nil, nil
@@ -83,7 +84,25 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	}
 	step := i.step(current)
 
-	if len(flows.Nearest.Nodes) == 0 {
+	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
+	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
+
+	switch {
+	case len(flows.Nearest.Nodes) == 0 && authflow.GetIDToken(ctx) != "":
+		identification := config.AuthenticationFlowIdentificationIDToken
+		idx, err := i.checkIdentificationMethod(deps, step, identification)
+		if err != nil {
+			return nil, err
+		}
+
+		switch identification {
+		case config.AuthenticationFlowIdentificationIDToken:
+			return authflow.NewNodeSimple(&NodeIdentifyWithIDToken{
+				JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+				Identification: identification,
+			}), nil
+		}
+	case len(flows.Nearest.Nodes) == 0:
 		var inputTakeIdentificationMethod inputTakeIdentificationMethod
 		if authflow.AsInput(input, &inputTakeIdentificationMethod) {
 			identification := inputTakeIdentificationMethod.GetIdentificationMethod()
@@ -101,12 +120,6 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput
-	}
-
-	_, userIdentified := authflow.FindMilestone[MilestoneDoUseUser](flows.Nearest)
-	_, nestedStepsHandled := authflow.FindMilestone[MilestoneNestedSteps](flows.Nearest)
-
-	switch {
 	case userIdentified && !nestedStepsHandled:
 		identification := i.identificationMethod(flows.Nearest)
 		return authflow.NewSubFlow(&IntentReauthFlowSteps{
@@ -115,6 +128,8 @@ func (i *IntentReauthFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 	default:
 		return nil, authflow.ErrIncompatibleInput
 	}
+
+	return nil, authflow.ErrIncompatibleInput
 }
 
 func (i *IntentReauthFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {

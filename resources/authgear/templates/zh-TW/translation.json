@@ -170,7 +170,10 @@
 
   "oob-otp-page-title--sms": "短訊一次性密碼",
   "oob-otp-page-title--email": "電郵一次性密碼",
+  "oob-otp-page-title-reauth--sms": "輸入短訊一次性密碼以繼續操作",
+  "oob-otp-page-title-reauth--email": "輸入電郵一次性密碼以繼續操作",
   "oob-otp-placeholder": "一次性密碼",
+  "oob-otp-tips-reauth": "繼續操作前須輸入一次性密碼以認證你的身份",
   "oob-otp-description": "我們已發送一段 {length}位的一次性密碼到 {target}. 請輸入該一次性密碼後繼續下一步",
   "oob-otp-resend-button-hint": "未收到一次性密碼? ",
   "oob-otp-resend-button-rate-limited-hint": "您已超過輸入一次性密碼的最大嘗試次數。 請獲取一個新的一次性密碼。",
@@ -180,7 +183,9 @@
   "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
   "whatsapp-otp-page-title": "WhatsApp一次性密碼",
+  "whatsapp-otp-page-title-reauth": "輸入WhatsApp一次性密碼以繼續操作",
   "whatsapp-otp-description": "我們已發送一段 {length}位的一次性密碼到 {target}. 請輸入該一次性密碼後繼續下一步",
+  "whatsapp-otp-tips-reauth": "繼續操作前須輸入一次性密碼以認證你的身份",
   "whatsapp-otp-placeholder": "一次性密碼",
   "whatsapp-otp-resend-button-hint": "未收到一次性密碼? ",
   "whatsapp-otp-resend-button-rate-limited-hint": "您已超過輸入一次性密碼的最大嘗試次數。 請獲取一個新的一次性密碼。",
@@ -188,6 +193,8 @@
   "whatsapp-otp-resend-button-label--unit": "重發 (%ds)",
 
   "login-link-otp-page-title": "登錄鏈接",
+  "login-link-otp-page-title-reauth": "訪問登錄鏈接以繼續操作",
+  "login-link-otp-tips-reauth": "繼續操作前須訪問登錄鏈接以認證你的身份",
   "login-link-otp-initial-description": "我們已經向 {target} 發送了一個登錄鏈接。\n請訪問該鏈接以繼續",
   "login-link-otp-invalid-code-description": "該登錄鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "login-link-otp-matched-description": "鏈接已驗證！",
@@ -238,6 +245,8 @@
   "prompt-create-passkey-skip-label": "下次再算",
 
   "use-passkey-page-title": "使用通行密鑰",
+  "use-passkey-page-title-reauth": "使用通行密鑰以繼續操作",
+  "use-passkey-tips-reauth": "繼續操作前須使用通行密鑰以認證你的身份",
   "use-passkey-label": "使用通行密鑰",
 
   "password-policy-required-password-strength-label": "你的新密碼必須為",
@@ -448,7 +457,9 @@
   "setup-totp-code-description": "完成掃描後，在下方輸入6位碼",
 
   "enter-totp-title": "雙重驗證",
+  "enter-totp-title-reauth": "輸入6位碼以繼續操作",
   "enter-totp-description": "輸入驗證器應用程式／裝置所顯示的6位碼",
+  "enter-totp-tips-reauth": "繼續操作前須重新輸入6位碼以認證你的身份",
   "enter-totp-code-placeholder": "驗證器應用程式／裝置所顯示的6位碼",
 
   "enter-recovery-code-title": "雙重驗證",

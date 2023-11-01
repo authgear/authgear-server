@@ -21,6 +21,7 @@ type Session struct {
 	XState      string   `json:"x_state,omitempty"`
 	UILocales   string   `json:"ui_locales,omitempty"`
 
+	IDToken                  string `json:"id_token,omitempty"`
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie,omitempty"`
 	UserIDHint               string `json:"user_id_hint,omitempty"`
 	LoginHint                string `json:"login_hint,omitempty"`
@@ -42,6 +43,7 @@ type SessionOptions struct {
 	XState      string
 	UILocales   string
 
+	IDToken                  string
 	SuppressIDPSessionCookie bool
 	UserIDHint               string
 	LoginHint                string
@@ -59,6 +61,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 		out.XState = s.XState
 		out.UILocales = s.UILocales
 
+		out.IDToken = s.IDToken
 		out.SuppressIDPSessionCookie = s.SuppressIDPSessionCookie
 		out.UserIDHint = s.UserIDHint
 		out.LoginHint = s.LoginHint
@@ -93,6 +96,7 @@ func NewSession(opts *SessionOptions) *Session {
 		XState:      opts.XState,
 		UILocales:   opts.UILocales,
 
+		IDToken:                  opts.IDToken,
 		SuppressIDPSessionCookie: opts.SuppressIDPSessionCookie,
 		UserIDHint:               opts.UserIDHint,
 		LoginHint:                opts.LoginHint,
@@ -120,6 +124,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies, publicFlo
 
 	ctx = intl.WithPreferredLanguageTags(ctx, intl.ParseUILocales(s.UILocales))
 
+	ctx = context.WithValue(ctx, contextKeyIDToken, s.IDToken)
 	ctx = context.WithValue(ctx, contextKeySuppressIDPSessionCookie, s.SuppressIDPSessionCookie)
 	ctx = context.WithValue(ctx, contextKeyUserIDHint, s.UserIDHint)
 	ctx = context.WithValue(ctx, contextKeyLoginHint, s.LoginHint)

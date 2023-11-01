@@ -3,7 +3,19 @@
 {{ define "page-content" }}
 <div class="pane twc-container-vertical pt-8 pb-5 px-6 tablet:px-8 desktop:px-8">
 
-<h1 class="m-0 primary-txt text-center text-xl font-bold">{{ template "use-passkey-page-title" }}</h1>
+<h1 class="m-0 primary-txt text-center text-xl font-bold">
+{{- if eq $.FlowType "reauth" }}
+	{{ template "use-passkey-page-title-reauth" }}
+{{- else }}
+	{{ template "use-passkey-page-title" }}
+{{- end }}
+</h1>
+
+{{- if eq $.FlowType "reauth" }}
+<p class="text-sm m-0 break-words secondary-txt text-center">
+	{{ template "use-passkey-tips-reauth" }}
+</p>
+{{- end }}
 
 <div
 	class="twc-container-vertical"

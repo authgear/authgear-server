@@ -14,6 +14,14 @@ func GetOAuthSessionID(ctx context.Context) string {
 	return ctx.Value(contextKeyOAuthSessionID).(string)
 }
 
+type contextKeyTypeIDToken struct{}
+
+var contextKeyIDToken = contextKeyTypeIDToken{}
+
+func GetIDToken(ctx context.Context) string {
+	return ctx.Value(contextKeyIDToken).(string)
+}
+
 type contextKeyTypeSuppressIDPSessionCookie struct{}
 
 var contextKeySuppressIDPSessionCookie = contextKeyTypeSuppressIDPSessionCookie{}

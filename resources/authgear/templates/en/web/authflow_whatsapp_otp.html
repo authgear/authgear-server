@@ -5,7 +5,11 @@
 
 <h1 class="m-0 primary-txt text-center text-xl font-bold">
 <div class="whatsapp-icon w-6 h-6 inline-block align-sub" ></div>
-{{ template "whatsapp-otp-page-title" }}
+{{- if eq $.FlowType "reauth" }}
+	{{ template "whatsapp-otp-page-title-reauth" }}
+{{- else }}
+	{{ template "whatsapp-otp-page-title" }}
+{{- end }}
 </h1>
 
 {{- if $.MaskedClaimValue }}{{- if $.CodeLength }}
@@ -13,6 +17,12 @@
 {{ template "whatsapp-otp-description" (dict "length" $.CodeLength "target" $.MaskedClaimValue) }}
 </div>
 {{- end }}{{- end }}
+
+{{- if eq $.FlowType "reauth" }}
+<p class="text-sm m-0 break-words secondary-txt text-center">
+	{{ template "whatsapp-otp-tips-reauth" }}
+</p>
+{{- end }}
 
 <form id="main-form" class="twc-container-vertical" method="post" novalidate>
 {{ $.CSRFField }}

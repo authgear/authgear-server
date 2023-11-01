@@ -33,16 +33,19 @@ func (n *NodeIdentifyWithIDToken) MilestoneIdentificationMethod() config.Authent
 }
 
 func (n *NodeIdentifyWithIDToken) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	return &InputSchemaTakeIDToken{
-		JSONPointer: n.JSONPointer,
-	}, nil
+	switch {
+	case authflow.GetIDToken(ctx) != "":
+		// Special case: if id_token is available, use it automatically.
+		return nil, nil
+	default:
+		return &InputSchemaTakeIDToken{
+			JSONPointer: n.JSONPointer,
+		}, nil
+	}
 }
 
 func (n *NodeIdentifyWithIDToken) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
-	var inputTakeIDToken inputTakeIDToken
-	if authflow.AsInput(input, &inputTakeIDToken) {
-		idToken := inputTakeIDToken.GetIDToken()
-
+	proceed := func(idToken string) (*authflow.Node, error) {
 		n, err := NewNodeDoUseIDToken(ctx, deps, flows, &NodeDoUseIDToken{
 			IDToken: idToken,
 		})
@@ -53,5 +56,17 @@ func (n *NodeIdentifyWithIDToken) ReactTo(ctx context.Context, deps *authflow.De
 		return authflow.NewNodeSimple(n), nil
 	}
 
-	return nil, authflow.ErrIncompatibleInput
+	switch {
+	case authflow.GetIDToken(ctx) != "":
+		idToken := authflow.GetIDToken(ctx)
+		return proceed(idToken)
+	default:
+		var inputTakeIDToken inputTakeIDToken
+		if authflow.AsInput(input, &inputTakeIDToken) {
+			idToken := inputTakeIDToken.GetIDToken()
+			return proceed(idToken)
+		}
+
+		return nil, authflow.ErrIncompatibleInput
+	}
 }

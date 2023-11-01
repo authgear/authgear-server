@@ -191,6 +191,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	// select account page only accepts idp session
 	webappSelectAccountChain := httproute.Chain(
 		newWebappPageChain(true),
+		p.Middleware(newImplementationSwitcherMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	// consent page only accepts idp session
@@ -262,6 +263,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppPromoteHandler),
 		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
+	})
+	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappSelectAccountRoute), &webapphandler.ImplementationSwitcherHandler{
+		Interaction: p.Handler(newWebAppReauthHandler),
+		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
 	})
 
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappSelectAccountRoute), p.Handler(newWebAppSelectAccountHandler))

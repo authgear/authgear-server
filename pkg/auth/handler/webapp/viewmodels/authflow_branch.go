@@ -22,6 +22,8 @@ func isAuthflowBranchSame(a AuthflowBranch, b AuthflowBranch) bool {
 }
 
 type AuthflowBranchViewModel struct {
+	// FlowType is mainly for pages to tell if the flow is reauthentication or not.
+	FlowType           authflow.FlowType
 	ActionType         authflow.FlowActionType
 	DeviceTokenEnabled bool
 	Branches           []AuthflowBranch
@@ -34,7 +36,7 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 	var branches []AuthflowBranch
 	if branchFlowResponse != nil {
 		switch branchData := branchFlowResponse.Action.Data.(type) {
-		case declarative.IntentLoginFlowStepAuthenticateData:
+		case declarative.StepAuthenticateData:
 			deviceTokenEnabled = branchData.DeviceTokenEnabled
 			branches = newAuthflowBranchViewModelStepAuthenticate(screen, branchData)
 		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
@@ -45,13 +47,14 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 	}
 
 	return AuthflowBranchViewModel{
+		FlowType:           screen.StateTokenFlowResponse.Type,
 		ActionType:         screen.StateTokenFlowResponse.Action.Type,
 		DeviceTokenEnabled: deviceTokenEnabled,
 		Branches:           branches,
 	}
 }
 
-func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentLoginFlowStepAuthenticateData) []AuthflowBranch {
+func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.StepAuthenticateData) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
