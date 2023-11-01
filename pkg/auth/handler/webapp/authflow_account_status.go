@@ -28,7 +28,7 @@ type AuthflowAccountStatusHandler struct {
 func (h *AuthflowAccountStatusHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 
-	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
 	h.Renderer.RenderHTML(w, r, TemplateWebAuthflowAccountStatusHTML, data)

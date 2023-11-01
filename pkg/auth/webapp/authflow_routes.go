@@ -32,6 +32,10 @@ const (
 	AuthflowRouteForgotPassword = "/authflow/forgot_password"
 	// nolint: gosec
 	AuthflowRouteForgotPasswordSuccess = "/authflow/forgot_password/success"
+	// nolint: gosec
+	AuthflowRouteResetPassword = "/authflow/reset_password"
+	// nolint: gosec
+	AuthflowRouteResetPasswordSuccess = "/authflow/reset_password/success"
 
 	AuthflowRouteWechat = "/authflow/wechat"
 )

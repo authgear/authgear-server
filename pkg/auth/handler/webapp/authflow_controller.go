@@ -28,6 +28,7 @@ import (
 //go:generate mockgen -source=authflow_controller.go -destination=authflow_controller_mock_test.go -package webapp
 
 type AuthflowControllerHandler func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error
+type AuthflowControllerErrorHandler func(w http.ResponseWriter, r *http.Request, err error) error
 
 type AuthflowControllerHandlers struct {
 	GetHandler   AuthflowControllerHandler
@@ -204,6 +205,61 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 	return
 }
 
+func (c *AuthflowController) HandleResumeOfFlow(
+	w http.ResponseWriter,
+	r *http.Request,
+	opts webapp.SessionOptions,
+	handlers *AuthflowControllerHandlers,
+	input map[string]interface{},
+	errorHandler *AuthflowControllerErrorHandler,
+) {
+
+	handleError := func(err error) {
+		if errorHandler != nil {
+			err = (*errorHandler)(w, r, err)
+			if err != nil {
+				c.renderError(w, r, err)
+			}
+		}
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	s, err := c.getOrCreateWebSession(w, r, opts)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to get or create web session")
+		handleError(err)
+		return
+	}
+
+	output, err := c.feedInput("", input)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to resume flow")
+		handleError(err)
+		return
+	}
+
+	result := &webapp.Result{}
+	screen, err := c.createScreenWithOutput(r, s, output, result)
+	if err != nil {
+		c.Logger.WithError(err).Errorf("failed to create screen")
+		handleError(err)
+		return
+	}
+
+	err = c.checkPath(w, r, s, screen)
+	if err != nil {
+		handleError(err)
+		return
+	}
+
+	handler := c.makeHTTPHandler(s, screen, handlers)
+	handler.ServeHTTP(w, r)
+}
+
 func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -233,6 +289,21 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 	}
 
 	handler := c.makeHTTPHandler(s, screen, handlers)
+	handler.ServeHTTP(w, r)
+}
+
+func (c *AuthflowController) HandleWithoutFlow(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	var session *webapp.Session
+	s, err := c.getWebSession(r)
+	if err != nil {
+		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
+			c.Logger.WithError(err).Errorf("failed to get web session")
+		}
+	} else {
+		session = s
+	}
+
+	handler := c.makeHTTPHandler(session, nil, handlers)
 	handler.ServeHTTP(w, r)
 }
 
@@ -387,8 +458,36 @@ func (c *AuthflowController) Restart(s *webapp.Session) (result *webapp.Result, 
 	return
 }
 
+func (c *AuthflowController) createScreenWithOutput(
+	r *http.Request,
+	s *webapp.Session,
+	output *authflow.ServiceOutput,
+	result *webapp.Result,
+) (*webapp.AuthflowScreenWithFlowResponse, error) {
+	flowResponse := output.ToFlowResponse()
+	emptyXStep := ""
+	var emptyInput map[string]interface{}
+	screen := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
+	af := webapp.NewAuthflow(screen)
+	s.Authflow = af
+
+	output, screen, err := c.takeBranchRecursively(s, screen)
+	if err != nil {
+		return nil, err
+	}
+
+	now := c.Clock.NowUTC()
+	s.UpdatedAt = now
+	err = c.Sessions.Update(s)
+	if err != nil {
+		return nil, err
+	}
+
+	screen.Navigate(r, s.ID, result)
+	return screen, nil
+}
+
 func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (result *webapp.Result, err error) {
-	var screen *webapp.AuthflowScreenWithFlowResponse
 	result = &webapp.Result{}
 
 	output, err := c.createAuthflow(r, s, flowReference)
@@ -396,26 +495,10 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 		return
 	}
 
-	flowResponse := output.ToFlowResponse()
-	emptyXStep := ""
-	var emptyInput map[string]interface{}
-	screen = webapp.NewAuthflowScreenWithFlowResponse(&flowResponse, emptyXStep, emptyInput)
-	af := webapp.NewAuthflow(screen)
-	s.Authflow = af
-
-	output, screen, err = c.takeBranchRecursively(s, screen)
+	_, err = c.createScreenWithOutput(r, s, output, result)
 	if err != nil {
 		return
 	}
-
-	now := c.Clock.NowUTC()
-	s.UpdatedAt = now
-	err = c.Sessions.Update(s)
-	if err != nil {
-		return
-	}
-
-	screen.Navigate(r, s.ID, result)
 	return
 }
 
@@ -557,9 +640,15 @@ func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.
 		panic(err)
 	}
 
-	// 1. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
-	// 2. Use redirect URI in webapp.Session.
-	// 3. DerivePostLoginRedirectURIFromRequest
+	// 1. Use predefined redirect path of the flow
+	// 2. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
+	// 3. Use redirect URI in webapp.Session.
+	// 4. DerivePostLoginRedirectURIFromRequest
+
+	path := webapp.DeriveAuthflowFinishPath(f)
+	if path != "" {
+		return path
+	}
 
 	if finishRedirectURI, ok := data["finish_redirect_uri"].(string); ok {
 		return finishRedirectURI

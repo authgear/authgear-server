@@ -65,7 +65,7 @@ type AuthflowLoginHandler struct {
 
 func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}

@@ -18,6 +18,12 @@ export class WebSocketController extends Controller {
   abortController: AbortController | null = null;
   retryEventTarget: RetryEventTarget | null = null;
 
+  static values = {
+    disabled: Boolean,
+  };
+
+  declare disabledValue: boolean | null;
+
   dispose = () => {
     if (this.ws != null) {
       this.ws.onclose = () => {};
@@ -93,6 +99,9 @@ export class WebSocketController extends Controller {
   };
 
   connect() {
+    if (this.disabledValue) {
+      return;
+    }
     this.abortController = new AbortController();
     this.retryEventTarget = new RetryEventTarget({
       abortController: this.abortController,
