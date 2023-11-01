@@ -54,6 +54,7 @@ const AppSessionTokenDuration = duration.Short
 var whitelistedGrantTypes = []string{
 	AnonymousRequestGrantType,
 	BiometricRequestGrantType,
+	App2AppRequestGrantType,
 	IDTokenGrantType,
 }
 
