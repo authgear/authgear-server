@@ -1209,6 +1209,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	appDomains := appContext.Domains
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -1978,6 +1979,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
+		AppDomains:             appDomains,
 		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
@@ -3861,6 +3863,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
+	appDomains := appContext.Domains
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
@@ -4630,6 +4633,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
+		AppDomains:             appDomains,
 		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
@@ -4672,9 +4676,11 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	appDomains := appContext.Domains
 	proxyRedirectHandler := &handler.ProxyRedirectHandler{
 		OAuthConfig: oAuthConfig,
 		HTTPOrigin:  httpOrigin,
+		AppDomains:  appDomains,
 	}
 	oauthProxyRedirectHandler := &oauth.ProxyRedirectHandler{
 		ProxyRedirectHandler: proxyRedirectHandler,
@@ -56108,6 +56114,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		Context: contextContext,
 		Redis:   globalredisHandle,
 	}
+	appDomains := appContext.Domains
 	oAuthFeatureConfig := featureConfig.OAuth
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
 	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
@@ -56152,6 +56159,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandler := &handler.TokenHandler{
 		AppID:                  appID,
 		Config:                 oAuthConfig,
+		AppDomains:             appDomains,
 		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,

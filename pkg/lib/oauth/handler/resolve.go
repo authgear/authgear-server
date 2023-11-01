@@ -23,7 +23,7 @@ func resolveClient(resolver OAuthClientResolver, r oauthRequest) *config.OAuthCl
 	return resolver.ResolveClient(r.ClientID())
 }
 
-func parseRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
+func parseRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, domainWhitelist []string, r oauthRequest) (*url.URL, protocol.ErrorResponse) {
 	allowedURIs := client.RedirectURIs
 	redirectURIString := r.RedirectURI()
 	if len(allowedURIs) == 1 && redirectURIString == "" {
@@ -36,7 +36,7 @@ func parseRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTP
 		return nil, protocol.NewErrorResponse("invalid_request", "invalid redirect URI")
 	}
 
-	err = validateRedirectURI(client, httpOrigin, redirectURI)
+	err = validateRedirectURI(client, httpOrigin, domainWhitelist, redirectURI)
 	if err != nil {
 		return nil, protocol.NewErrorResponse("invalid_request", err.Error())
 	}
@@ -44,7 +44,7 @@ func parseRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTP
 	return redirectURI, nil
 }
 
-func validateRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, redirectURI *url.URL) error {
+func validateRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.HTTPOrigin, domainWhitelist []string, redirectURI *url.URL) error {
 	allowed := false
 	redirectURIString := redirectURI.String()
 
@@ -71,6 +71,14 @@ func validateRedirectURI(client *config.OAuthClientConfig, httpOrigin httputil.H
 		}
 		customUIURIOrigin := fmt.Sprintf("%s://%s", customUIURI.Scheme, customUIURI.Host)
 		if customUIURIOrigin == redirectURIOrigin {
+			allowed = true
+		}
+	}
+
+	// Implicitly allow URIs for all whitelisted domains in https
+	for _, domain := range domainWhitelist {
+		origin := fmt.Sprintf("https://%s", domain)
+		if redirectURIOrigin == string(origin) {
 			allowed = true
 		}
 	}
