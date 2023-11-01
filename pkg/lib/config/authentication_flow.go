@@ -35,6 +35,11 @@ var _ = Schema.Add("AuthenticationFlowConfig", `
 			"type": "array",
 			"minItems": 1,
 			"items": { "$ref": "#/$defs/AuthenticationFlowReauthFlow" }
+		},
+		"account_recovery_flows": {
+			"type": "array",
+			"minItems": 1,
+			"items": { "$ref": "#/$defs/AuthenticationFlowAccountRecoveryFlow" }
 		}
 	}
 }
