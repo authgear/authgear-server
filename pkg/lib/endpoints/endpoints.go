@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
@@ -45,8 +46,13 @@ func (e *Endpoints) SignupEndpointURL() *url.URL      { return e.urlOf("./signup
 func (e *Endpoints) PromoteUserEndpointURL() *url.URL { return e.urlOf("flows/promote_user") }
 func (e *Endpoints) LogoutEndpointURL() *url.URL      { return e.urlOf("./logout") }
 func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settings") }
-func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
-	return e.urlOf("flows/reset_password")
+func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *url.URL {
+	switch uiImpl {
+	case config.UIImplementationAuthflow:
+		return e.urlOf("authflow/reset_password")
+	default:
+		return e.urlOf("flows/reset_password")
+	}
 }
 func (e *Endpoints) SSOCallbackEndpointURL() *url.URL { return e.urlOf("sso/oauth2/callback") }
 
@@ -68,13 +74,6 @@ func (e *Endpoints) LogoutURL(redirectURI *url.URL) *url.URL {
 
 func (e *Endpoints) SettingsURL() *url.URL {
 	return e.SettingsEndpointURL()
-}
-
-func (e *Endpoints) ResetPasswordURL(code string) *url.URL {
-	return urlutil.WithQueryParamsAdded(
-		e.ResetPasswordEndpointURL(),
-		map[string]string{"code": code},
-	)
 }
 
 func (e *Endpoints) SSOCallbackURL(alias string) *url.URL {

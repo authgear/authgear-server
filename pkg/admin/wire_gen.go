@@ -814,11 +814,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Whatsapp:               whatsappService,
 		MessagingFeatureConfig: messagingFeatureConfig,
 	}
+	uiConfig := appConfig.UI
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
 		Endpoints:       endpointsEndpoints,
 		Sender:          sender,
 		WhatsappService: whatsappService,
+		UIConfig:        uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
