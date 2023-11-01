@@ -411,7 +411,7 @@ func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
 			Resources: resources,
 			Config:    appConfig,
 			PlanName:  data.PlanName,
-			Domains:   domains,
+			Domains:   config.AppDomains(domains),
 		}
 		return nil
 	})

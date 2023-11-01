@@ -76,6 +76,7 @@ var appRootDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.AppContext),
 		"Resources",
 		"Config",
+		"Domains",
 	),
 
 	wire.Bind(new(event.Database), new(*appdb.Handle)),

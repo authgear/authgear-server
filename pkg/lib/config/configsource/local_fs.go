@@ -54,7 +54,7 @@ func (s *LocalFS) Open() error {
 		Resources: resources,
 		Config:    cfg,
 		PlanName:  LocalFSPlanName,
-		Domains:   []string{},
+		Domains:   config.AppDomains{},
 	})
 
 	if s.Config.Watch {
@@ -142,7 +142,7 @@ func (s *LocalFS) reload() error {
 		Resources: appCtx.Resources,
 		Config:    newConfig,
 		PlanName:  LocalFSPlanName,
-		Domains:   []string{},
+		Domains:   config.AppDomains{},
 	}
 	s.config.Store(appCtx)
 	return nil

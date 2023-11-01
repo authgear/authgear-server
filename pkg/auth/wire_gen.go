@@ -140,6 +140,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	appDomains := appContext.Domains
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
@@ -615,6 +616,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
 		HTTPOrigin:                httpOrigin,
+		AppDomains:                appDomains,
 		Logger:                    authorizationHandlerLogger,
 		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,
@@ -662,6 +664,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
+	appDomains := appContext.Domains
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:  httpHost,
@@ -1137,6 +1140,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
 		HTTPOrigin:                httpOrigin,
+		AppDomains:                appDomains,
 		Logger:                    authorizationHandlerLogger,
 		UIURLBuilder:              uiurlBuilder,
 		UIInfoResolver:            uiInfoResolver,

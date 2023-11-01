@@ -82,6 +82,7 @@ type AuthorizationHandler struct {
 	Config     *config.OAuthConfig
 	HTTPConfig *config.HTTPConfig
 	HTTPOrigin httputil.HTTPOrigin
+	AppDomains config.AppDomains
 	Logger     AuthorizationHandlerLogger
 
 	UIURLBuilder              UIURLBuilder
