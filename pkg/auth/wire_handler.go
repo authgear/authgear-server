@@ -776,3 +776,17 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowWechatHandler)),
 	))
 }
+
+func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowForgotPasswordHandler)),
+	))
+}
+
+func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowForgotPasswordSuccessHandler)),
+	))
+}

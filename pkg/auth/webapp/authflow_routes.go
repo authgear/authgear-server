@@ -27,6 +27,10 @@ const (
 	// nolint: gosec
 	AuthflowRouteUsePasskey    = "/authflow/use_passkey"
 	AuthflowRouteAccountStatus = "/authflow/account_status"
+	// nolint: gosec
+	AuthflowRouteForgotPassword = "/authflow/forgot_password"
+	// nolint: gosec
+	AuthflowRouteForgotPasswordSuccess = "/authflow/forgot_password/success"
 
 	AuthflowRouteWechat = "/authflow/wechat"
 )

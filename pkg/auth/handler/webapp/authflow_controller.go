@@ -152,7 +152,6 @@ func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Re
 		c.renderError(w, r, err)
 		return
 	}
-
 	handler := c.makeHTTPHandler(s, screen, handlers)
 	handler.ServeHTTP(w, r)
 }
@@ -781,6 +780,7 @@ func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s
 	if u.Path != r.URL.Path {
 		// We do not know what causes the mismatch.
 		// Maybe x_step was tempered.
+		c.Logger.Warningln("path mismatch")
 		return webapp.ErrInvalidSession
 	}
 
