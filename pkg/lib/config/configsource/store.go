@@ -79,6 +79,32 @@ func (s *Store) GetAppIDByDomain(domain string) (string, error) {
 	return appID, nil
 }
 
+func (s *Store) GetDomainsByAppID(appID string) (domains []string, err error) {
+	builder := s.SQLBuilder.
+		Select(
+			"domain",
+		).
+		From(s.SQLBuilder.TableName("_portal_domain")).
+		Where("app_id = ?", appID)
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var d string
+		err := rows.Scan(&d)
+		if err != nil {
+			return nil, err
+		}
+		domains = append(domains, d)
+	}
+
+	return domains, nil
+}
+
 func (s *Store) GetDatabaseSourceByAppID(appID string) (*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery()
 	builder = builder.Where("app_id = ?", appID)
