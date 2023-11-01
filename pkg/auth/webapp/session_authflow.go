@@ -945,3 +945,11 @@ func (s *AuthflowScreenWithFlowResponse) navigateStepIdentify(r *http.Request, w
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}
 }
+
+func DeriveAuthflowFinishPath(response *authflow.FlowResponse) string {
+	switch response.Type {
+	case authflow.FlowTypeAccountRecovery:
+		return AuthflowRouteResetPasswordSuccess
+	}
+	return ""
+}

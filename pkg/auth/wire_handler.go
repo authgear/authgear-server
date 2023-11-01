@@ -811,3 +811,10 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowResetPasswordHandler)),
 	))
 }
+
+func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowResetPasswordSuccessHandler)),
+	))
+}

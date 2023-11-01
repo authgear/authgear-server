@@ -292,6 +292,21 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 	handler.ServeHTTP(w, r)
 }
 
+func (c *AuthflowController) HandleWithoutFlow(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	var session *webapp.Session
+	s, err := c.getWebSession(r)
+	if err != nil {
+		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
+			c.Logger.WithError(err).Errorf("failed to get web session")
+		}
+	} else {
+		session = s
+	}
+
+	handler := c.makeHTTPHandler(session, nil, handlers)
+	handler.ServeHTTP(w, r)
+}
+
 func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, error) {
 	s := webapp.GetSession(r.Context())
 	if s == nil {
@@ -625,9 +640,15 @@ func (c *AuthflowController) deriveFinishRedirectURI(r *http.Request, s *webapp.
 		panic(err)
 	}
 
-	// 1. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
-	// 2. Use redirect URI in webapp.Session.
-	// 3. DerivePostLoginRedirectURIFromRequest
+	// 1. Use predefined redirect path of the flow
+	// 2. Use the finish_redirect_uri from authflow. (To return to /oauth2/consent)
+	// 3. Use redirect URI in webapp.Session.
+	// 4. DerivePostLoginRedirectURIFromRequest
+
+	path := webapp.DeriveAuthflowFinishPath(f)
+	if path != "" {
+		return path
+	}
 
 	if finishRedirectURI, ok := data["finish_redirect_uri"].(string); ok {
 		return finishRedirectURI
