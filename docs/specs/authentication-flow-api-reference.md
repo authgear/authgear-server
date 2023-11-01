@@ -39,6 +39,10 @@
   * [type: login; step.type: change_password](#type-login-steptype-change_password)
   * [type: login; step.type: prompt_create_passkey](#type-login-steptype-prompt_create_passkey)
   * [type: signup_login; step.type: identify](#type-signup_login-steptype-identify)
+  * [type: account_recovery; step.type: identify](#type-account_recovery-steptype-identify)
+  * [type: account_recovery; step.type: select_destination](#type-account_recovery-steptype-select_destination)
+  * [type: account_recovery; step.type: verify_account_recovery_code](#type-account_recovery-steptype-verify_account_recovery_code)
+  * [type: account_recovery; step.type: reset_password](#type-account_recovery-steptype-reset_password)
 
 # Authentication Flow API
 
@@ -1535,3 +1539,183 @@ See [type: signup; step.type: prompt_create_passkey](#type-signup-steptype-promp
 ## type: signup_login; step.type: identify
 
 See [type: signup; step.type: identification](#type-signup-steptype-identification). They are the same except that `type` is `signup_login`.
+
+## type: account_recovery; step.type: identify
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "identify",
+      "data": {
+        "options": [
+          {
+            "identification": "email"
+          },
+          {
+            "identification": "phone"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### identification: email
+
+The presence of this means you can receive an account recovery code with an email address.
+
+```json
+{
+  "identification": "email"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "email",
+  "login_id": "johndoe@example.com"
+}
+```
+
+### identification: phone
+
+The presence of this means you can receive an account recovery code with a phone number.
+
+```json
+{
+  "identification": "phone"
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "phone",
+  "login_id": "+85298765432"
+}
+```
+
+Note that the phone number **MUST BE** in **E.164** format without any separators nor spaces.
+
+## type: account_recovery; step.type: select_destination
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "select_destination",
+      "data": {
+        "options": [
+          {
+            "masked_display_name": "+8529876****",
+            "channel": "sms"
+          },
+          {
+            "masked_display_name": "john****@example.com",
+            "channel": "email"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+It is asking where to deliver the account recovery code. You pass the following input:
+
+```json
+{
+  "index": 0
+}
+```
+
+`index` is the index of the option in `options` array. For `0`, it sends an sms with the account recovery code to `+8529876****`.
+
+## type: account_recovery; step.type: verify_account_recovery_code
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "verify_account_recovery_code",
+      "data": {}
+    }
+  }
+}
+```
+
+In previous steps, you should have selected the destination to receive the account recovery code. You should get the code in your selected destination, such as your mailbox, and pass it with the following input:
+
+```jsonc
+{
+  "account_recovery_code": "M6CGA4WV6M9XTXNWFYFHRQDWF6VFR7K4" // Put your account recovery code here
+}
+```
+
+Note that `state_token` can be omitted in this step. Using only the `account_recovery_code` is enough for proceeding to the next step:
+
+```jsonc
+// POST /api/v1/authentication_flows/states/input
+// Content-Type: application/json
+{
+  "input": {
+    "account_recovery_code": "M6CGA4WV6M9XTXNWFYFHRQDWF6VFR7K4"
+  }
+}
+```
+
+## type: account_recovery; step.type: reset_password
+
+When you are in this step of this flow, you will see a response like the following.
+
+```json
+{
+  "result": {
+    "state_token": "authflowstate_5R6NM7HGGKV64538R0QEGY9RQBDM4PZD",
+    "type": "signup",
+    "name": "default",
+    "action": {
+      "type": "reset_password",
+      "data": {
+        "password_policy": {
+          "minimum_length": 8,
+          "digit_required": true,
+          "history": {
+            "enabled": false
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+You can reset the password of the user in this step.
+
+The corresponding input is
+
+```json
+{
+  "new_password": "a.new.password.that.meet.the.password.policy"
+}
+```
