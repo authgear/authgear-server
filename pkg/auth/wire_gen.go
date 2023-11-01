@@ -80214,6 +80214,7 @@ func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:       endpointsEndpoints,
 		Sender:          sender,
 		WhatsappService: whatsappService,
+		UIConfig:        uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	normalizer := &stdattrs2.Normalizer{
@@ -81026,11 +81027,13 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Whatsapp:               whatsappService,
 		MessagingFeatureConfig: messagingFeatureConfig,
 	}
+	uiConfig := appConfig.UI
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
 		Endpoints:       endpointsEndpoints,
 		Sender:          sender,
 		WhatsappService: whatsappService,
+		UIConfig:        uiConfig,
 	}
 	workflowVerificationFacade := facade.WorkflowVerificationFacade{
 		Verification: verificationService,
@@ -81198,7 +81201,6 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   handle,
 		AppID:   appID,
 	}
-	uiConfig := appConfig.UI
 	authflowController := &webapp.AuthflowController{
 		Logger:                  authflowControllerLogger,
 		TesterEndpointsProvider: endpointsEndpoints,
