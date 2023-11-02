@@ -36,18 +36,26 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 		q := r.URL.Query()
 
 		weChatRedirectURI := q.Get("x_wechat_redirect_uri")
+		isWechatEnabled := false
 		if weChatRedirectURI != "" {
 			// Validate x_wechat_redirect_uri
 			valid := false
 			for _, providerConfig := range m.IdentityConfig.OAuth.Providers {
+				if providerConfig.Type != config.OAuthSSOProviderTypeWechat {
+					continue
+				}
+				isWechatEnabled = true
 				for _, allowed := range providerConfig.WeChatRedirectURIs {
 					if weChatRedirectURI == allowed {
 						valid = true
 					}
 				}
 			}
-			if !valid {
+			if isWechatEnabled && !valid {
 				panic(apierrors.NewInvalid("wechat redirect URI is not allowed"))
+			}
+			if !isWechatEnabled {
+				weChatRedirectURI = ""
 			}
 		}
 
@@ -58,7 +66,7 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		// Restore weChatRedirectURI from cookie
-		if weChatRedirectURI == "" {
+		if isWechatEnabled && weChatRedirectURI == "" {
 			cookie, err := m.Cookies.GetCookie(r, WeChatRedirectURICookieDef)
 			if err == nil {
 				weChatRedirectURI = cookie.Value
