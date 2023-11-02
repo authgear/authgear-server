@@ -10,6 +10,10 @@ import ShowError from "../../ShowError";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import {
+  CheckFirstUserQuery,
+  CheckFirstUserDocument,
+} from "../adminapi/query/checkFirstUserQuery.generated";
+import {
   ScreenNavQueryQuery,
   ScreenNavQueryDocument,
 } from "./query/screenNavQuery.generated";
@@ -58,10 +62,17 @@ interface MakeCardSpecsOptions {
   publicOrigin: string;
   numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
+  userTotalCount: number;
 }
 
 function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
-  const { appID, publicOrigin, numberOfClients, tutorialStatusData } = options;
+  const {
+    appID,
+    publicOrigin,
+    numberOfClients,
+    tutorialStatusData,
+    userTotalCount,
+  } = options;
 
   const { generateTesterToken } = useGenerateTesterTokenMutation(appID);
   const onTryAuth = useCallback(async () => {
@@ -79,9 +90,9 @@ function useCardSpecs(options: MakeCardSpecsOptions): CardSpec[] {
       internalHref: undefined,
       canSkip: false,
       action: onTryAuth,
-      isDone: tutorialStatusData.progress["authui"] === true,
+      isDone: userTotalCount > 0,
     }),
-    [onTryAuth, tutorialStatusData.progress]
+    [userTotalCount, onTryAuth]
   );
 
   const customize_ui: CardSpec = useMemo(
@@ -384,6 +395,7 @@ interface GetStartedScreenContentProps {
   publicOrigin: string;
   numberOfClients: number;
   tutorialStatusData: TutorialStatusData;
+  userTotalCount: number;
 }
 
 function GetStartedScreenContent(props: GetStartedScreenContentProps) {
@@ -395,6 +407,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     publicOrigin,
     numberOfClients,
     tutorialStatusData,
+    userTotalCount,
   } = props;
 
   const [
@@ -457,6 +470,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
     publicOrigin,
     numberOfClients,
     tutorialStatusData,
+    userTotalCount,
   });
 
   return (
@@ -479,6 +493,7 @@ function GetStartedScreenContent(props: GetStartedScreenContentProps) {
   );
 }
 
+// eslint-disable-next-line complexity
 export default function GetStartedScreen(): React.ReactElement {
   const { appID } = useParams() as { appID: string };
 
@@ -488,6 +503,11 @@ export default function GetStartedScreen(): React.ReactElement {
     error,
     refetch,
   } = useAppAndSecretConfigQuery(appID);
+
+  const queryResult0 = useQuery<CheckFirstUserQuery>(CheckFirstUserDocument, {
+    // Refresh each time this screen is visited.
+    fetchPolicy: "network-only",
+  });
 
   const queryResult = useQuery<ScreenNavQueryQuery>(ScreenNavQueryDocument, {
     client,
@@ -503,7 +523,8 @@ export default function GetStartedScreen(): React.ReactElement {
 
   const tutorialStatusData = app?.tutorialStatus.data;
 
-  const loading = queryResult.loading || appConfigLoading;
+  const loading =
+    queryResult0.loading || queryResult.loading || appConfigLoading;
 
   if (loading || !tutorialStatusData || !effectiveAppConfig) {
     return <ShowLoading />;
@@ -519,6 +540,7 @@ export default function GetStartedScreen(): React.ReactElement {
       publicOrigin={effectiveAppConfig.http?.public_origin ?? ""}
       numberOfClients={effectiveAppConfig.oauth?.clients?.length ?? 0}
       tutorialStatusData={tutorialStatusData}
+      userTotalCount={queryResult0.data?.users?.totalCount ?? 0}
     />
   );
 }

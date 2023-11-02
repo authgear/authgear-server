@@ -1,0 +1,5 @@
+query CheckFirstUser {
+  users(first: 1) {
+    totalCount
+  }
+}
