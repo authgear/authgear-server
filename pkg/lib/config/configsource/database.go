@@ -132,6 +132,7 @@ func (d *Database) Open() error {
 			d.invalidateApp(extra)
 		case PGChannelDomainChange:
 			d.invalidateHost(extra)
+			d.invalidateAppByDomain(extra)
 		default:
 			// unknown notification channel, just skip it
 			d.Logger.WithField("channel", channel).Info("unknown notification channel")
@@ -294,6 +295,24 @@ func (d *Database) invalidateApp(appID string) {
 	d.Logger.WithField("app_id", appID).Info("invalidated cached config")
 }
 
+func (d *Database) invalidateAppByDomain(domain string) {
+	dbHandle := d.DatabaseHandleFactory()
+	store := d.StoreFactory(dbHandle)
+	err := dbHandle.WithTx(func() error {
+		aid, err := store.GetAppIDByDomain(domain)
+		if err != nil {
+			return err
+		}
+		d.invalidateApp(aid)
+		return nil
+	})
+	if err != nil {
+		d.Logger.WithError(err).
+			WithField("domain", domain).
+			Errorln("failed to invalidate app cache by domain")
+	}
+}
+
 func (d *Database) cleanupCache(done <-chan struct{}) {
 	for {
 		select {
@@ -382,11 +401,17 @@ func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
 			return err
 		}
 
+		domains, err := store.GetDomainsByAppID(a.appID)
+		if err != nil {
+			return err
+		}
+
 		appCtx = &config.AppContext{
 			AppFs:     appFs,
 			Resources: resources,
 			Config:    appConfig,
 			PlanName:  data.PlanName,
+			Domains:   config.AppDomains(domains),
 		}
 		return nil
 	})
