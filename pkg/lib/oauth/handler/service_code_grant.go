@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -16,15 +17,12 @@ type CodeGrantService struct {
 }
 
 type CreateCodeGrantOptions struct {
-	Authorization      *oauth.Authorization
-	IDPSessionID       string
-	AuthenticationInfo authenticationinfo.T
-	IDTokenHintSID     string
-	Scopes             []string
-	RedirectURI        string
-	OIDCNonce          string
-	PKCEChallenge      string
-	SSOEnabled         bool
+	Authorization        *oauth.Authorization
+	IDPSessionID         string
+	AuthenticationInfo   authenticationinfo.T
+	IDTokenHintSID       string
+	RedirectURI          string
+	AuthorizationRequest protocol.AuthorizationRequest
 }
 
 func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error) {
@@ -40,13 +38,10 @@ func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code s
 
 		CreatedAt: s.Clock.NowUTC(),
 		ExpireAt:  s.Clock.NowUTC().Add(CodeGrantValidDuration),
-		Scopes:    opts.Scopes,
 		CodeHash:  codeHash,
 
-		RedirectURI:   opts.RedirectURI,
-		OIDCNonce:     opts.OIDCNonce,
-		PKCEChallenge: opts.PKCEChallenge,
-		SSOEnabled:    opts.SSOEnabled,
+		RedirectURI:          opts.RedirectURI,
+		AuthorizationRequest: opts.AuthorizationRequest,
 	}
 
 	err = s.CodeGrants.CreateCodeGrant(codeGrant)

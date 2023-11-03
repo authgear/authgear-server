@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
 
 type CodeGrant struct {
@@ -15,12 +16,8 @@ type CodeGrant struct {
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`
-	Scopes    []string  `json:"scopes"`
 	CodeHash  string    `json:"code_hash"`
 
-	RedirectURI   string `json:"redirect_uri"`
-	OIDCNonce     string `json:"nonce,omitempty"`
-	PKCEChallenge string `json:"challenge,omitempty"`
-
-	SSOEnabled bool `json:"sso_enabled,omitempty"`
+	RedirectURI          string                        `json:"redirect_uri"`
+	AuthorizationRequest protocol.AuthorizationRequest `json:"authorization_request"`
 }

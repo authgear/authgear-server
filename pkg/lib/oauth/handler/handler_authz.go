@@ -592,15 +592,12 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	resp protocol.AuthorizationResponse,
 ) error {
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
-		Authorization:      authz,
-		IDPSessionID:       idpSessionID,
-		AuthenticationInfo: authenticationInfo,
-		IDTokenHintSID:     idTokenHintSID,
-		Scopes:             r.Scope(),
-		RedirectURI:        redirectURI,
-		OIDCNonce:          r.Nonce(),
-		PKCEChallenge:      r.CodeChallenge(),
-		SSOEnabled:         r.SSOEnabled(),
+		Authorization:        authz,
+		IDPSessionID:         idpSessionID,
+		AuthenticationInfo:   authenticationInfo,
+		IDTokenHintSID:       idTokenHintSID,
+		RedirectURI:          redirectURI,
+		AuthorizationRequest: r,
 	})
 	if err != nil {
 		return err
