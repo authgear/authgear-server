@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -54,6 +55,16 @@ type UIInfo struct {
 	LoginHint string
 	// IDTokenHint is the OIDC id_token_hint parameter.
 	IDTokenHint string
+}
+
+func (i *UIInfo) ToUIParam() uiparam.T {
+	return uiparam.T{
+		ClientID:  i.ClientID,
+		Prompt:    i.Prompt,
+		State:     i.State,
+		XState:    i.XState,
+		UILocales: i.UILocales,
+	}
 }
 
 type UIInfoByProduct struct {
