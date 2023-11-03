@@ -58,17 +58,15 @@ func flowRootObject(deps *authflow.Dependencies, flowReference authflow.FlowRefe
 func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.Name == nameGeneratedFlow {
-		root = GenerateSignupFlowConfig(deps.Config)
-	} else {
-		for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
-			f := f
-			if f.Name == flowReference.Name {
-				root = f
-				break
-			}
+	for _, f := range deps.Config.AuthenticationFlow.SignupFlows {
+		f := f
+		if f.Name == flowReference.Name {
+			root = f
+			break
 		}
-
+	}
+	if root == nil && flowReference.Name == nameGeneratedFlow {
+		root = GenerateSignupFlowConfig(deps.Config)
 	}
 
 	if root == nil {
@@ -81,17 +79,15 @@ func flowRootObjectForSignupFlow(deps *authflow.Dependencies, flowReference auth
 func flowRootObjectForPromoteFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.Name == nameGeneratedFlow {
-		root = GeneratePromoteFlowConfig(deps.Config)
-	} else {
-		for _, f := range deps.Config.AuthenticationFlow.PromoteFlows {
-			f := f
-			if f.Name == flowReference.Name {
-				root = f
-				break
-			}
+	for _, f := range deps.Config.AuthenticationFlow.PromoteFlows {
+		f := f
+		if f.Name == flowReference.Name {
+			root = f
+			break
 		}
-
+	}
+	if root == nil && flowReference.Name == nameGeneratedFlow {
+		root = GeneratePromoteFlowConfig(deps.Config)
 	}
 
 	if root == nil {
@@ -104,16 +100,15 @@ func flowRootObjectForPromoteFlow(deps *authflow.Dependencies, flowReference aut
 func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.Name == nameGeneratedFlow {
-		root = GenerateLoginFlowConfig(deps.Config)
-	} else {
-		for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
-			f := f
-			if f.Name == flowReference.Name {
-				root = f
-				break
-			}
+	for _, f := range deps.Config.AuthenticationFlow.LoginFlows {
+		f := f
+		if f.Name == flowReference.Name {
+			root = f
+			break
 		}
+	}
+	if root == nil && flowReference.Name == nameGeneratedFlow {
+		root = GenerateLoginFlowConfig(deps.Config)
 	}
 
 	if root == nil {
@@ -126,16 +121,15 @@ func flowRootObjectForLoginFlow(deps *authflow.Dependencies, flowReference authf
 func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.Name == nameGeneratedFlow {
-		root = GenerateSignupLoginFlowConfig(deps.Config)
-	} else {
-		for _, f := range deps.Config.AuthenticationFlow.SignupLoginFlows {
-			f := f
-			if f.Name == flowReference.Name {
-				root = f
-				break
-			}
+	for _, f := range deps.Config.AuthenticationFlow.SignupLoginFlows {
+		f := f
+		if f.Name == flowReference.Name {
+			root = f
+			break
 		}
+	}
+	if root == nil && flowReference.Name == nameGeneratedFlow {
+		root = GenerateSignupLoginFlowConfig(deps.Config)
 	}
 
 	if root == nil {
@@ -148,16 +142,15 @@ func flowRootObjectForSignupLoginFlow(deps *authflow.Dependencies, flowReference
 func flowRootObjectForReauthFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
 	var root config.AuthenticationFlowObject
 
-	if flowReference.Name == nameGeneratedFlow {
-		root = GenerateReauthFlowConfig(deps.Config)
-	} else {
-		for _, f := range deps.Config.AuthenticationFlow.ReauthFlows {
-			f := f
-			if f.Name == flowReference.Name {
-				root = f
-				break
-			}
+	for _, f := range deps.Config.AuthenticationFlow.ReauthFlows {
+		f := f
+		if f.Name == flowReference.Name {
+			root = f
+			break
 		}
+	}
+	if root == nil && flowReference.Name == nameGeneratedFlow {
+		root = GenerateReauthFlowConfig(deps.Config)
 	}
 
 	if root == nil {
@@ -168,8 +161,18 @@ func flowRootObjectForReauthFlow(deps *authflow.Dependencies, flowReference auth
 }
 
 func flowRootObjectForAccountRecoveryFlow(deps *authflow.Dependencies, flowReference authflow.FlowReference) (config.AuthenticationFlowObject, error) {
-	// AccountRecoveryFlow is not configurable at the moment
-	var root config.AuthenticationFlowObject = GenerateAccountRecoveryFlowConfig(deps.Config)
+	var root config.AuthenticationFlowObject
+
+	for _, f := range deps.Config.AuthenticationFlow.AccountRecoveryFlows {
+		f := f
+		if f.Name == flowReference.Name {
+			root = f
+			break
+		}
+	}
+	if root == nil && flowReference.Name == nameGeneratedFlow {
+		root = GenerateAccountRecoveryFlowConfig(deps.Config)
+	}
 
 	if root == nil {
 		return nil, ErrFlowNotFound
