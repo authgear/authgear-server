@@ -34,6 +34,8 @@ type UIInfo struct {
 	RedirectURI string
 	// Prompt is the resolved prompt with prompt, max_age, and id_token_hint taken into account.
 	Prompt []string
+	// UILocales is ui_locales.
+	UILocales string
 	// UserIDHint is for reauthentication.
 	UserIDHint string
 	// CanUseIntentReauthenticate is for reauthentication.
@@ -224,6 +226,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 		Page:                       req.Page(),
 		SuppressIDPSessionCookie:   req.SuppressIDPSessionCookie(),
 		OAuthProviderAlias:         req.OAuthProviderAlias(),
+		UILocales:                  req.UILocalesRaw(),
 		LoginHint:                  loginIDHint,
 		IDTokenHint:                idTokenHint,
 	}
