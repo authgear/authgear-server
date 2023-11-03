@@ -615,6 +615,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                     appID,
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
+		HTTPProto:                 httpProto,
 		HTTPOrigin:                httpOrigin,
 		AppDomains:                appDomains,
 		Logger:                    authorizationHandlerLogger,
@@ -1139,6 +1140,7 @@ func newOAuthConsentHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                     appID,
 		Config:                    oAuthConfig,
 		HTTPConfig:                httpConfig,
+		HTTPProto:                 httpProto,
 		HTTPOrigin:                httpOrigin,
 		AppDomains:                appDomains,
 		Logger:                    authorizationHandlerLogger,
@@ -1980,6 +1982,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                  appID,
 		Config:                 oAuthConfig,
 		AppDomains:             appDomains,
+		HTTPProto:              httpProto,
 		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
@@ -4634,6 +4637,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                  appID,
 		Config:                 oAuthConfig,
 		AppDomains:             appDomains,
+		HTTPProto:              httpProto,
 		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,
@@ -4680,6 +4684,7 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	proxyRedirectHandler := &handler.ProxyRedirectHandler{
 		OAuthConfig: oAuthConfig,
 		HTTPOrigin:  httpOrigin,
+		HTTPProto:   httpProto,
 		AppDomains:  appDomains,
 	}
 	oauthProxyRedirectHandler := &oauth.ProxyRedirectHandler{
@@ -56160,6 +56165,7 @@ func newWebAppTesterHandler(p *deps.RequestProvider) http.Handler {
 		AppID:                  appID,
 		Config:                 oAuthConfig,
 		AppDomains:             appDomains,
+		HTTPProto:              httpProto,
 		HTTPOrigin:             httpOrigin,
 		OAuthFeatureConfig:     oAuthFeatureConfig,
 		IdentityFeatureConfig:  identityFeatureConfig,

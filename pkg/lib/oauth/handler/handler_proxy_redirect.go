@@ -11,6 +11,7 @@ import (
 type ProxyRedirectHandler struct {
 	OAuthConfig *config.OAuthConfig
 	HTTPOrigin  httputil.HTTPOrigin
+	HTTPProto   httputil.HTTPProto
 	AppDomains  config.AppDomains
 }
 
@@ -35,7 +36,7 @@ func (h *ProxyRedirectHandler) Validate(redirectURIWithQuery string) error {
 
 	for _, c := range h.OAuthConfig.Clients {
 		client := c
-		err = validateRedirectURI(&client, h.HTTPOrigin, h.AppDomains, redirectURI)
+		err = validateRedirectURI(&client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, redirectURI)
 		// pass the validation in one of the OAuth clients
 		if err == nil {
 			return nil
