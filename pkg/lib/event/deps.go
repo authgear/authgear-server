@@ -35,7 +35,6 @@ func NewService(
 	resolver Resolver,
 	hookSink *hook.Sink,
 	auditSink *audit.Sink,
-	// tutorialSink *tutorial.Sink,
 	elasticSearchSink *elasticsearch.Sink,
 ) *Service {
 	return &Service{
@@ -53,9 +52,6 @@ func NewService(
 			hookSink,
 			auditSink,
 			elasticSearchSink,
-			// The tutorial sink will cause concurrent write error if there are concurrent sign up.
-			// See https://github.com/authgear/authgear-server/issues/3104
-			// tutorialSink,
 		},
 	}
 }
