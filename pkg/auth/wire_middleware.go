@@ -175,13 +175,6 @@ func newTutorialMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
-func newWorkflowUIParamMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*workflow.UIParamMiddleware)),
-	))
-}
-
 func newWorkflowIntlMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

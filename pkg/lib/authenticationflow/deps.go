@@ -10,7 +10,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Service), "*"),
 	wire.Struct(new(StoreImpl), "*"),
 	wire.Bind(new(Store), new(*StoreImpl)),
-	wire.Struct(new(UIParamMiddleware), "*"),
 	wire.Struct(new(IntlMiddleware), "*"),
 	NewWebsocketEventStore,
 )

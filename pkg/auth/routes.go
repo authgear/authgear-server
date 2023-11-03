@@ -107,7 +107,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	workflowChain := httproute.Chain(
 		apiChain,
-		p.Middleware(newWorkflowUIParamMiddleware),
 		p.Middleware(newWorkflowIntlMiddleware),
 	)
 
