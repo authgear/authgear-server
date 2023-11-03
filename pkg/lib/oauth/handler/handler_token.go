@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
@@ -29,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -91,6 +93,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 }
 
 type TokenHandler struct {
+	Context                context.Context
 	AppID                  config.AppID
 	Config                 *config.OAuthConfig
 	AppDomains             config.AppDomains
@@ -116,6 +119,7 @@ type TokenHandler struct {
 	Challenges          ChallengeProvider
 	CodeGrantService    CodeGrantService
 	ClientResolver      OAuthClientResolver
+	UIInfoResolver      UIInfoResolver
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -340,6 +344,16 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	} else if err != nil {
 		return nil, err
 	}
+
+	// Restore uiparam
+	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, codeGrant.AuthorizationRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	uiParam := uiInfo.ToUIParam()
+	// Restore uiparam into context.
+	uiparam.WithUIParam(h.Context, &uiParam)
 
 	if h.Clock.NowUTC().After(codeGrant.ExpireAt) {
 		return nil, errInvalidAuthzCode
