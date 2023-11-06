@@ -5,7 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -92,15 +91,12 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			}
 			defer ctx.RateLimiter.Cancel(reservation)
 
-			uiParam := uiparam.GetUIParam(ctx.Request.Context())
-
 			// run the effects
 			err = ctx.Users.AfterCreate(
 				u,
 				graph.GetUserNewIdentities(),
 				graph.GetUserNewAuthenticators(),
 				n.IsAdminAPI,
-				uiParam,
 			)
 			if err != nil {
 				return err

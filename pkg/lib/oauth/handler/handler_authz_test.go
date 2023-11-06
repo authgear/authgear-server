@@ -291,13 +291,11 @@ func TestAuthorizationHandler(t *testing.T) {
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
 						},
-						CreatedAt:     time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						ExpireAt:      time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
-						Scopes:        []string{"openid"},
-						CodeHash:      "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
-						RedirectURI:   "https://example.com/",
-						OIDCNonce:     "my-nonce",
-						PKCEChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+						CreatedAt:            time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ExpireAt:             time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
+						CodeHash:             "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
+						RedirectURI:          "https://example.com/",
+						AuthorizationRequest: req,
 					})
 				})
 
@@ -345,13 +343,11 @@ func TestAuthorizationHandler(t *testing.T) {
 						AuthenticationInfo: authenticationinfo.T{
 							UserID: "user-id",
 						},
-						CreatedAt:     time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						ExpireAt:      time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
-						Scopes:        []string{"openid", "offline_access"},
-						CodeHash:      "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
-						RedirectURI:   "https://example.com/",
-						OIDCNonce:     "",
-						PKCEChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+						CreatedAt:            time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ExpireAt:             time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
+						CodeHash:             "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
+						RedirectURI:          "https://example.com/",
+						AuthorizationRequest: req,
 					})
 				})
 			})

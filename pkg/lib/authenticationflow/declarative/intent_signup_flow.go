@@ -9,7 +9,6 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -98,7 +97,6 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			userID := i.userID(flows.Nearest)
 			isAdminAPI := false
-			uiParam := uiparam.GetUIParam(ctx)
 
 			u, err := deps.Users.GetRaw(userID)
 			if err != nil {
@@ -120,7 +118,6 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 				identities,
 				authenticators,
 				isAdminAPI,
-				uiParam,
 			)
 			if err != nil {
 				return err

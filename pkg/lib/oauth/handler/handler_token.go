@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -28,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -90,6 +93,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 }
 
 type TokenHandler struct {
+	Context                context.Context
 	AppID                  config.AppID
 	Config                 *config.OAuthConfig
 	AppDomains             config.AppDomains
@@ -115,6 +119,7 @@ type TokenHandler struct {
 	Challenges          ChallengeProvider
 	CodeGrantService    CodeGrantService
 	ClientResolver      OAuthClientResolver
+	UIInfoResolver      UIInfoResolver
 }
 
 func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
@@ -340,6 +345,16 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
+	// Restore uiparam
+	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, codeGrant.AuthorizationRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	uiParam := uiInfo.ToUIParam()
+	// Restore uiparam into context.
+	uiparam.WithUIParam(h.Context, &uiParam)
+
 	if h.Clock.NowUTC().After(codeGrant.ExpireAt) {
 		return nil, errInvalidAuthzCode
 	}
@@ -349,9 +364,9 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	}
 
 	// verify pkce
-	needVerifyPKCE := client.IsPublic() || codeGrant.PKCEChallenge != "" || r.CodeVerifier() != ""
+	needVerifyPKCE := client.IsPublic() || codeGrant.AuthorizationRequest.CodeChallenge() != "" || r.CodeVerifier() != ""
 	if needVerifyPKCE {
-		if codeGrant.PKCEChallenge == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(codeGrant.PKCEChallenge) {
+		if codeGrant.AuthorizationRequest.CodeChallenge() == "" || r.CodeVerifier() == "" || !pkce.NewS256Verifier(r.CodeVerifier()).Verify(codeGrant.AuthorizationRequest.CodeChallenge()) {
 			return nil, errInvalidAuthzCode
 		}
 	}
@@ -881,17 +896,23 @@ func (h *TokenHandler) handleApp2AppRequest(
 		UserID:          originalOfflineGrant.GetUserID(),
 		AuthenticatedAt: h.Clock.NowUTC(),
 	}
+
+	// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
+	artificialAuthorizationRequest := make(protocol.AuthorizationRequest)
+	artificialAuthorizationRequest["client_id"] = client.ClientID
+	artificialAuthorizationRequest["scope"] = strings.Join(authz.Scopes, " ")
+	artificialAuthorizationRequest["code_challenge"] = r.CodeChallenge()
+	if originalOfflineGrant.SSOEnabled {
+		artificialAuthorizationRequest["x_sso_enabled"] = "true"
+	}
+
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
-		Authorization:      authz,
-		IDPSessionID:       originalOfflineGrant.IDPSessionID,
-		AuthenticationInfo: info,
-		IDTokenHintSID:     "",
-		Scopes:             authz.Scopes,
-		RedirectURI:        redirectURI.String(),
-		// FIXME(tung): It seems nonce is not needed in app2app because native apps are not using it?
-		OIDCNonce:     "",
-		PKCEChallenge: r.CodeChallenge(),
-		SSOEnabled:    originalOfflineGrant.SSOEnabled,
+		Authorization:        authz,
+		IDPSessionID:         originalOfflineGrant.IDPSessionID,
+		AuthenticationInfo:   info,
+		IDTokenHintSID:       "",
+		RedirectURI:          redirectURI.String(),
+		AuthorizationRequest: artificialAuthorizationRequest,
 	})
 	if err != nil {
 		return nil, err
@@ -983,7 +1004,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
-	for _, scope := range code.Scopes {
+	for _, scope := range code.AuthorizationRequest.Scope() {
 		switch scope {
 		case "offline_access":
 			issueRefreshToken = true
@@ -1057,12 +1078,12 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	var sid string
 
 	opts := IssueOfflineGrantOptions{
-		Scopes:             code.Scopes,
+		Scopes:             code.AuthorizationRequest.Scope(),
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
 		IDPSessionID:       code.IDPSessionID,
 		DeviceInfo:         deviceInfo,
-		SSOEnabled:         code.SSOEnabled,
+		SSOEnabled:         code.AuthorizationRequest.SSOEnabled(),
 		App2AppDeviceKey:   app2appDevicePublicKey,
 	}
 	if issueRefreshToken {
@@ -1129,7 +1150,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		return nil, protocol.NewError("invalid_request", "cannot issue access token")
 	}
 
-	err := h.TokenService.IssueAccessGrant(client, code.Scopes, authz.ID, authz.UserID, accessTokenSessionID, accessTokenSessionKind, resp)
+	err := h.TokenService.IssueAccessGrant(client, code.AuthorizationRequest.Scope(), authz.ID, authz.UserID, accessTokenSessionID, accessTokenSessionKind, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
 		return nil, err
@@ -1142,9 +1163,9 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                sid,
-			Nonce:              code.OIDCNonce,
+			Nonce:              code.AuthorizationRequest.Nonce(),
 			AuthenticationInfo: info,
-			ClientLike:         oauth.ClientClientLike(client, code.Scopes),
+			ClientLike:         oauth.ClientClientLike(client, code.AuthorizationRequest.Scope()),
 		})
 		if err != nil {
 			return nil, err

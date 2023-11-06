@@ -1,19 +1,21 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
-// ClientIDCookieDef is a HTTP session cookie.
-var ClientIDCookieDef = &httputil.CookieDef{
-	NameSuffix: "client_id",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
-}
+// ClientIDCookieDef is deprecated.
+// var ClientIDCookieDef = &httputil.CookieDef{
+// 	NameSuffix: "client_id",
+// 	Path:       "/",
+// 	SameSite:   http.SameSiteNoneMode,
+// }
 
 // UILocalesCookieDef is a HTTP session cookie.
 var UILocalesCookieDef = &httputil.CookieDef{
@@ -22,43 +24,52 @@ var UILocalesCookieDef = &httputil.CookieDef{
 	SameSite:   http.SameSiteNoneMode,
 }
 
-// StateCookieDef is a HTTP session cookie.
-var StateCookieDef = &httputil.CookieDef{
-	NameSuffix: "state",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
-}
+// StateCookieDef is deprecated.
+// var StateCookieDef = &httputil.CookieDef{
+// 	NameSuffix: "state",
+// 	Path:       "/",
+// 	SameSite:   http.SameSiteNoneMode,
+// }
 
-// XStateCookieDef is a HTTP session cookie.
-var XStateCookieDef = &httputil.CookieDef{
-	NameSuffix: "x_state",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
-}
+// XStateCookieDef is deprecated.
+// var XStateCookieDef = &httputil.CookieDef{
+// 	NameSuffix: "x_state",
+// 	Path:       "/",
+// 	SameSite:   http.SameSiteNoneMode,
+// }
 
 type UIParamMiddleware struct {
-	Cookies CookieManager
+	UIInfoResolver SessionMiddlewareUIInfoResolver
+	OAuthSessions  SessionMiddlewareOAuthSessionService
+	Cookies        CookieManager
 }
 
 func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// restore uiparam from oauth session.
 		var uiParam uiparam.T
 
-		q := r.URL.Query()
+		webSession := GetSession(r.Context())
+		if webSession != nil {
+			if webSession.OAuthSessionID != "" {
+				entry, err := m.OAuthSessions.Get(webSession.OAuthSessionID)
+				if err != nil && !errors.Is(err, oauthsession.ErrNotFound) {
+					panic(err)
+				}
 
-		// client_id
-		clientID := q.Get("client_id")
-		if clientID != "" {
-			httputil.UpdateCookie(w, m.Cookies.ValueCookie(ClientIDCookieDef, clientID))
-		}
-		if clientID == "" {
-			if cookie, err := m.Cookies.GetCookie(r, ClientIDCookieDef); err == nil {
-				clientID = cookie.Value
+				if entry != nil {
+					uiInfo, err := m.UIInfoResolver.ResolveForUI(entry.T.AuthorizationRequest)
+					if err != nil {
+						panic(err)
+					}
+
+					uiParam = uiInfo.ToUIParam()
+				}
 			}
 		}
-		uiParam.ClientID = clientID
 
-		// ui_locales
+		// Allow overriding ui_locales with query.
+		q := r.URL.Query()
 		uiLocales := q.Get("ui_locales")
 		if uiLocales != "" {
 			httputil.UpdateCookie(w, m.Cookies.ValueCookie(UILocalesCookieDef, uiLocales))
@@ -69,30 +80,6 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 			}
 		}
 		uiParam.UILocales = uiLocales
-
-		// state
-		state := q.Get("state")
-		if state != "" {
-			httputil.UpdateCookie(w, m.Cookies.ValueCookie(StateCookieDef, state))
-		}
-		if state == "" {
-			if cookie, err := m.Cookies.GetCookie(r, StateCookieDef); err == nil {
-				state = cookie.Value
-			}
-		}
-		uiParam.State = state
-
-		// x_state
-		xState := q.Get("x_state")
-		if xState != "" {
-			httputil.UpdateCookie(w, m.Cookies.ValueCookie(XStateCookieDef, xState))
-		}
-		if xState == "" {
-			if cookie, err := m.Cookies.GetCookie(r, XStateCookieDef); err == nil {
-				xState = cookie.Value
-			}
-		}
-		uiParam.XState = xState
 
 		// Put uiParam into context
 		ctx := r.Context()

@@ -27,7 +27,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -121,7 +120,7 @@ type UserService interface {
 		identities []*identity.Info,
 		authenticators []*authenticator.Info,
 		isAdminAPI bool,
-		uiParam *uiparam.T) error
+	) error
 }
 
 type IDPSessionService interface {

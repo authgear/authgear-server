@@ -1,15 +1,11 @@
 package deps
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/app2app"
-	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
-	"github.com/authgear/authgear-server/pkg/lib/lockout"
-	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
-	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
+	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -48,7 +44,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -58,14 +56,17 @@ import (
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	oauthpq "github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	oauthredis "github.com/authgear/authgear-server/pkg/lib/oauth/redis"
+	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -81,6 +82,8 @@ var CommonDependencySet = wire.NewSet(
 	template.DependencySet,
 
 	healthz.DependencySet,
+
+	uiparam.DependencySet,
 
 	wire.NewSet(
 		authenticationinfo.DependencySet,

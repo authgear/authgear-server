@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -132,7 +131,6 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 
 			userID := i.userID(workflows.Nearest)
 			isAdminAPI := false
-			uiParam := uiparam.GetUIParam(ctx)
 
 			u, err := deps.Users.GetRaw(userID)
 			if err != nil {
@@ -144,7 +142,6 @@ func (i *IntentMigrate) GetEffects(ctx context.Context, deps *workflow.Dependenc
 				identities,
 				authenticators,
 				isAdminAPI,
-				uiParam,
 			)
 			if err != nil {
 				return err

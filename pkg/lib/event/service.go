@@ -207,6 +207,14 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 	auditCtx := adminauthz.GetAdminAuthzAudit(s.Context)
 	clientID := uiParam.ClientID
 
+	var oauthContext *event.OAuthContext
+	if uiParam.State != "" || uiParam.XState != "" {
+		oauthContext = &event.OAuthContext{
+			State:  uiParam.State,
+			XState: uiParam.XState,
+		}
+	}
+
 	ctx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),
 		UserID:             userID,
@@ -218,6 +226,7 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		UserAgent:          string(s.UserAgentString),
 		AppID:              string(s.AppID),
 		ClientID:           clientID,
+		OAuth:              oauthContext,
 	}
 
 	payload.FillContext(ctx)

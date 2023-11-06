@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -32,7 +31,6 @@ func (c *Commands) AfterCreate(
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isAdminAPI bool,
-	uiParam *uiparam.T,
 ) error {
 	isVerified, err := c.Verification.IsUserVerified(identities)
 	if err != nil {
@@ -60,20 +58,11 @@ func (c *Commands) AfterCreate(
 		identityModels = append(identityModels, i.ToModel())
 	}
 
-	var oauthState string
-	var oauthXState string
-	if uiParam != nil {
-		oauthState = uiParam.State
-		oauthXState = uiParam.XState
-	}
-
 	events := []event.Payload{
 		&blocking.UserPreCreateBlockingEventPayload{
-			UserRef:     *user.ToRef(),
-			Identities:  identityModels,
-			AdminAPI:    isAdminAPI,
-			OAuthState:  oauthState,
-			OAuthXState: oauthXState,
+			UserRef:    *user.ToRef(),
+			Identities: identityModels,
+			AdminAPI:   isAdminAPI,
 		},
 		&nonblocking.UserCreatedEventPayload{
 			UserRef:    *user.ToRef(),

@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -319,6 +320,15 @@ func (h *AuthorizationHandler) prepareConsentRequest(req *http.Request) (*consen
 		return nil, err
 	}
 
+	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, r)
+	if err != nil {
+		return nil, err
+	}
+
+	uiParam := uiInfo.ToUIParam()
+	// Restore uiparam into context.
+	uiparam.WithUIParam(h.Context, &uiParam)
+
 	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
@@ -582,15 +592,12 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	resp protocol.AuthorizationResponse,
 ) error {
 	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
-		Authorization:      authz,
-		IDPSessionID:       idpSessionID,
-		AuthenticationInfo: authenticationInfo,
-		IDTokenHintSID:     idTokenHintSID,
-		Scopes:             r.Scope(),
-		RedirectURI:        redirectURI,
-		OIDCNonce:          r.Nonce(),
-		PKCEChallenge:      r.CodeChallenge(),
-		SSOEnabled:         r.SSOEnabled(),
+		Authorization:        authz,
+		IDPSessionID:         idpSessionID,
+		AuthenticationInfo:   authenticationInfo,
+		IDTokenHintSID:       idTokenHintSID,
+		RedirectURI:          redirectURI,
+		AuthorizationRequest: r,
 	})
 	if err != nil {
 		return err
