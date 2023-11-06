@@ -13,6 +13,20 @@ With a comprehensive range of out-of-the-box features to accelerate your project
 - B2B Enterprise Connections: ADFS, LDAP
 - and more...
 
+---
+
+**[🏡 Website](https://authgear.com) [💬 Chat](https://go.authgear.com/discord) [🏛️ Forum](https://github.com/orgs/authgear/discussions) [📋 Docs](https://docs.authgear.com/)**
+## Documentation and quick-start guide
+The easiest way to start is to sign up at [authgear.com](https://authgear.com) for a free account.
+
+[✅ Quick Start Guide](https://docs.authgear.com/get-started/start-building)
+
+Our Quick Start Guide includes tutorials and code examples for popular programming languages, tools, and frameworks like JavaScript, Go, PHP, Next.js, Laravel, Spring, and more.
+
+For more details about getting started with using Authgear, check out the official documentation site at https://docs.authgear.com.
+
+Also, you can take a look at our [example projects repos](https://github.com/orgs/authgear/repositories?language=&q=example&sort=&type=all) that demonstrate how to use Authgear.
+
 ## What is Authgear Server?
 Authgear server is the open-source project that powers Authgear's authentication-as-a-service solution. It includes the code for the server, AuthUI, the Portal, and Admin API. You can use Authgear Server to set up your own self-hosted instance of Authgear service.
 
@@ -23,12 +37,7 @@ Authgear Server includes the following features and components of Authgear:
 - AuthUI  (a customizable User Interface (UI) for login, user registration, and profile settings pages)
 - Admin API (provides a GraphQL interface for developers to interact with services and data on Authgear)
 
-## Documentation and quick-start guide
-To get started with using Authgear, check out the official documentation site at https://docs.authgear.com.
 
-We've also provided quick-start guides for popular programming languages, tools, and frameworks like JavaScript, Go, PHP, Next.js, Laravel, Spring, and more. Learn more here: [Quick start guide](https://docs.authgear.com/get-started/start-building)
-
-In addition, you can take a look at our [example projects repos](https://github.com/orgs/authgear/repositories?language=&q=example&sort=&type=all) that demonstrate how to use Authgear.
 
 ## Setting up the project and running Authgear Server
 The Authgear Server project allows developers to set up their own instance of Authgear.
