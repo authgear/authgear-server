@@ -55,23 +55,26 @@ func DecodeAuthflowOAuthState(stateStr string) (*AuthflowOAuthState, error) {
 
 const AuthflowQueryKey = "x_step"
 
-// Authflow stores the necessary information for webapp to run an authflow, including
-// navigation, and branching.
+// Authflow remembers all seen screens. The screens could come from more than 1 flow.
+// We intentionally DO NOT clear screens when a different flow is created.
+// As long as the browser has a reference to x_step, a screen can be retrieved.
+// This design is important to ensure traversing browser history will not cause flow not found error.
+// See https://github.com/authgear/authgear-server/issues/3452
 type Authflow struct {
 	// AllScreens is x_step => screen.
 	AllScreens map[string]*AuthflowScreen `json:"all_screens,omitempty"`
 }
 
-func NewAuthflow(initialScreen *AuthflowScreenWithFlowResponse) *Authflow {
-	af := &Authflow{
-		AllScreens: map[string]*AuthflowScreen{},
+func (s *Session) RememberScreen(screen *AuthflowScreenWithFlowResponse) {
+	if s.Authflow == nil {
+		s.Authflow = &Authflow{}
 	}
-	af.RememberScreen(initialScreen)
-	return af
-}
 
-func (f *Authflow) RememberScreen(screen *AuthflowScreenWithFlowResponse) {
-	f.AllScreens[screen.Screen.StateToken.XStep] = screen.Screen
+	if s.Authflow.AllScreens == nil {
+		s.Authflow.AllScreens = make(map[string]*AuthflowScreen)
+	}
+
+	s.Authflow.AllScreens[screen.Screen.StateToken.XStep] = screen.Screen
 }
 
 // AuthflowStateToken pairs x_step with its underlying state_token.
