@@ -22,14 +22,14 @@ func init() {
 	authflow.RegisterNode(&NodeCreateAuthenticatorTOTP{})
 }
 
-type NodeCreateAuthenticatorTOTPData struct {
+type nodeCreateAuthenticatorTOTPData struct {
 	Secret     string `json:"secret"`
 	OTPAuthURI string `json:"otpauth_uri"`
 }
 
-var _ authflow.Data = NodeCreateAuthenticatorTOTPData{}
+var _ authflow.Data = nodeCreateAuthenticatorTOTPData{}
 
-func (m NodeCreateAuthenticatorTOTPData) Data() {}
+func (m nodeCreateAuthenticatorTOTPData) Data() {}
 
 type NodeCreateAuthenticatorTOTP struct {
 	JSONPointer    jsonpointer.T                           `json:"json_pointer,omitempty"`
@@ -131,7 +131,7 @@ func (n *NodeCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *auth
 	}
 	otpauthURI := secretcode.NewTOTPFromSecret(secret).GetURI(opts).String()
 
-	return NodeCreateAuthenticatorTOTPData{
+	return nodeCreateAuthenticatorTOTPData{
 		Secret:     secret,
 		OTPAuthURI: otpauthURI,
 	}, nil

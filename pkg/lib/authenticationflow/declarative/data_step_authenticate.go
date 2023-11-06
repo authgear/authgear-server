@@ -4,11 +4,11 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 )
 
-type StepAuthenticateData struct {
+type stepAuthenticateData struct {
 	Options            []AuthenticateOptionForOutput `json:"options"`
 	DeviceTokenEnabled bool                          `json:"device_token_enable"`
 }
 
-var _ authflow.Data = StepAuthenticateData{}
+var _ authflow.Data = stepAuthenticateData{}
 
-func (m StepAuthenticateData) Data() {}
+func (m stepAuthenticateData) Data() {}

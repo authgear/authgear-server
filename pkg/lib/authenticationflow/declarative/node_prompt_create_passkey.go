@@ -17,13 +17,13 @@ func init() {
 	authflow.RegisterNode(&NodePromptCreatePasskey{})
 }
 
-type NodePromptCreatePasskeyData struct {
+type nodePromptCreatePasskeyData struct {
 	CreationOptions *model.WebAuthnCreationOptions `json:"creation_options,omitempty"`
 }
 
-var _ authflow.Data = &NodePromptCreatePasskeyData{}
+var _ authflow.Data = &nodePromptCreatePasskeyData{}
 
-func (m NodePromptCreatePasskeyData) Data() {}
+func (m nodePromptCreatePasskeyData) Data() {}
 
 type NodePromptCreatePasskey struct {
 	JSONPointer     jsonpointer.T                  `json:"json_pointer,omitempty"`
@@ -108,7 +108,7 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 }
 
 func (n *NodePromptCreatePasskey) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return NodePromptCreatePasskeyData{
+	return nodePromptCreatePasskeyData{
 		CreationOptions: n.CreationOptions,
 	}, nil
 }

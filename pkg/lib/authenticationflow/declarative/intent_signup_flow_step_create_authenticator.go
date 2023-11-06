@@ -19,13 +19,13 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepCreateAuthenticator{})
 }
 
-type IntentSignupFlowStepCreateAuthenticatorData struct {
+type intentSignupFlowStepCreateAuthenticatorData struct {
 	Options []CreateAuthenticatorOption `json:"options,omitempty"`
 }
 
-var _ authflow.Data = &IntentSignupFlowStepCreateAuthenticatorData{}
+var _ authflow.Data = &intentSignupFlowStepCreateAuthenticatorData{}
 
-func (m IntentSignupFlowStepCreateAuthenticatorData) Data() {}
+func (m intentSignupFlowStepCreateAuthenticatorData) Data() {}
 
 type IntentSignupFlowStepCreateAuthenticator struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -154,7 +154,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context
 	}
 	step := i.step(current)
 
-	return IntentSignupFlowStepCreateAuthenticatorData{
+	return intentSignupFlowStepCreateAuthenticatorData{
 		Options: NewCreateAuthenticationOptions(deps, step),
 	}, nil
 }

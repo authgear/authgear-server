@@ -15,13 +15,13 @@ func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepIdentify{})
 }
 
-type IntentAccountRecoveryFlowStepIdentifyData struct {
+type intentAccountRecoveryFlowStepIdentifyData struct {
 	Options []AccountRecoveryIdentificationOption `json:"options"`
 }
 
-var _ authflow.Data = IntentAccountRecoveryFlowStepIdentifyData{}
+var _ authflow.Data = intentAccountRecoveryFlowStepIdentifyData{}
 
-func (IntentAccountRecoveryFlowStepIdentifyData) Data() {}
+func (intentAccountRecoveryFlowStepIdentifyData) Data() {}
 
 type IntentAccountRecoveryFlowStepIdentify struct {
 	FlowReference authflow.FlowReference                `json:"flow_reference,omitempty"`
@@ -155,7 +155,7 @@ func (i *IntentAccountRecoveryFlowStepIdentify) ReactTo(ctx context.Context, dep
 }
 
 func (i *IntentAccountRecoveryFlowStepIdentify) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentAccountRecoveryFlowStepIdentifyData{
+	return intentAccountRecoveryFlowStepIdentifyData{
 		Options: i.Options,
 	}, nil
 }

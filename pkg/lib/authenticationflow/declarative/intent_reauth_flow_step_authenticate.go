@@ -155,7 +155,7 @@ func (i *IntentReauthFlowStepAuthenticate) OutputData(ctx context.Context, deps 
 		options = append(options, o.ToOutput())
 	}
 
-	return StepAuthenticateData{
+	return stepAuthenticateData{
 		Options: options,
 	}, nil
 }
