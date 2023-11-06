@@ -21,7 +21,7 @@ func init() {
 	authflow.RegisterNode(&NodeVerifyClaim{})
 }
 
-type NodeVerifyClaimData struct {
+type nodeVerifyClaimData struct {
 	Channel                        model.AuthenticatorOOBChannel `json:"channel,omitempty"`
 	OTPForm                        otp.Form                      `json:"otp_form,omitempty"`
 	WebsocketURL                   string                        `json:"websocket_url,omitempty"`
@@ -32,9 +32,9 @@ type NodeVerifyClaimData struct {
 	FailedAttemptRateLimitExceeded bool                          `json:"failed_attempt_rate_limit_exceeded"`
 }
 
-var _ authflow.Data = &NodeVerifyClaimData{}
+var _ authflow.Data = &nodeVerifyClaimData{}
 
-func (m NodeVerifyClaimData) Data() {}
+func (m nodeVerifyClaimData) Data() {}
 
 type NodeVerifyClaim struct {
 	JSONPointer          jsonpointer.T                 `json:"json_pointer,omitempty"`
@@ -152,7 +152,7 @@ func (n *NodeVerifyClaim) OutputData(ctx context.Context, deps *authflow.Depende
 		}
 	}
 
-	return NodeVerifyClaimData{
+	return nodeVerifyClaimData{
 		Channel:                        n.Channel,
 		OTPForm:                        n.Form,
 		WebsocketURL:                   websocketURL,

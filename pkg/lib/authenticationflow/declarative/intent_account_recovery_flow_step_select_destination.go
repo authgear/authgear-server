@@ -17,13 +17,13 @@ func init() {
 	authflow.RegisterIntent(&IntentAccountRecoveryFlowStepSelectDestination{})
 }
 
-type IntentAccountRecoveryFlowStepSelectDestinationData struct {
+type intentAccountRecoveryFlowStepSelectDestinationData struct {
 	Options []AccountRecoveryDestinationOption `json:"options"`
 }
 
-var _ authflow.Data = IntentAccountRecoveryFlowStepSelectDestinationData{}
+var _ authflow.Data = intentAccountRecoveryFlowStepSelectDestinationData{}
 
-func (IntentAccountRecoveryFlowStepSelectDestinationData) Data() {}
+func (intentAccountRecoveryFlowStepSelectDestinationData) Data() {}
 
 type IntentAccountRecoveryFlowStepSelectDestination struct {
 	JSONPointer jsonpointer.T                              `json:"json_pointer,omitempty"`
@@ -163,7 +163,7 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) ReactTo(ctx context.Con
 }
 
 func (i *IntentAccountRecoveryFlowStepSelectDestination) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentAccountRecoveryFlowStepSelectDestinationData{
+	return intentAccountRecoveryFlowStepSelectDestinationData{
 		Options: i.getOptions(),
 	}, nil
 }

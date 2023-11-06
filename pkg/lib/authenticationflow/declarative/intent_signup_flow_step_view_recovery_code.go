@@ -12,13 +12,13 @@ func init() {
 	authflow.RegisterIntent(&IntentSignupFlowStepViewRecoveryCode{})
 }
 
-type IntentSignupFlowStepViewRecoveryCodeData struct {
+type intentSignupFlowStepViewRecoveryCodeData struct {
 	RecoveryCodes []string `json:"recovery_codes"`
 }
 
-var _ authflow.Data = IntentSignupFlowStepViewRecoveryCodeData{}
+var _ authflow.Data = intentSignupFlowStepViewRecoveryCodeData{}
 
-func (IntentSignupFlowStepViewRecoveryCodeData) Data() {}
+func (intentSignupFlowStepViewRecoveryCodeData) Data() {}
 
 type IntentSignupFlowStepViewRecoveryCode struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
@@ -65,7 +65,7 @@ func (i *IntentSignupFlowStepViewRecoveryCode) ReactTo(ctx context.Context, deps
 }
 
 func (i *IntentSignupFlowStepViewRecoveryCode) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	return IntentSignupFlowStepViewRecoveryCodeData{
+	return intentSignupFlowStepViewRecoveryCodeData{
 		RecoveryCodes: i.RecoveryCodes,
 	}, nil
 }
