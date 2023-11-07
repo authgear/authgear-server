@@ -16,6 +16,7 @@ With a comprehensive range of out-of-the-box features to accelerate your project
 ---
 
 **[🏡 Website](https://authgear.com) [💬 Chat](https://go.authgear.com/discord) [🏛️ Forum](https://github.com/orgs/authgear/discussions) [📋 Docs](https://docs.authgear.com/)**
+
 ## Documentation and quick-start guide
 The easiest way to start is to sign up at [authgear.com](https://authgear.com) for a free account.
 
@@ -37,18 +38,6 @@ Authgear Server includes the following features and components of Authgear:
 - AuthUI  (a customizable User Interface (UI) for login, user registration, and profile settings pages)
 - Admin API (provides a GraphQL interface for developers to interact with services and data on Authgear)
 
-
-
-## Setting up the project and running Authgear Server
-The Authgear Server project allows developers to set up their own instance of Authgear.
-
-We've provided detailed instructions on how to set up a self-hosted instance of Authgear here: https://docs.authgear.com/deploy-on-your-cloud/local
-
-[Helm Chart](https://docs.authgear.com/deploy-on-your-cloud/helm) is the recommended way to deploy Authgear on Kubernetes for production usage
-
-## How to contribute
-Please refer to [CONTRIBUTING.md](https://github.com/authgear/authgear-server/blob/main/CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.
-
 ### Authgear SDK
 In addition to Authgear Server, we provide SDKs that developers can use to integrate Authgear into their apps.
 
@@ -60,6 +49,15 @@ These SDKs exist as standalone projects under the following repositories:
 - [Flutter](https://github.com/authgear/authgear-sdk-flutter)
 - [Xamarin](https://github.com/authgear/authgear-sdk-xamarin)
 
+## Setting up the project and running Authgear Server
+The Authgear Server project allows developers to set up their own instance of Authgear.
+
+We've provided detailed instructions on how to set up a self-hosted instance of Authgear here: https://docs.authgear.com/deploy-on-your-cloud/local
+
+[Helm Chart](https://docs.authgear.com/deploy-on-your-cloud/helm) is the recommended way to deploy Authgear on Kubernetes for production usage
+
+## How to contribute
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md) if you need instructions on contributing to the development of Authgear Server.
 
 ## Credits
 
