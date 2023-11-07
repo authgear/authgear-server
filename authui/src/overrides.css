@@ -1,0 +1,4 @@
+/* Overrides default styles of intl-tel-input */
+.iti__country-list {
+  width: max-content;
+}
