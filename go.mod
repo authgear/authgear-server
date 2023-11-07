@@ -47,8 +47,8 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/trustelem/zxcvbn v1.0.1
 	github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc
-	golang.org/x/crypto v0.13.0
-	golang.org/x/net v0.15.0
+	golang.org/x/crypto v0.14.0
+	golang.org/x/net v0.17.0
 	golang.org/x/oauth2 v0.12.0
 	golang.org/x/text v0.13.0
 	google.golang.org/api v0.141.0
@@ -73,7 +73,7 @@ require (
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.6.8
 	github.com/vimeo/go-magic v1.0.0
-	golang.org/x/term v0.12.0
+	golang.org/x/term v0.13.0
 )
 
 require (
@@ -178,7 +178,7 @@ require (
 	golang.org/x/image v0.5.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
