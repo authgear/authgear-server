@@ -501,22 +501,35 @@ func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, fl
 }
 
 // AdvanceWithInput is for feeding an input that would advance the flow.
-func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
+func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session, screen0 *webapp.AuthflowScreenWithFlowResponse, input map[string]interface{}) (result *webapp.Result, err error) {
 	result = &webapp.Result{}
 
-	output, err := c.feedInput(screen.Screen.StateToken.StateToken, input)
+	output1, err := c.feedInput(screen0.Screen.StateToken.StateToken, input)
 	if err != nil {
 		return
 	}
 
-	result.Cookies = append(result.Cookies, output.Cookies...)
-	newF := output.ToFlowResponse()
-	if newF.Action.Type == authflow.FlowActionTypeFinished {
+	result.Cookies = append(result.Cookies, output1.Cookies...)
+	flowResponse1 := output1.ToFlowResponse()
+
+	screen1 := webapp.NewAuthflowScreenWithFlowResponse(&flowResponse1, screen0.Screen.StateToken.XStep, input)
+	s.RememberScreen(screen1)
+
+	output2, screen2, err := c.takeBranchRecursively(s, screen1)
+	if err != nil {
+		return
+	}
+	if output2 != nil {
+		result.Cookies = append(result.Cookies, output2.Cookies...)
+	}
+	flowResponse2 := *screen2.StateTokenFlowResponse
+
+	if flowResponse2.Action.Type == authflow.FlowActionTypeFinished {
 		result.RemoveQueries = setutil.Set[string]{
 			"x_step": struct{}{},
 		}
 		result.NavigationAction = "redirect"
-		result.RedirectURI = c.deriveFinishRedirectURI(r, s, &newF)
+		result.RedirectURI = c.deriveFinishRedirectURI(r, s, &flowResponse2)
 
 		err = c.Sessions.Delete(s.ID)
 		if err != nil {
@@ -528,14 +541,6 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 		// Reset visitor ID.
 		result.Cookies = append(result.Cookies, c.Cookies.ClearCookie(webapp.VisitorIDCookieDef))
 	} else {
-		newScreen := webapp.NewAuthflowScreenWithFlowResponse(&newF, screen.Screen.StateToken.XStep, input)
-		s.RememberScreen(newScreen)
-
-		output, newScreen, err = c.takeBranchRecursively(s, newScreen)
-		if err != nil {
-			return
-		}
-
 		now := c.Clock.NowUTC()
 		s.UpdatedAt = now
 		err = c.Sessions.Update(s)
@@ -543,11 +548,7 @@ func (c *AuthflowController) AdvanceWithInput(r *http.Request, s *webapp.Session
 			return
 		}
 
-		if output != nil {
-			result.Cookies = append(result.Cookies, output.Cookies...)
-		}
-
-		newScreen.Navigate(r, s.ID, result)
+		screen2.Navigate(r, s.ID, result)
 	}
 
 	return
