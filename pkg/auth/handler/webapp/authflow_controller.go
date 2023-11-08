@@ -129,17 +129,25 @@ func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	handleWithScreen := func(screen *webapp.AuthflowScreenWithFlowResponse) {
+		handler := c.makeHTTPHandler(s, screen, handlers)
+		handler.ServeHTTP(w, r)
+	}
+
 	screen, err := c.getScreen(s, GetXStepFromQuery(r))
 	if err != nil {
 		if errors.Is(err, authflow.ErrFlowNotFound) {
-			result, err := c.createScreen(r, s, flowReference)
+			screen, err := c.createScreen(r, s, flowReference)
 			if err != nil {
 				c.Logger.WithError(err).Errorf("failed to create screen")
 				c.renderError(w, r, err)
 				return
 			}
 
-			result.WriteResponse(w, r)
+			// We used to redirect to the same page with x_step added.
+			// But that could be blocked by mobile Safari 17 private mode.
+			// See https://github.com/authgear/authgear-server/issues/3470
+			handleWithScreen(screen)
 			return
 		}
 
@@ -153,8 +161,8 @@ func (c *AuthflowController) HandleStartOfFlow(w http.ResponseWriter, r *http.Re
 		c.renderError(w, r, err)
 		return
 	}
-	handler := c.makeHTTPHandler(s, screen, handlers)
-	handler.ServeHTTP(w, r)
+
+	handleWithScreen(screen)
 }
 
 func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.Request, callbackResponse AuthflowOAuthCallbackResponse) {
@@ -242,8 +250,7 @@ func (c *AuthflowController) HandleResumeOfFlow(
 		return
 	}
 
-	result := &webapp.Result{}
-	screen, err := c.createScreenWithOutput(r, s, output, result)
+	screen, err := c.createScreenWithOutput(r, s, output)
 	if err != nil {
 		c.Logger.WithError(err).Errorf("failed to create screen")
 		handleError(err)
@@ -461,7 +468,6 @@ func (c *AuthflowController) createScreenWithOutput(
 	r *http.Request,
 	s *webapp.Session,
 	output *authflow.ServiceOutput,
-	result *webapp.Result,
 ) (*webapp.AuthflowScreenWithFlowResponse, error) {
 	flowResponse := output.ToFlowResponse()
 	emptyXStep := ""
@@ -481,19 +487,16 @@ func (c *AuthflowController) createScreenWithOutput(
 		return nil, err
 	}
 
-	screen.Navigate(r, s.ID, result)
 	return screen, nil
 }
 
-func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (result *webapp.Result, err error) {
-	result = &webapp.Result{}
-
+func (c *AuthflowController) createScreen(r *http.Request, s *webapp.Session, flowReference authflow.FlowReference) (screen *webapp.AuthflowScreenWithFlowResponse, err error) {
 	output, err := c.createAuthflow(r, s, flowReference)
 	if err != nil {
 		return
 	}
 
-	_, err = c.createScreenWithOutput(r, s, output, result)
+	screen, err = c.createScreenWithOutput(r, s, output)
 	if err != nil {
 		return
 	}

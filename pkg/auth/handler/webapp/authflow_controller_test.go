@@ -204,14 +204,13 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
 
-			result, err := c.createScreen(r, s, authflow.FlowReference{
+			screen, err := c.createScreen(r, s, authflow.FlowReference{
 				Type: authflow.FlowTypeLogin,
 				Name: "default",
 			})
 			So(err, ShouldBeNil)
-			So(result, ShouldNotBeNil)
-			So(result.NavigationAction, ShouldEqual, "replace")
-			So(strings.HasPrefix(result.RedirectURI, "/login?x_step="), ShouldBeTrue)
+			So(screen, ShouldNotBeNil)
+			So(string(screen.BranchStateTokenFlowResponse.Type), ShouldEqual, "login")
 		})
 	})
 }
