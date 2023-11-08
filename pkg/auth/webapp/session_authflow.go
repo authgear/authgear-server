@@ -122,21 +122,32 @@ type AuthflowScreen struct {
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
-	switch flowResponse.Type {
-	case authflow.FlowTypeSignup:
-		return newAuthflowScreenSignup(flowResponse, previousXStep, previousInput)
-	case authflow.FlowTypePromote:
-		return newAuthflowScreenPromote(flowResponse, previousXStep, previousInput)
-	case authflow.FlowTypeLogin:
-		return newAuthflowScreenLogin(flowResponse, previousXStep, previousInput)
-	case authflow.FlowTypeSignupLogin:
-		return newAuthflowScreenSignupLogin(flowResponse, previousXStep, previousInput)
-	case authflow.FlowTypeReauth:
-		return newAuthflowScreenReauth(flowResponse, previousXStep, previousInput)
-	case authflow.FlowTypeAccountRecovery:
-		return newAuthflowScreenAccountRecovery(flowResponse, previousXStep, previousInput)
+	switch {
+	case flowResponse.Action.Type == authflow.FlowActionTypeFinished:
+		state := NewAuthflowStateToken(flowResponse)
+		screen := &AuthflowScreen{
+			PreviousXStep: previousXStep,
+			PreviousInput: previousInput,
+			StateToken:    state,
+		}
+		return screen
 	default:
-		panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
+		switch flowResponse.Type {
+		case authflow.FlowTypeSignup:
+			return newAuthflowScreenSignup(flowResponse, previousXStep, previousInput)
+		case authflow.FlowTypePromote:
+			return newAuthflowScreenPromote(flowResponse, previousXStep, previousInput)
+		case authflow.FlowTypeLogin:
+			return newAuthflowScreenLogin(flowResponse, previousXStep, previousInput)
+		case authflow.FlowTypeSignupLogin:
+			return newAuthflowScreenSignupLogin(flowResponse, previousXStep, previousInput)
+		case authflow.FlowTypeReauth:
+			return newAuthflowScreenReauth(flowResponse, previousXStep, previousInput)
+		case authflow.FlowTypeAccountRecovery:
+			return newAuthflowScreenAccountRecovery(flowResponse, previousXStep, previousInput)
+		default:
+			panic(fmt.Errorf("unexpected flow type: %v", flowResponse.Type))
+		}
 	}
 }
 
