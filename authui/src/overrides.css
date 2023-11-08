@@ -1,4 +1,7 @@
 /* Overrides default styles of intl-tel-input */
 .iti__country-list {
-  width: max-content;
+  /* 280px is somehow arbitrary */
+  /* But it is smaller than the width of iPhone SE (375px) */
+  /* And also smaller than the width of input */
+  min-width: 280px;
 }
