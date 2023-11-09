@@ -389,6 +389,11 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowReauthFlowStep) ([]AuthenticateOption, error) {
 	options := []AuthenticateOption{}
 
+	identities, err := deps.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
 	authenticators, err := deps.Authenticators.List(userID)
 	if err != nil {
 		return nil, err
@@ -453,10 +458,20 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		return options, nil
 	}
 
-	useAuthenticationOptionAddOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, kind model.AuthenticatorKind, typ model.AuthenticatorType) []AuthenticateOption {
+	useAuthenticationOptionAddPrimaryOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, typ model.AuthenticatorType) []AuthenticateOption {
+		for _, info := range identities {
+			option, ok := NewAuthenticateOptionOOBOTPFromIdentity(deps.Config.Authenticator.OOB, info)
+			if ok && option.Authentication == authentication {
+				options = append(options, *option)
+			}
+		}
+		return options
+	}
+
+	useAuthenticationOptionAddSecondaryOOBOTP := func(options []AuthenticateOption, authentication config.AuthenticationFlowAuthentication, typ model.AuthenticatorType) []AuthenticateOption {
 		as := authenticator.ApplyFilters(
 			authenticators,
-			authenticator.KeepKind(kind),
+			authenticator.KeepKind(model.AuthenticatorKindSecondary),
 			authenticator.KeepType(typ),
 		)
 		for _, info := range as {
@@ -482,13 +497,13 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = useAuthenticationOptionAddTOTP(options)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindPrimary, model.AuthenticatorTypeOOBEmail)
+			options = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindPrimary, model.AuthenticatorTypeOOBSMS)
+			options = useAuthenticationOptionAddPrimaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBSMS)
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindSecondary, model.AuthenticatorTypeOOBEmail)
+			options = useAuthenticationOptionAddSecondaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBEmail)
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			options = useAuthenticationOptionAddOOBOTP(options, branch.Authentication, authenticator.KindSecondary, model.AuthenticatorTypeOOBSMS)
+			options = useAuthenticationOptionAddSecondaryOOBOTP(options, branch.Authentication, model.AuthenticatorTypeOOBSMS)
 		}
 	}
 
