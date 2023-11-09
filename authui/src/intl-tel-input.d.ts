@@ -34,6 +34,7 @@ declare interface IntlTelInputInitOptions {
     selectedCountryData: IntlTelInputCountryData
   ) => string;
   dropdownContainer?: HTMLElement;
+  useFullscreenPopup?: boolean;
 
   // Functionality
   utilsScript?: string;

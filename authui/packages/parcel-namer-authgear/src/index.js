@@ -5,6 +5,7 @@ const NAMING_LIST = [
   { asset: "src/authgear.ts", newName: "authgear", type: "js" },
   { asset: "src/colorscheme.ts", newName: "colorscheme", type: "js" },
   { asset: "src/tailwind.css", newName: "tailwind", type: "css" },
+  { asset: "src/overrides.css", newName: "overrides", type: "css" },
   {
     asset: "src/tailwind-light-theme.css",
     newName: "tailwind-light-theme",

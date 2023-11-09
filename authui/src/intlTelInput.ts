@@ -138,6 +138,7 @@ export class IntlTelInputController extends Controller {
       preferredCountries,
       initialCountry,
       customContainer,
+      useFullscreenPopup: false,
     });
 
     this.input(true);
