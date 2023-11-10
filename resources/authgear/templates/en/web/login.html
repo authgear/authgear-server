@@ -57,7 +57,7 @@
 					data-intl-tel-input-class-value="flex flex-row"
 					class="primary-txt text-input w-full"
 					tabindex="0"
-					autofocus
+					{{ if $.ShouldFocusInput }}autofocus{{ end }}
 					type="text"
 					inputmode="tel"
 					autocomplete="tel-national username webauthn"
@@ -74,7 +74,7 @@
 				{{ if $.LoginIDInputType }}{{ if not (eq $.LoginIDInputType "phone") }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
 				<input
 					tabindex="0"
-					autofocus
+					{{ if $.ShouldFocusInput }}autofocus{{ end }}
 					class="text-input primary-txt"
 					type="{{ $.NonPhoneLoginIDInputType }}"
 					autocomplete="username webauthn"
