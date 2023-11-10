@@ -26,8 +26,7 @@ const (
 	AuthflowRouteSetupTOTP         = "/authflow/setup_totp"
 	AuthflowRouteSetupOOBOTP       = "/authflow/setup_oob_otp"
 	// nolint: gosec
-	AuthflowRouteUsePasskey    = "/authflow/use_passkey"
-	AuthflowRouteAccountStatus = "/authflow/account_status"
+	AuthflowRouteUsePasskey = "/authflow/use_passkey"
 	// nolint: gosec
 	AuthflowRouteForgotPassword = "/authflow/forgot_password"
 	// nolint: gosec
@@ -36,6 +35,9 @@ const (
 	AuthflowRouteResetPassword = "/authflow/reset_password"
 	// nolint: gosec
 	AuthflowRouteResetPasswordSuccess = "/authflow/reset_password/success"
+	AuthflowRouteWechat               = "/authflow/wechat"
 
-	AuthflowRouteWechat = "/authflow/wechat"
+	// The following routes are dead ends.
+	AuthflowRouteAccountStatus   = "/authflow/account_status"
+	AuthflowRouteNoAuthenticator = "/authflow/no_authenticator"
 )

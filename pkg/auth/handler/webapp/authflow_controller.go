@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -834,6 +835,9 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 		return nonRecoverable()
 	case user.IsAccountStatusError(err):
 		u.Path = webapp.AuthflowRouteAccountStatus
+		return nonRecoverable()
+	case errors.Is(err, api.ErrNoAuthenticator):
+		u.Path = webapp.AuthflowRouteNoAuthenticator
 		return nonRecoverable()
 	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
