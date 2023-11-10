@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -44,8 +44,12 @@ type AuthflowWhatsappOTPViewModel struct {
 	ResendCooldown                 int
 }
 
-func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowWhatsappOTPViewModel {
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) (*AuthflowWhatsappOTPViewModel, error) {
+	var data authflowclient.DataVerifyClaim
+	err := authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &data)
+	if err != nil {
+		return nil, err
+	}
 
 	maskedClaimValue := data.MaskedClaimValue
 	codeLength := data.CodeLength
@@ -55,12 +59,12 @@ func NewAuthflowWhatsappOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 		resendCooldown = 0
 	}
 
-	return AuthflowWhatsappOTPViewModel{
+	return &AuthflowWhatsappOTPViewModel{
 		MaskedClaimValue:               maskedClaimValue,
 		CodeLength:                     codeLength,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
 		ResendCooldown:                 resendCooldown,
-	}
+	}, nil
 }
 
 type AuthflowWhatsappOTPHandler struct {
@@ -78,8 +82,11 @@ func (h *AuthflowWhatsappOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthflowWhatsappOTPViewModel(s, screen, now)
-	viewmodels.Embed(data, screenViewModel)
+	screenViewModel, err := NewAuthflowWhatsappOTPViewModel(s, screen, now)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
 	viewmodels.Embed(data, branchViewModel)
@@ -103,7 +110,7 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -126,7 +133,7 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

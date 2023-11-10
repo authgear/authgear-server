@@ -5,8 +5,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -46,12 +47,17 @@ type AuthflowEnterPasswordHandler struct {
 	Renderer      Renderer
 }
 
-func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowEnterPasswordViewModel {
+func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (*AuthflowEnterPasswordViewModel, error) {
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
+
+	var data authflowclient.DataAuthenticate
+	err := authflowclient.Cast(flowResponse.Action.Data, &data)
+	if err != nil {
+		return nil, err
+	}
 	option := data.Options[index]
-	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
+	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(config.AuthenticationFlowAuthentication(option.Authentication))
 
 	// Use the previous input to derive some information.
 	passwordManagerUsername := ""
@@ -72,12 +78,12 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 		}
 	}
 
-	return AuthflowEnterPasswordViewModel{
+	return &AuthflowEnterPasswordViewModel{
 		AuthenticationStage:     string(authenticationStage),
 		PasswordManagerUsername: passwordManagerUsername,
 		ForgotPasswordInputType: forgotPasswordInputType,
 		ForgotPasswordLoginID:   forgotPasswordLoginID,
-	}
+	}, nil
 }
 
 func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
@@ -86,8 +92,11 @@ func (h *AuthflowEnterPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthflowEnterPasswordViewModel(s, screen)
-	viewmodels.Embed(data, screenViewModel)
+	screenViewModel, err := NewAuthflowEnterPasswordViewModel(s, screen)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
 	viewmodels.Embed(data, branchViewModel)
@@ -114,7 +123,11 @@ func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
+		var data authflowclient.DataAuthenticate
+		err = authflowclient.Cast(flowResponse.Action.Data, &data)
+		if err != nil {
+			return err
+		}
 		option := data.Options[index]
 
 		plainPassword := r.Form.Get("x_password")
@@ -126,7 +139,7 @@ func (h *AuthflowEnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

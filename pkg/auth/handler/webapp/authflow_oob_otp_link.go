@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -31,8 +31,12 @@ type AuthflowOOBOTPLinkViewModel struct {
 	ResendCooldown   int
 }
 
-func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowOOBOTPLinkViewModel {
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) (*AuthflowOOBOTPLinkViewModel, error) {
+	var data authflowclient.DataVerifyClaim
+	err := authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &data)
+	if err != nil {
+		return nil, err
+	}
 	maskedClaimValue := data.MaskedClaimValue
 	resendCooldown := int(data.CanResendAt.Sub(now).Seconds())
 	if resendCooldown < 0 {
@@ -44,13 +48,13 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 		stateQuery = LoginLinkOTPPageQueryStateMatched
 	}
 
-	return AuthflowOOBOTPLinkViewModel{
+	return &AuthflowOOBOTPLinkViewModel{
 		// nolint: gosec
 		WebsocketURL:     htmltemplate.URL(data.WebsocketURL),
 		StateQuery:       stateQuery,
 		MaskedClaimValue: maskedClaimValue,
 		ResendCooldown:   resendCooldown,
-	}
+	}, nil
 }
 
 type AuthflowOOBOTPLinkHandler struct {
@@ -68,8 +72,11 @@ func (h *AuthflowOOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Reque
 	viewmodels.Embed(data, baseViewModel)
 
 	now := h.Clock.NowUTC()
-	screenViewModel := NewAuthflowOOBOTPLinkViewModel(s, screen, now)
-	viewmodels.Embed(data, screenViewModel)
+	screenViewModel, err := NewAuthflowOOBOTPLinkViewModel(s, screen, now)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
 	viewmodels.Embed(data, branchViewModel)
@@ -93,7 +100,7 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -110,7 +117,7 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

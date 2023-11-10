@@ -13,6 +13,7 @@ import (
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -80,8 +81,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.TutorialMiddlewareTutorialCookie), new(*httputil.TutorialCookie)),
 	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerCookieManager), new(*httputil.CookieManager)),
-	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthSessionService), new(*oauthsession.StoreRedis)),
-	wire.Bind(new(handlerwebapp.AuthflowControllerUIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(oauthhandler.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(oauth.AppSessionTokenServiceCookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerwebapp.TutorialCookie), new(*httputil.TutorialCookie)),
@@ -175,6 +174,7 @@ var DependencySet = wire.NewSet(
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerSessionStore), new(*webapp.SessionStoreRedis)),
+	wire.Bind(new(handlerwebapp.AuthflowControllerAuthflowHTTPClient), new(*authflowclient.Client)),
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
@@ -208,7 +208,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.TesterAppSessionTokenService), new(*oauth.AppSessionTokenService)),
 	wire.Bind(new(handlerwebapp.TesterUserInfoProvider), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handlerwebapp.TesterOfflineGrantStore), new(*oauthredis.Store)),
-	wire.Bind(new(handlerwebapp.AuthflowControllerAuthflowService), new(*authenticationflow.Service)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),

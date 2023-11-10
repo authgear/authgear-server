@@ -7,8 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -52,18 +51,22 @@ func (h *AuthflowSetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	viewmodels.Embed(data, baseViewModel)
 
 	index := *screen.Screen.TakenBranchIndex
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+	var screenData authflowclient.DataCreateAuthenticator
+	err := authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &screenData)
+	if err != nil {
+		return nil, err
+	}
 	option := screenData.Options[index]
 
 	var oobAuthenticatorType model.AuthenticatorType
 	switch option.Authentication {
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+	case authflowclient.AuthenticationPrimaryOOBOTPEmail:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+	case authflowclient.AuthenticationSecondaryOOBOTPEmail:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBEmail
-	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+	case authflowclient.AuthenticationPrimaryOOBOTPSMS:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
-	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+	case authflowclient.AuthenticationSecondaryOOBOTPSMS:
 		oobAuthenticatorType = model.AuthenticatorTypeOOBSMS
 	default:
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
@@ -97,7 +100,12 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		}
 
 		index := *screen.Screen.TakenBranchIndex
-		screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+		var screenData authflowclient.DataCreateAuthenticator
+		err = authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &screenData)
+		if err != nil {
+			return err
+		}
+
 		option := screenData.Options[index]
 		authentication := option.Authentication
 
@@ -108,7 +116,7 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"target":         target,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

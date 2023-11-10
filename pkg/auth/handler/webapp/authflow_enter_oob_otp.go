@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -46,10 +46,15 @@ type AuthflowEnterOOBOTPViewModel struct {
 	ResendCooldown                 int
 }
 
-func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) AuthflowEnterOOBOTPViewModel {
+func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, now time.Time) (*AuthflowEnterOOBOTPViewModel, error) {
 	flowActionType := screen.StateTokenFlowResponse.Action.Type
 
-	data := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeVerifyClaimData)
+	var data authflowclient.DataVerifyClaim
+	err := authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &data)
+	if err != nil {
+		return nil, err
+	}
+
 	channel := data.Channel
 	maskedClaimValue := data.MaskedClaimValue
 	codeLength := data.CodeLength
@@ -59,14 +64,14 @@ func NewAuthflowEnterOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 		resendCooldown = 0
 	}
 
-	return AuthflowEnterOOBOTPViewModel{
+	return &AuthflowEnterOOBOTPViewModel{
 		FlowActionType:                 string(flowActionType),
 		Channel:                        string(channel),
 		MaskedClaimValue:               maskedClaimValue,
 		CodeLength:                     codeLength,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
 		ResendCooldown:                 resendCooldown,
-	}
+	}, nil
 }
 
 type AuthflowEnterOOBOTPHandler struct {
@@ -84,8 +89,11 @@ func (h *AuthflowEnterOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewAuthflowEnterOOBOTPViewModel(s, screen, now)
-	viewmodels.Embed(data, screenViewModel)
+	screenViewModel, err := NewAuthflowEnterOOBOTPViewModel(s, screen, now)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *screenViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
 	viewmodels.Embed(data, branchViewModel)
@@ -109,7 +117,7 @@ func (h *AuthflowEnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -132,7 +140,7 @@ func (h *AuthflowEnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

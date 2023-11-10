@@ -6,7 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -48,7 +48,11 @@ func (h *AuthflowResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Re
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentAccountRecoveryFlowStepResetPasswordData)
+	var screenData authflowclient.DataResetPassword
+	err := authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &screenData)
+	if err != nil {
+		return nil, err
+	}
 
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModelFromAuthflow(
 		screenData.PasswordPolicy,
@@ -97,7 +101,7 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, map[string]interface{}{
 			"new_password": newPassword,
 		})
 

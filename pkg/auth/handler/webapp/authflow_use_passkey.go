@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -29,7 +29,11 @@ type AuthflowUsePasskeyViewModel struct {
 func NewAuthflowUsePasskeyViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (*AuthflowUsePasskeyViewModel, error) {
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
+	var data authflowclient.DataAuthenticate
+	err := authflowclient.Cast(flowResponse.Action.Data, &data)
+	if err != nil {
+		return nil, err
+	}
 	option := data.Options[index]
 
 	requestOptionsJSONBytes, err := json.Marshal(option.RequestOptions)
@@ -88,7 +92,12 @@ func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.StepAuthenticateData)
+
+		var data authflowclient.DataAuthenticate
+		err = authflowclient.Cast(flowResponse.Action.Data, &data)
+		if err != nil {
+			return err
+		}
 		option := data.Options[index]
 
 		input := map[string]interface{}{
@@ -96,7 +105,7 @@ func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			"assertion_response": assertionResponseJSON,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
