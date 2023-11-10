@@ -9936,7 +9936,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -9968,7 +9970,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -61911,7 +61912,9 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -61933,7 +61936,6 @@ func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62057,7 +62059,9 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62079,7 +62083,6 @@ func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62202,7 +62205,9 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62224,7 +62229,6 @@ func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62330,7 +62334,9 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62352,7 +62358,6 @@ func newWebAppAuthflowEnterPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62450,7 +62455,9 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62472,7 +62479,6 @@ func newWebAppAuthflowEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62572,7 +62578,9 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62594,7 +62602,6 @@ func newWebAppAuthflowCreatePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62692,7 +62699,9 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62714,7 +62723,6 @@ func newWebAppAuthflowEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62812,7 +62820,9 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62834,7 +62844,6 @@ func newWebAppAuthflowSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -62932,7 +62941,9 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -62954,7 +62965,6 @@ func newWebAppAuthflowViewRecoveryCodeHandler(p *deps.RequestProvider) http.Hand
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63052,7 +63062,9 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63074,7 +63086,6 @@ func newWebAppAuthflowWhatsappOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63174,7 +63185,9 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63196,7 +63209,6 @@ func newWebAppAuthflowOOBOTPLinkHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63296,7 +63308,9 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63318,7 +63332,6 @@ func newWebAppAuthflowChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63416,7 +63429,9 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63438,7 +63453,6 @@ func newWebAppAuthflowUsePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63536,7 +63550,9 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63558,7 +63574,6 @@ func newWebAppAuthflowPromptCreatePasskeyHandler(p *deps.RequestProvider) http.H
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63656,7 +63671,9 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63678,7 +63695,6 @@ func newWebAppAuthflowEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Han
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63776,7 +63792,9 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63798,7 +63816,6 @@ func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -63896,7 +63913,9 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -63918,7 +63937,6 @@ func newWebAppAuthflowTerminateOtherSessionsHandler(p *deps.RequestProvider) htt
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -64016,7 +64034,9 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -64038,7 +64058,6 @@ func newWebAppAuthflowWechatHandler(p *deps.RequestProvider) http.Handler {
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -64136,7 +64155,9 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -64158,7 +64179,6 @@ func newWebAppAuthflowForgotPasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -64256,7 +64276,9 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -64278,7 +64300,6 @@ func newWebAppAuthflowForgotPasswordSuccessHandler(p *deps.RequestProvider) http
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -65210,7 +65231,9 @@ func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -65268,7 +65291,9 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -65290,7 +65315,6 @@ func newWebAppAuthflowResetPasswordHandler(p *deps.RequestProvider) http.Handler
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
@@ -65388,7 +65412,9 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 		Redis: handle,
 	}
 	sessionCookieDef := webapp2.NewSessionCookieDef()
-	client := &authflowclient.Client{}
+	contextContext := deps.ProvideRequestContext(request)
+	mainListenAddr := rootProvider.MainListenAddr
+	client := authflowclient.NewClient(contextContext, mainListenAddr, httpHost)
 	uiConfig := appConfig.UI
 	oAuthConfig := appConfig.OAuth
 	resolver := &oauthclient.Resolver{
@@ -65410,7 +65436,6 @@ func newWebAppAuthflowResetPasswordSuccessHandler(p *deps.RequestProvider) http.
 	}
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
-	contextContext := deps.ProvideRequestContext(request)
 	localizationConfig := appConfig.Localization
 	httpOrigin := httputil.MakeHTTPOrigin(httpProto, httpHost)
 	webAppCDNHost := environmentConfig.WebAppCDNHost
