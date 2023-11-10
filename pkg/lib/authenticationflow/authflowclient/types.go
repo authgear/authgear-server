@@ -2,6 +2,8 @@ package authflowclient
 
 import (
 	"encoding/json"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 type FlowType string
@@ -84,4 +86,9 @@ type FlowResponse struct {
 	Type       FlowType    `json:"type,omitempty"`
 	Name       string      `json:"name,omitempty"`
 	Action     *FlowAction `json:"action,omitempty"`
+}
+
+type HTTPResponse struct {
+	Result *FlowResponse       `json:"result,omitempty"`
+	Error  *apierrors.APIError `json:"error,omitempty"`
 }

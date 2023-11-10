@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin"
 	"github.com/authgear/authgear-server/pkg/auth"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/resolver"
@@ -36,6 +37,7 @@ func (c *Controller) Start() {
 	})
 
 	p, err := deps.NewRootProvider(
+		config.MainListenAddr(cfg.MainListenAddr),
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,
