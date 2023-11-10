@@ -126,7 +126,7 @@ func Diff(filename string, original []byte, updated []byte) (diff string, err er
 		return
 	}
 
-	output, err := exec.Command(
+	output, err := exec.Command( // nolint:gosec
 		"diff",
 		"-u",
 		fOriginal.Name(),
