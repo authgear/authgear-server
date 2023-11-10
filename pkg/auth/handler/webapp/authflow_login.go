@@ -8,7 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -91,8 +91,8 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"response_mode":  string(sso.ResponseModeFormPost),
 		}
 
-		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowReference{
-			Type: authflow.FlowTypeSignupLogin,
+		result, err := h.Controller.ReplaceScreen(w, r, s, authflowclient.FlowReference{
+			Type: authflowclient.FlowTypeSignupLogin,
 			Name: flowName,
 		}, input)
 		if err != nil {
@@ -155,7 +155,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"login_id":       loginID,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -178,7 +178,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			"assertion_response": assertionResponseJSON,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -187,8 +187,8 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypeLogin,
+	h.Controller.HandleStartOfFlow(w, r, opts, authflowclient.FlowReference{
+		Type: authflowclient.FlowTypeLogin,
 		Name: flowName,
 	}, &handlers)
 }

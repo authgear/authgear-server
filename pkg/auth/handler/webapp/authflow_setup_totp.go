@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -52,7 +52,11 @@ func (h *AuthflowSetupTOTPHandler) GetData(w http.ResponseWriter, r *http.Reques
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.NodeCreateAuthenticatorTOTPData)
+	var screenData authflowclient.DataCreateAuthenticatorTOTP
+	err := authflowclient.Cast(screen.StateTokenFlowResponse.Action.Data, &screenData)
+	if err != nil {
+		return nil, err
+	}
 
 	img, err := secretcode.QRCodeImageFromURI(screenData.OTPAuthURI, 512, 512)
 	if err != nil {
@@ -99,7 +103,7 @@ func (h *AuthflowSetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"code": code,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

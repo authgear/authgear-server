@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -86,7 +86,7 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"response_mode":  string(sso.ResponseModeFormPost),
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			"login_id":       loginID,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -118,8 +118,8 @@ func (h *AuthflowPromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypePromote,
+	h.Controller.HandleStartOfFlow(w, r, opts, authflowclient.FlowReference{
+		Type: authflowclient.FlowTypePromote,
 		Name: flowName,
 	}, &handlers)
 }

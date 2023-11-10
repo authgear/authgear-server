@@ -50,6 +50,13 @@ const (
 	IdentificationIDToken  Identification = "id_token"
 )
 
+type AccountRecoveryIdentification string
+
+const (
+	AccountRecoveryIdentificationEmail AccountRecoveryIdentification = "email"
+	AccountRecoveryIdentificationPhone AccountRecoveryIdentification = "phone"
+)
+
 type Authentication string
 
 const (

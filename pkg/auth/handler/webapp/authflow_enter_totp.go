@@ -76,7 +76,7 @@ func (h *AuthflowEnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

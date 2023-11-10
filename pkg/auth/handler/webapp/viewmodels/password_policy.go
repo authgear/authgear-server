@@ -2,7 +2,7 @@ package viewmodels
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -51,7 +51,7 @@ func NewPasswordPolicyViewModel(policies []password.Policy, rules string, apiErr
 	return PasswordPolicyViewModel{PasswordPolicies: policies, IsNew: opt.IsNew, PasswordRulesString: rules}
 }
 
-func NewPasswordPolicyViewModelFromAuthflow(p *declarative.PasswordPolicy, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
+func NewPasswordPolicyViewModelFromAuthflow(p *authflowclient.DataPasswordPolicy, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
 	pwMinLength := 0
 	if p.MinimumLength != nil {
 		pwMinLength = *p.MinimumLength

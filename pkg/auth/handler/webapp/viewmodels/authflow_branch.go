@@ -3,14 +3,12 @@ package viewmodels
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type AuthflowBranch struct {
-	Authentication   config.AuthenticationFlowAuthentication
+	Authentication   authflowclient.Authentication
 	Index            int
 	Channel          model.AuthenticatorOOBChannel
 	MaskedClaimValue string
@@ -23,8 +21,8 @@ func isAuthflowBranchSame(a AuthflowBranch, b AuthflowBranch) bool {
 
 type AuthflowBranchViewModel struct {
 	// FlowType is mainly for pages to tell if the flow is reauthentication or not.
-	FlowType           authflow.FlowType
-	ActionType         authflow.FlowActionType
+	FlowType           authflowclient.FlowType
+	ActionType         authflowclient.FlowActionType
 	DeviceTokenEnabled bool
 	Branches           []AuthflowBranch
 }
@@ -35,14 +33,19 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 	deviceTokenEnabled := false
 	var branches []AuthflowBranch
 	if branchFlowResponse != nil {
-		switch branchData := branchFlowResponse.Action.Data.(type) {
-		case declarative.StepAuthenticateData:
-			deviceTokenEnabled = branchData.DeviceTokenEnabled
-			branches = newAuthflowBranchViewModelStepAuthenticate(screen, branchData)
-		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
-			branches = newAuthflowBranchViewModelStepCreateAuthenticator(screen, branchData)
-		case declarative.IntentVerifyClaimData:
-			branches = newAuthflowBranchViewModelVerify(screen, branchData)
+		dataAuthenticate, dataCreateAuthenticator, dataChannels, err := authflowclient.CastForBranch(branchFlowResponse.Action.Data)
+		if err != nil {
+			panic(err)
+		}
+
+		switch {
+		case dataAuthenticate != nil:
+			deviceTokenEnabled = dataAuthenticate.DeviceTokenEnabled
+			branches = newAuthflowBranchViewModelStepAuthenticate(screen, dataAuthenticate)
+		case dataCreateAuthenticator != nil:
+			branches = newAuthflowBranchViewModelStepCreateAuthenticator(screen, dataCreateAuthenticator)
+		case dataChannels != nil:
+			branches = newAuthflowBranchViewModelVerify(screen, dataChannels)
 		}
 	}
 
@@ -54,7 +57,7 @@ func NewAuthflowBranchViewModel(screen *webapp.AuthflowScreenWithFlowResponse) A
 	}
 }
 
-func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.StepAuthenticateData) []AuthflowBranch {
+func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWithFlowResponse, branchData *authflowclient.DataAuthenticate) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
@@ -64,7 +67,7 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 
 	branches := []AuthflowBranch{}
 
-	addIndexBranch := func(idx int, o declarative.AuthenticateOptionForOutput) {
+	addIndexBranch := func(idx int, o authflowclient.DataAuthenticateOption) {
 		branch := AuthflowBranch{
 			Authentication: o.Authentication,
 			Index:          idx,
@@ -74,7 +77,7 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 		}
 	}
 
-	addChannelBranch := func(idx int, o declarative.AuthenticateOptionForOutput) {
+	addChannelBranch := func(idx int, o authflowclient.DataAuthenticateOption) {
 		for _, channel := range o.Channels {
 			branch := AuthflowBranch{
 				Authentication:   o.Authentication,
@@ -91,21 +94,21 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 
 	for idx, o := range branchData.Options {
 		switch o.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case authflowclient.AuthenticationPrimaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+		case authflowclient.AuthenticationPrimaryPasskey:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case authflowclient.AuthenticationPrimaryOOBOTPEmail:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case authflowclient.AuthenticationPrimaryOOBOTPSMS:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case authflowclient.AuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case authflowclient.AuthenticationSecondaryOOBOTPEmail:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case authflowclient.AuthenticationSecondaryOOBOTPSMS:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
+		case authflowclient.AuthenticationRecoveryCode:
 			addIndexBranch(idx, o)
 		default:
 			// Ignore other authentications.
@@ -116,7 +119,7 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 	return branches
 }
 
-func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepCreateAuthenticatorData) []AuthflowBranch {
+func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowScreenWithFlowResponse, branchData *authflowclient.DataCreateAuthenticator) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,
@@ -126,7 +129,7 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 
 	branches := []AuthflowBranch{}
 
-	addIndexBranch := func(idx int, o declarative.CreateAuthenticatorOption) {
+	addIndexBranch := func(idx int, o authflowclient.DataCreateAuthenticatorOption) {
 		branch := AuthflowBranch{
 			Authentication: o.Authentication,
 			Index:          idx,
@@ -136,7 +139,7 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 		}
 	}
 
-	addChannelBranch := func(idx int, o declarative.CreateAuthenticatorOption) {
+	addChannelBranch := func(idx int, o authflowclient.DataCreateAuthenticatorOption) {
 		for _, channel := range o.Channels {
 			branch := AuthflowBranch{
 				Authentication:   o.Authentication,
@@ -153,17 +156,17 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 
 	for idx, o := range branchData.Options {
 		switch o.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+		case authflowclient.AuthenticationPrimaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+		case authflowclient.AuthenticationPrimaryOOBOTPEmail:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+		case authflowclient.AuthenticationPrimaryOOBOTPSMS:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+		case authflowclient.AuthenticationSecondaryPassword:
 			addIndexBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+		case authflowclient.AuthenticationSecondaryOOBOTPEmail:
 			addChannelBranch(idx, o)
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+		case authflowclient.AuthenticationSecondaryOOBOTPSMS:
 			addChannelBranch(idx, o)
 		default:
 			// Ignore other authentications.
@@ -174,7 +177,7 @@ func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowSc
 	return branches
 }
 
-func newAuthflowBranchViewModelVerify(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentVerifyClaimData) []AuthflowBranch {
+func newAuthflowBranchViewModelVerify(screen *webapp.AuthflowScreenWithFlowResponse, branchData *authflowclient.DataChannels) []AuthflowBranch {
 	takenBranch := AuthflowBranch{
 		Channel: screen.Screen.TakenChannel,
 	}

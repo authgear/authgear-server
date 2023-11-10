@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,12 +13,8 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -76,7 +73,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
+		mockAuthflows := NewMockAuthflowControllerAuthflowHTTPClient(ctrl)
 
 		c := &AuthflowController{
 			Authflows: mockAuthflows,
@@ -86,24 +83,13 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 			s := &webapp.Session{}
 
 			_, err := c.getScreen(s, "")
-			So(err, ShouldBeError, authflow.ErrFlowNotFound)
+			So(err, ShouldBeError, authflowclient.ErrFlowNotFound)
 		})
 
 		Convey("return ErrFlowNotFound if x_step is absent", func() {
-			serviceOutput := &authflow.ServiceOutput{
-				Flow: &authflow.Flow{
-					FlowID:     "authflow_id",
-					StateToken: "authflowstate_0",
-				},
-				FlowReference: &authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					Name: "default",
-				},
-			}
-			flowResponse := serviceOutput.ToFlowResponse()
 			state := &webapp.AuthflowStateToken{
 				XStep:      "step_0",
-				StateToken: flowResponse.StateToken,
+				StateToken: "authflowstate_0",
 			}
 			screen := &webapp.AuthflowScreen{
 				StateToken: state,
@@ -117,7 +103,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 			}
 
 			_, err := c.getScreen(s, "")
-			So(errors.Is(err, authflow.ErrFlowNotFound), ShouldBeTrue)
+			So(errors.Is(err, authflowclient.ErrFlowNotFound), ShouldBeTrue)
 		})
 
 		Convey("return screen as specified by x_step", func() {
@@ -143,24 +129,19 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			mockAuthflows.EXPECT().Get("authflowstate_1").Times(1).Return(&authflow.ServiceOutput{
-				Flow: &authflow.Flow{
-					FlowID:     "authflow_id",
-					StateToken: "authflowstate_1",
-				},
-				FlowReference: &authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					Name: "default",
-				},
+			mockAuthflows.EXPECT().Get("authflowstate_1").Times(1).Return(&authflowclient.FlowResponse{
+				StateToken: "authflowstate_1",
+				Type:       authflowclient.FlowTypeLogin,
+				Name:       "default",
 			}, nil)
 
 			actual, err := c.getScreen(s, "step_1")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen: screen1,
-				StateTokenFlowResponse: &authflow.FlowResponse{
+				StateTokenFlowResponse: &authflowclient.FlowResponse{
 					StateToken: "authflowstate_1",
-					Type:       authflow.FlowTypeLogin,
+					Type:       authflowclient.FlowTypeLogin,
 					Name:       "default",
 				},
 			})
@@ -173,7 +154,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
+		mockAuthflows := NewMockAuthflowControllerAuthflowHTTPClient(ctrl)
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
 
@@ -188,24 +169,20 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 			s := &webapp.Session{}
 
 			r, _ := http.NewRequestWithContext(ctx, "GET", "/authflow/login", nil)
+			w := httptest.NewRecorder()
 
-			mockAuthflows.EXPECT().CreateNewFlow(gomock.Any(), gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
-				Flow: &authflow.Flow{
-					FlowID:     "authflow_id",
-					StateToken: "authflowstate_0",
-				},
-				FlowReference: &authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					Name: "default",
-				},
-				FlowAction: &authflow.FlowAction{
-					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeIdentify),
+			mockAuthflows.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&authflowclient.FlowResponse{
+				StateToken: "authflowstate_0",
+				Type:       authflowclient.FlowTypeLogin,
+				Name:       "default",
+				Action: &authflowclient.FlowAction{
+					Type: authflowclient.FlowActionTypeIdentify,
 				},
 			}, nil)
 			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
 
-			screen, err := c.createScreen(r, s, authflow.FlowReference{
-				Type: authflow.FlowTypeLogin,
+			screen, err := c.createScreen(w, r, s, authflowclient.FlowReference{
+				Type: authflowclient.FlowTypeLogin,
 				Name: "default",
 			})
 			So(err, ShouldBeNil)
@@ -220,7 +197,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockAuthflows := NewMockAuthflowControllerAuthflowService(ctrl)
+		mockAuthflows := NewMockAuthflowControllerAuthflowHTTPClient(ctrl)
 		mockSessionStore := NewMockAuthflowControllerSessionStore(ctrl)
 		mockClock := clock.NewMockClockAt("2006-01-02T03:04:05Z")
 
@@ -232,6 +209,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 
 		Convey("the branch does not require input to take", func() {
 			r, _ := http.NewRequest("POST", "", nil)
+			w := httptest.NewRecorder()
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
 					AllScreens: map[string]*webapp.AuthflowScreen{},
@@ -249,13 +227,13 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 						StateToken: "authflowstate_0",
 					},
 				},
-				StateTokenFlowResponse: &authflow.FlowResponse{
+				StateTokenFlowResponse: &authflowclient.FlowResponse{
 					StateToken: "authflowstate_0",
-					Type:       authflow.FlowTypeLogin,
+					Type:       authflowclient.FlowTypeLogin,
 					Name:       "default",
-					Action: &authflow.FlowAction{
+					Action: &authflowclient.FlowAction{
 
-						Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeIdentify),
+						Type: authflowclient.FlowActionTypeIdentify,
 					},
 				},
 			}
@@ -265,35 +243,25 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				"login_id":       "johndoe@example.com",
 			}
 
-			mockAuthflows.EXPECT().FeedInput("authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
-				Flow: &authflow.Flow{
-					FlowID:     "authflow_id",
-					StateToken: "authflowstate_1",
-				},
-				FlowReference: &authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					Name: "default",
-				},
-				FlowAction: &authflow.FlowAction{
-					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
-					Data: declarative.StepAuthenticateData{
-						Options: []declarative.AuthenticateOptionForOutput{
-							{
-								Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
-							},
-						},
-					},
+			mockAuthflows.EXPECT().Input(w, r, "authflowstate_0", gomock.Any()).Times(1).Return(&authflowclient.FlowResponse{
+				StateToken: "authflowstate_1",
+				Type:       authflowclient.FlowTypeLogin,
+				Name:       "default",
+				Action: &authflowclient.FlowAction{
+					Type: authflowclient.FlowActionTypeAuthenticate,
+					Data: json.RawMessage(`{"options":[{"authentication":"primary_password"}]}`),
 				},
 			}, nil)
 			mockSessionStore.EXPECT().Update(s).Times(1).Return(nil)
 
-			result, err := c.AdvanceWithInput(r, s, screen, input)
+			result, err := c.AdvanceWithInput(w, r, s, screen, input)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_password?x_step="), ShouldBeTrue)
 		})
 
 		Convey("the branch requires input to take", func() {
 			r, _ := http.NewRequest("POST", "", nil)
+			w := httptest.NewRecorder()
 			s := &webapp.Session{
 				Authflow: &webapp.Authflow{
 					AllScreens: map[string]*webapp.AuthflowScreen{},
@@ -311,13 +279,13 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 						StateToken: "authflowstate_0",
 					},
 				},
-				StateTokenFlowResponse: &authflow.FlowResponse{
+				StateTokenFlowResponse: &authflowclient.FlowResponse{
 					StateToken: "authflowstate_0",
-					Type:       authflow.FlowTypeLogin,
+					Type:       authflowclient.FlowTypeLogin,
 					Name:       "default",
-					Action: &authflow.FlowAction{
+					Action: &authflowclient.FlowAction{
 
-						Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeIdentify),
+						Type: authflowclient.FlowActionTypeIdentify,
 					},
 				},
 			}
@@ -327,51 +295,59 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				"login_id":       "johndoe@example.com",
 			}
 
-			mockAuthflows.EXPECT().FeedInput("authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
-				Flow: &authflow.Flow{
-					FlowID:     "authflow_id",
+			gomock.InOrder(
+				mockAuthflows.EXPECT().Input(w, r, "authflowstate_0", input).Times(1).Return(&authflowclient.FlowResponse{
 					StateToken: "authflowstate_1",
-				},
-				FlowReference: &authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					Name: "default",
-				},
-				FlowAction: &authflow.FlowAction{
-					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
-					Data: declarative.StepAuthenticateData{
-						Options: []declarative.AuthenticateOptionForOutput{
-							{
-								Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-								Channels: []model.AuthenticatorOOBChannel{
-									model.AuthenticatorOOBChannelEmail,
-								},
-							},
-						},
+					Type:       authflowclient.FlowTypeLogin,
+					Name:       "default",
+					Action: &authflowclient.FlowAction{
+						Type: authflowclient.FlowActionTypeAuthenticate,
+						Data: json.RawMessage(`{"options":[{"authentication":"primary_oob_otp_email","channels":["email"]}]}`),
 					},
-				},
-			}, nil)
-			mockSessionStore.EXPECT().Update(s).Times(1).Return(nil)
-			mockAuthflows.EXPECT().FeedInput("authflowstate_1", json.RawMessage(`{"authentication":"primary_oob_otp_email","channel":"email","index":0}`)).Times(1).Return(&authflow.ServiceOutput{
-				Flow: &authflow.Flow{
-					FlowID:     "authflow_id",
+				}, nil),
+				mockAuthflows.EXPECT().Input(w, r, "authflowstate_1", jsonMatcher{
+					v: map[string]interface{}{
+						"authentication": "primary_oob_otp_email",
+						"index":          0,
+						"channel":        "email",
+					},
+				}).Times(1).Return(&authflowclient.FlowResponse{
 					StateToken: "authflowstate_2",
-				},
-				FlowReference: &authflow.FlowReference{
-					Type: authflow.FlowTypeLogin,
-					Name: "default",
-				},
-				FlowAction: &authflow.FlowAction{
-					Type:           authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeAuthenticate),
-					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-					Data: declarative.NodeVerifyClaimData{
-						OTPForm: otp.FormCode,
+					Type:       authflowclient.FlowTypeLogin,
+					Name:       "default",
+					Action: &authflowclient.FlowAction{
+						Type:           authflowclient.FlowActionTypeAuthenticate,
+						Authentication: authflowclient.AuthenticationPrimaryOOBOTPEmail,
+						Data:           json.RawMessage(`{"otp_form":"code"}`),
 					},
-				},
-			}, nil)
+				}, nil),
+				mockSessionStore.EXPECT().Update(s).Times(1).Return(nil),
+			)
 
-			result, err := c.AdvanceWithInput(r, s, screen, input)
+			result, err := c.AdvanceWithInput(w, r, s, screen, input)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_oob_otp?x_step="), ShouldBeTrue)
 		})
 	})
+}
+
+type jsonMatcher struct {
+	v interface{}
+}
+
+func (m jsonMatcher) Matches(x interface{}) bool {
+	aJSONStr, err := json.Marshal(m.v)
+	if err != nil {
+		return false
+	}
+	bJSONStr, err := json.Marshal(x)
+	if err != nil {
+		return false
+	}
+
+	return string(aJSONStr) == string(bJSONStr)
+}
+
+func (m jsonMatcher) String() string {
+	return fmt.Sprintf("%v", m.v)
 }

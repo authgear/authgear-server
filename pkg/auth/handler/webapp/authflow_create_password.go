@@ -5,8 +5,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -54,9 +55,13 @@ func (h *AuthflowCreatePasswordHandler) GetData(w http.ResponseWriter, r *http.R
 
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+	var screenData authflowclient.DataCreateAuthenticator
+	err := authflowclient.Cast(flowResponse.Action.Data, &screenData)
+	if err != nil {
+		return nil, err
+	}
 	option := screenData.Options[index]
-	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
+	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(config.AuthenticationFlowAuthentication(option.Authentication))
 	isPrimary := authenticationStage == authn.AuthenticationStagePrimary
 
 	screenViewModel.AuthenticationStage = string(authenticationStage)
@@ -103,7 +108,11 @@ func (h *AuthflowCreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+		var data authflowclient.DataCreateAuthenticator
+		err = authflowclient.Cast(flowResponse.Action.Data, &data)
+		if err != nil {
+			return err
+		}
 		option := data.Options[index]
 
 		newPlainPassword := r.Form.Get("x_password")
@@ -113,7 +122,7 @@ func (h *AuthflowCreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 			"new_password":   newPlainPassword,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input)
+		result, err := h.Controller.AdvanceWithInput(w, r, s, screen, input)
 		if err != nil {
 			return err
 		}

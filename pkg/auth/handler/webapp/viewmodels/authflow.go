@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -50,11 +50,11 @@ type AuthflowViewModeler struct {
 }
 
 // nolint: gocognit
-func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.Request) AuthflowViewModel {
+func (m *AuthflowViewModeler) NewWithAuthflow(f *authflowclient.FlowResponse, r *http.Request) AuthflowViewModel {
 	options := webapp.GetIdentificationOptions(f)
 
-	var firstLoginIDIdentification config.AuthenticationFlowIdentification
-	var firstNonPhoneLoginIDIdentification config.AuthenticationFlowIdentification
+	var firstLoginIDIdentification authflowclient.Identification
+	var firstNonPhoneLoginIDIdentification authflowclient.Identification
 	hasEmail := false
 	hasUsername := false
 	hasPhone := false
@@ -63,28 +63,28 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 
 	for _, o := range options {
 		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case authflowclient.IdentificationEmail:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
+				firstLoginIDIdentification = authflowclient.IdentificationEmail
 			}
 			if firstNonPhoneLoginIDIdentification == "" {
-				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
+				firstNonPhoneLoginIDIdentification = authflowclient.IdentificationEmail
 			}
 			hasEmail = true
-		case config.AuthenticationFlowIdentificationPhone:
+		case authflowclient.IdentificationPhone:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationPhone
+				firstLoginIDIdentification = authflowclient.IdentificationPhone
 			}
 			hasPhone = true
-		case config.AuthenticationFlowIdentificationUsername:
+		case authflowclient.IdentificationUsername:
 			if firstLoginIDIdentification == "" {
-				firstLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
+				firstLoginIDIdentification = authflowclient.IdentificationUsername
 			}
 			if firstNonPhoneLoginIDIdentification == "" {
-				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
+				firstNonPhoneLoginIDIdentification = authflowclient.IdentificationUsername
 			}
 			hasUsername = true
-		case config.AuthenticationFlowIdentificationPasskey:
+		case authflowclient.IdentificationPasskey:
 			passkeyEnabled = true
 			bytes, err := json.Marshal(o.RequestOptions)
 			if err != nil {
@@ -118,7 +118,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		break
 	default:
 		if firstLoginIDIdentification != "" {
-			if firstLoginIDIdentification == config.AuthenticationFlowIdentificationPhone {
+			if firstLoginIDIdentification == authflowclient.IdentificationPhone {
 				loginIDInputType = "phone"
 			} else {
 				loginIDInputType = nonPhoneLoginIDInputType
@@ -191,13 +191,13 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 	var candidates []map[string]interface{}
 	for _, o := range options {
 		switch o.Identification {
-		case config.AuthenticationFlowIdentificationEmail:
+		case authflowclient.IdentificationEmail:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeEmail))
-		case config.AuthenticationFlowIdentificationPhone:
+		case authflowclient.IdentificationPhone:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypePhone))
-		case config.AuthenticationFlowIdentificationUsername:
+		case authflowclient.IdentificationUsername:
 			candidates = append(candidates, makeLoginIDCandidate(model.LoginIDKeyTypeUsername))
-		case config.AuthenticationFlowIdentificationOAuth:
+		case authflowclient.IdentificationOAuth:
 			candidate := map[string]interface{}{
 				"type":              string(model.IdentityTypeOAuth),
 				"provider_type":     string(o.ProviderType),
@@ -205,7 +205,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 				"provider_app_type": string(o.WechatAppType),
 			}
 			candidates = append(candidates, candidate)
-		case config.AuthenticationFlowIdentificationPasskey:
+		case authflowclient.IdentificationPasskey:
 			// Passkey was not handled by candidates.
 			break
 		}

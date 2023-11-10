@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/authflowclient"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -36,8 +36,8 @@ func (h *AuthflowReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowReference{
-		Type: authflow.FlowTypeReauth,
+	h.Controller.HandleStartOfFlow(w, r, opts, authflowclient.FlowReference{
+		Type: authflowclient.FlowTypeReauth,
 		Name: flowName,
 	}, &handlers)
 }
