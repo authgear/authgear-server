@@ -44,7 +44,7 @@
 						data-intl-tel-input-class-value="flex flex-row"
 						class="primary-txt text-input w-full"
 						tabindex="0"
-						autofocus
+						{{ if $.ShouldFocusInput }}autofocus{{ end }}
 						type="text"
 						inputmode="tel"
 						autocomplete="tel-national"
@@ -57,7 +57,7 @@
 				{{ else }}
 					<input
 						tabindex="0"
-						autofocus
+						{{ if $.ShouldFocusInput }}autofocus{{ end }}
 						class="text-input primary-txt"
 						type="{{ $.NonPhoneLoginIDInputType }}"
 						name="q_login_id"

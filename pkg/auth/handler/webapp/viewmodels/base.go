@@ -69,6 +69,8 @@ type BaseViewModel struct {
 	FirstNonPasskeyPrimaryAuthenticatorType string
 	// websocket is used in interaction only, we disable it in authflow
 	WebsocketDisabled bool
+
+	ShouldFocusInput bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -275,6 +277,8 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			break
 		}
 	}
+
+	model.ShouldFocusInput = model.Error == nil && model.FlashMessageType == ""
 
 	return model
 }

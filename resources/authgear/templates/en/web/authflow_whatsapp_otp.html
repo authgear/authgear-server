@@ -29,7 +29,7 @@
 
 <input
 	tabindex="0"
-	autofocus
+	{{ if $.ShouldFocusInput }}autofocus{{ end }}
 	class="text-input primary-txt"
 	type="text"
 	inputmode="numeric"
