@@ -2914,7 +2914,7 @@ function VerificationSettings(props: VerificationSettingsProps) {
         />
         {anyOTPRevokeFailedAttemptsEnabled ? (
           <FormTextField
-            parentJSONPointer="/otp/ratelimit/failed_attempt"
+            parentJSONPointer="/authentication/rate_limits/oob_otp/email/max_failed_attempts_revoke_otp"
             fieldName="size"
             type="text"
             value={anyOTPRevokeFailedAttempts?.toFixed(0) ?? ""}
