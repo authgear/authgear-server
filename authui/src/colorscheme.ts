@@ -17,8 +17,8 @@
     const colorScheme = !darkThemeEnabled
       ? "light"
       : explicitColorScheme !== ""
-      ? explicitColorScheme
-      : implicitColorScheme;
+        ? explicitColorScheme
+        : implicitColorScheme;
 
     if (colorScheme === "dark") {
       htmlElement.classList.add("dark");
