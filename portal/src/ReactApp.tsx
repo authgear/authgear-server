@@ -123,8 +123,8 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
         <Route path="/project">
           <Route path=":appID">
             <Route
-              // @ts-expect-error
               index={true}
+              // @ts-expect-error
               path="*"
               element={
                 <Authenticated>
@@ -134,8 +134,8 @@ const ReactAppRoutes: React.VFC = function ReactAppRoutes() {
             />
             <Route path="wizard">
               <Route
-                // @ts-expect-error
                 index={true}
+                // @ts-expect-error
                 path="*"
                 element={
                   <Authenticated>
