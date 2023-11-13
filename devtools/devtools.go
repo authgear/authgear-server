@@ -1,5 +1,11 @@
+//go:build tools
+
 package devtools
 
+// As of go1.21, we need to build flag to enable this trick.
+// See https://github.com/golang/go/issues/48429
+// and https://github.com/golang/go/wiki/Modules#how-can-i-track-tool-dependencies-for-a-module
+//
 // The imports here are main packages.
 // So they are not importable.
 // We list them here so that `go mod`
