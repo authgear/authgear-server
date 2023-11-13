@@ -8,6 +8,8 @@ linters:
   - misspell
   - errcheck
   - unused
+  - gocognit
+
   # https://github.com/golangci/golangci-lint/pull/2438
   # Disable linter that does not work with go1.18
   #- staticcheck
