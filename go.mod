@@ -1,6 +1,8 @@
 module github.com/authgear/authgear-server
 
-go 1.20
+// go1.21 supports toolchain
+// See https://go.dev/doc/toolchain
+go 1.21.4
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -124,7 +126,7 @@ require (
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/google/subcommands v1.2.0 // indirect
+	github.com/google/subcommands v1.0.1 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
