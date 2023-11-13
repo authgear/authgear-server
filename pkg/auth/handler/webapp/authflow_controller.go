@@ -799,10 +799,12 @@ func (c *AuthflowController) makeHTTPHandler(s *webapp.Session, screen *webapp.A
 			return
 		}
 
-		if apierrors.IsAPIError(err) {
-			c.renderError(w, r, err)
-		} else {
-			panic(err)
+		if err != nil {
+			if apierrors.IsAPIError(err) {
+				c.renderError(w, r, err)
+			} else {
+				panic(err)
+			}
 		}
 	})
 }
