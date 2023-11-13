@@ -495,11 +495,9 @@ export class PasskeyAutofillController extends Controller {
 
   async setupAutofill() {
     if (
-      // @ts-expect-error
       typeof PublicKeyCredential.isConditionalMediationAvailable === "function"
     ) {
       const available =
-        // @ts-expect-error
         await PublicKeyCredential.isConditionalMediationAvailable();
 
       if (available) {
