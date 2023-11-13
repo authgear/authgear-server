@@ -11,13 +11,13 @@ import { Controller } from "@hotwired/stimulus";
 // To suppress time, specify data-date-time-style as an empty attribute.
 
 const DATE_TYPES = ["relative", "absolute", "luxon-relative-duration"] as const;
-type DateType = typeof DATE_TYPES[number];
+type DateType = (typeof DATE_TYPES)[number];
 
 const DATE_STYLES = ["full", "long", "medium", "short"] as const;
-type DateStyle = typeof DATE_STYLES[number];
+type DateStyle = (typeof DATE_STYLES)[number];
 
 const TIME_STYLES = ["full", "long", "medium", "short"] as const;
-type TimeStyle = typeof TIME_STYLES[number];
+type TimeStyle = (typeof TIME_STYLES)[number];
 
 function parseDateType(s: string | null): DateType {
   for (const variant of DATE_TYPES) {
