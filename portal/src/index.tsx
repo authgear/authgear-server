@@ -13,8 +13,17 @@ import {
   ArcElement,
 } from "chart.js";
 import { setAutoFreeze } from "immer";
-
+import { Settings } from "luxon";
 import ReactApp from "./ReactApp";
+
+Settings.throwOnInvalid = true;
+// Tell typescript that we expect luxon to always return something or throw, instead of returning null | something.
+// https://github.com/DefinitelyTyped/DefinitelyTyped/pull/64995/files#diff-dc498e8eceb5d6d1bb58b4a9933293385301cca36a3810e765af2fc7861fe67aR66
+declare module "luxon" {
+  export interface TSSettings {
+    throwOnInvalid: true;
+  }
+}
 
 initializeIcons();
 // We sometimes use immer in forms.
