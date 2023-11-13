@@ -84,9 +84,9 @@ function RefreshButton(props: ICommandBarItemProps) {
       // eslint-disable-next-line react/no-unstable-nested-components
       onRenderContent: () => {
         const tooltipcontent = renderToString("AuditLogScreen.last-update-at", {
-          datetime:
-            DateTime.fromJSDate(props.lastUpdatedAt).toRelative({ locale }) ??
-            "",
+          datetime: DateTime.fromJSDate(props.lastUpdatedAt).toRelative({
+            locale,
+          }),
         });
         return <>{tooltipcontent}</>;
       },

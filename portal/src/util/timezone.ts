@@ -25,11 +25,11 @@ export function makeTimezoneOptions(): Option[] {
       continue;
     }
 
-    const iana = IANAZone.create(key);
-    if (!iana.isValid) {
+    if (!IANAZone.isValidZone(key)) {
       continue;
     }
 
+    const iana = IANAZone.create(key);
     const timezoneOffset = iana.offset(refTime);
     const text = `[UTC ${iana.formatOffset(refTime, "short")}] ${key}`;
 
