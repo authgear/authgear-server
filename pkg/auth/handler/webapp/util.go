@@ -11,19 +11,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 )
 
-func FormToJSON(form url.Values) map[string]interface{} {
-	j := make(map[string]interface{})
-	// Do not support recurring parameter
-	for name := range form {
-		value := form.Get(name)
-		if value != "" {
-			j[name] = value
-		}
-	}
-	return j
-}
+var FormToJSON = web.FormToJSON
 
 func JSONPointerFormToMap(form url.Values) map[string]string {
 	out := make(map[string]string)
