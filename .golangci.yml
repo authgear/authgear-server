@@ -24,3 +24,6 @@ linters-settings:
 run:
   go: "1.19"
   timeout: 5m
+
+issues:
+  max-issues-per-linter: 0
