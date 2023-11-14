@@ -31,7 +31,7 @@
     "@jest/globals": "29.7.0",
     "@oursky/eslint-plugin": "11.2.0",
     "@oursky/stylelint-oursky": "3.0.0",
-    "@savvywombat/tailwindcss-grid-areas": "2.1.0",
+    "@savvywombat/tailwindcss-grid-areas": "3.1.0",
     "@types/deep-equal": "1.0.4",
     "@types/jest": "29.5.8",
     "@types/js-yaml": "4.0.9",
