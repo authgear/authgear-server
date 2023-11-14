@@ -48,7 +48,7 @@ type SettingsViewModeler struct {
 	Biometric      *config.BiometricConfig
 }
 
-// nolint: gocyclo
+// nolint: gocyclo,gocognit
 func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, error) {
 	authenticators, err := m.Authenticators.List(userID)
 	if err != nil {

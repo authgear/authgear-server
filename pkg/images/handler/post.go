@@ -56,6 +56,7 @@ type PostHandler struct {
 	Clock                clock.Clock
 }
 
+// nolint:gocognit
 func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 

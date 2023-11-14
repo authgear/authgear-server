@@ -157,50 +157,66 @@ func (c *AppConfig) validateOAuthProvider(ctx *validation.Context) {
 	}
 }
 
+func (c *AppConfig) validateIdentityPrimaryAuthenticatorLoginID(
+	ctx *validation.Context,
+	authenticatorTypes map[model.AuthenticatorType]struct{},
+	k LoginIDKeyConfig,
+	idx int) {
+	hasAtLeastOnePrimaryAuthenticator := false
+	required := model.IdentityTypeLoginID.PrimaryAuthenticatorTypes(k.Type)
+	for _, typ := range required {
+		if _, ok := authenticatorTypes[typ]; ok {
+			hasAtLeastOnePrimaryAuthenticator = true
+		}
+	}
+	if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
+		ctx.Child("authentication", "identities", strconv.Itoa(idx)).
+			EmitError(
+				"noPrimaryAuthenticator",
+				map[string]interface{}{
+					"identity_type": model.IdentityTypeLoginID,
+					"login_id_type": k.Type,
+				},
+			)
+	}
+}
+
+func (c *AppConfig) validateIdentityPrimaryAuthenticatorOthers(
+	ctx *validation.Context,
+	authenticatorTypes map[model.AuthenticatorType]struct{},
+	it model.IdentityType,
+	idx int) {
+	hasAtLeastOnePrimaryAuthenticator := false
+	required := it.PrimaryAuthenticatorTypes("")
+	for _, typ := range required {
+		if _, ok := authenticatorTypes[typ]; ok {
+			hasAtLeastOnePrimaryAuthenticator = true
+		}
+	}
+	if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
+		ctx.Child("authentication", "identities", strconv.Itoa(idx)).
+			EmitError(
+				"noPrimaryAuthenticator",
+				map[string]interface{}{
+					"identity_type": it,
+				},
+			)
+	}
+}
+
 func (c *AppConfig) validateIdentityPrimaryAuthenticator(ctx *validation.Context) {
 	authenticatorTypes := map[model.AuthenticatorType]struct{}{}
 	for _, a := range *c.Authentication.PrimaryAuthenticators {
 		authenticatorTypes[a] = struct{}{}
 	}
 
-	for i, it := range c.Authentication.Identities {
+	for idx, it := range c.Authentication.Identities {
 		if it == model.IdentityTypeLoginID {
 			for _, k := range c.Identity.LoginID.Keys {
-				hasAtLeastOnePrimaryAuthenticator := false
-				required := it.PrimaryAuthenticatorTypes(k.Type)
-				for _, typ := range required {
-					if _, ok := authenticatorTypes[typ]; ok {
-						hasAtLeastOnePrimaryAuthenticator = true
-					}
-				}
-				if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
-					ctx.Child("authentication", "identities", strconv.Itoa(i)).
-						EmitError(
-							"noPrimaryAuthenticator",
-							map[string]interface{}{
-								"identity_type": it,
-								"login_id_type": k.Type,
-							},
-						)
-				}
+				c.validateIdentityPrimaryAuthenticatorLoginID(ctx, authenticatorTypes, k, idx)
 			}
 		} else {
-			hasAtLeastOnePrimaryAuthenticator := false
-			required := it.PrimaryAuthenticatorTypes("")
-			for _, typ := range required {
-				if _, ok := authenticatorTypes[typ]; ok {
-					hasAtLeastOnePrimaryAuthenticator = true
-				}
-			}
-			if len(required) > 0 && !hasAtLeastOnePrimaryAuthenticator {
-				ctx.Child("authentication", "identities", strconv.Itoa(i)).
-					EmitError(
-						"noPrimaryAuthenticator",
-						map[string]interface{}{
-							"identity_type": it,
-						},
-					)
-			}
+			c.validateIdentityPrimaryAuthenticatorOthers(ctx, authenticatorTypes, it, idx)
 		}
 	}
 }

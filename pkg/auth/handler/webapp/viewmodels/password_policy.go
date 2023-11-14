@@ -23,6 +23,7 @@ func GetDefaultPasswordPolicyViewModelOptions() *PasswordPolicyViewModelOptions 
 	}
 }
 
+// nolint: gocognit
 func NewPasswordPolicyViewModel(policies []password.Policy, rules string, apiError *apierrors.APIError, opt *PasswordPolicyViewModelOptions) PasswordPolicyViewModel {
 	if apiError != nil {
 		if apiError.Reason == "PasswordPolicyViolated" {

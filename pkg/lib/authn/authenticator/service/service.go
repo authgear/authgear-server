@@ -186,6 +186,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 	return infos, nil
 }
 
+// nolint:gocognit
 func (s *Service) ListByUserIDs(userIDs []string, filters ...authenticator.Filter) (map[string][]*authenticator.Info, error) {
 	refs, err := s.Store.ListRefsByUsers(userIDs, nil, nil)
 	if err != nil {

@@ -44,6 +44,7 @@ type HTTPHandler struct {
 	OriginMatcher WebsocketOriginMatcher
 }
 
+//nolint:gocognit
 func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := h.LoggerFactory.New("pubsub-http-handler")
 
