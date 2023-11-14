@@ -48,10 +48,6 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
-type TutorialCookie interface {
-	Pop(r *http.Request, rw http.ResponseWriter, name httputil.TutorialCookieName) bool
-}
-
 type ErrorCookie interface {
 	GetError(r *http.Request) (*webapp.ErrorState, bool)
 }
