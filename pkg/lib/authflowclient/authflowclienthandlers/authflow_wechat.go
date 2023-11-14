@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -52,7 +53,7 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 	}
 
 	authorizationURL := screenData.OAuthAuthorizationURL
-	img, err := createQRCodeImage(authorizationURL, 512, 512, qr.M)
+	img, err := web.CreateQRCodeImage(authorizationURL, 512, 512, qr.M)
 	if err != nil {
 		return nil, err
 	}
