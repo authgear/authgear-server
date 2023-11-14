@@ -56,10 +56,6 @@ type VerifyIdentityViewModel struct {
 	Action                         string
 }
 
-type FlashMessage interface {
-	Flash(rw http.ResponseWriter, messageType string)
-}
-
 type VerifyIdentityHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
