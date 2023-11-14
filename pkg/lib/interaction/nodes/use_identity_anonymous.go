@@ -28,6 +28,7 @@ type EdgeUseIdentityAnonymous struct {
 	IsAuthentication bool
 }
 
+// nolint:gocognit
 func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityAnonymous
 	if !interaction.Input(rawInput, &input) {

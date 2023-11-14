@@ -70,6 +70,7 @@ func migrateRateLimits(appID string, configSourceData map[string]string, DryRun 
 	return nil
 }
 
+//nolint:gocognit
 func MigrateConfigRateLimits(config map[string]any) error {
 	// Password failed attempts rate limit
 	if m, ok := mapGet[map[string]any](config, "authenticator", "password", "ratelimit", "failed_attempt"); ok {

@@ -83,6 +83,7 @@ func (m *PhoneOTPAlternativeStepsViewModel) addCreateAuthenticatorAlternatives(n
 	return nil
 }
 
+// nolint: gocognit
 func (m *PhoneOTPAlternativeStepsViewModel) addAuthenticationAlternatives(node AuthenticationBeginNode, graph *interaction.Graph, currentStepKind webapp.SessionStepKind) error {
 	edges, err := node.GetAuthenticationEdges()
 	if err != nil {

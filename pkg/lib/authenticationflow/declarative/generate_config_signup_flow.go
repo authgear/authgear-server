@@ -55,79 +55,90 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 		switch {
 		case keyConfig.Type == model.LoginIDKeyTypeEmail && !email:
 			email = true
-			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-				Identification: config.AuthenticationFlowIdentificationEmail,
-			}
+			oneOf := generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg, stepName)
 			output = append(output, oneOf)
-
-			// Add verify step if necessary
-			if *cfg.Verification.Claims.Email.Enabled && *cfg.Verification.Claims.Email.Required {
-				oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-
-					Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-					TargetStep: stepName,
-				})
-			}
-
-			// Add authenticate step primary if necessary
-			if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
-			}
-
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
 
 		case keyConfig.Type == model.LoginIDKeyTypePhone && !phone:
 			phone = true
-
-			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-				Identification: config.AuthenticationFlowIdentificationPhone,
-			}
+			oneOf := generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg, stepName)
 			output = append(output, oneOf)
-
-			// Add verify step if necessary
-			if *cfg.Verification.Claims.PhoneNumber.Enabled && *cfg.Verification.Claims.PhoneNumber.Required {
-				oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-					Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-					TargetStep: stepName,
-				})
-			}
-
-			// Add authenticate step primary if necessary
-			if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
-			}
-
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
-
 		case keyConfig.Type == model.LoginIDKeyTypeUsername && !username:
 			username = true
-
-			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
-				Identification: config.AuthenticationFlowIdentificationUsername,
-			}
-
+			oneOf := generateSignupFlowStepIdentifyLoginIDIdentificationUsername(cfg, stepName)
 			output = append(output, oneOf)
-			// Username cannot be verified.
-
-			// Add authenticate step primary if necessary
-			if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
-			}
-
-			// Add authenticate step secondary if necessary
-			if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
-				oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
-			}
 		}
 	}
 
 	return output
+}
+
+func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppConfig, stepName string) *config.AuthenticationFlowSignupFlowOneOf {
+	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
+		Identification: config.AuthenticationFlowIdentificationEmail,
+	}
+
+	// Add verify step if necessary
+	if *cfg.Verification.Claims.Email.Enabled && *cfg.Verification.Claims.Email.Required {
+		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
+
+			Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
+			TargetStep: stepName,
+		})
+	}
+
+	// Add authenticate step primary if necessary
+	if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
+	}
+
+	// Add authenticate step secondary if necessary
+	if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+	}
+	return oneOf
+}
+
+func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppConfig, stepName string) *config.AuthenticationFlowSignupFlowOneOf {
+	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
+		Identification: config.AuthenticationFlowIdentificationPhone,
+	}
+
+	// Add verify step if necessary
+	if *cfg.Verification.Claims.PhoneNumber.Enabled && *cfg.Verification.Claims.PhoneNumber.Required {
+		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
+			Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
+			TargetStep: stepName,
+		})
+	}
+
+	// Add authenticate step primary if necessary
+	if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
+	}
+
+	// Add authenticate step secondary if necessary
+	if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+	}
+	return oneOf
+}
+
+func generateSignupFlowStepIdentifyLoginIDIdentificationUsername(cfg *config.AppConfig, stepName string) *config.AuthenticationFlowSignupFlowOneOf {
+	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
+		Identification: config.AuthenticationFlowIdentificationUsername,
+	}
+	// Username cannot be verified.
+
+	// Add authenticate step primary if necessary
+	if stepAuthenticatePrimary, ok := generateSignupFlowStepCreateAuthenticatorPrimary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticatePrimary)
+	}
+
+	// Add authenticate step secondary if necessary
+	if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+	}
+	return oneOf
 }
 
 func generateSignupFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.AuthenticationFlowSignupFlowOneOf {

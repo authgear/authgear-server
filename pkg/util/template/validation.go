@@ -98,40 +98,38 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 		}
 		if depth > maxDepth {
 			err = fmt.Errorf("%s: template nested too deep", formatLocation(tree, n))
-		} else {
-			switch n := n.(type) {
-			case *parse.IfNode, *parse.ListNode, *parse.ActionNode, *parse.TextNode:
+			return
+		}
+		switch n := n.(type) {
+		case *parse.IfNode, *parse.ListNode, *parse.ActionNode, *parse.TextNode:
+			break
+		case *parse.PipeNode:
+			if len(n.Decl) > 0 && !v.allowDeclaration {
+				err = fmt.Errorf("%s: declaration is forbidden", formatLocation(tree, n))
+			} else if len(n.Cmds) > 1 {
+				err = fmt.Errorf("%s: pipeline is forbidden", formatLocation(tree, n))
+			}
+		case *parse.CommandNode:
+			for _, arg := range n.Args {
+				if ident, ok := arg.(*parse.IdentifierNode); ok && !v.allowIdentifierNode && !checkIdentifier(ident.Ident) {
+					err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
+					break
+				}
+			}
+		case *parse.RangeNode:
+			if v.allowRangeNode {
 				break
-			case *parse.PipeNode:
-				if len(n.Decl) > 0 && !v.allowDeclaration {
-					err = fmt.Errorf("%s: declaration is forbidden", formatLocation(tree, n))
-				} else if len(n.Cmds) > 1 {
-					err = fmt.Errorf("%s: pipeline is forbidden", formatLocation(tree, n))
-				}
-			case *parse.CommandNode:
-				for _, arg := range n.Args {
-					if ident, ok := arg.(*parse.IdentifierNode); ok {
-						if !v.allowIdentifierNode && !checkIdentifier(ident.Ident) {
-							err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
-							break
-						}
-					}
-				}
-			case *parse.RangeNode:
-				if v.allowRangeNode {
-					break
-				} else {
-					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
-				}
-			case *parse.TemplateNode:
-				if v.allowTemplateNode {
-					break
-				} else {
-					err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
-				}
-			default:
+			} else {
 				err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
 			}
+		case *parse.TemplateNode:
+			if v.allowTemplateNode {
+				break
+			} else {
+				err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
+			}
+		default:
+			err = fmt.Errorf("%s: forbidden construct %T", formatLocation(tree, n), n)
 		}
 
 		return err == nil
@@ -162,62 +160,66 @@ func formatLocation(tree *parse.Tree, n parse.Node) string {
 }
 
 func traverseTree(tree *parse.Tree, fn func(n parse.Node, depth int) (cont bool)) {
-	var visit func(n parse.Node, depth int) (cont bool)
-	visitBranch := func(n *parse.BranchNode, depth int) (cont bool) {
-		if cont = visit(n.Pipe, depth); !cont {
-			return
-		}
-		if cont = visit(n.List, depth); !cont {
-			return
-		}
-		if n.ElseList != nil {
-			if cont = visit(n.ElseList, depth); !cont {
-				return false
-			}
-		}
-		return
-	}
-	visit = func(n parse.Node, depth int) (cont bool) {
-		cont = fn(n, depth)
-		if !cont {
-			return
-		}
+	traverseTreeVisit(tree.Root, 0, fn)
+}
 
-		switch n := n.(type) {
-		case *parse.IfNode:
-			cont = visitBranch(&n.BranchNode, depth)
-		case *parse.RangeNode:
-			cont = visitBranch(&n.BranchNode, depth)
-		case *parse.WithNode:
-			cont = visitBranch(&n.BranchNode, depth)
-		case *parse.ListNode:
-			for _, n := range n.Nodes {
-				if cont = visit(n, depth+1); !cont {
-					break
-				}
-			}
-		case *parse.ActionNode:
-			cont = visit(n.Pipe, depth)
-		case *parse.PipeNode:
-			for _, cmd := range n.Cmds {
-				if cont = visit(cmd, depth); !cont {
-					break
-				}
-			}
-		case *parse.CommandNode:
-			for _, arg := range n.Args {
-				if pipe, ok := arg.(*parse.PipeNode); ok {
-					if cont = visit(pipe, depth+1); !cont {
-						break
-					}
-				}
-			}
-		case *parse.TemplateNode, *parse.TextNode:
-			break
-		default:
-			panic("unknown node type")
-		}
+func traverseTreeVisitBranch(n *parse.BranchNode, depth int, fn func(n parse.Node, depth int) (cont bool)) (cont bool) {
+	if cont = traverseTreeVisit(n.Pipe, depth, fn); !cont {
 		return
 	}
-	visit(tree.Root, 0)
+	if cont = traverseTreeVisit(n.List, depth, fn); !cont {
+		return
+	}
+	if n.ElseList != nil {
+		if cont = traverseTreeVisit(n.ElseList, depth, fn); !cont {
+			return false
+		}
+	}
+	return
+}
+
+func traverseTreeVisit(
+	n parse.Node,
+	depth int,
+	fn func(n parse.Node, depth int) (cont bool)) (cont bool) {
+	cont = fn(n, depth)
+	if !cont {
+		return
+	}
+
+	switch n := n.(type) {
+	case *parse.IfNode:
+		cont = traverseTreeVisitBranch(&n.BranchNode, depth, fn)
+	case *parse.RangeNode:
+		cont = traverseTreeVisitBranch(&n.BranchNode, depth, fn)
+	case *parse.WithNode:
+		cont = traverseTreeVisitBranch(&n.BranchNode, depth, fn)
+	case *parse.ListNode:
+		for _, n := range n.Nodes {
+			if cont = traverseTreeVisit(n, depth+1, fn); !cont {
+				break
+			}
+		}
+	case *parse.ActionNode:
+		cont = traverseTreeVisit(n.Pipe, depth, fn)
+	case *parse.PipeNode:
+		for _, cmd := range n.Cmds {
+			if cont = traverseTreeVisit(cmd, depth, fn); !cont {
+				break
+			}
+		}
+	case *parse.CommandNode:
+		for _, arg := range n.Args {
+			if pipe, ok := arg.(*parse.PipeNode); ok {
+				if cont = traverseTreeVisit(pipe, depth+1, fn); !cont {
+					break
+				}
+			}
+		}
+	case *parse.TemplateNode, *parse.TextNode:
+		break
+	default:
+		panic("unknown node type")
+	}
+	return
 }

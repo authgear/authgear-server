@@ -45,6 +45,7 @@ type FormPrefiller struct {
 	UI      *config.UIConfig
 }
 
+//nolint:gocognit
 func (p *FormPrefiller) Prefill(form url.Values) {
 	hasEmail := false
 	hasUsername := false

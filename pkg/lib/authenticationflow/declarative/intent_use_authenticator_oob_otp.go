@@ -109,6 +109,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 	return nil, authflow.ErrIncompatibleInput
 }
 
+// nolint:gocognit
 func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []AuthenticateOption, index int) (info *authenticator.Info, isNew bool, err error) {
 	for idx, c := range options {
 		if idx == index {

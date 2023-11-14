@@ -67,6 +67,7 @@ func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interact
 	return nil
 }
 
+// nolint:gocognit
 func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
