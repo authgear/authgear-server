@@ -6,7 +6,7 @@ import {
   Text,
 } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import produce, { createDraft } from "immer";
+import { produce, createDraft } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";

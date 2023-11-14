@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type UserQueryNodeFragment = { __typename?: 'User', id: string, standardAttributes: any, customAttributes: any, web3: any, formattedName?: string | null, endUserAccountID?: string | null, isAnonymous: boolean, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null, lastLoginAt?: any | null, createdAt: any, updatedAt: any, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, identities?: { __typename?: 'IdentityConnection', edges?: Array<{ __typename?: 'IdentityEdge', node?: { __typename?: 'Identity', id: string, type: Types.IdentityType, claims: any, createdAt: any, updatedAt: any } | null } | null> | null } | null, verifiedClaims: Array<{ __typename?: 'Claim', name: string, value: string }>, sessions?: { __typename?: 'SessionConnection', edges?: Array<{ __typename?: 'SessionEdge', node?: { __typename?: 'Session', id: string, type: Types.SessionType, clientID?: string | null, lastAccessedAt: any, lastAccessedByIP: string, displayName: string } | null } | null> | null } | null, authorizations?: { __typename?: 'AuthorizationConnection', edges?: Array<{ __typename?: 'AuthorizationEdge', node?: { __typename?: 'Authorization', id: string, clientID: string, scopes: Array<string>, createdAt: any } | null } | null> | null } | null };
 
 export type UserQueryQueryVariables = Types.Exact<{
-  userID: Types.Scalars['ID'];
+  userID: Types.Scalars['ID']['input'];
 }>;
 
 
@@ -115,6 +115,11 @@ export function useUserQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);
         }
+export function useUserQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<UserQueryQuery, UserQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<UserQueryQuery, UserQueryQueryVariables>(UserQueryDocument, options);
+        }
 export type UserQueryQueryHookResult = ReturnType<typeof useUserQueryQuery>;
 export type UserQueryLazyQueryHookResult = ReturnType<typeof useUserQueryLazyQuery>;
+export type UserQuerySuspenseQueryHookResult = ReturnType<typeof useUserQuerySuspenseQuery>;
 export type UserQueryQueryResult = Apollo.QueryResult<UserQueryQuery, UserQueryQueryVariables>;

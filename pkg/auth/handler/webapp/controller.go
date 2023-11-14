@@ -162,10 +162,12 @@ func (c *Controller) Serve() {
 		http.Error(c.response, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 
-	if apierrors.IsAPIError(err) {
-		c.renderError(err)
-	} else {
-		panic(err)
+	if err != nil {
+		if apierrors.IsAPIError(err) {
+			c.renderError(err)
+		} else {
+			panic(err)
+		}
 	}
 }
 

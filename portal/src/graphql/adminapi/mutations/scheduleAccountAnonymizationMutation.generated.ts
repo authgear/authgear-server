@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ScheduleAccountAnonymizationMutationMutationVariables = Types.Exact<{
-  userID: Types.Scalars['ID'];
+  userID: Types.Scalars['ID']['input'];
 }>;
 
 

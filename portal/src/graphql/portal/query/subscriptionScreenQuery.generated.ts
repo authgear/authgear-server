@@ -6,9 +6,9 @@ const defaultOptions = {} as const;
 export type AppFragmentFragment = { __typename?: 'App', id: string, effectiveAppConfig: any, effectiveFeatureConfig: any, isProcessingSubscription: boolean, lastStripeError?: any | null, planName: string, previousMonth?: { __typename?: 'SubscriptionUsage', nextBillingDate: any, items: Array<{ __typename?: 'SubscriptionUsageItem', type: Types.SubscriptionItemPriceType, usageType: Types.SubscriptionItemPriceUsageType, smsRegion: Types.SubscriptionItemPriceSmsRegion, whatsappRegion: Types.SubscriptionItemPriceWhatsappRegion, quantity: number, currency?: string | null, unitAmount?: number | null, totalAmount?: number | null, freeQuantity?: number | null, transformQuantityDivideBy?: number | null, transformQuantityRound: Types.TransformQuantityRound }> } | null, thisMonth?: { __typename?: 'SubscriptionUsage', nextBillingDate: any, items: Array<{ __typename?: 'SubscriptionUsageItem', type: Types.SubscriptionItemPriceType, usageType: Types.SubscriptionItemPriceUsageType, smsRegion: Types.SubscriptionItemPriceSmsRegion, whatsappRegion: Types.SubscriptionItemPriceWhatsappRegion, quantity: number, currency?: string | null, unitAmount?: number | null, totalAmount?: number | null, freeQuantity?: number | null, transformQuantityDivideBy?: number | null, transformQuantityRound: Types.TransformQuantityRound }> } | null, subscription?: { __typename?: 'Subscription', id: string, createdAt: any, updatedAt: any, cancelledAt?: any | null, endedAt?: any | null } | null };
 
 export type SubscriptionScreenQueryQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID'];
-  thisMonth: Types.Scalars['DateTime'];
-  previousMonth: Types.Scalars['DateTime'];
+  id: Types.Scalars['ID']['input'];
+  thisMonth: Types.Scalars['DateTime']['input'];
+  previousMonth: Types.Scalars['DateTime']['input'];
 }>;
 
 
@@ -112,6 +112,11 @@ export function useSubscriptionScreenQueryLazyQuery(baseOptions?: Apollo.LazyQue
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>(SubscriptionScreenQueryDocument, options);
         }
+export function useSubscriptionScreenQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>(SubscriptionScreenQueryDocument, options);
+        }
 export type SubscriptionScreenQueryQueryHookResult = ReturnType<typeof useSubscriptionScreenQueryQuery>;
 export type SubscriptionScreenQueryLazyQueryHookResult = ReturnType<typeof useSubscriptionScreenQueryLazyQuery>;
+export type SubscriptionScreenQuerySuspenseQueryHookResult = ReturnType<typeof useSubscriptionScreenQuerySuspenseQuery>;
 export type SubscriptionScreenQueryQueryResult = Apollo.QueryResult<SubscriptionScreenQueryQuery, SubscriptionScreenQueryQueryVariables>;

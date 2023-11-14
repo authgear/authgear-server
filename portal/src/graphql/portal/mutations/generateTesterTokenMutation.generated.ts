@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GenerateTesterTokenMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  returnUri: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  returnUri: Types.Scalars['String']['input'];
 }>;
 
 

@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DomainsQueryQueryVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
+  appID: Types.Scalars['ID']['input'];
 }>;
 
 
@@ -55,6 +55,11 @@ export function useDomainsQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DomainsQueryQuery, DomainsQueryQueryVariables>(DomainsQueryDocument, options);
         }
+export function useDomainsQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DomainsQueryQuery, DomainsQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DomainsQueryQuery, DomainsQueryQueryVariables>(DomainsQueryDocument, options);
+        }
 export type DomainsQueryQueryHookResult = ReturnType<typeof useDomainsQueryQuery>;
 export type DomainsQueryLazyQueryHookResult = ReturnType<typeof useDomainsQueryLazyQuery>;
+export type DomainsQuerySuspenseQueryHookResult = ReturnType<typeof useDomainsQuerySuspenseQuery>;
 export type DomainsQueryQueryResult = Apollo.QueryResult<DomainsQueryQuery, DomainsQueryQueryVariables>;

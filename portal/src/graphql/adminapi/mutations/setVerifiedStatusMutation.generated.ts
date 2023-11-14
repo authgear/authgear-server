@@ -4,10 +4,10 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SetVerifiedStatusMutationMutationVariables = Types.Exact<{
-  userID: Types.Scalars['ID'];
-  claimName: Types.Scalars['String'];
-  claimValue: Types.Scalars['String'];
-  isVerified: Types.Scalars['Boolean'];
+  userID: Types.Scalars['ID']['input'];
+  claimName: Types.Scalars['String']['input'];
+  claimValue: Types.Scalars['String']['input'];
+  isVerified: Types.Scalars['Boolean']['input'];
 }>;
 
 

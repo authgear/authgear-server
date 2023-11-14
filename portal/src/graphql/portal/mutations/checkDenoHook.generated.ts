@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CheckDenoHookMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['ID'];
-  content: Types.Scalars['String'];
+  appID: Types.Scalars['ID']['input'];
+  content: Types.Scalars['String']['input'];
 }>;
 
 

@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ResetPasswordMutationMutationVariables = Types.Exact<{
-  userID: Types.Scalars['ID'];
-  password: Types.Scalars['String'];
+  userID: Types.Scalars['ID']['input'];
+  password: Types.Scalars['String']['input'];
 }>;
 
 

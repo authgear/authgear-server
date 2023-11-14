@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
-import produce from "immer";
+import { produce } from "immer";
 import {
   Checkbox,
   DetailsList,

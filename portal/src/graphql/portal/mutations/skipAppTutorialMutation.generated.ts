@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SkipAppTutorialMutationMutationVariables = Types.Exact<{
-  appID: Types.Scalars['String'];
+  appID: Types.Scalars['String']['input'];
 }>;
 
 

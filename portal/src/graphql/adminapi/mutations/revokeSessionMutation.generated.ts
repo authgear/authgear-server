@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type RevokeSessionMutationMutationVariables = Types.Exact<{
-  sessionID: Types.Scalars['ID'];
+  sessionID: Types.Scalars['ID']['input'];
 }>;
 
 

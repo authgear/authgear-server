@@ -1,5 +1,5 @@
 import { useCallback, useContext } from "react";
-import { getName } from "i18n-iso-countries";
+import en from "cldr-localenames-full/main/en/territories.json";
 import { Context } from "@oursky/react-messageformat";
 
 export function useGetCountryName(): {
@@ -19,8 +19,16 @@ export function useGetCountryName(): {
 }
 
 export function getCountryName(code: string, locale: string): string {
-  // override library output here
-  return getName(code, locale);
+  if (locale === "en") {
+    const territories: Record<string, string | undefined> =
+      en.main.en.localeDisplayNames.territories;
+    const name = territories[code];
+    if (name != null) {
+      return name;
+    }
+  }
+
+  return `${code}`;
 }
 
 export function useGetTelecomCountryName(): {
