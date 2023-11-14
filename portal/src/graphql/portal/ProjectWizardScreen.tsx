@@ -13,7 +13,7 @@ import {
   Text,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import produce from "immer";
+import { produce } from "immer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import WizardContentLayout, {

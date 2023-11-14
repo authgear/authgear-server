@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useState, useMemo } from "react";
 import cn from "classnames";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
-import produce from "immer";
+import { produce } from "immer";
 import {
   Text,
   FontIcon,

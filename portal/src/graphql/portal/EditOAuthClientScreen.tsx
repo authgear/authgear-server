@@ -7,7 +7,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import deepEqual from "deep-equal";
-import produce, { createDraft } from "immer";
+import { produce, createDraft } from "immer";
 import {
   Icon,
   Text,

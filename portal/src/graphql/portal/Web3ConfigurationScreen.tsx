@@ -7,7 +7,7 @@ import {
   DetailsList,
 } from "@fluentui/react";
 import { APIError } from "../../error/error";
-import produce from "immer";
+import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { PortalAPIAppConfig } from "../../types";
 import { useCheckbox, useDropdown } from "../../hook/useInput";

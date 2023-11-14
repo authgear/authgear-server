@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
-import produce from "immer";
+import { produce } from "immer";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
