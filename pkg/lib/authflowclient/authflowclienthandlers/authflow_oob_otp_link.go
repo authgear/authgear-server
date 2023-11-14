@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authflowclient"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -26,7 +27,7 @@ func ConfigureAuthflowOOBOTPLinkRoute(route httproute.Route) httproute.Route {
 
 type AuthflowOOBOTPLinkViewModel struct {
 	WebsocketURL     htmltemplate.URL
-	StateQuery       LoginLinkOTPPageQueryState
+	StateQuery       web.LoginLinkOTPPageQueryState
 	MaskedClaimValue string
 	ResendCooldown   int
 }
@@ -43,9 +44,9 @@ func NewAuthflowOOBOTPLinkViewModel(s *webapp.Session, screen *webapp.AuthflowSc
 		resendCooldown = 0
 	}
 
-	stateQuery := LoginLinkOTPPageQueryStateInitial
+	stateQuery := web.LoginLinkOTPPageQueryStateInitial
 	if data.CanCheck {
-		stateQuery = LoginLinkOTPPageQueryStateMatched
+		stateQuery = web.LoginLinkOTPPageQueryStateMatched
 	}
 
 	return &AuthflowOOBOTPLinkViewModel{

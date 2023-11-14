@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -40,7 +41,7 @@ type LoginLinkOTPNode interface {
 type LoginLinkOTPViewModel struct {
 	Target              string
 	OTPCodeSendCooldown int
-	StateQuery          LoginLinkOTPPageQueryState
+	StateQuery          web.LoginLinkOTPPageQueryState
 }
 
 type LoginLinkOTPHandler struct {
@@ -58,7 +59,7 @@ func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := LoginLinkOTPViewModel{
-		StateQuery: GetLoginLinkStateFromQuery(r),
+		StateQuery: web.GetLoginLinkStateFromQuery(r),
 	}
 	var alternatives *viewmodels.AlternativeStepsViewModel
 
@@ -170,7 +171,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	ctrl.PostAction("dryrun_verify", func() error {
-		var state LoginLinkOTPPageQueryState
+		var state web.LoginLinkOTPPageQueryState
 
 		email, err := getEmailFromGraph()
 		if err != nil {
@@ -182,16 +183,16 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			kind, email, "", &otp.VerifyOptions{UseSubmittedCode: true, SkipConsume: true},
 		)
 		if err == nil {
-			state = LoginLinkOTPPageQueryStateMatched
+			state = web.LoginLinkOTPPageQueryStateMatched
 		} else if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			state = LoginLinkOTPPageQueryStateInvalidCode
+			state = web.LoginLinkOTPPageQueryStateInvalidCode
 		} else {
 			return err
 		}
 
 		url := url.URL{Path: r.URL.Path}
 		query := r.URL.Query()
-		query.Set(LoginLinkOTPPageQueryStateKey, string(state))
+		query.Set(web.LoginLinkOTPPageQueryStateKey, string(state))
 		url.RawQuery = query.Encode()
 
 		result := webapp.Result{
@@ -215,7 +216,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 
 		result.RemoveQueries = setutil.Set[string]{
-			LoginLinkOTPPageQueryStateKey: struct{}{},
+			web.LoginLinkOTPPageQueryStateKey: struct{}{},
 		}
 		result.WriteResponse(w, r)
 		return nil

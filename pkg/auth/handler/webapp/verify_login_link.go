@@ -11,6 +11,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -40,7 +41,7 @@ func ConfigureVerifyLoginLinkOTPRoute(route httproute.Route) httproute.Route {
 
 type VerifyLoginLinkOTPViewModel struct {
 	Code       string
-	StateQuery LoginLinkOTPPageQueryState
+	StateQuery web.LoginLinkOTPPageQueryState
 }
 
 func NewVerifyLoginLinkOTPViewModel(r *http.Request) VerifyLoginLinkOTPViewModel {
@@ -48,7 +49,7 @@ func NewVerifyLoginLinkOTPViewModel(r *http.Request) VerifyLoginLinkOTPViewModel
 
 	return VerifyLoginLinkOTPViewModel{
 		Code:       code,
-		StateQuery: GetLoginLinkStateFromQuery(r),
+		StateQuery: web.GetLoginLinkStateFromQuery(r),
 	}
 }
 
@@ -89,11 +90,11 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 	defer ctrl.Serve()
 
-	finishWithState := func(state LoginLinkOTPPageQueryState) {
+	finishWithState := func(state web.LoginLinkOTPPageQueryState) {
 		url := url.URL{}
 		url.Path = r.URL.Path
 		query := r.URL.Query()
-		query.Set(LoginLinkOTPPageQueryStateKey, string(state))
+		query.Set(web.LoginLinkOTPPageQueryStateKey, string(state))
 		url.RawQuery = query.Encode()
 
 		result := webapp.Result{
@@ -109,13 +110,13 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			return err
 		}
 
-		if GetLoginLinkStateFromQuery(r) == LoginLinkOTPPageQueryStateInitial {
+		if web.GetLoginLinkStateFromQuery(r) == web.LoginLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
 			kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
 
 			target, err := h.LoginLinkOTPCodeService.LookupCode(kind.Purpose(), code)
 			if apierrors.IsKind(err, otp.InvalidOTPCode) {
-				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+				finishWithState(web.LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
 				return err
@@ -125,7 +126,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 				kind, target, code, &otp.VerifyOptions{SkipConsume: true},
 			)
 			if apierrors.IsKind(err, otp.InvalidOTPCode) {
-				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+				finishWithState(web.LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
 			} else if err != nil {
 				return err
@@ -147,7 +148,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		target, err := h.LoginLinkOTPCodeService.LookupCode(kind.Purpose(), code)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+			finishWithState(web.LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {
 			return err
@@ -155,7 +156,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		state, err := h.LoginLinkOTPCodeService.SetSubmittedCode(kind, target, code)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
-			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
+			finishWithState(web.LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
 		} else if err != nil {
 			return err
@@ -192,7 +193,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		finishWithState(LoginLinkOTPPageQueryStateMatched)
+		finishWithState(web.LoginLinkOTPPageQueryStateMatched)
 		return nil
 	})
 }
