@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -44,7 +45,7 @@ type ControllerDeps struct {
 	Publisher               *Publisher
 	Clock                   clock.Clock
 	UIConfig                *config.UIConfig
-	ErrorCookie             *webapp.ErrorCookie
+	ErrorCookie             *web.ErrorCookie
 	TesterEndpointsProvider tester.EndpointsProvider
 
 	TrustProxy config.TrustProxy

@@ -28,21 +28,6 @@ func NewSessionCookieDef() SessionCookieDef {
 	return SessionCookieDef{Def: def}
 }
 
-type ErrorCookieDef struct {
-	Def *httputil.CookieDef
-}
-
-func NewErrorCookieDef() ErrorCookieDef {
-	def := &httputil.CookieDef{
-		NameSuffix:        "web_err",
-		Path:              "/",
-		AllowScriptAccess: false,
-		SameSite:          http.SameSiteLaxMode,
-		MaxAge:            nil, // Use HTTP session cookie; expires when browser closes
-	}
-	return ErrorCookieDef{Def: def}
-}
-
 type SignedUpCookieDef struct {
 	Def *httputil.CookieDef
 }

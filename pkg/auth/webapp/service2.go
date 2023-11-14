@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
@@ -55,7 +56,7 @@ type Service2 struct {
 	SessionCookie        SessionCookieDef
 	SignedUpCookie       SignedUpCookieDef
 	MFADeviceTokenCookie mfa.CookieDef
-	ErrorCookie          *ErrorCookie
+	ErrorCookie          *web.ErrorCookie
 	Cookies              CookieManager
 	OAuthConfig          *config.OAuthConfig
 	UIConfig             *config.UIConfig

@@ -14,6 +14,7 @@ import (
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -34,6 +35,7 @@ var utilsDeps = wire.NewSet(
 		wire.Bind(new(httputil.FlashMessageCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(httputil.TutorialCookieManager), new(*httputil.CookieManager)),
 		wire.Bind(new(nonce.CookieManager), new(*httputil.CookieManager)),
+		wire.Bind(new(web.ErrorCookieCookieManager), new(*httputil.CookieManager)),
 	),
 )
 
